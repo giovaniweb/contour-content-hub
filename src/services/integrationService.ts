@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig } from "@/types/database";
 import { DropboxConfig } from "@/types/database";
@@ -208,13 +207,15 @@ export const testDropboxConnection = async (token: string): Promise<{
     }
     
     // Chamada ao endpoint de usuário do Dropbox para verificar a autenticação
+    // A correção principal está no formato do body e nos headers
     const response = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: 'null' // O Dropbox API requer um 'null' como string no corpo da requisição
+      // A API do Dropbox espera a string "null" e não um objeto JSON com valor null
+      body: null
     });
 
     // Capturar o corpo da resposta para análise, independente do status
@@ -267,4 +268,3 @@ export const testDropboxConnection = async (token: string): Promise<{
     };
   }
 };
-
