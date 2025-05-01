@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -285,8 +284,15 @@ const AdminIntegrations: React.FC = () => {
     try {
       setIsLoading(true);
       
+      // Ensure token and pasta_padrao are provided (even though the schema already validates this)
+      const configToSave: Omit<DropboxConfig, "id" | "data_configuracao"> = {
+        token: values.token,
+        pasta_padrao: values.pasta_padrao,
+        link_base: values.link_base
+      };
+      
       // Salvar configuração do Dropbox
-      await saveDropboxConfig(values);
+      await saveDropboxConfig(configToSave);
       
       // Recarregar a configuração
       const updatedConfig = await getDropboxConfig();

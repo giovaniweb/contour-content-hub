@@ -91,7 +91,7 @@ export interface GptConfig {
   nome: string;
   tipo: string;
   modelo: string;
-  chave_api?: string;
+  chave_api?: string; // Added the missing property
   prompt?: string;
   ativo: boolean;
   data_configuracao: string;
@@ -107,10 +107,11 @@ export interface LogUso {
 
 export interface DropboxConfig {
   id?: string;
-  token: string;
+  token: string; // This is required, not optional
   pasta_padrao: string;
   link_base?: string;
   data_configuracao?: string;
 }
 
 export type IntegrationStatus = 'integrated' | 'not_configured' | 'error';
+
