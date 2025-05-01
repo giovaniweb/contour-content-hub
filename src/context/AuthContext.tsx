@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -93,6 +94,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      // Type guard to ensure role is one of the allowed values
+      const validateRole = (role: string): 'cliente' | 'admin' | 'operador' => {
+        if (role === 'cliente' || role === 'admin' || role === 'operador') {
+          return role;
+        }
+        return 'cliente'; // Default to 'cliente' if an invalid role is found
+      };
+
       // Converter o formato do banco para o formato esperado pelo frontend
       return {
         id: perfil.id,
@@ -105,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         language: (perfil.idioma?.toUpperCase() as "PT" | "EN" | "ES") || "EN",
         profilePhotoUrl: perfil.foto_url || '/placeholder.svg',
         passwordChanged: true, // Presumimos que usuários no banco já alteraram a senha
-        role: perfil.role || 'cliente'
+        role: validateRole(perfil.role || 'cliente')
       };
     } catch (error) {
       console.error("Erro ao processar perfil:", error);
