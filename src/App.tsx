@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
+import { LanguageProvider } from "@/context/LanguageContext";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -57,25 +58,27 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/script-generator" element={<ScriptGenerator />} />
-            <Route path="/media-library" element={<MediaLibrary />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            
-            {/* Rotas protegidas por papel de usuário */}
-            <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/integrations" />} />} />
-            <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
-            <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <LanguageProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/script-generator" element={<ScriptGenerator />} />
+              <Route path="/media-library" element={<MediaLibrary />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              
+              {/* Rotas protegidas por papel de usuário */}
+              <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/integrations" />} />} />
+              <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
+              <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </LanguageProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 import ProfileMenu from "./ProfileMenu";
 import LanguageSelector from "./LanguageSelector";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!isAuthenticated) {
@@ -33,22 +35,22 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     {
-      title: "Dashboard",
+      title: t('dashboard'),
       href: "/dashboard",
       icon: <HomeIcon className="h-5 w-5" />,
     },
     {
-      title: "Scripts",
+      title: t('scripts'),
       href: "/script-generator",
       icon: <FileText className="h-5 w-5" />,
     },
     {
-      title: "Media",
+      title: t('media'),
       href: "/media-library",
       icon: <Video className="h-5 w-5" />,
     },
     {
-      title: "Calendar",
+      title: t('calendar'),
       href: "/calendar",
       icon: <CalendarIcon className="h-5 w-5" />,
     }

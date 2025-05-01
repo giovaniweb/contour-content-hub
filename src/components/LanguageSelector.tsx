@@ -9,26 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-type Language = {
-  code: string;
-  name: string;
-  flag: string;
-};
-
-const languages: Language[] = [
-  { code: "pt", name: "Português", flag: "🇧🇷" },
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Español", flag: "🇪🇸" }
-];
+import { useLanguage, languages } from "@/context/LanguageContext";
 
 const LanguageSelector: React.FC = () => {
-  const [currentLanguage, setCurrentLanguage] = React.useState<Language>(languages[0]);
+  const { currentLanguage, setLanguage, t } = useLanguage();
 
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    // Aqui você pode implementar a lógica de mudança de idioma
-    console.log(`Idioma alterado para: ${language.code}`);
+  const handleLanguageChange = (language: typeof languages[0]) => {
+    setLanguage(language);
   };
 
   return (
@@ -58,7 +45,7 @@ const LanguageSelector: React.FC = () => {
         </div>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Selecionar idioma</p>
+        <p>{t('selectLanguage')}</p>
       </TooltipContent>
     </Tooltip>
   );

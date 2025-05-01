@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { FileText, Video, Calendar, Sparkles, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Dashboard: React.FC = () => {
   const { isAdmin } = usePermissions();
+  const { t } = useLanguage();
   const userName = "Usuário";  // Idealmente, isso viria do contexto de autenticação
   
   return (
@@ -18,10 +20,10 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-contourline-darkBlue feed-header">
-            Bem-vindo ao ReelLine, {userName}
+            {t('welcome')}, {userName}
           </h1>
           <p className="text-contourline-darkBlue/70 mt-2">
-            Seu estúdio criativo de conteúdo, em um clique.
+            {t('studioContent')}
           </p>
         </div>
         
@@ -36,32 +38,32 @@ const Dashboard: React.FC = () => {
             {/* Ações rápidas */}
             <Card className="overflow-hidden border-contourline-lightBlue/10">
               <CardHeader className="bg-gradient-to-r from-contourline-lightBlue/5 to-contourline-lightBlue/10 pb-3">
-                <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+                <CardTitle className="text-lg">{t('actions')}</CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/script-generator">
                     <Button variant="outline" className="w-full flex flex-col h-auto py-4">
                       <FileText className="h-6 w-6 mb-2" />
-                      <span>Gerar Roteiro</span>
+                      <span>{t('generateScript')}</span>
                     </Button>
                   </Link>
                   <Link to="/media-library">
                     <Button variant="outline" className="w-full flex flex-col h-auto py-4">
                       <Video className="h-6 w-6 mb-2" />
-                      <span>Biblioteca</span>
+                      <span>{t('library')}</span>
                     </Button>
                   </Link>
                   <Link to="/calendar">
                     <Button variant="outline" className="w-full flex flex-col h-auto py-4">
                       <Calendar className="h-6 w-6 mb-2" />
-                      <span>Agenda</span>
+                      <span>{t('agenda')}</span>
                     </Button>
                   </Link>
                   <Link to="/script-generator?type=bigIdea">
                     <Button variant="outline" className="w-full flex flex-col h-auto py-4">
                       <Sparkles className="h-6 w-6 mb-2" />
-                      <span>Big Idea</span>
+                      <span>{t('bigIdea')}</span>
                     </Button>
                   </Link>
                 </div>
@@ -72,7 +74,7 @@ const Dashboard: React.FC = () => {
                     <Link to="/admin/integrations">
                       <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
                         <Settings className="h-4 w-4 mr-2" />
-                        <span>Painel de Integração (Admin)</span>
+                        <span>{t('adminPanel')}</span>
                       </Button>
                     </Link>
                   </div>
@@ -86,20 +88,20 @@ const Dashboard: React.FC = () => {
             {/* Status de uso */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Desempenho</CardTitle>
+                <CardTitle className="text-lg">{t('performance')}</CardTitle>
                 <CardDescription>
-                  Seu histórico de atividade este mês
+                  {t('activityHistory')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="bg-contourline-lightGray/30 rounded-lg p-4">
                     <div className="text-3xl font-bold text-contourline-mediumBlue">12</div>
-                    <div className="text-sm text-contourline-darkBlue/70">Roteiros Criados</div>
+                    <div className="text-sm text-contourline-darkBlue/70">{t('scriptsCreated')}</div>
                   </div>
                   <div className="bg-contourline-lightGray/30 rounded-lg p-4">
                     <div className="text-3xl font-bold text-contourline-mediumBlue">8</div>
-                    <div className="text-sm text-contourline-darkBlue/70">Vídeos Salvos</div>
+                    <div className="text-sm text-contourline-darkBlue/70">{t('videosSaved')}</div>
                   </div>
                 </div>
               </CardContent>
