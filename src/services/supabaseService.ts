@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion } from '@/utils/api';
 
@@ -17,76 +16,31 @@ const convertRoteiro = (roteiro: any): ScriptResponse => {
   };
 };
 
-// Função para gerar um roteiro (neste ponto ainda usa mockup)
+// Função para gerar um roteiro usando a Edge Function
 export const generateScript = async (request: ScriptRequest): Promise<ScriptResponse> => {
   try {
-    // Converter o formato da UI para o formato do banco
-    const roteiroData = {
-      usuario_id: (await supabase.auth.getUser()).data.user?.id,
-      tipo: request.type,
-      titulo: `${request.topic || 'Novo roteiro'} - ${new Date().toLocaleDateString('pt-BR')}`,
-      conteudo: '',
-      status: 'gerado'
-    };
-    
-    // Aqui poderia chamar uma API externa ou Edge Function para gerar o conteúdo
-    let mockContent = '';
-    const toneMap: Record<string, string> = {
-      'professional': 'profissional',
-      'friendly': 'descontraído',
-      'provocative': 'provocativo',
-      'educational': 'educativo'
-    };
-    
-    const tonePt = toneMap[request.tone || 'professional'] || 'profissional';
-    const equipmentText = request.equipment && request.equipment.length > 0 
-      ? `usando ${request.equipment.join(", ")}` 
-      : "usando nossos equipamentos avançados";
-    
-    switch (request.type) {
-      case 'videoScript':
-        mockContent = `# Roteiro para ${request.topic || "Tratamento"}\n\n` +
-          `## Introdução (10 segundos)\n` +
-          `"Bem-vindos ao nosso canal! Hoje vamos explorar ${request.topic || "um tratamento incrível"} ${equipmentText}.\n\n` +
-          `## Conteúdo Principal (30 segundos)\n` +
-          `Esta abordagem revolucionária trata ${request.bodyArea || "áreas problemáticas"} e proporciona ${request.purpose || "resultados incríveis"}. O tom da mensagem é ${tonePt}.\n\n` +
-          `## Dicas e Conselhos (15 segundos)\n` +
-          `Para melhores resultados, recomendamos...\n\n` +
-          `## Chamada para Ação (5 segundos)\n` +
-          `Agende sua consulta hoje mesmo!`;
-        break;
-      case 'bigIdea':
-        mockContent = `# Agenda Criativa: ${request.topic || "Foco Mensal de Tratamento"}\n\n` +
-          `## Conceito Principal\n` +
-          `Posicionar ${request.topic || "seu tratamento"} como a solução ideal para ${request.purpose || "necessidades dos clientes"}.\n\n` +
-          `## Pontos-Chave de Mensagem\n` +
-          `- Destacar os benefícios únicos\n` +
-          `- Compartilhar resultados antes/depois\n` +
-          `- Enfatizar a expertise da sua clínica\n\n` +
-          `## Estratégia de Conteúdo\n` +
-          `Criar uma série de conteúdo mostrando resultados progressivos ao longo do tempo.`;
-        break;
-      case 'dailySales':
-        mockContent = `# Ideia para Stories\n\n` +
-          `"Você sabia que nosso ${request.topic || "tratamento exclusivo"} pode transformar ${request.bodyArea || "sua aparência"} em apenas uma sessão?\n\n` +
-          `Estamos com uma promoção especial apenas esta semana!\n\n` +
-          `Deslize para cima ou envie DM para agendar sua consulta."`;
-        break;
+    const { data: user } = await supabase.auth.getUser();
+    const token = await supabase.auth.getSession().then(res => res.data.session?.access_token || '');
+
+    // Chamar a Edge Function para gerar o roteiro
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        request
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ao chamar a Edge Function: ${errorText}`);
     }
-    
-    roteiroData.conteudo = mockContent;
-    
-    // Salvar o roteiro no banco
-    const { data, error } = await supabase
-      .from('roteiros')
-      .insert(roteiroData)
-      .select()
-      .single();
-      
-    if (error) throw error;
-    
-    // Converter formato e retornar
-    return convertRoteiro(data);
+
+    const scriptResponse = await response.json();
+    return scriptResponse;
   } catch (error) {
     console.error('Erro ao gerar roteiro:', error);
     throw error;
