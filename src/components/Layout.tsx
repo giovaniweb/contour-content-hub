@@ -9,12 +9,14 @@ interface LayoutProps {
   children: React.ReactNode;
   requireAuth?: boolean;
   title?: string;
+  fullWidth?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
   requireAuth = true,
-  title
+  title,
+  fullWidth = false
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -40,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({
       <Navbar />
       
       <ScrollArea className="flex-grow">
-        <main className="container mx-auto px-4 py-6">
+        <main className={`mx-auto px-4 py-6 ${fullWidth ? 'w-full' : 'container'}`}>
           {title && (
             <h1 className="text-2xl md:text-3xl font-bold mb-6 text-contourline-darkBlue">{title}</h1>
           )}
