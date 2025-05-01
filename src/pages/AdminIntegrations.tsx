@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff } from "lucide-react";
+import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff, Info } from "lucide-react";
 import { GptConfig, DropboxConfig, IntegrationStatus } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -27,6 +27,13 @@ import {
 } from "@/services/integrationService";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // GPT Model Schema
 const gptSchema = z.object({
@@ -65,6 +72,8 @@ const AdminIntegrations: React.FC = () => {
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [showDropboxToken, setShowDropboxToken] = useState<boolean>(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState<boolean>(false);
+  const [currentError, setCurrentError] = useState<string>("");
   const [statuses, setStatuses] = useState<IntegrationStatuses>({
     gpt_roteiro: { status: 'not_configured' },
     gpt_big_idea: { status: 'not_configured' },
@@ -270,11 +279,18 @@ const AdminIntegrations: React.FC = () => {
         title: "Configurações GPT salvas",
         description: "Modelos de GPT configurados com sucesso",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar configuração GPT:", error);
+      
+      // Exibe o erro detalhado em um diálogo
+      if (error?.message) {
+        setCurrentError(JSON.stringify(error, null, 2));
+        setErrorDialogOpen(true);
+      }
+      
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar as configurações",
+        description: "Ocorreu um erro ao salvar as configurações. Verifique o log de erros.",
         variant: "destructive",
       });
     } finally {
@@ -307,8 +323,15 @@ const AdminIntegrations: React.FC = () => {
         title: "Configuração Dropbox salva",
         description: "Integração com Dropbox configurada com sucesso",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar configuração Dropbox:", error);
+      
+      // Exibe o erro detalhado em um diálogo
+      if (error?.message) {
+        setCurrentError(JSON.stringify(error, null, 2));
+        setErrorDialogOpen(true);
+      }
+      
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao salvar a configuração",
@@ -728,6 +751,28 @@ const AdminIntegrations: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Error Dialog */}
+        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                Detalhes do Erro
+              </DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre o erro encontrado
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-gray-50 p-3 rounded-md overflow-auto max-h-80">
+              <pre className="text-xs whitespace-pre-wrap break-words text-red-700">{currentError}</pre>
+            </div>
+            <div className="flex items-center justify-start text-sm text-gray-600">
+              <Info className="h-4 w-4 mr-2" />
+              <p>Este erro pode estar relacionado a permissões no banco de dados ou autenticação.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
