@@ -15,6 +15,7 @@ import MediaLibrary from "./pages/MediaLibrary";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import AdminIntegrations from "./pages/AdminIntegrations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             
             {/* Rotas protegidas por papel de usuário */}
+            <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
             <Route path="/admin/*" element={<AdminRoute element={<div>Painel Administrativo</div>} />} />
             <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
             

@@ -5,10 +5,12 @@ import ContentFeed from "@/components/ContentFeed";
 import CreativeAgendaPreview from "@/components/CreativeAgendaPreview";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Video, Calendar, Sparkles } from "lucide-react";
+import { FileText, Video, Calendar, Sparkles, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const Dashboard: React.FC = () => {
+  const { isAdmin } = usePermissions();
   const userName = "Usuário";  // Idealmente, isso viria do contexto de autenticação
   
   return (
@@ -63,6 +65,18 @@ const Dashboard: React.FC = () => {
                     </Button>
                   </Link>
                 </div>
+                
+                {/* Link para o painel de integração - apenas para admin */}
+                {isAdmin() && (
+                  <div className="mt-4">
+                    <Link to="/admin/integrations">
+                      <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span>Painel de Integração (Admin)</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
             
