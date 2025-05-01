@@ -1,3 +1,4 @@
+
 // Interfaces correspondentes às tabelas do banco de dados Supabase
 
 export interface Perfil {
@@ -90,6 +91,7 @@ export interface GptConfig {
   nome: string;
   tipo: string;
   modelo: string;
+  chave_api?: string;
   prompt?: string;
   ativo: boolean;
   data_configuracao: string;
@@ -102,3 +104,13 @@ export interface LogUso {
   detalhe?: string;
   data_log: string;
 }
+
+export interface DropboxConfig {
+  id?: string;
+  token: string;
+  pasta_padrao: string;
+  link_base?: string;
+  data_configuracao?: string;
+}
+
+export type IntegrationStatus = 'integrated' | 'not_configured' | 'error';

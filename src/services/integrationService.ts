@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig } from "@/types/database";
+import { DropboxConfig } from "@/types/database";
 
 /**
  * Serviço para gerenciar as integrações do sistema com APIs e serviços externos
@@ -59,15 +60,39 @@ export const getGptConfigs = async () => {
   }
 };
 
-// Dropbox
-export type DropboxConfig = {
-  id?: string;
-  token: string;
-  pasta_padrao: string;
-  link_base?: string;
-  data_configuracao?: string;
+// Testa a conexão com a API da OpenAI para verificar se a chave é válida
+export const testGptConnection = async (apiKey: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> => {
+  try {
+    // Simplificada, chamada ao endpoint de modelos da OpenAI
+    const response = await fetch('https://api.openai.com/v1/models', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+    });
+
+    const data = await response.json();
+    if (response.status === 200) {
+      return { success: true, message: 'Conexão com OpenAI estabelecida com sucesso' };
+    } else {
+      return { 
+        success: false, 
+        error: data.error?.message || 'Erro ao conectar com API da OpenAI' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido na conexão com OpenAI' 
+    };
+  }
 };
 
+// Dropbox
 export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data_configuracao'>) => {
   try {
     // First, let's create a custom integration row for Dropbox
@@ -140,5 +165,43 @@ export const getDropboxConfig = async () => {
   } catch (error) {
     console.error("Erro ao buscar configuração Dropbox:", error);
     throw error;
+  }
+};
+
+// Testa a conexão com a API do Dropbox para verificar se o token é válido
+export const testDropboxConnection = async (token: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> => {
+  try {
+    // Chamada ao endpoint de usuário do Dropbox para verificar a autenticação
+    const response = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(null)
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+      return { 
+        success: true, 
+        message: `Conexão com Dropbox estabelecida como ${data.name?.display_name || 'usuário'}` 
+      };
+    } else {
+      const errorData = await response.json();
+      return { 
+        success: false, 
+        error: errorData.error_summary || 'Erro ao conectar com API do Dropbox' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido na conexão com Dropbox' 
+    };
   }
 };
