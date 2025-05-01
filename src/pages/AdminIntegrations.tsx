@@ -19,8 +19,9 @@ import { Navigate } from "react-router-dom";
 
 // GPT Model Schema
 const gptSchema = z.object({
-  nome: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
-  tipo: z.enum(["roteiro", "big_idea", "story"]),
+  nome_roteiro: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
+  nome_big_idea: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
+  nome_story: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
   modelo: z.string().min(3, { message: "Selecione um modelo" }),
   chave_api: z.string().min(1, { message: "A chave API é necessária" }),
   ativo: z.boolean().default(true),
@@ -46,8 +47,9 @@ const AdminIntegrations: React.FC = () => {
   const gptForm = useForm<z.infer<typeof gptSchema>>({
     resolver: zodResolver(gptSchema),
     defaultValues: {
-      nome: "",
-      tipo: "roteiro",
+      nome_roteiro: "GPT_Roteiro",
+      nome_big_idea: "GPT_BigIdea",
+      nome_story: "GPT_StoriesqueVende",
       modelo: "",
       chave_api: "",
       ativo: true,
@@ -67,17 +69,47 @@ const AdminIntegrations: React.FC = () => {
   const onGptSubmit = async (values: z.infer<typeof gptSchema>) => {
     try {
       console.log("GPT config values:", values);
+      // Criar configuração para Roteiro
+      const configRoteiro = {
+        nome: values.nome_roteiro,
+        tipo: "roteiro",
+        modelo: values.modelo,
+        chave_api: values.chave_api,
+        ativo: values.ativo
+      };
+
+      // Criar configuração para Big Idea
+      const configBigIdea = {
+        nome: values.nome_big_idea,
+        tipo: "big_idea",
+        modelo: values.modelo,
+        chave_api: values.chave_api,
+        ativo: values.ativo
+      };
+
+      // Criar configuração para Story
+      const configStory = {
+        nome: values.nome_story,
+        tipo: "story",
+        modelo: values.modelo,
+        chave_api: values.chave_api,
+        ativo: values.ativo
+      };
+
       // TODO: Save to database
+      // saveGptConfig(configRoteiro);
+      // saveGptConfig(configBigIdea);
+      // saveGptConfig(configStory);
       
       toast({
-        title: "Configuração GPT salva",
-        description: `Modelo ${values.nome} configurado com sucesso`,
+        title: "Configurações GPT salvas",
+        description: "Modelos de GPT configurados com sucesso",
       });
     } catch (error) {
       console.error("Erro ao salvar configuração GPT:", error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar a configuração",
+        description: "Ocorreu um erro ao salvar as configurações",
         variant: "destructive",
       });
     }
@@ -134,18 +166,20 @@ const AdminIntegrations: React.FC = () => {
               <CardContent>
                 <Form {...gptForm}>
                   <form onSubmit={gptForm.handleSubmit(onGptSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Nomes dos modelos por finalidade</h3>
+                      
                       <FormField
                         control={gptForm.control}
-                        name="nome"
+                        name="nome_roteiro"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nome do modelo</FormLabel>
+                            <FormLabel>Nome do modelo para Roteiro</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: GPT Vídeo, GPT Big Idea..." {...field} />
+                              <Input placeholder="GPT_Roteiro" {...field} />
                             </FormControl>
                             <FormDescription>
-                              Nome descritivo do modelo para identificação
+                              Nome para o modelo de geração de roteiros
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -154,24 +188,32 @@ const AdminIntegrations: React.FC = () => {
                       
                       <FormField
                         control={gptForm.control}
-                        name="tipo"
+                        name="nome_big_idea"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tipo</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="roteiro">Roteiro</SelectItem>
-                                <SelectItem value="big_idea">Big Idea</SelectItem>
-                                <SelectItem value="story">Story</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormLabel>Nome do modelo para Big Idea</FormLabel>
+                            <FormControl>
+                              <Input placeholder="GPT_BigIdea" {...field} />
+                            </FormControl>
                             <FormDescription>
-                              Tipo de conteúdo que este modelo irá gerar
+                              Nome para o modelo de geração de Big Ideas
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={gptForm.control}
+                        name="nome_story"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do modelo para Stories</FormLabel>
+                            <FormControl>
+                              <Input placeholder="GPT_StoriesqueVende" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Nome para o modelo de geração de Stories
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -179,7 +221,9 @@ const AdminIntegrations: React.FC = () => {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-lg font-medium">Configurações compartilhadas</h3>
+                      
                       <FormField
                         control={gptForm.control}
                         name="modelo"
@@ -199,7 +243,7 @@ const AdminIntegrations: React.FC = () => {
                               </SelectContent>
                             </Select>
                             <FormDescription>
-                              Modelo da OpenAI a ser utilizado
+                              Modelo da OpenAI a ser utilizado para todas as finalidades
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -216,7 +260,7 @@ const AdminIntegrations: React.FC = () => {
                               <Input type="password" placeholder="sk-..." {...field} />
                             </FormControl>
                             <FormDescription>
-                              Chave secreta da API OpenAI
+                              Chave secreta da API OpenAI compartilhada para todos os modelos
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

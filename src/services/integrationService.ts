@@ -73,13 +73,6 @@ export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data
     // First, let's create a custom integration row for Dropbox
     // Since we don't have a specific table for Dropbox configs,
     // we'll create a custom structure in our database
-    const integrationData = {
-      tipo: 'dropbox',
-      nome: 'Integração Dropbox',
-      config_json: config,
-      ativo: true,
-      atualizado_em: new Date().toISOString()
-    };
     
     // Check if an integration already exists
     const { data: existing } = await supabase
