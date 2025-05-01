@@ -78,3 +78,18 @@
 .calendar-day.completed {
   @apply border-contourline-mediumBlue/50 bg-contourline-mediumBlue/10;
 }
+
+/* Vista de grid/lista */
+.grid-view-transition {
+  transition: all 0.3s ease;
+}
+
+.grid-item {
+  @apply relative overflow-hidden rounded-lg;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-item:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
+}
