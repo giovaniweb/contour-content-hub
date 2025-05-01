@@ -23,15 +23,34 @@ serve(async (req) => {
     console.log("Edge function iniciada");
     
     // Parse request
-    const requestData = await req.json();
-    console.log("Dados recebidos:", JSON.stringify(requestData));
+    let requestData;
+    try {
+      requestData = await req.json();
+      console.log("Dados recebidos:", JSON.stringify(requestData));
+    } catch (parseError) {
+      console.error("Erro ao processar JSON da requisição:", parseError);
+      return new Response(
+        JSON.stringify({ error: "Formato de requisição inválido: não foi possível processar JSON" }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     const { request } = requestData;
     if (!request) {
-      throw new Error('Formato de requisição inválido: "request" não encontrado');
+      return new Response(
+        JSON.stringify({ error: 'Formato de requisição inválido: "request" não encontrado' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language } = request;
+    
+    if (!type) {
+      return new Response(
+        JSON.stringify({ error: '"type" é obrigatório na requisição' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}`);
 
@@ -97,40 +116,67 @@ serve(async (req) => {
           Limite o texto a no máximo 280 caracteres para que seja eficaz em stories.`;
         break;
       default:
-        throw new Error(`Tipo de roteiro inválido: ${type}`);
+        return new Response(
+          JSON.stringify({ error: `Tipo de roteiro inválido: ${type}` }), 
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
     }
 
     console.log("Enviando requisição para OpenAI");
     
     // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.7
-      })
-    });
+    let response;
+    try {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: 0.7
+        })
+      });
+    } catch (fetchError) {
+      console.error("Erro na chamada à API OpenAI:", fetchError);
+      return new Response(
+        JSON.stringify({ error: `Erro ao conectar com API OpenAI: ${fetchError.message}` }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get response from OpenAI
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Erro na API OpenAI:", errorText);
-      throw new Error(`Erro na API OpenAI: Status ${response.status} - ${errorText}`);
+      return new Response(
+        JSON.stringify({ error: `Erro na API OpenAI: Status ${response.status} - ${errorText}` }), 
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error("Erro ao processar resposta da OpenAI:", parseError);
+      return new Response(
+        JSON.stringify({ error: "Resposta inválida da API OpenAI" }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     if (data.error) {
       console.error("Erro retornado pela API OpenAI:", data.error);
-      throw new Error(`Erro na API OpenAI: ${data.error.message}`);
+      return new Response(
+        JSON.stringify({ error: `Erro na API OpenAI: ${data.error.message}` }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const content = data.choices[0].message.content;

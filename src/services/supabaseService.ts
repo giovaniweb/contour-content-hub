@@ -26,24 +26,50 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
     console.log('Iniciando geração de roteiro com os parâmetros:', request);
 
     // Chamar a Edge Function para gerar o roteiro
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        request
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Resposta da Edge Function:', response.status, errorText);
-      throw new Error(`Erro ao chamar a Edge Function: ${errorText}`);
+    let response;
+    try {
+      response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          request
+        })
+      });
+    } catch (fetchError) {
+      console.error('Erro na chamada da Edge Function:', fetchError);
+      throw new Error(`Falha na conexão com a Edge Function: ${fetchError.message}`);
     }
 
-    const scriptResponse = await response.json();
+    if (!response.ok) {
+      let errorMessage = '';
+      try {
+        // Tentar processar como JSON primeiro
+        const errorJson = await response.json();
+        errorMessage = errorJson.error || `Status: ${response.status}`;
+      } catch (jsonError) {
+        // Caso não seja JSON, tentar obter como texto
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || `Status: ${response.status}`;
+        } catch (textError) {
+          errorMessage = `Status: ${response.status}`;
+        }
+      }
+      
+      console.error('Resposta da Edge Function:', response.status, errorMessage);
+      throw new Error(`Erro ao chamar a Edge Function: ${errorMessage}`);
+    }
+
+    let scriptResponse;
+    try {
+      scriptResponse = await response.json();
+    } catch (jsonError) {
+      console.error('Erro ao processar resposta JSON:', jsonError);
+      throw new Error('A resposta da Edge Function não é um JSON válido');
+    }
     
     if (scriptResponse.error) {
       throw new Error(`Erro retornado pela Edge Function: ${scriptResponse.error}`);
