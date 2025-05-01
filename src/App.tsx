@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import ScriptGenerator from "./pages/ScriptGenerator";
 import MediaLibrary from "./pages/MediaLibrary";
 import Calendar from "./pages/Calendar";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="/script-generator" element={<ScriptGenerator />} />
             <Route path="/media-library" element={<MediaLibrary />} />
             <Route path="/calendar" element={<Calendar />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

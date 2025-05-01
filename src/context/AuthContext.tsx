@@ -2,8 +2,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
 
-type User = {
+type UserProfile = {
   id: string;
   name: string;
   email: string;
@@ -17,125 +19,189 @@ type User = {
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (userData: Omit<User, "id" | "passwordChanged"> & { password: string }) => Promise<void>;
-  updateUser: (data: Partial<User>) => void;
+  logout: () => Promise<void>;
+  register: (userData: Omit<UserProfile, "id" | "passwordChanged"> & { password: string }) => Promise<void>;
+  updateUser: (data: Partial<UserProfile>) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Check if user is logged in on mount
+  // Inicializar sessão e listener de autenticação
   useEffect(() => {
-    const storedUser = localStorage.getItem("reelline-user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse stored user data");
+    // Configurar listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          // Buscar perfil do usuário quando a sessão mudar
+          setTimeout(async () => {
+            const userProfile = await fetchUserProfile(currentSession.user.id);
+            setUser(userProfile);
+          }, 0);
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    );
+
+    // Verificar sessão inicial
+    const initSession = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      
+      if (initialSession?.user) {
+        const userProfile = await fetchUserProfile(initialSession.user.id);
+        setUser(userProfile);
+        setSession(initialSession);
+      }
+      
+      setIsLoading(false);
+    };
+    
+    initSession();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    try {
+      // Buscar perfil do usuário no Supabase
+      const { data: perfil, error } = await supabase
+        .from('perfis')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error || !perfil) {
+        console.error("Erro ao buscar perfil:", error);
+        return null;
+      }
+
+      // Converter o formato do banco para o formato esperado pelo frontend
+      return {
+        id: perfil.id,
+        name: perfil.nome || '',
+        email: perfil.email,
+        clinic: perfil.clinica || '',
+        city: perfil.cidade || '',
+        phone: perfil.telefone || '',
+        equipment: perfil.equipamentos || [],
+        language: (perfil.idioma?.toUpperCase() as "PT" | "EN" | "ES") || "EN",
+        profilePhotoUrl: perfil.foto_url || '/placeholder.svg',
+        passwordChanged: true // Presumimos que usuários no banco já alteraram a senha
+      };
+    } catch (error) {
+      console.error("Erro ao processar perfil:", error);
+      return null;
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      // Mock login for prototype - in real app, this would be an API call
-      if (email && password === "ReelLine@123") {
-        // First time login with default password
-        const mockUser: User = {
-          id: "user-1",
-          name: "Demo User",
-          email,
-          language: "EN",
-          passwordChanged: false
-        };
-        setUser(mockUser);
-        localStorage.setItem("reelline-user", JSON.stringify(mockUser));
-        toast({
-          title: "Login successful",
-          description: "Please change your password for security reasons.",
-        });
-        navigate("/dashboard");
-      } else if (email && password) {
-        // Regular login (mock)
-        const mockUser: User = {
-          id: "user-1",
-          name: "Demo User",
-          email,
-          clinic: "Beauty Clinic",
-          city: "São Paulo",
-          phone: "+5511999999999",
-          equipment: ["UltraSonic", "Venus Freeze"],
-          language: "EN",
-          profilePhotoUrl: "/placeholder.svg",
-          passwordChanged: true
-        };
-        setUser(mockUser);
-        localStorage.setItem("reelline-user", JSON.stringify(mockUser));
-        toast({
-          title: "Login successful",
-          description: "Welcome to ReelLine!",
-        });
-        navigate("/dashboard");
-      } else {
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
         toast({
           variant: "destructive",
-          title: "Login failed",
-          description: "Invalid email or password",
+          title: "Login falhou",
+          description: error.message || "Verifique seu email e senha",
         });
+        return;
       }
-    } catch (error) {
+      
+      toast({
+        title: "Login bem-sucedido",
+        description: "Bem-vindo ao ReelLine!",
+      });
+      
+      navigate("/dashboard");
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Login failed",
-        description: "Something went wrong",
+        title: "Login falhou",
+        description: error?.message || "Algo deu errado",
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (userData: Omit<User, "id" | "passwordChanged"> & { password: string }) => {
+  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged"> & { password: string }) => {
     try {
       setIsLoading(true);
-      // Mock registration
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        ...userData,
-        passwordChanged: userData.password !== "ReelLine@123"
-      };
       
-      delete (newUser as any).password;
+      // Registrar o usuário no auth do Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            nome: userData.name,
+          },
+        },
+      });
       
-      setUser(newUser);
-      localStorage.setItem("reelline-user", JSON.stringify(newUser));
+      if (authError) {
+        toast({
+          variant: "destructive",
+          title: "Registro falhou",
+          description: authError.message,
+        });
+        return;
+      }
+      
+      // Se o registro for bem-sucedido, atualizar o perfil com dados adicionais
+      if (authData.user) {
+        const { error: updateError } = await supabase
+          .from('perfis')
+          .update({
+            nome: userData.name,
+            clinica: userData.clinic,
+            cidade: userData.city,
+            telefone: userData.phone,
+            equipamentos: userData.equipment || [],
+            idioma: userData.language.toLowerCase(),
+          })
+          .eq('id', authData.user.id);
+          
+        if (updateError) {
+          console.error("Erro ao atualizar perfil:", updateError);
+        }
+      }
       
       toast({
-        title: "Registration successful",
-        description: "Welcome to ReelLine!",
+        title: "Registro bem-sucedido",
+        description: "Bem-vindo ao ReelLine!",
       });
       
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration failed",
-        description: "Something went wrong",
+        title: "Registro falhou",
+        description: error?.message || "Algo deu errado",
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -143,59 +209,98 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      // Mock password update
-      if (currentPassword === "ReelLine@123") {
-        if (user) {
-          const updatedUser = { ...user, passwordChanged: true };
-          setUser(updatedUser);
-          localStorage.setItem("reelline-user", JSON.stringify(updatedUser));
-          
-          toast({
-            title: "Password updated",
-            description: "Your password has been successfully changed",
-          });
-          return true;
-        }
-      } else {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
         toast({
           variant: "destructive",
-          title: "Password update failed",
-          description: "Current password is incorrect",
+          title: "Atualização de senha falhou",
+          description: error.message,
         });
+        return false;
       }
-      return false;
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Password update failed",
-        description: "Something went wrong",
-      });
-      console.error(error);
-      return false;
-    }
-  };
-
-  const updateUser = (data: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...data };
-      setUser(updatedUser);
-      localStorage.setItem("reelline-user", JSON.stringify(updatedUser));
       
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
+        title: "Senha atualizada",
+        description: "Sua senha foi alterada com sucesso",
+      });
+      
+      return true;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Atualização de senha falhou",
+        description: error?.message || "Algo deu errado",
+      });
+      return false;
+    }
+  };
+
+  const updateUser = async (data: Partial<UserProfile>) => {
+    if (!user) return;
+    
+    try {
+      // Converter do formato frontend para o formato do banco
+      const perfilData: any = {};
+      
+      if (data.name) perfilData.nome = data.name;
+      if (data.clinic) perfilData.clinica = data.clinic;
+      if (data.city) perfilData.cidade = data.city;
+      if (data.phone) perfilData.telefone = data.phone;
+      if (data.equipment) perfilData.equipamentos = data.equipment;
+      if (data.language) perfilData.idioma = data.language.toLowerCase();
+      if (data.profilePhotoUrl) perfilData.foto_url = data.profilePhotoUrl;
+      
+      const { error } = await supabase
+        .from('perfis')
+        .update(perfilData)
+        .eq('id', user.id);
+        
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Atualização falhou",
+          description: error.message,
+        });
+        return;
+      }
+      
+      // Atualizar estado local
+      setUser({ ...user, ...data });
+      
+      toast({
+        title: "Perfil atualizado",
+        description: "Seu perfil foi atualizado com sucesso",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Atualização falhou",
+        description: error?.message || "Algo deu errado",
       });
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("reelline-user");
-    navigate("/");
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
-    });
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      navigate("/");
+      
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu com sucesso",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Falha ao sair",
+        description: error?.message || "Algo deu errado",
+      });
+    }
   };
 
   const value = {

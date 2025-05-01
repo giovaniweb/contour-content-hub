@@ -9,7 +9,381 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      agenda: {
+        Row: {
+          data: string | null
+          data_criacao: string | null
+          descricao: string | null
+          id: string
+          roteiro_id: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          data?: string | null
+          data_criacao?: string | null
+          descricao?: string | null
+          id?: string
+          roteiro_id?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          data?: string | null
+          data_criacao?: string | null
+          descricao?: string | null
+          id?: string
+          roteiro_id?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_roteiro_id_fkey"
+            columns: ["roteiro_id"]
+            isOneToOne: false
+            referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alertas_email: {
+        Row: {
+          ativo: boolean | null
+          data_criacao: string | null
+          id: string
+          tipo: string | null
+          ultima_execucao: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: string
+          tipo?: string | null
+          ultima_execucao?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: string
+          tipo?: string | null
+          ultima_execucao?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alertas_email_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes: {
+        Row: {
+          comentario: string | null
+          data_avaliacao: string | null
+          id: string
+          nota: number | null
+          usuario_id: string | null
+          video_id: string | null
+        }
+        Insert: {
+          comentario?: string | null
+          data_avaliacao?: string | null
+          id?: string
+          nota?: number | null
+          usuario_id?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          comentario?: string | null
+          data_avaliacao?: string | null
+          id?: string
+          nota?: number | null
+          usuario_id?: string | null
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favoritos: {
+        Row: {
+          data_favorito: string | null
+          id: string
+          usuario_id: string | null
+          video_id: string | null
+        }
+        Insert: {
+          data_favorito?: string | null
+          id?: string
+          usuario_id?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          data_favorito?: string | null
+          id?: string
+          usuario_id?: string | null
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favoritos_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gpt_config: {
+        Row: {
+          ativo: boolean | null
+          data_configuracao: string | null
+          id: string
+          modelo: string | null
+          nome: string | null
+          prompt: string | null
+          tipo: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          data_configuracao?: string | null
+          id?: string
+          modelo?: string | null
+          nome?: string | null
+          prompt?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          data_configuracao?: string | null
+          id?: string
+          modelo?: string | null
+          nome?: string | null
+          prompt?: string | null
+          tipo?: string | null
+        }
+        Relationships: []
+      }
+      logs_uso: {
+        Row: {
+          acao: string | null
+          data_log: string | null
+          detalhe: string | null
+          id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          acao?: string | null
+          data_log?: string | null
+          detalhe?: string | null
+          id?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string | null
+          data_log?: string | null
+          detalhe?: string | null
+          id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_uso_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materiais: {
+        Row: {
+          arquivo_url: string | null
+          data_upload: string | null
+          id: string
+          nome: string | null
+          preview_url: string | null
+          tipo: string | null
+        }
+        Insert: {
+          arquivo_url?: string | null
+          data_upload?: string | null
+          id?: string
+          nome?: string | null
+          preview_url?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          arquivo_url?: string | null
+          data_upload?: string | null
+          id?: string
+          nome?: string | null
+          preview_url?: string | null
+          tipo?: string | null
+        }
+        Relationships: []
+      }
+      perfis: {
+        Row: {
+          cidade: string | null
+          clinica: string | null
+          data_criacao: string | null
+          email: string
+          equipamentos: string[] | null
+          foto_url: string | null
+          id: string
+          idioma: string | null
+          nome: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          clinica?: string | null
+          data_criacao?: string | null
+          email: string
+          equipamentos?: string[] | null
+          foto_url?: string | null
+          id: string
+          idioma?: string | null
+          nome?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          clinica?: string | null
+          data_criacao?: string | null
+          email?: string
+          equipamentos?: string[] | null
+          foto_url?: string | null
+          id?: string
+          idioma?: string | null
+          nome?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      roteiros: {
+        Row: {
+          conteudo: string | null
+          data_criacao: string | null
+          id: string
+          observacoes: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          conteudo?: string | null
+          data_criacao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          conteudo?: string | null
+          data_criacao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roteiros_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          area_corpo: string | null
+          data_upload: string | null
+          descricao: string | null
+          duracao: string | null
+          equipamento: string | null
+          finalidade: string | null
+          id: string
+          preview_url: string | null
+          tipo: string | null
+          titulo: string | null
+          url_video: string | null
+        }
+        Insert: {
+          area_corpo?: string | null
+          data_upload?: string | null
+          descricao?: string | null
+          duracao?: string | null
+          equipamento?: string | null
+          finalidade?: string | null
+          id?: string
+          preview_url?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          url_video?: string | null
+        }
+        Update: {
+          area_corpo?: string | null
+          data_upload?: string | null
+          descricao?: string | null
+          duracao?: string | null
+          equipamento?: string | null
+          finalidade?: string | null
+          id?: string
+          preview_url?: string | null
+          tipo?: string | null
+          titulo?: string | null
+          url_video?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
