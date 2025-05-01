@@ -93,7 +93,7 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
       break;
   }
   
-  // Mock response with suggested videos
+  // Mock response with suggested videos that match the MediaItem interface
   return {
     id: scriptId,
     content,
@@ -105,23 +105,73 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
         id: "video-1",
         title: "Before/After Results",
         thumbnailUrl: "/placeholder.svg",
-        duration: "0:45"
+        duration: "0:45",
+        type: "video", // Added required properties
+        equipment: ["UltraSonic"],
+        bodyArea: ["Face"],
+        purpose: ["Content creation"],
+        rating: 4.5,
+        isFavorite: false
       },
       {
         id: "video-2",
         title: "Treatment Process",
         thumbnailUrl: "/placeholder.svg",
-        duration: "1:20"
+        duration: "1:20",
+        type: "video", // Added required properties
+        equipment: ["Venus Freeze"],
+        bodyArea: ["Abdomen", "Thighs"],
+        purpose: ["Education"],
+        rating: 4.7,
+        isFavorite: false
       },
       {
         id: "video-3",
         title: "Client Testimonial",
         thumbnailUrl: "/placeholder.svg",
-        duration: "0:30"
+        duration: "0:30",
+        type: "video", // Added required properties
+        equipment: ["UltraSonic"],
+        bodyArea: ["Face"],
+        purpose: ["Testimonial"],
+        rating: 5.0,
+        isFavorite: false
       }
     ],
-    suggestedMusic: ["Upbeat Corporate", "Gentle Ambient", "Inspirational"],
-    suggestedFonts: ["Helvetica Neue", "Montserrat", "Playfair Display"],
+    suggestedMusic: [
+      {
+        id: "music-1",
+        title: "Upbeat Corporate",
+        artist: "Audio Library",
+        url: "/music/upbeat-corporate.mp3"
+      },
+      {
+        id: "music-2",
+        title: "Gentle Ambient",
+        artist: "Sound Collection",
+        url: "/music/gentle-ambient.mp3"
+      },
+      {
+        id: "music-3",
+        title: "Inspirational",
+        artist: "Music Library",
+        url: "/music/inspirational.mp3"
+      }
+    ],
+    suggestedFonts: [
+      {
+        name: "Helvetica Neue",
+        style: "Sans-serif"
+      },
+      {
+        name: "Montserrat",
+        style: "Sans-serif"
+      },
+      {
+        name: "Playfair Display",
+        style: "Serif"
+      }
+    ],
     captionTips: [
       "Keep captions short and punchy",
       "Use emojis strategically",
