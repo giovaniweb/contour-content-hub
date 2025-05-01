@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion } from '@/utils/api';
 
@@ -22,6 +23,8 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
     const { data: user } = await supabase.auth.getUser();
     const token = await supabase.auth.getSession().then(res => res.data.session?.access_token || '');
 
+    console.log('Iniciando geração de roteiro com os parâmetros:', request);
+
     // Chamar a Edge Function para gerar o roteiro
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`, {
       method: 'POST',
@@ -36,10 +39,17 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Resposta da Edge Function:', response.status, errorText);
       throw new Error(`Erro ao chamar a Edge Function: ${errorText}`);
     }
 
     const scriptResponse = await response.json();
+    
+    if (scriptResponse.error) {
+      throw new Error(`Erro retornado pela Edge Function: ${scriptResponse.error}`);
+    }
+    
+    console.log('Roteiro gerado com sucesso');
     return scriptResponse;
   } catch (error) {
     console.error('Erro ao gerar roteiro:', error);

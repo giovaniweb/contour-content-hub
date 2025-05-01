@@ -20,9 +20,20 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY não encontrado');
     }
 
+    console.log("Edge function iniciada");
+    
     // Parse request
-    const { request } = await req.json();
+    const requestData = await req.json();
+    console.log("Dados recebidos:", JSON.stringify(requestData));
+    
+    const { request } = requestData;
+    if (!request) {
+      throw new Error('Formato de requisição inválido: "request" não encontrado');
+    }
+    
     const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language } = request;
+    
+    console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}`);
 
     // Create system prompt based on script type
     let systemPrompt = "";
@@ -85,8 +96,12 @@ serve(async (req) => {
           
           Limite o texto a no máximo 280 caracteres para que seja eficaz em stories.`;
         break;
+      default:
+        throw new Error(`Tipo de roteiro inválido: ${type}`);
     }
 
+    console.log("Enviando requisição para OpenAI");
+    
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -105,13 +120,21 @@ serve(async (req) => {
     });
 
     // Get response from OpenAI
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Erro na API OpenAI:", errorText);
+      throw new Error(`Erro na API OpenAI: Status ${response.status} - ${errorText}`);
+    }
+    
     const data = await response.json();
     
     if (data.error) {
+      console.error("Erro retornado pela API OpenAI:", data.error);
       throw new Error(`Erro na API OpenAI: ${data.error.message}`);
     }
 
     const content = data.choices[0].message.content;
+    console.log("Conteúdo gerado com sucesso");
     
     // Generate title based on content
     let title = "";
@@ -214,6 +237,8 @@ serve(async (req) => {
             
           if (error) {
             console.error('Erro ao salvar roteiro:', error);
+          } else {
+            console.log('Roteiro salvo com sucesso no banco de dados');
           }
         }
       }
@@ -222,6 +247,8 @@ serve(async (req) => {
       // Continue even if db save fails
     }
 
+    console.log("Enviando resposta para o cliente");
+    
     // Return the response
     return new Response(JSON.stringify(scriptResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
