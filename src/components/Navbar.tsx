@@ -19,10 +19,10 @@ const Navbar: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <header className="sticky top-0 z-30 w-full bg-white border-b border-gray-100">
+      <header className="sticky top-0 z-30 w-full bg-white border-b border-contourline-lightBlue/20">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-reelline-primary">ReelLine</span>
+            <span className="font-bold text-xl text-contourline-mediumBlue">ReelLine</span>
           </Link>
         </div>
       </header>
@@ -53,12 +53,12 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-30 w-full bg-white border-b border-contourline-lightBlue/20 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-reelline-primary">ReelLine</span>
+            <span className="font-bold text-xl text-contourline-mediumBlue">ReelLine</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
               <Link
                 key={link.href}
                 to={link.href}
-                className="flex items-center space-x-1 text-gray-600 hover:text-reelline-primary transition-colors"
+                className="flex items-center space-x-1 text-contourline-darkBlue hover:text-contourline-mediumBlue transition-colors"
               >
                 {link.icon}
                 <span>{link.title}</span>
@@ -94,13 +94,13 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100 animate-fade-in">
+        <div className="md:hidden bg-white border-b border-contourline-lightBlue/20 animate-fade-in">
           <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
+                className="flex items-center space-x-2 p-2 rounded-md hover:bg-contourline-lightBlue/10"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.icon}

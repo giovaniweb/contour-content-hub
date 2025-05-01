@@ -63,14 +63,20 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// ReelLine custom colors
-				reelline: {
-					primary: '#0080FF',    // Bright blue
-					secondary: '#FF3B30',  // Apple red
-					accent: '#5856D6',     // Deep purple
-					neutral: '#8E8E93',    // Soft gray
-					light: '#F2F2F7',      // Ultra light gray
-					dark: '#1C1C1E',       // Almost black
+				// Nova paleta de cores personalizada - Contourline
+				contourline: {
+					// Azul Escuro - #162C45 | RGB 20 44 70
+					darkBlue: '#162C45',
+					// Azul Médio - #2672B8 | RGB 23 114 185
+					mediumBlue: '#2672B8',
+					// Azul Claro - #91B0DC | RGB 145 176 221
+					lightBlue: '#91B0DC',
+					// Cinza Claro - #E7E7E6 | RGB 232 231 231
+					lightGray: '#E7E7E6',
+					// Preto (para texto) - #202020
+					black: '#202020',
+					// Branco (para fundos) - #FFFFFF
+					white: '#FFFFFF',
 				}
 			},
 			borderRadius: {

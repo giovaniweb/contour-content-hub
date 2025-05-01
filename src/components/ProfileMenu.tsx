@@ -30,10 +30,10 @@ const ProfileMenu: React.FC = () => {
 
   const getUserRoleBadge = () => {
     if (isAdmin()) {
-      return <Badge variant="outline" className="bg-reelline-primary/10 border-reelline-primary/20">Administrador</Badge>;
+      return <Badge variant="outline" className="bg-contourline-darkBlue/10 border-contourline-darkBlue/20 text-contourline-darkBlue">Administrador</Badge>;
     }
     if (isOperator()) {
-      return <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20">Operador</Badge>;
+      return <Badge variant="outline" className="bg-contourline-mediumBlue/10 border-contourline-mediumBlue/20 text-contourline-mediumBlue">Operador</Badge>;
     }
     return null;
   };
@@ -42,13 +42,13 @@ const ProfileMenu: React.FC = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border border-gray-200">
+          <Avatar className="h-10 w-10 border border-contourline-lightBlue/30">
             <AvatarImage 
               src={user.profilePhotoUrl} 
               alt={user.name} 
               className="object-cover"
             />
-            <AvatarFallback className="bg-reelline-primary text-white">
+            <AvatarFallback className="bg-contourline-mediumBlue text-white">
               {userInitials}
             </AvatarFallback>
           </Avatar>
