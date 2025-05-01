@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +15,7 @@ type UserProfile = {
   language: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
   passwordChanged: boolean;
+  role: 'cliente' | 'admin' | 'operador';
 };
 
 type AuthContextType = {
@@ -24,7 +24,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (userData: Omit<UserProfile, "id" | "passwordChanged"> & { password: string }) => Promise<void>;
+  register: (userData: Omit<UserProfile, "id" | "passwordChanged" | "role"> & { password: string }) => Promise<void>;
   updateUser: (data: Partial<UserProfile>) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 };
@@ -104,7 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         equipment: perfil.equipamentos || [],
         language: (perfil.idioma?.toUpperCase() as "PT" | "EN" | "ES") || "EN",
         profilePhotoUrl: perfil.foto_url || '/placeholder.svg',
-        passwordChanged: true // Presumimos que usuários no banco já alteraram a senha
+        passwordChanged: true, // Presumimos que usuários no banco já alteraram a senha
+        role: perfil.role || 'cliente'
       };
     } catch (error) {
       console.error("Erro ao processar perfil:", error);
@@ -147,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged"> & { password: string }) => {
+  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged" | "role"> & { password: string }) => {
     try {
       setIsLoading(true);
       
@@ -182,6 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             telefone: userData.phone,
             equipamentos: userData.equipment || [],
             idioma: userData.language.toLowerCase(),
+            role: 'cliente'  // Novos usuários sempre começam como clientes
           })
           .eq('id', authData.user.id);
           

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Settings, LogOut, User, Shield, Users } from "lucide-react";
 
 const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth();
+  const { isAdmin, isOperator } = usePermissions();
 
   if (!user) return null;
 
@@ -24,6 +27,16 @@ const ProfileMenu: React.FC = () => {
     .map(word => word[0])
     .join("")
     .toUpperCase();
+
+  const getUserRoleBadge = () => {
+    if (isAdmin()) {
+      return <Badge variant="outline" className="bg-reelline-primary/10 border-reelline-primary/20">Administrador</Badge>;
+    }
+    if (isOperator()) {
+      return <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20">Operador</Badge>;
+    }
+    return null;
+  };
 
   return (
     <DropdownMenu>
@@ -46,6 +59,7 @@ const ProfileMenu: React.FC = () => {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+            {getUserRoleBadge() && <div className="mt-1">{getUserRoleBadge()}</div>}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -61,6 +75,31 @@ const ProfileMenu: React.FC = () => {
             <span>Configurações</span>
           </Link>
         </DropdownMenuItem>
+        
+        {isAdmin() && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/admin" className="flex items-center cursor-pointer">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Painel Admin</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+        
+        {isOperator() && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/operator" className="flex items-center cursor-pointer">
+                <Users className="mr-2 h-4 w-4" />
+                <span>Área do Operador</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+        
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           onClick={() => logout()}

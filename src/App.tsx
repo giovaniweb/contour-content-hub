@@ -3,8 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +18,38 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Componente para verificar permissões de rotas administrativas
+const AdminRoute = ({ element }: { element: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdmin } = usePermissions();
+  
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
+  
+  if (!isAuthenticated || !isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{element}</>;
+};
+
+// Componente para verificar permissões de rotas operacionais
+const OperatorRoute = ({ element }: { element: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { isOperator, isAdmin } = usePermissions();
+  
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
+  
+  if (!isAuthenticated || !(isOperator() || isAdmin())) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{element}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -33,6 +67,11 @@ const App = () => (
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            
+            {/* Rotas protegidas por papel de usuário */}
+            <Route path="/admin/*" element={<AdminRoute element={<div>Painel Administrativo</div>} />} />
+            <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

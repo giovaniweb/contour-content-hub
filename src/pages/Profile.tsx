@@ -144,6 +144,21 @@ const Profile: React.FC = () => {
                     <h3 className="text-xl font-medium">{user.name}</h3>
                     <p className="text-muted-foreground">{user.email}</p>
                     <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                      {user.role === 'admin' && (
+                        <Badge variant="outline" className="bg-primary/10 border-primary/20">
+                          Administrador
+                        </Badge>
+                      )}
+                      {user.role === 'operador' && (
+                        <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20">
+                          Operador
+                        </Badge>
+                      )}
+                      {user.role === 'cliente' && (
+                        <Badge variant="outline" className="bg-slate-500/10 border-slate-500/20">
+                          Cliente
+                        </Badge>
+                      )}
                       {user.clinic && (
                         <Badge variant="outline" className="bg-primary/5">
                           {user.clinic}

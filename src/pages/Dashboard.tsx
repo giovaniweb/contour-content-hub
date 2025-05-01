@@ -1,22 +1,25 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { ScriptResponse, CalendarSuggestion } from "@/utils/api";
 import ScriptCard from "@/components/ScriptCard";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Calendar, Video, Sparkles, AlertCircle } from "lucide-react";
+import { FileText, Calendar, Video, Sparkles, AlertCircle, Users, ShieldCheck, Settings } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  const { isAdmin, isOperator } = usePermissions();
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -149,8 +152,20 @@ const Dashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Welcome, {user?.name}!</h2>
-                <p>What would you like to create today?</p>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold mb-2">Bem-vindo, {user?.name}!</h2>
+                  {isAdmin() && (
+                    <Badge className="bg-white text-reelline-primary hover:bg-white">
+                      Administrador
+                    </Badge>
+                  )}
+                  {isOperator() && (
+                    <Badge className="bg-white text-reelline-primary hover:bg-white">
+                      Operador
+                    </Badge>
+                  )}
+                </div>
+                <p>O que você gostaria de criar hoje?</p>
               </div>
               <div className="mt-4 md:mt-0">
                 <Button 
@@ -159,62 +174,77 @@ const Dashboard: React.FC = () => {
                   onClick={() => navigate("/script-generator")}
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Create New Content
+                  Criar Novo Conteúdo
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
         
+        {/* Admin Section - Visible only for admins */}
+        {isAdmin() && (
+          <Card className="border-2 border-reelline-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ShieldCheck className="mr-2 h-5 w-5 text-reelline-primary" />
+                Painel de Administrador
+              </CardTitle>
+              <CardDescription>
+                Funções exclusivas para administradores do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                  <Users className="h-6 w-6" />
+                  <span>Gerenciar Usuários</span>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                  <Settings className="h-6 w-6" />
+                  <span>Configurações do Sistema</span>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  <span>Relatórios</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Operator Section - Visible for operators and admins */}
+        {(isOperator() || isAdmin()) && (
+          <Card className="border-2 border-amber-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="mr-2 h-5 w-5 text-amber-500" />
+                Área do Operador
+              </CardTitle>
+              <CardDescription>
+                Ferramentas para suporte e operação
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                  <Users className="h-6 w-6" />
+                  <span>Visualizar Clientes</span>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  <span>Atividade Recente</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {/* Stats overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-reelline-primary" />
-                Scripts
-              </CardTitle>
-              <CardDescription>Your content scripts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{recentScripts.length}</div>
-              <p className="text-sm text-muted-foreground">
-                Created this month
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Video className="h-5 w-5 mr-2 text-reelline-primary" />
-                Media
-              </CardTitle>
-              <CardDescription>Available videos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">24</div>
-              <p className="text-sm text-muted-foreground">
-                Ready to use
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-reelline-primary" />
-                Calendar
-              </CardTitle>
-              <CardDescription>Upcoming content</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{upcomingContent.length}</div>
-              <p className="text-sm text-muted-foreground">
-                Scheduled this month
-              </p>
-            </CardContent>
-          </Card>
+          {/* ... keep existing code (stats cards) */}
         </div>
         
         {/* Recent scripts */}
