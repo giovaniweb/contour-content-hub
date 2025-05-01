@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion } from '@/utils/api';
 
 // Função para converter um roteiro do formato do banco para o formato da UI
@@ -25,13 +25,17 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
 
     console.log('Iniciando geração de roteiro com os parâmetros:', request);
 
-    // Use a URL direta para a Edge Function, sem depender de variáveis de ambiente
-    const supabaseUrl = 'https://mksvzhgqnsjfolvskibq.supabase.co';
+    // Use the SUPABASE_BASE_URL exported from the client
+    if (!SUPABASE_BASE_URL) {
+      throw new Error('URL do Supabase não definida');
+    }
     
-    // Chamar a Edge Function para gerar o roteiro
+    // Chamar a Edge Function para gerar o roteiro usando o URL base do Supabase
+    console.log(`Chamando Edge Function em: ${SUPABASE_BASE_URL}/functions/v1/generate-script`);
+    
     let response;
     try {
-      response = await fetch(`${supabaseUrl}/functions/v1/generate-script`, {
+      response = await fetch(`${SUPABASE_BASE_URL}/functions/v1/generate-script`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
