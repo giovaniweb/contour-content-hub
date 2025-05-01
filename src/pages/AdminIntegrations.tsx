@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Dropbox, Save } from "lucide-react";
+import { BrainCircuit, FolderOpen, Save } from "lucide-react";
 import { GptConfig } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -114,7 +114,7 @@ const AdminIntegrations: React.FC = () => {
               GPT (OpenAI)
             </TabsTrigger>
             <TabsTrigger value="dropbox" className="flex items-center gap-2">
-              <Dropbox className="h-4 w-4" />
+              <FolderOpen className="h-4 w-4" />
               Dropbox
             </TabsTrigger>
           </TabsList>
@@ -241,7 +241,7 @@ const AdminIntegrations: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Dropbox className="h-5 w-5 text-contourline-mediumBlue" />
+                  <FolderOpen className="h-5 w-5 text-contourline-mediumBlue" />
                   Configuração Dropbox
                 </CardTitle>
                 <CardDescription>
@@ -333,7 +333,7 @@ const AdminIntegrations: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <Dropbox className="h-4 w-4 text-contourline-mediumBlue" />
+                  <FolderOpen className="h-4 w-4 text-contourline-mediumBlue" />
                   <span>Dropbox</span>
                 </div>
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">

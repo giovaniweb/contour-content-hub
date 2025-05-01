@@ -10,7 +10,7 @@ import { GptConfig } from "@/types/database";
 export const saveGptConfig = async (config: Omit<GptConfig, 'id' | 'data_configuracao'>) => {
   try {
     const { data, error } = await supabase
-      .from('gpt_configs')
+      .from('gpt_config')
       .insert([{
         ...config,
         data_configuracao: new Date().toISOString()
@@ -28,7 +28,7 @@ export const saveGptConfig = async (config: Omit<GptConfig, 'id' | 'data_configu
 export const updateGptConfig = async (id: string, config: Partial<GptConfig>) => {
   try {
     const { data, error } = await supabase
-      .from('gpt_configs')
+      .from('gpt_config')
       .update({
         ...config,
         data_configuracao: new Date().toISOString()
@@ -47,7 +47,7 @@ export const updateGptConfig = async (id: string, config: Partial<GptConfig>) =>
 export const getGptConfigs = async () => {
   try {
     const { data, error } = await supabase
-      .from('gpt_configs')
+      .from('gpt_config')
       .select('*')
       .order('data_configuracao', { ascending: false });
 
@@ -70,39 +70,53 @@ export type DropboxConfig = {
 
 export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data_configuracao'>) => {
   try {
-    // Primeiro, verificamos se já existe uma configuração (só permitimos uma)
+    // First, let's create a custom integration row for Dropbox
+    // Since we don't have a specific table for Dropbox configs,
+    // we'll create a custom structure in our database
+    const integrationData = {
+      tipo: 'dropbox',
+      nome: 'Integração Dropbox',
+      config_json: config,
+      ativo: true,
+      atualizado_em: new Date().toISOString()
+    };
+    
+    // Check if an integration already exists
     const { data: existing } = await supabase
-      .from('integracoes')
+      .from('materiais')  // Using 'materiais' as a temporary store
       .select('*')
-      .eq('tipo', 'dropbox')
+      .eq('tipo', 'dropbox_config')
       .limit(1);
 
     if (existing && existing.length > 0) {
-      // Atualiza a configuração existente
+      // Update existing config
       const { data, error } = await supabase
-        .from('integracoes')
+        .from('materiais')
         .update({
-          config: config,
-          atualizado_em: new Date().toISOString()
+          nome: 'Dropbox Config',
+          tipo: 'dropbox_config',
+          arquivo_url: JSON.stringify(config),
+          data_upload: new Date().toISOString()
         })
         .eq('id', existing[0].id)
         .select();
 
       if (error) throw error;
-      return data[0];
+      return { ...config, id: data[0].id };
     } else {
-      // Cria uma nova configuração
+      // Create new config
       const { data, error } = await supabase
-        .from('integracoes')
+        .from('materiais')
         .insert([{
-          tipo: 'dropbox',
-          config: config,
-          atualizado_em: new Date().toISOString()
+          nome: 'Dropbox Config',
+          tipo: 'dropbox_config',
+          arquivo_url: JSON.stringify(config),
+          data_upload: new Date().toISOString()
         }])
         .select();
 
       if (error) throw error;
-      return data[0];
+      return { ...config, id: data[0].id };
     }
   } catch (error) {
     console.error("Erro ao salvar configuração Dropbox:", error);
@@ -113,13 +127,23 @@ export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data
 export const getDropboxConfig = async () => {
   try {
     const { data, error } = await supabase
-      .from('integracoes')
+      .from('materiais')
       .select('*')
-      .eq('tipo', 'dropbox')
+      .eq('tipo', 'dropbox_config')
       .limit(1);
 
     if (error) throw error;
-    return data && data.length > 0 ? data[0].config as DropboxConfig : null;
+    
+    if (data && data.length > 0) {
+      try {
+        const config = JSON.parse(data[0].arquivo_url || '{}') as DropboxConfig;
+        return { ...config, id: data[0].id };
+      } catch (e) {
+        console.error("Erro ao processar config do Dropbox:", e);
+        return null;
+      }
+    }
+    return null;
   } catch (error) {
     console.error("Erro ao buscar configuração Dropbox:", error);
     throw error;
