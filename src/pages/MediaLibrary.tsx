@@ -169,7 +169,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Equipment" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Equipment</SelectItem>
+                  <SelectItem value="all-equipment">All Equipment</SelectItem>
                   {equipmentOptions.map((equipment) => (
                     <SelectItem key={equipment} value={equipment}>
                       {equipment}
@@ -185,7 +185,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Body Area" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Body Areas</SelectItem>
+                  <SelectItem value="all-areas">All Body Areas</SelectItem>
                   {bodyAreaOptions.map((area) => (
                     <SelectItem key={area} value={area}>
                       {area}
@@ -201,7 +201,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Purpose" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Purposes</SelectItem>
+                  <SelectItem value="all-purposes">All Purposes</SelectItem>
                   {purposeOptions.map((purpose) => (
                     <SelectItem key={purpose} value={purpose}>
                       {purpose}

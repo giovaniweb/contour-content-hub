@@ -182,13 +182,14 @@ const ScriptGenerator: React.FC = () => {
                     <div className="space-y-2">
                       <Label htmlFor="equipment">Equipment</Label>
                       <Select
-                        value={equipment[0] || ""}
-                        onValueChange={(value) => setEquipment([value])}
+                        value={equipment[0] || "no-equipment"}
+                        onValueChange={(value) => setEquipment(value === "no-equipment" ? [] : [value])}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select equipment" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="no-equipment">No equipment</SelectItem>
                           {(user?.equipment || ["UltraSonic", "Venus Freeze", "Laser"]).map((item) => (
                             <SelectItem key={item} value={item}>
                               {item}

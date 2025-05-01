@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -67,14 +66,17 @@ const Register: React.FC = () => {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      const { confirmPassword, equipment, ...userData } = data;
-      
       // Parse equipment string to array
-      const equipmentArray = equipment?.split(",").map(item => item.trim()).filter(Boolean) || [];
+      const equipmentArray = data.equipment?.split(",").map(item => item.trim()).filter(Boolean) || [];
       
       await register({
-        ...userData,
+        name: data.name,
+        email: data.email,
+        clinic: data.clinic,
+        city: data.city,
+        phone: data.phone,
         equipment: equipmentArray,
+        language: data.language,
         password: data.password,
       });
       
