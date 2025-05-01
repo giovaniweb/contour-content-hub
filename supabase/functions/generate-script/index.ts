@@ -17,7 +17,11 @@ serve(async (req) => {
   try {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY não encontrado');
+      console.error("OPENAI_API_KEY não encontrado");
+      return new Response(
+        JSON.stringify({ error: 'OPENAI_API_KEY não encontrado' }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log("Edge function iniciada");
@@ -123,6 +127,8 @@ serve(async (req) => {
     }
 
     console.log("Enviando requisição para OpenAI");
+    console.log("System prompt:", systemPrompt);
+    console.log("User prompt:", userPrompt);
     
     // Call OpenAI API
     let response;
@@ -151,6 +157,7 @@ serve(async (req) => {
     }
 
     // Get response from OpenAI
+    console.log("Status da resposta OpenAI:", response.status);
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Erro na API OpenAI:", errorText);
@@ -163,6 +170,7 @@ serve(async (req) => {
     let data;
     try {
       data = await response.json();
+      console.log("Resposta OpenAI recebida:", JSON.stringify(data).substring(0, 200) + "...");
     } catch (parseError) {
       console.error("Erro ao processar resposta da OpenAI:", parseError);
       return new Response(
@@ -180,7 +188,7 @@ serve(async (req) => {
     }
 
     const content = data.choices[0].message.content;
-    console.log("Conteúdo gerado com sucesso");
+    console.log("Conteúdo gerado com sucesso:", content.substring(0, 200) + "...");
     
     // Generate title based on content
     let title = "";
@@ -270,6 +278,7 @@ serve(async (req) => {
         if (userError) {
           console.error('Erro ao obter usuário:', userError);
         } else if (userData.user) {
+          console.log('Usuário autenticado:', userData.user.id);
           // Save script to database
           const { error } = await supabaseAdmin
             .from('roteiros')

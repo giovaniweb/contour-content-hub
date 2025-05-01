@@ -25,10 +25,13 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
 
     console.log('Iniciando geração de roteiro com os parâmetros:', request);
 
+    // Use a URL direta para a Edge Function, sem depender de variáveis de ambiente
+    const supabaseUrl = 'https://mksvzhgqnsjfolvskibq.supabase.co';
+    
     // Chamar a Edge Function para gerar o roteiro
     let response;
     try {
-      response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`, {
+      response = await fetch(`${supabaseUrl}/functions/v1/generate-script`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,6 +41,8 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
           request
         })
       });
+      
+      console.log('Status da resposta Edge Function:', response.status);
     } catch (fetchError) {
       console.error('Erro na chamada da Edge Function:', fetchError);
       throw new Error(`Falha na conexão com a Edge Function: ${fetchError.message}`);
