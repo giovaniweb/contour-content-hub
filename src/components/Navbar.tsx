@@ -12,6 +12,7 @@ import {
   X
 } from "lucide-react";
 import ProfileMenu from "./ProfileMenu";
+import LanguageSelector from "./LanguageSelector";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +25,7 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center space-x-2">
             <span className="font-bold text-xl text-contourline-mediumBlue">ReelLine</span>
           </Link>
+          <LanguageSelector />
         </div>
       </header>
     );
@@ -77,6 +79,7 @@ const Navbar: React.FC = () => {
 
           {/* Profile Menu */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <ProfileMenu />
             
             {/* Mobile menu button */}

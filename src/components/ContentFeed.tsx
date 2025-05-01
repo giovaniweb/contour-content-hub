@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Heart, FileText, Download, LayoutGrid, LayoutList } from "lucide-react";
+import { Heart, FileText, Download, LayoutGrid, LayoutList, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface FeedItem {
   id: string;
@@ -13,6 +14,8 @@ interface FeedItem {
   imageUrl?: string;
   likes: number;
   isLiked: boolean;
+  isNew?: boolean;
+  isTrending?: boolean;
 }
 
 interface ContentFeedProps {
@@ -32,7 +35,8 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
       type: "vídeo",
       imageUrl: "/placeholder.svg",
       likes: 24,
-      isLiked: false
+      isLiked: false,
+      isNew: true
     },
     {
       id: "2",
@@ -50,7 +54,8 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
       type: "ideia",
       imageUrl: "/placeholder.svg",
       likes: 32,
-      isLiked: false
+      isLiked: false,
+      isTrending: true
     }
   ];
 
@@ -103,7 +108,21 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
       {viewMode === "list" ? (
         <div className="space-y-6">
           {feedItems.map((item) => (
-            <Card key={item.id} className="feed-item overflow-hidden border border-gray-100 shadow-sm hover:shadow-md">
+            <Card key={item.id} className="feed-item overflow-hidden border border-gray-100 shadow-sm hover:shadow-md relative">
+              {/* Badge de "Novo" ou "Em alta" */}
+              {item.isNew && (
+                <div className="absolute top-0 right-0 z-10">
+                  <Badge variant="default" className="bg-green-500 rounded-full m-3">Novo</Badge>
+                </div>
+              )}
+              {item.isTrending && (
+                <div className="absolute top-0 right-0 z-10">
+                  <Badge variant="default" className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full m-3">
+                    <Sparkles className="h-3 w-3 mr-1" /> Em alta
+                  </Badge>
+                </div>
+              )}
+            
               <div className="md:flex">
                 {/* Imagem de preview */}
                 <div className="md:w-1/3 h-48 md:h-auto bg-contourline-lightGray/50">
@@ -165,7 +184,21 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {feedItems.map((item) => (
-            <Card key={item.id} className="feed-item overflow-hidden border border-gray-100 shadow-sm hover:shadow-md">
+            <Card key={item.id} className="feed-item overflow-hidden border border-gray-100 shadow-sm hover:shadow-md relative">
+              {/* Badge de "Novo" ou "Em alta" */}
+              {item.isNew && (
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge variant="default" className="bg-green-500 rounded-full">Novo</Badge>
+                </div>
+              )}
+              {item.isTrending && (
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge variant="default" className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full">
+                    <Sparkles className="h-3 w-3 mr-1" /> Em alta
+                  </Badge>
+                </div>
+              )}
+              
               {/* Imagem de preview */}
               <div className="relative h-48 bg-contourline-lightGray/50">
                 {item.imageUrl && (
@@ -180,8 +213,16 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
                   size="icon"
                   onClick={() => handleLike(item.id)}
                   className={`absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 hover:bg-white ${item.isLiked ? 'text-red-500' : 'text-contourline-darkBlue/70'}`}
+                  style={{
+                    boxShadow: item.isLiked ? '0 0 10px rgba(239, 68, 68, 0.5)' : 'none'
+                  }}
                 >
-                  <Heart className={item.isLiked ? 'fill-current h-4 w-4' : 'h-4 w-4'} />
+                  <Heart 
+                    className={`${item.isLiked ? 'fill-current h-4 w-4' : 'h-4 w-4'}`} 
+                    style={{
+                      filter: item.isLiked ? 'drop-shadow(0 0 2px rgba(239, 68, 68, 0.5))' : 'none'
+                    }}
+                  />
                 </Button>
               </div>
               
@@ -218,6 +259,36 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ items = [] }) => {
           ))}
         </div>
       )}
+      
+      {/* Sugestões rápidas */}
+      <Card className="mt-12 border-dashed border-contourline-lightBlue/30 bg-gradient-to-r from-contourline-lightBlue/5 to-contourline-lightBlue/10">
+        <CardHeader>
+          <CardTitle className="text-xl text-contourline-darkBlue">Sugestões para você</CardTitle>
+          <CardDescription>
+            Inspirações rápidas para seu próximo conteúdo
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" className="bg-white border-contourline-lightBlue/30 hover:bg-contourline-lightBlue/10">
+              <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
+              Video sobre celulite
+            </Button>
+            <Button variant="outline" className="bg-white border-contourline-lightBlue/30 hover:bg-contourline-lightBlue/10">
+              <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
+              Tratamentos para olheiras
+            </Button>
+            <Button variant="outline" className="bg-white border-contourline-lightBlue/30 hover:bg-contourline-lightBlue/10">
+              <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
+              Hidratação labial caseira
+            </Button>
+            <Button variant="outline" className="bg-white border-contourline-lightBlue/30 hover:bg-contourline-lightBlue/10">
+              <Sparkles className="h-4 w-4 mr-2 text-green-500" />
+              Dicas para pele oleosa
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -34,11 +34,11 @@ const Dashboard: React.FC = () => {
           {/* Sidebar - 1/3 da largura em desktops */}
           <div className="space-y-6">
             {/* Ações rápidas */}
-            <Card>
-              <CardHeader>
+            <Card className="overflow-hidden border-contourline-lightBlue/10">
+              <CardHeader className="bg-gradient-to-r from-contourline-lightBlue/5 to-contourline-lightBlue/10 pb-3">
                 <CardTitle className="text-lg">Ações Rápidas</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/script-generator">
                     <Button variant="outline" className="w-full flex flex-col h-auto py-4">
