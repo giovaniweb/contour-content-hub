@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -123,6 +124,7 @@ const AdminIntegrations: React.FC = () => {
           gptForm.setValue('nome_big_idea', bigIdeaConfig?.nome || "GPT_BigIdea_Reel");
           gptForm.setValue('nome_story', storyConfig?.nome || "GPT_StoriesV_Reel");
           gptForm.setValue('modelo', roteiroConfig?.modelo || "");
+          // Now the chave_api field is available in the database
           gptForm.setValue('chave_api', roteiroConfig?.chave_api || "");
           gptForm.setValue('ativo', roteiroConfig?.ativo !== undefined ? roteiroConfig.ativo : true);
         }

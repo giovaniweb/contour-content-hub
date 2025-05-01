@@ -176,6 +176,7 @@ export type Database = {
       gpt_config: {
         Row: {
           ativo: boolean | null
+          chave_api: string | null
           data_configuracao: string | null
           id: string
           modelo: string | null
@@ -185,6 +186,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          chave_api?: string | null
           data_configuracao?: string | null
           id?: string
           modelo?: string | null
@@ -194,6 +196,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          chave_api?: string | null
           data_configuracao?: string | null
           id?: string
           modelo?: string | null
