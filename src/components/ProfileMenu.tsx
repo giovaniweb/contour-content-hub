@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, LogOut, User, Shield, Users } from "lucide-react";
+import { Settings, LogOut, User, Shield, Users, BrainCircuit } from "lucide-react";
 
 const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth();
@@ -83,6 +83,12 @@ const ProfileMenu: React.FC = () => {
               <Link to="/admin" className="flex items-center cursor-pointer">
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Painel Admin</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/admin/integrations" className="flex items-center cursor-pointer">
+                <BrainCircuit className="mr-2 h-4 w-4" />
+                <span>Integrações</span>
               </Link>
             </DropdownMenuItem>
           </>
