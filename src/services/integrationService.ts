@@ -95,17 +95,33 @@ export const testGptConnection = async (apiKey: string): Promise<{
 // Dropbox
 export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data_configuracao'>) => {
   try {
-    // First, let's create a custom integration row for Dropbox
-    // Since we don't have a specific table for Dropbox configs,
-    // we'll create a custom structure in our database
+    // Verificar se o usuário tem permissões de admin antes de tentar salvar
+    const { data: profile, error: profileError } = await supabase
+      .from('perfis')
+      .select('role')
+      .single();
+      
+    if (profileError) {
+      throw new Error(`Erro ao verificar permissões: ${profileError.message}`);
+    }
+    
+    if (profile.role !== 'admin') {
+      throw new Error('Apenas administradores podem modificar configurações de integração');
+    }
     
     // Check if an integration already exists
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('materiais')  // Using 'materiais' as a temporary store
       .select('*')
       .eq('tipo', 'dropbox_config')
       .limit(1);
 
+    if (existingError) {
+      throw new Error(`Erro ao verificar configuração existente: ${existingError.message}`);
+    }
+
+    let result;
+    
     if (existing && existing.length > 0) {
       // Update existing config
       const { data, error } = await supabase
@@ -119,8 +135,10 @@ export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data
         .eq('id', existing[0].id)
         .select();
 
-      if (error) throw error;
-      return { ...config, id: data[0].id };
+      if (error) {
+        throw new Error(`Erro ao atualizar configuração: ${error.message} ${error.code ? `(Código: ${error.code})` : ''}`);
+      }
+      result = { ...config, id: data[0].id };
     } else {
       // Create new config
       const { data, error } = await supabase
@@ -133,9 +151,13 @@ export const saveDropboxConfig = async (config: Omit<DropboxConfig, 'id' | 'data
         }])
         .select();
 
-      if (error) throw error;
-      return { ...config, id: data[0].id };
+      if (error) {
+        throw new Error(`Erro ao salvar configuração: ${error.message} ${error.code ? `(Código: ${error.code})` : ''}`);
+      }
+      result = { ...config, id: data[0].id };
     }
+
+    return result;
   } catch (error) {
     console.error("Erro ao salvar configuração Dropbox:", error);
     throw error;
