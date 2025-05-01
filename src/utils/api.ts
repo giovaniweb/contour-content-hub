@@ -1,37 +1,38 @@
-
 // Mock API functions for script generation
 
 // Different script types
-export type ScriptType = "videoScript" | "bigIdea" | "dailySales";
+export type ScriptType = 'videoScript' | 'bigIdea' | 'dailySales';
 
 // Script request parameters
 export interface ScriptRequest {
-  topic?: string;
+  type: ScriptType;
+  topic: string;
   equipment?: string[];
   bodyArea?: string;
   purpose?: string;
-  tone?: string;
-  length?: "short" | "medium" | "long";
-  type: ScriptType;
-  language: "PT" | "EN" | "ES";
   additionalInfo?: string;
+  tone?: string;
+  language?: string;
 }
 
 // Script response object
 export interface ScriptResponse {
   id: string;
-  content: string;
   title: string;
+  content: string;
   type: ScriptType;
   createdAt: string;
-  suggestedVideos?: {
+  suggestedVideos?: MediaItem[];
+  suggestedMusic?: {
     id: string;
     title: string;
-    thumbnailUrl: string;
-    duration: string;
+    artist: string;
+    url: string;
   }[];
-  suggestedMusic?: string[];
-  suggestedFonts?: string[];
+  suggestedFonts?: {
+    name: string;
+    style: string;
+  }[];
   captionTips?: string[];
 }
 

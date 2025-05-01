@@ -29,16 +29,16 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
       setIsSubmitting(true);
       await saveScriptFeedback(script.id, feedback, approved);
       toast({
-        title: approved ? "Script approved!" : "Feedback submitted",
-        description: "Thank you for your feedback.",
+        title: approved ? "Roteiro aprovado!" : "Feedback enviado",
+        description: "Obrigado pelo seu feedback.",
       });
       setDialogOpen(false);
       if (onFeedbackSubmit) onFeedbackSubmit();
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Submission failed",
-        description: "Could not submit your feedback.",
+        title: "Falha no envio",
+        description: "Não foi possível enviar seu feedback.",
       });
     } finally {
       setIsSubmitting(false);
@@ -50,14 +50,14 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
       setIsGeneratingPDF(true);
       await generatePDF(script.id);
       toast({
-        title: "PDF Generated",
-        description: "Your CapCut editing guide is ready to download.",
+        title: "PDF Gerado",
+        description: "Seu guia de edição CapCut está pronto para download.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Generation failed",
-        description: "Could not generate PDF.",
+        title: "Falha na geração",
+        description: "Não foi possível gerar o PDF.",
       });
     } finally {
       setIsGeneratingPDF(false);
@@ -67,7 +67,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
   // Format the date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("pt-BR", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -92,13 +92,13 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
   const getScriptTypeLabel = () => {
     switch (script.type) {
       case "videoScript":
-        return "Video Script";
+        return "Roteiro para Seu Vídeo";
       case "bigIdea":
-        return "Big Idea";
+        return "Agenda Criativa";
       case "dailySales":
-        return "Daily Sales";
+        return "Ideia para seu Stories";
       default:
-        return "Script";
+        return "Roteiro";
     }
   };
 
@@ -110,7 +110,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
           <Badge variant={getBadgeVariant()}>{getScriptTypeLabel()}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Created on {formatDate(script.createdAt)}
+          Criado em {formatDate(script.createdAt)}
         </p>
       </CardHeader>
       <CardContent className="pb-2">
@@ -120,7 +120,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
         
         {script.suggestedVideos && script.suggestedVideos.length > 0 && (
           <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Suggested Videos</h4>
+            <h4 className="text-sm font-medium mb-2">Vídeos Sugeridos</h4>
             <div className="horizontal-scroll">
               {script.suggestedVideos.map((video) => (
                 <div 
@@ -152,7 +152,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
             disabled={isGeneratingPDF}
           >
             <Download className="h-4 w-4 mr-1" />
-            CapCut Guide
+            Guia CapCut
           </Button>
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -164,7 +164,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Script Feedback</DialogTitle>
+                <DialogTitle>Feedback do Roteiro</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-4 py-4">
@@ -178,22 +178,22 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
                     {approved ? (
                       <>
                         <ThumbsUp className="h-4 w-4 text-green-500" />
-                        <span>Approve this script</span>
+                        <span>Aprovar este roteiro</span>
                       </>
                     ) : (
                       <>
                         <ThumbsDown className="h-4 w-4 text-orange-500" />
-                        <span>Needs revision</span>
+                        <span>Precisa de revisão</span>
                       </>
                     )}
                   </Label>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="feedback">Your feedback</Label>
+                  <Label htmlFor="feedback">Seu feedback</Label>
                   <Textarea
                     id="feedback"
-                    placeholder="What did you like? What needs improvement?"
+                    placeholder="O que você gostou? O que precisa melhorar?"
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     rows={5}
@@ -206,13 +206,13 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
                   variant="ghost" 
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button 
                   onClick={handleSubmitFeedback}
                   disabled={isSubmitting}
                 >
-                  Submit
+                  Enviar
                 </Button>
               </DialogFooter>
             </DialogContent>

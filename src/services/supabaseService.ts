@@ -24,41 +24,53 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
     const roteiroData = {
       usuario_id: (await supabase.auth.getUser()).data.user?.id,
       tipo: request.type,
-      titulo: `${request.topic || 'Novo roteiro'} - ${new Date().toLocaleDateString()}`,
+      titulo: `${request.topic || 'Novo roteiro'} - ${new Date().toLocaleDateString('pt-BR')}`,
       conteudo: '',
       status: 'gerado'
     };
     
     // Aqui poderia chamar uma API externa ou Edge Function para gerar o conteúdo
     let mockContent = '';
+    const toneMap: Record<string, string> = {
+      'professional': 'profissional',
+      'friendly': 'descontraído',
+      'provocative': 'provocativo',
+      'educational': 'educativo'
+    };
+    
+    const tonePt = toneMap[request.tone || 'professional'] || 'profissional';
+    const equipmentText = request.equipment && request.equipment.length > 0 
+      ? `usando ${request.equipment.join(", ")}` 
+      : "usando nossos equipamentos avançados";
+    
     switch (request.type) {
       case 'videoScript':
-        mockContent = `# ${request.topic || "Treatment"} Video Script\n\n` +
-          `## Intro (10 seconds)\n` +
-          `"Welcome back to our channel! Today we're exploring ${request.topic || "an exciting treatment"} using ${request.equipment?.join(", ") || "our advanced equipment"}.\n\n` +
-          `## Main Content (30 seconds)\n` +
-          `This revolutionary approach targets ${request.bodyArea || "problem areas"} and provides ${request.purpose || "amazing results"}.\n\n` +
-          `## Tips and Advice (15 seconds)\n` +
-          `For best results, we recommend...\n\n` +
-          `## Call to Action (5 seconds)\n` +
-          `Book your consultation today!`;
+        mockContent = `# Roteiro para ${request.topic || "Tratamento"}\n\n` +
+          `## Introdução (10 segundos)\n` +
+          `"Bem-vindos ao nosso canal! Hoje vamos explorar ${request.topic || "um tratamento incrível"} ${equipmentText}.\n\n` +
+          `## Conteúdo Principal (30 segundos)\n` +
+          `Esta abordagem revolucionária trata ${request.bodyArea || "áreas problemáticas"} e proporciona ${request.purpose || "resultados incríveis"}. O tom da mensagem é ${tonePt}.\n\n` +
+          `## Dicas e Conselhos (15 segundos)\n` +
+          `Para melhores resultados, recomendamos...\n\n` +
+          `## Chamada para Ação (5 segundos)\n` +
+          `Agende sua consulta hoje mesmo!`;
         break;
       case 'bigIdea':
-        mockContent = `# Strategic Big Idea: ${request.topic || "Monthly Treatment Focus"}\n\n` +
-          `## Core Concept\n` +
-          `Position ${request.topic || "your treatment"} as the go-to solution for ${request.purpose || "client needs"}.\n\n` +
-          `## Key Message Points\n` +
-          `- Highlight the unique benefits\n` +
-          `- Share before/after results\n` +
-          `- Emphasize your clinic's expertise\n\n` +
-          `## Content Strategy\n` +
-          `Create a content series showing progressive results over time.`;
+        mockContent = `# Agenda Criativa: ${request.topic || "Foco Mensal de Tratamento"}\n\n` +
+          `## Conceito Principal\n` +
+          `Posicionar ${request.topic || "seu tratamento"} como a solução ideal para ${request.purpose || "necessidades dos clientes"}.\n\n` +
+          `## Pontos-Chave de Mensagem\n` +
+          `- Destacar os benefícios únicos\n` +
+          `- Compartilhar resultados antes/depois\n` +
+          `- Enfatizar a expertise da sua clínica\n\n` +
+          `## Estratégia de Conteúdo\n` +
+          `Criar uma série de conteúdo mostrando resultados progressivos ao longo do tempo.`;
         break;
       case 'dailySales':
-        mockContent = `# Quick Sales Story for Social Media\n\n` +
-          `"Did you know that our ${request.topic || "signature treatment"} can transform your ${request.bodyArea || "appearance"} in just one session?\n\n` +
-          `We're offering a special promotion this week only!\n\n` +
-          `Swipe up to learn more or DM us to book your appointment."`;
+        mockContent = `# Ideia para Stories\n\n` +
+          `"Você sabia que nosso ${request.topic || "tratamento exclusivo"} pode transformar ${request.bodyArea || "sua aparência"} em apenas uma sessão?\n\n` +
+          `Estamos com uma promoção especial apenas esta semana!\n\n` +
+          `Deslize para cima ou envie DM para agendar sua consulta."`;
         break;
     }
     
