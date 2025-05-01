@@ -197,6 +197,16 @@ export const testDropboxConnection = async (token: string): Promise<{
   error?: string;
 }> => {
   try {
+    console.log("Testando conexão com Dropbox, token:", token.substring(0, 5) + '...');
+    
+    // Verificar se o token está vazio
+    if (!token || token.trim() === '') {
+      return { 
+        success: false, 
+        error: 'Token de acesso não fornecido' 
+      };
+    }
+    
     // Chamada ao endpoint de usuário do Dropbox para verificar a autenticação
     const response = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
       method: 'POST',
@@ -204,26 +214,57 @@ export const testDropboxConnection = async (token: string): Promise<{
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(null)
+      body: 'null' // O Dropbox API requer um 'null' como string no corpo da requisição
     });
 
+    // Capturar o corpo da resposta para análise, independente do status
+    const responseBody = await response.text();
+    console.log("Resposta do Dropbox:", response.status, responseBody);
+    
+    // Tentar analisar a resposta como JSON
+    let responseData;
+    try {
+      responseData = JSON.parse(responseBody);
+    } catch (e) {
+      console.log("Erro ao parsear resposta:", e);
+      responseData = null;
+    }
+
     if (response.status === 200) {
-      const data = await response.json();
+      const userName = responseData?.name?.display_name || 'usuário';
       return { 
         success: true, 
-        message: `Conexão com Dropbox estabelecida como ${data.name?.display_name || 'usuário'}` 
+        message: `Conexão com Dropbox estabelecida como ${userName}` 
       };
     } else {
-      const errorData = await response.json();
+      // Identificar erros específicos do Dropbox API
+      const errorMessage = responseData?.error_summary || responseData?.error?.message || 'Erro desconhecido';
+      
+      // Diagnóstico mais detalhado para erros comuns
+      let detailedError = '';
+      if (response.status === 401) {
+        detailedError = 'Token de acesso inválido ou expirado. Gere um novo token no Console do Dropbox.';
+      } else if (response.status === 400) {
+        detailedError = 'Requisição inválida. Verifique o formato do token.';
+      } else if (response.status === 429) {
+        detailedError = 'Limite de requisições excedido. Tente novamente mais tarde.';
+      } else {
+        detailedError = `Erro na API do Dropbox (Código: ${response.status}): ${errorMessage}`;
+      }
+      
       return { 
         success: false, 
-        error: errorData.error_summary || 'Erro ao conectar com API do Dropbox' 
+        error: detailedError
       };
     }
   } catch (error) {
+    console.error("Erro ao testar conexão com Dropbox:", error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Erro desconhecido na conexão com Dropbox' 
+      error: error instanceof Error ? 
+             `Erro de conexão: ${error.message}` : 
+             'Erro desconhecido ao tentar conectar com o Dropbox'
     };
   }
 };
+
