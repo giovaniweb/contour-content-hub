@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -17,7 +16,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useToast } from "@/hooks/use-toast";
 import {
   LayoutDashboard,
-  FileText,
   History,
   Library,
   CalendarDays,
@@ -121,14 +119,6 @@ const Navbar: React.FC = () => {
                   Dashboard
                 </div>
               </NavLink>
-              <NavLink to="/script-generator" className={({isActive}) => 
-                isActive ? "text-primary font-medium" : "hover:text-primary"
-              }>
-                <div className="flex items-center px-3 py-2">
-                  <FileText className="h-4 w-4 mr-1" />
-                  Roteiros
-                </div>
-              </NavLink>
               <NavLink to="/script-history" className={({isActive}) => 
                 isActive ? "text-primary font-medium" : "hover:text-primary"
               }>
@@ -179,7 +169,6 @@ const Navbar: React.FC = () => {
                 {isAuthenticated && (
                   <>
                     <DrawerNavLink to="/dashboard" icon={<LayoutDashboard className="h-4 w-4 mr-2" />} label="Dashboard" />
-                    <DrawerNavLink to="/script-generator" icon={<FileText className="h-4 w-4 mr-2" />} label="Roteiros" />
                     <DrawerNavLink to="/script-history" icon={<History className="h-4 w-4 mr-2" />} label="Histórico" />
                     <DrawerNavLink to="/media-library" icon={<Library className="h-4 w-4 mr-2" />} label="Mídia" />
                     <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-4 w-4 mr-2" />} label="Agenda" />
