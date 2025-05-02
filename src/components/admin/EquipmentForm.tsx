@@ -338,6 +338,24 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                 </FormItem>
               )}
             />
+            
+            {/* Moved efeito field right after nome */}
+            <FormField
+              control={form.control}
+              name="efeito"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Efeito (Frase de efeito/Tagline)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      placeholder="Ex: Supremacia tecnológica para tratamentos corporais e faciais" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -441,24 +459,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       required 
                       {...field} 
                       placeholder="Ex: Efeito lifting visível sem cortes ou agulhas" 
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="efeito"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Efeito</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Ex: Estimula produção de colágeno em camadas profundas da pele" 
                       rows={3}
                     />
                   </FormControl>

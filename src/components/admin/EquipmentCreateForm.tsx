@@ -332,6 +332,24 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             )}
           </div>
           
+          {/* Moved efeito field right after nome */}
+          <div>
+            <Label htmlFor="efeito" className={errors.efeito ? "text-destructive" : ""}>
+              Efeito (Frase de efeito/Tagline)
+            </Label>
+            <Input 
+              id="efeito"
+              name="efeito"
+              value={equipment.efeito || ''}
+              onChange={handleChange}
+              placeholder="Ex: Supremacia tecnológica para tratamentos corporais e faciais"
+              className={`mt-1 ${errors.efeito ? "border-destructive" : ""}`}
+            />
+            {errors.efeito && (
+              <p className="text-destructive text-sm mt-1">{errors.efeito}</p>
+            )}
+          </div>
+          
           <div>
             <Label>Imagem do Equipamento</Label>
             <div className="mt-2">
@@ -433,23 +451,6 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             />
             {errors.beneficios && (
               <p className="text-destructive text-sm mt-1">{errors.beneficios}</p>
-            )}
-          </div>
-          
-          <div>
-            <Label htmlFor="efeito" className={errors.efeito ? "text-destructive" : ""}>
-              Efeito
-            </Label>
-            <Textarea 
-              id="efeito"
-              name="efeito"
-              value={equipment.efeito || ''}
-              onChange={handleChange}
-              placeholder="Descreva os efeitos deste equipamento no tratamento..."
-              className={`mt-1 h-24 ${errors.efeito ? "border-destructive" : ""}`}
-            />
-            {errors.efeito && (
-              <p className="text-destructive text-sm mt-1">{errors.efeito}</p>
             )}
           </div>
           
