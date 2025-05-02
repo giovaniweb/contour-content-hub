@@ -28,7 +28,7 @@ export const logValidationAnalytics = async (
   validation: ValidationResult
 ): Promise<void> => {
   try {
-    // Preparar dados para análise
+    // Preparar dados para análise de forma mais leve
     const analyticsData = {
       script_id: scriptId,
       script_type: scriptType,
@@ -43,14 +43,32 @@ export const logValidationAnalytics = async (
       has_improvement_suggestions: validation.blocos?.some(b => b.substituir === true) || false
     };
     
-    // Salvar em localStorage para análise offline
+    // Otimização: armazenar menos dados e limitar tamanho do histórico
     const storageKey = 'validation_analytics';
-    const existingData = localStorage.getItem(storageKey);
-    const analytics = existingData ? JSON.parse(existingData) : [];
-    analytics.push(analyticsData);
-    localStorage.setItem(storageKey, JSON.stringify(analytics.slice(-100))); // Manter apenas os 100 mais recentes
+    const existingDataJson = localStorage.getItem(storageKey);
     
-    console.log('Analytics de validação registrado no localStorage:', analyticsData);
+    try {
+      // Usar uma abordagem mais otimizada para manipular localStorage
+      let analytics = [];
+      if (existingDataJson) {
+        analytics = JSON.parse(existingDataJson);
+        // Limitar a apenas 20 registros mais recentes para economia de memória
+        if (analytics.length > 20) {
+          analytics = analytics.slice(-20);
+        }
+      }
+      
+      // Adicionar novo registro e salvar
+      analytics.push(analyticsData);
+      localStorage.setItem(storageKey, JSON.stringify(analytics));
+      
+      console.log('Analytics de validação registrado');
+    } catch (storageError) {
+      // Em caso de erro de armazenamento (como limite excedido), limpe e tente novamente
+      console.warn('Erro no localStorage, limpando analytics antigos:', storageError);
+      localStorage.removeItem(storageKey);
+      localStorage.setItem(storageKey, JSON.stringify([analyticsData]));
+    }
   } catch (error) {
     console.error('Erro ao registrar analytics de validação:', error);
   }
@@ -61,11 +79,14 @@ export const logValidationAnalytics = async (
  */
 export const getValidationInsights = async (): Promise<ValidationStats | null> => {
   try {
-    // Usar dados do localStorage
+    // Otimização: apenas recuperar dados se necessário
     const storageKey = 'validation_analytics';
-    const existingData = localStorage.getItem(storageKey);
-    const analytics = existingData ? JSON.parse(existingData) : [];
+    const existingDataJson = localStorage.getItem(storageKey);
+    if (!existingDataJson) {
+      return null;
+    }
     
+    const analytics = JSON.parse(existingDataJson);
     if (analytics.length === 0) {
       return null;
     }
@@ -77,25 +98,31 @@ export const getValidationInsights = async (): Promise<ValidationStats | null> =
   }
 };
 
-// Função auxiliar para processar dados
+// Função auxiliar para processar dados - otimizada para performance
 const processValidationData = (data: any[]): ValidationStats => {
-  const countTotal = data.length;
+  // Limitar o número de registros processados para evitar travamentos
+  const limitedData = data.length > 50 ? data.slice(-50) : data;
+  const countTotal = limitedData.length;
   
-  const sumScoreOverall = data.reduce((sum, item) => sum + (parseFloat(item.score_overall) || 0), 0);
-  const sumScoreGancho = data.reduce((sum, item) => sum + (parseFloat(item.score_gancho) || 0), 0);
-  const sumScoreClarity = data.reduce((sum, item) => sum + (parseFloat(item.score_clareza) || 0), 0);
-  const sumScoreCta = data.reduce((sum, item) => sum + (parseFloat(item.score_cta) || 0), 0);
-  const sumScoreEmotional = data.reduce((sum, item) => sum + (parseFloat(item.score_emocao) || 0), 0);
+  // Usar reduce uma única vez para coletar todas as somas
+  const sums = limitedData.reduce((acc, item) => {
+    acc.overall += (parseFloat(item.score_overall) || 0);
+    acc.gancho += (parseFloat(item.score_gancho) || 0);
+    acc.clareza += (parseFloat(item.score_clareza) || 0);
+    acc.cta += (parseFloat(item.score_cta) || 0);
+    acc.emocao += (parseFloat(item.score_emocao) || 0);
+    return acc;
+  }, { overall: 0, gancho: 0, clareza: 0, cta: 0, emocao: 0 });
   
   return {
     countTotal,
-    averageScoreOverall: sumScoreOverall / countTotal,
+    averageScoreOverall: sums.overall / countTotal,
     averageScoreByBlock: {
-      gancho: sumScoreGancho / countTotal,
-      conflito: sumScoreClarity / countTotal,
-      virada: sumScoreEmotional / countTotal,
-      cta: sumScoreCta / countTotal,
+      gancho: sums.gancho / countTotal,
+      conflito: sums.clareza / countTotal,
+      virada: sums.emocao / countTotal,
+      cta: sums.cta / countTotal,
     },
-    mostCommonSuggestions: [] // Implementação futura para extrair sugestões comuns
+    mostCommonSuggestions: [] // Implementação futura mais eficiente
   };
 };

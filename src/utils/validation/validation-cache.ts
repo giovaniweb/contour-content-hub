@@ -3,6 +3,7 @@ import { ValidationResult } from './types';
 
 /**
  * Cache em memória para armazenar validações recentes
+ * Otimizado para desempenho e economia de memória
  * Implementado como singleton para garantir estado compartilhado
  */
 export class ValidationCache {
@@ -12,7 +13,7 @@ export class ValidationCache {
 
   private constructor() {
     this.cache = new Map();
-    this.maxSize = 50; // Limitar tamanho do cache para evitar vazamentos de memória
+    this.maxSize = 20; // Reduzido para 20 para menor uso de memória
   }
 
   public static getInstance(): ValidationCache {
@@ -22,17 +23,16 @@ export class ValidationCache {
     return ValidationCache.instance;
   }
 
-  // Obter validação do cache
+  // Obter validação do cache com verificação de expiração otimizada
   public get(scriptId: string): (ValidationResult & {timestamp?: string}) | null {
     const cached = this.cache.get(scriptId);
     if (!cached) return null;
     
-    // Verificar validade (máximo 60 minutos)
-    const maxAge = 60 * 60 * 1000; // 1 hora em ms
+    // Verificação de validade mais eficiente (máximo 30 minutos)
+    const maxAge = 30 * 60 * 1000; // 30 minutos em ms (reduzido de 60)
     const timestamp = new Date(cached.timestamp).getTime();
-    const now = Date.now();
     
-    if (now - timestamp > maxAge) {
+    if (Date.now() - timestamp > maxAge) {
       this.cache.delete(scriptId);
       return null;
     }
@@ -40,12 +40,34 @@ export class ValidationCache {
     return cached;
   }
 
-  // Adicionar validação ao cache
+  // Adicionar validação ao cache com gestão de memória melhorada
   public set(scriptId: string, validation: ValidationResult): void {
-    // Se o cache estiver cheio, remover o item mais antigo
+    // Se o cache estiver cheio, remover elementos antigos
     if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      const oldEntries = [...this.cache.entries()]
+        .sort((a, b) => new Date(a[1].timestamp).getTime() - new Date(b[1].timestamp).getTime());
+      
+      // Remover os 25% mais antigos para liberar espaço em bloco
+      const removeCount = Math.max(1, Math.floor(this.maxSize * 0.25));
+      for (let i = 0; i < removeCount; i++) {
+        if (oldEntries[i]) {
+          this.cache.delete(oldEntries[i][0]);
+        }
+      }
+    }
+    
+    // Filtrar blocos com textos muito longos para economizar memória
+    if (validation.blocos && validation.blocos.length > 0) {
+      validation.blocos = validation.blocos.map(bloco => {
+        // Limitar tamanho de texto para economia de memória
+        if (bloco.texto && bloco.texto.length > 300) {
+          bloco.texto = bloco.texto.substring(0, 300) + "...";
+        }
+        if (bloco.sugestao && bloco.sugestao.length > 300) {
+          bloco.sugestao = bloco.sugestao.substring(0, 300) + "...";
+        }
+        return bloco;
+      });
     }
     
     // Adicionar ao cache com timestamp

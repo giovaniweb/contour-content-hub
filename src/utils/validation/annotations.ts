@@ -4,37 +4,44 @@ import { TextAnnotation } from '@/components/script/AnnotatedText';
 
 /**
  * Converte blocos de validação em anotações para o componente AnnotatedText
+ * Otimizado para performance com processamento mínimo
+ * 
  * @param validation Resultado da validação
  * @returns Array de anotações de texto
  */
 export const mapValidationToAnnotations = (validation: ValidationResult): TextAnnotation[] => {
-  const annotations: TextAnnotation[] = [];
-  
+  // Verificação rápida para retorno antecipado
   if (!validation.blocos || validation.blocos.length === 0) {
-    return annotations;
+    return [];
   }
   
-  // Mapear cada bloco de validação para uma anotação
-  validation.blocos.forEach((bloco) => {
-    if (!bloco.texto) return;
+  // Definir tamanho inicial do array para evitar realocações
+  const annotations: TextAnnotation[] = [];
+  const blocksCount = Math.min(validation.blocos.length, 50); // Limitar para no máximo 50 blocos
+  
+  // Processar apenas um número limitado de blocos para manter desempenho
+  for (let i = 0; i < blocksCount; i++) {
+    const bloco = validation.blocos[i];
+    if (!bloco.texto) continue;
     
-    // Definir tipo com base na nota do bloco
-    let type: "positive" | "negative" | "suggestion" | "gancho" | "conflito" | "virada" | "cta" = "suggestion";
+    // Determinar tipo com lógica simplificada
+    let type: "positive" | "negative" | "suggestion" | "gancho" | "conflito" | "virada" | "cta";
     
-    // Mapear tipo do bloco para o tipo de anotação
-    if (bloco.tipo === "gancho") type = "gancho";
-    else if (bloco.tipo === "conflito") type = "conflito";
-    else if (bloco.tipo === "virada") type = "virada";
-    else if (bloco.tipo === "cta") type = "cta";
-    else if (bloco.nota >= 8) type = "positive";
-    else if (bloco.nota < 6) type = "negative";
+    // Verificação simplificada para tipos conhecidos
+    switch (bloco.tipo) {
+      case "gancho": type = "gancho"; break;
+      case "conflito": type = "conflito"; break;
+      case "virada": type = "virada"; break;
+      case "cta": type = "cta"; break;
+      default:
+        // Para outros tipos, classificar por pontuação
+        type = bloco.nota >= 8 ? "positive" : bloco.nota < 6 ? "negative" : "suggestion";
+    }
     
-    // Construir mensagem da anotação
-    const message = bloco.substituir
-      ? `Sugestão: ${bloco.sugestao}`
-      : `Pontuação: ${bloco.nota.toFixed(1)}/10`;
+    // Criar mensagem de forma otimizada
+    const message = bloco.substituir ? `Sugestão: ${bloco.sugestao}` : `Pontuação: ${bloco.nota.toFixed(1)}/10`;
     
-    // Adicionar anotação
+    // Adicionar apenas os campos necessários
     annotations.push({
       text: bloco.texto,
       type,
@@ -44,7 +51,7 @@ export const mapValidationToAnnotations = (validation: ValidationResult): TextAn
       replace: bloco.substituir === true,
       action: message
     });
-  });
+  }
   
   return annotations;
 };
