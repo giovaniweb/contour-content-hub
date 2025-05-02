@@ -77,14 +77,14 @@ const ScriptValidationPage: React.FC = () => {
           </Card>
           
           {/* Botão de validação centralizado entre os dois cards */}
-          <div className="flex justify-center -my-3">
+          <div className="flex justify-center -my-3 z-10">
             <Button 
               onClick={handleValidate}
               disabled={!content.trim() || isValidating}
-              className="flex gap-2 px-8 py-6 text-base shadow-md z-10"
+              className="px-8 py-6 text-base shadow-lg"
               size="lg"
             >
-              {isValidating ? <RefreshCw className="h-5 w-5 animate-spin" /> : <CheckCircle className="h-5 w-5" />}
+              {isValidating ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
               Validar Roteiro
             </Button>
           </div>
