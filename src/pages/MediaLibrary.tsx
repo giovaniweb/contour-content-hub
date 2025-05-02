@@ -17,10 +17,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { getMediaItems, MediaItem } from "@/utils/api";
 import MediaCard from "@/components/MediaCard";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Video, Film, Camera, LoaderIcon } from "lucide-react";
+import { 
+  Search, 
+  Video, 
+  Film, 
+  Camera, 
+  LoaderIcon, 
+  Upload,
+  PlusCircle,
+  VideoIcon,
+  SquareRecording,
+  LayoutGrid,
+  Clock,
+  ArrowRight,
+  ArrowLeft
+} from "lucide-react";
 
 const MediaLibrary: React.FC = () => {
   const { toast } = useToast();
@@ -120,21 +135,21 @@ const MediaLibrary: React.FC = () => {
     }
     
     // Filter by equipment
-    if (selectedEquipment) {
+    if (selectedEquipment && selectedEquipment !== "none") {
       filtered = filtered.filter(item => 
         item.equipment.includes(selectedEquipment)
       );
     }
     
     // Filter by body area
-    if (selectedBodyArea) {
+    if (selectedBodyArea && selectedBodyArea !== "none") {
       filtered = filtered.filter(item => 
         item.bodyArea.includes(selectedBodyArea)
       );
     }
     
     // Filter by purpose
-    if (selectedPurpose) {
+    if (selectedPurpose && selectedPurpose !== "none") {
       filtered = filtered.filter(item => 
         item.purpose.includes(selectedPurpose)
       );
@@ -170,9 +185,98 @@ const MediaLibrary: React.FC = () => {
   
   return (
     <Layout title="Media Library">
-      <div className="grid gap-6">
+      <div className="space-y-8">
+        {/* Action cards at the top - Vimeo-inspired */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                <Upload className="h-6 w-6 text-slate-600" />
+              </div>
+              <h3 className="font-medium text-sm">Carregar</h3>
+              <p className="text-xs text-muted-foreground">do computador</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                <Film className="h-6 w-6 text-slate-600" />
+              </div>
+              <h3 className="font-medium text-sm">Importar</h3>
+              <p className="text-xs text-muted-foreground">do Drive e muito mais</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                <PlusCircle className="h-6 w-6 text-slate-600" />
+              </div>
+              <h3 className="font-medium text-sm">Criar</h3>
+              <p className="text-xs text-muted-foreground">novo ou com modelo</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                <SquareRecording className="h-6 w-6 text-slate-600" />
+              </div>
+              <h3 className="font-medium text-sm">Gravar</h3>
+              <p className="text-xs text-muted-foreground">tela ou webcam</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                <LayoutGrid className="h-6 w-6 text-slate-600" />
+              </div>
+              <h3 className="font-medium text-sm">Organizar</h3>
+              <p className="text-xs text-muted-foreground">evento ou webinar</p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* "O que quer criar hoje" section */}
+        <div className="text-center py-6">
+          <div className="inline-block h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+            <VideoIcon className="h-8 w-8 text-blue-500" />
+          </div>
+          <h2 className="text-3xl font-semibold mb-6">O que quer Criar Hoje?</h2>
+          
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <Button variant="outline" className="rounded-full">Encontrar algo</Button>
+            <Button variant="outline" className="rounded-full">Planejamento</Button>
+            <Button variant="outline" className="rounded-full">Criativo para anúncio</Button>
+          </div>
+          
+          <Card className="bg-slate-50 p-4 mb-8">
+            <div className="flex justify-between items-center">
+              <p className="text-slate-700">Quer um vídeo, um folder, uma arte. Só pede!</p>
+              <Button className="rounded-full">Quero Agora</Button>
+            </div>
+          </Card>
+        </div>
+
         {/* Filters */}
         <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Recentes
+            </h3>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -314,6 +418,50 @@ const MediaLibrary: React.FC = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Analytics/Statistics Section */}
+        <div className="pt-8 border-t">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold">Análises</h3>
+            <Badge variant="outline">De 2 de abr a 2 de mai</Badge>
+          </div>
+          <div className="h-48 bg-slate-50 rounded-lg mb-4 flex items-center justify-center">
+            <p className="text-muted-foreground">Gráfico de análises (demonstrativo)</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Visualizações</p>
+                    <p className="text-xl font-semibold">4.871</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">-11% em relação a 1 mês atrás</Badge>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Impressões</p>
+                    <p className="text-xl font-semibold">32,2 mil</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Visualizações únicas</p>
+                    <p className="text-xl font-semibold">545</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </Layout>
   );
