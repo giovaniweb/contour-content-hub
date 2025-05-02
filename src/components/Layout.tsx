@@ -78,13 +78,13 @@ const Layout: React.FC<LayoutProps> = ({
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={!sidebarCollapsed}>
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-contourline-lightGray/20 w-full">
         <Navbar />
         
         <div className="flex flex-1">
           {isAuthenticated && (
-            <Sidebar defaultCollapsed={sidebarCollapsed} collapsible="icon">
+            <Sidebar collapsible="icon">
               <SidebarHeader className="border-b pb-2">
                 <div className="flex items-center justify-between px-2">
                   <div className="flex items-center">
