@@ -1,33 +1,111 @@
 
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// Auth pages
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import ScriptGenerator from './pages/ScriptGenerator';
-import ScriptHistory from './pages/ScriptHistory';
-import MediaLibrary from './pages/MediaLibrary';
-import Calendar from './pages/Calendar';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminEquipments from './pages/AdminEquipments';
-import AdminContent from './pages/AdminContent';
-import AdminIntegrations from './pages/AdminIntegrations';
 import NotFound from './pages/NotFound';
-import CustomGpt from './pages/CustomGpt';
-import EquipmentDetails from './pages/EquipmentDetails';
 
-const queryClient = new QueryClient();
+// Lazy loaded app pages
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ScriptGenerator = lazy(() => import('./pages/ScriptGenerator'));
+const ScriptHistory = lazy(() => import('./pages/ScriptHistory'));
+const MediaLibrary = lazy(() => import('./pages/MediaLibrary'));
+const Calendar = lazy(() => import('./pages/Calendar'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Settings = lazy(() => import('./pages/Settings'));
+const CustomGpt = lazy(() => import('./pages/CustomGpt'));
+const EquipmentDetails = lazy(() => import('./pages/EquipmentDetails'));
+
+// Lazy loaded admin pages
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminEquipments = lazy(() => import('./pages/AdminEquipments'));
+const AdminContent = lazy(() => import('./pages/AdminContent'));
+const AdminIntegrations = lazy(() => import('./pages/AdminIntegrations'));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="relative">
+        <div className="h-16 w-16 rounded-full border-4 border-t-transparent border-blue-500 animate-spin"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-blue-200 animate-pulse"></div>
+        </div>
+      </div>
+      <p className="text-lg font-medium text-gray-700">Carregando...</p>
+    </div>
+  </div>
+);
+
+// Protected Route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Admin Route component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/dashboard" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Public Route component (redirects to dashboard if already logged in)
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  
+  // Get the intended destination from state, or default to dashboard
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -39,28 +117,106 @@ function App() {
               <TooltipProvider>
                 <Toaster />
                 <Routes>
-                  {/* Rotas de autenticação */}
-                  <Route path="/" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
+                  {/* Rotas públicas (usuários não autenticados) */}
+                  <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
+                  <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+                  <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                  <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
                   
-                  {/* Rotas da aplicação */}
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/script-generator" element={<ScriptGenerator />} />
-                  <Route path="/script-history" element={<ScriptHistory />} />
-                  <Route path="/media-library" element={<MediaLibrary />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/custom-gpt" element={<CustomGpt />} />
-                  <Route path="/equipment-details" element={<EquipmentDetails />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/settings" element={<Settings />} />
+                  {/* Rotas protegidas (usuários autenticados) */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Dashboard />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/script-generator" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ScriptGenerator />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/script-history" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ScriptHistory />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/media-library" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <MediaLibrary />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/calendar" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Calendar />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/custom-gpt" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <CustomGpt />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/equipment-details" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <EquipmentDetails />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Profile />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Settings />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   
-                  {/* Rotas administrativas */}
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/equipments" element={<AdminEquipments />} />
-                  <Route path="/admin/content" element={<AdminContent />} />
-                  <Route path="/admin/integrations" element={<AdminIntegrations />} />
+                  {/* Rotas administrativas (apenas admin) */}
+                  <Route path="/admin/dashboard" element={
+                    <AdminRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <AdminDashboard />
+                      </Suspense>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/equipments" element={
+                    <AdminRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <AdminEquipments />
+                      </Suspense>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/content" element={
+                    <AdminRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <AdminContent />
+                      </Suspense>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/integrations" element={
+                    <AdminRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <AdminIntegrations />
+                      </Suspense>
+                    </AdminRoute>
+                  } />
                   
                   {/* Rota de redirecionamento para página inicial */}
                   <Route path="/index" element={<Navigate to="/" replace />} />
