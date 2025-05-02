@@ -129,11 +129,10 @@ const TrendingTopics: React.FC = () => {
       }
       
       // Buscar dados do equipamento para uso na geração do roteiro
-      let equipmentoData: Equipment | null = null;
+      let equipmentData: Equipment | null = null;
       if (analysisData.equipment) {
-        // Aqui deveria buscar os dados do equipamento da API ou do Supabase
-        // Exemplo simulado:
-        equipmentoData = {
+        // Fix: Added data_cadastro property required by the Equipment interface
+        equipmentData = {
           id: "1",
           nome: analysisData.equipment || "Equipamento Genérico",
           tecnologia: "Tecnologia avançada",
@@ -141,7 +140,8 @@ const TrendingTopics: React.FC = () => {
           beneficios: "Resultados rápidos e duradouros",
           diferenciais: "Tecnologia exclusiva",
           linguagem: "Técnica",
-          ativo: true
+          ativo: true,
+          data_cadastro: new Date().toISOString() // Add the required property
         };
       }
       
@@ -154,7 +154,7 @@ const TrendingTopics: React.FC = () => {
         purposes: analysisData.purpose ? [analysisData.purpose] : undefined,
         marketingObjective: analysisData.marketingObjective,
         additionalInfo: analysisData.additionalInfo,
-        equipamentoData
+        equipamentoData: equipmentData // Fixed: corrected the variable name
       };
       
       const generatedContent = await generateCustomContent(customGptRequest);
