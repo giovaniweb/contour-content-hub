@@ -17,10 +17,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
@@ -94,6 +94,22 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
     
     // Default placeholder based on type
     return '/placeholder.svg';
+  };
+
+  // Função para limpar e normalizar URL do Vimeo para incorporação
+  const getNormalizedVideoUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    
+    // Se já estiver no formato player.vimeo.com, retornar como está
+    if (url.includes('player.vimeo.com')) return url;
+    
+    // Para URLs do Vimeo no formato padrão, converter para formato de player
+    const vimeoIdMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoIdMatch && vimeoIdMatch[1]) {
+      return `https://player.vimeo.com/video/${vimeoIdMatch[1]}`;
+    }
+    
+    return url;
   };
 
   const renderGridView = () => (
@@ -348,7 +364,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
           {viewVideoUrl && (
             <div className="aspect-video">
               <iframe
-                src={viewVideoUrl}
+                src={getNormalizedVideoUrl(viewVideoUrl)}
                 className="w-full h-full"
                 frameBorder="0"
                 allow="autoplay; fullscreen; picture-in-picture"

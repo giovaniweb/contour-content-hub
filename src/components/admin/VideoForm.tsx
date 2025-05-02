@@ -146,6 +146,38 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     }
   };
 
+  // Função para limpar e normalizar URL do Vimeo
+  const cleanVimeoUrl = (url: string): string => {
+    if (!url) return url;
+    
+    // Remove espaços em branco no início e fim
+    let cleanUrl = url.trim();
+    
+    // Processar URLs do Vimeo
+    if (cleanUrl.includes('vimeo.com')) {
+      // Remover parâmetros de compartilhamento que podem causar problemas
+      if (cleanUrl.includes('?share=copy')) {
+        cleanUrl = cleanUrl.split('?share=copy')[0];
+      }
+      
+      // Se tiver parâmetros de tempo (#t=), remover também
+      if (cleanUrl.includes('#t=')) {
+        cleanUrl = cleanUrl.split('#t=')[0];
+      }
+      
+      // Garantir formato player para incorporação
+      if (!cleanUrl.includes('player.vimeo.com')) {
+        // Extrair o ID do vídeo Vimeo
+        const vimeoIdMatch = cleanUrl.match(/vimeo\.com\/(\d+)/);
+        if (vimeoIdMatch && vimeoIdMatch[1]) {
+          cleanUrl = `https://player.vimeo.com/video/${vimeoIdMatch[1]}`;
+        }
+      }
+    }
+    
+    return cleanUrl;
+  };
+
   // Fetch user profile to get equipment preferences
   const fetchUserProfile = async () => {
     try {
@@ -331,6 +363,9 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         finalPurposes.push(formData.otherPurpose);
       }
 
+      // Limpar a URL do vídeo antes de enviar
+      const cleanedVideoUrl = cleanVimeoUrl(formData.url_video);
+
       // Prepare data for submission
       const videoData = {
         titulo: formData.titulo,
@@ -338,7 +373,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         equipamentos: finalEquipments,
         area_corpo: formData.area_corpo === "Outro" ? formData.otherBodyArea : formData.area_corpo,
         finalidade: finalPurposes,
-        url_video: formData.url_video,
+        url_video: cleanedVideoUrl,
         preview_url: formData.preview_url,
         descricao_curta: formData.descricao_curta,
         descricao_detalhada: formData.descricao_detalhada,
@@ -459,6 +494,9 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
                   onChange={handleInputChange}
                   required
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Para vídeos do Vimeo, utilize o formato: https://vimeo.com/NUMERODOVIDEO
+                </p>
               </div>
 
               <div className="space-y-2">
