@@ -32,7 +32,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     linguagem: '',
     ativo: true,
     image_url: '',
-    efeito: ''  // Add new efeito field
+    efeito: '' // This field is now properly defined in the types
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);

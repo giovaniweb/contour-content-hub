@@ -55,7 +55,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       image_url: '',
       ativo: true,
       efeito: '' // Default empty string for efeito field
-    }
+    } as Equipment // Type assertion to avoid TypeScript errors
   });
 
   // Check for draft on component mount
@@ -124,7 +124,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       image_url: '',
       ativo: true,
       efeito: ''
-    });
+    } as Equipment);
     setImagePreview(null);
     
     toast({
