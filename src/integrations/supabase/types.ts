@@ -152,6 +152,42 @@ export type Database = {
           },
         ]
       }
+      content_feedback_history: {
+        Row: {
+          approved: boolean | null
+          content_id: string | null
+          content_type: string
+          created_at: string
+          features_disliked: string[] | null
+          features_liked: string[] | null
+          feedback_text: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean | null
+          content_id?: string | null
+          content_type: string
+          created_at?: string
+          features_disliked?: string[] | null
+          features_liked?: string[] | null
+          feedback_text?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean | null
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          features_disliked?: string[] | null
+          features_liked?: string[] | null
+          feedback_text?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       equipamentos: {
         Row: {
           ativo: boolean | null
@@ -471,6 +507,51 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          active: boolean
+          ai_generation_limit: number | null
+          billing_cycle: string
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          name: string
+          pdf_export_limit: number | null
+          price: number
+          updated_at: string
+          validation_limit: number | null
+        }
+        Insert: {
+          active?: boolean
+          ai_generation_limit?: number | null
+          billing_cycle?: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name: string
+          pdf_export_limit?: number | null
+          price?: number
+          updated_at?: string
+          validation_limit?: number | null
+        }
+        Update: {
+          active?: boolean
+          ai_generation_limit?: number | null
+          billing_cycle?: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name?: string
+          pdf_export_limit?: number | null
+          price?: number
+          updated_at?: string
+          validation_limit?: number | null
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           categoria: string | null
@@ -494,6 +575,92 @@ export type Database = {
           usado_count?: number | null
         }
         Relationships: []
+      }
+      user_content_profiles: {
+        Row: {
+          common_keywords: string[] | null
+          created_at: string
+          id: string
+          personal_prompt_additions: string | null
+          personalization_active: boolean | null
+          tone_preference: string | null
+          topics: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          common_keywords?: string[] | null
+          created_at?: string
+          id?: string
+          personal_prompt_additions?: string | null
+          personalization_active?: boolean | null
+          tone_preference?: string | null
+          topics?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          common_keywords?: string[] | null
+          created_at?: string
+          id?: string
+          personal_prompt_additions?: string | null
+          personalization_active?: boolean | null
+          tone_preference?: string | null
+          topics?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage: {
+        Row: {
+          ai_generations_used: number | null
+          content_preferences: Json | null
+          created_at: string
+          id: string
+          last_activity: string | null
+          pdf_exports_used: number | null
+          plan_id: string | null
+          updated_at: string
+          usage_reset_date: string | null
+          user_id: string
+          validations_used: number | null
+        }
+        Insert: {
+          ai_generations_used?: number | null
+          content_preferences?: Json | null
+          created_at?: string
+          id?: string
+          last_activity?: string | null
+          pdf_exports_used?: number | null
+          plan_id?: string | null
+          updated_at?: string
+          usage_reset_date?: string | null
+          user_id: string
+          validations_used?: number | null
+        }
+        Update: {
+          ai_generations_used?: number | null
+          content_preferences?: Json | null
+          created_at?: string
+          id?: string
+          last_activity?: string | null
+          pdf_exports_used?: number | null
+          plan_id?: string | null
+          updated_at?: string
+          usage_reset_date?: string | null
+          user_id?: string
+          validations_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_usage_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       videos: {
         Row: {

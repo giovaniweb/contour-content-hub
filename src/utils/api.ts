@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type ScriptType = 'videoScript' | 'bigIdea' | 'dailySales';
@@ -92,6 +93,28 @@ export interface CalendarPreferences {
   audienceType: "general" | "specialized";
   postFrequency?: string;
   preferredTimes?: string[];
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  active: boolean;
+  aiGenerationLimit?: number;
+  pdfExportLimit?: number;
+  validationLimit?: number;
+}
+
+export interface UserUsage {
+  aiGenerationsUsed: number;
+  pdfExportsUsed: number;
+  validationsUsed: number;
+  planId: string;
+  planName: string;
+  usageResetDate: string;
 }
 
 export const generateScript = async (
@@ -531,5 +554,175 @@ export const importEquipments = async (file: File): Promise<{imported: number, t
   } catch (error) {
     console.error('Error importing equipments:', error);
     throw error;
+  }
+};
+
+// Subscription plan functions
+export const getUserUsage = async (): Promise<UserUsage> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    // Buscar dados de uso do usuário
+    const { data: usageData, error: usageError } = await supabase
+      .from('user_usage')
+      .select('*, subscription_plans(*)')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (usageError && usageError.code !== 'PGRST116') {
+      throw usageError;
+    }
+    
+    // Se não houver registro, usar o plano Free como padrão
+    if (!usageData) {
+      const { data: freePlan } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('name', 'Free')
+        .limit(1)
+        .single();
+      
+      return {
+        aiGenerationsUsed: 0,
+        pdfExportsUsed: 0,
+        validationsUsed: 0,
+        planId: freePlan?.id || '',
+        planName: 'Free',
+        usageResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+    }
+    
+    return {
+      aiGenerationsUsed: usageData.ai_generations_used || 0,
+      pdfExportsUsed: usageData.pdf_exports_used || 0,
+      validationsUsed: usageData.validations_used || 0,
+      planId: usageData.plan_id || '',
+      planName: usageData.subscription_plans?.name || 'Free',
+      usageResetDate: usageData.usage_reset_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+  } catch (error) {
+    console.error('Erro ao obter dados de uso:', error);
+    // Retornar valores padrão em caso de erro
+    return {
+      aiGenerationsUsed: 0,
+      pdfExportsUsed: 0,
+      validationsUsed: 0,
+      planId: '',
+      planName: 'Free',
+      usageResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+  }
+};
+
+export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+  try {
+    const { data: plans, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('active', true)
+      .order('price', { ascending: true });
+    
+    if (error) throw error;
+    
+    return (plans || []).map(plan => ({
+      id: plan.id,
+      name: plan.name,
+      description: plan.description || '',
+      features: Array.isArray(plan.features) ? plan.features : [],
+      price: plan.price || 0,
+      billingCycle: (plan.billing_cycle as 'monthly' | 'yearly') || 'monthly',
+      active: plan.active || false,
+      aiGenerationLimit: plan.ai_generation_limit,
+      pdfExportLimit: plan.pdf_export_limit,
+      validationLimit: plan.validation_limit
+    }));
+  } catch (error) {
+    console.error('Erro ao obter planos de assinatura:', error);
+    return [];
+  }
+};
+
+export const updateSubscriptionPlan = async (planId: string): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    // Verificar se já existe um registro para o usuário
+    const { data: existingUsage, error: checkError } = await supabase
+      .from('user_usage')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (checkError && checkError.code !== 'PGRST116') throw checkError;
+    
+    if (existingUsage) {
+      // Atualizar plano existente
+      const { error: updateError } = await supabase
+        .from('user_usage')
+        .update({ plan_id: planId })
+        .eq('id', existingUsage.id);
+      
+      if (updateError) throw updateError;
+    } else {
+      // Criar novo registro
+      const { error: insertError } = await supabase
+        .from('user_usage')
+        .insert({
+          user_id: user.id,
+          plan_id: planId,
+          usage_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        });
+      
+      if (insertError) throw insertError;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar plano de assinatura:', error);
+    return false;
+  }
+};
+
+export const saveFeedbackHistory = async (
+  contentId: string,
+  contentType: string,
+  approved: boolean,
+  feedbackText?: string,
+  featuresLiked?: string[],
+  featuresDisliked?: string[]
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    const { error } = await supabase
+      .from('content_feedback_history')
+      .insert({
+        user_id: user.id,
+        content_id: contentId,
+        content_type: contentType,
+        approved,
+        feedback_text: feedbackText,
+        features_liked: featuresLiked || [],
+        features_disliked: featuresDisliked || []
+      });
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar histórico de feedback:', error);
+    return false;
   }
 };

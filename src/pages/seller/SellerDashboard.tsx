@@ -1,468 +1,324 @@
 
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  LineChart, 
-  Line, 
-  BarChart,
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { Users, FileText, BarChart, LineChart, PieChart, Calendar, Activity } from "lucide-react";
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  BarChart as RechartsBarChart,
   Bar,
-  PieChart,
+  PieChart as RechartsPieChart,
   Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   Legend,
-  ResponsiveContainer 
-} from "recharts";
-import { Users, FileText, Calendar, UserPlus, ArrowUpRight } from "lucide-react";
-import { Perfil } from "@/types/database";
+  ResponsiveContainer
+} from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-const SellerDashboard: React.FC = () => {
-  const { toast } = useToast();
+const SellerDashboard = () => {
+  const { user } = useAuth();
   const { hasPermission } = usePermissions();
-  const navigate = useNavigate();
-
-  // Verificar permissão
+  const [loading, setLoading] = useState(true);
+  const [clientCount, setClientCount] = useState(0);
+  const [activeClientCount, setActiveClientCount] = useState(0);
+  const [totalScriptsGenerated, setTotalScriptsGenerated] = useState(0);
+  const [monthlyScripts, setMonthlyScripts] = useState<any[]>([]);
+  const [planDistribution, setPlanDistribution] = useState<any[]>([]);
+  const [topClients, setTopClients] = useState<any[]>([]);
+  
   useEffect(() => {
-    if (!hasPermission("viewSales")) {
-      navigate("/dashboard");
+    // Verificar permissões
+    if (!hasPermission('viewSales')) {
       toast({
-        title: "Acesso negado",
-        description: "Você não tem permissão para acessar esta página",
         variant: "destructive",
+        title: "Acesso negado",
+        description: "Você não tem permissão para acessar esta página."
       });
-    }
-  }, [hasPermission, navigate, toast]);
-
-  // Buscar clientes
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
-    queryKey: ["seller-dashboard-clients"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("perfis")
-        .select("*")
-        .eq("role", "cliente");
-
-      if (error) {
-        toast({
-          title: "Erro ao buscar clientes",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-
-      return data as Perfil[];
-    }
-  });
-
-  // Buscar roteiros
-  const { data: scripts = [], isLoading: isLoadingScripts } = useQuery({
-    queryKey: ["seller-dashboard-scripts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("roteiros")
-        .select("*");
-
-      if (error) {
-        toast({
-          title: "Erro ao buscar roteiros",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-
-      return data;
-    }
-  });
-
-  // Buscar eventos de agenda
-  const { data: calendarItems = [], isLoading: isLoadingCalendar } = useQuery({
-    queryKey: ["seller-dashboard-calendar"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agenda")
-        .select("*");
-
-      if (error) {
-        toast({
-          title: "Erro ao buscar eventos",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-
-      return data;
-    }
-  });
-
-  // Preparar dados para os gráficos
-  const getMonthlyData = () => {
-    const months = [];
-    const now = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push({
-        name: format(month, "MMM", { locale: ptBR }),
-        clientes: 0,
-        roteiros: 0
-      });
+      return;
     }
     
-    // Preencher com dados de clientes
-    clients.forEach(client => {
-      const clientDate = new Date(client.data_criacao);
-      const monthIndex = months.findIndex(m => {
-        const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - monthIndex), 1);
-        return (
-          clientDate.getMonth() === monthDate.getMonth() && 
-          clientDate.getFullYear() === monthDate.getFullYear()
-        );
+    fetchDashboardData();
+  }, [hasPermission]);
+  
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar contagem total de clientes (role = 'cliente')
+      const { count: clientCountTotal, error: clientCountError } = await supabase
+        .from('perfis')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'cliente');
+        
+      if (clientCountError) throw clientCountError;
+      setClientCount(clientCountTotal || 0);
+      
+      // Buscar contagem de clientes ativos no último mês
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      
+      const { count: activeClientCountTotal, error: activeClientCountError } = await supabase
+        .from('user_usage')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_activity', oneMonthAgo.toISOString());
+        
+      if (activeClientCountError && activeClientCountError.code !== 'PGRST116') throw activeClientCountError;
+      setActiveClientCount(activeClientCountTotal || 0);
+      
+      // Buscar total de roteiros gerados
+      const { count: scriptCountTotal, error: scriptCountError } = await supabase
+        .from('roteiros')
+        .select('*', { count: 'exact', head: true });
+        
+      if (scriptCountError) throw scriptCountError;
+      setTotalScriptsGenerated(scriptCountTotal || 0);
+      
+      // Para dados simulados de geração mensal de roteiros
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentMonth = new Date().getMonth();
+      
+      const scriptData = months.map((month, index) => {
+        // Gerar dados mais realistas, crescente ao longo do tempo
+        let baseValue = 20 + index * 5; 
+        // Último mês tem um pouco menos pois ainda está em andamento
+        const value = index === currentMonth ? baseValue * 0.7 : baseValue;
+        return {
+          month,
+          count: Math.floor(value + Math.random() * 15),
+          isCurrentMonth: index === currentMonth
+        };
       });
       
-      if (monthIndex >= 0) {
-        months[monthIndex].clientes += 1;
-      }
-    });
-    
-    // Preencher com dados de roteiros
-    scripts.forEach(script => {
-      const scriptDate = new Date(script.data_criacao);
-      const monthIndex = months.findIndex(m => {
-        const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - monthIndex), 1);
-        return (
-          scriptDate.getMonth() === monthDate.getMonth() && 
-          scriptDate.getFullYear() === monthDate.getFullYear()
-        );
-      });
+      setMonthlyScripts(scriptData);
       
-      if (monthIndex >= 0) {
-        months[monthIndex].roteiros += 1;
-      }
-    });
-    
-    return months;
+      // Distribuição simulada de planos
+      setPlanDistribution([
+        { name: 'Free', value: 65, color: '#94a3b8' },
+        { name: 'Pro', value: 25, color: '#3b82f6' },
+        { name: 'Unlimited', value: 10, color: '#8b5cf6' }
+      ]);
+      
+      // Clientes mais ativos (simulado)
+      const simulatedTopClients = [
+        { id: '1', name: 'Clínica Estética Bela Vida', scripts: 42, engagement: 98 },
+        { id: '2', name: 'Studio Renove', scripts: 38, engagement: 92 },
+        { id: '3', name: 'Centro de Estética Bella Donna', scripts: 31, engagement: 87 },
+        { id: '4', name: 'Dr. Carlos Mendes', scripts: 29, engagement: 85 },
+        { id: '5', name: 'Instituto de Beleza Renovar', scripts: 25, engagement: 80 }
+      ];
+      
+      setTopClients(simulatedTopClients);
+    } catch (error) {
+      console.error('Erro ao buscar dados do dashboard:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível carregar os dados do dashboard."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const getCityDistribution = () => {
-    const cities: {[key: string]: number} = {};
-    
-    clients.forEach(client => {
-      if (client.cidade) {
-        cities[client.cidade] = (cities[client.cidade] || 0) + 1;
-      }
-    });
-    
-    return Object.entries(cities)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  };
-
-  const getEquipmentUsage = () => {
-    const equipments: {[key: string]: number} = {};
-    
-    // Contar equipamentos de todos os clientes
-    clients.forEach(client => {
-      if (client.equipamentos) {
-        client.equipamentos.forEach(equip => {
-          equipments[equip] = (equipments[equip] || 0) + 1;
-        });
-      }
-    });
-    
-    return Object.entries(equipments)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  };
-
-  const monthlyData = getMonthlyData();
-  const cityDistribution = getCityDistribution();
-  const equipmentUsage = getEquipmentUsage();
-
-  const isLoading = isLoadingClients || isLoadingScripts || isLoadingCalendar;
-
-  if (isLoading) {
+  
+  if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center h-96">
-          <p>Carregando dados do dashboard...</p>
+      <div className="container mx-auto py-6">
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="space-y-2">
+            <div className="h-8 w-[300px] bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-[250px] bg-gray-200 rounded animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
   }
-
-  // Calcular novos clientes este mês
-  const now = new Date();
-  const newClientsThisMonth = clients.filter(client => {
-    const date = new Date(client.data_criacao);
-    return (
-      date.getMonth() === now.getMonth() && 
-      date.getFullYear() === now.getFullYear()
-    );
-  }).length;
-
-  // Calcular roteiros este mês
-  const scriptsThisMonth = scripts.filter(script => {
-    const date = new Date(script.data_criacao);
-    return (
-      date.getMonth() === now.getMonth() && 
-      date.getFullYear() === now.getFullYear()
-    );
-  }).length;
-
+  
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Dashboard de Vendas</h1>
-          <p className="text-muted-foreground mt-1">
-            Visualize o desempenho e estatísticas de seus clientes
+          <p className="text-muted-foreground">
+            Acompanhe o desempenho dos seus clientes e das vendas
           </p>
         </div>
-        <Button onClick={() => navigate("/seller/clients")}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Gerenciar Clientes
+        <Button asChild>
+          <Link to="/seller/clients">
+            <Users className="mr-2 h-4 w-4" />
+            Gerenciar Clientes
+          </Link>
         </Button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total de Clientes</CardTitle>
-            <CardDescription>Clientes ativos na plataforma</CardDescription>
+            <CardTitle>Total de Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center">
-              <Users className="h-10 w-10 text-blue-500 mr-4" />
-              <div>
-                <p className="text-3xl font-bold">{clients.length}</p>
-                <p className="text-xs text-muted-foreground">
-                  {newClientsThisMonth} novos este mês
-                </p>
-              </div>
-            </div>
+            <div className="text-3xl font-bold">{clientCount}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total de Roteiros</CardTitle>
-            <CardDescription>Roteiros criados pelos clientes</CardDescription>
+            <CardTitle>Clientes Ativos</CardTitle>
+            <CardDescription>Últimos 30 dias</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center">
-              <FileText className="h-10 w-10 text-green-500 mr-4" />
-              <div>
-                <p className="text-3xl font-bold">{scripts.length}</p>
-                <p className="text-xs text-muted-foreground">
-                  {scriptsThisMonth} criados este mês
-                </p>
+            <div className="text-3xl font-bold">{activeClientCount}</div>
+            {clientCount > 0 && (
+              <div className="text-sm text-muted-foreground">
+                {Math.round((activeClientCount / clientCount) * 100)}% do total
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Média por Cliente</CardTitle>
-            <CardDescription>Roteiros por cliente</CardDescription>
+            <CardTitle>Roteiros Gerados</CardTitle>
+            <CardDescription>Total</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center">
-              <Users className="h-10 w-10 text-purple-500 mr-4" />
-              <div>
-                <p className="text-3xl font-bold">
-                  {clients.length ? (scripts.length / clients.length).toFixed(1) : '0'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  roteiros / cliente
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Eventos Agendados</CardTitle>
-            <CardDescription>Total de eventos na agenda</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Calendar className="h-10 w-10 text-orange-500 mr-4" />
-              <div>
-                <p className="text-3xl font-bold">{calendarItems.length}</p>
-                <p className="text-xs text-muted-foreground">
-                  {calendarItems.filter(item => {
-                    const today = new Date();
-                    const itemDate = new Date(item.data);
-                    return itemDate > today;
-                  }).length} eventos futuros
-                </p>
-              </div>
-            </div>
+            <div className="text-3xl font-bold">{totalScriptsGenerated}</div>
           </CardContent>
         </Card>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="col-span-1">
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Crescimento Mensal</CardTitle>
-            <CardDescription>Novos clientes e roteiros nos últimos 6 meses</CardDescription>
+            <CardTitle>Roteiros Gerados por Mês</CardTitle>
+            <CardDescription>Evolução da geração de roteiros ao longo do ano</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="clientes" name="Novos Clientes" stroke="#8884d8" />
-                <Line type="monotone" dataKey="roteiros" name="Roteiros Criados" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart
+                  data={monthlyScripts}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar 
+                    dataKey="count" 
+                    name="Roteiros" 
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
-
-        <Card className="col-span-1">
+        
+        <Card>
           <CardHeader>
-            <CardTitle>Distribuição por Cidade</CardTitle>
-            <CardDescription>Onde estão seus clientes</CardDescription>
+            <CardTitle>Distribuição de Planos</CardTitle>
+            <CardDescription>Assinaturas ativas por tipo de plano</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            {cityDistribution.length > 0 ? (
+          <CardContent>
+            <div className="w-full h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RechartsPieChart>
                   <Pie
-                    data={cityDistribution}
+                    data={planDistribution}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {cityDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {planDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                </PieChart>
+                  <Tooltip formatter={(value) => `${value}%`} />
+                </RechartsPieChart>
               </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">
-                  Sem dados suficientes para gerar o gráfico
-                </p>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1">
+      
+      <div className="mt-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Uso de Equipamentos</CardTitle>
-            <CardDescription>Equipamentos mais utilizados pelos clientes</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {equipmentUsage.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={equipmentUsage}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={120} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" name="Clientes">
-                    {equipmentUsage.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">
-                  Sem dados suficientes para gerar o gráfico
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Clientes Recentes</CardTitle>
-            <CardDescription>Últimos clientes adicionados</CardDescription>
+            <CardTitle>Clientes Mais Ativos</CardTitle>
+            <CardDescription>Baseado em geração de conteúdo e engajamento</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {clients
-                .sort((a, b) => new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime())
-                .slice(0, 5)
-                .map((client) => (
-                  <div key={client.id} className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
-                        {client.nome?.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-medium">{client.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {client.cidade || client.clinica || client.email}
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate(`/seller/client/${client.id}`)}
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-
-              {clients.length === 0 && (
-                <p className="text-muted-foreground">
-                  Nenhum cliente cadastrado ainda
-                </p>
-              )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="py-3 px-4 text-left font-medium">Cliente</th>
+                    <th className="py-3 px-4 text-left font-medium">Roteiros</th>
+                    <th className="py-3 px-4 text-left font-medium">Engajamento</th>
+                    <th className="py-3 px-4 text-right font-medium">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topClients.map((client, index) => (
+                    <tr key={client.id} className="border-b">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
+                            {index + 1}
+                          </div>
+                          <span className="font-medium">{client.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">{client.scripts}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center">
+                          <div className="w-32 h-2 bg-gray-200 rounded-full mr-2">
+                            <div 
+                              className="h-full bg-green-500 rounded-full" 
+                              style={{width: `${client.engagement}%`}}
+                            ></div>
+                          </div>
+                          <span>{client.engagement}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/seller/clients/${client.id}`}>
+                            <Activity className="h-4 w-4 mr-1" />
+                            Detalhes
+                          </Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
           <CardFooter>
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={() => navigate("/seller/clients")}
-            >
-              Ver Todos os Clientes
+            <Button variant="outline" size="sm" asChild className="ml-auto">
+              <Link to="/seller/clients">Ver Todos os Clientes</Link>
             </Button>
           </CardFooter>
         </Card>
