@@ -11,7 +11,26 @@ import { logValidationAnalytics } from './analytics';
 const validationCache = ValidationCache.getInstance();
 
 /**
- * Valida um roteiro usando a IA
+ * Função auxiliar para verificar dispositivos com poucos recursos
+ * Compatível com TypeScript
+ */
+const isLowMemoryDevice = (): boolean => {
+  try {
+    // Verificar se a API deviceMemory está disponível
+    return typeof window !== 'undefined' && 
+           'navigator' in window && 
+           // @ts-ignore - deviceMemory é experimental, mas queremos usar se disponível
+           typeof navigator.deviceMemory === 'number' && 
+           // @ts-ignore
+           navigator.deviceMemory < 4;
+  } catch {
+    // Se não conseguir verificar a memória, assume que não é dispositivo de baixa memória
+    return false;
+  }
+};
+
+/**
+ * Valida um roteiro usando a Fluida
  * Otimizado para melhor performance e experiência de usuário
  */
 export const validateScript = async (script: ScriptResponse): Promise<ValidationResult> => {
@@ -95,14 +114,6 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     throw error;
   }
 };
-
-// Função para detectar dispositivos com pouca memória
-const isLowMemoryDevice = (): boolean => {
-  if (typeof navigator !== 'undefined' && navigator.deviceMemory) {
-    return navigator.deviceMemory < 4; // Menos de 4GB de RAM
-  }
-  return false;
-}
 
 // Função otimizada para buscar validação de diversas fontes
 export const getValidation = async (scriptId: string): Promise<ValidationResult & {timestamp?: string} | null> => {

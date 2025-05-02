@@ -21,6 +21,25 @@ const analyticsMemoryBuffer: any[] = [];
 const MAX_ANALYTICS_BUFFER = 5;
 
 /**
+ * Função auxiliar para verificar dispositivos com poucos recursos
+ * Compatível com TypeScript
+ */
+const isLowMemoryDevice = (): boolean => {
+  try {
+    // Verificar se a API deviceMemory está disponível
+    return typeof window !== 'undefined' && 
+           'navigator' in window && 
+           // @ts-ignore - deviceMemory é experimental, mas queremos usar se disponível
+           typeof navigator.deviceMemory === 'number' && 
+           // @ts-ignore
+           navigator.deviceMemory < 4;
+  } catch {
+    // Se não conseguir verificar a memória, assume que não é dispositivo de baixa memória
+    return false;
+  }
+};
+
+/**
  * Registra dados de validação para análise futura
  * Implementação extremamente otimizada para baixo consumo de recursos
  */
@@ -31,7 +50,7 @@ export const logValidationAnalytics = async (
 ): Promise<void> => {
   try {
     // Verificar se estamos em um dispositivo com pouca memória
-    if (typeof navigator !== 'undefined' && navigator.deviceMemory && navigator.deviceMemory < 4) {
+    if (isLowMemoryDevice()) {
       console.log("Dispositivo com pouca memória detectado, analytics desativado");
       return; // Não registrar em dispositivos com pouca memória
     }

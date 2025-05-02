@@ -66,7 +66,8 @@ export class ValidationCache {
       total: validation.total,
       sugestoes: validation.sugestoes,
       sugestoes_gerais: validation.sugestoes_gerais ? 
-        validation.sugestoes_gerais.slice(0, 3) : [] // Limitar a 3 sugestões
+        validation.sugestoes_gerais.slice(0, 3) : [], // Limitar a 3 sugestões
+      blocos: [] // Inicializar blocos como array vazio por padrão
     };
     
     // Processar blocos com limite de tamanho
