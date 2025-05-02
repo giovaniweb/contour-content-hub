@@ -2,76 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { generateScript, saveScriptFeedback, ScriptRequest, ScriptType, MarketingObjectiveType } from "@/utils/api";
 import ScriptCard from "@/components/ScriptCard";
-import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
-
-// List of equipment options
-const equipmentOptions = [
-  { id: "adella", label: "Adélla Laser" },
-  { id: "enygma", label: "Enygma X-Orbital" },
-  { id: "focuskin", label: "Focuskin" },
-  { id: "hipro", label: "Hipro" },
-  { id: "hive", label: "Hive Pro" },
-  { id: "crystal", label: "Laser Crystal 3D Plus" },
-  { id: "multi", label: "MultiShape" },
-  { id: "reverso", label: "Reverso" },
-  { id: "supreme", label: "Supreme Pro" },
-  { id: "ultralift", label: "Ultralift - Endolaser" },
-  { id: "unyque", label: "Unyque PRO" },
-  { id: "xtonus", label: "X-Tonus" },
-];
-
-// Areas of the body
-const bodyAreas = [
-  { value: "face", label: "Face" },
-  { value: "pescoco", label: "Pescoço" },
-  { value: "abdomen", label: "Abdômen" },
-  { value: "coxas", label: "Coxas" },
-  { value: "gluteos", label: "Glúteos" },
-  { value: "bracos", label: "Braços" },
-  { value: "corpotodo", label: "Corpo todo" },
-];
-
-// Treatment purposes
-const purposes = [
-  { value: "rugas", label: "Rugas" },
-  { value: "emagrecimento", label: "Emagrecimento" },
-  { value: "tonificacao", label: "Tonificação" },
-  { value: "hidratacao", label: "Hidratação" },
-  { value: "flacidez", label: "Flacidez" },
-  { value: "gordura", label: "Gordura localizada" },
-  { value: "lipedema", label: "Lipedema" },
-  { value: "sarcopenia", label: "Sarcopenia" },
-];
+import ScriptForm from "@/components/script-generator/ScriptForm";
 
 const ScriptGenerator: React.FC = () => {
   const { toast } = useToast();
@@ -107,13 +43,7 @@ const ScriptGenerator: React.FC = () => {
     const equipmentParam = params.get('equipment');
     if (equipmentParam) {
       // Find if equipment exists in our options
-      const equipment = equipmentOptions.find(
-        e => e.label.toLowerCase() === decodeURIComponent(equipmentParam).toLowerCase()
-      );
-      
-      if (equipment) {
-        setSelectedEquipment([equipment.label]);
-      }
+      setSelectedEquipment([decodeURIComponent(equipmentParam)]);
     }
     
     const purposeParam = params.get('purpose');
@@ -121,37 +51,18 @@ const ScriptGenerator: React.FC = () => {
       let mappedPurpose;
       
       if (purposeParam === 'educate') {
-        mappedPurpose = purposes.find(p => p.value === 'rugas')?.label;
+        mappedPurpose = "Rugas";
       } else if (purposeParam === 'engage') {
-        mappedPurpose = purposes.find(p => p.value === 'flacidez')?.label;
+        mappedPurpose = "Flacidez";
       } else if (purposeParam === 'sell') {
-        mappedPurpose = purposes.find(p => p.value === 'lipedema')?.label;
+        mappedPurpose = "Lipedema";
       }
       
       if (mappedPurpose) {
         setSelectedPurposes([mappedPurpose]);
       }
     }
-    
   }, [location]);
-  
-  // Handle checkbox change for equipment
-  const handleEquipmentChange = (value: string) => {
-    setSelectedEquipment(
-      selectedEquipment.includes(value)
-        ? selectedEquipment.filter((item) => item !== value)
-        : [...selectedEquipment, value]
-    );
-  };
-  
-  // Handle checkbox change for purposes
-  const handlePurposeChange = (value: string) => {
-    setSelectedPurposes(
-      selectedPurposes.includes(value)
-        ? selectedPurposes.filter((item) => item !== value)
-        : [...selectedPurposes, value]
-    );
-  };
   
   // Handle script generation
   const handleGenerateScript = async (event: React.FormEvent) => {
@@ -209,7 +120,7 @@ const ScriptGenerator: React.FC = () => {
     }
   };
   
-  // Ensure handleScriptFeedback matches the expected function signature
+  // Handle script feedback
   const handleScriptFeedback = async (scriptId: string, feedback: string, approved: boolean) => {
     try {
       await saveScriptFeedback(scriptId, feedback, approved);
@@ -229,7 +140,7 @@ const ScriptGenerator: React.FC = () => {
     }
   };
   
-  // Atualizar a função resetForm para também resetar o objetivo de marketing
+  // Reset form
   const resetForm = () => {
     setScriptType("videoScript");
     setTopic("");
@@ -258,132 +169,27 @@ const ScriptGenerator: React.FC = () => {
             </CardHeader>
             
             <CardContent>
-              <form onSubmit={handleGenerateScript} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="topic">Tema/Assunto Principal*</Label>
-                  <Input
-                    id="topic"
-                    placeholder="Ex: Tratamento para flacidez facial"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <VideoObjectiveSelector
-                  value={marketingObjective}
-                  onValueChange={setMarketingObjective}
-                  className="pt-2"
-                />
-                
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="equipment">
-                    <AccordionTrigger>Equipamentos</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="grid grid-cols-2 gap-2">
-                        {equipmentOptions.map((equipment) => (
-                          <div key={equipment.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`equipment-${equipment.id}`}
-                              checked={selectedEquipment.includes(equipment.label)}
-                              onCheckedChange={() => handleEquipmentChange(equipment.label)}
-                            />
-                            <Label
-                              htmlFor={`equipment-${equipment.id}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {equipment.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="bodyArea">
-                    <AccordionTrigger>Área do Corpo</AccordionTrigger>
-                    <AccordionContent>
-                      <Select value={bodyArea} onValueChange={setBodyArea}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma área" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {bodyAreas.map((area) => (
-                            <SelectItem key={area.value} value={area.label}>
-                              {area.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="purpose">
-                    <AccordionTrigger>Finalidade do Tratamento</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="grid grid-cols-2 gap-2">
-                        {purposes.map((purpose) => (
-                          <div key={purpose.value} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`purpose-${purpose.value}`}
-                              checked={selectedPurposes.includes(purpose.label)}
-                              onCheckedChange={() => handlePurposeChange(purpose.label)}
-                            />
-                            <Label
-                              htmlFor={`purpose-${purpose.value}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {purpose.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="additionalInfo">
-                    <AccordionTrigger>Informações Adicionais</AccordionTrigger>
-                    <AccordionContent>
-                      <Textarea
-                        id="additionalInfo"
-                        placeholder="Detalhes específicos, pontos-chave, públicos especiais, etc."
-                        value={additionalInfo}
-                        onChange={(e) => setAdditionalInfo(e.target.value)}
-                        rows={4}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="tone">
-                    <AccordionTrigger>Tom da Comunicação</AccordionTrigger>
-                    <AccordionContent>
-                      <Select value={tone} onValueChange={setTone}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tom" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="professional">Profissional</SelectItem>
-                          <SelectItem value="friendly">Amigável</SelectItem>
-                          <SelectItem value="authoritative">Autoridade</SelectItem>
-                          <SelectItem value="casual">Casual</SelectItem>
-                          <SelectItem value="excited">Animado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-                
-                <div className="flex gap-2 pt-2">
-                  <Button type="submit" disabled={isGenerating || !marketingObjective}>
-                    {isGenerating ? "Gerando..." : "Gerar Roteiro"}
-                  </Button>
-                  {generatedScript && (
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Novo Roteiro
-                    </Button>
-                  )}
-                </div>
-              </form>
+              <ScriptForm
+                scriptType={scriptType}
+                topic={topic}
+                setTopic={setTopic}
+                selectedEquipment={selectedEquipment}
+                setSelectedEquipment={setSelectedEquipment}
+                bodyArea={bodyArea}
+                setBodyArea={setBodyArea}
+                selectedPurposes={selectedPurposes}
+                setSelectedPurposes={setSelectedPurposes}
+                additionalInfo={additionalInfo}
+                setAdditionalInfo={setAdditionalInfo}
+                tone={tone}
+                setTone={setTone}
+                marketingObjective={marketingObjective}
+                setMarketingObjective={setMarketingObjective}
+                isGenerating={isGenerating}
+                handleGenerateScript={handleGenerateScript}
+                resetForm={resetForm}
+                generatedScript={generatedScript}
+              />
             </CardContent>
           </Card>
         </div>

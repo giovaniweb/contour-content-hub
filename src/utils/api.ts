@@ -1,3 +1,4 @@
+
 // Script types and interfaces
 
 // Different script types
@@ -56,9 +57,45 @@ import {
   updateCalendarPreferences,
 } from '@/services/supabaseService';
 
+// Equipment API functions
+import {
+  getEquipments,
+  getEquipmentById,
+  createEquipment,
+  updateEquipment,
+  deleteEquipment,
+  importEquipments
+} from './api-equipment';
+
+// Script history API functions
+import {
+  getScriptHistory,
+  getScriptById,
+  updateScript,
+  ScriptHistoryItem
+} from './api-scripts';
+
 // Export the Supabase functions
 export const generateScript = generateScriptFromSupabase;
 export const saveScriptFeedback = saveScriptFeedbackToSupabase;
+
+// Export equipment API functions
+export {
+  getEquipments,
+  getEquipmentById,
+  createEquipment,
+  updateEquipment,
+  deleteEquipment,
+  importEquipments
+};
+
+// Export script history API functions
+export {
+  getScriptHistory,
+  getScriptById,
+  updateScript,
+  ScriptHistoryItem
+};
 
 // Media library interfaces
 export interface MediaItem {

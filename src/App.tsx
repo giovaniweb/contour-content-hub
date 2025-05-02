@@ -12,12 +12,15 @@ import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ScriptGenerator from "./pages/ScriptGenerator";
+import ScriptHistory from "./pages/ScriptHistory";
 import MediaLibrary from "./pages/MediaLibrary";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminIntegrations from "./pages/AdminIntegrations";
 import AdminContent from "./pages/AdminContent";
+import AdminEquipments from "./pages/AdminEquipments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -81,15 +84,18 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/script-generator" element={<ScriptGenerator />} />
+              <Route path="/script-history" element={<ScriptHistory />} />
               <Route path="/media-library" element={<MediaLibrary />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               
               {/* Rotas protegidas por papel de usuário */}
-              <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/integrations" />} />} />
+              <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/dashboard" />} />} />
+              <Route path="/admin/dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
               <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
               <Route path="/admin/content" element={<AdminRoute element={<AdminContent />} />} />
+              <Route path="/admin/equipments" element={<AdminRoute element={<AdminEquipments />} />} />
               <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
               
               <Route path="*" element={<NotFound />} />
