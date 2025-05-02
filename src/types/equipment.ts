@@ -83,6 +83,8 @@ export function validateEquipment(equipment: Partial<Equipment>): EquipmentValid
     errors.linguagem = "Linguagem recomendada é obrigatória";
   }
   
+  // We don't need to make efeito required, as it's optional in our interfaces
+  
   return errors;
 }
 

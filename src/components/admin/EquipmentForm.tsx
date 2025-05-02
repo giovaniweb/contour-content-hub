@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       linguagem: '',
       image_url: '',
       ativo: true,
-      efeito: '' // Add new efeito field
+      efeito: '' // Add new efeito field with empty string default
     }
   });
 
@@ -317,10 +316,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
               name="efeito"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Efeito*</FormLabel>
+                  <FormLabel>Efeito</FormLabel>
                   <FormControl>
                     <Textarea 
-                      required 
                       {...field} 
                       placeholder="Ex: Estimula produção de colágeno em camadas profundas da pele" 
                       rows={3}
