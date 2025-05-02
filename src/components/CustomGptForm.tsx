@@ -27,7 +27,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Tratamento de rugas, manchas e rejuvenescimento",
     beneficios: "Estimulação do colágeno, uniformização da pele",
     diferenciais: "Exclusivo sistema de resfriamento",
-    linguagem: "Técnica com toques descontraídos"
+    linguagem: "Técnica com toques descontraídos",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "enygma-default", 
@@ -36,7 +38,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Flacidez facial e corporal",
     beneficios: "Firmeza e tonificação da pele",
     diferenciais: "Tratamento sem dor e sem tempo de recuperação",
-    linguagem: "Informativa e acessível"
+    linguagem: "Informativa e acessível",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "hive-default", 
@@ -45,7 +49,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Gordura localizada e celulite",
     beneficios: "Redução de medidas e melhora do contorno corporal",
     diferenciais: "Resultados em poucas sessões",
-    linguagem: "Direta e motivacional"
+    linguagem: "Direta e motivacional",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "focuskin-default", 
@@ -54,7 +60,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Estrias e cicatrizes",
     beneficios: "Remodelação do colágeno, melhor textura da pele",
     diferenciais: "Ponteiras específicas para cada tipo de pele",
-    linguagem: "Técnica e detalhada"
+    linguagem: "Técnica e detalhada",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "hipro-default", 
@@ -63,7 +71,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Tonificação muscular e definição corporal",
     beneficios: "Fortalecimento muscular, redução de gordura",
     diferenciais: "Tratamento equivalente a milhares de contrações musculares",
-    linguagem: "Energética e motivacional"
+    linguagem: "Energética e motivacional",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "crystal-default", 
@@ -72,7 +82,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Depilação definitiva",
     beneficios: "Pele livre de pelos, conforto durante o procedimento",
     diferenciais: "Sistema de resfriamento, indolor",
-    linguagem: "Tranquilizadora e confiante"
+    linguagem: "Tranquilizadora e confiante",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "multi-default", 
@@ -81,7 +93,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Diversos tratamentos corporais",
     beneficios: "Versatilidade, resultados personalizados",
     diferenciais: "Várias tecnologias em um único aparelho",
-    linguagem: "Versátil e adaptável"
+    linguagem: "Versátil e adaptável",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "reverso-default", 
@@ -90,7 +104,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Rejuvenescimento facial e corporal",
     beneficios: "Aspecto jovial, revitalização da pele",
     diferenciais: "Protocolo exclusivo anti-aging",
-    linguagem: "Sofisticada e elegante"
+    linguagem: "Sofisticada e elegante",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "supreme-default", 
@@ -99,7 +115,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Lifting facial não invasivo",
     beneficios: "Efeito lifting imediato, durabilidade dos resultados",
     diferenciais: "Não requer tempo de recuperação",
-    linguagem: "Premium e exclusiva"
+    linguagem: "Premium e exclusiva",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "ultralift-default", 
@@ -108,7 +126,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Tratamento profundo da pele e tecidos",
     beneficios: "Efeito lifting e rejuvenescimento",
     diferenciais: "Tecnologia combinada para resultados superiores",
-    linguagem: "Científica e confiável"
+    linguagem: "Científica e confiável",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "unyque-default", 
@@ -117,7 +137,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Tratamentos faciais e corporais",
     beneficios: "Rápida recuperação, resultados duradouros",
     diferenciais: "Conforto durante aplicação e eficácia",
-    linguagem: "Exclusiva e precisa"
+    linguagem: "Exclusiva e precisa",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   },
   { 
     id: "xtonus-default", 
@@ -126,7 +148,9 @@ const defaultEquipamentos: Equipment[] = [
     indicacoes: "Flacidez e tonificação muscular",
     beneficios: "Fortalecimento muscular sem esforço",
     diferenciais: "Resultados em poucas sessões",
-    linguagem: "Dinâmica e objetiva"
+    linguagem: "Dinâmica e objetiva",
+    ativo: true,
+    data_cadastro: new Date().toISOString()
   }
 ];
 

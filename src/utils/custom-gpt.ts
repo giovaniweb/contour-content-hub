@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/types/equipment';
-import { getEquipments } from './api-equipment';
+// Remove the getEquipments import as we don't use it here
+// import { getEquipments } from './api-equipment';
 
 export type CustomGptType = 'roteiro' | 'bigIdea' | 'stories';
 

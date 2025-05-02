@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { createEquipment } from '@/utils/api-equipment';
-import { Equipment, validateEquipment, hasValidationErrors, EquipmentValidation } from '@/types/equipment';
+import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, EquipmentValidation } from '@/types/equipment';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const { toast } = useToast();
   const [errors, setErrors] = useState<EquipmentValidation>({});
   
-  const [equipment, setEquipment] = useState<Omit<Equipment, 'id'>>({
+  const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
     tecnologia: '',
     indicacoes: '',
@@ -145,7 +145,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
 
     try {
       setIsSubmitting(true);
-      const newEquipment = await createEquipment(equipment as Equipment);
+      const newEquipment = await createEquipment(equipment);
       toast({
         title: "Equipamento cadastrado",
         description: `${newEquipment.nome} foi adicionado com sucesso.`

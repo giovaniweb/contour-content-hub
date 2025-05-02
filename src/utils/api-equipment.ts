@@ -20,6 +20,11 @@ export async function fetchAllEquipments(): Promise<Equipment[]> {
 }
 
 /**
+ * Alias para fetchAllEquipments para compatibilidade com componentes existentes
+ */
+export const getEquipments = fetchAllEquipments;
+
+/**
  * Busca um equipamento específico por ID
  */
 export async function fetchEquipmentById(id: string): Promise<Equipment | null> {
@@ -63,9 +68,14 @@ export async function fetchActiveEquipments(): Promise<Equipment[]> {
  * Cria um novo equipamento
  */
 export async function createEquipment(equipment: EquipmentCreationProps): Promise<Equipment> {
+  const equipmentWithDefaults = {
+    ...equipment,
+    ativo: equipment.ativo ?? true
+  };
+  
   const { data, error } = await supabase
     .from("equipamentos")
-    .insert([equipment])
+    .insert([equipmentWithDefaults])
     .select("*")
     .single();
     
@@ -128,4 +138,19 @@ export async function searchEquipments(searchTerm: string): Promise<Equipment[]>
   }
   
   return data as Equipment[];
+}
+
+/**
+ * Exclui um equipamento
+ */
+export async function deleteEquipment(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("equipamentos")
+    .delete()
+    .eq("id", id);
+    
+  if (error) {
+    console.error("Erro ao excluir equipamento:", error);
+    throw error;
+  }
 }
