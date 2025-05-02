@@ -34,6 +34,37 @@ import {
   ConteudoEstrategia 
 } from '@/utils/custom-gpt';
 
+// Equipamentos padrão para garantir que sempre haja opções
+const defaultEquipamentos: Equipment[] = [
+  { 
+    id: "adella-default", 
+    nome: "Adélla Laser", 
+    tecnologia: "Laser de alta potência",
+    indicacoes: "Tratamento de rugas, manchas e rejuvenescimento",
+    beneficios: "Estimulação do colágeno, uniformização da pele",
+    diferenciais: "Exclusivo sistema de resfriamento",
+    linguagem: "Técnica com toques descontraídos"
+  },
+  { 
+    id: "enygma-default", 
+    nome: "Enygma X-Orbital", 
+    tecnologia: "Sistema de ondas eletromagnéticas",
+    indicacoes: "Flacidez facial e corporal",
+    beneficios: "Firmeza e tonificação da pele",
+    diferenciais: "Tratamento sem dor e sem tempo de recuperação",
+    linguagem: "Informativa e acessível"
+  },
+  { 
+    id: "hive-default", 
+    nome: "Hive Pro", 
+    tecnologia: "Ultrassom microfocado",
+    indicacoes: "Gordura localizada e celulite",
+    beneficios: "Redução de medidas e melhora do contorno corporal",
+    diferenciais: "Resultados em poucas sessões",
+    linguagem: "Direta e motivacional"
+  }
+];
+
 // Schema de validação do formulário
 const formSchema = z.object({
   tipo: z.enum(["roteiro", "bigIdea", "stories"]),
@@ -68,15 +99,24 @@ const CustomGptForm = () => {
   useEffect(() => {
     const loadEquipamentos = async () => {
       try {
+        console.log("Carregando equipamentos...");
         const data = await getEquipments();
-        setEquipamentos(data);
+        
+        if (data && data.length > 0) {
+          console.log(`${data.length} equipamentos carregados da API`);
+          setEquipamentos(data);
+        } else {
+          console.log("API retornou lista vazia, usando equipamentos padrão");
+          setEquipamentos(defaultEquipamentos);
+        }
       } catch (error) {
         console.error("Erro ao carregar equipamentos:", error);
         toast({
           variant: "destructive",
           title: "Erro ao carregar equipamentos",
-          description: "Não foi possível buscar a lista de equipamentos."
+          description: "Usando lista de equipamentos padrão."
         });
+        setEquipamentos(defaultEquipamentos);
       }
     };
 
@@ -161,11 +201,15 @@ const CustomGptForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {equipamentos.map((eq) => (
-                            <SelectItem key={eq.id || eq.nome} value={eq.nome}>
-                              {eq.nome}
-                            </SelectItem>
-                          ))}
+                          {equipamentos.length > 0 ? (
+                            equipamentos.map((eq) => (
+                              <SelectItem key={eq.id || eq.nome} value={eq.nome}>
+                                {eq.nome}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="carregando">Carregando equipamentos...</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
