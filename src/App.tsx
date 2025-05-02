@@ -20,7 +20,14 @@ import AdminIntegrations from "./pages/AdminIntegrations";
 import AdminContent from "./pages/AdminContent";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 // Componente para verificar permissões de rotas administrativas
 const AdminRoute = ({ element }: { element: React.ReactNode }) => {
@@ -28,7 +35,14 @@ const AdminRoute = ({ element }: { element: React.ReactNode }) => {
   const { isAdmin } = usePermissions();
   
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-contourline-lightGray to-white">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-16 w-16 border-4 border-contourline-mediumBlue border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-contourline-darkBlue font-medium text-lg">Carregando...</p>
+        </div>
+      </div>
+    );
   }
   
   if (!isAuthenticated || !isAdmin()) {
