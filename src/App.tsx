@@ -17,6 +17,7 @@ import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import AdminContent from "./pages/AdminContent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
               {/* Rotas protegidas por papel de usuário */}
               <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/integrations" />} />} />
               <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
+              <Route path="/admin/content" element={<AdminRoute element={<AdminContent />} />} />
               <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
               
               <Route path="*" element={<NotFound />} />

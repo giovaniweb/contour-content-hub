@@ -241,26 +241,32 @@ export type Database = {
       materiais: {
         Row: {
           arquivo_url: string | null
+          categoria: string | null
           data_upload: string | null
           id: string
           nome: string | null
           preview_url: string | null
+          tags: string[] | null
           tipo: string | null
         }
         Insert: {
           arquivo_url?: string | null
+          categoria?: string | null
           data_upload?: string | null
           id?: string
           nome?: string | null
           preview_url?: string | null
+          tags?: string[] | null
           tipo?: string | null
         }
         Update: {
           arquivo_url?: string | null
+          categoria?: string | null
           data_upload?: string | null
           id?: string
           nome?: string | null
           preview_url?: string | null
+          tags?: string[] | null
           tipo?: string | null
         }
         Relationships: []
@@ -348,42 +354,75 @@ export type Database = {
           },
         ]
       }
+      tags: {
+        Row: {
+          categoria: string | null
+          data_criacao: string | null
+          id: string
+          nome: string
+          usado_count: number | null
+        }
+        Insert: {
+          categoria?: string | null
+          data_criacao?: string | null
+          id?: string
+          nome: string
+          usado_count?: number | null
+        }
+        Update: {
+          categoria?: string | null
+          data_criacao?: string | null
+          id?: string
+          nome?: string
+          usado_count?: number | null
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           area_corpo: string | null
+          categoria: string | null
           data_upload: string | null
           descricao: string | null
+          descricao_detalhada: string | null
           duracao: string | null
           equipamento: string | null
           finalidade: string | null
           id: string
           preview_url: string | null
+          tags: string[] | null
           tipo: string | null
           titulo: string | null
           url_video: string | null
         }
         Insert: {
           area_corpo?: string | null
+          categoria?: string | null
           data_upload?: string | null
           descricao?: string | null
+          descricao_detalhada?: string | null
           duracao?: string | null
           equipamento?: string | null
           finalidade?: string | null
           id?: string
           preview_url?: string | null
+          tags?: string[] | null
           tipo?: string | null
           titulo?: string | null
           url_video?: string | null
         }
         Update: {
           area_corpo?: string | null
+          categoria?: string | null
           data_upload?: string | null
           descricao?: string | null
+          descricao_detalhada?: string | null
           duracao?: string | null
           equipamento?: string | null
           finalidade?: string | null
           id?: string
           preview_url?: string | null
+          tags?: string[] | null
           tipo?: string | null
           titulo?: string | null
           url_video?: string | null
