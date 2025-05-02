@@ -1,9 +1,9 @@
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -269,12 +269,12 @@ const Register: React.FC = () => {
                   </Button>
                   <p className="text-center text-sm text-gray-500">
                     Already have an account?{" "}
-                    <a 
-                      href="/" 
+                    <Link 
+                      to="/" 
                       className="text-reelline-primary font-medium hover:underline"
                     >
                       Sign in
-                    </a>
+                    </Link>
                   </p>
                 </CardFooter>
               </form>
