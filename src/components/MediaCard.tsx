@@ -17,10 +17,11 @@ import { useToast } from "@/hooks/use-toast";
 
 interface MediaCardProps {
   media: MediaItem;
+  viewMode?: "grid" | "list";
   onUpdate?: () => void;
 }
 
-const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
+const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdate }) => {
   const [isFavorite, setIsFavorite] = useState(media.isFavorite);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isRating, setIsRating] = useState(false);
@@ -97,6 +98,105 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
     }
   };
 
+  // Render list view
+  if (viewMode === "list") {
+    return (
+      <Card className="w-full overflow-hidden flex">
+        <div className="relative w-1/4 min-w-[120px]">
+          <img 
+            src={media.thumbnailUrl} 
+            alt={media.title}
+            className="w-full h-full object-cover"
+            style={{ aspectRatio: "16/9" }}
+          />
+          {media.duration && (
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-1.5 py-0.5 rounded">
+              {media.duration}
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute top-2 left-2 h-8 w-8 rounded-full bg-white/80 hover:bg-white/90",
+              isFavorite && "text-red-500"
+            )}
+            onClick={handleToggleFavorite}
+            disabled={isTogglingFavorite}
+          >
+            <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
+          </Button>
+        </div>
+        
+        <div className="flex-1 flex flex-col">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-medium">{media.title}</h3>
+                
+                <div className="flex items-center mt-1">
+                  <Badge variant={getBadgeVariant()} className="flex items-center gap-1 mr-2">
+                    {getMediaTypeIcon()}
+                    <span>{media.type === "video_pronto" ? "Vídeo" : media.type === "take" ? "Take" : "Imagem"}</span>
+                  </Badge>
+                  
+                  <span className="text-sm text-muted-foreground">
+                    {media.equipment && media.equipment.length > 0 && media.equipment[0]}
+                  </span>
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {media.purpose && media.purpose.slice(0, 2).map((purpose) => (
+                    <Badge key={purpose} variant="secondary" className="text-xs">
+                      {purpose}
+                    </Badge>
+                  ))}
+                  {media.purpose && media.purpose.length > 2 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{media.purpose.length - 2}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Button
+                    key={star}
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0"
+                    onClick={() => handleRate(star)}
+                    disabled={isRating}
+                  >
+                    <Star
+                      className={cn(
+                        "h-4 w-4",
+                        star <= currentRating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      )}
+                    />
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+          
+          <CardFooter className="p-4 pt-0 mt-auto">
+            <Button variant="default" size="sm" asChild className="mr-2">
+              <a href={media.videoUrl || "#"} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-1" />
+                View
+              </a>
+            </Button>
+          </CardFooter>
+        </div>
+      </Card>
+    );
+  }
+
+  // Default grid view
   return (
     <Card className="w-full reelline-card overflow-hidden">
       <div className="relative">
