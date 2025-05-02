@@ -7,7 +7,7 @@ import { ScriptResponse } from "@/utils/api";
 import { validateScript } from "@/utils/validation/api";
 import { RefreshCw, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { getIndicatorColor, getIndicatorEmoji } from "@/utils/validation/indicators";
-import { CriteriaScores, ValidationResult } from "@/utils/validation/types";
+import { ValidationResult } from "@/utils/validation/types";
 
 interface ScriptValidationProps {
   script: ScriptResponse;
@@ -122,13 +122,11 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({
   }
 
   // Extract scores
-  const scores: CriteriaScores = result.scores || {
-    hook: 0,
-    clarity: 0,
-    callToAction: 0,
-    emotionalConnection: 0,
-    overall: 0
-  };
+  const hookScore = result.gancho || 0;
+  const clarityScore = result.clareza || 0;
+  const ctaScore = result.cta || 0;
+  const emotionalScore = result.emocao || 0;
+  const overallScore = result.total || result.nota_geral || 0;
 
   return (
     <Card className="overflow-hidden">
@@ -145,32 +143,32 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({
           {/* Overall Score */}
           <div className="flex flex-col items-center justify-center py-2">
             <span className="text-sm text-gray-500 mb-1">Pontuação Total</span>
-            <div className={`text-3xl font-bold ${getIndicatorColor(scores.overall)}`}>
-              {scores.overall}/10
+            <div className={`text-3xl font-bold ${getIndicatorColor(overallScore)}`}>
+              {overallScore}/10
             </div>
           </div>
 
           {/* Individual Scores */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <ScoreIndicator score={scores.hook} label="Abertura" />
-            <ScoreIndicator score={scores.clarity} label="Clareza" />
-            <ScoreIndicator score={scores.callToAction} label="Call to Action" />
-            <ScoreIndicator score={scores.emotionalConnection} label="Conexão" />
+            <ScoreIndicator score={hookScore} label="Abertura" />
+            <ScoreIndicator score={clarityScore} label="Clareza" />
+            <ScoreIndicator score={ctaScore} label="Call to Action" />
+            <ScoreIndicator score={emotionalScore} label="Conexão" />
           </div>
 
           {/* Analysis and Recommendations */}
-          {result.analysis && (
+          {result.sugestoes && (
             <div>
               <h3 className="font-medium mb-2">Análise</h3>
-              <p className="text-sm text-gray-700">{result.analysis}</p>
+              <p className="text-sm text-gray-700">{result.sugestoes}</p>
             </div>
           )}
 
-          {result.improvements && result.improvements.length > 0 && (
+          {result.sugestoes_gerais && result.sugestoes_gerais.length > 0 && (
             <div>
               <h3 className="font-medium mb-2">Sugestões de Melhorias</h3>
               <ul className="space-y-2">
-                {result.improvements.map((improvement, i) => (
+                {result.sugestoes_gerais.map((improvement, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
                     <CheckCircle className="h-4 w-4 mt-0.5 text-green-500 flex-shrink-0" />
                     <span>{improvement}</span>
@@ -180,16 +178,22 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({
             </div>
           )}
 
-          {result.warnings && result.warnings.length > 0 && (
+          {/* Mostrar blocos de validação como avisos */}
+          {result.blocos && result.blocos.filter(b => b.nota < 6).length > 0 && (
             <div>
               <h3 className="font-medium mb-2">Pontos de Atenção</h3>
               <ul className="space-y-2">
-                {result.warnings.map((warning, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4 mt-0.5 text-amber-500 flex-shrink-0" />
-                    <span>{warning}</span>
-                  </li>
-                ))}
+                {result.blocos
+                  .filter(b => b.nota < 6)
+                  .map((bloco, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <AlertCircle className="h-4 w-4 mt-0.5 text-amber-500 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">{bloco.tipo}: </span>
+                        <span>{bloco.sugestao || `Melhore esta seção (nota: ${bloco.nota}/10)`}</span>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}

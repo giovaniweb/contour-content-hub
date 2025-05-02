@@ -11,6 +11,17 @@ export interface ValidationBlock {
 }
 
 /**
+ * Representa critérios de pontuação para um roteiro
+ */
+export interface CriteriaScores {
+  hook: number;
+  clarity: number;
+  callToAction: number;
+  emotionalConnection: number;
+  overall: number;
+}
+
+/**
  * Representa o resultado completo de uma validação de roteiro
  */
 export interface ValidationResult {
@@ -24,6 +35,12 @@ export interface ValidationResult {
   emocao: number;
   total: number;
   timestamp?: string;
+  
+  // Campos adicionais para compatibilidade com nova estrutura
+  scores?: CriteriaScores;
+  analysis?: string;
+  improvements?: string[];
+  warnings?: string[];
 }
 
 /**

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import ScriptEditor from "@/components/script-generator/ScriptEditor";
-import ScriptValidation from "@/components/script-generator/ScriptValidation";
+import ScriptValidationComponent from "@/components/script-generator/ScriptValidation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, FileText, RefreshCw } from "lucide-react";
@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import AnnotatedText, { TextAnnotation } from "@/components/script/AnnotatedText";
 import { mapValidationToAnnotations } from "@/utils/validation/annotations";
 
-const ScriptValidation: React.FC = () => {
+const ScriptValidationPage: React.FC = () => {
   const { toast } = useToast();
   const [content, setContent] = useState<string>("");
   const [isValidating, setIsValidating] = useState(false);
@@ -121,7 +121,7 @@ const ScriptValidation: React.FC = () => {
                       </div>
                     )}
                     
-                    <ScriptValidation
+                    <ScriptValidationComponent
                       script={{id: "temp", content, title: "Roteiro temporário", type: "videoScript", createdAt: new Date().toISOString()}}
                       onValidationComplete={handleValidationComplete}
                       hideTitle={true}
@@ -137,4 +137,4 @@ const ScriptValidation: React.FC = () => {
   );
 };
 
-export default ScriptValidation;
+export default ScriptValidationPage;

@@ -45,3 +45,23 @@ export const getQualityIndicator = (score: number): {
     };
   }
 };
+
+/**
+ * Retorna a cor do indicador com base na pontuação
+ */
+export const getIndicatorColor = (score: number): string => {
+  if (score >= 8) return "bg-green-100 text-green-700";
+  if (score >= 6) return "bg-blue-100 text-blue-700";
+  if (score >= 5) return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-700";
+};
+
+/**
+ * Retorna o emoji do indicador com base na pontuação
+ */
+export const getIndicatorEmoji = (score: number): string => {
+  if (score >= 8) return "✨";
+  if (score >= 6) return "👍";
+  if (score >= 5) return "⚠️";
+  return "❗";
+};
