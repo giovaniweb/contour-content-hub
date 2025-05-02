@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,10 @@ const Navbar: React.FC = () => {
   const { t } = useLanguage();
   const { isAdmin, isOperator } = usePermissions();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Verificar se a página atual é o Dashboard para não mostrar o menu tradicional
+  const isDashboardPage = location.pathname === "/dashboard";
 
   if (!isAuthenticated) {
     return (
@@ -34,6 +38,11 @@ const Navbar: React.FC = () => {
         </div>
       </header>
     );
+  }
+
+  // Esconder Navbar completo no Dashboard onde temos a sidebar
+  if (isDashboardPage) {
+    return null;
   }
 
   const navLinks = [
