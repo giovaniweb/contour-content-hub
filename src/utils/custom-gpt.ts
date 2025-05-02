@@ -32,6 +32,7 @@ export interface CustomGptResponse {
   tipo: CustomGptType;
   equipamento: string;
   promptUtilizado?: string;
+  id?: string; // Adding the optional id property
 }
 
 /**
