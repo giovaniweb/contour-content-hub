@@ -11,9 +11,8 @@ import {
   Calendar, 
   Sparkles, 
   Settings, 
-  Database, 
-  TrendingUp, 
-  MessageSquare 
+  MessageSquare,
+  LayoutDashboard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -46,12 +45,12 @@ const Dashboard: React.FC = () => {
     <Layout fullWidth>
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section with Greeting */}
-        <div className="bg-gradient-to-r from-contourline-lightBlue/10 to-contourline-mediumBlue/5 rounded-2xl p-6 md:p-8">
-          <h1 className="text-3xl md:text-4xl font-heading font-bold text-contourline-darkBlue">
-            {t('welcome')}, {userName}
+        <div className="bg-gray-50 rounded-2xl p-6 md:p-8">
+          <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-800">
+            Bem-vindo ao ReelLine, {userName}
           </h1>
-          <p className="text-contourline-darkBlue/70 mt-2 max-w-2xl">
-            {t('studioContent')} <span className="font-medium">O que vamos postar hoje?</span>
+          <p className="text-gray-600 mt-2 max-w-2xl">
+            Seu estúdio criativo de conteúdo, em um clique. O que vamos postar hoje?
           </p>
         </div>
         
@@ -64,7 +63,7 @@ const Dashboard: React.FC = () => {
           {/* Feed principal - 2/3 da largura em desktops */}
           <div className="lg:col-span-2 space-y-6">
             {/* Sugestão Destacada - IA */}
-            <Card className="modern-card overflow-hidden border-l-4 border-l-contourline-mediumBlue ai-generated">
+            <Card className="modern-card overflow-hidden border-l-4 border-l-contourline-mediumBlue">
               <CardHeader className="pb-2 bg-contourline-lightBlue/5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-contourline-mediumBlue" />
@@ -138,7 +137,7 @@ const Dashboard: React.FC = () => {
                     </Link>
                     <Link to="/admin/content" onClick={handleAdminAccess}>
                       <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
-                        <Database className="h-4 w-4 mr-2" />
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
                         <span>Cadastrar Conteúdo</span>
                       </Button>
                     </Link>
@@ -154,7 +153,7 @@ const Dashboard: React.FC = () => {
             <Card className="modern-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-contourline-mediumBlue" />
+                  <MessageSquare className="h-5 w-5 text-contourline-mediumBlue" />
                   {t('performance')}
                 </CardTitle>
                 <CardDescription>

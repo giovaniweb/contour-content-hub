@@ -13,7 +13,7 @@ import {
   Pie, 
   Cell 
 } from "recharts";
-import { Sparkles, Calendar, Users, FileText, MessageSquare } from "lucide-react";
+import { Sparkles, MessageSquare, Users, FileText } from "lucide-react";
 import AiIndicator from "@/components/AiIndicator";
 
 // Dados simulados - em uma aplicação real, seriam buscados do backend
@@ -48,7 +48,7 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center gap-2">
-        <h2 className="text-2xl font-heading font-bold text-contourline-darkBlue">
+        <h2 className="text-2xl font-heading font-bold text-gray-800">
           Uso da IA na Plataforma
         </h2>
         <AiIndicator position="inline" size="md" tooltipText="Painel de estatísticas de uso da IA" />
@@ -59,11 +59,11 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
         <Card className="modern-card">
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-contourline-darkBlue/70">Total de Gerações</p>
+              <p className="text-sm text-gray-600">Total de Gerações</p>
               <Sparkles className="h-5 w-5 text-contourline-mediumBlue" />
             </div>
             <div className="flex items-baseline">
-              <p className="text-2xl font-bold text-contourline-darkBlue">{totalGenerations}</p>
+              <p className="text-2xl font-bold text-gray-800">{totalGenerations}</p>
               <span className="ml-2 text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
                 {weeklyGrowth}
               </span>
@@ -74,30 +74,30 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
         <Card className="modern-card">
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-contourline-darkBlue/70">Média por Usuário</p>
+              <p className="text-sm text-gray-600">Média por Usuário</p>
               <Users className="h-5 w-5 text-contourline-mediumBlue" />
             </div>
-            <p className="text-2xl font-bold text-contourline-darkBlue">{avgGenerationsPerUser}</p>
+            <p className="text-2xl font-bold text-gray-800">{avgGenerationsPerUser}</p>
           </CardContent>
         </Card>
         
         <Card className="modern-card">
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-contourline-darkBlue/70">Usuários Ativos</p>
+              <p className="text-sm text-gray-600">Usuários Ativos</p>
               <Users className="h-5 w-5 text-contourline-mediumBlue" />
             </div>
-            <p className="text-2xl font-bold text-contourline-darkBlue">{activeUsers}</p>
+            <p className="text-2xl font-bold text-gray-800">{activeUsers}</p>
           </CardContent>
         </Card>
         
         <Card className="modern-card">
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-contourline-darkBlue/70">Geração mais popular</p>
+              <p className="text-sm text-gray-600">Geração mais popular</p>
               <FileText className="h-5 w-5 text-contourline-mediumBlue" />
             </div>
-            <p className="text-xl font-medium text-contourline-darkBlue">Roteiros</p>
+            <p className="text-xl font-medium text-gray-800">Roteiros</p>
           </CardContent>
         </Card>
       </div>
@@ -106,16 +106,18 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
         {/* Gráfico de uso semanal */}
         <Card className="modern-card lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-contourline-mediumBlue" />
-              Utilização Semanal
-            </CardTitle>
+            <div className="flex items-center gap-1.5">
+              <FileText className="h-5 w-5 text-contourline-mediumBlue" />
+              <CardTitle className="text-lg font-medium">
+                Utilização Semanal
+              </CardTitle>
+            </div>
             <CardDescription>
               Número de gerações por dia e tipo
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="h-80">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={weeklyUsageData}
@@ -144,10 +146,12 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
         {/* Distribuição por modelo de IA */}
         <Card className="modern-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Sparkles className="h-5 w-5 text-contourline-mediumBlue" />
-              Modelos de IA
-            </CardTitle>
+              <CardTitle className="text-lg font-medium">
+                Modelos de IA
+              </CardTitle>
+            </div>
             <CardDescription>
               Distribuição de uso por modelo
             </CardDescription>
@@ -181,47 +185,41 @@ const AiUsageStats: React.FC<AiUsageStatsProps> = ({ className = '' }) => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {aiModelUsageData.map((model) => (
-                <div key={model.name} className="flex items-center text-sm">
-                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: model.color }} />
-                  <span>{model.name}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sugestões de otimização - baseado em IA */}
-        <Card className="modern-card lg:col-span-3 border-l-4 border-l-contourline-mediumBlue">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-contourline-mediumBlue" />
-              Insights de Otimização
-              <AiIndicator position="inline" size="sm" />
-            </CardTitle>
-            <CardDescription>
-              Sugestões baseadas no uso atual da plataforma
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="space-y-4">
-              <div className="p-3 bg-contourline-lightGray/30 rounded-lg">
-                <p className="font-medium text-contourline-darkBlue">A utilização do modelo GPT-4o está alta</p>
-                <p className="text-contourline-darkBlue/70 text-sm mt-1">Considere definir limites de uso por cliente ou migrar algumas funcionalidades para modelos mais econômicos.</p>
-              </div>
-              <div className="p-3 bg-contourline-lightGray/30 rounded-lg">
-                <p className="font-medium text-contourline-darkBlue">Pico de uso às sextas-feiras</p>
-                <p className="text-contourline-darkBlue/70 text-sm mt-1">Os clientes tendem a planejar mais conteúdo antes do fim de semana. Considere enviar lembretes e dicas específicas para este dia.</p>
-              </div>
-              <div className="p-3 bg-contourline-lightGray/30 rounded-lg">
-                <p className="font-medium text-contourline-darkBlue">Big Ideas têm crescimento constante</p>
-                <p className="text-contourline-darkBlue/70 text-sm mt-1">Considere expandir esta funcionalidade com mais templates e opções de personalização, há potencial para maior engajamento.</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Insights de Otimização - baseado em IA */}
+      <Card className="modern-card border-l-4 border-l-contourline-mediumBlue">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-1.5">
+            <MessageSquare className="h-5 w-5 text-contourline-mediumBlue" />
+            <CardTitle className="text-lg font-medium flex items-center gap-2">
+              Insights de Otimização
+              <AiIndicator position="inline" size="sm" />
+            </CardTitle>
+          </div>
+          <CardDescription>
+            Sugestões baseadas no uso atual da plataforma
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            <div className="p-3 bg-gray-100 rounded-lg">
+              <p className="font-medium text-gray-800">A utilização do modelo GPT-4o está alta</p>
+              <p className="text-gray-600 text-sm mt-1">Considere definir limites de uso por cliente ou migrar algumas funcionalidades para modelos mais econômicos.</p>
+            </div>
+            <div className="p-3 bg-gray-100 rounded-lg">
+              <p className="font-medium text-gray-800">Pico de uso às sextas-feiras</p>
+              <p className="text-gray-600 text-sm mt-1">Os clientes tendem a planejar mais conteúdo antes do fim de semana. Considere enviar lembretes e dicas específicas para este dia.</p>
+            </div>
+            <div className="p-3 bg-gray-100 rounded-lg">
+              <p className="font-medium text-gray-800">Big Ideas têm crescimento constante</p>
+              <p className="text-gray-600 text-sm mt-1">Considere expandir esta funcionalidade com mais templates e opções de personalização, há potencial para maior engajamento.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
