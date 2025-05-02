@@ -3,8 +3,7 @@ import React from "react";
 import {
   Tabs,
   TabsList,
-  TabsTrigger,
-  TabsContent
+  TabsTrigger
 } from "@/components/ui/tabs";
 import {
   Video,

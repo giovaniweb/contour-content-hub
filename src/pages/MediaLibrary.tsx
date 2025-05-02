@@ -9,6 +9,7 @@ import MediaFilters from "@/components/media-library/MediaFilters";
 import MediaTypeTabs from "@/components/media-library/MediaTypeTabs";
 import MediaGallery from "@/components/media-library/MediaGallery";
 import MediaAnalytics from "@/components/media-library/MediaAnalytics";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 const MediaLibrary: React.FC = () => {
   const { toast } = useToast();
@@ -129,18 +130,62 @@ const MediaLibrary: React.FC = () => {
         />
         
         {/* Media type tabs and gallery */}
-        <MediaTypeTabs 
-          mediaType={mediaType} 
-          setMediaType={setMediaType} 
-        />
-        
-        <MediaGallery 
-          mediaType={mediaType}
-          filteredItems={filteredItems}
-          isLoading={isLoading}
-          handleReset={handleReset}
-          handleMediaUpdate={handleMediaUpdate}
-        />
+        <Tabs value={mediaType} onValueChange={setMediaType} className="w-full">
+          <MediaTypeTabs 
+            mediaType={mediaType} 
+            setMediaType={setMediaType} 
+          />
+          
+          <TabsContent value="all">
+            <MediaGallery 
+              mediaType="all"
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </TabsContent>
+          
+          <TabsContent value="video">
+            <MediaGallery 
+              mediaType="video"
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </TabsContent>
+          
+          <TabsContent value="arte">
+            <MediaGallery 
+              mediaType="arte"
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </TabsContent>
+          
+          <TabsContent value="artigo">
+            <MediaGallery 
+              mediaType="artigo"
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </TabsContent>
+          
+          <TabsContent value="documentacao">
+            <MediaGallery 
+              mediaType="documentacao"
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </TabsContent>
+        </Tabs>
 
         {/* Analytics/Statistics Section */}
         <MediaAnalytics />

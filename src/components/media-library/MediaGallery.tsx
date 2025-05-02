@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoaderIcon, Search } from "lucide-react";
 import { MediaItem } from "@/utils/api";
-import { TabsContent } from "@/components/ui/tabs";
 import MediaCard from "@/components/MediaCard";
 import { getMediaTypeIcon, getMediaTypeName } from "./mediaUtils";
 
@@ -24,7 +23,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   handleMediaUpdate 
 }) => {
   return (
-    <TabsContent value={mediaType} className="mt-0">
+    <div className="mt-2">
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center">
@@ -70,7 +69,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
           </div>
         </div>
       )}
-    </TabsContent>
+    </div>
   );
 };
 
