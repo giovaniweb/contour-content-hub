@@ -25,3 +25,10 @@ export interface ValidationResult {
   total: number;
   timestamp?: string;
 }
+
+/**
+ * Interface para entradas de cache com timestamp
+ */
+export interface CacheEntry extends ValidationResult {
+  timestamp: number;
+}

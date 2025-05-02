@@ -1,5 +1,5 @@
 
-import { ValidationResult } from './types';
+import { ValidationResult, CacheEntry } from './types';
 
 /**
  * Classe singleton para gerenciar cache de validações de roteiros
@@ -7,7 +7,7 @@ import { ValidationResult } from './types';
  */
 export class ValidationCache {
   private static instance: ValidationCache;
-  private cache: Map<string, ValidationResult & { timestamp: number }> = new Map();
+  private cache: Map<string, CacheEntry> = new Map();
   private readonly CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutos
   
   private constructor() {
@@ -43,8 +43,8 @@ export class ValidationCache {
    * Armazena uma validação em cache
    */
   public set(id: string, data: ValidationResult): void {
-    // Ensure we're adding the timestamp as a separate property
-    const cacheEntry: ValidationResult & { timestamp: number } = {
+    // Criar entrada de cache com timestamp
+    const cacheEntry: CacheEntry = {
       ...data,
       timestamp: Date.now()
     };
