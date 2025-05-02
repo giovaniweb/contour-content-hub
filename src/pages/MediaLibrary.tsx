@@ -1,43 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { getMediaItems, MediaItem } from "@/utils/api";
-import MediaCard from "@/components/MediaCard";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Search, 
-  Video, 
-  Film, 
-  Camera, 
-  LoaderIcon, 
-  Upload,
-  PlusCircle,
-  VideoIcon,
-  Square, 
-  LayoutGrid,
-  Clock,
-  ArrowRight,
-  ArrowLeft,
-  FileText,
-  Image,
-} from "lucide-react";
+import MediaActionCards from "@/components/media-library/MediaActionCards";
+import MediaCreationSection from "@/components/media-library/MediaCreationSection";
+import MediaFilters from "@/components/media-library/MediaFilters";
+import MediaTypeTabs from "@/components/media-library/MediaTypeTabs";
+import MediaGallery from "@/components/media-library/MediaGallery";
+import MediaAnalytics from "@/components/media-library/MediaAnalytics";
 
 const MediaLibrary: React.FC = () => {
   const { toast } = useToast();
@@ -53,43 +24,6 @@ const MediaLibrary: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Equipment, body area, and purpose options based on the updated database schema
-  const equipmentOptions = [
-    "Adélla Laser",
-    "Enygma X-Orbital",
-    "Focuskin",
-    "Hipro",
-    "Hive Pro",
-    "Laser Crystal 3D Plus",
-    "MultiShape",
-    "Reverso",
-    "Supreme Pro",
-    "Ultralift - Endolaser",
-    "Unyque PRO",
-    "X-Tonus"
-  ];
-  
-  const bodyAreaOptions = [
-    "Face", 
-    "Pescoço", 
-    "Abdômen", 
-    "Coxas", 
-    "Glúteos", 
-    "Braços",
-    "Corpo todo"
-  ];
-  
-  const purposeOptions = [
-    "Rugas",
-    "Emagrecimento", 
-    "Tonificação", 
-    "Hidratação", 
-    "Flacidez",
-    "Gordura localizada",
-    "Lipedema",
-    "Sarcopenia"
-  ];
   
   // Fetch media items on component mount
   useEffect(() => {
@@ -171,312 +105,45 @@ const MediaLibrary: React.FC = () => {
   const handleMediaUpdate = () => {
     fetchMediaItems();
   };
-  
-  const getMediaTypeIcon = (type: string) => {
-    switch (type) {
-      case "video":
-        return <Video className="h-4 w-4 mr-2" />;
-      case "arte":
-        return <Image className="h-4 w-4 mr-2" />;
-      case "artigo":
-        return <FileText className="h-4 w-4 mr-2" />;
-      case "documentacao":
-        return <FileText className="h-4 w-4 mr-2" />;
-      case "video_pronto":
-        return <Video className="h-4 w-4 mr-2" />;
-      case "take":
-        return <Film className="h-4 w-4 mr-2" />;
-      case "image":
-        return <Camera className="h-4 w-4 mr-2" />;
-      default:
-        return null;
-    }
-  };
-  
+
   return (
     <Layout title="Media Library">
       <div className="space-y-8">
-        {/* Action cards at the top - Updated to match the provided design */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card className="border rounded-xl hover:shadow transition-all">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                <Upload className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="font-medium text-lg mb-1">Carregar</h3>
-              <p className="text-sm text-muted-foreground">do computador</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border rounded-xl hover:shadow transition-all">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                <Film className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="font-medium text-lg mb-1">Importar</h3>
-              <p className="text-sm text-muted-foreground">do Drive e muito mais</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border rounded-xl hover:shadow transition-all">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                <PlusCircle className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="font-medium text-lg mb-1">Criar</h3>
-              <p className="text-sm text-muted-foreground">novo ou com modelo</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border rounded-xl hover:shadow transition-all">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                <Square className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="font-medium text-lg mb-1">Gravar</h3>
-              <p className="text-sm text-muted-foreground">tela ou webcam</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border rounded-xl hover:shadow transition-all">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                <LayoutGrid className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="font-medium text-lg mb-1">Organizar</h3>
-              <p className="text-sm text-muted-foreground">evento ou webinar</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Action cards at the top */}
+        <MediaActionCards />
         
         {/* "O que quer criar hoje" section */}
-        <div className="text-center py-6">
-          <div className="inline-block h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <VideoIcon className="h-8 w-8 text-blue-500" />
-          </div>
-          <h2 className="text-3xl font-semibold mb-6">O que quer Criar Hoje?</h2>
-          
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            <Button variant="outline" className="rounded-full">Encontrar algo</Button>
-            <Button variant="outline" className="rounded-full">Planejamento</Button>
-            <Button variant="outline" className="rounded-full">Criativo para anúncio</Button>
-          </div>
-          
-          <Card className="bg-slate-50 p-4 mb-8">
-            <div className="flex justify-between items-center">
-              <p className="text-slate-700">Quer um vídeo, um folder, uma arte. Só pede!</p>
-              <Button className="rounded-full">Quero Agora</Button>
-            </div>
-          </Card>
-        </div>
+        <MediaCreationSection />
 
         {/* Filters */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Recentes
-            </h3>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search media..."
-                className="pl-10"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleReset}
-              className="w-full sm:w-auto"
-            >
-              Reset Filters
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Equipment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Equipment</SelectItem>
-                  {equipmentOptions.map((equipment) => (
-                    <SelectItem key={equipment} value={equipment}>
-                      {equipment}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Select value={selectedBodyArea} onValueChange={setSelectedBodyArea}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Body Area" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Body Areas</SelectItem>
-                  {bodyAreaOptions.map((area) => (
-                    <SelectItem key={area} value={area}>
-                      {area}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Select value={selectedPurpose} onValueChange={setSelectedPurpose}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Purpose" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Purposes</SelectItem>
-                  {purposeOptions.map((purpose) => (
-                    <SelectItem key={purpose} value={purpose}>
-                      {purpose}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
+        <MediaFilters 
+          search={search}
+          setSearch={setSearch}
+          selectedEquipment={selectedEquipment}
+          setSelectedEquipment={setSelectedEquipment}
+          selectedBodyArea={selectedBodyArea}
+          setSelectedBodyArea={setSelectedBodyArea}
+          selectedPurpose={selectedPurpose}
+          setSelectedPurpose={setSelectedPurpose}
+          handleReset={handleReset}
+        />
         
-        {/* Updated Media type tabs to include the new categories */}
-        <Tabs value={mediaType} onValueChange={setMediaType}>
-          <TabsList className="grid grid-cols-5 mb-6">
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="video" className="flex items-center">
-              <Video className="h-4 w-4 mr-1.5" />
-              <span>Vídeos</span>
-            </TabsTrigger>
-            <TabsTrigger value="arte" className="flex items-center">
-              <Image className="h-4 w-4 mr-1.5" />
-              <span>Artes</span>
-            </TabsTrigger>
-            <TabsTrigger value="artigo" className="flex items-center">
-              <FileText className="h-4 w-4 mr-1.5" />
-              <span>Artigos</span>
-            </TabsTrigger>
-            <TabsTrigger value="documentacao" className="flex items-center">
-              <FileText className="h-4 w-4 mr-1.5" />
-              <span>Documentação</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={mediaType} className="mt-0">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex flex-col items-center">
-                  <LoaderIcon className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Loading media...</p>
-                </div>
-              </div>
-            ) : filteredItems.length > 0 ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium flex items-center gap-2">
-                    {mediaType !== "all" && getMediaTypeIcon(mediaType)}
-                    <span>
-                      {mediaType === "all" ? "Todos os itens" : 
-                       mediaType === "video" ? "Vídeos" :
-                       mediaType === "arte" ? "Artes" :
-                       mediaType === "artigo" ? "Artigos" :
-                       mediaType === "documentacao" ? "Documentação" :
-                       mediaType === "video_pronto" ? "Vídeos Prontos" :
-                       mediaType === "take" ? "Takes Brutos" : "Imagens"}
-                    </span>
-                  </h3>
-                  <Badge variant="outline">{filteredItems.length} items</Badge>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {filteredItems.map((item) => (
-                    <MediaCard 
-                      key={item.id} 
-                      media={item}
-                      onUpdate={handleMediaUpdate}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex flex-col items-center">
-                  <Search className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No media found</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleReset}
-                    className="mt-4"
-                  >
-                    Reset Filters
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Media type tabs and gallery */}
+        <MediaTypeTabs 
+          mediaType={mediaType} 
+          setMediaType={setMediaType} 
+        />
+        
+        <MediaGallery 
+          mediaType={mediaType}
+          filteredItems={filteredItems}
+          isLoading={isLoading}
+          handleReset={handleReset}
+          handleMediaUpdate={handleMediaUpdate}
+        />
 
         {/* Analytics/Statistics Section */}
-        <div className="pt-8 border-t">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold">Análises</h3>
-            <Badge variant="outline">De 2 de abr a 2 de mai</Badge>
-          </div>
-          <div className="h-48 bg-slate-50 rounded-lg mb-4 flex items-center justify-center">
-            <p className="text-muted-foreground">Gráfico de análises (demonstrativo)</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Visualizações</p>
-                    <p className="text-xl font-semibold">4.871</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">-11% em relação a 1 mês atrás</Badge>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Impressões</p>
-                    <p className="text-xl font-semibold">32,2 mil</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Visualizações únicas</p>
-                    <p className="text-xl font-semibold">545</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <MediaAnalytics />
       </div>
     </Layout>
   );
