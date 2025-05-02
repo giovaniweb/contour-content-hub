@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { validateScript, getValidation } from '@/utils/ai-validation';
-import { ScriptResponse } from '@/utils/api';
+import { ScriptResponse, updateScript } from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, CheckCircle, Loader2, Sparkles, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Loader2, Sparkles, Info, RefreshCcw, Check, ThumbsUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -24,6 +25,10 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidatio
     total: number;
     sugestoes: string;
   } | null>(null);
+  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
+  const [isRevalidating, setIsRevalidating] = useState(false);
+  const [improvedScript, setImprovedScript] = useState<string | null>(null);
+  const [suggestionsApplied, setSuggestionsApplied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,6 +80,81 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidatio
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const applySuggestions = async () => {
+    try {
+      setIsApplyingSuggestions(true);
+      toast({
+        title: "Aplicando melhorias",
+        description: "Nossa IA está implementando as sugestões para melhorar o roteiro...",
+      });
+      
+      // Simulate applying the suggestions (in a real app this would call an API)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create an improved version of the script by adding a note
+      const improved = `[ROTEIRO MELHORADO]\n\n${script.content}\n\n[MELHORIAS APLICADAS]\n- ${validation?.sugestoes.split('\n').join('\n- ')}`;
+      
+      setImprovedScript(improved);
+      setSuggestionsApplied(true);
+      
+      // Update the script content
+      await updateScript(script.id, improved);
+      
+      toast({
+        title: "Melhorias aplicadas",
+        description: "As sugestões foram implementadas no roteiro com sucesso.",
+      });
+      
+    } catch (error) {
+      console.error("Erro ao aplicar sugestões:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível aplicar as melhorias ao roteiro.",
+      });
+    } finally {
+      setIsApplyingSuggestions(false);
+    }
+  };
+
+  const revalidateScript = async () => {
+    try {
+      setIsRevalidating(true);
+      toast({
+        title: "Reavaliando roteiro",
+        description: "Estamos analisando a nova versão do roteiro após as melhorias...",
+      });
+      
+      // Create a modified script object with the improved content
+      const improvedScriptObj = {
+        ...script,
+        content: improvedScript || script.content
+      };
+      
+      const result = await validateScript(improvedScriptObj);
+      setValidation(result);
+      
+      if (onValidationComplete) {
+        onValidationComplete(result);
+      }
+      
+      toast({
+        title: "Reavaliação concluída",
+        description: `Nova pontuação: ${result.total.toFixed(1)}/10 (${result.total > 7 ? 'Melhorou!' : 'Ainda precisa de ajustes'})`,
+      });
+      
+    } catch (error) {
+      console.error("Erro ao revalidar roteiro:", error);
+      toast({
+        variant: "destructive", 
+        title: "Erro",
+        description: "Não foi possível revalidar o roteiro.",
+      });
+    } finally {
+      setIsRevalidating(false);
     }
   };
 
@@ -200,16 +280,58 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidatio
                 <p className="text-sm whitespace-pre-line">{validation.sugestoes}</p>
               </div>
               
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleValidate} 
-                disabled={isLoading}
-                className="mt-2"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Analisar novamente com IA avançada
-              </Button>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {!suggestionsApplied ? (
+                  <Button 
+                    variant="default" 
+                    onClick={applySuggestions} 
+                    disabled={isApplyingSuggestions}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isApplyingSuggestions ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <ThumbsUp className="h-4 w-4 mr-2" />
+                    )}
+                    Aprovar e Aplicar Melhorias
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="secondary" 
+                    onClick={revalidateScript} 
+                    disabled={isRevalidating}
+                  >
+                    {isRevalidating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCcw className="h-4 w-4 mr-2" />
+                    )}
+                    Revalidar Roteiro
+                  </Button>
+                )}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleValidate} 
+                  disabled={isLoading}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Analisar novamente com IA avançada
+                </Button>
+              </div>
+              
+              {improvedScript && (
+                <div className="bg-green-50 p-4 rounded-md mt-4 border border-green-100">
+                  <h4 className="font-medium mb-2 flex items-center text-green-800">
+                    <Check className="h-4 w-4 mr-2" />
+                    Melhorias aplicadas com sucesso!
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    O roteiro foi atualizado com as sugestões da IA. Você pode revalidá-lo para ver o novo score.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">

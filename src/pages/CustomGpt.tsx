@@ -1,15 +1,29 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, Wand, BrainCircuit, Calendar, Check } from 'lucide-react';
+import { Sparkles, Wand, BrainCircuit, Calendar, Check, ThumbsUp } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ScriptCard from '@/components/ScriptCard';
+import { ScriptResponse } from '@/utils/api';
 
 const CustomGpt: React.FC = () => {
+  const [generatedScript, setGeneratedScript] = useState<ScriptResponse | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+
   useEffect(() => {
     document.title = "Gerador de Conteúdo | Reelline";
   }, []);
+
+  const handleScriptGenerated = (script: ScriptResponse) => {
+    setGeneratedScript(script);
+  };
+
+  const handleScriptApprove = async () => {
+    // When script is approved, automatically show the calendar
+    setShowCalendar(true);
+  };
 
   return (
     <Layout>
@@ -32,20 +46,38 @@ const CustomGpt: React.FC = () => {
           </AlertDescription>
         </Alert>
         
-        <Tabs defaultValue="gptPersonalizado" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="gptPersonalizado">GPT Personalizado</TabsTrigger>
-            <TabsTrigger value="roteiro">Roteiro Avançado</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="gptPersonalizado">
-            <CustomGptForm mode="simple" />
-          </TabsContent>
-          
-          <TabsContent value="roteiro">
-            <CustomGptForm mode="advanced" />
-          </TabsContent>
-        </Tabs>
+        {!generatedScript ? (
+          <Tabs defaultValue="gptPersonalizado" className="w-full">
+            <TabsList className="grid grid-cols-2 mb-6">
+              <TabsTrigger value="gptPersonalizado">GPT Personalizado</TabsTrigger>
+              <TabsTrigger value="roteiro">Roteiro Avançado</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="gptPersonalizado">
+              <CustomGptForm mode="simple" onScriptGenerated={handleScriptGenerated} />
+            </TabsContent>
+            
+            <TabsContent value="roteiro">
+              <CustomGptForm mode="advanced" onScriptGenerated={handleScriptGenerated} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="space-y-6">
+            <ScriptCard 
+              script={generatedScript} 
+              onApprove={handleScriptApprove}
+            />
+            
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setGeneratedScript(null)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
+              >
+                Gerar Novo Conteúdo
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

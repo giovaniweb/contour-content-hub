@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles, Star, Award, Check } from "lucide-react";
-import { ScriptResponse, saveScriptFeedback, generatePDF, updateScript, linkScriptToCalendar } from "@/utils/api";
-import { useToast } from "@/hooks/use-toast";
+import { ScriptResponse, saveScriptFeedback, generatePDF, updateScript } from '@/utils/api';
+import { useToast } from '@/hooks/use-toast';
 import ScriptValidation from "./script-generator/ScriptValidation";
-import { getValidation } from "@/utils/ai-validation";
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getValidation } from '@/utils/ai-validation';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CalendarDialog } from "./script-generator/CalendarDialog";
 
 interface ScriptCardProps {
@@ -31,6 +31,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
   const [showValidation, setShowValidation] = useState(false);
   const [validationScore, setValidationScore] = useState<number | null>(null);
   const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
+  const [isScriptApproved, setIsScriptApproved] = useState(false);
   const { toast } = useToast();
 
   // Check if script has validation on mount
@@ -79,6 +80,9 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
         title: "Roteiro aprovado!",
         description: "O roteiro foi marcado como aprovado.",
       });
+      
+      // Update local state
+      setIsScriptApproved(true);
       
       if (onApprove) await onApprove(script.id);
       
@@ -198,6 +202,13 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
                   <Award className="h-3 w-3 mr-1" />
                   Nota IA: {validationScore.toFixed(1)}/10
                 </div>
+              )}
+              
+              {isScriptApproved && (
+                <Badge variant="success" className="bg-green-100 text-green-800">
+                  <Check className="h-3 w-3 mr-1" />
+                  Aprovado
+                </Badge>
               )}
             </div>
           </div>
@@ -320,11 +331,11 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
               variant="secondary"
               size="sm"
               onClick={handleApproveScript}
-              disabled={isApproving}
+              disabled={isApproving || isScriptApproved}
               className="bg-green-600 hover:bg-green-700"
             >
               <Check className="h-4 w-4 mr-1" />
-              Aprovar Roteiro
+              {isScriptApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
             </Button>
 
             <Button
