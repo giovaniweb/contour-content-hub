@@ -1,6 +1,6 @@
 
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
@@ -26,103 +26,34 @@ import ClientDetail from "@/pages/seller/ClientDetail";
 import NotFound from "@/pages/NotFound";
 import EquipmentDetailsPage from "@/pages/EquipmentDetailsPage";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Index />,
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/register",
-    element: <Register />,
-  },
-  {
-    path: "/forgot-password",
-    element: <ForgotPassword />,
-  },
-  {
-    path: "/reset-password",
-    element: <ResetPassword />,
-  },
-  {
-    path: "/dashboard",
-    element: <Dashboard />,
-  },
-  {
-    path: "/script-history",
-    element: <ScriptHistory />,
-  },
-  {
-    path: "/script-validation",
-    element: <ScriptValidation />,
-  },
-  {
-    path: "/script-validation-page",
-    element: <ScriptValidationPage />,
-  },
-  {
-    path: "/calendar",
-    element: <Calendar />,
-  },
-  {
-    path: "/custom-gpt",
-    element: <CustomGpt />,
-  },
-  {
-    path: "/settings",
-    element: <Settings />,
-  },
-  {
-    path: "/profile",
-    element: <Profile />,
-  },
-  {
-    path: "/media-library",
-    element: <MediaLibrary />,
-  },
-  {
-    path: "/admin/dashboard",
-    element: <AdminDashboard />,
-  },
-  {
-    path: "/admin/equipments",
-    element: <AdminEquipments />,
-  },
-  {
-    path: "/admin/equipment/:id",
-    element: <EquipmentDetailsPage />,
-  },
-  {
-    path: "/admin/content",
-    element: <AdminContent />,
-  },
-  {
-    path: "/admin/integrations",
-    element: <AdminIntegrations />,
-  },
-  {
-    path: "/seller/dashboard",
-    element: <SellerDashboard />,
-  },
-  {
-    path: "/seller/clients",
-    element: <ClientList />,
-  },
-  {
-    path: "/seller/client/:id",
-    element: <ClientDetail />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
-]);
-
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/script-history" element={<ScriptHistory />} />
+      <Route path="/script-validation" element={<ScriptValidation />} />
+      <Route path="/script-validation-page" element={<ScriptValidationPage />} />
+      <Route path="/calendar" element={<Calendar />} />
+      <Route path="/custom-gpt" element={<CustomGpt />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/media-library" element={<MediaLibrary />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/equipments" element={<AdminEquipments />} />
+      <Route path="/admin/equipment/:id" element={<EquipmentDetailsPage />} />
+      <Route path="/admin/content" element={<AdminContent />} />
+      <Route path="/admin/integrations" element={<AdminIntegrations />} />
+      <Route path="/seller/dashboard" element={<SellerDashboard />} />
+      <Route path="/seller/clients" element={<ClientList />} />
+      <Route path="/seller/client/:id" element={<ClientDetail />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 }
 
 export default App;

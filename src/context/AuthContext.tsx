@@ -1,6 +1,5 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
@@ -36,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
   const { toast } = useToast();
   
   // Inicializar sessão e listener de autenticação
@@ -145,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo ao ReelLine!",
       });
       
-      navigate("/dashboard");
+      // Navigate done by the calling component
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -206,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo ao ReelLine!",
       });
       
-      navigate("/dashboard");
+      // Navigate done by the calling component
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -299,12 +297,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
-      navigate("/");
       
       toast({
         title: "Logout realizado",
         description: "Você saiu com sucesso",
       });
+      
+      // Navigation is handled by the calling component
     } catch (error: any) {
       toast({
         variant: "destructive",
