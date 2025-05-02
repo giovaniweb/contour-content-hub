@@ -14,10 +14,26 @@ import {
   SidebarGroup, 
   SidebarMenu, 
   SidebarMenuItem, 
-  SidebarMenuButton 
+  SidebarMenuButton,
+  SidebarSeparator
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { History, ChevronLeft, ChevronRight, FileText, FileSearch } from "lucide-react";
+import { 
+  History, 
+  ChevronLeft, 
+  ChevronRight, 
+  FileText, 
+  FileSearch,
+  Home,
+  Calendar,
+  Film,
+  Settings,
+  LayoutDashboard,
+  User,
+  Users,
+  Settings2
+} from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,6 +49,7 @@ const Layout: React.FC<LayoutProps> = ({
   fullWidth = false
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { isAdmin, isOperator } = usePermissions();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
 
   // Gerenciar estado do sidebar com base no tamanho da tela
@@ -88,8 +105,8 @@ const Layout: React.FC<LayoutProps> = ({
               <SidebarHeader className="border-b pb-2">
                 <div className="flex items-center justify-between px-2">
                   <div className="flex items-center">
-                    <History className="h-5 w-5 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                    <span className="font-medium">Histórico</span>
+                    <Home className="h-5 w-5 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                    <span className="font-medium">Menu Principal</span>
                   </div>
                   <Button 
                     variant="ghost" 
@@ -103,14 +120,47 @@ const Layout: React.FC<LayoutProps> = ({
                 </div>
               </SidebarHeader>
               <SidebarContent>
+                {/* Menu principal */}
                 <SidebarGroup>
-                  <SidebarGroupLabel>Recentes</SidebarGroupLabel>
+                  <SidebarGroupLabel>Navegação</SidebarGroupLabel>
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link to="/script-history" className="flex items-center">
+                        <Link to="/dashboard" className="flex items-center">
+                          <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Dashboard</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/script-generator" className="flex items-center">
                           <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                          <span>Ver histórico completo</span>
+                          <span>Criar Roteiro</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/script-history" className="flex items-center">
+                          <History className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Histórico de Roteiros</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/media-library" className="flex items-center">
+                          <Film className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Biblioteca de Mídia</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/calendar" className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Agenda Inteligente</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -124,6 +174,70 @@ const Layout: React.FC<LayoutProps> = ({
                     </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroup>
+
+                {/* Área Administrativa - visível apenas para admins e operadores */}
+                {(isAdmin() || isOperator()) && (
+                  <>
+                    <SidebarSeparator />
+                    <SidebarGroup>
+                      <SidebarGroupLabel>Administração</SidebarGroupLabel>
+                      <SidebarMenu>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild>
+                            <Link to="/admin/dashboard" className="flex items-center">
+                              <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                              <span>Painel Admin</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild>
+                            <Link to="/admin/equipments" className="flex items-center">
+                              <Settings2 className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                              <span>Gerenciar Equipamentos</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild>
+                            <Link to="/admin/content" className="flex items-center">
+                              <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                              <span>Gerenciar Conteúdo</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild>
+                            <Link to="/admin/integrations" className="flex items-center">
+                              <Settings className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                              <span>Integrações</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        {isAdmin() && (
+                          <>
+                            <SidebarMenuItem>
+                              <SidebarMenuButton asChild>
+                                <Link to="/seller/clients" className="flex items-center">
+                                  <Users className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                                  <span>Gerenciar Clientes</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                              <SidebarMenuButton asChild>
+                                <Link to="/seller/dashboard" className="flex items-center">
+                                  <User className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                                  <span>Painel de Vendedor</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          </>
+                        )}
+                      </SidebarMenu>
+                    </SidebarGroup>
+                  </>
+                )}
               </SidebarContent>
               <SidebarFooter className="border-t pt-2">
                 <div className="text-xs text-muted-foreground p-2 text-center">
