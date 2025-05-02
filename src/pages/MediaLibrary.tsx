@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
@@ -185,55 +186,55 @@ const MediaLibrary: React.FC = () => {
   return (
     <Layout title="Media Library">
       <div className="space-y-8">
-        {/* Action cards at the top - Vimeo-inspired */}
+        {/* Action cards at the top - Updated to match the provided design */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <Upload className="h-6 w-6 text-slate-600" />
+          <Card className="border rounded-xl hover:shadow transition-all">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <Upload className="h-8 w-8 text-slate-600" />
               </div>
-              <h3 className="font-medium text-sm">Carregar</h3>
-              <p className="text-xs text-muted-foreground">do computador</p>
+              <h3 className="font-medium text-lg mb-1">Carregar</h3>
+              <p className="text-sm text-muted-foreground">do computador</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <Film className="h-6 w-6 text-slate-600" />
+          <Card className="border rounded-xl hover:shadow transition-all">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <Film className="h-8 w-8 text-slate-600" />
               </div>
-              <h3 className="font-medium text-sm">Importar</h3>
-              <p className="text-xs text-muted-foreground">do Drive e muito mais</p>
+              <h3 className="font-medium text-lg mb-1">Importar</h3>
+              <p className="text-sm text-muted-foreground">do Drive e muito mais</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <PlusCircle className="h-6 w-6 text-slate-600" />
+          <Card className="border rounded-xl hover:shadow transition-all">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <PlusCircle className="h-8 w-8 text-slate-600" />
               </div>
-              <h3 className="font-medium text-sm">Criar</h3>
-              <p className="text-xs text-muted-foreground">novo ou com modelo</p>
+              <h3 className="font-medium text-lg mb-1">Criar</h3>
+              <p className="text-sm text-muted-foreground">novo ou com modelo</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <Square className="h-6 w-6 text-slate-600" />
+          <Card className="border rounded-xl hover:shadow transition-all">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <Square className="h-8 w-8 text-slate-600" />
               </div>
-              <h3 className="font-medium text-sm">Gravar</h3>
-              <p className="text-xs text-muted-foreground">tela ou webcam</p>
+              <h3 className="font-medium text-lg mb-1">Gravar</h3>
+              <p className="text-sm text-muted-foreground">tela ou webcam</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <LayoutGrid className="h-6 w-6 text-slate-600" />
+          <Card className="border rounded-xl hover:shadow transition-all">
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <LayoutGrid className="h-8 w-8 text-slate-600" />
               </div>
-              <h3 className="font-medium text-sm">Organizar</h3>
-              <p className="text-xs text-muted-foreground">evento ou webinar</p>
+              <h3 className="font-medium text-lg mb-1">Organizar</h3>
+              <p className="text-sm text-muted-foreground">evento ou webinar</p>
             </CardContent>
           </Card>
         </div>
