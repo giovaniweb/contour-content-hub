@@ -46,6 +46,9 @@ export interface ScriptHistoryItem {
   updatedAt?: string;
   equipment?: string;
   marketingObjective?: string;
+  observation?: string;
+  pdf_url?: string;
+  evento_agenda_id?: string;
 }
 
 export interface MediaItem {
@@ -55,8 +58,9 @@ export interface MediaItem {
   thumbnailUrl: string;
   videoUrl?: string;
   type: string;
-  equipment?: string[];
-  purpose?: string[];
+  equipment: string[];
+  bodyArea: string[];
+  purpose: string[];
   duration?: string;
   rating: number;
   isFavorite: boolean;
@@ -73,13 +77,16 @@ export interface CalendarSuggestion {
   purpose?: string;
   completed?: boolean;
   evento_agenda_id?: string;
+  type?: ScriptType;
 }
 
 export interface CalendarPreferences {
   postFrequency: string;
   preferredDays: string[];
   preferredTimes: string[];
-  contentTypes: string[];
+  contentTypes: { video: boolean; story: boolean; image: boolean; };
+  frequency?: number;
+  equipment?: string;
 }
 
 export const generateScript = async (
@@ -218,7 +225,9 @@ export const saveScriptFeedback = async (
 
 export const updateScript = async (
   scriptId: string, 
-  newContent: string
+  newContent: string,
+  feedback?: string,
+  status?: string
 ): Promise<void> => {
   try {
     console.log(`Updating script ${scriptId} with new content`);
@@ -247,7 +256,10 @@ export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
         status: 'aprovado',
         createdAt: new Date().toISOString(),
         equipment: 'Unyque PRO',
-        marketingObjective: 'atrair_atencao'
+        marketingObjective: 'atrair_atencao',
+        pdf_url: 'https://example.com/pdf/script1.pdf',
+        evento_agenda_id: '123',
+        observation: 'Observações sobre o roteiro'
       },
       {
         id: '2',
@@ -282,6 +294,7 @@ export const getMediaItems = async (): Promise<MediaItem[]> => {
         videoUrl: 'https://vimeo.com/123456789',
         type: 'video_pronto',
         equipment: ['Unyque PRO'],
+        bodyArea: ['Face', 'Pescoço'],
         purpose: ['educação', 'vendas'],
         duration: '2:30',
         rating: 4.5,
@@ -295,6 +308,7 @@ export const getMediaItems = async (): Promise<MediaItem[]> => {
         videoUrl: 'https://vimeo.com/123456790',
         type: 'take',
         equipment: ['Venus Freeze'],
+        bodyArea: ['Abdômen'],
         purpose: ['engajamento'],
         duration: '0:45',
         rating: 3.5,
@@ -351,7 +365,8 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         caption: 'Conheça o poder transformador do Unyque PRO! #estetica #beleza',
         equipment: 'Unyque PRO',
         purpose: 'educate',
-        completed: false
+        completed: false,
+        type: 'videoScript'
       },
       {
         date: tomorrow.toISOString().split('T')[0],
@@ -362,7 +377,8 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         equipment: 'Venus Freeze',
         purpose: 'engage',
         completed: true,
-        evento_agenda_id: '123'
+        evento_agenda_id: '123',
+        type: 'dailySales'
       },
       {
         date: nextWeek.toISOString().split('T')[0],
@@ -372,7 +388,8 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         caption: 'ÚLTIMA CHANCE! Pacote com 50% OFF só até sexta-feira. Agende já!',
         equipment: 'Unyque PRO',
         purpose: 'sell',
-        completed: false
+        completed: false,
+        type: 'bigIdea'
       }
     ];
   } catch (error) {
@@ -430,28 +447,32 @@ export const setCalendarPreferences = async (
   }
 };
 
-export const getEquipments = async () => {
+export const getEquipments = async (): Promise<any[]> => {
   try {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Return mock data
+    // Return mock data converted to match Equipment type in types/equipment.ts
     return [
       {
         id: '1',
-        name: 'Unyque PRO',
-        category: 'Radiofrequência',
-        description: 'Equipamento avançado de radiofrequência para tratamentos estéticos',
-        manufacturer: 'Tonederm',
-        status: 'active'
+        nome: 'Unyque PRO',
+        tecnologia: 'Radiofrequência',
+        indicacoes: 'Equipamento avançado de radiofrequência para tratamentos estéticos',
+        beneficios: 'Resultados rápidos e duradouros',
+        diferenciais: 'Tecnologia exclusiva',
+        linguagem: 'Técnica',
+        ativo: true
       },
       {
         id: '2',
-        name: 'Venus Freeze',
-        category: 'Criolipólise',
-        description: 'Equipamento para tratamento de gordura localizada',
-        manufacturer: 'Venus Concept',
-        status: 'active'
+        nome: 'Venus Freeze',
+        tecnologia: 'Criolipólise',
+        indicacoes: 'Equipamento para tratamento de gordura localizada',
+        beneficios: 'Redução de medidas',
+        diferenciais: 'Sem dor durante o procedimento',
+        linguagem: 'Simples',
+        ativo: true
       }
     ];
   } catch (error) {
@@ -460,7 +481,7 @@ export const getEquipments = async () => {
   }
 };
 
-export const createEquipment = async (equipment: any) => {
+export const createEquipment = async (equipment: any): Promise<any> => {
   try {
     console.log('Creating new equipment:', equipment);
     // Simulate API call
@@ -472,31 +493,31 @@ export const createEquipment = async (equipment: any) => {
   }
 };
 
-export const updateEquipment = async (id: string, equipment: any) => {
+export const updateEquipment = async (equipment: any): Promise<any> => {
   try {
-    console.log(`Updating equipment ${id}:`, equipment);
+    console.log(`Updating equipment ${equipment.id}:`, equipment);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    return { id, ...equipment };
+    return equipment;
   } catch (error) {
-    console.error('Error updating equipment:', error);
+    console.error(`Error updating equipment ID ${equipment.id}:`, error);
     throw error;
   }
 };
 
-export const deleteEquipment = async (id: string) => {
+export const deleteEquipment = async (id: string): Promise<boolean> => {
   try {
     console.log(`Deleting equipment ${id}`);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     return true;
   } catch (error) {
-    console.error('Error deleting equipment:', error);
+    console.error(`Error deleting equipment ID ${id}:`, error);
     throw error;
   }
 };
 
-export const importEquipments = async (file: File) => {
+export const importEquipments = async (file: File): Promise<{imported: number, total: number}> => {
   try {
     console.log(`Importing equipments from file ${file.name}`);
     // Simulate API call

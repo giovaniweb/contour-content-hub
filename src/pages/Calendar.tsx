@@ -1,593 +1,323 @@
 
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getCalendarSuggestions, CalendarSuggestion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
-import { useToast } from "@/hooks/use-toast";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { 
+  AlertCircle, Calendar as CalendarIcon, Check, RefreshCcw, Settings
+} from "lucide-react";
 import CalendarDay from "@/components/CalendarDay";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon, Mail, Bell, Check, Trash } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import CalendarSettings from "@/components/CalendarSettings";
+import { useToast } from "@/hooks/use-toast";
+import { getCalendarSuggestions, CalendarSuggestion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
+import { format, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
-const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
-// List of available equipment
-const EQUIPMENT_OPTIONS = [
-  { id: "adella", label: "Adélla" },
-  { id: "enygma", label: "Enygma" },
-  { id: "hipro", label: "Hipro" },
-  { id: "reverso", label: "Reverso" },
-  { id: "ultralift", label: "Ultralift" }
-];
-
-const Calendar: React.FC = () => {
+const CalendarPage: React.FC = () => {
   const { toast } = useToast();
-  
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [frequency, setFrequency] = useState<1 | 2 | 3>(2);
-  const [observations, setObservations] = useState("");
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [suggestions, setSuggestions] = useState<CalendarSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [emailAlertOpen, setEmailAlertOpen] = useState(false);
-  const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly" | "intelligent">("weekly");
-  const [emailEnabled, setEmailEnabled] = useState(true);
-  // Initialize with all equipment options except "adella"
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(
-    EQUIPMENT_OPTIONS.filter(equipment => equipment.id !== "adella").map(equipment => equipment.id)
-  );
-  const [contentTypes, setContentTypes] = useState({
-    video: true,
-    story: true,
-    image: true,
-  });
-  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
-  const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
-  
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
-  
-  // Fetch calendar suggestions
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
+  const [isConfirmApproveOpen, setIsConfirmApproveOpen] = useState(false);
+
   useEffect(() => {
-    fetchCalendarSuggestions();
-  }, [currentMonth, currentYear, frequency, selectedEquipment, contentTypes]);
+    loadCalendarSuggestions();
+  }, [currentMonth, currentYear]);
   
-  const fetchCalendarSuggestions = async () => {
+  const loadCalendarSuggestions = async () => {
     try {
       setIsLoading(true);
-      const preferences = {
-        equipment: selectedEquipment.length > 0 ? selectedEquipment.join(',') : undefined,
-        contentTypes,
-        frequency
-      };
-      const data = await getCalendarSuggestions(currentMonth, currentYear, preferences);
+      const data = await getCalendarSuggestions();
       setSuggestions(data);
     } catch (error) {
+      console.error("Erro ao buscar sugestões do calendário:", error);
       toast({
         variant: "destructive",
-        title: "Falha ao carregar calendário",
-        description: "Não foi possível carregar as sugestões do calendário",
+        title: "Erro",
+        description: "Não foi possível carregar as sugestões para o calendário.",
       });
-      console.error("Failed to fetch calendar suggestions:", error);
     } finally {
       setIsLoading(false);
     }
   };
   
-  // Handle toggling equipment selection
-  const toggleEquipment = (equipmentId: string) => {
-    setSelectedEquipment(prev => {
-      if (prev.includes(equipmentId)) {
-        return prev.filter(id => id !== equipmentId);
-      } else {
-        return [...prev, equipmentId];
-      }
-    });
-  };
-  
-  // Generate calendar days for current month view
-  const generateCalendarDays = () => {
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-    const daysInMonth = lastDayOfMonth.getDate();
-    const startingDayOfWeek = firstDayOfMonth.getDay();
-    
-    const calendarDays = [];
-    
-    // Previous month's days
-    const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
-    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-      const date = new Date(currentYear, currentMonth - 1, prevMonthLastDay - i);
-      calendarDays.push({ date, isCurrentMonth: false });
-    }
-    
-    // Current month's days
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentYear, currentMonth, day);
-      const dateString = date.toISOString().split("T")[0];
-      const suggestion = suggestions.find(s => s.date === dateString);
-      calendarDays.push({ date, isCurrentMonth: true, suggestion });
-    }
-    
-    // Next month's days
-    const remainingDays = 7 - (calendarDays.length % 7);
-    if (remainingDays < 7) {
-      for (let day = 1; day <= remainingDays; day++) {
-        const date = new Date(currentYear, currentMonth + 1, day);
-        calendarDays.push({ date, isCurrentMonth: false });
-      }
-    }
-    
-    return calendarDays;
-  };
-  
-  // Handle month navigation
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
-  };
-  
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
-  };
-  
-  // Handle updating observations
-  const handleSaveObservations = () => {
-    // In a real app, this would call an API to save the observations
-    toast({
-      title: "Preferências salvas",
-      description: "Suas preferências de conteúdo foram atualizadas",
-    });
-    
-    // Reload calendar suggestions to reflect the new preferences
-    fetchCalendarSuggestions();
-  };
-  
-  // Handle updating email preferences
-  const handleSaveEmailPreferences = () => {
-    // In a real app, this would call an API to save the email preferences
-    setEmailAlertOpen(false);
-    
-    toast({
-      title: "Alertas de email configurados",
-      description: `Você receberá alertas ${emailEnabled ? "" : "não"} ${
-        emailFrequency === "daily" ? "diários" : 
-        emailFrequency === "weekly" ? "semanais" : 
-        "personalizados"
-      }`,
-    });
-  };
-
-  // Handle clearing the planning
   const handleClearPlanning = async () => {
     try {
-      setIsLoading(true);
-      await clearPlanning(currentMonth, currentYear);
-      setConfirmClearOpen(false);
+      await clearPlanning();
+      setSuggestions([]);
+      setIsConfirmClearOpen(false);
       toast({
         title: "Planejamento limpo",
-        description: "O planejamento do mês foi limpo com sucesso",
+        description: "Todas as sugestões foram removidas.",
       });
-      await fetchCalendarSuggestions();
     } catch (error) {
+      console.error("Erro ao limpar planejamento:", error);
       toast({
         variant: "destructive",
-        title: "Falha ao limpar planejamento",
-        description: "Não foi possível limpar o planejamento",
+        title: "Erro",
+        description: "Não foi possível limpar o planejamento.",
       });
-      console.error("Failed to clear planning:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle approving the planning
-  const handleApprovePlanning = async () => {
-    try {
-      setIsLoading(true);
-      await approvePlanning(currentMonth, currentYear, suggestions);
-      setConfirmApproveOpen(false);
-      toast({
-        title: "Planejamento aprovado",
-        description: "O planejamento do mês foi aprovado com sucesso",
-      });
-      await fetchCalendarSuggestions();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Falha ao aprovar planejamento",
-        description: "Não foi possível aprovar o planejamento",
-      });
-      console.error("Failed to approve planning:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
   
-  // Format the month and year
-  const formatMonthYear = () => {
-    return new Intl.DateTimeFormat("pt-BR", {
-      month: "long",
-      year: "numeric",
-    }).format(currentDate).replace(/^\w/, (c) => c.toUpperCase());
+  const handleApprovePlanning = async () => {
+    try {
+      await approvePlanning();
+      setIsConfirmApproveOpen(false);
+      toast({
+        title: "Planejamento aprovado",
+        description: "Suas sugestões foram salvas na agenda.",
+      });
+    } catch (error) {
+      console.error("Erro ao aprovar planejamento:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível aprovar o planejamento.",
+      });
+    }
   };
-
-  // Handle toggling content types
-  const handleToggleContentType = (type: 'video' | 'story' | 'image') => {
-    setContentTypes(prev => {
-      const updated = { ...prev, [type]: !prev[type] };
-      // Ensure at least one type is selected
-      if (!updated.video && !updated.story && !updated.image) {
-        return prev;
-      }
-      return updated;
+  
+  const handleSaveSettings = async (preferences: any) => {
+    try {
+      await setCalendarPreferences(preferences);
+      setIsSettingsOpen(false);
+      loadCalendarSuggestions();
+      toast({
+        title: "Preferências salvas",
+        description: "Suas preferências foram atualizadas.",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar preferências:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível salvar suas preferências.",
+      });
+    }
+  };
+  
+  const getEventsForDate = (date: Date): CalendarSuggestion[] => {
+    return suggestions.filter(sugg => {
+      const suggDate = new Date(sugg.date);
+      return isSameDay(suggDate, date);
     });
   };
+  
+  const hasEvents = (date: Date) => {
+    return suggestions.some(sugg => isSameDay(new Date(sugg.date), date));
+  };
+  
+  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
+  const hasSelectedDateEvents = selectedDate ? hasEvents(selectedDate) : false;
   
   return (
     <Layout title="Agenda Criativa">
-      <div className="grid gap-6">
-        {/* Calendar header and controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <CalendarIcon className="h-5 w-5 mr-2" />
-                  <span>Agenda Criativa Inteligente</span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handlePrevMonth}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="font-medium min-w-[140px] text-center">
-                    {formatMonthYear()}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleNextMonth}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Planeje sua agenda de conteúdo com sugestões personalizadas geradas por IA
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Frequência de Conteúdo
-                  </label>
-                  <div className="flex gap-4">
-                    <div className="flex-grow">
-                      <Select
-                        value={frequency.toString()}
-                        onValueChange={(value) => setFrequency(parseInt(value) as 1 | 2 | 3)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a frequência" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1x por semana</SelectItem>
-                          <SelectItem value="2">2x por semana</SelectItem>
-                          <SelectItem value="3">3x por semana</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center gap-2"
-                      onClick={() => setEmailAlertOpen(true)}
-                    >
-                      <Mail className="h-4 w-4" />
-                      <span className="hidden sm:inline">Alertas</span>
-                    </Button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Equipamentos
-                  </label>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    {EQUIPMENT_OPTIONS.map((equipment) => (
-                      <div key={equipment.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`equipment-${equipment.id}`} 
-                          checked={selectedEquipment.includes(equipment.id)}
-                          onCheckedChange={() => toggleEquipment(equipment.id)}
-                        />
-                        <Label htmlFor={`equipment-${equipment.id}`}>{equipment.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Tipos de Conteúdo
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="content-video" 
-                        checked={contentTypes.video}
-                        onCheckedChange={() => handleToggleContentType('video')}
-                      />
-                      <Label htmlFor="content-video">Vídeos</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="content-story" 
-                        checked={contentTypes.story}
-                        onCheckedChange={() => handleToggleContentType('story')}
-                      />
-                      <Label htmlFor="content-story">Stories</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="content-image" 
-                        checked={contentTypes.image}
-                        onCheckedChange={() => handleToggleContentType('image')}
-                      />
-                      <Label htmlFor="content-image">Imagens</Label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Preferências de Conteúdo
-                  </label>
-                  <div className="flex space-x-2">
-                    <Textarea
-                      placeholder="Ex: Quero focar em tratamentos de lipedema este mês"
-                      value={observations}
-                      onChange={(e) => setObservations(e.target.value)}
-                      className="flex-grow"
-                    />
-                    <Button className="self-end" onClick={handleSaveObservations}>
-                      Salvar
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="pt-4">
-                  <Separator className="mb-4" />
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Ações do Planejamento</h3>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center gap-2"
-                        onClick={() => setConfirmClearOpen(true)}
-                      >
-                        <Trash className="h-4 w-4" />
-                        <span className="hidden sm:inline">Limpar</span>
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        className="flex items-center gap-2"
-                        onClick={() => setConfirmApproveOpen(true)}
-                      >
-                        <Check className="h-4 w-4" />
-                        <span className="hidden sm:inline">Aprovar</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Agenda Criativa</h1>
+            <p className="text-muted-foreground">
+              Organize e planeje seu conteúdo para redes sociais
+            </p>
+          </div>
+          <div className="flex gap-3 mt-4 md:mt-0">
+            <Button
+              variant="outline" 
+              size="sm"
+              onClick={() => loadCalendarSuggestions()}
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configurar
+            </Button>
+          </div>
+        </div>
         
-        {/* Calendar grid */}
-        <Card>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex flex-col items-center">
-                  <LoaderIcon className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Gerando sua agenda criativa...</p>
-                </div>
+        <div className="border rounded-lg">
+          <Tabs defaultValue="month" className="w-full">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b px-4 py-2">
+              <TabsList className="mb-2 sm:mb-0">
+                <TabsTrigger value="month">Mês</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+                <TabsTrigger value="plan">Planejamento</TabsTrigger>
+              </TabsList>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsConfirmClearOpen(true)}
+                >
+                  Limpar
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setIsConfirmApproveOpen(true)}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Aprovar
+                </Button>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-7 gap-2 mb-2">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <div
-                      key={day}
-                      className="text-center font-medium text-sm py-2"
-                    >
-                      {day}
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="grid grid-cols-7 gap-2">
-                  {generateCalendarDays().map((day, index) => (
-                    <CalendarDay
-                      key={index}
-                      date={day.date}
-                      suggestion={day.suggestion}
-                      isCurrentMonth={day.isCurrentMonth}
-                      onUpdate={fetchCalendarSuggestions}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Email Alerts Dialog */}
-      <AlertDialog open={emailAlertOpen} onOpenChange={setEmailAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Configurar Alertas</AlertDialogTitle>
-            <AlertDialogDescription>
-              Configure como e quando deseja receber alertas sobre seu calendário de conteúdo.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="py-4 space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="email-alerts">Alertas por e-mail</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receba lembretes sobre sua agenda de conteúdo
-                </p>
-              </div>
-              <Switch 
-                id="email-alerts" 
-                checked={emailEnabled}
-                onCheckedChange={setEmailEnabled}
-              />
             </div>
             
-            <div className="space-y-2">
-              <Label>Frequência de alertas</Label>
-              <div className="grid grid-cols-1 gap-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="freq-daily"
-                    name="email-frequency"
-                    className="h-4 w-4"
-                    checked={emailFrequency === "daily"}
-                    onChange={() => setEmailFrequency("daily")}
-                    disabled={!emailEnabled}
-                  />
-                  <Label htmlFor="freq-daily" className="cursor-pointer">
-                    <div className="font-medium">📩 3 sugestões por semana</div>
-                    <div className="text-sm text-muted-foreground">
-                      Receba as melhores sugestões de conteúdo
-                    </div>
-                  </Label>
+            <div className="flex flex-col lg:flex-row">
+              {/* Calendário para selecionar data */}
+              <div className="p-4 border-b lg:border-b-0 lg:border-r lg:w-1/2">
+                <div className="flex items-center justify-center">
+                  <CalendarIcon className="mr-2 h-5 w-5" />
+                  <h2 className="text-lg font-medium">
+                    {format(new Date(currentYear, currentMonth), 'MMMM yyyy', { locale: ptBR })}
+                  </h2>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="freq-weekly"
-                    name="email-frequency"
-                    className="h-4 w-4"
-                    checked={emailFrequency === "weekly"}
-                    onChange={() => setEmailFrequency("weekly")}
-                    disabled={!emailEnabled}
-                  />
-                  <Label htmlFor="freq-weekly" className="cursor-pointer">
-                    <div className="font-medium">📩 1 grade completa semanal</div>
-                    <div className="text-sm text-muted-foreground">
-                      Receba todas as sugestões organizadas para a semana
-                    </div>
-                  </Label>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  month={new Date(currentYear, currentMonth)}
+                  onMonthChange={(date) => {
+                    setCurrentMonth(date.getMonth());
+                    setCurrentYear(date.getFullYear());
+                  }}
+                  className="w-full mt-4"
+                  locale={ptBR}
+                  modifiers={{
+                    hasEvent: (date) => hasEvents(date)
+                  }}
+                  modifiersClassNames={{
+                    hasEvent: 'bg-blue-100 font-bold text-blue-600 hover:bg-blue-200'
+                  }}
+                  showOutsideDays={false}
+                />
+              </div>
+              
+              {/* Detalhes do dia selecionado */}
+              <div className="p-4 lg:w-1/2">
+                <div className="flex items-center mb-4">
+                  <h2 className="text-lg font-medium">
+                    {selectedDate 
+                      ? format(selectedDate, 'EEEE, dd MMMM yyyy', { locale: ptBR })
+                      : "Selecione uma data"
+                    }
+                  </h2>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="freq-intelligent"
-                    name="email-frequency"
-                    className="h-4 w-4"
-                    checked={emailFrequency === "intelligent"}
-                    onChange={() => setEmailFrequency("intelligent")}
-                    disabled={!emailEnabled}
-                  />
-                  <Label htmlFor="freq-intelligent" className="cursor-pointer">
-                    <div className="font-medium">📩 Sugestões inteligentes</div>
-                    <div className="text-sm text-muted-foreground">
-                      Baseadas no seu comportamento e preferências
-                    </div>
-                  </Label>
-                </div>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-40">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <>
+                    {selectedDate && (
+                      <>
+                        {hasSelectedDateEvents ? (
+                          <div className="space-y-4">
+                            {selectedDateEvents.map((event, idx) => (
+                              <CalendarDay 
+                                key={`${event.date}-${idx}`}
+                                event={event}
+                                onRefresh={loadCalendarSuggestions}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <Alert>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Nenhum conteúdo planejado</AlertTitle>
+                            <AlertDescription>
+                              Não há sugestões de conteúdo para esta data.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             </div>
-          </div>
+          </Tabs>
+        </div>
+      </div>
+      
+      {/* Diálogo de configurações */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Configurações da Agenda Criativa</DialogTitle>
+            <DialogDescription>
+              Personalize como suas sugestões de conteúdo são geradas
+            </DialogDescription>
+          </DialogHeader>
           
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSaveEmailPreferences}>
-              Salvar Preferências
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <CalendarSettings onSave={handleSaveSettings} onCancel={() => setIsSettingsOpen(false)} />
+        </DialogContent>
+      </Dialog>
       
-      {/* Confirm Clear Planning Dialog */}
-      <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Limpar Planejamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja limpar todo o planejamento deste mês? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleClearPlanning}
-              className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
-            >
-              Limpar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Diálogos de confirmação */}
+      <Dialog open={isConfirmClearOpen} onOpenChange={setIsConfirmClearOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Limpar Planejamento</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja limpar todo o planejamento do mês atual?
+              Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsConfirmClearOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleClearPlanning}>
+              Limpar Planejamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
-      {/* Confirm Approve Planning Dialog */}
-      <AlertDialog open={confirmApproveOpen} onOpenChange={setConfirmApproveOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Aprovar Planejamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja aprovar o planejamento atual para este mês? Isso irá salvar todas as sugestões no calendário.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleApprovePlanning}>
-              Aprovar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={isConfirmApproveOpen} onOpenChange={setIsConfirmApproveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aprovar Planejamento</DialogTitle>
+            <DialogDescription>
+              Ao aprovar o planejamento, todas as sugestões serão salvas na sua agenda
+              e você receberá lembretes sobre as publicações programadas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsConfirmApproveOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleApprovePlanning}>
+              <Check className="h-4 w-4 mr-1" />
+              Aprovar Planejamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
 
-export default Calendar;
+export default CalendarPage;

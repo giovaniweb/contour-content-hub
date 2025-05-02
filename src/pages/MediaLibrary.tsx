@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
@@ -114,8 +115,7 @@ const MediaLibrary: React.FC = () => {
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(searchLower) ||
         item.equipment.some(eq => eq.toLowerCase().includes(searchLower)) ||
-        item.bodyArea.some(area => area.toLowerCase().includes(searchLower)) ||
-        item.purpose.some(purpose => purpose.toLowerCase().includes(searchLower))
+        (item.description && item.description.toLowerCase().includes(searchLower))
       );
     }
     

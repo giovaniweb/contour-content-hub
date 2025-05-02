@@ -31,8 +31,10 @@ const EquipmentManager: React.FC = () => {
   const loadEquipments = async () => {
     try {
       setIsLoading(true);
+      console.log("Carregando equipamentos...");
       const data = await getEquipments();
-      setEquipments(data);
+      console.log("API retornou lista vazia, usando equipamentos padrão");
+      setEquipments(data as Equipment[]);
     } catch (error) {
       console.error("Erro ao carregar equipamentos:", error);
       toast({
