@@ -1,31 +1,26 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  CalendarIcon,
-  FileText,
-  Check,
-  Video,
-  Image,
-  MessageCircle,
-  BookOpen,
-  Users,
-  ShoppingBag,
-  Sparkles
-} from "lucide-react";
+import React, { useState } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { CalendarSuggestion, updateCalendarCompletion } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  CheckCircle2, 
+  FileText, 
+  Clock, 
+  Video, 
+  Image, 
+  MessageSquare,
+  Calendar as CalendarIcon
+} from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface CalendarDayProps {
   date: Date;
@@ -40,224 +35,210 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   isCurrentMonth,
   onUpdate
 }) => {
-  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  const day = date.getDate();
+
   const isToday = new Date().toDateString() === date.toDateString();
-  const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
-  
-  // Get script type label
-  const getScriptTypeLabel = (type: string) => {
-    switch (type) {
-      case "videoScript":
-        return "Vídeo";
-      case "bigIdea":
-        return "Campanha";
-      case "dailySales":
-        return "Story";
-      default:
-        return "Conteúdo";
-    }
-  };
-  
-  // Get purpose icon based on content purpose
-  const getPurposeIcon = (type: string) => {
-    switch (type) {
-      case "videoScript":
-        return <BookOpen className="h-4 w-4" />; // Educate
-      case "bigIdea":
-        return <Users className="h-4 w-4" />; // Engage
-      case "dailySales":
-        return <ShoppingBag className="h-4 w-4" />; // Sell
-      default:
-        return <Sparkles className="h-4 w-4" />;
-    }
-  };
-  
-  // Get content type icon
-  const getContentTypeIcon = (type: string) => {
-    switch (type) {
-      case "videoScript":
-        return <Video className="h-4 w-4" />;
-      case "dailySales":
-        return <MessageCircle className="h-4 w-4" />;
-      case "bigIdea":
-        return <Image className="h-4 w-4" />;
-      default:
-        return <FileText className="h-4 w-4" />;
+  const dateStr = format(date, "yyyy-MM-dd");
+
+  // Manipular clique na tarefa
+  const handleTaskClick = () => {
+    if (suggestion) {
+      setDialogOpen(true);
     }
   };
 
-  const handleToggleCompleted = async () => {
-    if (!suggestion) return;
-    
+  // Marcar como concluído
+  const handleToggleComplete = async () => {
     try {
-      setIsUpdating(true);
-      await updateCalendarCompletion(
-        suggestion.date,
-        !suggestion.completed
-      );
+      if (!suggestion) return;
+      
+      setIsCompleting(true);
+      const newStatus = !suggestion.completed;
+      
+      await updateCalendarCompletion(dateStr, newStatus);
       
       toast({
-        title: suggestion.completed 
-          ? "Tarefa reaberta" 
-          : "Tarefa concluída",
-        description: suggestion.completed
-          ? "A tarefa foi marcada como não concluída"
-          : "Ótimo trabalho! A tarefa foi marcada como concluída",
+        title: newStatus ? "Tarefa concluída" : "Tarefa pendente",
+        description: `Status da tarefa atualizado para ${newStatus ? "concluída" : "pendente"}`,
       });
       
       if (onUpdate) onUpdate();
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Falha na atualização",
+        title: "Erro",
         description: "Não foi possível atualizar o status da tarefa",
       });
     } finally {
-      setIsUpdating(false);
+      setIsCompleting(false);
     }
   };
-  
-  const handleCreateContent = () => {
-    if (!suggestion) return;
+
+  // Obter ícone com base no formato do conteúdo
+  const getFormatIcon = () => {
+    if (!suggestion) return null;
     
-    // Navigate to script generator with pre-filled type and topic from suggestion
-    navigate(`/script-generator?type=${suggestion.type}&topic=${encodeURIComponent(suggestion.title)}`);
+    switch (suggestion.format) {
+      case "video":
+        return <Video className="h-3 w-3" />;
+      case "image":
+        return <Image className="h-3 w-3" />;
+      case "story":
+        return <MessageSquare className="h-3 w-3" />;
+      default:
+        return <FileText className="h-3 w-3" />;
+    }
   };
-  
+
+  // Classes para o dia
+  const dayClasses = `
+    min-h-[80px] p-1 border rounded-md transition-colors relative
+    ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
+    ${isToday ? 'border-blue-400 border-2' : 'border-gray-200'}
+    ${suggestion ? 'cursor-pointer hover:border-blue-300' : 'cursor-default'}
+  `;
+
+  // Classes para o container de tarefas
+  const taskContainerClasses = `
+    mt-1 text-xs
+    ${suggestion?.completed ? 'text-green-600 bg-green-50' : 'text-blue-600 bg-blue-50'}
+    rounded p-1
+  `;
+
   return (
-    <div 
-      className={`
-        h-28 md:h-36 p-2 border rounded-md overflow-hidden
-        ${isCurrentMonth ? "bg-white" : "bg-gray-50/50"}
-        ${isToday ? "ring-2 ring-primary ring-offset-2" : ""}
-        ${suggestion?.completed ? "border-green-300 bg-green-50" : ""}
-      `}
-    >
-      <div className="flex justify-between items-center mb-1">
-        <span 
-          className={`
-            text-sm font-medium rounded-full w-6 h-6 flex items-center justify-center
-            ${isToday ? "bg-primary text-white" : ""}
-          `}
-        >
-          {day}
-        </span>
+    <>
+      <div className={dayClasses} onClick={handleTaskClick}>
+        {/* Data */}
+        <div className="flex justify-between items-center">
+          <span className={`text-xs font-medium ${isToday ? 'text-blue-600' : ''}`}>
+            {date.getDate()}
+          </span>
+          {isToday && (
+            <span className="text-xs px-1 bg-blue-100 text-blue-800 rounded">Hoje</span>
+          )}
+        </div>
         
-        {suggestion?.completed && (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-1 py-0">
-            <Check className="h-3 w-3" />
-          </Badge>
+        {/* Tarefa */}
+        {suggestion && (
+          <div className={taskContainerClasses}>
+            <div className="flex items-center gap-1 text-[10px] font-medium">
+              {getFormatIcon()}
+              <span className="truncate">{suggestion.title.substring(0, 20)}{suggestion.title.length > 20 ? '...' : ''}</span>
+            </div>
+            {suggestion.completed && (
+              <div className="flex items-center gap-1 mt-1 text-green-600">
+                <CheckCircle2 className="h-3 w-3" />
+                <span className="text-[10px]">Concluído</span>
+              </div>
+            )}
+          </div>
         )}
       </div>
       
-      {suggestion && (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="w-full h-auto p-1 justify-start text-left"
-            >
-              <div className="w-full">
-                <div className="flex items-center gap-1 mb-1">
-                  {getContentTypeIcon(suggestion.type)}
-                  <Badge variant="secondary" className="text-xs">
-                    {getScriptTypeLabel(suggestion.type)}
-                  </Badge>
+      {/* Diálogo com detalhes da tarefa */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>
+              <div className="flex justify-between items-center">
+                <div className="truncate pr-4">{suggestion?.title}</div>
+                <div className="text-sm font-normal text-muted-foreground whitespace-nowrap">
+                  {format(date, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                 </div>
-                <p className="text-xs font-medium truncate">{suggestion.title}</p>
               </div>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5" />
-                  <span>
-                    {date.toLocaleDateString("pt-BR", { 
-                      month: "long", 
-                      day: "numeric",
-                      year: "numeric"
-                    })}
-                  </span>
-                </div>
-              </DialogTitle>
-              <DialogDescription>
-                {suggestion.title}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="py-4">
+            </DialogTitle>
+          </DialogHeader>
+          
+          {suggestion && (
+            <div className="space-y-4 py-2">
               <div className="flex flex-wrap gap-2 mb-3">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  {getContentTypeIcon(suggestion.type)}
-                  {getScriptTypeLabel(suggestion.type)}
-                </Badge>
-                
                 <Badge variant="outline" className="flex items-center gap-1">
-                  {getPurposeIcon(suggestion.type)}
-                  {suggestion.type === "videoScript" ? "Educar" : 
-                   suggestion.type === "bigIdea" ? "Engajar" : "Vender"}
+                  {getFormatIcon()}
+                  {suggestion.format === "video" ? "Vídeo" : 
+                   suggestion.format === "story" ? "Story" : "Imagem"}
                 </Badge>
                 
                 {suggestion.equipment && (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  <Badge variant="outline" className="bg-blue-50">
                     {suggestion.equipment}
+                  </Badge>
+                )}
+                
+                {suggestion.purpose && (
+                  <Badge variant="outline" className="bg-purple-50">
+                    {suggestion.purpose === "educate" ? "Educar" : 
+                     suggestion.purpose === "engage" ? "Engajar" : "Vender"}
                   </Badge>
                 )}
               </div>
               
-              <p className="text-sm mb-4">
-                {suggestion.description}
-              </p>
+              <div className="border rounded-md p-3 bg-gray-50">
+                <h4 className="font-medium mb-2 text-sm">Descrição</h4>
+                <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+              </div>
               
-              {suggestion.completed ? (
-                <div className="bg-green-50 border border-green-200 p-3 rounded-md flex items-center gap-2">
-                  <Check className="h-5 w-5 text-green-600" />
-                  <span className="text-green-700 font-medium">
-                    Conteúdo concluído
-                  </span>
-                </div>
-              ) : isPast ? (
-                <div className="bg-orange-50 border border-orange-200 p-3 rounded-md">
-                  <p className="text-orange-700">
-                    Esta data está no passado. Gostaria de criar este conteúdo agora?
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-md">
-                  <p className="text-blue-700">
-                    Adiantece na sua agenda criando este conteúdo agora.
-                  </p>
+              {suggestion.hook && (
+                <div className="border rounded-md p-3 bg-blue-50">
+                  <h4 className="font-medium mb-1 text-sm text-blue-700">Gancho sugerido</h4>
+                  <p className="text-sm text-blue-600">"{suggestion.hook}"</p>
                 </div>
               )}
-            </div>
-            
-            <DialogFooter className="flex-col sm:flex-row gap-2">
-              <Button
-                variant={suggestion.completed ? "outline" : "default"}
-                onClick={handleToggleCompleted}
-                disabled={isUpdating}
-                className={suggestion.completed ? "sm:mr-auto" : ""}
-              >
-                {suggestion.completed ? "Reabrir Tarefa" : "Marcar como Concluída"}
-              </Button>
               
-              {!suggestion.completed && (
-                <Button onClick={handleCreateContent}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Gerar Roteiro Agora
+              {suggestion.caption && (
+                <div className="border rounded-md p-3 bg-amber-50">
+                  <h4 className="font-medium mb-1 text-sm text-amber-700">Legenda sugerida</h4>
+                  <p className="text-sm text-amber-600">{suggestion.caption}</p>
+                </div>
+              )}
+              
+              <div className="flex justify-between pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDialogOpen(false)}
+                >
+                  Fechar
                 </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    disabled={!suggestion.completed}
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                    Ver Roteiro
+                  </Button>
+                  
+                  <Button
+                    variant={suggestion.completed ? "outline" : "default"}
+                    size="sm"
+                    className={`flex items-center gap-2 ${suggestion.completed ? 'text-green-700 border-green-300 hover:bg-green-50' : ''}`}
+                    onClick={handleToggleComplete}
+                    disabled={isCompleting}
+                  >
+                    {suggestion.completed ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        Concluído
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-4 w-4" />
+                        Marcar Concluído
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

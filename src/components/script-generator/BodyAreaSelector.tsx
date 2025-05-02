@@ -31,7 +31,7 @@ const BodyAreaSelector: React.FC<BodyAreaSelectorProps> = ({
       </SelectTrigger>
       <SelectContent>
         {bodyAreas.map((area) => (
-          <SelectItem key={area.value} value={area.label}>
+          <SelectItem key={area.value} value={area.value}>
             {area.label}
           </SelectItem>
         ))}

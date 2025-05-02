@@ -13,6 +13,8 @@ export interface ScriptHistoryItem {
   createdAt: string;
   marketingObjective?: string;
   observation?: string;
+  pdf_url?: string;
+  evento_agenda_id?: string;
 }
 
 // Obter histórico de roteiros
@@ -39,7 +41,9 @@ export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
         status: item.status,
         createdAt: item.data_criacao,
         marketingObjective: item.objetivo_marketing,
-        observation: item.observacoes
+        observation: item.observacoes,
+        pdf_url: item.pdf_url,
+        evento_agenda_id: item.evento_agenda_id
       };
     });
   } catch (error) {
@@ -71,7 +75,9 @@ export const getScriptById = async (id: string): Promise<ScriptHistoryItem> => {
       status: data.status,
       createdAt: data.data_criacao,
       marketingObjective: data.objetivo_marketing,
-      observation: data.observacoes
+      observation: data.observacoes,
+      pdf_url: data.pdf_url,
+      evento_agenda_id: data.evento_agenda_id
     };
   } catch (error) {
     console.error(`Erro ao buscar roteiro ID ${id}:`, error);
@@ -99,5 +105,63 @@ export const updateScript = async (
   } catch (error) {
     console.error(`Erro ao atualizar roteiro ID ${id}:`, error);
     throw error;
+  }
+};
+
+// Gerar PDF do roteiro
+export const generateScriptPDF = async (scriptId: string): Promise<string | null> => {
+  try {
+    const { data: script } = await supabase
+      .from('roteiros')
+      .select('*')
+      .eq('id', scriptId)
+      .single();
+
+    if (!script) throw new Error('Roteiro não encontrado');
+
+    // Chamar edge function para gerar PDF
+    const { data, error } = await supabase.functions.invoke('generate-pdf', {
+      body: {
+        scriptId,
+        content: script.conteudo,
+        title: script.titulo,
+        type: script.tipo
+      }
+    });
+
+    if (error) throw error;
+
+    // Atualizar URL do PDF no banco
+    if (data.pdfUrl) {
+      await supabase
+        .from('roteiros')
+        .update({ pdf_url: data.pdfUrl })
+        .eq('id', scriptId);
+    }
+
+    return data.pdfUrl;
+  } catch (error) {
+    console.error(`Erro ao gerar PDF do roteiro ID ${scriptId}:`, error);
+    return null;
+  }
+};
+
+// Associar roteiro à agenda
+export const linkScriptToCalendar = async (
+  scriptId: string,
+  eventId: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('roteiros')
+      .update({ evento_agenda_id: eventId })
+      .eq('id', scriptId);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error(`Erro ao vincular roteiro ${scriptId} ao evento ${eventId}:`, error);
+    return false;
   }
 };

@@ -30,7 +30,7 @@ export const getEquipmentById = async (id: string): Promise<Equipment> => {
       
     if (error) throw error;
     
-    return data;
+    return data as Equipment;
   } catch (error) {
     console.error(`Erro ao buscar equipamento ID ${id}:`, error);
     throw error;
@@ -48,7 +48,7 @@ export const createEquipment = async (equipment: Equipment): Promise<Equipment> 
       
     if (error) throw error;
     
-    return data;
+    return data as Equipment;
   } catch (error) {
     console.error('Erro ao criar equipamento:', error);
     throw error;
@@ -71,7 +71,7 @@ export const updateEquipment = async (equipment: Equipment): Promise<Equipment> 
       
     if (error) throw error;
     
-    return data;
+    return data as Equipment;
   } catch (error) {
     console.error(`Erro ao atualizar equipamento ID ${equipment.id}:`, error);
     throw error;

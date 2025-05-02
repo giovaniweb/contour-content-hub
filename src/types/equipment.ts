@@ -10,3 +10,12 @@ export interface Equipment {
   ativo?: boolean;
   data_cadastro?: string;
 }
+
+export interface EquipmentValidation {
+  nome?: string;
+  tecnologia?: string;
+  indicacoes?: string;
+  beneficios?: string;
+  diferenciais?: string;
+  linguagem?: string;
+}

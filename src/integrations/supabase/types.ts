@@ -331,12 +331,61 @@ export type Database = {
         }
         Relationships: []
       }
+      roteiro_validacoes: {
+        Row: {
+          data_validacao: string | null
+          id: string
+          pontuacao_clareza: number | null
+          pontuacao_cta: number | null
+          pontuacao_emocao: number | null
+          pontuacao_gancho: number | null
+          pontuacao_total: number | null
+          roteiro_id: string | null
+          sugestoes: string | null
+          validado_por: string | null
+        }
+        Insert: {
+          data_validacao?: string | null
+          id?: string
+          pontuacao_clareza?: number | null
+          pontuacao_cta?: number | null
+          pontuacao_emocao?: number | null
+          pontuacao_gancho?: number | null
+          pontuacao_total?: number | null
+          roteiro_id?: string | null
+          sugestoes?: string | null
+          validado_por?: string | null
+        }
+        Update: {
+          data_validacao?: string | null
+          id?: string
+          pontuacao_clareza?: number | null
+          pontuacao_cta?: number | null
+          pontuacao_emocao?: number | null
+          pontuacao_gancho?: number | null
+          pontuacao_total?: number | null
+          roteiro_id?: string | null
+          sugestoes?: string | null
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roteiro_validacoes_roteiro_id_fkey"
+            columns: ["roteiro_id"]
+            isOneToOne: false
+            referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roteiros: {
         Row: {
           conteudo: string | null
           data_criacao: string | null
+          evento_agenda_id: string | null
           id: string
           observacoes: string | null
+          pdf_url: string | null
           status: string | null
           tipo: string | null
           titulo: string | null
@@ -345,8 +394,10 @@ export type Database = {
         Insert: {
           conteudo?: string | null
           data_criacao?: string | null
+          evento_agenda_id?: string | null
           id?: string
           observacoes?: string | null
+          pdf_url?: string | null
           status?: string | null
           tipo?: string | null
           titulo?: string | null
@@ -355,14 +406,23 @@ export type Database = {
         Update: {
           conteudo?: string | null
           data_criacao?: string | null
+          evento_agenda_id?: string | null
           id?: string
           observacoes?: string | null
+          pdf_url?: string | null
           status?: string | null
           tipo?: string | null
           titulo?: string | null
           usuario_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "roteiros_evento_agenda_id_fkey"
+            columns: ["evento_agenda_id"]
+            isOneToOne: false
+            referencedRelation: "agenda"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "roteiros_usuario_id_fkey"
             columns: ["usuario_id"]

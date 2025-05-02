@@ -1,0 +1,98 @@
+
+/* Responsividade para dispositivos móveis */
+
+/* Estilos gerais para telas pequenas */
+@media (max-width: 640px) {
+  /* Ajustes de cards e formulários */
+  .card-header {
+    padding: 1rem 1rem 0.5rem 1rem !important;
+  }
+  
+  .card-content {
+    padding: 0.5rem 1rem !important;
+  }
+  
+  .card-footer {
+    padding: 0.5rem 1rem 1rem 1rem !important;
+  }
+  
+  /* Ajuste de espaçamento em botões em grupos */
+  .button-group {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Reduzir tamanho de textos longos */
+  .mobile-truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Adjustes em tabelas para rolagem horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Específico para Forms */
+@media (max-width: 640px) {
+  .form-row {
+    flex-direction: column !important;
+  }
+  
+  .form-row > div {
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* Calendário em dispositivos móveis */
+@media (max-width: 640px) {
+  .calendar-grid {
+    font-size: 0.75rem !important;
+  }
+  
+  .calendar-day {
+    min-height: 60px !important;
+    padding: 0.25rem !important;
+  }
+  
+  /* Reduzir tamanho do texto nas células */
+  .calendar-day-content {
+    font-size: 0.65rem !important;
+  }
+}
+
+/* Melhoria de usabilidade para botões em mobile */
+@media (max-width: 640px) {
+  button, .button {
+    min-height: 42px !important; /* Assegura tamanho mínimo para botões tocáveis */
+  }
+  
+  /* Aumentar área de toque para elementos interativos */
+  .interactive-element {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* Ajustes para dispositivos muito pequenos */
+@media (max-width: 360px) {
+  /* Reduções adicionais para telas muito pequenas */
+  h1, h2, h3 {
+    word-break: break-word !important;
+  }
+  
+  /* Esconder elementos não essenciais */
+  .hide-xs {
+    display: none !important;
+  }
+}

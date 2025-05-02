@@ -1,4 +1,3 @@
-
 // Script types and interfaces
 
 // Different script types
@@ -39,6 +38,8 @@ export interface ScriptResponse {
     style: string;
   }[];
   captionTips?: string[];
+  pdf_url?: string;
+  evento_agenda_id?: string;
 }
 
 // Import the functions from Supabase service
@@ -72,6 +73,8 @@ import {
   getScriptHistory,
   getScriptById,
   updateScript,
+  generateScriptPDF,
+  linkScriptToCalendar,
   ScriptHistoryItem
 } from './api-scripts';
 
@@ -94,6 +97,8 @@ export {
   getScriptHistory,
   getScriptById,
   updateScript,
+  generateScriptPDF,
+  linkScriptToCalendar,
   ScriptHistoryItem
 };
 
@@ -118,13 +123,7 @@ export const toggleFavorite = toggleFavoriteInSupabase;
 export const rateMedia = rateMediaInSupabase;
 
 // Export file generation functions
-export const generatePDF = async (scriptId: string): Promise<string> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // In a real app, this would generate and return a PDF URL
-  return `/api/pdf/${scriptId}`;
-};
+export const generatePDF = generateScriptPDF;
 
 // Calendar suggestion interface with enhanced fields
 export interface CalendarSuggestion {

@@ -1,0 +1,89 @@
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "./components/ui/css/responsive.css";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 90%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 63% 31%;
+    --destructive-strong: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 215 20.2% 65.1%;
+    --radius: 0.5rem;
+    --contourline-darkBlue: 221 48% 28%; /* #1f3c67 */
+    --contourline-mediumBlue: 217 42% 49%; /* #3762a5 */
+    --contourline-lightBlue: 214 97% 77%; /* #90baff */
+    --contourline-lightGray: 220 14% 96%; /* #f1f2f6 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+  h1 {
+    @apply text-3xl mb-4;
+  }
+  h2 {
+    @apply text-2xl mb-3;
+  }
+  h3 {
+    @apply text-xl mb-2;
+  }
+}
+
+/* Custom styles */
+.horizontal-scroll {
+  @apply flex overflow-x-auto gap-4 pb-2 -mx-2 px-2;
+  scrollbar-width: thin;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+/* Responsive Helper Classes */
+.mobile-stack {
+  @apply flex flex-col sm:flex-row;
+}
+
+.mobile-full-width {
+  @apply w-full sm:w-auto;
+}
+
+/* Sobreposições específicas para a aplicação */
+.reelline-card {
+  @apply shadow-sm border-gray-100;
+}
