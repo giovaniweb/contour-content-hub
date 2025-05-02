@@ -5,15 +5,27 @@ import ContentFeed from "@/components/ContentFeed";
 import CreativeAgendaPreview from "@/components/CreativeAgendaPreview";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Video, Calendar, Sparkles, Settings } from "lucide-react";
+import { FileText, Video, Calendar, Sparkles, Settings, Database } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard: React.FC = () => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isOperator, hasPermission } = usePermissions();
   const { t } = useLanguage();
+  const { toast } = useToast();
   const userName = "Usuário";  // Idealmente, isso viria do contexto de autenticação
+  
+  const handleAdminAccess = () => {
+    if (!hasPermission("editAllContent")) {
+      toast({
+        variant: "destructive",
+        title: "Acesso Negado",
+        description: "Você não possui permissões para acessar o painel de conteúdo",
+      });
+    }
+  };
   
   return (
     <Layout fullWidth>
@@ -68,13 +80,19 @@ const Dashboard: React.FC = () => {
                   </Link>
                 </div>
                 
-                {/* Link para o painel de integração - apenas para admin */}
-                {isAdmin() && (
-                  <div className="mt-4">
+                {/* Link para o painel de integração e gerenciamento de conteúdo - para admin e operador */}
+                {(isAdmin() || isOperator()) && (
+                  <div className="mt-4 grid grid-cols-2 gap-4">
                     <Link to="/admin/integrations">
                       <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
                         <Settings className="h-4 w-4 mr-2" />
                         <span>{t('adminPanel')}</span>
+                      </Button>
+                    </Link>
+                    <Link to="/admin/content" onClick={handleAdminAccess}>
+                      <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
+                        <Database className="h-4 w-4 mr-2" />
+                        <span>Cadastrar Conteúdo</span>
                       </Button>
                     </Link>
                   </div>
