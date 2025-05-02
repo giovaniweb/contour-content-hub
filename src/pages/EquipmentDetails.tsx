@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getEquipments, Equipment } from "@/utils/api";
+import { Equipment } from "@/types/equipment"; 
+import { getEquipments } from "@/utils/api-equipment";
 import { FileSearch, Search } from "lucide-react";
 
 const EquipmentDetails: React.FC = () => {
