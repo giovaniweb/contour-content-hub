@@ -1,19 +1,15 @@
 
-import React, { useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles, Star, Award, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { ScriptResponse, saveScriptFeedback, generatePDF, updateScript } from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
 import ScriptValidation from "./script-generator/ScriptValidation";
 import { getValidation } from '@/utils/ai-validation';
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { CalendarDialog } from "./script-generator/CalendarDialog";
+import ScriptHeader from "./script/ScriptHeader";
+import FeedbackDialog from "./script/FeedbackDialog";
+import ScriptActions from "./script/ScriptActions";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -22,8 +18,6 @@ interface ScriptCardProps {
 }
 
 const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApprove }) => {
-  const [feedback, setFeedback] = useState("");
-  const [approved, setApproved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
@@ -35,7 +29,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
   const { toast } = useToast();
 
   // Check if script has validation on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const checkValidation = async () => {
       try {
         const validation = await getValidation(script.id);
@@ -50,16 +44,16 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
     checkValidation();
   }, [script.id]);
 
-  const handleSubmitFeedback = async () => {
+  const handleSubmitFeedback = async (feedbackText: string, isApproved: boolean) => {
     try {
       setIsSubmitting(true);
-      await saveScriptFeedback(script.id, feedback, approved);
+      await saveScriptFeedback(script.id, feedbackText, isApproved);
       toast({
-        title: approved ? "Roteiro aprovado!" : "Feedback enviado",
+        title: isApproved ? "Roteiro aprovado!" : "Feedback enviado",
         description: "Obrigado pelo seu feedback.",
       });
       setDialogOpen(false);
-      if (onFeedbackSubmit) onFeedbackSubmit(script.id, feedback, approved);
+      if (onFeedbackSubmit) onFeedbackSubmit(script.id, feedbackText, isApproved);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -147,71 +141,16 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
     });
   };
 
-  // Get badge color based on script type
-  const getBadgeVariant = () => {
-    switch (script.type) {
-      case "videoScript":
-        return "default";
-      case "bigIdea":
-        return "outline";
-      case "dailySales":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  // Get script type label
-  const getScriptTypeLabel = () => {
-    switch (script.type) {
-      case "videoScript":
-        return "Roteiro para Seu Vídeo";
-      case "bigIdea":
-        return "Agenda Criativa";
-      case "dailySales":
-        return "Ideia para seu Stories";
-      default:
-        return "Roteiro";
-    }
-  };
-
-  // Get validation badge color
-  const getValidationBadgeColor = (score: number | null) => {
-    if (score === null) return "bg-gray-200 text-gray-700";
-    if (score >= 8) return "bg-green-100 text-green-800";
-    if (score >= 6) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
-  };
-
   return (
     <TooltipProvider>
       <Card className="w-full reelline-card">
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg md:text-xl">{script.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Criado em {formatDate(script.createdAt)}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <Badge variant={getBadgeVariant()}>{getScriptTypeLabel()}</Badge>
-              
-              {validationScore !== null && (
-                <div className={`text-xs px-2 py-1 rounded-md flex items-center ${getValidationBadgeColor(validationScore)}`}>
-                  <Award className="h-3 w-3 mr-1" />
-                  Nota IA: {validationScore.toFixed(1)}/10
-                </div>
-              )}
-              
-              {isScriptApproved && (
-                <Badge variant="success" className="bg-green-100 text-green-800">
-                  <Check className="h-3 w-3 mr-1" />
-                  Aprovado
-                </Badge>
-              )}
-            </div>
-          </div>
+          <ScriptHeader 
+            script={script}
+            validationScore={validationScore}
+            isScriptApproved={isScriptApproved}
+            formatDate={formatDate}
+          />
         </CardHeader>
         <CardContent className="pb-2">
           <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-line">
@@ -244,110 +183,18 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
         </CardContent>
         
         <CardFooter className="flex flex-wrap gap-2 justify-between pt-2">
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Guia CapCut
-            </Button>
-            
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="default" size="sm">
-                  <FileText className="h-4 w-4 mr-1" />
-                  Feedback
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Feedback do Roteiro</DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-4 py-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="approved" 
-                      checked={approved} 
-                      onCheckedChange={setApproved} 
-                    />
-                    <Label htmlFor="approved" className="flex items-center gap-1">
-                      {approved ? (
-                        <>
-                          <ThumbsUp className="h-4 w-4 text-green-500" />
-                          <span>Aprovar este roteiro</span>
-                        </>
-                      ) : (
-                        <>
-                          <ThumbsDown className="h-4 w-4 text-orange-500" />
-                          <span>Precisa de revisão</span>
-                        </>
-                      )}
-                    </Label>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="feedback">Seu feedback</Label>
-                    <Textarea
-                      id="feedback"
-                      placeholder="O que você gostou? O que precisa melhorar?"
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      rows={5}
-                    />
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={handleSubmitFeedback}
-                    disabled={isSubmitting}
-                  >
-                    Enviar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              variant={showValidation ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setShowValidation(!showValidation)}
-            >
-              <Sparkles className="h-4 w-4 mr-1" />
-              {showValidation ? "Ocultar Validação" : "Validar com IA"}
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleApproveScript}
-              disabled={isApproving || isScriptApproved}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Check className="h-4 w-4 mr-1" />
-              {isScriptApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCalendarDialogOpen(true)}
-              className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-            >
-              <Calendar className="h-4 w-4 mr-1" />
-              Agendar
-            </Button>
-          </div>
+          <ScriptActions
+            script={script}
+            isGeneratingPDF={isGeneratingPDF}
+            isScriptApproved={isScriptApproved}
+            isApproving={isApproving}
+            showValidation={showValidation}
+            onOpenFeedbackDialog={() => setDialogOpen(true)}
+            onGeneratePDF={handleGeneratePDF}
+            onToggleValidation={() => setShowValidation(!showValidation)}
+            onApproveScript={handleApproveScript}
+            onOpenCalendarDialog={() => setCalendarDialogOpen(true)}
+          />
         </CardFooter>
       </Card>
       
@@ -357,6 +204,13 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
           onValidationComplete={handleValidationComplete}
         />
       )}
+
+      <FeedbackDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmitFeedback={handleSubmitFeedback}
+        isSubmitting={isSubmitting}
+      />
 
       <CalendarDialog 
         open={calendarDialogOpen}

@@ -1,45 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, CopyCheck, Copy, Download, Wand, CheckCircle, BrainCircuit } from "lucide-react";
+import { Loader2, Sparkles, Wand } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import { getEquipments } from '@/utils/api-equipment';
-import { 
-  generateCustomContent, 
-  CustomGptType, 
-  ConteudoEstrategia 
-} from '@/utils/custom-gpt';
-import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
-import BodyAreaSelector from '@/components/script-generator/BodyAreaSelector';
-import PurposeSelector from '@/components/script-generator/PurposeSelector';
-import ToneSelector from '@/components/script-generator/ToneSelector';
-import { MarketingObjectiveType } from '@/utils/api';
-import ScriptValidation from '@/components/script-generator/ScriptValidation';
+import { generateCustomContent, CustomGptType, ConteudoEstrategia } from '@/utils/custom-gpt';
 import { ScriptResponse } from '@/utils/api';
+import FormControls from './custom-gpt/FormControls';
+import GeneratedContent from './custom-gpt/GeneratedContent';
+import AdvancedOptions from './custom-gpt/AdvancedOptions';
 
 // Equipamentos padrão para garantir que sempre haja opções
 const defaultEquipamentos: Equipment[] = [
@@ -221,7 +197,6 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
   const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
   const [generatedScriptId, setGeneratedScriptId] = useState<string>("");
-  const [showValidation, setShowValidation] = useState(false);
   const { toast } = useToast();
   const [selectedPurposes, setSelectedPurposes] = useState<string[]>([]);
   
@@ -331,7 +306,6 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
     try {
       setLoading(true);
       setResultado("");
-      setShowValidation(false);
       setGeneratedScriptId(`temp-${Date.now()}`);
 
       // Encontrar o equipamento selecionado na lista
@@ -367,6 +341,7 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
       });
 
       setResultado(response.content);
+      setGeneratedScriptId(response.id || generatedScriptId);
       
       toast({
         title: "Conteúdo gerado com sucesso!",
@@ -405,15 +380,6 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Copiar resultado para a área de transferência
-  const handleCopy = () => {
-    navigator.clipboard.writeText(resultado);
-    toast({
-      title: "Copiado!",
-      description: "Conteúdo copiado para a área de transferência."
-    });
   };
 
   return (
@@ -482,220 +448,27 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
                 />
 
                 <TabsContent value="roteiro" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="quantidade"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantidade de roteiros</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            max={5} 
-                            {...field} 
-                            onChange={e => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Máximo 5 roteiros por vez
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tom"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tom de linguagem (opcional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: descontraído, técnico, motivacional..." />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="estrategiaConteudo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estratégia de conteúdo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma estratégia" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
-                            <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
-                            <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
-                            <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
-                            <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormControls form={form} formType="roteiro" />
                 </TabsContent>
                 
                 <TabsContent value="bigIdea" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="estrategiaConteudo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estratégia de conteúdo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma estratégia" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
-                            <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
-                            <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
-                            <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
-                            <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormControls form={form} formType="bigIdea" />
                 </TabsContent>
                 
                 <TabsContent value="stories" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="quantidade"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantidade de ideias</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            max={10} 
-                            {...field} 
-                            onChange={e => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Máximo 10 ideias por vez
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tom"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tom de linguagem (opcional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: descontraído, técnico, motivacional..." />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormControls form={form} formType="stories" />
                 </TabsContent>
               </Tabs>
               
               {/* Opções avançadas apenas para o modo advanced */}
               {mode === 'advanced' && (
-                <Accordion type="single" collapsible className="w-full">
-                  {/* Tema/Assunto Principal */}
-                  <AccordionItem value="topic">
-                    <AccordionTrigger>Tema/Assunto Principal</AccordionTrigger>
-                    <AccordionContent>
-                      <FormField
-                        control={form.control}
-                        name="topic"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tema/Assunto</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Ex: Tratamento para flacidez facial" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  {/* Objetivo de Marketing */}
-                  <AccordionItem value="marketingObjective">
-                    <AccordionTrigger>Objetivo de Marketing</AccordionTrigger>
-                    <AccordionContent>
-                      <VideoObjectiveSelector
-                        value={form.watch('marketingObjective') as MarketingObjectiveType}
-                        onValueChange={(value) => form.setValue('marketingObjective', value)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  {/* Área do Corpo */}
-                  <AccordionItem value="bodyArea">
-                    <AccordionTrigger>Área do Corpo</AccordionTrigger>
-                    <AccordionContent>
-                      <BodyAreaSelector
-                        bodyAreas={bodyAreas}
-                        value={form.watch('bodyArea') as string}
-                        onValueChange={(value) => form.setValue('bodyArea', value)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  {/* Finalidade do Tratamento */}
-                  <AccordionItem value="purposes">
-                    <AccordionTrigger>Finalidade do Tratamento</AccordionTrigger>
-                    <AccordionContent>
-                      <PurposeSelector
-                        purposes={purposes}
-                        selectedPurposes={selectedPurposes}
-                        onPurposeChange={handlePurposeChange}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  {/* Informações Adicionais */}
-                  <AccordionItem value="additionalInfo">
-                    <AccordionTrigger>Informações Adicionais</AccordionTrigger>
-                    <AccordionContent>
-                      <FormField
-                        control={form.control}
-                        name="additionalInfo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Detalhes específicos, pontos-chave, públicos especiais, etc."
-                                {...field}
-                                rows={4}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                <AdvancedOptions 
+                  form={form}
+                  bodyAreas={bodyAreas}
+                  purposes={purposes}
+                  selectedPurposes={selectedPurposes}
+                  onPurposeChange={handlePurposeChange}
+                />
               )}
               
               <Button type="submit" disabled={loading} className="w-full">
@@ -717,47 +490,13 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
       </Card>
 
       {resultado && (
-        <>
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  Conteúdo Gerado
-                </CardTitle>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={handleCopy}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copiar
-                  </Button>
-                  <Button 
-                    variant={showValidation ? "secondary" : "outline"}
-                    size="sm"
-                    onClick={() => setShowValidation(!showValidation)}
-                  >
-                    <BrainCircuit className="h-4 w-4 mr-1" />
-                    {showValidation ? "Ocultar Validação" : "Validar com IA"}
-                  </Button>
-                </div>
-              </div>
-              <CardDescription>
-                {form.getValues().tipo.charAt(0).toUpperCase() + form.getValues().tipo.slice(1)} gerado para {form.getValues().equipamento}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-line border">
-                {resultado}
-              </div>
-            </CardContent>
-          </Card>
-
-          {showValidation && (
-            <ScriptValidation 
-              script={prepareScriptData()}
-              onValidationComplete={() => {}}
-            />
-          )}
-        </>
+        <GeneratedContent
+          content={resultado}
+          title="Conteúdo Gerado"
+          description={`${form.getValues().tipo.charAt(0).toUpperCase() + form.getValues().tipo.slice(1)} gerado para ${form.getValues().equipamento}`}
+          scriptId={generatedScriptId}
+          prepareScriptData={prepareScriptData}
+        />
       )}
     </div>
   );
