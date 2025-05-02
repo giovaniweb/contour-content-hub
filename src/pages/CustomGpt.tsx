@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, Wand, BrainCircuit, Calendar, Check, ThumbsUp, FileSearch } from 'lucide-react';
+import { Sparkles, Wand, BrainCircuit, Calendar } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,7 @@ const CustomGpt: React.FC = () => {
           </div>
           <Link to="/equipment-details">
             <Button variant="outline" size="sm" className="flex items-center">
-              <FileSearch className="h-4 w-4 mr-2" />
+              <Wand className="h-4 w-4 mr-2" />
               Verificar Equipamentos
             </Button>
           </Link>

@@ -82,35 +82,73 @@ serve(async (req) => {
       `;
     }
 
-    // Criar prompt aprimorado para análise do roteiro
+    // Criar prompt aprimorado para análise do roteiro no formato solicitado
     const systemPrompt = `
       Você é um avaliador especialista em marketing digital com mais de 15 anos de experiência em copywriting para mídias sociais, com expertise específica em roteiros altamente persuasivos e engajantes.
       
-      Sua tarefa é fazer uma análise crítica e detalhada do roteiro fornecido e atribuir pontuações precisas de 0 a 10 para os seguintes critérios:
+      Sua tarefa é fazer uma análise detalhada do roteiro fornecido, dividi-lo em blocos (gancho, conflito, virada, CTA) e avaliar cada parte individualmente.
       
-      1. Gancho: O roteiro possui um gancho de abertura verdadeiramente cativante que captura atenção imediatamente e gera curiosidade para continuar assistindo/lendo? (0 = gancho fraco ou inexistente, 10 = gancho excepcionalmente poderoso que cria curiosidade irresistível)
+      IMPORTANTE: Você DEVE responder apenas em formato JSON válido conforme especificado abaixo, sem qualquer explicação adicional ou texto fora do objeto JSON.
       
-      2. Clareza: A mensagem central é cristalina, bem articulada e facilmente compreensível pelo público-alvo? O fluxo de ideias é lógico e coerente? (0 = mensagem confusa ou desorganizada, 10 = mensagem extraordinariamente clara e estruturada)
+      Para cada bloco, identifique:
+      1. O texto exato do bloco no roteiro (pegue os parágrafos correspondentes)
+      2. Pontuação de 0 a 10 (com uma casa decimal)
+      3. Sugestão de melhoria se a nota for abaixo de 7
+      4. Se o bloco deve ser substituído (true/false)
       
-      3. CTA (Call-to-Action): O chamado à ação é específico, motivador e estrategicamente posicionado? Ele direciona claramente o público para a ação desejada e cria senso de urgência? (0 = CTA ausente ou ineficaz, 10 = CTA extremamente persuasivo e impossível de ignorar)
+      Além disso, forneça:
+      - Uma pontuação geral de 0 a 10 (com uma casa decimal)
+      - 3 a 5 sugestões gerais para melhorar o roteiro
       
-      4. Emoção/Conexão: O roteiro estabelece uma conexão emocional autêntica com o público e apela para suas necessidades, desejos ou dores reais? Usa storytelling efetivo? (0 = conteúdo puramente informativo sem conexão emocional, 10 = conteúdo que gera resposta emocional profunda e memorável)
+      Formato JSON esperado:
+      {
+        "blocos": [
+          {
+            "tipo": "gancho",
+            "nota": 7.2,
+            "texto": "Trecho exato do gancho no roteiro",
+            "sugestao": "Texto sugerido para substituição se nota < 7",
+            "substituir": true/false
+          },
+          {
+            "tipo": "conflito",
+            "nota": 7.5,
+            "texto": "Trecho exato do conflito no roteiro",
+            "sugestao": null,
+            "substituir": false
+          },
+          {
+            "tipo": "virada",
+            "nota": 8.6,
+            "texto": "Trecho exato da virada no roteiro",
+            "sugestao": null,
+            "substituir": false
+          },
+          {
+            "tipo": "cta",
+            "nota": 6.0,
+            "texto": "Trecho exato do CTA no roteiro",
+            "sugestao": "Texto sugerido para o CTA",
+            "substituir": true
+          }
+        ],
+        "nota_geral": 7.3,
+        "sugestoes_gerais": [
+          "Sugestão 1",
+          "Sugestão 2",
+          "Sugestão 3"
+        ],
+        "gancho": 7.2,
+        "clareza": 7.5,
+        "cta": 6.0,
+        "emocao": 8.0,
+        "total": 7.3,
+        "sugestoes": "Sugestão 1\\nSugestão 2\\nSugestão 3"
+      }
       
       ${avaliacaoEspecifica}
       
-      Para cada critério, seja meticuloso e analítico em sua avaliação. Justifique brevemente cada pontuação atribuída.
-      
-      Além das pontuações, forneça 3 a 5 sugestões altamente específicas e acionáveis para melhorar o roteiro, detalhando exatamente o que poderia ser otimizado, com exemplos práticos de reescrita quando possível.
-      
-      Responda apenas em formato JSON válido com as seguintes propriedades, sem adição de markdown:
-      {
-        "gancho": número de 0 a 10 com uma casa decimal,
-        "clareza": número de 0 a 10 com uma casa decimal,
-        "cta": número de 0 a 10 com uma casa decimal,
-        "emocao": número de 0 a 10 com uma casa decimal,
-        "total": média ponderada das pontuações (número de 0 a 10 com uma casa decimal),
-        "sugestoes": "Sugestões detalhadas para melhorar o roteiro"
-      }
+      Estou fornecendo os campos gancho, clareza, cta, emocao, total e sugestoes para manter compatibilidade com o formato anterior.
     `;
 
     const userPrompt = `
@@ -122,6 +160,7 @@ serve(async (req) => {
       ${content}
       
       Por favor, avalie este roteiro segundo os critérios estabelecidos com máxima precisão e rigor.
+      Divida o roteiro em blocos (gancho, conflito, virada, CTA) e avalie cada parte individualmente.
     `;
 
     console.log("Enviando requisição para OpenAI");
@@ -187,18 +226,38 @@ serve(async (req) => {
       
       // Verificação de segurança nos dados
       const safeValidation = {
+        blocos: validationData.blocos || [],
+        nota_geral: parseFloat(validationData.nota_geral) || 0,
+        sugestoes_gerais: Array.isArray(validationData.sugestoes_gerais) 
+          ? validationData.sugestoes_gerais 
+          : ["Nenhuma sugestão fornecida."],
+          
+        // Campos antigos para compatibilidade
         gancho: parseFloat(validationData.gancho) || 0,
         clareza: parseFloat(validationData.clareza) || 0,
         cta: parseFloat(validationData.cta) || 0,
         emocao: parseFloat(validationData.emocao) || 0,
-        total: parseFloat(validationData.total) || 0,
-        sugestoes: String(validationData.sugestoes || "Nenhuma sugestão fornecida.")
+        total: parseFloat(validationData.total || validationData.nota_geral) || 0,
+        sugestoes: validationData.sugestoes || validationData.sugestoes_gerais.join("\n")
       };
       
       // Garantir que os valores estejam entre 0 e 10
-      for (const key of ['gancho', 'clareza', 'cta', 'emocao', 'total']) {
-        if (safeValidation[key] < 0) safeValidation[key] = 0;
-        if (safeValidation[key] > 10) safeValidation[key] = 10;
+      const numericFields = ['gancho', 'clareza', 'cta', 'emocao', 'total', 'nota_geral'];
+      for (const key of numericFields) {
+        if (typeof safeValidation[key] === 'number') {
+          if (safeValidation[key] < 0) safeValidation[key] = 0;
+          if (safeValidation[key] > 10) safeValidation[key] = 10;
+        }
+      }
+      
+      // Verificar cada bloco
+      if (Array.isArray(safeValidation.blocos)) {
+        safeValidation.blocos.forEach(bloco => {
+          if (typeof bloco.nota === 'number') {
+            if (bloco.nota < 0) bloco.nota = 0;
+            if (bloco.nota > 10) bloco.nota = 10;
+          }
+        });
       }
       
       console.log("Validação concluída com sucesso:", safeValidation);
@@ -214,49 +273,35 @@ serve(async (req) => {
       try {
         const content = data.choices[0].message.content;
         const fallbackData = {
+          blocos: [
+            {
+              tipo: "gancho",
+              nota: 5.0,
+              texto: content.substring(0, 100),
+              sugestao: "Recomendamos revisar o gancho inicial para torná-lo mais impactante.",
+              substituir: false
+            },
+            {
+              tipo: "cta",
+              nota: 5.0,
+              texto: content.substring(content.length - 100),
+              sugestao: "Fortaleça o CTA tornando-o mais direto e persuasivo.",
+              substituir: false
+            }
+          ],
+          nota_geral: 5.0,
+          sugestoes_gerais: [
+            "Não foi possível extrair sugestões detalhadas devido a um erro de formato.",
+            "Sugerimos revisar seu roteiro quanto à clareza, impacto do gancho inicial.",
+            "Verifique a força da chamada à ação e a conexão emocional com o público."
+          ],
           gancho: 5.0,
           clareza: 5.0,
           cta: 5.0,
           emocao: 5.0,
           total: 5.0,
-          sugestoes: "Não foi possível extrair sugestões detalhadas devido a um erro de formato. " +
-                     "Sugerimos revisar seu roteiro quanto à clareza, impacto do gancho inicial, " +
-                     "força da chamada à ação e conexão emocional com o público."
+          sugestoes: "Não foi possível extrair sugestões detalhadas devido a um erro de formato."
         };
-        
-        // Tentar extrair números da resposta
-        const ganchoMatch = content.match(/gancho["']?\s*:\s*(\d+\.?\d*)/i);
-        const clarezaMatch = content.match(/clareza["']?\s*:\s*(\d+\.?\d*)/i);
-        const ctaMatch = content.match(/cta["']?\s*:\s*(\d+\.?\d*)/i);
-        const emocaoMatch = content.match(/emocao["']?\s*:\s*(\d+\.?\d*)/i);
-        const totalMatch = content.match(/total["']?\s*:\s*(\d+\.?\d*)/i);
-        
-        if (ganchoMatch) fallbackData.gancho = parseFloat(ganchoMatch[1]);
-        if (clarezaMatch) fallbackData.clareza = parseFloat(clarezaMatch[1]);
-        if (ctaMatch) fallbackData.cta = parseFloat(ctaMatch[1]);
-        if (emocaoMatch) fallbackData.emocao = parseFloat(emocaoMatch[1]);
-        if (totalMatch) fallbackData.total = parseFloat(totalMatch[1]);
-        
-        // Tentar extrair sugestões
-        const sugestoesMatch = content.match(/sugestoes["']?\s*:\s*["']([^"']+)["']/i);
-        if (sugestoesMatch) {
-          fallbackData.sugestoes = sugestoesMatch[1];
-        } else {
-          // Tentar extrair qualquer texto que pareça ser sugestões
-          const textBlocks = content.split(/[.,\n]+/);
-          const potentialSuggestions = textBlocks
-            .filter(block => 
-              block.toLowerCase().includes("sugest") || 
-              block.toLowerCase().includes("melhor") ||
-              block.toLowerCase().includes("ajust") ||
-              block.toLowerCase().includes("consider")
-            )
-            .join(". ");
-          
-          if (potentialSuggestions.length > 20) {
-            fallbackData.sugestoes = potentialSuggestions;
-          }
-        }
         
         console.log("Usando dados de fallback devido a erro de formato:", fallbackData);
         

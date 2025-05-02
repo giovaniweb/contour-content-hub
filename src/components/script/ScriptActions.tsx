@@ -11,7 +11,6 @@ interface ScriptActionsProps {
   isScriptApproved: boolean;
   isApproving: boolean;
   showValidation: boolean;
-  onOpenFeedbackDialog?: () => void;
   onGeneratePDF: () => void;
   onToggleValidation: () => void;
   onApproveScript: () => void;
@@ -26,7 +25,6 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
   isScriptApproved,
   isApproving,
   showValidation,
-  onOpenFeedbackDialog,
   onGeneratePDF,
   onToggleValidation,
   onApproveScript,

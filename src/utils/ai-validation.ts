@@ -3,7 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { ScriptResponse } from './api';
 import { useToast } from '@/hooks/use-toast';
 
-interface ValidationScore {
+export interface ValidationBlock {
+  tipo: 'gancho' | 'conflito' | 'virada' | 'cta';
+  nota: number;
+  texto: string;
+  sugestao?: string;
+  substituir?: boolean;
+}
+
+export interface ValidationResult {
+  blocos: ValidationBlock[];
+  nota_geral: number;
+  sugestoes_gerais: string[];
   gancho: number;
   clareza: number;
   cta: number;
@@ -12,7 +23,7 @@ interface ValidationScore {
   sugestoes: string;
 }
 
-export const validateScript = async (script: ScriptResponse): Promise<ValidationScore> => {
+export const validateScript = async (script: ScriptResponse): Promise<ValidationResult> => {
   try {
     console.log("Iniciando validação para roteiro:", script.id);
     
@@ -54,7 +65,7 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
   }
 };
 
-export const getValidation = async (scriptId: string): Promise<ValidationScore & {timestamp?: string} | null> => {
+export const getValidation = async (scriptId: string): Promise<ValidationResult & {timestamp?: string} | null> => {
   try {
     console.log("Buscando validação para roteiro:", scriptId);
     
@@ -93,13 +104,22 @@ export const getValidation = async (scriptId: string): Promise<ValidationScore &
     
     console.log("Validação encontrada:", data);
     
-    return {
+    // Mapear o formato do banco de dados para o formato esperado
+    const result: ValidationResult = {
+      blocos: data.blocos || [],
+      nota_geral: data.pontuacao_total,
+      sugestoes_gerais: data.sugestoes.split('\n'),
+      // Campos antigos para manter compatibilidade
       gancho: data.pontuacao_gancho,
       clareza: data.pontuacao_clareza,
       cta: data.pontuacao_cta,
       emocao: data.pontuacao_emocao,
       total: data.pontuacao_total,
-      sugestoes: data.sugestoes,
+      sugestoes: data.sugestoes
+    };
+    
+    return {
+      ...result,
       timestamp: data.data_validacao
     };
   } catch (error) {
@@ -108,7 +128,7 @@ export const getValidation = async (scriptId: string): Promise<ValidationScore &
   }
 };
 
-const saveValidation = async (scriptId: string, validation: ValidationScore): Promise<void> => {
+const saveValidation = async (scriptId: string, validation: ValidationResult): Promise<void> => {
   try {
     console.log("Salvando validação para roteiro:", scriptId);
     
@@ -127,6 +147,11 @@ const saveValidation = async (scriptId: string, validation: ValidationScore): Pr
       return;
     }
     
+    // Consolidar sugestões gerais em uma string se necessário
+    const sugestoesStr = Array.isArray(validation.sugestoes_gerais) 
+      ? validation.sugestoes_gerais.join('\n')
+      : validation.sugestoes;
+    
     // Para UUIDs válidos, salvar no banco de dados
     const { error } = await supabase
       .from('roteiro_validacoes')
@@ -136,8 +161,9 @@ const saveValidation = async (scriptId: string, validation: ValidationScore): Pr
         pontuacao_clareza: validation.clareza,
         pontuacao_cta: validation.cta,
         pontuacao_emocao: validation.emocao,
-        pontuacao_total: validation.total,
-        sugestoes: validation.sugestoes,
+        pontuacao_total: validation.total || validation.nota_geral,
+        sugestoes: sugestoesStr,
+        blocos: validation.blocos
       });
     
     if (error) {
@@ -164,4 +190,57 @@ export const getQualityIndicator = (score: number | null): {
   if (score >= 6) return { color: "yellow", label: "Bom", icon: "👍" };
   if (score >= 4) return { color: "orange", label: "Regular", icon: "⚠️" };
   return { color: "red", label: "Precisa melhorar", icon: "⚠️" };
+};
+
+// Função para mapear a validação para o formato de annotations
+export const mapValidationToAnnotations = (validation: ValidationResult | null): Array<{
+  type: 'positive' | 'negative' | 'suggestion' | 'gancho' | 'conflito' | 'virada' | 'cta';
+  text: string;
+  suggestion?: string;
+  score?: number;
+  blockType?: 'gancho' | 'conflito' | 'virada' | 'cta';
+}> => {
+  if (!validation) return [];
+
+  const annotations = [];
+
+  // Mapear os blocos para anotações
+  if (validation.blocos && validation.blocos.length > 0) {
+    for (const bloco of validation.blocos) {
+      const type = bloco.nota >= 7 ? 'positive' : 'negative';
+      
+      annotations.push({
+        type: bloco.tipo,
+        text: bloco.texto,
+        suggestion: bloco.sugestao,
+        score: bloco.nota,
+        blockType: bloco.tipo,
+        replace: bloco.substituir
+      });
+    }
+  } else {
+    // Fallback para o formato antigo se não houver blocos
+    // Criar anotações simuladas baseadas nos scores gerais
+    if (validation.gancho < 7) {
+      annotations.push({
+        type: 'gancho',
+        text: "Primeiro parágrafo do roteiro",
+        suggestion: "O gancho inicial precisa ser mais impactante e cativante",
+        score: validation.gancho,
+        blockType: 'gancho'
+      });
+    }
+    
+    if (validation.cta < 7) {
+      annotations.push({
+        type: 'cta',
+        text: "Último parágrafo do roteiro",
+        suggestion: "O CTA precisa ser mais direto e persuasivo",
+        score: validation.cta,
+        blockType: 'cta'
+      });
+    }
+  }
+
+  return annotations;
 };
