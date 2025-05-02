@@ -9,15 +9,18 @@ import {
   Video,
   FileText,
   Menu,
-  X
+  X,
+  Database
 } from "lucide-react";
 import ProfileMenu from "./ProfileMenu";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/context/LanguageContext";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
+  const { isAdmin, isOperator } = usePermissions();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!isAuthenticated) {
@@ -55,6 +58,15 @@ const Navbar: React.FC = () => {
       icon: <CalendarIcon className="h-5 w-5" />,
     }
   ];
+  
+  // Adicionar link para cadastro de conteúdo apenas se o usuário for admin ou operador
+  if (isAdmin() || isOperator()) {
+    navLinks.push({
+      title: "Cadastrar",
+      href: "/admin/content",
+      icon: <Database className="h-5 w-5" />,
+    });
+  }
 
   return (
     <header className="sticky top-0 z-30 w-full bg-white border-b border-contourline-lightBlue/20 shadow-sm">
