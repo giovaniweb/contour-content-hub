@@ -20,13 +20,21 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show loading state
+  // Show loading state with more creative animation
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-contourline-lightGray to-white">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-16 w-16 border-4 border-contourline-mediumBlue border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-contourline-darkBlue font-medium text-lg">Carregando ReelLine...</p>
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="h-20 w-20 border-4 border-contourline-mediumBlue border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-10 w-10 bg-contourline-lightBlue/30 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-contourline-darkBlue font-heading font-medium text-xl">Carregando ReelLine...</p>
+            <p className="text-contourline-mediumBlue text-sm animate-pulse">Tô tirando do forno...</p>
+          </div>
         </div>
       </div>
     );
@@ -44,9 +52,11 @@ const Layout: React.FC<LayoutProps> = ({
       <ScrollArea className="flex-grow">
         <main className={`mx-auto px-4 py-6 ${fullWidth ? 'w-full' : 'container'}`}>
           {title && (
-            <h1 className="text-2xl md:text-3xl font-heading font-bold mb-6 text-contourline-darkBlue">{title}</h1>
+            <h1 className="text-2xl md:text-3xl font-heading font-bold mb-6 text-contourline-gradient bg-clip-text text-transparent">{title}</h1>
           )}
-          {children}
+          <div className="animate-fade-in">
+            {children}
+          </div>
         </main>
       </ScrollArea>
       
