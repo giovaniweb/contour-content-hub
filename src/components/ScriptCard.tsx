@@ -7,26 +7,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles, Star, Award } from "lucide-react";
-import { ScriptResponse, saveScriptFeedback, generatePDF } from "@/utils/api";
+import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles, Star, Award, Check } from "lucide-react";
+import { ScriptResponse, saveScriptFeedback, generatePDF, updateScript, linkScriptToCalendar } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import { getValidation } from "@/utils/ai-validation";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CalendarDialog } from "./script-generator/CalendarDialog";
 
 interface ScriptCardProps {
   script: ScriptResponse;
   onFeedbackSubmit?: (scriptId: string, feedback: string, approved: boolean) => Promise<void> | void;
+  onApprove?: (scriptId: string) => Promise<void> | void;
 }
 
-const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => {
+const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApprove }) => {
   const [feedback, setFeedback] = useState("");
   const [approved, setApproved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const [validationScore, setValidationScore] = useState<number | null>(null);
+  const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Check if script has validation on mount
@@ -66,6 +70,31 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
     }
   };
 
+  const handleApproveScript = async () => {
+    try {
+      setIsApproving(true);
+      await updateScript(script.id, script.content, "Roteiro aprovado", "aprovado");
+      
+      toast({
+        title: "Roteiro aprovado!",
+        description: "O roteiro foi marcado como aprovado.",
+      });
+      
+      if (onApprove) await onApprove(script.id);
+      
+      // Abre o diálogo de calendário automaticamente após a aprovação
+      setCalendarDialogOpen(true);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Falha na aprovação",
+        description: "Não foi possível aprovar o roteiro.",
+      });
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
   const handleGeneratePDF = async () => {
     try {
       setIsGeneratingPDF(true);
@@ -94,6 +123,14 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
     if (validation && validation.total) {
       setValidationScore(validation.total);
     }
+  };
+
+  const handleCalendarScheduleSuccess = (date: Date, eventId: string) => {
+    toast({
+      title: "Roteiro agendado",
+      description: `O roteiro foi adicionado ao calendário para ${date.toLocaleDateString('pt-BR')}`,
+    });
+    setCalendarDialogOpen(false);
   };
 
   // Format the date
@@ -196,7 +233,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
         </CardContent>
         
         <CardFooter className="flex flex-wrap gap-2 justify-between pt-2">
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button 
               variant="outline" 
               size="sm"
@@ -278,6 +315,27 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
               <Sparkles className="h-4 w-4 mr-1" />
               {showValidation ? "Ocultar Validação" : "Validar com IA"}
             </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleApproveScript}
+              disabled={isApproving}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Aprovar Roteiro
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCalendarDialogOpen(true)}
+              className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Agendar
+            </Button>
           </div>
         </CardFooter>
       </Card>
@@ -288,6 +346,15 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
           onValidationComplete={handleValidationComplete}
         />
       )}
+
+      <CalendarDialog 
+        open={calendarDialogOpen}
+        onOpenChange={setCalendarDialogOpen}
+        scriptId={script.id}
+        scriptTitle={script.title}
+        scriptType={script.type}
+        onSuccess={handleCalendarScheduleSuccess}
+      />
     </TooltipProvider>
   );
 };

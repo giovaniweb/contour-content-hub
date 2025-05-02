@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, Wand, BrainCircuit } from 'lucide-react';
+import { Sparkles, Wand, BrainCircuit, Calendar, Check } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -27,7 +27,8 @@ const CustomGpt: React.FC = () => {
           <AlertTitle>Assistente Unificado com Validação Inteligente</AlertTitle>
           <AlertDescription>
             Este gerador combina as melhores funcionalidades do GPT Personalizado e do Gerador de Roteiros.
-            Cada conteúdo gerado também pode ser validado com GPT-4o para análise de gancho, clareza, CTA e conexão emocional.
+            Cada conteúdo gerado pode ser validado com GPT-4o para análise de gancho, clareza, CTA e conexão emocional,
+            aprovado e adicionado ao seu calendário de conteúdo.
           </AlertDescription>
         </Alert>
         
