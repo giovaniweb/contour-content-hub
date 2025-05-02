@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
           </div>
           <div className="text-center space-y-2">
-            <p className="text-contourline-darkBlue font-heading font-medium text-xl">Carregando ReelLine...</p>
+            <p className="text-contourline-darkBlue font-heading font-medium text-xl">Carregando Fluida...</p>
             <p className="text-contourline-mediumBlue text-sm animate-pulse">Tô tirando do forno...</p>
           </div>
         </div>
@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({
       </ScrollArea>
       
       <footer className="py-4 px-6 bg-white border-t border-contourline-lightBlue/10 text-center text-sm text-contourline-darkBlue">
-        <p>© {new Date().getFullYear()} ReelLine | Seu estúdio criativo, em um clique.</p>
+        <p>© {new Date().getFullYear()} Fluida | Seu estúdio criativo, em um clique.</p>
       </footer>
     </div>
   );

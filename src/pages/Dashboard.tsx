@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
         {/* Header Section with Greeting */}
         <div className="bg-gray-50 rounded-2xl p-6 md:p-8">
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-800">
-            Bem-vindo ao ReelLine, {userName}
+            Bem-vindo ao Fluida, {userName}
           </h1>
           <p className="text-gray-600 mt-2 max-w-2xl">
             Seu estúdio criativo de conteúdo, em um clique. O que vamos postar hoje?

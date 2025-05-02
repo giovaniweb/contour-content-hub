@@ -92,7 +92,7 @@ serve(async (req) => {
         <h1>${title}</h1>
         <div class="type">${getTypeLabel(type)}</div>
         <div class="content">${formatContent(content)}</div>
-        <div class="footer">Gerado por ReelLine - ${new Date().toLocaleDateString('pt-BR')}</div>
+        <div class="footer">Gerado por Fluida - ${new Date().toLocaleDateString('pt-BR')}</div>
       </body>
       </html>
     `;
@@ -102,7 +102,7 @@ serve(async (req) => {
     
     // Em um cenário real, você usaria um serviço como PDF API ou bibliotecas como jsPDF
     // Para este exemplo, vamos simular a criação do PDF e retornar uma URL
-    const pdfUrl = `https://storage.googleapis.com/reelline-pdfs/${scriptId}.pdf`;
+    const pdfUrl = `https://storage.googleapis.com/fluida-pdfs/${scriptId}.pdf`;
     
     // Vamos registrar o sucesso
     console.log("PDF gerado com sucesso, URL:", pdfUrl);

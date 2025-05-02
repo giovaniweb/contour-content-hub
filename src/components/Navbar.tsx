@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -103,7 +104,7 @@ const Navbar: React.FC = () => {
           <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
             <h1 className="text-lg font-semibold flex items-center">
               <FileVideo className="mr-2 h-6 w-6 text-blue-500" />
-              <span className="hidden md:block">Reelline</span>
+              <span className="hidden md:block">Fluida</span>
             </h1>
           </Link>
         </div>
@@ -154,7 +155,7 @@ const Navbar: React.FC = () => {
               </NavLink>
               <NavLink to="/custom-gpt">
                 <Sparkles className="h-4 w-4 mr-1" />
-                GPT Personalizado
+                Fluida Personalizada
               </NavLink>
             </>
           )}
@@ -172,7 +173,7 @@ const Navbar: React.FC = () => {
             <DrawerContent className="text-left">
               <DrawerHeader>
                 <DrawerTitle>Menu</DrawerTitle>
-                <DrawerDescription>Navegue pelo Reelline</DrawerDescription>
+                <DrawerDescription>Navegue pelo Fluida</DrawerDescription>
               </DrawerHeader>
               <div className="space-y-1 px-2 py-3">
                 {isAuthenticated && (
@@ -182,7 +183,7 @@ const Navbar: React.FC = () => {
                     <DrawerNavLink to="/script-history" icon={<History className="h-4 w-4 mr-2" />} label="Histórico" />
                     <DrawerNavLink to="/media-library" icon={<Library className="h-4 w-4 mr-2" />} label="Mídia" />
                     <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-4 w-4 mr-2" />} label="Agenda" />
-                    <DrawerNavLink to="/custom-gpt" icon={<Sparkles className="h-4 w-4 mr-2" />} label="GPT Personalizado" />
+                    <DrawerNavLink to="/custom-gpt" icon={<Sparkles className="h-4 w-4 mr-2" />} label="Fluida Personalizada" />
                   </>
                 )}
                 {!isAuthenticated && (

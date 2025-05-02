@@ -40,7 +40,7 @@ const Index: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <header className="py-6 border-b bg-white">
         <div className="container flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-reelline-primary">ReelLine</h1>
+          <h1 className="text-2xl font-bold text-reelline-primary">Fluida</h1>
           <Button 
             variant="outline" 
             onClick={() => navigate("/register")}
@@ -111,7 +111,7 @@ const Index: React.FC = () => {
 
       <footer className="py-6 border-t bg-white text-center text-sm text-muted-foreground">
         <div className="container">
-          <p>© {new Date().getFullYear()} ReelLine | Seu estúdio criativo em um clique.</p>
+          <p>© {new Date().getFullYear()} Fluida | Seu estúdio criativo em um clique.</p>
         </div>
       </footer>
     </div>

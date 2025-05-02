@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define a type for our language
@@ -27,9 +26,9 @@ type Translations = {
 
 export const translations: Translations = {
   welcome: {
-    pt: "Bem-vindo ao ReelLine",
-    en: "Welcome to ReelLine",
-    es: "Bienvenido a ReelLine"
+    pt: "Bem-vindo ao Fluida",
+    en: "Welcome to Fluida",
+    es: "Bienvenido a Fluida"
   },
   dashboard: {
     pt: "Painel",

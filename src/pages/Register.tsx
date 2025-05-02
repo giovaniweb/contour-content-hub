@@ -82,7 +82,7 @@ const Register: React.FC = () => {
       
       toast({
         title: "Registration successful",
-        description: "Welcome to ReelLine!",
+        description: "Welcome to Fluida!",
       });
     } catch (error) {
       toast({
@@ -100,7 +100,7 @@ const Register: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <header className="py-6 border-b bg-white">
         <div className="container flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-reelline-primary">ReelLine</h1>
+          <h1 className="text-2xl font-bold text-reelline-primary">Fluida</h1>
           <Button 
             variant="outline" 
             onClick={() => navigate("/")}
@@ -116,7 +116,7 @@ const Register: React.FC = () => {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Create an account</CardTitle>
               <CardDescription>
-                Fill out the form below to get started with ReelLine
+                Fill out the form below to get started with Fluida
               </CardDescription>
             </CardHeader>
             <Form {...form}>
@@ -285,7 +285,7 @@ const Register: React.FC = () => {
 
       <footer className="py-6 border-t bg-white text-center text-sm text-gray-500">
         <div className="container">
-          <p>© {new Date().getFullYear()} ReelLine | Your creative studio, in one click.</p>
+          <p>© {new Date().getFullYear()} Fluida | Your creative studio, in one click.</p>
         </div>
       </footer>
     </div>

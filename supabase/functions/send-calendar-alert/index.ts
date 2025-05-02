@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -75,16 +74,16 @@ serve(async (req) => {
         // Daily frequency shows top 3 suggestions
         const topSuggestions = weekData.slice(0, 3);
         
-        emailSubject = "Suas Sugestões de Conteúdo ReelLine";
+        emailSubject = "Suas Sugestões de Conteúdo Fluida";
         emailContent = generateDailySuggestionsEmail(user.nome, topSuggestions);
       } else {
         // Weekly frequency shows the full week
-        emailSubject = "Sua Grade de Conteúdo Semanal ReelLine";
+        emailSubject = "Sua Grade de Conteúdo Semanal Fluida";
         emailContent = generateWeeklySuggestionsEmail(user.nome, weekData);
       }
     } else {
       // If no data provided, generate generic email
-      emailSubject = "Não perca nenhuma oportunidade de conteúdo - ReelLine";
+      emailSubject = "Não perca nenhuma oportunidade de conteúdo - Fluida";
       emailContent = generateGenericEmail(user.nome);
     }
     
@@ -96,7 +95,7 @@ serve(async (req) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "ReelLine <onboarding@resend.dev>",
+        from: "Fluida <onboarding@resend.dev>",
         to: user.email,
         subject: emailSubject,
         html: emailContent
@@ -189,7 +188,7 @@ function generateDailySuggestionsEmail(userName: string, suggestions: any[]): st
         ${suggestionsList}
         
         <div style="text-align: center; margin-top: 30px;">
-          <a href="https://app.reelline.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
             Ver Minha Agenda Completa
           </a>
         </div>
@@ -200,7 +199,7 @@ function generateDailySuggestionsEmail(userName: string, suggestions: any[]): st
       </div>
       
       <div style="text-align: center; padding: 20px; font-size: 12px; color: #999;">
-        <p>ReelLine - O seu assistente de conteúdo para clínicas</p>
+        <p>Fluida - O seu assistente de conteúdo para clínicas</p>
       </div>
     </div>
   `;
@@ -262,7 +261,7 @@ function generateWeeklySuggestionsEmail(userName: string, weekData: any[]): stri
         ${weekContent}
         
         <div style="text-align: center; margin-top: 30px;">
-          <a href="https://app.reelline.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
             Visualizar em Meu Calendário
           </a>
         </div>
@@ -273,7 +272,7 @@ function generateWeeklySuggestionsEmail(userName: string, weekData: any[]): stri
       </div>
       
       <div style="text-align: center; padding: 20px; font-size: 12px; color: #999;">
-        <p>ReelLine - O seu assistente de conteúdo para clínicas</p>
+        <p>Fluida - O seu assistente de conteúdo para clínicas</p>
       </div>
     </div>
   `;
@@ -295,7 +294,7 @@ function generateGenericEmail(userName: string): string {
         <p style="font-size: 16px; line-height: 1.5;">Não deixe para depois! Conteúdo constante é a chave para o sucesso nas redes sociais.</p>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://app.reelline.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
             Ver Minha Agenda Agora
           </a>
         </div>
@@ -308,7 +307,7 @@ function generateGenericEmail(userName: string): string {
       </div>
       
       <div style="text-align: center; padding: 20px; font-size: 12px; color: #999;">
-        <p>ReelLine - O seu assistente de conteúdo para clínicas</p>
+        <p>Fluida - O seu assistente de conteúdo para clínicas</p>
       </div>
     </div>
   `;

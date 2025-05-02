@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -61,7 +60,7 @@ const Login: React.FC = () => {
       await login(email, password);
       toast({
         title: "Login realizado com sucesso",
-        description: "Bem-vindo(a) de volta ao ReelLine",
+        description: "Bem-vindo(a) de volta ao Fluida",
       });
       navigate("/dashboard");
     } catch (error: any) {
@@ -92,7 +91,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <header className="py-6 border-b bg-white">
         <div className="container flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-contourline-mediumBlue">ReelLine</h1>
+          <h1 className="text-2xl font-bold text-contourline-mediumBlue">Fluida</h1>
           <Link to="/register">
             <Button variant="outline">Criar conta</Button>
           </Link>
@@ -108,7 +107,7 @@ const Login: React.FC = () => {
                   <div className="h-8 w-8 rounded-full bg-contourline-mediumBlue/50"></div>
                 </div>
               </div>
-              <CardTitle className="text-2xl text-center">Bem-vindo ao ReelLine</CardTitle>
+              <CardTitle className="text-2xl text-center">Bem-vindo ao Fluida</CardTitle>
               <CardDescription className="text-center">
                 Faça login para acessar seu estúdio criativo
               </CardDescription>
@@ -215,9 +214,9 @@ const Login: React.FC = () => {
         </div>
       </main>
 
-      <footer className="py-6 border-t bg-white text-center text-sm text-gray-500">
+      <footer className="py-6 border-t bg-white text-center text-sm text-muted-foreground">
         <div className="container">
-          <p>© {new Date().getFullYear()} ReelLine | Seu estúdio criativo, em um clique.</p>
+          <p>© {new Date().getFullYear()} Fluida | Seu estúdio criativo, em um clique.</p>
         </div>
       </footer>
     </div>
