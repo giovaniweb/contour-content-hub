@@ -19,7 +19,7 @@ const CustomGpt: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    document.title = "Gerador de Conteúdo | Reelline";
+    document.title = "Gerador de Conteúdo | Fluida";
   }, []);
 
   const handleScriptGenerated = (script: ScriptResponse) => {
@@ -128,20 +128,20 @@ const CustomGpt: React.FC = () => {
           <BrainCircuit className="h-4 w-4" />
           <AlertTitle>Assistente Unificado com Validação Inteligente</AlertTitle>
           <AlertDescription>
-            Este gerador combina as melhores funcionalidades do GPT Personalizado e do Gerador de Roteiros.
+            Este gerador combina as melhores funcionalidades da Fluida e do Gerador de Roteiros.
             Cada conteúdo gerado pode ser validado com GPT-4o para análise de gancho, clareza, CTA e conexão emocional,
             aprovado e adicionado ao seu calendário de conteúdo.
           </AlertDescription>
         </Alert>
         
         {!generatedScript ? (
-          <Tabs defaultValue="gptPersonalizado" className="w-full">
+          <Tabs defaultValue="fluida" className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="gptPersonalizado">GPT Personalizado</TabsTrigger>
+              <TabsTrigger value="fluida">Fluida</TabsTrigger>
               <TabsTrigger value="roteiro">Roteiro Avançado</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="gptPersonalizado">
+            <TabsContent value="fluida">
               <CustomGptForm mode="simple" onScriptGenerated={handleScriptGenerated} />
             </TabsContent>
             

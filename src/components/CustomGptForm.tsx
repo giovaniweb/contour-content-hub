@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -390,7 +391,7 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
             {mode === 'simple' ? (
               <>
                 <Sparkles className="h-5 w-5 mr-2 text-blue-500" />
-                GPT Personalizado - Roteiros e Ideias
+                Fluida - Roteiros e Ideias
               </>
             ) : (
               <>
