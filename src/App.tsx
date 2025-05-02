@@ -1,3 +1,4 @@
+
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -19,9 +20,9 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminEquipments from "@/pages/AdminEquipments";
 import AdminContent from "@/pages/AdminContent";
 import AdminIntegrations from "@/pages/AdminIntegrations";
-import SellerDashboard from "@/pages/SellerDashboard";
-import ClientList from "@/pages/ClientList";
-import ClientDetail from "@/pages/ClientDetail";
+import SellerDashboard from "@/pages/seller/SellerDashboard";
+import ClientList from "@/pages/seller/ClientList";
+import ClientDetail from "@/pages/seller/ClientDetail";
 import NotFound from "@/pages/NotFound";
 import EquipmentDetailsPage from "@/pages/EquipmentDetailsPage";
 

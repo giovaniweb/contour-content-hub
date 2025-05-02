@@ -49,7 +49,14 @@ const EquipmentManager: React.FC = () => {
 
   const handleCreateEquipment = async (newEquipment: Equipment) => {
     try {
-      await createEquipment(newEquipment);
+      // Ensure all required fields are present before passing to createEquipment
+      const completeEquipment = {
+        ...newEquipment,
+        // Add default values for any required fields that might be missing
+        linguagem: newEquipment.linguagem || '',
+      };
+      
+      await createEquipment(completeEquipment);
       await loadEquipments();
       setIsNewDialogOpen(false);
       toast({
