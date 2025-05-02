@@ -1,4 +1,3 @@
-
 // Script types and interfaces
 
 // Different script types
@@ -17,6 +16,7 @@ export interface ScriptRequest {
   additionalInfo?: string;
   tone?: string;
   language?: string;
+  marketingObjective?: MarketingObjectiveType;
 }
 
 // Script response object

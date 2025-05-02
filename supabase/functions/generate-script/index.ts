@@ -47,7 +47,7 @@ serve(async (req) => {
       );
     }
     
-    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language } = request;
+    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective } = request;
     
     if (!type) {
       return new Response(
@@ -56,7 +56,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}`);
+    console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}, objetivo: ${marketingObjective}`);
 
     // Create system prompt based on script type
     let systemPrompt = "";
@@ -69,6 +69,28 @@ serve(async (req) => {
                    : tone === "educational" ? "educativo" 
                    : "profissional";
 
+    // Adicionar contexto com base no objetivo de marketing
+    let marketingContext = "";
+    if (marketingObjective) {
+      switch (marketingObjective) {
+        case "atrair_atencao":
+          marketingContext = "O conteúdo deve ser impactante, chamar atenção nos primeiros segundos e criar curiosidade para quem não conhece o tratamento. Use frases de efeito e estatísticas surpreendentes.";
+          break;
+        case "criar_conexao":
+          marketingContext = "O conteúdo deve humanizar a marca, contar histórias pessoais e criar conexão emocional. Foque em experiências e sentimentos dos pacientes, não apenas nos resultados técnicos.";
+          break;
+        case "fazer_comprar":
+          marketingContext = "O conteúdo deve focar nos benefícios concretos, apresentar provas sociais e ter chamadas para ação claras. Destaque o valor do tratamento e como ele resolve problemas específicos.";
+          break;
+        case "reativar_interesse":
+          marketingContext = "O conteúdo deve lembrar a audiência de problemas que ainda não resolveram e trazer novidades ou abordagens diferentes. Reforce a autoridade da clínica e o diferencial do tratamento.";
+          break;
+        case "fechar_agora":
+          marketingContext = "O conteúdo deve criar senso de urgência, destacar limitação de tempo/vagas e ter múltiplas chamadas para ação. Use frases como 'últimas vagas' e destaque condições especiais.";
+          break;
+      }
+    }
+
     switch (type) {
       case "videoScript":
         systemPrompt = `Você é um especialista em marketing para clínicas estéticas. Sua tarefa é criar roteiros detalhados para vídeos educativos sobre tratamentos estéticos.`;
@@ -77,6 +99,7 @@ serve(async (req) => {
           ${bodyArea ? `O tratamento é focado na área: ${bodyArea}.` : ""}
           ${purpose ? `O propósito do tratamento é: ${purpose}.` : ""}
           ${additionalInfo ? `Informações adicionais: ${additionalInfo}` : ""}
+          ${marketingContext ? `\n\nObjetivo de marketing: ${marketingContext}` : ""}
           
           O roteiro deve incluir:
           1. Uma introdução cativante (10-15 segundos)
@@ -94,6 +117,7 @@ serve(async (req) => {
           ${bodyArea ? `O foco da campanha é na área: ${bodyArea}.` : ""}
           ${purpose ? `O propósito desta campanha é: ${purpose}.` : ""}
           ${additionalInfo ? `Considerações adicionais: ${additionalInfo}` : ""}
+          ${marketingContext ? `\n\nObjetivo de marketing: ${marketingContext}` : ""}
           
           A agenda deve incluir:
           1. Conceito principal da campanha
@@ -110,6 +134,7 @@ serve(async (req) => {
           ${bodyArea ? `O foco do story é na área: ${bodyArea}.` : ""}
           ${purpose ? `O propósito desta promoção é: ${purpose}.` : ""}
           ${additionalInfo ? `Considerações adicionais: ${additionalInfo}` : ""}
+          ${marketingContext ? `\n\nObjetivo de marketing: ${marketingContext}` : ""}
           
           O texto deve:
           1. Capturar a atenção nos primeiros 5-7 segundos
@@ -287,7 +312,8 @@ serve(async (req) => {
               tipo: type,
               titulo: title,
               conteudo: content,
-              status: 'gerado'
+              status: 'gerado',
+              objetivo_marketing: marketingObjective || null
             });
             
           if (error) {

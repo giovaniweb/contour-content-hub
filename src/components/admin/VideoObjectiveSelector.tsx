@@ -15,6 +15,7 @@ interface ObjectiveOption {
 interface VideoObjectiveSelectorProps {
   value: MarketingObjectiveType | undefined;
   onValueChange: (value: MarketingObjectiveType) => void;
+  className?: string;
 }
 
 const objectiveOptions: ObjectiveOption[] = [
@@ -50,9 +51,9 @@ const objectiveOptions: ObjectiveOption[] = [
   }
 ];
 
-const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({ value, onValueChange }) => {
+const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({ value, onValueChange, className = "" }) => {
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${className}`}>
       <Label className="text-base">Objetivo de Marketing</Label>
       <RadioGroup 
         value={value} 

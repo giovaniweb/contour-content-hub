@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -31,8 +30,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { generateScript, saveScriptFeedback, ScriptRequest, ScriptType } from "@/utils/api";
+import { generateScript, saveScriptFeedback, ScriptRequest, ScriptType, MarketingObjectiveType } from "@/utils/api";
 import ScriptCard from "@/components/ScriptCard";
+import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
 
 // List of equipment options
 const equipmentOptions = [
@@ -85,6 +85,7 @@ const ScriptGenerator: React.FC = () => {
   const [selectedPurposes, setSelectedPurposes] = useState<string[]>([]);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [tone, setTone] = useState("professional");
+  const [marketingObjective, setMarketingObjective] = useState<MarketingObjectiveType | undefined>(undefined);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<any | null>(null);
@@ -177,6 +178,7 @@ const ScriptGenerator: React.FC = () => {
         additionalInfo: additionalInfo || undefined,
         tone: tone || undefined,
         language: "pt",
+        marketingObjective: marketingObjective
       };
       
       const result = await generateScript(request);
@@ -218,6 +220,7 @@ const ScriptGenerator: React.FC = () => {
     }
   };
   
+  // Atualizar a função resetForm para também resetar o objetivo de marketing
   const resetForm = () => {
     setScriptType("videoScript");
     setTopic("");
@@ -226,6 +229,7 @@ const ScriptGenerator: React.FC = () => {
     setSelectedPurposes([]);
     setAdditionalInfo("");
     setTone("professional");
+    setMarketingObjective(undefined);
     setGeneratedScript(null);
     
     // Clear URL parameters
@@ -280,6 +284,12 @@ const ScriptGenerator: React.FC = () => {
                     required
                   />
                 </div>
+                
+                <VideoObjectiveSelector
+                  value={marketingObjective}
+                  onValueChange={setMarketingObjective}
+                  className="pt-2"
+                />
                 
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="equipment">
