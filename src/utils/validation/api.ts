@@ -4,22 +4,8 @@ import { ValidationResult } from './types';
 import { ScriptResponse } from '../api';
 import { ValidationCache } from './validation-cache';
 
-// Cache de validações para evitar requisições duplicadas
-const validationCache = new class {
-  private cache: Map<string, ValidationResult> = new Map();
-  
-  get(id: string): ValidationResult | undefined {
-    return this.cache.get(id);
-  }
-  
-  set(id: string, data: ValidationResult): void {
-    this.cache.set(id, data);
-  }
-  
-  clear(): void {
-    this.cache.clear();
-  }
-};
+// Get instance of the validation cache singleton
+const validationCache = ValidationCache.getInstance();
 
 /**
  * Valida um roteiro usando a função edge validate-script
@@ -95,9 +81,22 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
       return null;
     }
     
+    // Parse blocos from sugestoes if available
+    let blocos = [];
+    try {
+      if (data.sugestoes && data.sugestoes.includes('"tipo":')) {
+        const parsedData = JSON.parse(data.sugestoes);
+        if (Array.isArray(parsedData)) {
+          blocos = parsedData;
+        }
+      }
+    } catch (e) {
+      // silently fail
+    }
+    
     // Mapear para formato ValidationResult
     const result: ValidationResult = {
-      blocos: data.blocos || [],
+      blocos: blocos,
       nota_geral: data.pontuacao_total || 0,
       gancho: data.pontuacao_gancho || 0,
       clareza: data.pontuacao_clareza || 0,
@@ -121,6 +120,18 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
  */
 export const saveValidation = async (scriptId: string, validation: ValidationResult): Promise<void> => {
   try {
+    // Convert blocos to JSON string if needed
+    let sugestoesText = validation.sugestoes || '';
+    
+    // If we have blocos but no sugestoes text, serialize blocos
+    if (validation.blocos && (!validation.sugestoes || validation.sugestoes.trim() === '')) {
+      try {
+        sugestoesText = JSON.stringify(validation.blocos);
+      } catch (e) {
+        console.error('Erro ao serializar blocos:', e);
+      }
+    }
+    
     // Salvar no banco de dados
     const { error } = await supabase.from('roteiro_validacoes').insert({
       roteiro_id: scriptId,
@@ -131,8 +142,7 @@ export const saveValidation = async (scriptId: string, validation: ValidationRes
       pontuacao_total: validation.total || validation.nota_geral,
       sugestoes: Array.isArray(validation.sugestoes_gerais) 
         ? validation.sugestoes_gerais.join('\n') 
-        : validation.sugestoes,
-      blocos: validation.blocos
+        : sugestoesText
     });
     
     if (error) {
