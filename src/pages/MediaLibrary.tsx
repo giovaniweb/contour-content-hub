@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
@@ -30,7 +29,7 @@ import {
   Upload,
   PlusCircle,
   VideoIcon,
-  SquareRecording,
+  Square, 
   LayoutGrid,
   Clock,
   ArrowRight,
@@ -221,7 +220,7 @@ const MediaLibrary: React.FC = () => {
           <Card className="bg-white hover:bg-slate-50 transition-colors cursor-pointer">
             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
               <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                <SquareRecording className="h-6 w-6 text-slate-600" />
+                <Square className="h-6 w-6 text-slate-600" />
               </div>
               <h3 className="font-medium text-sm">Gravar</h3>
               <p className="text-xs text-muted-foreground">tela ou webcam</p>
