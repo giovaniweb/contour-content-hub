@@ -1,181 +1,358 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
-import EquipmentViewer from "@/components/admin/EquipmentViewer";
-import EquipmentCreateForm from "@/components/admin/EquipmentCreateForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DatabaseZap, FileSearch, ShieldCheck, Plus } from "lucide-react";
-import { Equipment } from "@/types/equipment";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { Settings, FileText, CheckCircle, AlertCircle, Info, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+interface Equipment {
+  id: string;
+  nome: string;
+  tecnologia: string;
+  beneficios: string;
+  indicacoes: string;
+  diferenciais: string;
+  image_url?: string;
+  ativo: boolean;
+  data_cadastro: string;
+}
 
 const EquipmentDetails: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("viewer");
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
 
-  const handleEquipmentCreated = (equipment: Equipment) => {
-    setShowCreateForm(false);
-    setRefreshTrigger(prev => prev + 1);
+  const { data: equipments, isLoading, isError, refetch } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("equipamentos")
+        .select("*")
+        .order("nome", { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      return data as Equipment[];
+    }
+  });
+
+  const filteredEquipments = equipments?.filter(equip => {
+    if (activeTab === "all") return true;
+    if (activeTab === "active") return equip.ativo;
+    if (activeTab === "inactive") return !equip.ativo;
+    return true;
+  });
+
+  const handleSelectEquipment = (equipment: Equipment) => {
+    setSelectedEquipment(equipment);
   };
 
+  const handleCloseDetails = () => {
+    setSelectedEquipment(null);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <Layout title="Detalhes de Equipamentos">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Layout title="Detalhes de Equipamentos">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <Card className="max-w-lg mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center text-red-500">
+                <AlertCircle className="mr-2" /> Erro ao carregar equipamentos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Não foi possível carregar os dados dos equipamentos. Por favor, tente novamente mais tarde.</p>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => refetch()}>Tentar novamente</Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
-    <Layout title="Detalhes dos Equipamentos">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Análise de Equipamentos</h2>
+    <Layout title="Detalhes de Equipamentos">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h2 className="text-2xl font-bold">Equipamentos Disponíveis</h2>
           <p className="text-muted-foreground">
-            Visualize e analise os dados dos equipamentos cadastrados no sistema
+            Visualize informações detalhadas sobre os equipamentos cadastrados no sistema.
           </p>
         </div>
-        
-        {!showCreateForm && (
-          <Button 
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Equipamento
-          </Button>
-        )}
-      </div>
 
-      <Alert className="mb-6">
-        <FileSearch className="h-4 w-4" />
-        <AlertTitle>Verificação de Dados dos Equipamentos</AlertTitle>
-        <AlertDescription>
-          Esta página permite verificar como os dados dos equipamentos estão estruturados
-          no banco de dados. É importante garantir que esses dados estejam completos e precisos
-          para evitar que a IA "alucine" ou misture conceitos ao gerar conteúdo.
-        </AlertDescription>
-      </Alert>
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex justify-between items-center">
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="active">Ativos</TabsTrigger>
+              <TabsTrigger value="inactive">Inativos</TabsTrigger>
+            </TabsList>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" /> Acessar Gerenciador
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Área Administrativa</DialogTitle>
+                  <DialogDescription>
+                    A administração de equipamentos é feita no painel administrativo.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col space-y-4 py-4">
+                  <p className="text-sm text-muted-foreground">
+                    Para adicionar, editar ou remover equipamentos, acesse o painel administrativo clicando no botão abaixo.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => window.location.href = "/admin/equipments"}>
+                    Ir para Gerenciador de Equipamentos
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-      {showCreateForm ? (
-        <div className="mb-6">
-          <EquipmentCreateForm 
-            onSuccess={handleEquipmentCreated} 
-            onCancel={() => setShowCreateForm(false)} 
-          />
-        </div>
-      ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="viewer">Visualizador de Equipamentos</TabsTrigger>
-            <TabsTrigger value="analysis">Análise e Recomendações</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="viewer" className="space-y-6">
-            <EquipmentViewer key={refreshTrigger} />
+          <TabsContent value="all" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              {filteredEquipments && filteredEquipments.length > 0 ? (
+                filteredEquipments.map((equipment) => (
+                  <EquipmentCard 
+                    key={equipment.id} 
+                    equipment={equipment} 
+                    onSelect={handleSelectEquipment} 
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 bg-muted rounded-lg p-8 text-center">
+                  <Info className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+                  <h3 className="mt-4 text-lg font-medium">Nenhum equipamento encontrado</h3>
+                  <p className="text-muted-foreground">Não há equipamentos cadastrados nesta categoria.</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
-
-          <TabsContent value="analysis" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <ShieldCheck className="h-5 w-5 mr-2" />
-                  Prevenção de "Alucinações" da IA
-                </CardTitle>
-                <CardDescription>
-                  Recomendações para garantir que a IA gere conteúdo preciso baseado nos dados dos equipamentos
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Estrutura Ideal de Dados</h3>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      <strong>Tecnologia:</strong> Descreva precisamente o tipo de tecnologia sem mencionar resultados.
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ✅ "Ultrassom microfocado de alta intensidade (HIFU) com pontos térmicos de 65-70°C"
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        ❌ "Tecnologia avançada que remove rugas e deixa a pele mais jovem"
-                      </p>
-                    </li>
-                    <li>
-                      <strong>Indicações:</strong> Liste problemas específicos tratados pelo equipamento.
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ✅ "Rugas profundas, flacidez facial moderada a severa, papada, linha da mandíbula indefinida"
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        ❌ "Tratamentos faciais"
-                      </p>
-                    </li>
-                    <li>
-                      <strong>Benefícios:</strong> Resultados concretos e específicos do tratamento.
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ✅ "Estímulo da produção natural de colágeno, reestruturação das camadas profundas da pele"
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        ❌ "Melhor equipamento do mercado com resultados incríveis"
-                      </p>
-                    </li>
-                  </ul>
+          
+          <TabsContent value="active" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              {filteredEquipments && filteredEquipments.length > 0 ? (
+                filteredEquipments.map((equipment) => (
+                  <EquipmentCard 
+                    key={equipment.id} 
+                    equipment={equipment} 
+                    onSelect={handleSelectEquipment} 
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 bg-muted rounded-lg p-8 text-center">
+                  <Info className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+                  <h3 className="mt-4 text-lg font-medium">Nenhum equipamento ativo</h3>
+                  <p className="text-muted-foreground">Não há equipamentos ativos cadastrados.</p>
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Instruções para Prompt da IA</h3>
-                  <p className="text-gray-700 mb-3">
-                    Para evitar que a IA "alucine" ou misture conceitos, as seguintes instruções já foram adicionadas ao prompt:
-                  </p>
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <p className="font-medium">Diretrizes de segurança para o modelo:</p>
-                    <ul className="list-disc pl-6 mt-2">
-                      <li>Utilizar APENAS informações contidas nos dados do equipamento fornecidos.</li>
-                      <li>NUNCA inventar benefícios, indicações ou características que não estão explicitamente listadas.</li>
-                      <li>Manter clara separação entre o que é a tecnologia, o que são indicações e o que são benefícios.</li>
-                      <li>Respeitar estritamente a linguagem recomendada no cadastro do equipamento.</li>
-                      <li>Verificar se há consistência entre o roteiro gerado e os dados do equipamento.</li>
-                    </ul>
-                  </div>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="inactive" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              {filteredEquipments && filteredEquipments.length > 0 ? (
+                filteredEquipments.map((equipment) => (
+                  <EquipmentCard 
+                    key={equipment.id} 
+                    equipment={equipment} 
+                    onSelect={handleSelectEquipment} 
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 bg-muted rounded-lg p-8 text-center">
+                  <Info className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+                  <h3 className="mt-4 text-lg font-medium">Nenhum equipamento inativo</h3>
+                  <p className="text-muted-foreground">Não há equipamentos inativos cadastrados.</p>
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Verificações Recomendadas</h3>
-                  <ul className="list-disc pl-6 space-y-1">
-                    <li>Certifique-se de que cada campo do equipamento contém apenas as informações relevantes àquela categoria.</li>
-                    <li>Evite repetir informações entre os campos de Tecnologia, Indicações, Benefícios e Diferenciais.</li>
-                    <li>Use termos técnicos precisos e evite linguagem excessivamente promocional nos dados do equipamento.</li>
-                    <li>Mantenha o campo "Linguagem Recomendada" focado no tom e estilo, não no conteúdo específico.</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <DatabaseZap className="h-5 w-5 mr-2" />
-                  Integridade de Dados
-                </CardTitle>
-                <CardDescription>
-                  Verificação da qualidade dos dados dos equipamentos no sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p>
-                    A página de visualização permite identificar possíveis problemas nos dados dos equipamentos, como:
-                  </p>
-                  <ul className="list-disc pl-6 space-y-1">
-                    <li>Campos incompletos ou com informações inadequadas</li>
-                    <li>Mistura de conceitos entre tecnologia e resultados</li>
-                    <li>Indicações muito genéricas ou pouco específicas</li>
-                    <li>Linguagem promocional em vez de técnica nos campos de tecnologia</li>
-                  </ul>
-                  <p className="mt-4">
-                    Recomendamos revisar regularmente os dados dos equipamentos para garantir a qualidade e precisão
-                    das informações utilizadas pela IA na geração de conteúdo.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
+      </div>
+
+      {selectedEquipment && (
+        <EquipmentDetailsDialog 
+          equipment={selectedEquipment} 
+          onClose={handleCloseDetails} 
+        />
       )}
     </Layout>
+  );
+};
+
+interface EquipmentCardProps {
+  equipment: Equipment;
+  onSelect: (equipment: Equipment) => void;
+}
+
+const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onSelect }) => {
+  return (
+    <Card className="overflow-hidden hover:border-blue-200 transition-colors cursor-pointer" onClick={() => onSelect(equipment)}>
+      <div className="h-40 bg-blue-50 flex items-center justify-center overflow-hidden">
+        {equipment.image_url ? (
+          <img 
+            src={equipment.image_url} 
+            alt={equipment.nome} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full bg-blue-100/50">
+            <Settings className="h-16 w-16 text-blue-300" />
+          </div>
+        )}
+      </div>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">{equipment.nome}</CardTitle>
+          {equipment.ativo ? (
+            <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Ativo</Badge>
+          ) : (
+            <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Inativo</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground line-clamp-2">{equipment.tecnologia}</p>
+      </CardContent>
+      <CardFooter className="border-t pt-3 text-xs text-muted-foreground">
+        Cadastrado em {new Date(equipment.data_cadastro).toLocaleDateString('pt-BR')}
+      </CardFooter>
+    </Card>
+  );
+};
+
+interface EquipmentDetailsDialogProps {
+  equipment: Equipment;
+  onClose: () => void;
+}
+
+const EquipmentDetailsDialog: React.FC<EquipmentDetailsDialogProps> = ({ equipment, onClose }) => {
+  return (
+    <Dialog open={Boolean(equipment)} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{equipment.nome}</span>
+            {equipment.ativo ? (
+              <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Ativo</Badge>
+            ) : (
+              <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Inativo</Badge>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1">
+            <div className="h-48 w-full bg-blue-50 rounded-lg flex items-center justify-center overflow-hidden mb-4">
+              {equipment.image_url ? (
+                <img 
+                  src={equipment.image_url} 
+                  alt={equipment.nome} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full bg-blue-100/50">
+                  <Settings className="h-16 w-16 text-blue-300" />
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">Data de Cadastro</h4>
+                <p className="text-sm">{new Date(equipment.data_cadastro).toLocaleDateString('pt-BR')}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="md:col-span-2 space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-2">Tecnologia</h3>
+              <p className="text-sm">{equipment.tecnologia}</p>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-lg font-medium mb-2">Benefícios</h3>
+              <ScrollArea className="h-24">
+                <p className="text-sm">{equipment.beneficios}</p>
+              </ScrollArea>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-lg font-medium mb-2">Indicações</h3>
+              <ScrollArea className="h-24">
+                <p className="text-sm">{equipment.indicacoes}</p>
+              </ScrollArea>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-lg font-medium mb-2">Diferenciais</h3>
+              <ScrollArea className="h-24">
+                <p className="text-sm">{equipment.diferenciais}</p>
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter className="flex-row justify-between sm:justify-between gap-2">
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+          <Button 
+            onClick={() => {
+              // Aqui adicionaríamos a funcionalidade para gerar roteiro com este equipamento
+              window.location.href = `/script-generator?equipment=${equipment.nome}`;
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Gerar Roteiro
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

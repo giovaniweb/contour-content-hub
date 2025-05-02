@@ -1,57 +1,41 @@
 
 export interface Equipment {
-  id?: string;
+  id: string;
   nome: string;
   tecnologia: string;
-  indicacoes: string;
   beneficios: string;
+  indicacoes: string;
   diferenciais: string;
+  image_url?: string;
+  ativo: boolean;
+  data_cadastro: string;
+  linguagem?: string;
+}
+
+export interface EquipmentResponse {
+  data: Equipment[] | null;
+  error: any;
+}
+
+export interface EquipmentCreationProps {
+  nome: string;
+  tecnologia: string;
+  beneficios: string;
+  indicacoes: string;
+  diferenciais: string;
+  image_url?: string;
   linguagem: string;
   ativo?: boolean;
-  data_cadastro?: string;
-  image_url?: string;
 }
 
-export interface EquipmentValidation {
+export interface EquipmentUpdateProps {
+  id: string;
   nome?: string;
   tecnologia?: string;
-  indicacoes?: string;
   beneficios?: string;
+  indicacoes?: string;
   diferenciais?: string;
-  linguagem?: string;
   image_url?: string;
+  linguagem?: string;
+  ativo?: boolean;
 }
-
-export const validateEquipment = (equipment: Partial<Equipment>): EquipmentValidation => {
-  const errors: EquipmentValidation = {};
-  
-  if (!equipment.nome || equipment.nome.trim() === '') {
-    errors.nome = 'Nome do equipamento é obrigatório';
-  }
-  
-  if (!equipment.tecnologia || equipment.tecnologia.trim() === '') {
-    errors.tecnologia = 'Tecnologia é obrigatória';
-  }
-  
-  if (!equipment.indicacoes || equipment.indicacoes.trim() === '') {
-    errors.indicacoes = 'Indicações são obrigatórias';
-  }
-  
-  if (!equipment.beneficios || equipment.beneficios.trim() === '') {
-    errors.beneficios = 'Benefícios são obrigatórios';
-  }
-  
-  if (!equipment.diferenciais || equipment.diferenciais.trim() === '') {
-    errors.diferenciais = 'Diferenciais são obrigatórios';
-  }
-  
-  if (!equipment.linguagem || equipment.linguagem.trim() === '') {
-    errors.linguagem = 'Linguagem recomendada é obrigatória';
-  }
-  
-  return errors;
-};
-
-export const hasValidationErrors = (validation: EquipmentValidation): boolean => {
-  return Object.keys(validation).length > 0;
-};
