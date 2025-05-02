@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, ThumbsUp, FileText, Sparkles, Check, Calendar, RefreshCw } from "lucide-react";
+import { Download, FileText, Sparkles, Check, Calendar, RefreshCw } from "lucide-react";
 import { ScriptResponse } from '@/utils/api';
 
 interface ScriptActionsProps {
@@ -40,7 +40,7 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
         disabled={isGeneratingPDF}
       >
         <Download className="h-4 w-4 mr-1" />
-        Guia CapCut
+        {isGeneratingPDF ? "Gerando..." : "Guia CapCut"}
       </Button>
       
       <Button 
@@ -66,10 +66,10 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
         size="sm"
         onClick={onApproveScript}
         disabled={isApproving || isScriptApproved}
-        className="bg-green-600 hover:bg-green-700"
+        className={`${isScriptApproved ? 'bg-green-100 text-green-800' : 'bg-green-600 hover:bg-green-700 text-white'}`}
       >
         <Check className="h-4 w-4 mr-1" />
-        {isScriptApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
+        {isScriptApproved ? "Roteiro Aprovado" : isApproving ? "Aprovando..." : "Aprovar Roteiro"}
       </Button>
 
       {onRejectScript && (
@@ -78,7 +78,7 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
           size="sm"
           onClick={onRejectScript}
           disabled={isApproving || isScriptApproved}
-          className="bg-red-600 hover:bg-red-700"
+          className="bg-red-600 hover:bg-red-700 text-white"
         >
           <RefreshCw className="h-4 w-4 mr-1" />
           Refazer

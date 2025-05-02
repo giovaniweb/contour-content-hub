@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
   const [isScriptApproved, setIsScriptApproved] = useState(false);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   // Handle script approval
   const handleApproveScript = async () => {
@@ -52,6 +54,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         description: "O roteiro foi aprovado com sucesso",
       });
     } catch (error) {
+      console.error("Erro ao aprovar roteiro:", error);
       toast({
         variant: "destructive",
         title: "Erro ao aprovar roteiro",
@@ -86,6 +89,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         description: "O PDF do seu roteiro está pronto",
       });
     } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
       toast({
         variant: "destructive",
         title: "Erro ao gerar PDF",
@@ -101,6 +105,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
     if (!onFeedbackSubmit) return;
     
     try {
+      setIsSubmittingFeedback(true);
       await onFeedbackSubmit(script.id, feedback, approved);
       
       setFeedbackDialogOpen(false);
@@ -113,10 +118,33 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         description: "Sua avaliação do roteiro foi registrada",
       });
     } catch (error) {
+      console.error("Erro ao enviar feedback:", error);
       toast({
         variant: "destructive",
         title: "Erro ao enviar feedback",
         description: "Não foi possível enviar seu feedback",
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
+  // Handle script rejection
+  const handleRejectScript = async () => {
+    if (!onReject) return;
+    
+    try {
+      await onReject(script.id);
+      toast({
+        title: "Roteiro rejeitado",
+        description: "Uma nova versão será gerada",
+      });
+    } catch (error) {
+      console.error("Erro ao rejeitar roteiro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao rejeitar roteiro",
+        description: "Não foi possível rejeitar o roteiro",
       });
     }
   };
@@ -233,7 +261,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           onToggleValidation={() => setShowValidation(!showValidation)}
           onApproveScript={handleApproveScript}
           onOpenCalendarDialog={() => setCalendarDialogOpen(true)}
-          onRejectScript={onReject ? () => onReject(script.id) : undefined}
+          onRejectScript={onReject ? handleRejectScript : undefined}
         />
       </CardFooter>
       
@@ -241,7 +269,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         open={feedbackDialogOpen}
         onOpenChange={setFeedbackDialogOpen}
         onSubmitFeedback={handleFeedbackSubmit}
-        isSubmitting={false}
+        isSubmitting={isSubmittingFeedback}
       />
       
       {/* Outros diálogos como Calendar Dialog seriam implementados aqui */}

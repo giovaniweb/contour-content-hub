@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -7,11 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
-import { ScriptResponse } from '@/utils/api';
+import { ScriptResponse, linkScriptToCalendar } from '@/utils/api';
+import CalendarDialog from '@/components/script/CalendarDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const CustomGpt: React.FC = () => {
   const [generatedScript, setGeneratedScript] = useState<ScriptResponse | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     document.title = "Gerador de Conteúdo | Reelline";
@@ -22,13 +27,67 @@ const CustomGpt: React.FC = () => {
   };
 
   const handleScriptApprove = async () => {
-    // When script is approved, automatically show the calendar
-    setShowCalendar(true);
+    if (!generatedScript) return;
+    
+    try {
+      // When script is approved, automatically show the calendar
+      setShowCalendar(true);
+      
+      // Open calendar dialog
+      setCalendarDialogOpen(true);
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Erro ao aprovar roteiro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao aprovar roteiro",
+        description: "Não foi possível aprovar o roteiro",
+      });
+      return Promise.reject(error);
+    }
   };
   
   const handleScriptReject = async () => {
     // Reset to form view when script is rejected
     setGeneratedScript(null);
+    return Promise.resolve();
+  };
+  
+  const handleScheduleScript = async (date: Date | undefined, timeSlot: string) => {
+    if (!generatedScript || !date) return;
+    
+    try {
+      // Create a calendar event ID (in a real app this would come from the database)
+      const eventId = `event-${Date.now()}`;
+      
+      // Link script to calendar
+      await linkScriptToCalendar(generatedScript.id, eventId);
+      
+      // Format date for display
+      const formattedDate = date.toLocaleDateString('pt-BR');
+      const periodMap: Record<string, string> = {
+        morning: "manhã",
+        noon: "meio-dia",
+        afternoon: "tarde",
+        evening: "noite"
+      };
+      
+      toast({
+        title: "Roteiro agendado",
+        description: `O conteúdo foi agendado para ${formattedDate} no período da ${periodMap[timeSlot]}.`,
+      });
+      
+      // Close calendar dialog
+      setCalendarDialogOpen(false);
+    } catch (error) {
+      console.error("Erro ao agendar roteiro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao agendar roteiro",
+        description: "Não foi possível agendar o roteiro",
+      });
+    }
   };
 
   return (
@@ -93,6 +152,15 @@ const CustomGpt: React.FC = () => {
               </button>
             </div>
           </div>
+        )}
+        
+        {generatedScript && (
+          <CalendarDialog 
+            open={calendarDialogOpen}
+            onOpenChange={setCalendarDialogOpen}
+            onSchedule={handleScheduleScript}
+            scriptId={generatedScript.id}
+          />
         )}
       </div>
     </Layout>

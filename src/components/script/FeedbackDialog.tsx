@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Loader2 } from "lucide-react";
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -27,8 +27,14 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
     onSubmitFeedback(feedback, approved);
   };
 
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Feedback do Roteiro</DialogTitle>
@@ -39,7 +45,8 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
             <Switch 
               id="approved" 
               checked={approved} 
-              onCheckedChange={setApproved} 
+              onCheckedChange={setApproved}
+              disabled={isSubmitting}
             />
             <Label htmlFor="approved" className="flex items-center gap-1">
               {approved ? (
@@ -64,6 +71,7 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={5}
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -71,7 +79,8 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
         <DialogFooter>
           <Button 
             variant="ghost" 
-            onClick={() => onOpenChange(false)}
+            onClick={handleClose}
+            disabled={isSubmitting}
           >
             Cancelar
           </Button>
@@ -79,7 +88,14 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
-            Enviar
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              "Enviar"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
