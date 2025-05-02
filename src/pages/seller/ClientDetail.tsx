@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -195,11 +194,17 @@ const ClientDetail = () => {
       setAvailablePlans((plans || []).map(plan => ({
         id: plan.id,
         name: plan.name,
-        description: plan.description,
-        price: plan.price,
-        features: plan.features || [],
+        description: plan.description || '',
+        // Convert features to string array if needed
+        features: Array.isArray(plan.features) ? 
+          plan.features.map(feature => String(feature)) : 
+          [],
+        price: plan.price || 0,
         billingCycle: plan.billing_cycle as 'monthly' | 'yearly',
-        active: plan.active
+        active: plan.active || false,
+        aiGenerationLimit: plan.ai_generation_limit,
+        pdfExportLimit: plan.pdf_export_limit,
+        validationLimit: plan.validation_limit
       })));
     } catch (error) {
       console.error('Erro ao buscar planos disponíveis:', error);

@@ -53,6 +53,9 @@ export interface SubscriptionPlan {
   price: number;
   billingCycle: 'monthly' | 'yearly';
   active: boolean;
+  aiGenerationLimit?: number;
+  pdfExportLimit?: number;
+  validationLimit?: number;
 }
 
 /**
@@ -63,4 +66,17 @@ export interface ClientEngagement {
   lastActive: Date;
   weeklyActivity: number[];
   validationScore: number;
+}
+
+/**
+ * Representa análise de cliente
+ */
+export interface ClientAnalytics {
+  conversions: number;
+  engagement: number;
+  contentQuality: number;
+  activity: {
+    date: string;
+    count: number;
+  }[];
 }

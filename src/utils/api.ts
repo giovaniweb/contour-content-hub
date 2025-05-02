@@ -632,7 +632,10 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
       id: plan.id,
       name: plan.name,
       description: plan.description || '',
-      features: Array.isArray(plan.features) ? plan.features : [],
+      // Convert features to string array if needed
+      features: Array.isArray(plan.features) ? 
+        plan.features.map(feature => String(feature)) : 
+        [],
       price: plan.price || 0,
       billingCycle: (plan.billing_cycle as 'monthly' | 'yearly') || 'monthly',
       active: plan.active || false,
