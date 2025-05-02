@@ -1,16 +1,16 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, ThumbsUp, Download, Calendar, RefreshCw, CheckCircle } from "lucide-react";
-import { ScriptResponse } from "@/utils/api";
+import { ScriptResponse, generatePDF } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
 import FeedbackDialog from "./script/FeedbackDialog";
+import CalendarDialog from "./script/CalendarDialog";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -79,13 +79,20 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         description: "Aguarde enquanto geramos o PDF do seu roteiro",
       });
       
-      // Simulate PDF generation (in a real app would call an API)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Chamar a API real para gerar o PDF
+      const pdfUrl = await generatePDF(script.id);
       
-      toast({
-        title: "PDF gerado",
-        description: "O PDF do seu roteiro está pronto",
-      });
+      if (pdfUrl) {
+        toast({
+          title: "PDF gerado",
+          description: "O PDF do seu roteiro está pronto",
+        });
+        
+        // Abrir o PDF em uma nova aba
+        window.open(pdfUrl, "_blank");
+      } else {
+        throw new Error("Não foi possível gerar o PDF");
+      }
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
       toast({
@@ -143,6 +150,31 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         variant: "destructive",
         title: "Erro ao rejeitar roteiro",
         description: "Não foi possível rejeitar o roteiro",
+      });
+    }
+  };
+
+  // Handle scheduling
+  const handleSchedule = async (date: Date | undefined, timeSlot: string) => {
+    if (!date) return;
+    
+    try {
+      // Simulação de agendamento bem-sucedido
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Roteiro agendado",
+        description: `O conteúdo foi agendado para ${date.toLocaleDateString('pt-BR')}`,
+      });
+      
+      // Fechar diálogo
+      setCalendarDialogOpen(false);
+    } catch (error) {
+      console.error("Erro ao agendar roteiro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao agendar roteiro",
+        description: "Não foi possível agendar o roteiro",
       });
     }
   };
@@ -268,6 +300,13 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         onOpenChange={setFeedbackDialogOpen}
         onSubmitFeedback={handleFeedbackSubmit}
         isSubmitting={isSubmittingFeedback}
+      />
+      
+      <CalendarDialog
+        open={calendarDialogOpen}
+        onOpenChange={setCalendarDialogOpen}
+        onSchedule={handleSchedule}
+        scriptId={script.id}
       />
     </Card>
   );

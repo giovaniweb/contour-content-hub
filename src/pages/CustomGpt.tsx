@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
-import { ScriptResponse, linkScriptToCalendar } from '@/utils/api';
+import { ScriptResponse, generatePDF, linkScriptToCalendar } from '@/utils/api';
 import CalendarDialog from '@/components/script/CalendarDialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,10 +48,24 @@ const CustomGpt: React.FC = () => {
     }
   };
   
-  const handleScriptReject = async () => {
-    // Reset to form view when script is rejected
-    setGeneratedScript(null);
-    return Promise.resolve();
+  const handleScriptReject = async (scriptId: string) => {
+    try {
+      // Reset to form view when script is rejected
+      setGeneratedScript(null);
+      toast({
+        title: "Roteiro rejeitado",
+        description: "Uma nova versão será gerada",
+      });
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Erro ao rejeitar roteiro:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao rejeitar roteiro",
+        description: "Não foi possível rejeitar o roteiro",
+      });
+      return Promise.reject(error);
+    }
   };
   
   const handleScheduleScript = async (date: Date | undefined, timeSlot: string) => {
@@ -86,6 +100,30 @@ const CustomGpt: React.FC = () => {
         variant: "destructive",
         title: "Erro ao agendar roteiro",
         description: "Não foi possível agendar o roteiro",
+      });
+    }
+  };
+  
+  const handleFeedbackSubmit = async (scriptId: string, feedback: string, approved: boolean) => {
+    try {
+      // Simulação de envio de feedback
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: approved ? "Feedback enviado e aprovado" : "Feedback enviado",
+        description: "Sua avaliação do roteiro foi registrada",
+      });
+      
+      if (approved) {
+        // Mostrar diálogo de calendário após aprovação
+        setCalendarDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Erro ao enviar feedback:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao enviar feedback",
+        description: "Não foi possível enviar seu feedback",
       });
     }
   };
@@ -141,6 +179,7 @@ const CustomGpt: React.FC = () => {
               script={generatedScript} 
               onApprove={handleScriptApprove}
               onReject={handleScriptReject}
+              onFeedbackSubmit={handleFeedbackSubmit}
             />
             
             <div className="flex justify-end gap-2 mt-4">
@@ -154,14 +193,12 @@ const CustomGpt: React.FC = () => {
           </div>
         )}
         
-        {generatedScript && (
-          <CalendarDialog 
-            open={calendarDialogOpen}
-            onOpenChange={setCalendarDialogOpen}
-            onSchedule={handleScheduleScript}
-            scriptId={generatedScript.id}
-          />
-        )}
+        <CalendarDialog 
+          open={calendarDialogOpen}
+          onOpenChange={setCalendarDialogOpen}
+          onSchedule={handleScheduleScript}
+          scriptId={generatedScript?.id || ""}
+        />
       </div>
     </Layout>
   );
