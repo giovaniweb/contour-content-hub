@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -44,7 +45,8 @@ const EquipmentDetails: React.FC = () => {
     const matchesSearch = 
       equip.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (equip.tecnologia && equip.tecnologia.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (equip.beneficios && equip.beneficios.toLowerCase().includes(searchTerm.toLowerCase()));
+      (equip.beneficios && equip.beneficios.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (equip.efeito && equip.efeito.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Filtro de aba
     if (activeTab === "all") return matchesSearch;
