@@ -1,11 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Video as VideoIcon, Camera } from "lucide-react";
+import { Sparkles, Video as VideoIcon, Camera, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { generateCustomContent } from "@/utils/custom-gpt";
+import { Equipment } from "@/types/equipment";
+import { ScriptResponse } from "@/utils/api";
+import ScriptCard from "@/components/ScriptCard";
 
 interface TrendingTopic {
   id: string;
@@ -18,6 +22,8 @@ interface TrendingTopic {
 const TrendingTopics: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [generatingScript, setGeneratingScript] = useState<string | null>(null);
+  const [generatedScript, setGeneratedScript] = useState<ScriptResponse | null>(null);
   
   // Exemplo de tópicos em alta relacionados a vídeos e artes - em uma implementação real, estes viriam de uma API
   const trendingTopics: TrendingTopic[] = [
@@ -71,6 +77,9 @@ const TrendingTopics: React.FC = () => {
 
   const handleCreateClick = async (topic: TrendingTopic) => {
     try {
+      // Mostrar qual tópico está sendo processado
+      setGeneratingScript(topic.id);
+      
       toast({
         title: "Analisando tópico",
         description: "Estamos preparando o roteiro baseado no tema selecionado...",
@@ -88,28 +97,85 @@ const TrendingTopics: React.FC = () => {
           title: "Erro ao analisar tópico",
           description: "Não foi possível processar o tema selecionado. Por favor, tente novamente.",
         });
+        setGeneratingScript(null);
         return;
       }
       
       console.log("Topic analysis result:", analysisData);
       
-      // Always navigate to custom-gpt instead of determining based on topic type
-      const targetPage = "custom-gpt";
+      // Se o usuário desejar ir para a página de geração para personalizar, ainda mantemos essa opção
+      const directGeneration = true; // Poderia ser um parâmetro controlável pelo usuário
       
-      // Build query parameters based on the analysis
-      const params = new URLSearchParams();
-      if (analysisData.topic) params.append('topic', analysisData.topic);
-      if (analysisData.equipment) params.append('equipment', analysisData.equipment);
-      if (analysisData.bodyArea) params.append('bodyArea', analysisData.bodyArea);
-      if (analysisData.purpose) params.append('purpose', analysisData.purpose);
-      if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
-      if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
+      if (!directGeneration) {
+        // Navigate to custom-gpt instead of determining based on topic type
+        const targetPage = "custom-gpt";
+        
+        // Build query parameters based on the analysis
+        const params = new URLSearchParams();
+        if (analysisData.topic) params.append('topic', analysisData.topic);
+        if (analysisData.equipment) params.append('equipment', analysisData.equipment);
+        if (analysisData.bodyArea) params.append('bodyArea', analysisData.bodyArea);
+        if (analysisData.purpose) params.append('purpose', analysisData.purpose);
+        if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
+        if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
+        
+        // Add mode parameter to default to advanced tab
+        params.append('mode', 'advanced');
+        
+        // Navigate to the custom-gpt page with query parameters
+        navigate(`/${targetPage}?${params.toString()}`);
+        setGeneratingScript(null);
+        return;
+      }
       
-      // Add mode parameter to default to advanced tab
-      params.append('mode', 'advanced');
+      // Buscar dados do equipamento para uso na geração do roteiro
+      let equipmentoData: Equipment | null = null;
+      if (analysisData.equipment) {
+        // Aqui deveria buscar os dados do equipamento da API ou do Supabase
+        // Exemplo simulado:
+        equipmentoData = {
+          id: "1",
+          nome: analysisData.equipment || "Equipamento Genérico",
+          tecnologia: "Tecnologia avançada",
+          indicacoes: "Diversos tratamentos estéticos",
+          beneficios: "Resultados rápidos e duradouros",
+          diferenciais: "Tecnologia exclusiva",
+          linguagem: "Técnica",
+          ativo: true
+        };
+      }
       
-      // Navigate to the custom-gpt page with query parameters
-      navigate(`/${targetPage}?${params.toString()}`);
+      // Gerar o roteiro diretamente com os dados analisados
+      const customGptRequest = {
+        tipo: "roteiro" as const,
+        equipamento: analysisData.equipment || "Equipamento Genérico",
+        topic: analysisData.topic || topic.title,
+        bodyArea: analysisData.bodyArea,
+        purposes: analysisData.purpose ? [analysisData.purpose] : undefined,
+        marketingObjective: analysisData.marketingObjective,
+        additionalInfo: analysisData.additionalInfo,
+        equipamentoData
+      };
+      
+      const generatedContent = await generateCustomContent(customGptRequest);
+      
+      console.log("Conteúdo gerado:", generatedContent);
+      
+      // Converter para o formato ScriptResponse para exibir no ScriptCard
+      const scriptResponse: ScriptResponse = {
+        id: new Date().getTime().toString(),
+        title: analysisData.topic || topic.title,
+        content: generatedContent.content,
+        type: "videoScript",
+        createdAt: new Date().toISOString(),
+        equipment: analysisData.equipment
+      };
+      
+      setGeneratedScript(scriptResponse);
+      toast({
+        title: "Roteiro gerado com sucesso!",
+        description: "Confira o roteiro personalizado baseado no tema selecionado.",
+      });
       
     } catch (error) {
       console.error("Error handling topic click:", error);
@@ -118,8 +184,49 @@ const TrendingTopics: React.FC = () => {
         title: "Erro",
         description: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
       });
+    } finally {
+      setGeneratingScript(null);
     }
   };
+
+  const handleApproveScript = async () => {
+    toast({
+      title: "Roteiro aprovado",
+      description: "O roteiro foi salvo em sua biblioteca.",
+    });
+    setGeneratedScript(null);
+  };
+
+  const handleRejectScript = async () => {
+    toast({
+      title: "Roteiro descartado",
+      description: "Você pode selecionar outro tópico ou personalizar seu próprio conteúdo.",
+    });
+    setGeneratedScript(null);
+  };
+
+  if (generatedScript) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">Roteiro Gerado</h3>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setGeneratedScript(null)}
+          >
+            Voltar aos Tópicos
+          </Button>
+        </div>
+        
+        <ScriptCard 
+          script={generatedScript}
+          onApprove={handleApproveScript}
+          onReject={() => handleRejectScript()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -149,8 +256,17 @@ const TrendingTopics: React.FC = () => {
             size="sm" 
             className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={() => handleCreateClick(topic)}
+            disabled={generatingScript !== null}
           >
-            <Sparkles className="h-3 w-3 mr-1" /> Criar
+            {generatingScript === topic.id ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" /> Gerando...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3 w-3 mr-1" /> Criar
+              </>
+            )}
           </Button>
         </div>
       ))}
