@@ -140,11 +140,11 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavLink to="/script-history">
+                  <NavLink to="/custom-gpt">
                     <NavigationMenuLink 
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        location.pathname === "/script-history" ? "bg-accent text-accent-foreground" : ""
+                        location.pathname === "/custom-gpt" ? "bg-accent text-accent-foreground" : ""
                       )}
                     >
                       <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -211,7 +211,7 @@ const Navbar: React.FC = () => {
                   {isAuthenticated && (
                     <>
                       <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
-                      <DrawerNavLink to="/script-history" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
+                      <DrawerNavLink to="/custom-gpt" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
                       <DrawerNavLink to="/media-library" icon={<Film className="h-5 w-5" />} label="Mídia" />
                       <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
                       <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
