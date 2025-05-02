@@ -52,7 +52,10 @@ const Calendar: React.FC = () => {
   const [emailAlertOpen, setEmailAlertOpen] = useState(false);
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly" | "intelligent">("weekly");
   const [emailEnabled, setEmailEnabled] = useState(true);
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  // Initialize with all equipment options except "adella"
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(
+    EQUIPMENT_OPTIONS.filter(equipment => equipment.id !== "adella").map(equipment => equipment.id)
+  );
   const [contentTypes, setContentTypes] = useState({
     video: true,
     story: true,
