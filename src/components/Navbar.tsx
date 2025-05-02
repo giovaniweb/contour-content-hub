@@ -47,6 +47,11 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     {
+      title: t('dashboard'),
+      href: "/dashboard",
+      icon: <HomeIcon className="h-5 w-5" />,
+    },
+    {
       title: t('scripts'),
       href: "/script-generator",
       icon: <FileText className="h-5 w-5" />,
