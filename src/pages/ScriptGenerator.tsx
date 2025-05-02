@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateScript, saveScriptFeedback, ScriptRequest, ScriptType, MarketingObjectiveType } from "@/utils/api";
 import ScriptCard from "@/components/ScriptCard";
 import ScriptForm from "@/components/script-generator/ScriptForm";
+import TitleValidator from "@/components/script-generator/TitleValidator";
 
 const ScriptGenerator: React.FC = () => {
   const { toast } = useToast();
@@ -14,6 +16,7 @@ const ScriptGenerator: React.FC = () => {
   const navigate = useNavigate();
   
   const [scriptType, setScriptType] = useState<ScriptType>("videoScript");
+  const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [bodyArea, setBodyArea] = useState("");
@@ -76,6 +79,15 @@ const ScriptGenerator: React.FC = () => {
       return;
     }
     
+    if (!title.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, adicione um título para o roteiro",
+      });
+      return;
+    }
+    
     if (!marketingObjective) {
       toast({
         variant: "destructive",
@@ -91,6 +103,7 @@ const ScriptGenerator: React.FC = () => {
       const request: ScriptRequest = {
         type: scriptType,
         topic,
+        title, // Adicionamos o título ao request
         equipment: selectedEquipment.length > 0 ? selectedEquipment : undefined,
         bodyArea: bodyArea || undefined,
         purpose: selectedPurposes.length > 0 ? selectedPurposes : undefined,
@@ -101,7 +114,14 @@ const ScriptGenerator: React.FC = () => {
       };
       
       const result = await generateScript(request);
-      setGeneratedScript(result);
+      
+      // Ensure the title is included in the result
+      const scriptWithTitle = {
+        ...result,
+        title: title || result.title
+      };
+      
+      setGeneratedScript(scriptWithTitle);
       
       toast({
         title: "Roteiro gerado",
@@ -163,6 +183,7 @@ const ScriptGenerator: React.FC = () => {
   // Reset form
   const resetForm = () => {
     setScriptType("videoScript");
+    setTitle("");
     setTopic("");
     setSelectedEquipment([]);
     setBodyArea("");
@@ -189,6 +210,15 @@ const ScriptGenerator: React.FC = () => {
             </CardHeader>
             
             <CardContent>
+              {/* Novo componente de validação de título */}
+              <div className="mb-6">
+                <TitleValidator 
+                  title={title}
+                  onChange={setTitle}
+                  disabled={isGenerating}
+                />
+              </div>
+              
               <ScriptForm
                 scriptType={scriptType}
                 topic={topic}

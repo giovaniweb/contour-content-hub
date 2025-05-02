@@ -11,6 +11,7 @@ export type MarketingObjectiveType = 'atrair_atencao' | 'criar_conexao' | 'fazer
 export interface ScriptRequest {
   type: ScriptType;
   topic: string;
+  title?: string; // Adicionado campo para título
   equipment?: string[];
   bodyArea?: string;
   purpose?: string[];
