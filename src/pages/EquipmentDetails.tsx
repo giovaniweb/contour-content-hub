@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Equipment } from "@/types/equipment"; 
 import { getEquipments } from "@/utils/api-equipment";
-import { FileSearch, Search } from "lucide-react";
+import { FileSearch, Search, Eye } from "lucide-react";
 
 const EquipmentDetails: React.FC = () => {
   const { toast } = useToast();
