@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -28,42 +27,73 @@ const ScriptGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<any | null>(null);
   
-  // Parse query parameters to pre-fill form from calendar
+  // Parse query parameters to pre-fill form
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const typeParam = params.get('type');
-    const topicParam = params.get('topic');
     
+    // Get parameters
+    const topicParam = params.get('topic');
+    const typeParam = params.get('type');
+    const equipmentParam = params.get('equipment');
+    const bodyAreaParam = params.get('bodyArea');
+    const purposeParam = params.get('purpose');
+    const objectiveParam = params.get('objective');
+    const additionalInfoParam = params.get('additionalInfo');
+    const toneParam = params.get('tone');
+    
+    // Set type if valid
     if (typeParam && ['videoScript', 'bigIdea', 'dailySales'].includes(typeParam)) {
       setScriptType(typeParam as ScriptType);
     }
     
+    // Set topic
     if (topicParam) {
       setTopic(decodeURIComponent(topicParam));
+      
+      // Also set title based on topic if no title parameter
+      if (!params.get('title')) {
+        setTitle(decodeURIComponent(topicParam));
+      }
     }
     
-    const equipmentParam = params.get('equipment');
+    // Set equipment
     if (equipmentParam) {
-      // Find if equipment exists in our options
       setSelectedEquipment([decodeURIComponent(equipmentParam)]);
     }
     
-    const purposeParam = params.get('purpose');
+    // Set body area
+    if (bodyAreaParam) {
+      setBodyArea(decodeURIComponent(bodyAreaParam));
+    }
+    
+    // Set purposes
     if (purposeParam) {
-      let mappedPurpose;
-      
-      if (purposeParam === 'educate') {
-        mappedPurpose = "Rugas";
-      } else if (purposeParam === 'engage') {
-        mappedPurpose = "Flacidez";
-      } else if (purposeParam === 'sell') {
-        mappedPurpose = "Lipedema";
-      }
-      
-      if (mappedPurpose) {
-        setSelectedPurposes([mappedPurpose]);
+      setSelectedPurposes([decodeURIComponent(purposeParam)]);
+    }
+    
+    // Set marketing objective
+    if (objectiveParam) {
+      // Map the string to the corresponding MarketingObjectiveType
+      const mappedObjective = 
+        objectiveParam === 'educate' ? 'educate' :
+        objectiveParam === 'engage' ? 'engage' : 
+        objectiveParam === 'convert' ? 'convert' : undefined;
+        
+      if (mappedObjective) {
+        setMarketingObjective(mappedObjective as MarketingObjectiveType);
       }
     }
+    
+    // Set additional info
+    if (additionalInfoParam) {
+      setAdditionalInfo(decodeURIComponent(additionalInfoParam));
+    }
+    
+    // Set tone
+    if (toneParam) {
+      setTone(decodeURIComponent(toneParam));
+    }
+    
   }, [location]);
   
   // Handle script generation

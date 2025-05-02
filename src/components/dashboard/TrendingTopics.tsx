@@ -3,6 +3,9 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Video as VideoIcon, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TrendingTopic {
   id: string;
@@ -13,6 +16,9 @@ interface TrendingTopic {
 }
 
 const TrendingTopics: React.FC = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
   // Exemplo de tópicos em alta relacionados a vídeos e artes - em uma implementação real, estes viriam de uma API
   const trendingTopics: TrendingTopic[] = [
     { 
@@ -63,6 +69,55 @@ const TrendingTopics: React.FC = () => {
     }
   };
 
+  const handleCreateClick = async (topic: TrendingTopic) => {
+    try {
+      toast({
+        title: "Analisando tópico",
+        description: "Estamos preparando o roteiro baseado no tema selecionado...",
+      });
+
+      // Use the analyze-topic function to extract information from the topic
+      const { data: analysisData, error } = await supabase.functions.invoke('analyze-topic', {
+        body: { topic: topic.title }
+      });
+      
+      if (error) {
+        console.error("Error analyzing topic:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao analisar tópico",
+          description: "Não foi possível processar o tema selecionado. Por favor, tente novamente.",
+        });
+        return;
+      }
+      
+      console.log("Topic analysis result:", analysisData);
+      
+      // Determine which page to navigate to based on topic type
+      const targetPage = topic.type === "video" ? "script-generator" : "custom-gpt";
+      
+      // Build query parameters based on the analysis
+      const params = new URLSearchParams();
+      if (analysisData.topic) params.append('topic', analysisData.topic);
+      if (analysisData.equipment) params.append('equipment', analysisData.equipment);
+      if (analysisData.bodyArea) params.append('bodyArea', analysisData.bodyArea);
+      if (analysisData.purpose) params.append('purpose', analysisData.purpose);
+      if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
+      if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
+      
+      // Navigate to the appropriate page with query parameters
+      navigate(`/${targetPage}?${params.toString()}`);
+      
+    } catch (error) {
+      console.error("Error handling topic click:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
+      });
+    }
+  };
+
   return (
     <div className="space-y-3">
       {trendingTopics.map((topic) => (
@@ -86,7 +141,12 @@ const TrendingTopics: React.FC = () => {
               )}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => handleCreateClick(topic)}
+          >
             <Sparkles className="h-3 w-3 mr-1" /> Criar
           </Button>
         </div>

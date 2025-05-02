@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
 import { Sparkles, Wand, BrainCircuit, Calendar } from 'lucide-react';
@@ -13,14 +13,37 @@ import CalendarDialog from '@/components/script/CalendarDialog';
 import { useToast } from '@/hooks/use-toast';
 
 const CustomGpt: React.FC = () => {
+  const location = useLocation();
   const [generatedScript, setGeneratedScript] = useState<ScriptResponse | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     document.title = "Gerador de Conteúdo | Fluida";
-  }, []);
+    
+    // Parse query parameters to pre-fill form
+    const params = new URLSearchParams(location.search);
+    
+    const formData: any = {};
+    
+    if (params.get('topic')) formData.topic = params.get('topic');
+    if (params.get('equipment')) formData.equipment = params.get('equipment');
+    if (params.get('purpose')) formData.purpose = params.get('purpose');
+    if (params.get('objective')) formData.marketingObjective = params.get('objective');
+    if (params.get('additionalInfo')) formData.additionalInfo = params.get('additionalInfo');
+    
+    // Only set initial form data if we have at least one parameter
+    if (Object.keys(formData).length > 0) {
+      setInitialFormData(formData);
+      
+      toast({
+        title: "Dados pré-preenchidos",
+        description: "O formulário foi preenchido automaticamente com base no tema selecionado.",
+      });
+    }
+  }, [location]);
 
   const handleScriptGenerated = (script: ScriptResponse) => {
     setGeneratedScript(script);
@@ -142,11 +165,19 @@ const CustomGpt: React.FC = () => {
             </TabsList>
             
             <TabsContent value="fluida">
-              <CustomGptForm mode="simple" onScriptGenerated={handleScriptGenerated} />
+              <CustomGptForm 
+                mode="simple" 
+                onScriptGenerated={handleScriptGenerated} 
+                initialData={initialFormData}
+              />
             </TabsContent>
             
             <TabsContent value="roteiro">
-              <CustomGptForm mode="advanced" onScriptGenerated={handleScriptGenerated} />
+              <CustomGptForm 
+                mode="advanced" 
+                onScriptGenerated={handleScriptGenerated} 
+                initialData={initialFormData}
+              />
             </TabsContent>
           </Tabs>
         ) : (
