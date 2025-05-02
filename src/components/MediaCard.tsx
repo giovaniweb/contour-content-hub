@@ -72,9 +72,9 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
   // Get the icon based on media type
   const getMediaTypeIcon = () => {
     switch (media.type) {
-      case "video":
+      case "video_pronto":
         return <VideoIcon className="h-4 w-4" />;
-      case "raw":
+      case "take":
         return <Film className="h-4 w-4" />;
       case "image":
         return <Camera className="h-4 w-4" />;
@@ -86,9 +86,9 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
   // Get badge color based on media type
   const getBadgeVariant = () => {
     switch (media.type) {
-      case "video":
+      case "video_pronto":
         return "default";
-      case "raw":
+      case "take":
         return "secondary";
       case "image":
         return "outline";
@@ -114,7 +114,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
           <div className="absolute top-2 right-2">
             <Badge variant={getBadgeVariant()} className="flex items-center gap-1">
               {getMediaTypeIcon()}
-              <span>{media.type}</span>
+              <span>{media.type === "video_pronto" ? "Vídeo" : media.type === "take" ? "Take" : media.type}</span>
             </Badge>
           </div>
         </div>
@@ -137,17 +137,25 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, onUpdate }) => {
         <h3 className="font-medium truncate">{media.title}</h3>
         
         <div className="flex flex-wrap gap-1 mt-2">
-          {media.bodyArea.map((area) => (
-            <Badge key={area} variant="outline" className="text-xs">
-              {area}
+          {media.equipment && media.equipment.map((item) => (
+            <Badge key={item} variant="outline" className="text-xs">
+              {item}
             </Badge>
           ))}
-          {media.purpose.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {media.purpose[0]}
-              {media.purpose.length > 1 && "+"}
-            </Badge>
-          )}
+        </div>
+        
+        <div className="flex flex-wrap gap-1 mt-1">
+          {media.purpose && media.purpose.map((purpose, index) => (
+            index < 2 ? (
+              <Badge key={purpose} variant="secondary" className="text-xs">
+                {purpose}
+              </Badge>
+            ) : index === 2 ? (
+              <Badge key="more" variant="secondary" className="text-xs">
+                +{media.purpose.length - 2}
+              </Badge>
+            ) : null
+          ))}
         </div>
         
         <div className="flex items-center mt-3">

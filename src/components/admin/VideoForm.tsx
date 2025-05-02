@@ -15,7 +15,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Sparkles } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
 interface VideoFormProps {
@@ -29,13 +28,18 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [equipmentOptions] = useState([
-    "UltraSonic", 
-    "Venus Freeze", 
-    "Laser", 
-    "Microneedling", 
-    "HIFU", 
-    "Radiofrequência", 
-    "Criolipólise",
+    "Adélla Laser",
+    "Enygma X-Orbital",
+    "Focuskin",
+    "Hipro",
+    "Hive Pro",
+    "Laser Crystal 3D Plus",
+    "MultiShape",
+    "Reverso",
+    "Supreme Pro",
+    "Ultralift - Endolaser",
+    "Unyque PRO",
+    "X-Tonus",
     "Outro"
   ]);
   
@@ -55,6 +59,8 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     "Emagrecimento", 
     "Tonificação", 
     "Hidratação", 
+    "Flacidez",
+    "Gordura localizada",
     "Criação de conteúdo",
     "Educacional",
     "Outro"
@@ -62,13 +68,13 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
 
   const [formData, setFormData] = useState({
     titulo: "",
-    tipo: "video",
-    equipamento: "",
+    tipo_video: "video_pronto",
+    equipamentos: [] as string[],
     area_corpo: "",
-    finalidade: "",
+    finalidade: [] as string[],
     url_video: "",
     preview_url: "",
-    descricao: "",
+    descricao_curta: "",
     descricao_detalhada: "",
     tags: [] as string[],
     otherEquipment: "",
@@ -86,6 +92,30 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
   const handleSelectChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
   };
+  
+  const toggleEquipment = (equipment: string) => {
+    const index = formData.equipamentos.indexOf(equipment);
+    if (index === -1) {
+      setFormData({ ...formData, equipamentos: [...formData.equipamentos, equipment] });
+    } else {
+      setFormData({ 
+        ...formData, 
+        equipamentos: formData.equipamentos.filter(e => e !== equipment) 
+      });
+    }
+  };
+
+  const togglePurpose = (purpose: string) => {
+    const index = formData.finalidade.indexOf(purpose);
+    if (index === -1) {
+      setFormData({ ...formData, finalidade: [...formData.finalidade, purpose] });
+    } else {
+      setFormData({ 
+        ...formData, 
+        finalidade: formData.finalidade.filter(p => p !== purpose) 
+      });
+    }
+  };
 
   const fetchVideo = async (id: string) => {
     try {
@@ -102,13 +132,13 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         setFormData({
           ...formData,
           titulo: data.titulo || "",
-          tipo: data.tipo || "video",
-          equipamento: data.equipamento || "",
+          tipo_video: data.tipo_video || "video_pronto",
+          equipamentos: data.equipamentos || [],
           area_corpo: data.area_corpo || "",
-          finalidade: data.finalidade || "",
+          finalidade: data.finalidade || [],
           url_video: data.url_video || "",
           preview_url: data.preview_url || "",
-          descricao: data.descricao || "",
+          descricao_curta: data.descricao_curta || data.descricao || "",
           descricao_detalhada: data.descricao_detalhada || "",
           tags: data.tags || [],
           otherEquipment: "",
@@ -141,11 +171,11 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
       // Only send what we need to generate content
       const contextData = {
         title: formData.titulo,
-        equipment: formData.equipamento === "Outro" ? formData.otherEquipment : formData.equipamento,
-        bodyArea: formData.area_corpo === "Outro" ? formData.otherBodyArea : formData.area_corpo,
-        purpose: formData.finalidade === "Outro" ? formData.otherPurpose : formData.finalidade,
-        description: formData.descricao,
-        type: formData.tipo
+        equipments: formData.equipamentos,
+        bodyArea: formData.area_corpo,
+        purposes: formData.finalidade,
+        description: formData.descricao_curta,
+        type: formData.tipo_video
       };
       
       // Call OpenAI Edge Function to generate content and tags
@@ -220,16 +250,27 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     try {
       setIsLoading(true);
 
+      // Handle custom entries
+      let finalEquipments = [...formData.equipamentos];
+      if (formData.otherEquipment && !equipmentOptions.includes(formData.otherEquipment)) {
+        finalEquipments.push(formData.otherEquipment);
+      }
+      
+      let finalPurposes = [...formData.finalidade];
+      if (formData.otherPurpose && !purposeOptions.includes(formData.otherPurpose)) {
+        finalPurposes.push(formData.otherPurpose);
+      }
+
       // Prepare data for submission
       const videoData = {
         titulo: formData.titulo,
-        tipo: formData.tipo,
-        equipamento: formData.equipamento === "Outro" ? formData.otherEquipment : formData.equipamento,
+        tipo_video: formData.tipo_video,
+        equipamentos: finalEquipments,
         area_corpo: formData.area_corpo === "Outro" ? formData.otherBodyArea : formData.area_corpo,
-        finalidade: formData.finalidade === "Outro" ? formData.otherPurpose : formData.finalidade,
+        finalidade: finalPurposes,
         url_video: formData.url_video,
         preview_url: formData.preview_url,
-        descricao: formData.descricao,
+        descricao_curta: formData.descricao_curta,
         descricao_detalhada: formData.descricao_detalhada,
         tags: formData.tags
       };
@@ -312,37 +353,38 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tipo">Tipo de Conteúdo *</Label>
-            <Select value={formData.tipo} onValueChange={(value) => handleSelectChange("tipo", value)}>
+            <Label htmlFor="tipo_video">Tipo de Conteúdo *</Label>
+            <Select value={formData.tipo_video} onValueChange={(value) => handleSelectChange("tipo_video", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo de conteúdo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="video">Vídeo Pronto</SelectItem>
-                <SelectItem value="raw">Take Bruto</SelectItem>
-                <SelectItem value="image">Imagem</SelectItem>
+                <SelectItem value="video_pronto">Vídeo Pronto</SelectItem>
+                <SelectItem value="take">Take Bruto</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="equipamento">Equipamento *</Label>
-            <Select 
-              value={formData.equipamento} 
-              onValueChange={(value) => handleSelectChange("equipamento", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o equipamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {equipmentOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.equipamento === "Outro" && (
+            <Label>Equipamentos *</Label>
+            <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-[200px] overflow-y-auto">
+              {equipmentOptions.map((equipment) => (
+                <div key={equipment} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`equipment-${equipment}`}
+                    checked={formData.equipamentos.includes(equipment)}
+                    onCheckedChange={() => toggleEquipment(equipment)}
+                  />
+                  <Label 
+                    htmlFor={`equipment-${equipment}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {equipment}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {formData.equipamentos.includes("Outro") && (
               <Input
                 name="otherEquipment"
                 placeholder="Digite o nome do equipamento"
@@ -355,10 +397,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
 
           <div className="space-y-2">
             <Label htmlFor="area_corpo">Área do Corpo *</Label>
-            <Select 
-              value={formData.area_corpo} 
-              onValueChange={(value) => handleSelectChange("area_corpo", value)}
-            >
+            <Select value={formData.area_corpo} onValueChange={(value) => handleSelectChange("area_corpo", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a área do corpo" />
               </SelectTrigger>
@@ -382,23 +421,25 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="finalidade">Finalidade do Tratamento *</Label>
-            <Select 
-              value={formData.finalidade} 
-              onValueChange={(value) => handleSelectChange("finalidade", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a finalidade" />
-              </SelectTrigger>
-              <SelectContent>
-                {purposeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.finalidade === "Outro" && (
+            <Label>Finalidades do Tratamento *</Label>
+            <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-[200px] overflow-y-auto">
+              {purposeOptions.map((purpose) => (
+                <div key={purpose} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`purpose-${purpose}`}
+                    checked={formData.finalidade.includes(purpose)}
+                    onCheckedChange={() => togglePurpose(purpose)}
+                  />
+                  <Label 
+                    htmlFor={`purpose-${purpose}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {purpose}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {formData.finalidade.includes("Outro") && (
               <Input
                 name="otherPurpose"
                 placeholder="Digite a finalidade"
@@ -435,12 +476,12 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição Curta *</Label>
+            <Label htmlFor="descricao_curta">Descrição Curta *</Label>
             <Textarea
-              id="descricao"
-              name="descricao"
+              id="descricao_curta"
+              name="descricao_curta"
               placeholder="Digite uma breve descrição"
-              value={formData.descricao}
+              value={formData.descricao_curta}
               onChange={handleInputChange}
               rows={3}
               required
@@ -452,7 +493,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
               type="button" 
               variant="secondary" 
               onClick={generateWithAI}
-              disabled={isGenerating || !formData.titulo || !formData.equipamento || !formData.descricao}
+              disabled={isGenerating || !formData.titulo || formData.equipamentos.length === 0 || !formData.descricao_curta}
             >
               {isGenerating ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

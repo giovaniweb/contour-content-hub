@@ -46,14 +46,23 @@ const VideoContentManager: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('videos')
-          .select('equipamento')
-          .not('equipamento', 'is', null);
+          .select('equipamentos');
           
         if (error) throw error;
         
-        // Extract and deduplicate equipment values
-        const uniqueEquipments = [...new Set(data.map(item => item.equipamento).filter(Boolean))];
-        setEquipmentOptions(uniqueEquipments);
+        // Extract and deduplicate equipment values from arrays
+        const allEquipments: string[] = [];
+        data?.forEach(item => {
+          if (item.equipamentos && Array.isArray(item.equipamentos)) {
+            item.equipamentos.forEach((equipment: string) => {
+              if (equipment && !allEquipments.includes(equipment)) {
+                allEquipments.push(equipment);
+              }
+            });
+          }
+        });
+        
+        setEquipmentOptions(allEquipments.sort());
       } catch (error) {
         console.error('Error fetching equipment options:', error);
       }
@@ -70,17 +79,18 @@ const VideoContentManager: React.FC = () => {
 
       // Apply type filter if selected
       if (filterType !== "all") {
-        query = query.eq('tipo', filterType);
+        query = query.eq('tipo_video', filterType);
       }
       
       // Apply equipment filter if selected
       if (filterEquipment && filterEquipment !== "all") {
-        query = query.eq('equipamento', filterEquipment);
+        // For array columns, we need to check if the array contains the value
+        query = query.contains('equipamentos', [filterEquipment]);
       }
 
       // Apply search query if provided
       if (searchQuery) {
-        query = query.or(`titulo.ilike.%${searchQuery}%,descricao.ilike.%${searchQuery}%`);
+        query = query.or(`titulo.ilike.%${searchQuery}%,descricao_curta.ilike.%${searchQuery}%,descricao_detalhada.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query;
@@ -190,9 +200,8 @@ const VideoContentManager: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="video">Vídeos prontos</SelectItem>
-                <SelectItem value="raw">Takes brutos</SelectItem>
-                <SelectItem value="image">Imagens</SelectItem>
+                <SelectItem value="video_pronto">Vídeos prontos</SelectItem>
+                <SelectItem value="take">Takes brutos</SelectItem>
               </SelectContent>
             </Select>
           </div>

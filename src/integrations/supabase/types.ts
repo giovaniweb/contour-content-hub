@@ -382,48 +382,60 @@ export type Database = {
         Row: {
           area_corpo: string | null
           categoria: string | null
+          compartilhamentos: number | null
+          curtidas: number | null
           data_upload: string | null
           descricao: string | null
+          descricao_curta: string | null
           descricao_detalhada: string | null
           duracao: string | null
-          equipamento: string | null
-          finalidade: string | null
+          equipamentos: string[] | null
+          favoritos_count: number | null
+          finalidade: string[] | null
           id: string
           preview_url: string | null
           tags: string[] | null
-          tipo: string | null
+          tipo_video: string | null
           titulo: string | null
           url_video: string | null
         }
         Insert: {
           area_corpo?: string | null
           categoria?: string | null
+          compartilhamentos?: number | null
+          curtidas?: number | null
           data_upload?: string | null
           descricao?: string | null
+          descricao_curta?: string | null
           descricao_detalhada?: string | null
           duracao?: string | null
-          equipamento?: string | null
-          finalidade?: string | null
+          equipamentos?: string[] | null
+          favoritos_count?: number | null
+          finalidade?: string[] | null
           id?: string
           preview_url?: string | null
           tags?: string[] | null
-          tipo?: string | null
+          tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
         }
         Update: {
           area_corpo?: string | null
           categoria?: string | null
+          compartilhamentos?: number | null
+          curtidas?: number | null
           data_upload?: string | null
           descricao?: string | null
+          descricao_curta?: string | null
           descricao_detalhada?: string | null
           duracao?: string | null
-          equipamento?: string | null
-          finalidade?: string | null
+          equipamentos?: string[] | null
+          favoritos_count?: number | null
+          finalidade?: string[] | null
           id?: string
           preview_url?: string | null
           tags?: string[] | null
-          tipo?: string | null
+          tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
         }

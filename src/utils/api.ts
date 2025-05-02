@@ -10,7 +10,7 @@ export interface ScriptRequest {
   topic: string;
   equipment?: string[];
   bodyArea?: string;
-  purpose?: string;
+  purpose?: string[];
   additionalInfo?: string;
   tone?: string;
   language?: string;
@@ -58,7 +58,7 @@ export interface MediaItem {
   title: string;
   thumbnailUrl: string;
   videoUrl?: string;
-  type: "video" | "raw" | "image";
+  type: "video_pronto" | "take" | "image";
   equipment: string[];
   bodyArea: string[];
   purpose: string[];

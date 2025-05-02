@@ -29,15 +29,20 @@ export interface Roteiro {
 export interface Video {
   id: string;
   titulo: string;
-  descricao?: string;
-  equipamento: string;
+  descricao_curta?: string;
+  descricao_detalhada?: string;
+  equipamentos: string[];
   area_corpo: string;
-  finalidade: string;
+  finalidade: string[];
   url_video?: string;
   preview_url?: string;
-  tipo: 'video' | 'raw' | 'image';
+  tipo_video: 'video_pronto' | 'take';
   duracao?: string;
   data_upload: string;
+  tags?: string[];
+  curtidas?: number;
+  compartilhamentos?: number;
+  favoritos_count?: number;
 }
 
 export interface Favorito {
@@ -63,6 +68,8 @@ export interface Material {
   preview_url?: string;
   arquivo_url?: string;
   data_upload: string;
+  categoria?: string;
+  tags?: string[];
 }
 
 export interface AgendaItem {
@@ -91,7 +98,7 @@ export interface GptConfig {
   nome: string;
   tipo: string;
   modelo: string;
-  chave_api?: string; // Added the missing property
+  chave_api?: string;
   prompt?: string;
   ativo: boolean;
   data_configuracao: string;
@@ -107,11 +114,10 @@ export interface LogUso {
 
 export interface DropboxConfig {
   id?: string;
-  token: string; // This is required, not optional
+  token: string;
   pasta_padrao: string;
   link_base?: string;
   data_configuracao?: string;
 }
 
 export type IntegrationStatus = 'integrated' | 'not_configured' | 'error';
-

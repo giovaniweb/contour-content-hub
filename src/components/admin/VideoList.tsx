@@ -42,12 +42,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Heart, Share2, Bookmark, MoreVertical, Pencil, Trash2, ExternalLink, Video } from "lucide-react";
+import { Heart, Share2, Bookmark, MoreVertical, Pencil, Trash2, ExternalLink, Video, Film } from "lucide-react";
 import VideoForm from "./VideoForm";
 import { useToast } from "@/hooks/use-toast";
+import { Video as VideoType } from "@/types/database";
 
 interface VideoListProps {
-  videos: any[];
+  videos: VideoType[];
   onDelete: (id: string) => Promise<void>;
   onUpdate: () => void;
   viewMode: "grid" | "list";
@@ -68,9 +69,9 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
     });
   };
 
-  const handleShareVideo = (video: any) => {
+  const handleShareVideo = (video: VideoType) => {
     // Copy video link to clipboard
-    navigator.clipboard.writeText(video.url_video);
+    navigator.clipboard.writeText(video.url_video || '');
     toast({
       title: "Link copiado",
       description: "O link do vídeo foi copiado para a área de transferência."
@@ -79,18 +80,16 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
 
   const getVideoTypeLabel = (type: string) => {
     switch (type) {
-      case 'video':
+      case 'video_pronto':
         return <Badge>Vídeo Pronto</Badge>;
-      case 'raw':
+      case 'take':
         return <Badge variant="outline">Take Bruto</Badge>;
-      case 'image':
-        return <Badge variant="secondary">Imagem</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
   };
 
-  const getVideoThumbUrl = (video: any) => {
+  const getVideoThumbUrl = (video: VideoType) => {
     if (video.preview_url) return video.preview_url;
     
     // Default placeholder based on type
@@ -103,7 +102,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
         <Card key={video.id} className="overflow-hidden flex flex-col">
           <div 
             className="aspect-video bg-muted overflow-hidden cursor-pointer"
-            onClick={() => setViewVideoUrl(video.url_video)}
+            onClick={() => setViewVideoUrl(video.url_video || null)}
           >
             <img 
               src={getVideoThumbUrl(video)} 
@@ -122,7 +121,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setViewVideoUrl(video.url_video)}>
+                  <DropdownMenuItem onClick={() => setViewVideoUrl(video.url_video || null)}>
                     <ExternalLink className="h-4 w-4 mr-2" /> Ver Vídeo
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setEditingVideoId(video.id)}>
@@ -139,44 +138,50 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
               </DropdownMenu>
             </div>
             <div className="flex gap-2 mt-2">
-              {getVideoTypeLabel(video.tipo)}
-              {video.equipamento && <Badge variant="outline">{video.equipamento}</Badge>}
+              {getVideoTypeLabel(video.tipo_video)}
             </div>
             <CardDescription className="line-clamp-2 mt-2">
-              {video.descricao}
+              {video.descricao_curta || video.descricao_detalhada?.substring(0, 100)}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-1 p-4 pt-0 flex-grow">
-            {video.tags && video.tags.slice(0, 5).map((tag: string) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-            {video.tags && video.tags.length > 5 && (
-              <Badge variant="secondary" className="text-xs">
-                +{video.tags.length - 5}
-              </Badge>
-            )}
+          <CardContent className="p-4 pt-0">
+            <div className="flex flex-wrap gap-1 mb-2">
+              {video.equipamentos && video.equipamentos.map((equipment: string) => (
+                <Badge key={equipment} variant="outline" className="text-xs">
+                  {equipment}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {video.finalidade && video.finalidade.map((purpose: string) => (
+                <Badge key={purpose} variant="secondary" className="text-xs">
+                  {purpose}
+                </Badge>
+              ))}
+            </div>
           </CardContent>
-          <CardFooter className="p-4 pt-0 flex justify-between">
-            <div className="flex gap-4">
-              <Button variant="ghost" size="icon">
-                <Heart className="h-4 w-4" />
-                <span className="sr-only">Curtir</span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Bookmark className="h-4 w-4" />
-                <span className="sr-only">Salvar</span>
+          <CardFooter className="p-4 pt-0 mt-auto">
+            <div className="flex justify-between w-full">
+              <div className="flex gap-2">
+                {video.tags && video.tags.slice(0, 3).map((tag: string) => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {video.tags && video.tags.length > 3 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{video.tags.length - 3}
+                  </Badge>
+                )}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => handleShareVideo(video)}
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => handleShareVideo(video)}
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="sr-only">Compartilhar</span>
-            </Button>
           </CardFooter>
         </Card>
       ))}
@@ -191,7 +196,8 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
             <TableHead>Thumbnail</TableHead>
             <TableHead>Título</TableHead>
             <TableHead>Tipo</TableHead>
-            <TableHead>Equipamento</TableHead>
+            <TableHead>Equipamentos</TableHead>
+            <TableHead>Finalidades</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -201,7 +207,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
               <TableCell>
                 <div 
                   className="w-16 h-9 bg-muted rounded overflow-hidden cursor-pointer"
-                  onClick={() => setViewVideoUrl(video.url_video)}
+                  onClick={() => setViewVideoUrl(video.url_video || null)}
                 >
                   <img 
                     src={getVideoThumbUrl(video)} 
@@ -213,16 +219,49 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
               <TableCell className="font-medium">
                 <div className="line-clamp-1">{video.titulo}</div>
               </TableCell>
-              <TableCell>{getVideoTypeLabel(video.tipo)}</TableCell>
+              <TableCell>{getVideoTypeLabel(video.tipo_video)}</TableCell>
               <TableCell>
-                {video.equipamento ? video.equipamento : '-'}
+                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                  {video.equipamentos && video.equipamentos.length > 0 ? 
+                    video.equipamentos.map((equipment: string, index: number) => (
+                      index < 2 ? 
+                        <Badge key={equipment} variant="outline" className="text-xs">
+                          {equipment}
+                        </Badge> : 
+                        index === 2 ? 
+                          <Badge key="more" variant="outline" className="text-xs">
+                            +{video.equipamentos.length - 2}
+                          </Badge> : 
+                          null
+                    )) : 
+                    '-'
+                  }
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                  {video.finalidade && video.finalidade.length > 0 ? 
+                    video.finalidade.map((purpose: string, index: number) => (
+                      index < 2 ? 
+                        <Badge key={purpose} variant="secondary" className="text-xs">
+                          {purpose}
+                        </Badge> : 
+                        index === 2 ? 
+                          <Badge key="more" variant="secondary" className="text-xs">
+                            +{video.finalidade.length - 2}
+                          </Badge> : 
+                          null
+                    )) : 
+                    '-'
+                  }
+                </div>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setViewVideoUrl(video.url_video)}
+                    onClick={() => setViewVideoUrl(video.url_video || null)}
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>

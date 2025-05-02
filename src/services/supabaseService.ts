@@ -129,23 +129,26 @@ export const getMediaItems = async (filters?: {
     // Aplicar filtros se fornecidos
     if (filters) {
       if (filters.type && filters.type !== 'all') {
-        query = query.eq('tipo', filters.type);
+        query = query.eq('tipo_video', filters.type);
       }
       
       if (filters.query) {
-        query = query.or(`titulo.ilike.%${filters.query}%,descricao.ilike.%${filters.query}%`);
+        query = query.or(`titulo.ilike.%${filters.query}%,descricao_curta.ilike.%${filters.query}%,descricao_detalhada.ilike.%${filters.query}%`);
       }
       
       if (filters.equipment?.length && !filters.equipment.includes('all-equipment')) {
-        query = query.in('equipamento', filters.equipment);
+        // Para arrays, usamos contains
+        query = query.contains('equipamentos', filters.equipment);
       }
       
       if (filters.bodyArea?.length && !filters.bodyArea.includes('all-areas')) {
-        query = query.in('area_corpo', filters.bodyArea);
+        // Para área do corpo que não é array
+        query = query.eq('area_corpo', filters.bodyArea[0]);
       }
       
       if (filters.purpose?.length && !filters.purpose.includes('all-purposes')) {
-        query = query.in('finalidade', filters.purpose);
+        // Para finalidades que são array
+        query = query.contains('finalidade', filters.purpose);
       }
     }
     
@@ -188,10 +191,10 @@ export const getMediaItems = async (filters?: {
       title: video.titulo,
       thumbnailUrl: video.preview_url || '/placeholder.svg',
       videoUrl: video.url_video,
-      type: video.tipo as 'video' | 'raw' | 'image',
-      equipment: [video.equipamento],
+      type: video.tipo_video as 'video_pronto' | 'take' | 'image',
+      equipment: video.equipamentos || [],
       bodyArea: [video.area_corpo],
-      purpose: [video.finalidade],
+      purpose: video.finalidade || [],
       duration: video.duracao,
       rating: avaliacoesMap.get(video.id) || 0,
       isFavorite: favoritosMap.has(video.id)
@@ -225,6 +228,12 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
         .eq('id', data.id);
         
       if (deleteError) throw deleteError;
+      
+      // Atualizar contagem na tabela de vídeos
+      await supabase.rpc('decrement_favorites_count', {
+        video_id: mediaId
+      });
+      
       return false; // Não é mais favorito
     } else {
       // Se não é favorito, adicionar
@@ -236,6 +245,12 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
         });
         
       if (insertError) throw insertError;
+      
+      // Atualizar contagem na tabela de vídeos
+      await supabase.rpc('increment_favorites_count', {
+        video_id: mediaId
+      });
+      
       return true; // Agora é favorito
     }
   } catch (error) {
