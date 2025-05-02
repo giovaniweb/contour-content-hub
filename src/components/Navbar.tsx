@@ -82,7 +82,6 @@ const Navbar: React.FC = () => {
     );
   };
 
-  // Extract user display info with safety checks
   const getUserDisplayName = () => {
     if (!user) return "U";
     // @ts-ignore - We're handling potential undefined values
@@ -178,7 +177,7 @@ const Navbar: React.FC = () => {
                 {!isAuthenticated && (
                   <>
                     <DrawerNavLink to="/" icon={<LayoutDashboard className="h-4 w-4 mr-2" />} label="Início" />
-                    <DrawerNavLink to="/register" icon={<FileText className="h-4 w-4 mr-2" />} label="Criar conta" />
+                    <DrawerNavLink to="/register" icon={<FileSearch className="h-4 w-4 mr-2" />} label="Criar conta" />
                   </>
                 )}
               </div>
