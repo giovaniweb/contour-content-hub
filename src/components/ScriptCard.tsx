@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -241,7 +240,8 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
       <FeedbackDialog 
         open={feedbackDialogOpen}
         onOpenChange={setFeedbackDialogOpen}
-        onSubmit={handleFeedbackSubmit}
+        onSubmitFeedback={handleFeedbackSubmit}
+        isSubmitting={false}
       />
       
       {/* Outros diálogos como Calendar Dialog seriam implementados aqui */}
