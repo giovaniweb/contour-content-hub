@@ -41,11 +41,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   // Define menu items for all users
   const mainMenuItems = [
     {
-      title: t('dashboard'),
-      icon: LayoutDashboard,
-      url: "/dashboard",
-    },
-    {
       title: t('scripts'),
       icon: FileText,
       url: "/script-generator",
@@ -69,6 +64,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   
   // Define menu items only for admins and operators
   const adminMenuItems = [
+    {
+      title: t('dashboard'),
+      icon: LayoutDashboard,
+      url: "/dashboard",
+    },
     {
       title: t('adminPanel'),
       icon: Settings,
