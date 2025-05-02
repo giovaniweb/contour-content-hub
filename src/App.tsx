@@ -1,110 +1,60 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/use-permissions";
-import { LanguageProvider } from "@/context/LanguageContext";
-import Index from "./pages/Index";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import ScriptGenerator from "./pages/ScriptGenerator";
-import ScriptHistory from "./pages/ScriptHistory";
-import MediaLibrary from "./pages/MediaLibrary";
-import Calendar from "./pages/Calendar";
-import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminIntegrations from "./pages/AdminIntegrations";
-import AdminContent from "./pages/AdminContent";
-import AdminEquipments from "./pages/AdminEquipments";
-import NotFound from "./pages/NotFound";
+import Index from './pages/Index';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import ScriptGenerator from './pages/ScriptGenerator';
+import ScriptHistory from './pages/ScriptHistory';
+import MediaLibrary from './pages/MediaLibrary';
+import Calendar from './pages/Calendar';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminEquipments from './pages/Admin/AdminEquipments';
+import AdminContent from './pages/Admin/AdminContent';
+import AdminIntegrations from './pages/Admin/AdminIntegrations';
+import NotFound from './pages/NotFound';
+import CustomGpt from './pages/CustomGpt';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1
-    }
-  }
-});
+const queryClient = new QueryClient();
 
-// Componente para verificar permissões de rotas administrativas
-const AdminRoute = ({ element }: { element: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { isAdmin } = usePermissions();
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-contourline-lightGray to-white">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-16 w-16 border-4 border-contourline-mediumBlue border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-contourline-darkBlue font-medium text-lg">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated || !isAdmin()) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return <>{element}</>;
-};
-
-// Componente para verificar permissões de rotas operacionais
-const OperatorRoute = ({ element }: { element: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { isOperator, isAdmin } = usePermissions();
-  
-  if (isLoading) {
-    return <div>Carregando...</div>;
-  }
-  
-  if (!isAuthenticated || !(isOperator() || isAdmin())) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return <>{element}</>;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
+function App() {
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <LanguageProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/script-generator" element={<ScriptGenerator />} />
-              <Route path="/script-history" element={<ScriptHistory />} />
-              <Route path="/media-library" element={<MediaLibrary />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              
-              {/* Rotas protegidas por papel de usuário */}
-              <Route path="/admin" element={<AdminRoute element={<Navigate to="/admin/dashboard" />} />} />
-              <Route path="/admin/dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
-              <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
-              <Route path="/admin/content" element={<AdminRoute element={<AdminContent />} />} />
-              <Route path="/admin/equipments" element={<AdminRoute element={<AdminEquipments />} />} />
-              <Route path="/operator/*" element={<OperatorRoute element={<div>Área do Operador</div>} />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <ThemeProvider attribute="class" defaultTheme="light">
+              <Toaster />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/script-generator" element={<ScriptGenerator />} />
+                <Route path="/script-history" element={<ScriptHistory />} />
+                <Route path="/media-library" element={<MediaLibrary />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/custom-gpt" element={<CustomGpt />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/equipments" element={<AdminEquipments />} />
+                <Route path="/admin/content" element={<AdminContent />} />
+                <Route path="/admin/integrations" element={<AdminIntegrations />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ThemeProvider>
           </LanguageProvider>
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+}
 
 export default App;
