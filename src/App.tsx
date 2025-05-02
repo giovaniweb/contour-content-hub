@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
@@ -25,6 +25,7 @@ import ClientList from "@/pages/seller/ClientList";
 import ClientDetail from "@/pages/seller/ClientDetail";
 import NotFound from "@/pages/NotFound";
 import EquipmentDetailsPage from "@/pages/EquipmentDetailsPage";
+import EquipmentDetails from "@/pages/EquipmentDetails";
 
 function App() {
   return (
@@ -51,6 +52,13 @@ function App() {
       <Route path="/seller/dashboard" element={<SellerDashboard />} />
       <Route path="/seller/clients" element={<ClientList />} />
       <Route path="/seller/client/:id" element={<ClientDetail />} />
+      
+      {/* Add redirect for equipment-details to either admin equipments or equipment details */}
+      <Route path="/equipment-details" element={<Navigate to="/admin/equipments" replace />} />
+      
+      {/* General equipment details page */}
+      <Route path="/equipment-details/:id" element={<EquipmentDetails />} />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

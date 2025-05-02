@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -144,6 +145,12 @@ function renderEquipmentList(equipments: Equipment[], isLoading: boolean) {
               <span className={`text-xs px-2 py-1 rounded-full ${equip.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
                 {equip.ativo ? "Ativo" : "Inativo"}
               </span>
+              <Link to={`/admin/equipment/${equip.id}`}>
+                <Button size="sm" variant="ghost">
+                  <Eye className="h-4 w-4 mr-1" />
+                  Detalhes
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
