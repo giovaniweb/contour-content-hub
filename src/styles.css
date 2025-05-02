@@ -31,6 +31,31 @@
     --contourline-mediumBlue: 217 42% 49%; /* #3762a5 */
     --contourline-lightBlue: 214 97% 77%; /* #90baff */
     --contourline-lightGray: 220 14% 96%; /* #f1f2f6 */
+    --contourline-hover-overlay: 214 100% 97%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --primary: 210 100% 65%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-strong: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 216 34% 17%;
+    --contourline-hover-overlay: 214 50% 20%;
   }
 }
 
@@ -53,6 +78,16 @@
   }
   h3 {
     @apply text-xl mb-2;
+  }
+  
+  /* Melhorias de acessibilidade - focus visível */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-contourline-mediumBlue rounded-md;
+  }
+  
+  /* Transições suaves para melhor feedback visual */
+  a, button, input, select, textarea {
+    @apply transition-all duration-200;
   }
 }
 
@@ -83,7 +118,83 @@
   @apply w-full sm:w-auto;
 }
 
+/* Melhorias nas interações */
+.interactive-item {
+  @apply relative hover:bg-contourline-hover-overlay transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-contourline-mediumBlue;
+}
+
+.menu-item {
+  @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-contourline-hover-overlay hover:text-contourline-mediumBlue transition-colors;
+}
+
+.menu-item-active {
+  @apply bg-contourline-mediumBlue text-white hover:bg-contourline-darkBlue hover:text-white;
+}
+
 /* Sobreposições específicas para a aplicação */
 .reelline-card {
   @apply shadow-sm border-gray-100;
+}
+
+/* Novas classes para gradientes da Contourline */
+.bg-contourline-gradient {
+  @apply bg-gradient-to-r from-contourline-darkBlue via-contourline-mediumBlue to-contourline-lightBlue;
+}
+
+.bg-contourline-gradient-reverse {
+  @apply bg-gradient-to-r from-contourline-lightBlue via-contourline-mediumBlue to-contourline-darkBlue;
+}
+
+.text-contourline-gradient {
+  @apply bg-gradient-to-r from-contourline-darkBlue to-contourline-mediumBlue bg-clip-text text-transparent;
+}
+
+/* Loading animações personalizadas */
+.loading-creative {
+  @apply relative text-center py-8 px-4;
+}
+
+.loading-creative::after {
+  content: "Tô tirando do forno...";
+  @apply block mt-4 text-contourline-mediumBlue animate-pulse;
+}
+
+/* Card moderno com bordas mais sutis */
+.modern-card {
+  @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all;
+}
+
+/* Animações mais suaves */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Melhorias na transição de página */
+.page-transition {
+  @apply animate-fade-in;
+}
+
+/* Estilos para elementos de navegação ativos */
+.nav-link-active {
+  @apply relative text-contourline-mediumBlue font-medium;
+}
+
+.nav-link-active::after {
+  content: "";
+  @apply absolute bottom-0 left-0 w-full h-0.5 bg-contourline-mediumBlue rounded-full;
+}
+
+/* Melhorias de acessibilidade para skip links */
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-white focus:text-contourline-mediumBlue focus:shadow-lg;
+}
+
+/* Estilo de seleção de texto melhorado */
+::selection {
+  @apply bg-contourline-lightBlue/30 text-contourline-darkBlue;
 }

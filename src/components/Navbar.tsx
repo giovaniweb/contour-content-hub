@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/components/theme-provider"
+import { useTheme } from "@/components/theme-provider";
 import {
   Sheet,
   SheetContent,
@@ -10,26 +10,18 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import ProfileMenu from "./ProfileMenu";
 import {
-  LayoutDashboard,
-  History,
-  Library,
-  CalendarDays,
-  Settings,
-  LogOut,
-  Moon,
-  Sun,
-  FileVideo,
-  Sparkles,
-  FileSearch,
   Home,
   FileText,
-  Film
+  Film,
+  CalendarDays,
+  Menu,
+  X
 } from "lucide-react";
 import {
   Drawer,
@@ -40,16 +32,16 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
+} from "@/components/ui/drawer";
+import { 
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-
-interface SubmenuProps {
-  label: string;
-  items: {
-    label: string;
-    href: string;
-  }[];
-}
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -57,7 +49,22 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { setTheme } = useTheme();
+
+  // Detecta rolagem para aplicar efeito visual na navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -79,170 +86,180 @@ const Navbar: React.FC = () => {
   const DrawerNavLink: React.FC<{ to: string; icon: React.ReactNode; label: string }> = ({ to, icon, label }) => {
     const isActive = location.pathname === to;
     return (
-      <Link to={to} className={`group flex w-full items-center rounded-md border px-3 py-2 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary focus:text-accent-foreground ${isActive ? 'bg-secondary text-accent-foreground' : 'text-muted-foreground'}`} onClick={() => setIsMobileMenuOpen(false)}>
-        {icon}
+      <Link 
+        to={to} 
+        className={`group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground ${isActive ? 'bg-secondary text-accent-foreground font-medium' : 'text-foreground'}`} 
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        <span className="mr-3 text-contourline-mediumBlue">{icon}</span>
         {label}
       </Link>
     );
   };
 
-  const getUserDisplayName = () => {
-    if (!user) return "U";
-    // @ts-ignore - We're handling potential undefined values
-    return user.full_name || user.email || "U"; 
-  };
-  
-  const getUserInitial = () => {
-    const displayName = getUserDisplayName();
-    return displayName.charAt(0).toUpperCase();
-  };
-
   return (
-    <header className="sticky top-0 z-40 border-b bg-background">
-      <nav className="container mx-auto px-4 flex h-16 items-center justify-between">
+    <header 
+      className={cn(
+        "sticky top-0 z-40 border-b transition-all duration-200",
+        scrolled 
+          ? "bg-background/95 backdrop-blur-sm shadow-sm" 
+          : "bg-background"
+      )}
+    >
+      <nav className="container mx-auto px-4 flex h-16 items-center justify-between" aria-label="Navegação principal">
         {/* Logo e título */}
         <div className="flex items-center">
-          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
+          <Link 
+            to={isAuthenticated ? "/dashboard" : "/"} 
+            className="flex items-center" 
+            aria-label="Ir para página inicial Fluida"
+          >
             <h1 className="text-lg font-semibold flex items-center">
-              <FileVideo className="mr-2 h-6 w-6 text-blue-500" />
+              <Film className="mr-2 h-6 w-6 text-contourline-mediumBlue" aria-hidden="true" />
               <span className="hidden md:block">Fluida</span>
             </h1>
           </Link>
         </div>
 
         {/* Links principais - visíveis em telas maiores */}
-        <div className="hidden md:flex items-center space-x-1">
-          {isAuthenticated && user && (
-            <>
-              <NavLink to="/dashboard" className={({isActive}) => 
-                isActive ? "text-primary font-medium" : "hover:text-primary"
-              }>
-                <div className="flex items-center px-3 py-2">
-                  <Home className="h-4 w-4 mr-1" />
-                  Inicio
-                </div>
-              </NavLink>
-              <NavLink to="/script-history" className={({isActive}) => 
-                isActive ? "text-primary font-medium" : "hover:text-primary"
-              }>
-                <div className="flex items-center px-3 py-2">
-                  <FileText className="h-4 w-4 mr-1" />
-                  Roteiros Fluida
-                </div>
-              </NavLink>
-              <NavLink to="/media-library" className={({isActive}) => 
-                isActive ? "text-primary font-medium" : "hover:text-primary"
-              }>
-                <div className="flex items-center px-3 py-2">
-                  <Film className="h-4 w-4 mr-1" />
-                  Mídia
-                </div>
-              </NavLink>
-              <NavLink to="/calendar" className={({isActive}) => 
-                isActive ? "text-primary font-medium" : "hover:text-primary"
-              }>
-                <div className="flex items-center px-3 py-2">
-                  <CalendarDays className="h-4 w-4 mr-1" />
-                  Agenda
-                </div>
-              </NavLink>
-            </>
-          )}
-        </div>
-
-        {/* Menu mobile (hambúrguer) */}
-        <div className="md:hidden">
-          <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <DrawerTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-                <span className="sr-only">Abrir menu</span>
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="text-left">
-              <DrawerHeader>
-                <DrawerTitle>Menu</DrawerTitle>
-                <DrawerDescription>Navegue pelo Fluida</DrawerDescription>
-              </DrawerHeader>
-              <div className="space-y-1 px-2 py-3">
-                {isAuthenticated && (
-                  <>
-                    <DrawerNavLink to="/dashboard" icon={<Home className="h-4 w-4 mr-2" />} label="Inicio" />
-                    <DrawerNavLink to="/script-history" icon={<FileText className="h-4 w-4 mr-2" />} label="Roteiros Fluida" />
-                    <DrawerNavLink to="/media-library" icon={<Film className="h-4 w-4 mr-2" />} label="Mídia" />
-                    <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-4 w-4 mr-2" />} label="Agenda" />
-                  </>
-                )}
-                {!isAuthenticated && (
-                  <>
-                    <DrawerNavLink to="/" icon={<Home className="h-4 w-4 mr-2" />} label="Início" />
-                    <DrawerNavLink to="/register" icon={<FileSearch className="h-4 w-4 mr-2" />} label="Criar conta" />
-                  </>
-                )}
-              </div>
-              <DrawerFooter>
-                <DrawerClose>
-                  <Button variant="outline" onClick={() => setIsMobileMenuOpen(false)}>Fechar</Button>
-                </DrawerClose>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
-        </div>
-
-        {/* Menu de perfil */}
-        {isAuthenticated && user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
-                <Avatar className="h-8 w-8">
-                  {/* Use safe access with optional chaining */}
-                  <AvatarImage 
-                    src={user && 'avatar_url' in user ? user.avatar_url as string : ""} 
-                    alt={getUserDisplayName()} 
-                  />
-                  <AvatarFallback>{getUserInitial()}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Abrir menu de perfil</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link to="/script-history">
-                  <History className="mr-2 h-4 w-4" />
-                  Histórico
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/equipment-details">
-                  <FileSearch className="mr-2 h-4 w-4" />
-                  Equipamento
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/profile">
-                  Perfil
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurações
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="hidden md:flex items-center space-x-2">
-            <Link to="/register" className="text-sm font-medium hover:underline">Criar conta</Link>
-            <Link to="/" className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">Entrar</Link>
+        {isAuthenticated && user && (
+          <div className="hidden md:flex items-center">
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavLink to="/dashboard">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/dashboard" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <Home className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Início</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavLink to="/script-history">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/script-history" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Roteiros</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavLink to="/media-library">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/media-library" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <Film className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Mídia</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavLink to="/equipment-details">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/equipment-details" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Equipamentos</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
         )}
+
+        {/* Menu de perfil e botão para menu mobile */}
+        <div className="flex items-center gap-2">
+          {/* Menu mobile (hambúrguer) */}
+          <div className="md:hidden">
+            <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <DrawerTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-9 w-9 p-0 rounded-full"
+                  aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="text-left">
+                <DrawerHeader className="border-b pb-3">
+                  <DrawerTitle className="flex items-center">
+                    <Film className="h-5 w-5 text-contourline-mediumBlue mr-2" aria-hidden="true" />
+                    Menu Fluida
+                  </DrawerTitle>
+                  <DrawerDescription>Navegue pelo aplicativo</DrawerDescription>
+                </DrawerHeader>
+                
+                <div className="space-y-1 px-2 py-4">
+                  {isAuthenticated && (
+                    <>
+                      <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
+                      <DrawerNavLink to="/script-history" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
+                      <DrawerNavLink to="/media-library" icon={<Film className="h-5 w-5" />} label="Mídia" />
+                      <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
+                      <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
+                    </>
+                  )}
+                  
+                  {!isAuthenticated && (
+                    <>
+                      <DrawerNavLink to="/" icon={<Home className="h-5 w-5" />} label="Início" />
+                      <DrawerNavLink to="/register" icon={<FileText className="h-5 w-5" />} label="Criar conta" />
+                    </>
+                  )}
+                </div>
+                
+                <DrawerFooter className="pt-2 border-t">
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                      <X className="h-4 w-4 mr-2" aria-hidden="true" />
+                      Fechar
+                    </Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          {/* Menu de perfil */}
+          {isAuthenticated && user ? (
+            <ProfileMenu />
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link 
+                to="/register"
+                className="text-sm font-medium hover:underline hidden md:block"
+                aria-label="Criar nova conta"
+              >
+                Criar conta
+              </Link>
+              <Link 
+                to="/" 
+                className="bg-contourline-mediumBlue text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-contourline-darkBlue transition-colors"
+                aria-label="Fazer login"
+              >
+                Entrar
+              </Link>
+            </div>
+          )}
+        </div>
       </nav>
     </header>
   );
