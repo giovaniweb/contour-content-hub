@@ -18,6 +18,7 @@ const CustomGpt: React.FC = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
   const [initialFormData, setInitialFormData] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<string>("fluida"); // Default tab
   const { toast } = useToast();
 
   useEffect(() => {
@@ -25,6 +26,12 @@ const CustomGpt: React.FC = () => {
     
     // Parse query parameters to pre-fill form
     const params = new URLSearchParams(location.search);
+    
+    // Set active tab based on mode parameter (advanced or simple)
+    const mode = params.get('mode');
+    if (mode === 'advanced') {
+      setActiveTab('roteiro');
+    }
     
     const formData: any = {};
     
@@ -159,7 +166,7 @@ const CustomGpt: React.FC = () => {
         </Alert>
         
         {!generatedScript ? (
-          <Tabs defaultValue="fluida" className="w-full">
+          <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
               <TabsTrigger value="fluida">Fluida</TabsTrigger>
               <TabsTrigger value="roteiro">Roteiro Avançado</TabsTrigger>

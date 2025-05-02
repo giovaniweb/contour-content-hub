@@ -105,6 +105,9 @@ const TrendingTopics: React.FC = () => {
       if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
       if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
       
+      // Add mode parameter to default to advanced tab
+      params.append('mode', 'advanced');
+      
       // Navigate to the custom-gpt page with query parameters
       navigate(`/${targetPage}?${params.toString()}`);
       
