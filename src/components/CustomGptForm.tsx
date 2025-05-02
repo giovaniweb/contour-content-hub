@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, CopyCheck, Copy, Download } from "lucide-react";
+import { Loader2, Sparkles, CopyCheck, Copy, Download, Wand } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import { getEquipments } from '@/utils/api-equipment';
@@ -33,6 +33,11 @@ import {
   CustomGptType, 
   ConteudoEstrategia 
 } from '@/utils/custom-gpt';
+import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
+import BodyAreaSelector from '@/components/script-generator/BodyAreaSelector';
+import PurposeSelector from '@/components/script-generator/PurposeSelector';
+import ToneSelector from '@/components/script-generator/ToneSelector';
+import { MarketingObjectiveType } from '@/utils/api';
 
 // Equipamentos padrão para garantir que sempre haja opções
 const defaultEquipamentos: Equipment[] = [
@@ -146,8 +151,8 @@ const defaultEquipamentos: Equipment[] = [
   }
 ];
 
-// Schema de validação do formulário
-const formSchema = z.object({
+// Schema de validação do formulário para modo simples
+const simpleFormSchema = z.object({
   tipo: z.enum(["roteiro", "bigIdea", "stories"]),
   equipamento: z.string().min(1, "Selecione um equipamento"),
   quantidade: z.number().min(1).max(10).optional(),
@@ -161,20 +166,96 @@ const formSchema = z.object({
   ]).optional()
 });
 
-const CustomGptForm = () => {
+// Schema de validação para modo avançado
+const advancedFormSchema = z.object({
+  tipo: z.enum(["roteiro", "bigIdea", "stories"]),
+  equipamento: z.string().min(1, "Selecione um equipamento"),
+  quantidade: z.number().min(1).max(10).optional(),
+  tom: z.string().optional(),
+  estrategiaConteudo: z.enum([
+    "🟡 Atrair Atenção",
+    "🟢 Criar Conexão",
+    "🔴 Fazer Comprar",
+    "🔁 Reativar Interesse",
+    "✅ Fechar Agora"
+  ]).optional(),
+  topic: z.string().optional(),
+  bodyArea: z.string().optional(),
+  purposes: z.array(z.string()).optional(),
+  additionalInfo: z.string().optional(),
+  marketingObjective: z.string().optional()
+});
+
+// Áreas do corpo
+const bodyAreas = [
+  { value: "face", label: "Face" },
+  { value: "pescoco", label: "Pescoço" },
+  { value: "abdomen", label: "Abdômen" },
+  { value: "coxas", label: "Coxas" },
+  { value: "gluteos", label: "Glúteos" },
+  { value: "bracos", label: "Braços" },
+  { value: "corpotodo", label: "Corpo todo" },
+];
+
+// Finalidades de tratamento
+const purposes = [
+  { value: "rugas", label: "Rugas" },
+  { value: "emagrecimento", label: "Emagrecimento" },
+  { value: "tonificacao", label: "Tonificação" },
+  { value: "hidratacao", label: "Hidratação" },
+  { value: "flacidez", label: "Flacidez" },
+  { value: "gordura", label: "Gordura localizada" },
+  { value: "lipedema", label: "Lipedema" },
+  { value: "sarcopenia", label: "Sarcopenia" },
+];
+
+interface CustomGptFormProps {
+  mode: 'simple' | 'advanced';
+}
+
+const CustomGptForm = ({ mode }: CustomGptFormProps) => {
   const [loading, setLoading] = useState(false);
   const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
   const { toast } = useToast();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const [selectedPurposes, setSelectedPurposes] = useState<string[]>([]);
+  
+  // Form setup based on mode
+  const form = useForm<z.infer<typeof simpleFormSchema> | z.infer<typeof advancedFormSchema>>({
+    resolver: zodResolver(mode === 'simple' ? simpleFormSchema : advancedFormSchema),
+    defaultValues: mode === 'simple' ? {
       tipo: "roteiro",
       equipamento: "",
       quantidade: 1
+    } : {
+      tipo: "roteiro",
+      equipamento: "",
+      quantidade: 1,
+      topic: "",
+      bodyArea: "",
+      purposes: [],
+      additionalInfo: "",
+      tom: "professional"
     }
   });
+
+  // Handle checkbox change for purposes
+  const handlePurposeChange = (value: string) => {
+    setSelectedPurposes(
+      selectedPurposes.includes(value)
+        ? selectedPurposes.filter((item) => item !== value)
+        : [...selectedPurposes, value]
+    );
+    
+    // Update form value if in advanced mode
+    if (mode === 'advanced') {
+      form.setValue('purposes', 
+        selectedPurposes.includes(value)
+          ? selectedPurposes.filter((item) => item !== value)
+          : [...selectedPurposes, value]
+      );
+    }
+  };
 
   // Carregar equipamentos ao montar o componente
   useEffect(() => {
@@ -220,7 +301,7 @@ const CustomGptForm = () => {
   }, [toast]);
 
   // Lidar com o envio do formulário
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof simpleFormSchema> | z.infer<typeof advancedFormSchema>) => {
     try {
       setLoading(true);
       setResultado("");
@@ -233,6 +314,19 @@ const CustomGptForm = () => {
       }
 
       console.log("Enviando requisição para gerar conteúdo com equipamento:", equipamentoSelecionado);
+      
+      // Preparar dados adicionais para o modo avançado
+      let additionalData = {};
+      if (mode === 'advanced') {
+        const advancedValues = values as z.infer<typeof advancedFormSchema>;
+        additionalData = {
+          topic: advancedValues.topic,
+          bodyArea: advancedValues.bodyArea,
+          purposes: selectedPurposes,
+          additionalInfo: advancedValues.additionalInfo,
+          marketingObjective: advancedValues.marketingObjective
+        };
+      }
 
       const response = await generateCustomContent({
         tipo: values.tipo as CustomGptType,
@@ -240,7 +334,8 @@ const CustomGptForm = () => {
         quantidade: values.quantidade,
         tom: values.tom,
         estrategiaConteudo: values.estrategiaConteudo as ConteudoEstrategia,
-        equipamentoData: equipamentoSelecionado // Passar os dados completos do equipamento
+        equipamentoData: equipamentoSelecionado,
+        ...additionalData
       });
 
       setResultado(response.content);
@@ -275,11 +370,23 @@ const CustomGptForm = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-xl flex items-center">
-            <Sparkles className="h-5 w-5 mr-2 text-blue-500" />
-            GPT Personalizado - Roteiros e Ideias
+            {mode === 'simple' ? (
+              <>
+                <Sparkles className="h-5 w-5 mr-2 text-blue-500" />
+                GPT Personalizado - Roteiros e Ideias
+              </>
+            ) : (
+              <>
+                <Wand className="h-5 w-5 mr-2 text-blue-500" />
+                Roteiro Avançado - Personalização Completa
+              </>
+            )}
           </CardTitle>
           <CardDescription>
-            Gere roteiros, big ideas e stories para equipamentos estéticos
+            {mode === 'simple' 
+              ? "Gere roteiros, big ideas e stories para equipamentos estéticos" 
+              : "Crie conteúdo altamente personalizado com opções avançadas de customização"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -453,6 +560,92 @@ const CustomGptForm = () => {
                   />
                 </TabsContent>
               </Tabs>
+              
+              {/* Opções avançadas apenas para o modo advanced */}
+              {mode === 'advanced' && (
+                <Accordion type="single" collapsible className="w-full">
+                  {/* Tema/Assunto Principal */}
+                  <AccordionItem value="topic">
+                    <AccordionTrigger>Tema/Assunto Principal</AccordionTrigger>
+                    <AccordionContent>
+                      <FormField
+                        control={form.control}
+                        name="topic"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tema/Assunto</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Ex: Tratamento para flacidez facial" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Objetivo de Marketing */}
+                  <AccordionItem value="marketingObjective">
+                    <AccordionTrigger>Objetivo de Marketing</AccordionTrigger>
+                    <AccordionContent>
+                      <VideoObjectiveSelector
+                        value={form.watch('marketingObjective') as MarketingObjectiveType}
+                        onValueChange={(value) => form.setValue('marketingObjective', value)}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Área do Corpo */}
+                  <AccordionItem value="bodyArea">
+                    <AccordionTrigger>Área do Corpo</AccordionTrigger>
+                    <AccordionContent>
+                      <BodyAreaSelector
+                        bodyAreas={bodyAreas}
+                        value={form.watch('bodyArea') as string}
+                        onValueChange={(value) => form.setValue('bodyArea', value)}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Finalidade do Tratamento */}
+                  <AccordionItem value="purposes">
+                    <AccordionTrigger>Finalidade do Tratamento</AccordionTrigger>
+                    <AccordionContent>
+                      <PurposeSelector
+                        purposes={purposes}
+                        selectedPurposes={selectedPurposes}
+                        onPurposeChange={handlePurposeChange}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Informações Adicionais */}
+                  <AccordionItem value="additionalInfo">
+                    <AccordionTrigger>Informações Adicionais</AccordionTrigger>
+                    <AccordionContent>
+                      <FormField
+                        control={form.control}
+                        name="additionalInfo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Detalhes específicos, pontos-chave, públicos especiais, etc."
+                                {...field}
+                                rows={4}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
               
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? (

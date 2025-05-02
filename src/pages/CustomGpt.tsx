@@ -2,12 +2,13 @@
 import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { Sparkles, Wand } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CustomGpt: React.FC = () => {
   useEffect(() => {
-    document.title = "GPT Personalizado | Reelline";
+    document.title = "Gerador de Conteúdo | Reelline";
   }, []);
 
   return (
@@ -15,22 +16,35 @@ const CustomGpt: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center mb-6">
           <Sparkles className="h-8 w-8 mr-2 text-blue-500" />
-          <h1 className="text-2xl font-bold">GPT Personalizado</h1>
+          <h1 className="text-2xl font-bold">Gerador de Conteúdo Avançado</h1>
         </div>
         <p className="text-muted-foreground mb-6">
-          Gere roteiros, big ideas e stories para equipamentos estéticos usando seu prompt personalizado.
+          Gere roteiros, big ideas e stories para equipamentos estéticos usando o assistente de IA avançado.
         </p>
         
         <Alert className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Informação</AlertTitle>
+          <Wand className="h-4 w-4" />
+          <AlertTitle>Assistente Unificado</AlertTitle>
           <AlertDescription>
-            A aplicação está mostrando os 12 equipamentos da lista padrão.
-            Selecione um equipamento para gerar conteúdo personalizado com base nas suas características.
+            Este gerador combina as melhores funcionalidades do GPT Personalizado e do Gerador de Roteiros.
+            Selecione um equipamento e personalize suas preferências para criar conteúdo otimizado.
           </AlertDescription>
         </Alert>
         
-        <CustomGptForm />
+        <Tabs defaultValue="gptPersonalizado" className="w-full">
+          <TabsList className="grid grid-cols-2 mb-6">
+            <TabsTrigger value="gptPersonalizado">GPT Personalizado</TabsTrigger>
+            <TabsTrigger value="roteiro">Roteiro Avançado</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="gptPersonalizado">
+            <CustomGptForm mode="simple" />
+          </TabsContent>
+          
+          <TabsContent value="roteiro">
+            <CustomGptForm mode="advanced" />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

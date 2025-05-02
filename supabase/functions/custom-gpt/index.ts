@@ -103,7 +103,13 @@ serve(async (req) => {
       quantidade = 1, // Quantidade de roteiros (default: 1)
       tom, // Tom desejado
       estrategiaConteudo, // 🟡 Atrair Atenção, 🟢 Criar Conexão, etc.
-      equipamentoData // Dados do equipamento selecionado
+      equipamentoData, // Dados do equipamento selecionado
+      // Parâmetros adicionais do modo avançado
+      topic,
+      bodyArea,
+      purposes,
+      additionalInfo,
+      marketingObjective
     } = requestData;
     
     if (!tipo || !equipamento) {
@@ -134,6 +140,7 @@ serve(async (req) => {
     
     userPrompt += `Tipo de conteúdo solicitado: ${tipo}\n`;
     
+    // Adicionar parâmetros básicos do modo simples
     if (tipo === 'roteiro') {
       userPrompt += `Quantidade de roteiros: ${quantidade}\n`;
       userPrompt += `Tom desejado: ${tom || 'Use o tom indicado no cadastro do equipamento'}\n`;
@@ -148,6 +155,27 @@ serve(async (req) => {
     } else if (tipo === 'stories') {
       userPrompt += `Tom desejado: ${tom || 'Use o tom indicado no cadastro do equipamento'}\n`;
       userPrompt += `Gere ${quantidade || 10} ideias para stories\n`;
+    }
+    
+    // Adicionar parâmetros avançados
+    if (topic) {
+      userPrompt += `Tema/Assunto principal: ${topic}\n`;
+    }
+    
+    if (bodyArea) {
+      userPrompt += `Área do corpo a focar: ${bodyArea}\n`;
+    }
+    
+    if (purposes && purposes.length > 0) {
+      userPrompt += `Finalidades do tratamento: ${purposes.join(', ')}\n`;
+    }
+    
+    if (additionalInfo) {
+      userPrompt += `Informações adicionais: ${additionalInfo}\n`;
+    }
+    
+    if (marketingObjective) {
+      userPrompt += `Objetivo de marketing: ${marketingObjective}\n`;
     }
     
     // Aqui definimos qual tipo específico de saída queremos

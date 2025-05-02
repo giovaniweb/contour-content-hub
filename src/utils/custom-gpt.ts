@@ -19,6 +19,12 @@ export interface CustomGptRequest {
   tom?: string;
   estrategiaConteudo?: ConteudoEstrategia;
   equipamentoData?: Equipment; // Dados completos do equipamento selecionado
+  // Campos adicionais para o modo avançado
+  topic?: string;
+  bodyArea?: string;
+  purposes?: string[];
+  additionalInfo?: string;
+  marketingObjective?: string;
 }
 
 export interface CustomGptResponse {
@@ -48,12 +54,8 @@ export const generateCustomContent = async (request: CustomGptRequest): Promise<
     // Chamar edge function para gerar conteúdo
     const { data, error } = await supabase.functions.invoke('custom-gpt', {
       body: {
-        tipo: request.tipo,
-        equipamento: request.equipamento,
-        quantidade: request.quantidade,
-        tom: request.tom,
-        estrategiaConteudo: request.estrategiaConteudo,
-        equipamentoData: equipamentoData // Enviar apenas os dados do equipamento selecionado
+        ...request,
+        equipamentoData: equipamentoData // Enviar os dados do equipamento selecionado e todos os campos adicionais
       }
     });
     
