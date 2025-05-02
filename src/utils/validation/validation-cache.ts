@@ -43,10 +43,13 @@ export class ValidationCache {
    * Armazena uma validação em cache
    */
   public set(id: string, data: ValidationResult): void {
-    this.cache.set(id, {
+    // Ensure we're adding the timestamp as a separate property
+    const cacheEntry: ValidationResult & { timestamp: number } = {
       ...data,
       timestamp: Date.now()
-    });
+    };
+    
+    this.cache.set(id, cacheEntry);
   }
   
   /**
