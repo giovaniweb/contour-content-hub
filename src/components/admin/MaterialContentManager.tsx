@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Loader2, FileText, Image, Box } from "lucide-react";
+import { Search, Plus, Loader2, FileText, Image, Box, Grid2x2, LayoutList, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import MaterialForm from "./MaterialForm";
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const MaterialContentManager: React.FC = () => {
   const { toast } = useToast();
@@ -33,6 +34,8 @@ const MaterialContentManager: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
   
   // Fetch materials
   const fetchMaterials = async () => {
@@ -135,52 +138,83 @@ const MaterialContentManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Buscar material por nome ou categoria..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="flex flex-row gap-3">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              <SelectItem value="PDF">PDF</SelectItem>
-              <SelectItem value="PSD">PSD</SelectItem>
-              <SelectItem value="Logomarca">Logomarca</SelectItem>
-              <SelectItem value="Imagem">Imagem</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={() => setIsDialogOpen(true)}
+            variant="default"
+            size="lg"
+            className="flex gap-2"
+          >
+            <Plus className="h-5 w-5" /> Novo Material
+          </Button>
           
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {categoryOptions.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
+            <ToggleGroupItem value="grid" aria-label="Ver em grid">
+              <Grid2x2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="Ver em lista">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
           
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Material
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            className={showFilters ? "bg-muted" : ""}
+          >
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
+        
+        <div className="relative w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar material..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
+      
+      {showFilters && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+          <div>
+            <Label htmlFor="filterType">Tipo de Material</Label>
+            <Select id="filterType" value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder="Filtrar por tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="PDF">PDF</SelectItem>
+                <SelectItem value="PSD">PSD</SelectItem>
+                <SelectItem value="Logomarca">Logomarca</SelectItem>
+                <SelectItem value="Imagem">Imagem</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="filterCategory">Categoria</Label>
+            <Select id="filterCategory" value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder="Filtrar por categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {categoryOptions.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
       
       {isLoading ? (
         <div className="py-12 flex justify-center items-center">
@@ -194,7 +228,12 @@ const MaterialContentManager: React.FC = () => {
           </Button>
         </div>
       ) : (
-        <MaterialList materials={materials} onDelete={handleDeleteMaterial} onUpdate={fetchMaterials} />
+        <MaterialList 
+          materials={materials} 
+          onDelete={handleDeleteMaterial} 
+          onUpdate={fetchMaterials}
+          viewMode={viewMode}
+        />
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

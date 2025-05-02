@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Grid2x2, LayoutList, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import VideoForm from "./VideoForm";
@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const VideoContentManager: React.FC = () => {
   const { toast } = useToast();
@@ -36,6 +37,8 @@ const VideoContentManager: React.FC = () => {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterEquipment, setFilterEquipment] = useState<string>("all");
   const [equipmentOptions, setEquipmentOptions] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
   
   // Get distinct equipments for the filter
   useEffect(() => {
@@ -136,51 +139,82 @@ const VideoContentManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Buscar vídeo por nome ou descrição..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="flex flex-row gap-3">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              <SelectItem value="video">Vídeos prontos</SelectItem>
-              <SelectItem value="raw">Takes brutos</SelectItem>
-              <SelectItem value="image">Imagens</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={() => setIsDialogOpen(true)}
+            variant="default"
+            size="lg"
+            className="flex gap-2"
+          >
+            <Plus className="h-5 w-5" /> Novo Vídeo
+          </Button>
           
-          <Select value={filterEquipment} onValueChange={setFilterEquipment}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por equipamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os equipamentos</SelectItem>
-              {equipmentOptions.map((equipment) => (
-                <SelectItem key={equipment} value={equipment}>
-                  {equipment}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
+            <ToggleGroupItem value="grid" aria-label="Ver em grid">
+              <Grid2x2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="Ver em lista">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
           
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Vídeo
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            className={showFilters ? "bg-muted" : ""}
+          >
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
+        
+        <div className="relative w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar vídeo..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
+      
+      {showFilters && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+          <div>
+            <Label htmlFor="filterType">Tipo de Vídeo</Label>
+            <Select id="filterType" value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder="Filtrar por tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="video">Vídeos prontos</SelectItem>
+                <SelectItem value="raw">Takes brutos</SelectItem>
+                <SelectItem value="image">Imagens</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="filterEquipment">Equipamento</Label>
+            <Select id="filterEquipment" value={filterEquipment} onValueChange={setFilterEquipment}>
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder="Filtrar por equipamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os equipamentos</SelectItem>
+                {equipmentOptions.map((equipment) => (
+                  <SelectItem key={equipment} value={equipment}>
+                    {equipment}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
       
       {isLoading ? (
         <div className="py-12 flex justify-center items-center">
@@ -194,7 +228,12 @@ const VideoContentManager: React.FC = () => {
           </Button>
         </div>
       ) : (
-        <VideoList videos={videos} onDelete={handleDeleteVideo} onUpdate={fetchVideos} />
+        <VideoList 
+          videos={videos} 
+          onDelete={handleDeleteVideo} 
+          onUpdate={fetchVideos}
+          viewMode={viewMode} 
+        />
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
