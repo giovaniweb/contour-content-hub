@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -140,6 +139,27 @@ const ScriptGenerator: React.FC = () => {
     }
   };
   
+  // Handle script rejection
+  const handleScriptReject = async (scriptId: string) => {
+    try {
+      await saveScriptFeedback(scriptId, "Roteiro precisa ser refeito", false);
+      
+      toast({
+        title: "Roteiro marcado para ser refeito",
+        description: "O roteiro foi rejeitado e voltará para edição",
+      });
+      
+      // Reset the generated script to start over
+      setGeneratedScript(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível processar a ação",
+      });
+    }
+  };
+  
   // Reset form
   const resetForm = () => {
     setScriptType("videoScript");
@@ -199,6 +219,7 @@ const ScriptGenerator: React.FC = () => {
             <ScriptCard 
               script={generatedScript}
               onFeedbackSubmit={handleScriptFeedback}
+              onReject={handleScriptReject}
             />
           ) : (
             <Card className="h-full flex items-center justify-center">

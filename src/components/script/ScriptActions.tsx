@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, ThumbsUp, FileText, Sparkles, Check, Calendar } from "lucide-react";
+import { Download, ThumbsUp, FileText, Sparkles, Check, Calendar, RefreshCw } from "lucide-react";
 import { ScriptResponse } from '@/utils/api';
 
 interface ScriptActionsProps {
@@ -15,6 +15,7 @@ interface ScriptActionsProps {
   onToggleValidation: () => void;
   onApproveScript: () => void;
   onOpenCalendarDialog: () => void;
+  onRejectScript?: () => void;
 }
 
 const ScriptActions: React.FC<ScriptActionsProps> = ({
@@ -27,7 +28,8 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
   onGeneratePDF,
   onToggleValidation,
   onApproveScript,
-  onOpenCalendarDialog
+  onOpenCalendarDialog,
+  onRejectScript
 }) => {
   return (
     <div className="flex gap-2 flex-wrap">
@@ -69,6 +71,19 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
         <Check className="h-4 w-4 mr-1" />
         {isScriptApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
       </Button>
+
+      {onRejectScript && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onRejectScript}
+          disabled={isApproving || isScriptApproved}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          <RefreshCw className="h-4 w-4 mr-1" />
+          Refazer
+        </Button>
+      )}
 
       <Button
         variant="outline"

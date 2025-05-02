@@ -24,6 +24,11 @@ const CustomGpt: React.FC = () => {
     // When script is approved, automatically show the calendar
     setShowCalendar(true);
   };
+  
+  const handleScriptReject = async () => {
+    // Reset to form view when script is rejected
+    setGeneratedScript(null);
+  };
 
   return (
     <Layout>
@@ -66,6 +71,7 @@ const CustomGpt: React.FC = () => {
             <ScriptCard 
               script={generatedScript} 
               onApprove={handleScriptApprove}
+              onReject={handleScriptReject}
             />
             
             <div className="flex justify-end gap-2 mt-4">

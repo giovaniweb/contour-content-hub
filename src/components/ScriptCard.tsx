@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { ScriptResponse, saveScriptFeedback, generatePDF, updateScript } from '@/utils/api';
@@ -15,9 +14,10 @@ interface ScriptCardProps {
   script: ScriptResponse;
   onFeedbackSubmit?: (scriptId: string, feedback: string, approved: boolean) => Promise<void> | void;
   onApprove?: (scriptId: string) => Promise<void> | void;
+  onReject?: (scriptId: string) => Promise<void> | void;
 }
 
-const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApprove }) => {
+const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApprove, onReject }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
@@ -87,6 +87,31 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
         variant: "destructive",
         title: "Falha na aprovação",
         description: "Não foi possível aprovar o roteiro.",
+      });
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleRejectScript = async () => {
+    try {
+      setIsApproving(true);
+      
+      // Add a generic feedback for rejection
+      await updateScript(script.id, script.content, "Roteiro precisa ser refeito", "gerado");
+      
+      toast({
+        title: "Roteiro rejeitado",
+        description: "O roteiro foi marcado para ser refeito.",
+      });
+      
+      if (onReject) await onReject(script.id);
+      
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Falha na rejeição",
+        description: "Não foi possível marcar o roteiro para ser refeito.",
       });
     } finally {
       setIsApproving(false);
@@ -194,6 +219,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit, onApp
             onToggleValidation={() => setShowValidation(!showValidation)}
             onApproveScript={handleApproveScript}
             onOpenCalendarDialog={() => setCalendarDialogOpen(true)}
+            onRejectScript={onReject ? handleRejectScript : undefined}
           />
         </CardFooter>
       </Card>
