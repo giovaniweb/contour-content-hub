@@ -34,6 +34,7 @@ export const getEquipments = async (): Promise<Equipment[]> => {
     console.log(`Encontrados ${count || 0} equipamentos no banco de dados`);
     if (data) {
       console.log('Nomes dos equipamentos encontrados:', data.map(eq => eq.nome).join(', '));
+      console.log('Total de equipamentos da API:', data.length);
     }
     
     // Se não houver dados ou o array estiver vazio, retornar um array vazio
