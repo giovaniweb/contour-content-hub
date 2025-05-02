@@ -41,7 +41,7 @@ serve(async (req) => {
     }
     
     // Get content data from request
-    const { title, equipment, bodyArea, purpose, description, type } = await req.json();
+    const { title, equipments, bodyArea, purposes, description, type } = await req.json();
     
     // Prepare prompt for OpenAI
     const prompt = `
@@ -53,14 +53,18 @@ serve(async (req) => {
       
       Informações:
       - Título: ${title}
-      - Tipo de conteúdo: ${type === 'video' ? 'Vídeo pronto' : type === 'raw' ? 'Take bruto' : 'Imagem'}
-      - Equipamento: ${equipment || 'Não especificado'}
+      - Tipo de conteúdo: ${type === 'video_pronto' ? 'Vídeo pronto' : type === 'take' ? 'Take bruto' : 'Imagem'}
+      - Equipamento(s): ${Array.isArray(equipments) ? equipments.join(", ") : equipments || 'Não especificado'}
       - Área do corpo: ${bodyArea || 'Não especificada'}
-      - Finalidade: ${purpose || 'Não especificada'}
+      - Finalidade(s): ${Array.isArray(purposes) ? purposes.join(", ") : purposes || 'Não especificada'}
       - Descrição breve: ${description || 'Não fornecida'}
       
       A descrição detalhada deve ser profissional, informativa e útil para profissionais da área de estética e medicina.
-      As tags devem ser relevantes para busca e categorização do conteúdo.
+      As tags devem incluir:
+      - Termos das finalidades (como rugas, flacidez, lipedema, sarcopenia) quando relevantes
+      - Nome(s) dos equipamentos
+      - Áreas do corpo tratadas
+      - Outros termos relevantes para estética médica
       
       Responda apenas com a descrição detalhada e as tags, sem introduções ou explicações adicionais.
       Formate como JSON com as chaves "detailedDescription" e "suggestedTags" (array).

@@ -12,10 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Check, X, ChevronsUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface VideoFormProps {
   videoId?: string;
@@ -54,17 +67,22 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     "Outro"
   ]);
   
+  // Updated purpose options list based on requirements
   const [purposeOptions] = useState([
-    "Anti-aging", 
+    "Rugas", // Replaced "Anti-aging"
     "Emagrecimento", 
     "Tonificação", 
     "Hidratação", 
     "Flacidez",
     "Gordura localizada",
-    "Criação de conteúdo",
-    "Educacional",
+    "Lipedema", // Added as requested
+    "Sarcopenia", // Added as requested
     "Outro"
   ]);
+
+  // State for purpose search/filter
+  const [purposeSearch, setPurposeSearch] = useState("");
+  const [purposeDropdownOpen, setPurposeDropdownOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -83,6 +101,11 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
   });
 
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+
+  // Filtered purpose options based on search
+  const filteredPurposeOptions = purposeOptions.filter(purpose => 
+    purpose.toLowerCase().includes(purposeSearch.toLowerCase())
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -109,6 +132,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     const index = formData.finalidade.indexOf(purpose);
     if (index === -1) {
       setFormData({ ...formData, finalidade: [...formData.finalidade, purpose] });
+      setPurposeSearch(""); // Clear search after selection
     } else {
       setFormData({ 
         ...formData, 
@@ -242,6 +266,17 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         });
       }
       (e.target as HTMLInputElement).value = '';
+    }
+  };
+
+  // Handle custom purpose input
+  const handleAddCustomPurpose = () => {
+    if (formData.otherPurpose.trim() && !formData.finalidade.includes(formData.otherPurpose.trim())) {
+      setFormData({
+        ...formData,
+        finalidade: [...formData.finalidade, formData.otherPurpose.trim()],
+        otherPurpose: ""
+      });
     }
   };
 
@@ -422,32 +457,110 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
 
           <div className="space-y-2">
             <Label>Finalidades do Tratamento *</Label>
-            <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-[200px] overflow-y-auto">
-              {purposeOptions.map((purpose) => (
-                <div key={purpose} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`purpose-${purpose}`}
-                    checked={formData.finalidade.includes(purpose)}
-                    onCheckedChange={() => togglePurpose(purpose)}
-                  />
-                  <Label 
-                    htmlFor={`purpose-${purpose}`}
-                    className="text-sm cursor-pointer"
+            <div className="space-y-2">
+              {/* Selected purposes as badges */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {formData.finalidade.map(purpose => (
+                  <Badge 
+                    key={purpose} 
+                    variant="secondary"
+                    className="flex items-center gap-1 px-2 py-1"
                   >
                     {purpose}
-                  </Label>
-                </div>
-              ))}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => togglePurpose(purpose)} 
+                    />
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Autocomplete dropdown */}
+              <Popover open={purposeDropdownOpen} onOpenChange={setPurposeDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={purposeDropdownOpen}
+                    className="w-full justify-between"
+                  >
+                    Selecione ou digite uma finalidade
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Procurar finalidade..." 
+                      onValueChange={setPurposeSearch} 
+                      value={purposeSearch}
+                    />
+                    <CommandEmpty>
+                      {purposeSearch.trim() !== "" ? (
+                        <div className="py-2 px-3 text-sm flex flex-col gap-2">
+                          <span>Nenhuma finalidade encontrada</span>
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              if (purposeSearch.trim()) {
+                                setFormData({
+                                  ...formData, 
+                                  finalidade: [...formData.finalidade, purposeSearch.trim()]
+                                });
+                                setPurposeSearch("");
+                                setPurposeDropdownOpen(false);
+                              }
+                            }}
+                          >
+                            Adicionar "{purposeSearch}"
+                          </Button>
+                        </div>
+                      ) : (
+                        "Nenhuma finalidade encontrada"
+                      )}
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {filteredPurposeOptions.map((purpose) => (
+                        <CommandItem
+                          key={purpose}
+                          value={purpose}
+                          onSelect={() => {
+                            togglePurpose(purpose);
+                            setPurposeDropdownOpen(false);
+                          }}
+                          className="flex items-center justify-between"
+                        >
+                          {purpose}
+                          {formData.finalidade.includes(purpose) && (
+                            <Check className="h-4 w-4" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
-            {formData.finalidade.includes("Outro") && (
+
+            {/* Custom purpose input */}
+            <div className="flex items-center gap-2 mt-2">
               <Input
                 name="otherPurpose"
-                placeholder="Digite a finalidade"
+                placeholder="Ou digite uma nova finalidade"
                 value={formData.otherPurpose}
                 onChange={handleInputChange}
-                className="mt-2"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddCustomPurpose()}
               />
-            )}
+              <Button 
+                type="button" 
+                size="sm" 
+                variant="outline" 
+                onClick={handleAddCustomPurpose}
+                disabled={!formData.otherPurpose.trim()}
+              >
+                Adicionar
+              </Button>
+            </div>
           </div>
         </div>
 
