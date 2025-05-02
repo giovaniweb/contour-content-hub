@@ -152,6 +152,42 @@ export type Database = {
           },
         ]
       }
+      equipamentos: {
+        Row: {
+          ativo: boolean | null
+          beneficios: string
+          data_cadastro: string | null
+          diferenciais: string
+          id: string
+          indicacoes: string
+          linguagem: string
+          nome: string
+          tecnologia: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          beneficios: string
+          data_cadastro?: string | null
+          diferenciais: string
+          id?: string
+          indicacoes: string
+          linguagem: string
+          nome: string
+          tecnologia: string
+        }
+        Update: {
+          ativo?: boolean | null
+          beneficios?: string
+          data_cadastro?: string | null
+          diferenciais?: string
+          id?: string
+          indicacoes?: string
+          linguagem?: string
+          nome?: string
+          tecnologia?: string
+        }
+        Relationships: []
+      }
       favoritos: {
         Row: {
           data_favorito: string | null

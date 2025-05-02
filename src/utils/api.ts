@@ -1,3 +1,4 @@
+
 // Script types and interfaces
 
 // Different script types
@@ -74,9 +75,23 @@ import {
   getScriptById,
   updateScript,
   generateScriptPDF,
-  linkScriptToCalendar,
-  ScriptHistoryItem
+  linkScriptToCalendar
 } from './api-scripts';
+
+// Export interface ScriptHistoryItem from here instead of importing it
+export interface ScriptHistoryItem {
+  id: string;
+  title: string;
+  content: string;
+  contentHtml: string;
+  type: ScriptType;
+  status: 'gerado' | 'aprovado' | 'editado';
+  createdAt: string;
+  marketingObjective?: string;
+  observation?: string;
+  pdf_url?: string;
+  evento_agenda_id?: string;
+}
 
 // Export the Supabase functions
 export const generateScript = generateScriptFromSupabase;
@@ -98,8 +113,7 @@ export {
   getScriptById,
   updateScript,
   generateScriptPDF,
-  linkScriptToCalendar,
-  ScriptHistoryItem
+  linkScriptToCalendar
 };
 
 // Media library interfaces
