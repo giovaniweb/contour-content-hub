@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -47,6 +46,7 @@ const CustomGpt: React.FC = () => {
             </Button>
           </Link>
         </div>
+        
         <p className="text-muted-foreground mb-6">
           Gere roteiros, big ideas e stories para equipamentos estéticos usando o assistente de IA avançado.
         </p>

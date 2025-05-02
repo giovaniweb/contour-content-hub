@@ -12,7 +12,8 @@ import {
   Sparkles, 
   Settings, 
   MessageSquare,
-  LayoutDashboard
+  LayoutDashboard,
+  FileSearch
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -52,6 +53,16 @@ const Dashboard: React.FC = () => {
           <p className="text-gray-600 mt-2 max-w-2xl">
             Seu estúdio criativo de conteúdo, em um clique. O que vamos postar hoje?
           </p>
+          
+          {/* Link para a página de verificação de equipamentos */}
+          <div className="mt-4">
+            <Link to="/equipment-details">
+              <Button variant="outline" size="sm" className="flex items-center">
+                <FileSearch className="h-4 w-4 mr-2" />
+                Verificar Equipamentos
+              </Button>
+            </Link>
+          </div>
         </div>
         
         {/* Painel de Estatísticas de IA - apenas para Administradores */}

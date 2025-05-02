@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -26,7 +25,8 @@ import {
   Moon,
   Sun,
   FileVideo,
-  Sparkles
+  Sparkles,
+  FileSearch
 } from "lucide-react";
 import {
   Drawer,
@@ -100,7 +100,7 @@ const Navbar: React.FC = () => {
       <nav className="container mx-auto px-4 flex h-16 items-center justify-between">
         {/* Logo e título */}
         <div className="flex items-center">
-          <Link to="/" className="flex items-center">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
             <h1 className="text-lg font-semibold flex items-center">
               <FileVideo className="mr-2 h-6 w-6 text-blue-500" />
               <span className="hidden md:block">Reelline</span>
@@ -112,17 +112,37 @@ const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center space-x-1">
           {isAuthenticated && user && (
             <>
-              <NavLink to="/dashboard">
-                <LayoutDashboard className="h-4 w-4 mr-1" />
-                Dashboard
+              <NavLink to="/dashboard" className={({isActive}) => 
+                isActive ? "text-primary font-medium" : "hover:text-primary"
+              }>
+                <div className="flex items-center px-3 py-2">
+                  <LayoutDashboard className="h-4 w-4 mr-1" />
+                  Dashboard
+                </div>
               </NavLink>
-              <NavLink to="/script-generator">
-                <FileText className="h-4 w-4 mr-1" />
-                Roteiros
+              <NavLink to="/script-generator" className={({isActive}) => 
+                isActive ? "text-primary font-medium" : "hover:text-primary"
+              }>
+                <div className="flex items-center px-3 py-2">
+                  <FileText className="h-4 w-4 mr-1" />
+                  Roteiros
+                </div>
               </NavLink>
-              <NavLink to="/script-history">
-                <History className="h-4 w-4 mr-1" />
-                Histórico
+              <NavLink to="/script-history" className={({isActive}) => 
+                isActive ? "text-primary font-medium" : "hover:text-primary"
+              }>
+                <div className="flex items-center px-3 py-2">
+                  <History className="h-4 w-4 mr-1" />
+                  Histórico
+                </div>
+              </NavLink>
+              <NavLink to="/equipment-details" className={({isActive}) => 
+                isActive ? "text-primary font-medium" : "hover:text-primary"
+              }>
+                <div className="flex items-center px-3 py-2">
+                  <FileSearch className="h-4 w-4 mr-1" />
+                  Equipamentos
+                </div>
               </NavLink>
               <NavLink to="/media-library">
                 <Library className="h-4 w-4 mr-1" />
