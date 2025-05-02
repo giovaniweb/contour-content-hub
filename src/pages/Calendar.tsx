@@ -3,13 +3,6 @@ import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -23,6 +16,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getCalendarSuggestions, CalendarSuggestion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import CalendarDay from "@/components/CalendarDay";
@@ -30,6 +31,15 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon, Mail, 
 import { Separator } from "@/components/ui/separator";
 
 const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+// List of available equipment
+const EQUIPMENT_OPTIONS = [
+  { id: "adella", label: "Adélla" },
+  { id: "enygma", label: "Enygma" },
+  { id: "hipro", label: "Hipro" },
+  { id: "reverso", label: "Reverso" },
+  { id: "ultralift", label: "Ultralift" }
+];
 
 const Calendar: React.FC = () => {
   const { toast } = useToast();
@@ -42,7 +52,7 @@ const Calendar: React.FC = () => {
   const [emailAlertOpen, setEmailAlertOpen] = useState(false);
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly" | "intelligent">("weekly");
   const [emailEnabled, setEmailEnabled] = useState(true);
-  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [contentTypes, setContentTypes] = useState({
     video: true,
     story: true,
@@ -63,7 +73,7 @@ const Calendar: React.FC = () => {
     try {
       setIsLoading(true);
       const preferences = {
-        equipment: selectedEquipment || undefined,
+        equipment: selectedEquipment.length > 0 ? selectedEquipment.join(',') : undefined,
         contentTypes,
         frequency
       };
@@ -79,6 +89,17 @@ const Calendar: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Handle toggling equipment selection
+  const toggleEquipment = (equipmentId: string) => {
+    setSelectedEquipment(prev => {
+      if (prev.includes(equipmentId)) {
+        return prev.filter(id => id !== equipmentId);
+      } else {
+        return [...prev, equipmentId];
+      }
+    });
   };
   
   // Generate calendar days for current month view
@@ -294,24 +315,20 @@ const Calendar: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Equipamento
+                    Equipamentos
                   </label>
-                  <Select
-                    value={selectedEquipment}
-                    onValueChange={setSelectedEquipment}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um equipamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos equipamentos</SelectItem>
-                      <SelectItem value="Adélla">Adélla</SelectItem>
-                      <SelectItem value="Enygma">Enygma</SelectItem>
-                      <SelectItem value="Hipro">Hipro</SelectItem>
-                      <SelectItem value="Reverso">Reverso</SelectItem>
-                      <SelectItem value="Ultralift">Ultralift</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {EQUIPMENT_OPTIONS.map((equipment) => (
+                      <div key={equipment.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`equipment-${equipment.id}`} 
+                          checked={selectedEquipment.includes(equipment.id)}
+                          onCheckedChange={() => toggleEquipment(equipment.id)}
+                        />
+                        <Label htmlFor={`equipment-${equipment.id}`}>{equipment.label}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 
                 <div>
