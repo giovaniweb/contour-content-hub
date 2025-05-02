@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type ScriptType = 'videoScript' | 'bigIdea' | 'dailySales';
+export type MarketingObjectiveType = 'atrair_atencao' | 'criar_conexao' | 'fazer_comprar' | 'reativar_interesse' | 'fechar_agora';
 
 export interface ScriptResponse {
   id: string;
@@ -20,32 +22,72 @@ export interface ScriptResponse {
   pdf_url?: string;
 }
 
+export interface ScriptRequest {
+  type: ScriptType;
+  topic: string;
+  title?: string;
+  equipment?: string[];
+  bodyArea?: string;
+  purpose?: string[];
+  additionalInfo?: string;
+  tone?: string;
+  language?: string;
+  marketingObjective?: MarketingObjectiveType;
+}
+
+export interface ScriptHistoryItem {
+  id: string;
+  title: string;
+  content: string;
+  contentHtml: string;
+  type: ScriptType;
+  status: string;
+  createdAt: string;
+  updatedAt?: string;
+  equipment?: string;
+  marketingObjective?: string;
+}
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailUrl: string;
+  videoUrl?: string;
+  type: string;
+  equipment?: string[];
+  purpose?: string[];
+  duration?: string;
+  rating: number;
+  isFavorite: boolean;
+}
+
+export interface CalendarSuggestion {
+  date: string;
+  title: string;
+  description: string;
+  format: 'video' | 'image' | 'story';
+  hook?: string;
+  caption?: string;
+  equipment?: string;
+  purpose?: string;
+  completed?: boolean;
+  evento_agenda_id?: string;
+}
+
+export interface CalendarPreferences {
+  postFrequency: string;
+  preferredDays: string[];
+  preferredTimes: string[];
+  contentTypes: string[];
+}
+
 export const generateScript = async (
-  tipo: ScriptType,
-  equipamento: string,
-  quantidade?: number,
-  tom?: string,
-  estrategiaConteudo?: string,
-  topico?: string,
-  areaCorpo?: string,
-  finalidades?: string[],
-  informacoesAdicionais?: string,
-  objetivoMarketing?: string
+  request: ScriptRequest
 ): Promise<ScriptResponse> => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-script', {
-      body: {
-        tipo,
-        equipamento,
-        quantidade,
-        tom,
-        estrategiaConteudo,
-        topico,
-        areaCorpo,
-        finalidades,
-        informacoesAdicionais,
-        objetivoMarketing
-      }
+      body: request
     });
 
     if (error) {
@@ -153,5 +195,315 @@ export const linkScriptToCalendar = async (scriptId: string, eventId: string): P
   } catch (error) {
     console.error('Erro ao vincular roteiro à agenda:', error);
     return false;
+  }
+};
+
+// Add missing functions to fix errors
+
+export const saveScriptFeedback = async (
+  scriptId: string, 
+  feedback: string, 
+  approved: boolean
+): Promise<void> => {
+  try {
+    console.log(`Saving feedback for script ${scriptId}: ${feedback} - Approved: ${approved}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log('Feedback saved successfully');
+  } catch (error) {
+    console.error('Error saving feedback:', error);
+    throw error;
+  }
+};
+
+export const updateScript = async (
+  scriptId: string, 
+  newContent: string
+): Promise<void> => {
+  try {
+    console.log(`Updating script ${scriptId} with new content`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log('Script updated successfully');
+  } catch (error) {
+    console.error('Error updating script:', error);
+    throw error;
+  }
+};
+
+export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data
+    return [
+      {
+        id: '1',
+        title: 'Roteiro para vídeo sobre Unyque PRO',
+        content: 'Conteúdo do roteiro...',
+        contentHtml: '<p>Conteúdo do roteiro formatado como HTML...</p>',
+        type: 'videoScript',
+        status: 'aprovado',
+        createdAt: new Date().toISOString(),
+        equipment: 'Unyque PRO',
+        marketingObjective: 'atrair_atencao'
+      },
+      {
+        id: '2',
+        title: 'Campanha para Venus Freeze',
+        content: 'Conteúdo da campanha...',
+        contentHtml: '<p>Conteúdo da campanha formatado como HTML...</p>',
+        type: 'bigIdea',
+        status: 'gerado',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        equipment: 'Venus Freeze',
+        marketingObjective: 'fazer_comprar'
+      }
+    ];
+  } catch (error) {
+    console.error('Error fetching script history:', error);
+    throw error;
+  }
+};
+
+export const getMediaItems = async (): Promise<MediaItem[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data
+    return [
+      {
+        id: '1',
+        title: 'Como funciona o Unyque PRO',
+        description: 'Vídeo explicativo sobre o equipamento',
+        thumbnailUrl: 'https://placehold.co/600x400',
+        videoUrl: 'https://vimeo.com/123456789',
+        type: 'video_pronto',
+        equipment: ['Unyque PRO'],
+        purpose: ['educação', 'vendas'],
+        duration: '2:30',
+        rating: 4.5,
+        isFavorite: true
+      },
+      {
+        id: '2',
+        title: 'Take rápido sobre Venus Freeze',
+        description: 'Take sobre benefícios do tratamento',
+        thumbnailUrl: 'https://placehold.co/600x400',
+        videoUrl: 'https://vimeo.com/123456790',
+        type: 'take',
+        equipment: ['Venus Freeze'],
+        purpose: ['engajamento'],
+        duration: '0:45',
+        rating: 3.5,
+        isFavorite: false
+      }
+    ];
+  } catch (error) {
+    console.error('Error fetching media items:', error);
+    throw error;
+  }
+};
+
+export const toggleFavorite = async (mediaId: string): Promise<void> => {
+  try {
+    console.log(`Toggling favorite for media ${mediaId}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    throw error;
+  }
+};
+
+export const rateMedia = async (mediaId: string, rating: number): Promise<void> => {
+  try {
+    console.log(`Rating media ${mediaId} with ${rating} stars`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
+  } catch (error) {
+    console.error('Error rating media:', error);
+    throw error;
+  }
+};
+
+export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    return [
+      {
+        date: today.toISOString().split('T')[0],
+        title: 'Vídeo sobre benefícios do Unyque PRO',
+        description: 'Explique os principais benefícios do equipamento para tratamentos estéticos',
+        format: 'video',
+        hook: 'Sabia que apenas 3 sessões já mostram resultados?',
+        caption: 'Conheça o poder transformador do Unyque PRO! #estetica #beleza',
+        equipment: 'Unyque PRO',
+        purpose: 'educate',
+        completed: false
+      },
+      {
+        date: tomorrow.toISOString().split('T')[0],
+        title: 'Story mostrando antes e depois',
+        description: 'Compartilhe resultados reais de clientes com consentimento',
+        format: 'story',
+        hook: 'Transformação incrível em apenas 30 dias!',
+        equipment: 'Venus Freeze',
+        purpose: 'engage',
+        completed: true,
+        evento_agenda_id: '123'
+      },
+      {
+        date: nextWeek.toISOString().split('T')[0],
+        title: 'Promoção limitada de tratamentos',
+        description: 'Anuncie pacote promocional com desconto por tempo limitado',
+        format: 'image',
+        caption: 'ÚLTIMA CHANCE! Pacote com 50% OFF só até sexta-feira. Agende já!',
+        equipment: 'Unyque PRO',
+        purpose: 'sell',
+        completed: false
+      }
+    ];
+  } catch (error) {
+    console.error('Error fetching calendar suggestions:', error);
+    throw error;
+  }
+};
+
+export const updateCalendarCompletion = async (
+  date: string, 
+  completed: boolean
+): Promise<void> => {
+  try {
+    console.log(`Updating calendar task on ${date} to ${completed ? 'completed' : 'pending'}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 300));
+  } catch (error) {
+    console.error('Error updating calendar completion:', error);
+    throw error;
+  }
+};
+
+export const clearPlanning = async (): Promise<void> => {
+  try {
+    console.log('Clearing all planning data');
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+  } catch (error) {
+    console.error('Error clearing planning:', error);
+    throw error;
+  }
+};
+
+export const approvePlanning = async (): Promise<void> => {
+  try {
+    console.log('Approving current planning');
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+  } catch (error) {
+    console.error('Error approving planning:', error);
+    throw error;
+  }
+};
+
+export const setCalendarPreferences = async (
+  preferences: CalendarPreferences
+): Promise<void> => {
+  try {
+    console.log('Setting calendar preferences:', preferences);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+  } catch (error) {
+    console.error('Error setting calendar preferences:', error);
+    throw error;
+  }
+};
+
+export const getEquipments = async () => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data
+    return [
+      {
+        id: '1',
+        name: 'Unyque PRO',
+        category: 'Radiofrequência',
+        description: 'Equipamento avançado de radiofrequência para tratamentos estéticos',
+        manufacturer: 'Tonederm',
+        status: 'active'
+      },
+      {
+        id: '2',
+        name: 'Venus Freeze',
+        category: 'Criolipólise',
+        description: 'Equipamento para tratamento de gordura localizada',
+        manufacturer: 'Venus Concept',
+        status: 'active'
+      }
+    ];
+  } catch (error) {
+    console.error('Error fetching equipments:', error);
+    throw error;
+  }
+};
+
+export const createEquipment = async (equipment: any) => {
+  try {
+    console.log('Creating new equipment:', equipment);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { id: Date.now().toString(), ...equipment };
+  } catch (error) {
+    console.error('Error creating equipment:', error);
+    throw error;
+  }
+};
+
+export const updateEquipment = async (id: string, equipment: any) => {
+  try {
+    console.log(`Updating equipment ${id}:`, equipment);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { id, ...equipment };
+  } catch (error) {
+    console.error('Error updating equipment:', error);
+    throw error;
+  }
+};
+
+export const deleteEquipment = async (id: string) => {
+  try {
+    console.log(`Deleting equipment ${id}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return true;
+  } catch (error) {
+    console.error('Error deleting equipment:', error);
+    throw error;
+  }
+};
+
+export const importEquipments = async (file: File) => {
+  try {
+    console.log(`Importing equipments from file ${file.name}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { imported: 5, total: 5 };
+  } catch (error) {
+    console.error('Error importing equipments:', error);
+    throw error;
   }
 };
