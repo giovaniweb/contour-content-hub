@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -16,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -27,9 +27,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Trash, Eye } from "lucide-react";
+import { Edit, Trash, Eye, ExternalLink } from "lucide-react";
 import { Equipment } from '@/types/equipment';
 import EquipmentForm from './EquipmentForm';
 
@@ -86,36 +85,53 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
           </TableRow>
         </TableHeader>
         <TableBody>
-          {equipments.map((equipment) => (
-            <TableRow key={equipment.id}>
-              <TableCell className="font-medium">{equipment.nome}</TableCell>
-              <TableCell>{equipment.tecnologia.slice(0, 50)}...</TableCell>
-              <TableCell>
-                {equipment.ativo ? (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    Ativo
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                    Inativo
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleView(equipment)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(equipment)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(equipment.id!)}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
+          {equipments.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center">
+                Nenhum equipamento encontrado
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            equipments.map((equipment) => (
+              <TableRow key={equipment.id}>
+                <TableCell className="font-medium">{equipment.nome}</TableCell>
+                <TableCell>
+                  {equipment.tecnologia.length > 50 
+                    ? `${equipment.tecnologia.slice(0, 50)}...` 
+                    : equipment.tecnologia}
+                </TableCell>
+                <TableCell>
+                  {equipment.ativo ? (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      Ativo
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                      Inativo
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleView(equipment)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/admin/equipment/${equipment.id}`}>
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(equipment)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(equipment.id!)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -131,6 +147,16 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
 
           {viewEquipment && (
             <div className="space-y-4 mt-4">
+              {viewEquipment.image_url && (
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src={viewEquipment.image_url} 
+                    alt={viewEquipment.nome}
+                    className="max-h-64 object-contain rounded-md" 
+                  />
+                </div>
+              )}
+
               <div>
                 <h4 className="font-semibold text-sm">Tecnologia</h4>
                 <p className="mt-1 text-sm">{viewEquipment.tecnologia}</p>
@@ -167,6 +193,15 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
                     Inativo
                   </Badge>
                 )}
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <Button asChild>
+                  <Link to={`/admin/equipment/${viewEquipment.id}`}>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Abrir página completa
+                  </Link>
+                </Button>
               </div>
             </div>
           )}

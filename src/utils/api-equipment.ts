@@ -154,3 +154,109 @@ export async function deleteEquipment(id: string): Promise<void> {
     throw error;
   }
 }
+
+/**
+ * Importa equipamentos a partir de um arquivo
+ */
+export async function importEquipments(file: File): Promise<{ imported: number }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (event) => {
+      try {
+        if (!event.target?.result) {
+          reject(new Error("Falha ao ler o arquivo"));
+          return;
+        }
+        
+        let equipmentsData: EquipmentCreationProps[];
+        
+        // Parse file based on type
+        if (file.type === "application/json") {
+          equipmentsData = JSON.parse(event.target.result as string);
+        } else if (file.type === "text/csv") {
+          // Simple CSV parsing - might need improvement for production
+          const lines = (event.target.result as string).split('\n');
+          const headers = lines[0].split(',');
+          equipmentsData = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            const values = lines[i].split(',');
+            const equipment: any = {};
+            
+            headers.forEach((header, index) => {
+              equipment[header.trim()] = values[index]?.trim();
+            });
+            
+            equipmentsData.push(equipment);
+          }
+        } else {
+          reject(new Error("Formato de arquivo não suportado"));
+          return;
+        }
+        
+        // Insert equipments in batch
+        const { error } = await supabase
+          .from("equipamentos")
+          .insert(equipmentsData);
+          
+        if (error) {
+          reject(error);
+          return;
+        }
+        
+        resolve({ imported: equipmentsData.length });
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(new Error("Erro ao ler o arquivo"));
+    };
+    
+    if (file.type === "application/json" || file.type.includes("text/csv")) {
+      reader.readAsText(file);
+    } else {
+      reject(new Error("Formato de arquivo não suportado"));
+    }
+  });
+}
+
+/**
+ * Busca arquivos relacionados a um equipamento específico
+ */
+export async function fetchEquipmentFiles(equipmentName: string) {
+  const { data, error } = await supabase
+    .from("materiais")
+    .select("*")
+    .eq("categoria", equipmentName)
+    .order("data_upload", { ascending: false });
+    
+  if (error) {
+    console.error("Erro ao buscar arquivos do equipamento:", error);
+    throw error;
+  }
+  
+  return data;
+}
+
+/**
+ * Busca vídeos relacionados a um equipamento específico
+ */
+export async function fetchEquipmentVideos(equipmentName: string) {
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*")
+    .contains("equipamentos", [equipmentName])
+    .order("data_upload", { ascending: false });
+    
+  if (error) {
+    console.error("Erro ao buscar vídeos do equipamento:", error);
+    throw error;
+  }
+  
+  return data;
+}

@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import EquipmentForm from './EquipmentForm';
 import EquipmentList from './EquipmentList';
-import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api';
+import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api-equipment';
 
 const EquipmentManager: React.FC = () => {
   const { toast } = useToast();
@@ -33,7 +33,7 @@ const EquipmentManager: React.FC = () => {
       setIsLoading(true);
       console.log("Carregando equipamentos...");
       const data = await getEquipments();
-      console.log("API retornou lista vazia, usando equipamentos padrão");
+      console.log("Equipamentos carregados:", data);
       setEquipments(data as Equipment[]);
     } catch (error) {
       console.error("Erro ao carregar equipamentos:", error);
@@ -87,7 +87,8 @@ const EquipmentManager: React.FC = () => {
   const handleDeleteEquipment = async (id: string) => {
     try {
       await deleteEquipment(id);
-      await loadEquipments();
+      // Update local state directly to avoid reloading all equipment
+      setEquipments(currentEquipments => currentEquipments.filter(item => item.id !== id));
       toast({
         title: "Equipamento removido",
         description: "O equipamento foi removido com sucesso!",
