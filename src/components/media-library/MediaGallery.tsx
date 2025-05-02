@@ -11,6 +11,7 @@ interface MediaGalleryProps {
   mediaType: string;
   filteredItems: MediaItem[];
   isLoading: boolean;
+  viewMode: "grid" | "list";
   handleReset: () => void;
   handleMediaUpdate: () => void;
 }
@@ -19,6 +20,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   mediaType, 
   filteredItems, 
   isLoading, 
+  viewMode,
   handleReset, 
   handleMediaUpdate 
 }) => {
@@ -41,11 +43,15 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
             <Badge variant="outline">{filteredItems.length} {filteredItems.length === 1 ? 'item' : 'itens'}</Badge>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className={viewMode === "grid" 
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" 
+            : "space-y-4"
+          }>
             {filteredItems.map((item) => (
               <MediaCard 
                 key={item.id} 
                 media={item}
+                viewMode={viewMode}
                 onUpdate={handleMediaUpdate}
               />
             ))}

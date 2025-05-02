@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, ArrowLeft, ArrowRight, X } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Search, Filter, ArrowLeft, ArrowRight, X, LayoutGrid, LayoutList } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface MediaFiltersProps {
   search: string;
@@ -22,6 +22,8 @@ interface MediaFiltersProps {
   setSelectedBodyArea: (value: string) => void;
   selectedPurpose: string;
   setSelectedPurpose: (value: string) => void;
+  viewMode: "grid" | "list";
+  setViewMode: (value: "grid" | "list") => void;
   handleReset: () => void;
 }
 
@@ -34,6 +36,8 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
   setSelectedBodyArea,
   selectedPurpose,
   setSelectedPurpose,
+  viewMode,
+  setViewMode,
   handleReset
 }) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -80,7 +84,7 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold flex items-center gap-2">
-          Recentes
+          Mídias
           {hasActiveFilters && (
             <Badge variant="outline" className="ml-2">Filtros ativos</Badge>
           )}
@@ -117,6 +121,20 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
         </div>
         
         <div className="flex gap-2">
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(value) => value && setViewMode(value as "grid" | "list")}
+            className="border rounded-md"
+          >
+            <ToggleGroupItem value="grid" aria-label="Ver em grid">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="Ver em lista">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        
           <Button 
             variant={showAdvancedFilters ? "secondary" : "outline"} 
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}

@@ -1,15 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { getMediaItems, MediaItem } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
-import MediaActionCards from "@/components/media-library/MediaActionCards";
-import MediaCreationSection from "@/components/media-library/MediaCreationSection";
 import MediaFilters from "@/components/media-library/MediaFilters";
 import MediaTypeTabs from "@/components/media-library/MediaTypeTabs";
 import MediaGallery from "@/components/media-library/MediaGallery";
-import MediaAnalytics from "@/components/media-library/MediaAnalytics";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import FeatureBanner from "@/components/media-library/FeatureBanner";
 
 const MediaLibrary: React.FC = () => {
   const { toast } = useToast();
@@ -20,6 +16,7 @@ const MediaLibrary: React.FC = () => {
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   const [selectedBodyArea, setSelectedBodyArea] = useState<string>("");
   const [selectedPurpose, setSelectedPurpose] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
   // Media data
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -110,12 +107,9 @@ const MediaLibrary: React.FC = () => {
   return (
     <Layout title="Media Library">
       <div className="space-y-8">
-        {/* Action cards at the top */}
-        <MediaActionCards />
+        {/* Feature Banner at the top */}
+        <FeatureBanner />
         
-        {/* "O que quer criar hoje" section */}
-        <MediaCreationSection />
-
         {/* Filters */}
         <MediaFilters 
           search={search}
@@ -126,69 +120,27 @@ const MediaLibrary: React.FC = () => {
           setSelectedBodyArea={setSelectedBodyArea}
           selectedPurpose={selectedPurpose}
           setSelectedPurpose={setSelectedPurpose}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
           handleReset={handleReset}
         />
         
         {/* Media type tabs and gallery */}
-        <Tabs value={mediaType} onValueChange={setMediaType} className="w-full">
+        <div className="mt-2">
           <MediaTypeTabs 
             mediaType={mediaType} 
             setMediaType={setMediaType} 
           />
           
-          <TabsContent value="all">
-            <MediaGallery 
-              mediaType="all"
-              filteredItems={filteredItems}
-              isLoading={isLoading}
-              handleReset={handleReset}
-              handleMediaUpdate={handleMediaUpdate}
-            />
-          </TabsContent>
-          
-          <TabsContent value="video">
-            <MediaGallery 
-              mediaType="video"
-              filteredItems={filteredItems}
-              isLoading={isLoading}
-              handleReset={handleReset}
-              handleMediaUpdate={handleMediaUpdate}
-            />
-          </TabsContent>
-          
-          <TabsContent value="arte">
-            <MediaGallery 
-              mediaType="arte"
-              filteredItems={filteredItems}
-              isLoading={isLoading}
-              handleReset={handleReset}
-              handleMediaUpdate={handleMediaUpdate}
-            />
-          </TabsContent>
-          
-          <TabsContent value="artigo">
-            <MediaGallery 
-              mediaType="artigo"
-              filteredItems={filteredItems}
-              isLoading={isLoading}
-              handleReset={handleReset}
-              handleMediaUpdate={handleMediaUpdate}
-            />
-          </TabsContent>
-          
-          <TabsContent value="documentacao">
-            <MediaGallery 
-              mediaType="documentacao"
-              filteredItems={filteredItems}
-              isLoading={isLoading}
-              handleReset={handleReset}
-              handleMediaUpdate={handleMediaUpdate}
-            />
-          </TabsContent>
-        </Tabs>
-
-        {/* Analytics/Statistics Section */}
-        <MediaAnalytics />
+          <MediaGallery 
+            mediaType={mediaType}
+            filteredItems={filteredItems}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            handleReset={handleReset}
+            handleMediaUpdate={handleMediaUpdate}
+          />
+        </div>
       </div>
     </Layout>
   );
