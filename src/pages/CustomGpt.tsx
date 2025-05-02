@@ -1,10 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, Wand, BrainCircuit, Calendar, Check, ThumbsUp } from 'lucide-react';
+import { Sparkles, Wand, BrainCircuit, Calendar, Check, ThumbsUp, FileSearch } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
 import { ScriptResponse } from '@/utils/api';
 
@@ -33,9 +35,17 @@ const CustomGpt: React.FC = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center mb-6">
-          <Sparkles className="h-8 w-8 mr-2 text-blue-500" />
-          <h1 className="text-2xl font-bold">Gerador de Conteúdo Avançado</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Sparkles className="h-8 w-8 mr-2 text-blue-500" />
+            <h1 className="text-2xl font-bold">Gerador de Conteúdo Avançado</h1>
+          </div>
+          <Link to="/equipment-details">
+            <Button variant="outline" size="sm" className="flex items-center">
+              <FileSearch className="h-4 w-4 mr-2" />
+              Verificar Equipamentos
+            </Button>
+          </Link>
         </div>
         <p className="text-muted-foreground mb-6">
           Gere roteiros, big ideas e stories para equipamentos estéticos usando o assistente de IA avançado.

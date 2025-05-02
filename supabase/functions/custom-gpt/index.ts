@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Prompt base personalizado do usuário
+// Prompt base personalizado do usuário com regras de segurança aprimoradas
 const basePrompt = `Você é um roteirista criativo e estrategista digital especializado em vídeos curtos para redes sociais (Reels e Stories), com foco em estética, saúde e tecnologia.
 
 Sua missão é criar conteúdos com base nas seguintes metodologias:
@@ -53,17 +53,24 @@ Formato de saída:
 1. Ideia de Story: "Frase curta que prende atenção"
 📹 Como gravar: Explicação prática (ex: selfie direto, mostrar print, bastidor etc.)
 
-⚙️ INSTRUÇÕES INTERNAS:
-- Sempre consulte o banco de dados do equipamento solicitado
-- Nunca invente tecnologia, promessas ou funções
-- Use o tom de linguagem exato indicado no cadastro do equipamento
+⚙️ INSTRUÇÕES INTERNAS PARA GARANTIR PRECISÃO:
+- SEMPRE consulte APENAS os dados do equipamento fornecidos no prompt
+- NUNCA invente tecnologias, recursos, funcionalidades, indicações ou benefícios que não estejam explicitamente listados nos dados do equipamento
+- MANTENHA clara separação entre: a tecnologia (o que o equipamento é), as indicações (para que problemas serve) e os benefícios (que resultados proporciona)
+- Certifique-se que seu roteiro é 100% compatível com as informações do equipamento
+- Use EXATAMENTE o tom de linguagem indicado no cadastro do equipamento
 - Os roteiros devem soar como falas naturais e humanas
 - Roteiros: até 40 segundos
 - Big Ideas: impactantes e estratégicas
 - Stories 10x: com instruções práticas
 
-🚫 RESTRIÇÃO IMPORTANTE:
-- Nunca use a palavra "criofrequência" em nenhum roteiro, título, Big Idea ou Story, independentemente do equipamento. Essa palavra deve ser evitada completamente.`;
+🚫 RESTRIÇÕES IMPORTANTES:
+- Nunca use a palavra "criofrequência" em nenhum roteiro, título, Big Idea ou Story, independentemente do equipamento.
+- Nunca atribua benefícios ou resultados a um equipamento quando estes não estiverem explicitamente listados em seus dados.
+- Nunca sugira resultados ou promessas que não estejam claramente descritos nos benefícios do equipamento.
+- Nunca sugira que um equipamento trata condições que não estejam explicitamente listadas nas indicações.
+
+LEMBRE-SE: Sua credibilidade depende da precisão técnica. Foque apenas nas informações fornecidas, sem extrapolação ou invenção.`;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -127,16 +134,21 @@ serve(async (req) => {
       );
     }
 
-    // Construir prompt específico baseado nos parâmetros
+    // Construir prompt específico baseado nos parâmetros com instruções de segurança
     let userPrompt = '';
     
-    userPrompt += `Dados do equipamento selecionado:\n`;
+    userPrompt += `[DADOS DO EQUIPAMENTO - USE APENAS ESTAS INFORMAÇÕES]:\n`;
     userPrompt += `Nome: ${equipamentoData.nome}\n`;
     userPrompt += `Tecnologia: ${equipamentoData.tecnologia}\n`;
     userPrompt += `Indicações: ${equipamentoData.indicacoes}\n`;
     userPrompt += `Benefícios: ${equipamentoData.beneficios}\n`;
     userPrompt += `Diferenciais: ${equipamentoData.diferenciais}\n`;
     userPrompt += `Linguagem recomendada: ${equipamentoData.linguagem}\n\n`;
+    
+    userPrompt += `[INSTRUÇÕES DE SEGURANÇA]:\n`;
+    userPrompt += `- Use APENAS as informações acima. NÃO adicione, invente ou extrapole dados.\n`;
+    userPrompt += `- NÃO misture tecnologia com indicações ou benefícios.\n`;
+    userPrompt += `- Mantenha-se fiel aos dados do equipamento, sem "alucinações" ou confabulações.\n\n`;
     
     userPrompt += `Tipo de conteúdo solicitado: ${tipo}\n`;
     
@@ -180,10 +192,12 @@ serve(async (req) => {
     
     // Aqui definimos qual tipo específico de saída queremos
     userPrompt += `\nPor favor, crie ${tipo === 'roteiro' ? quantidade : tipo === 'stories' ? (quantidade || 10) : 1} ${tipo}(s) para o equipamento ${equipamento} seguindo rigorosamente o formato especificado.`;
-
-    console.log("Enviando requisição para OpenAI");
     
-    // Chamar OpenAI API
+    userPrompt += `\n\n[IMPORTANTE]: Verifique se todo o conteúdo que você gerou está baseado EXCLUSIVAMENTE nos dados do equipamento fornecidos. Não mencione benefícios, tecnologias ou indicações não listados explicitamente.`;
+
+    console.log("Enviando requisição para OpenAI com prompt aprimorado");
+    
+    // Chamar OpenAI API com temperatura reduzida para maior precisão factual
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -196,7 +210,7 @@ serve(async (req) => {
           { role: "system", content: basePrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.7 // Temperatura média para criatividade equilibrada
+        temperature: 0.5 // Temperatura reduzida para maior precisão factual
       })
     });
 

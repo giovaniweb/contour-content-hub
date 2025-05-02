@@ -23,6 +23,7 @@ import AdminContent from './pages/AdminContent';
 import AdminIntegrations from './pages/AdminIntegrations';
 import NotFound from './pages/NotFound';
 import CustomGpt from './pages/CustomGpt';
+import EquipmentDetails from './pages/EquipmentDetails';
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ function App() {
                   <Route path="/media-library" element={<MediaLibrary />} />
                   <Route path="/calendar" element={<Calendar />} />
                   <Route path="/custom-gpt" element={<CustomGpt />} />
+                  <Route path="/equipment-details" element={<EquipmentDetails />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
