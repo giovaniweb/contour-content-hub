@@ -20,6 +20,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import AiUsageStats from "@/components/admin/AiUsageStats";
 
 const Dashboard: React.FC = () => {
   const { isAdmin, isOperator, hasPermission } = usePermissions();
@@ -38,6 +39,9 @@ const Dashboard: React.FC = () => {
     }
   };
   
+  // Verifica se o usuário é admin para mostrar o painel de estatísticas de IA
+  const showAiStats = isAdmin();
+  
   return (
     <Layout fullWidth>
       <div className="max-w-7xl mx-auto space-y-8">
@@ -50,6 +54,11 @@ const Dashboard: React.FC = () => {
             {t('studioContent')} <span className="font-medium">O que vamos postar hoje?</span>
           </p>
         </div>
+        
+        {/* Painel de Estatísticas de IA - apenas para Administradores */}
+        {showAiStats && (
+          <AiUsageStats className="mb-8" />
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Feed principal - 2/3 da largura em desktops */}
