@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarSuggestion, updateCalendarCompletion } from "@/utils/api";
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { getScriptById, ScriptHistoryItem } from "@/utils/api-scripts";
 
 interface CalendarDayProps {
   date: Date;
@@ -37,10 +39,31 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
 }) => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [associatedScript, setAssociatedScript] = useState<ScriptHistoryItem | null>(null);
+  const [isLoadingScript, setIsLoadingScript] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const isToday = new Date().toDateString() === date.toDateString();
   const dateStr = format(date, "yyyy-MM-dd");
+
+  // Carregar roteiro associado quando abrir o diálogo se tiver um ID
+  useEffect(() => {
+    if (dialogOpen && suggestion?.completed && suggestion?.evento_agenda_id) {
+      setIsLoadingScript(true);
+      getScriptById(suggestion.evento_agenda_id)
+        .then(script => {
+          setAssociatedScript(script);
+        })
+        .catch(error => {
+          console.error("Erro ao carregar roteiro:", error);
+          setAssociatedScript(null);
+        })
+        .finally(() => {
+          setIsLoadingScript(false);
+        });
+    }
+  }, [dialogOpen, suggestion]);
 
   // Manipular clique na tarefa
   const handleTaskClick = () => {
@@ -73,6 +96,14 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
       });
     } finally {
       setIsCompleting(false);
+    }
+  };
+
+  // Ver roteiro associado
+  const handleViewScript = () => {
+    if (suggestion?.evento_agenda_id) {
+      navigate(`/script-history/${suggestion.evento_agenda_id}`);
+      setDialogOpen(false);
     }
   };
 
@@ -207,9 +238,10 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-2"
-                    disabled={!suggestion.completed}
+                    disabled={!suggestion.completed || !suggestion.evento_agenda_id}
+                    onClick={handleViewScript}
                   >
-                    <CalendarIcon className="h-4 w-4" />
+                    <FileText className="h-4 w-4" />
                     Ver Roteiro
                   </Button>
                   

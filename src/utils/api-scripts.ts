@@ -90,7 +90,8 @@ export const getScriptById = async (id: string): Promise<ScriptHistoryItem> => {
 export const updateScript = async (
   id: string, 
   content: string, 
-  feedback?: string
+  feedback?: string,
+  status?: 'gerado' | 'aprovado' | 'editado'
 ): Promise<void> => {
   try {
     const { error } = await supabase
@@ -98,7 +99,7 @@ export const updateScript = async (
       .update({
         conteudo: content,
         observacoes: feedback,
-        status: feedback ? 'editado' : undefined
+        status: status || (feedback ? 'editado' : undefined)
       })
       .eq('id', id);
       

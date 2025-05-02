@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Download, FileText, ThumbsUp, Clock } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { ScriptHistoryItem, generatePDF, linkScriptToCalendar } from "@/utils/api";
+import { ScriptHistoryItem, generatePDF, linkScriptToCalendar, updateScript } from "@/utils/api";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -28,6 +28,7 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [schedulingDialogOpen, setSchedulingDialogOpen] = useState(false);
 
@@ -113,6 +114,32 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
       });
     } finally {
       setIsScheduling(false);
+    }
+  };
+
+  // Aprovar roteiro
+  const handleApproveScript = async () => {
+    try {
+      setIsApproving(true);
+      
+      // Atualizar o status do roteiro para aprovado
+      await updateScript(script.id, script.content, "Roteiro aprovado", "aprovado");
+      
+      toast({
+        title: "Roteiro aprovado",
+        description: "O roteiro foi aprovado com sucesso",
+      });
+      
+      // Atualizar a visualização
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao aprovar roteiro",
+        description: "Não foi possível aprovar o roteiro neste momento",
+      });
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -239,7 +266,7 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="rounded-md border"
+                    className="rounded-md border pointer-events-auto"
                     locale={ptBR}
                     initialFocus
                   />
@@ -271,7 +298,12 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
           </Dialog>
           
           {script.status !== 'aprovado' && (
-            <Button variant="default" size="sm">
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={handleApproveScript}
+              disabled={isApproving}
+            >
               <ThumbsUp className="h-4 w-4 mr-1" />
               Aprovar
             </Button>

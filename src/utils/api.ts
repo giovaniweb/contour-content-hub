@@ -1,4 +1,3 @@
-
 // Script types and interfaces
 
 // Different script types
@@ -151,6 +150,7 @@ export interface CalendarSuggestion {
   format?: "video" | "story" | "image";
   hook?: string;
   caption?: string;
+  evento_agenda_id?: string;  // Adicionando ID do roteiro associado
 }
 
 // Calendar preferences interface
