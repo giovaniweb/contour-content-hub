@@ -183,7 +183,7 @@ const MaterialContentManager: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
           <div>
             <Label htmlFor="filterType">Tipo de Material</Label>
-            <Select id="filterType" value={filterType} onValueChange={setFilterType}>
+            <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full mt-1">
                 <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
@@ -199,7 +199,7 @@ const MaterialContentManager: React.FC = () => {
           
           <div>
             <Label htmlFor="filterCategory">Categoria</Label>
-            <Select id="filterCategory" value={filterCategory} onValueChange={setFilterCategory}>
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="w-full mt-1">
                 <SelectValue placeholder="Filtrar por categoria" />
               </SelectTrigger>
