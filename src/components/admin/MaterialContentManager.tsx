@@ -32,7 +32,7 @@ const MaterialContentManager: React.FC = () => {
   const [materials, setMaterials] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [filterCategory, setFilterCategory] = useState<string>("");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
   
   // Fetch materials
   const fetchMaterials = async () => {
@@ -46,7 +46,7 @@ const MaterialContentManager: React.FC = () => {
       }
       
       // Apply category filter if selected
-      if (filterCategory) {
+      if (filterCategory && filterCategory !== "all") {
         query = query.eq('categoria', filterCategory);
       }
 
@@ -167,7 +167,7 @@ const MaterialContentManager: React.FC = () => {
               <SelectValue placeholder="Filtrar por categoria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as categorias</SelectItem>
+              <SelectItem value="all">Todas as categorias</SelectItem>
               {categoryOptions.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}

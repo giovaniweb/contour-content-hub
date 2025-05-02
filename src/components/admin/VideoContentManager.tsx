@@ -34,7 +34,7 @@ const VideoContentManager: React.FC = () => {
   const [videos, setVideos] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [filterEquipment, setFilterEquipment] = useState<string>("");
+  const [filterEquipment, setFilterEquipment] = useState<string>("all");
   const [equipmentOptions, setEquipmentOptions] = useState<string[]>([]);
   
   // Get distinct equipments for the filter
@@ -71,7 +71,7 @@ const VideoContentManager: React.FC = () => {
       }
       
       // Apply equipment filter if selected
-      if (filterEquipment) {
+      if (filterEquipment && filterEquipment !== "all") {
         query = query.eq('equipamento', filterEquipment);
       }
 
@@ -167,7 +167,7 @@ const VideoContentManager: React.FC = () => {
               <SelectValue placeholder="Filtrar por equipamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os equipamentos</SelectItem>
+              <SelectItem value="all">Todos os equipamentos</SelectItem>
               {equipmentOptions.map((equipment) => (
                 <SelectItem key={equipment} value={equipment}>
                   {equipment}
