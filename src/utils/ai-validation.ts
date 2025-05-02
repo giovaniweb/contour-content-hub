@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ScriptResponse } from './api';
 import { useToast } from '@/hooks/use-toast';
@@ -104,8 +105,9 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
     console.log("Validação encontrada:", data);
     
     // Mapear o formato do banco de dados para o formato esperado
+    // Fix: Verificar e lidar com o caso onde 'blocos' não existe no objeto data
     const result: ValidationResult = {
-      blocos: data.blocos || [],
+      blocos: data.blocos || [], // Adicionar fallback para um array vazio
       nota_geral: data.pontuacao_total,
       sugestoes_gerais: data.sugestoes.split('\n'),
       // Campos antigos para manter compatibilidade
