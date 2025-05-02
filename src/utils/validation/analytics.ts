@@ -1,6 +1,5 @@
 
 import { ValidationResult, ValidationBlock } from './types';
-import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Interface para estatísticas agregadas de validações
@@ -44,23 +43,14 @@ export const logValidationAnalytics = async (
       has_improvement_suggestions: validation.blocos?.some(b => b.substituir === true) || false
     };
     
-    // Enviar para tabela de analytics se conectado ao Supabase
-    if (supabase) {
-      const { error } = await supabase
-        .from('validacao_analytics')
-        .insert(analyticsData);
-        
-      if (error) {
-        console.error('Erro ao salvar analytics de validação:', error);
-      }
-    } else {
-      // Salvar em localStorage para análise offline
-      const storageKey = 'validation_analytics';
-      const existingData = localStorage.getItem(storageKey);
-      const analytics = existingData ? JSON.parse(existingData) : [];
-      analytics.push(analyticsData);
-      localStorage.setItem(storageKey, JSON.stringify(analytics.slice(-100))); // Manter apenas os 100 mais recentes
-    }
+    // Salvar em localStorage para análise offline
+    const storageKey = 'validation_analytics';
+    const existingData = localStorage.getItem(storageKey);
+    const analytics = existingData ? JSON.parse(existingData) : [];
+    analytics.push(analyticsData);
+    localStorage.setItem(storageKey, JSON.stringify(analytics.slice(-100))); // Manter apenas os 100 mais recentes
+    
+    console.log('Analytics de validação registrado no localStorage:', analyticsData);
   } catch (error) {
     console.error('Erro ao registrar analytics de validação:', error);
   }
@@ -71,37 +61,16 @@ export const logValidationAnalytics = async (
  */
 export const getValidationInsights = async (): Promise<ValidationStats | null> => {
   try {
-    if (supabase) {
-      // Buscar dados do Supabase se conectado
-      const { data, error } = await supabase
-        .from('validacao_analytics')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(1000);
-        
-      if (error) {
-        console.error('Erro ao buscar analytics de validação:', error);
-        return null;
-      }
-      
-      if (!data || data.length === 0) {
-        return null;
-      }
-      
-      // Processar dados para estatísticas
-      return processValidationData(data);
-    } else {
-      // Usar dados do localStorage se não tiver Supabase
-      const storageKey = 'validation_analytics';
-      const existingData = localStorage.getItem(storageKey);
-      const analytics = existingData ? JSON.parse(existingData) : [];
-      
-      if (analytics.length === 0) {
-        return null;
-      }
-      
-      return processValidationData(analytics);
+    // Usar dados do localStorage
+    const storageKey = 'validation_analytics';
+    const existingData = localStorage.getItem(storageKey);
+    const analytics = existingData ? JSON.parse(existingData) : [];
+    
+    if (analytics.length === 0) {
+      return null;
     }
+    
+    return processValidationData(analytics);
   } catch (error) {
     console.error('Erro ao obter insights de validação:', error);
     return null;

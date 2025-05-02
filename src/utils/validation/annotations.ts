@@ -18,18 +18,16 @@ export const mapValidationToAnnotations = (validation: ValidationResult): TextAn
   validation.blocos.forEach((bloco) => {
     if (!bloco.texto) return;
     
-    // Definir cor com base na nota do bloco
-    let color = "green";
-    if (bloco.nota < 4) color = "red";
-    else if (bloco.nota < 6) color = "orange";
-    else if (bloco.nota < 8) color = "yellow";
+    // Definir tipo com base na nota do bloco
+    let type: "positive" | "negative" | "suggestion" | "gancho" | "conflito" | "virada" | "cta" = "suggestion";
     
-    // Definir tipo de ícone com base no tipo de bloco
-    let icon = "info";
-    if (bloco.tipo === "gancho") icon = "hook";
-    else if (bloco.tipo === "cta") icon = "target";
-    else if (bloco.tipo === "conflito") icon = "alert";
-    else if (bloco.tipo === "virada") icon = "sparkles";
+    // Mapear tipo do bloco para o tipo de anotação
+    if (bloco.tipo === "gancho") type = "gancho";
+    else if (bloco.tipo === "conflito") type = "conflito";
+    else if (bloco.tipo === "virada") type = "virada";
+    else if (bloco.tipo === "cta") type = "cta";
+    else if (bloco.nota >= 8) type = "positive";
+    else if (bloco.nota < 6) type = "negative";
     
     // Construir mensagem da anotação
     const message = bloco.substituir
@@ -39,11 +37,12 @@ export const mapValidationToAnnotations = (validation: ValidationResult): TextAn
     // Adicionar anotação
     annotations.push({
       text: bloco.texto,
-      color,
-      icon,
-      message,
-      needsAttention: bloco.substituir === true,
-      suggestion: bloco.sugestao
+      type,
+      suggestion: bloco.sugestao,
+      score: bloco.nota,
+      blockType: bloco.tipo as any,
+      replace: bloco.substituir === true,
+      action: message
     });
   });
   
