@@ -104,13 +104,10 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
     
     console.log("Validação encontrada:", data);
     
-    // Verificar se o objeto data possui alguma propriedade "blocos"
-    // Se não possuir, precisamos criar blocos vazios
-    const hasBlocos = data && Object.prototype.hasOwnProperty.call(data, 'blocos');
-    
     // Mapear o formato do banco de dados para o formato esperado
+    // A tabela no banco pode não ter uma coluna "blocos", então criamos um array vazio como fallback
     const result: ValidationResult = {
-      blocos: hasBlocos ? data.blocos : [], // Usar a propriedade apenas se existir
+      blocos: [], // Inicializar com um array vazio por padrão
       nota_geral: data.pontuacao_total,
       sugestoes_gerais: data.sugestoes.split('\n'),
       // Campos antigos para manter compatibilidade
@@ -121,6 +118,11 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
       total: data.pontuacao_total,
       sugestoes: data.sugestoes
     };
+    
+    // Se existir a propriedade blocos no objeto, usá-la
+    if (data && typeof data === 'object' && 'blocos' in data && Array.isArray(data.blocos)) {
+      result.blocos = data.blocos;
+    }
     
     return {
       ...result,
