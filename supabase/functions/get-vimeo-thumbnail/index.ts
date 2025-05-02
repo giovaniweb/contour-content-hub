@@ -43,15 +43,48 @@ serve(async (req) => {
       throw new Error(`Erro ao buscar informações do vídeo: ${oembedResponse.statusText}`);
     }
 
-    const videoData = await oembedResponse.json();
+    const oembedData = await oembedResponse.json();
+    
+    // Try to get more detailed information including duration from the Vimeo API
+    let duration = null;
+    let description = oembedData.description || null;
+    
+    try {
+      // Use Vimeo's video data API to get duration
+      const videoApiUrl = `https://vimeo.com/api/v2/video/${videoId}.json`;
+      const videoApiResponse = await fetch(videoApiUrl);
+      
+      if (videoApiResponse.ok) {
+        const videoData = await videoApiResponse.json();
+        if (videoData && videoData[0]) {
+          duration = videoData[0].duration; // Duration in seconds
+          
+          // If we didn't get a description from oEmbed, try the API
+          if (!description && videoData[0].description) {
+            description = videoData[0].description;
+          }
+        }
+      }
+    } catch (apiError) {
+      console.error("Erro ao buscar duração do vídeo:", apiError);
+      // Continue without duration if this fails
+    }
+    
+    // Format duration as MM:SS if available
+    let formattedDuration = null;
+    if (duration) {
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
     
     return new Response(
       JSON.stringify({
         success: true,
-        thumbnail_url: videoData.thumbnail_url,
-        title: videoData.title,
-        duration: null, // Vimeo oEmbed doesn't provide duration
-        description: videoData.description || null
+        thumbnail_url: oembedData.thumbnail_url,
+        title: oembedData.title,
+        duration: formattedDuration,
+        description: description
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

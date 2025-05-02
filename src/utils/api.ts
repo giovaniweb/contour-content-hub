@@ -4,6 +4,9 @@
 // Different script types
 export type ScriptType = 'videoScript' | 'bigIdea' | 'dailySales';
 
+// Marketing objective types
+export type MarketingObjectiveType = 'atrair_atencao' | 'criar_conexao' | 'fazer_comprar' | 'reativar_interesse' | 'fechar_agora';
+
 // Script request parameters
 export interface ScriptRequest {
   type: ScriptType;

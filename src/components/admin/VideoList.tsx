@@ -1,30 +1,16 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Card, 
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle 
-} from "@/components/ui/card";
+import { Eye, ThumbsUp, MoreVertical, Trash2, Edit, ExternalLink, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from "@/components/ui/dialog";
-import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,346 +20,504 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Heart, Share2, Bookmark, MoreVertical, Pencil, Trash2, ExternalLink, Video, Film } from "lucide-react";
 import VideoForm from "./VideoForm";
-import { useToast } from "@/hooks/use-toast";
-import { Video as VideoType } from "@/types/database";
+import { MarketingObjectiveType } from "@/utils/api";
+
+// Function to normalize video URLs for embed
+const getNormalizedVideoUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // If it's already in player format, return as is
+  if (url.includes('player.vimeo.com/video')) {
+    return url;
+  }
+  
+  // Extract ID from vimeo.com/ID format
+  const vimeoIdMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoIdMatch && vimeoIdMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoIdMatch[1]}`;
+  }
+  
+  // Return original if no match
+  return url;
+};
+
+// Get icon component based on marketing objective
+const getObjectiveIcon = (objective?: MarketingObjectiveType) => {
+  switch (objective) {
+    case "atrair_atencao":
+      return <Eye className="h-4 w-4" />;
+    case "criar_conexao":
+      return <MessageSquare className="h-4 w-4" />;
+    case "fazer_comprar":
+      return <ShoppingCart className="h-4 w-4" />;
+    case "reativar_interesse":
+      return <RefreshCcw className="h-4 w-4" />;
+    case "fechar_agora":
+      return <Phone className="h-4 w-4" />;
+    default:
+      return null;
+  }
+};
+
+// Get objective title
+const getObjectiveTitle = (objective?: MarketingObjectiveType): string => {
+  switch (objective) {
+    case "atrair_atencao":
+      return "Atrair Atenção";
+    case "criar_conexao":
+      return "Criar Conexão";
+    case "fazer_comprar":
+      return "Fazer Comprar";
+    case "reativar_interesse":
+      return "Reativar Interesse";
+    case "fechar_agora":
+      return "Fechar Agora";
+    default:
+      return "";
+  }
+};
 
 interface VideoListProps {
-  videos: VideoType[];
+  videos: any[];
   onDelete: (id: string) => Promise<void>;
   onUpdate: () => void;
   viewMode: "grid" | "list";
 }
 
 const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewMode }) => {
-  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
+  const [editingVideo, setEditingVideo] = useState<any | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingVideoId, setDeletingVideoId] = useState<string | null>(null);
-  const [viewVideoUrl, setViewVideoUrl] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [previewVideo, setPreviewVideo] = useState<any | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const handleDeleteClick = (id: string) => {
+    setDeletingVideoId(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingVideoId) {
+      await onDelete(deletingVideoId);
+      setDeleteConfirmOpen(false);
+      setDeletingVideoId(null);
+    }
+  };
+
+  const handleEditClick = (video: any) => {
+    setEditingVideo(video);
+    setIsEditDialogOpen(true);
+  };
 
   const handleEditSuccess = () => {
-    setEditingVideoId(null);
+    setIsEditDialogOpen(false);
+    setEditingVideo(null);
     onUpdate();
-    toast({
-      title: "Vídeo atualizado",
-      description: "As alterações foram salvas com sucesso."
-    });
   };
 
-  const handleShareVideo = (video: VideoType) => {
-    // Copy video link to clipboard
-    navigator.clipboard.writeText(video.url_video || '');
-    toast({
-      title: "Link copiado",
-      description: "O link do vídeo foi copiado para a área de transferência."
-    });
+  const handlePreviewClick = (video: any) => {
+    setPreviewVideo(video);
+    setIsPreviewOpen(true);
   };
 
-  const getVideoTypeLabel = (type: string) => {
-    switch (type) {
-      case 'video_pronto':
-        return <Badge>Vídeo Pronto</Badge>;
-      case 'take':
-        return <Badge variant="outline">Take Bruto</Badge>;
-      default:
-        return <Badge variant="outline">{type}</Badge>;
-    }
-  };
-
-  const getVideoThumbUrl = (video: VideoType) => {
-    if (video.preview_url) return video.preview_url;
-    
-    // Default placeholder based on type
-    return '/placeholder.svg';
-  };
-
-  // Função para limpar e normalizar URL do Vimeo para incorporação
-  const getNormalizedVideoUrl = (url: string | null): string | null => {
-    if (!url) return null;
-    
-    // Se já estiver no formato player.vimeo.com, retornar como está
-    if (url.includes('player.vimeo.com')) return url;
-    
-    // Para URLs do Vimeo no formato padrão, converter para formato de player
-    const vimeoIdMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoIdMatch && vimeoIdMatch[1]) {
-      return `https://player.vimeo.com/video/${vimeoIdMatch[1]}`;
-    }
-    
-    return url;
-  };
-
-  const renderGridView = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {videos.map((video) => (
-        <Card key={video.id} className="overflow-hidden flex flex-col">
-          <div 
-            className="aspect-video bg-muted overflow-hidden cursor-pointer"
-            onClick={() => setViewVideoUrl(video.url_video || null)}
-          >
-            <img 
-              src={getVideoThumbUrl(video)} 
-              alt={video.titulo} 
-              className="w-full h-full object-cover object-center transition-transform hover:scale-105"
-            />
-          </div>
-          <CardHeader className="p-4 pb-2">
-            <div className="flex justify-between items-start">
-              <CardTitle className="text-lg line-clamp-2">{video.titulo}</CardTitle>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Opções</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setViewVideoUrl(video.url_video || null)}>
-                    <ExternalLink className="h-4 w-4 mr-2" /> Ver Vídeo
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setEditingVideoId(video.id)}>
-                    <Pencil className="h-4 w-4 mr-2" /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => setDeletingVideoId(video.id)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="flex gap-2 mt-2">
-              {getVideoTypeLabel(video.tipo_video)}
-            </div>
-            <CardDescription className="line-clamp-2 mt-2">
-              {video.descricao_curta || video.descricao_detalhada?.substring(0, 100)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="flex flex-wrap gap-1 mb-2">
-              {video.equipamentos && video.equipamentos.map((equipment: string) => (
-                <Badge key={equipment} variant="outline" className="text-xs">
-                  {equipment}
-                </Badge>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {video.finalidade && video.finalidade.map((purpose: string) => (
-                <Badge key={purpose} variant="secondary" className="text-xs">
-                  {purpose}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="p-4 pt-0 mt-auto">
-            <div className="flex justify-between w-full">
-              <div className="flex gap-2">
-                {video.tags && video.tags.slice(0, 3).map((tag: string) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {video.tags && video.tags.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{video.tags.length - 3}
-                  </Badge>
-                )}
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => handleShareVideo(video)}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
-
-  const renderListView = () => (
-    <div className="overflow-hidden rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Thumbnail</TableHead>
-            <TableHead>Título</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Equipamentos</TableHead>
-            <TableHead>Finalidades</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+  // Render videos as grid
+  if (viewMode === "grid") {
+    return (
+      <>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {videos.map((video) => (
-            <TableRow key={video.id}>
-              <TableCell>
-                <div 
-                  className="w-16 h-9 bg-muted rounded overflow-hidden cursor-pointer"
-                  onClick={() => setViewVideoUrl(video.url_video || null)}
-                >
-                  <img 
-                    src={getVideoThumbUrl(video)} 
-                    alt={video.titulo} 
-                    className="w-full h-full object-cover object-center"
+            <div key={video.id} className="border rounded-lg overflow-hidden flex flex-col bg-card">
+              <div 
+                className="relative aspect-video bg-muted cursor-pointer"
+                onClick={() => handlePreviewClick(video)}
+              >
+                {video.preview_url ? (
+                  <img
+                    src={video.preview_url}
+                    alt={video.titulo}
+                    className="w-full h-full object-cover"
                   />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    Sem prévia
+                  </div>
+                )}
+                
+                {/* Badges de contagem */}
+                <div className="absolute bottom-2 right-2 flex gap-1">
+                  {video.favoritos_count > 0 && (
+                    <Badge variant="secondary" className="flex items-center">
+                      <ThumbsUp className="h-3 w-3 mr-1" />
+                      {video.favoritos_count}
+                    </Badge>
+                  )}
+                  {video.compartilhamentos > 0 && (
+                    <Badge variant="secondary" className="flex items-center">
+                      <Eye className="h-3 w-3 mr-1" />
+                      {video.compartilhamentos}
+                    </Badge>
+                  )}
                 </div>
-              </TableCell>
-              <TableCell className="font-medium">
-                <div className="line-clamp-1">{video.titulo}</div>
-              </TableCell>
-              <TableCell>{getVideoTypeLabel(video.tipo_video)}</TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1 max-w-[200px]">
-                  {video.equipamentos && video.equipamentos.length > 0 ? 
-                    video.equipamentos.map((equipment: string, index: number) => (
-                      index < 2 ? 
-                        <Badge key={equipment} variant="outline" className="text-xs">
-                          {equipment}
-                        </Badge> : 
-                        index === 2 ? 
-                          <Badge key="more" variant="outline" className="text-xs">
-                            +{video.equipamentos.length - 2}
-                          </Badge> : 
-                          null
-                    )) : 
-                    '-'
-                  }
+                
+                {/* Novo badge para objetivo de marketing */}
+                {video.objetivo_marketing && (
+                  <div className="absolute top-2 left-2">
+                    <Badge 
+                      variant="secondary" 
+                      className="flex items-center gap-1 bg-secondary/80 backdrop-blur-sm"
+                      title={getObjectiveTitle(video.objetivo_marketing)}
+                    >
+                      {getObjectiveIcon(video.objetivo_marketing)}
+                    </Badge>
+                  </div>
+                )}
+                
+                {/* Menu de ações */}
+                <div className="absolute top-2 right-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="bg-background/80 backdrop-blur-sm rounded-full h-8 w-8 text-muted-foreground hover:text-foreground">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handlePreviewClick(video)}>
+                        <Eye className="h-4 w-4 mr-2" /> Ver vídeo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditClick(video)}>
+                        <Edit className="h-4 w-4 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteClick(video.id)} className="text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1 max-w-[200px]">
-                  {video.finalidade && video.finalidade.length > 0 ? 
-                    video.finalidade.map((purpose: string, index: number) => (
-                      index < 2 ? 
-                        <Badge key={purpose} variant="secondary" className="text-xs">
-                          {purpose}
-                        </Badge> : 
-                        index === 2 ? 
-                          <Badge key="more" variant="secondary" className="text-xs">
-                            +{video.finalidade.length - 2}
-                          </Badge> : 
-                          null
-                    )) : 
-                    '-'
-                  }
+              </div>
+              
+              <div className="p-3 flex flex-col flex-grow">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-medium text-sm line-clamp-1" title={video.titulo}>
+                    {video.titulo}
+                  </h3>
+                  <Badge variant="outline" className="text-xs">
+                    {video.tipo_video === "video_pronto" ? "Pronto" : "Take"}
+                  </Badge>
                 </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setViewVideoUrl(video.url_video || null)}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setEditingVideoId(video.id)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setDeletingVideoId(video.id)}
-                    className="text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-2" title={video.descricao_curta}>
+                  {video.descricao_curta || "Sem descrição"}
+                </p>
+                
+                <div className="mt-auto">
+                  {video.equipamentos && video.equipamentos.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {video.equipamentos.slice(0, 2).map((equipamento: string) => (
+                        <Badge key={equipamento} variant="secondary" className="text-xs">
+                          {equipamento}
+                        </Badge>
+                      ))}
+                      {video.equipamentos.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{video.equipamentos.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </TableCell>
-            </TableRow>
+              </div>
+            </div>
           ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-
-  return (
-    <>
-      {viewMode === "grid" ? renderGridView() : renderListView()}
-
-      {/* Edit Video Dialog */}
-      {editingVideoId && (
-        <Dialog open={!!editingVideoId} onOpenChange={() => setEditingVideoId(null)}>
+        </div>
+        
+        {/* Diálogo de edição */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Editar Vídeo</DialogTitle>
-              <DialogDescription>
-                Modifique os detalhes do vídeo conforme necessário.
-              </DialogDescription>
             </DialogHeader>
-            <VideoForm 
-              videoId={editingVideoId}
-              onSuccess={handleEditSuccess}
-              onCancel={() => setEditingVideoId(null)}
-            />
+            {editingVideo && (
+              <VideoForm video={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
+            )}
           </DialogContent>
         </Dialog>
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deletingVideoId} onOpenChange={() => setDeletingVideoId(null)}>
+        
+        {/* Diálogo de visualização */}
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>{previewVideo?.titulo}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                {previewVideo?.url_video ? (
+                  <iframe 
+                    src={getNormalizedVideoUrl(previewVideo.url_video)}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    Não foi possível carregar o vídeo
+                  </div>
+                )}
+              </div>
+              
+              {previewVideo && (
+                <div>
+                  <h3 className="font-semibold mb-1">{previewVideo.titulo}</h3>
+                  <p className="text-muted-foreground text-sm">{previewVideo.descricao_curta}</p>
+                  
+                  {previewVideo.descricao_detalhada && (
+                    <p className="mt-2 text-sm">{previewVideo.descricao_detalhada}</p>
+                  )}
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {previewVideo.equipamentos?.map((equipamento: string) => (
+                      <Badge key={equipamento} variant="secondary">
+                        {equipamento}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={previewVideo.url_video} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Abrir no Vimeo
+                      </a>
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleEditClick(previewVideo)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Confirmação de exclusão */}
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir vídeo</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Sim, excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
+  
+  // Render videos as list
+  return (
+    <>
+      <div className="space-y-2">
+        {videos.map((video) => (
+          <div key={video.id} className="flex border rounded-lg bg-card overflow-hidden">
+            <div 
+              className="w-32 h-20 bg-muted cursor-pointer"
+              onClick={() => handlePreviewClick(video)}
+            >
+              {video.preview_url ? (
+                <img
+                  src={video.preview_url}
+                  alt={video.titulo}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                  Sem prévia
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1 px-4 py-2 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium" onClick={() => handlePreviewClick(video)} style={{ cursor: 'pointer' }}>
+                      {video.titulo}
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      {video.tipo_video === "video_pronto" ? "Pronto" : "Take"}
+                    </Badge>
+                    
+                    {/* Novo badge para objetivo de marketing */}
+                    {video.objetivo_marketing && (
+                      <Badge 
+                        variant="secondary" 
+                        className="flex items-center gap-1"
+                        title={getObjectiveTitle(video.objetivo_marketing)}
+                      >
+                        {getObjectiveIcon(video.objetivo_marketing)}
+                        <span className="text-xs hidden sm:inline">{getObjectiveTitle(video.objetivo_marketing)}</span>
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground line-clamp-1">
+                  {video.descricao_curta || "Sem descrição"}
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between mt-1">
+                <div className="flex gap-2">
+                  {video.equipamentos && video.equipamentos.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {video.equipamentos.slice(0, 2).map((equipamento: string) => (
+                        <Badge key={equipamento} variant="secondary" className="text-xs">
+                          {equipamento}
+                        </Badge>
+                      ))}
+                      {video.equipamentos.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{video.equipamentos.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
+                  {(video.favoritos_count > 0 || video.compartilhamentos > 0) && (
+                    <div className="flex gap-2 items-center text-muted-foreground">
+                      {video.favoritos_count > 0 && (
+                        <span className="flex items-center text-xs">
+                          <ThumbsUp className="h-3 w-3 mr-1" />
+                          {video.favoritos_count}
+                        </span>
+                      )}
+                      {video.compartilhamentos > 0 && (
+                        <span className="flex items-center text-xs">
+                          <Eye className="h-3 w-3 mr-1" />
+                          {video.compartilhamentos}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-7" onClick={() => handlePreviewClick(video)}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    <span className="sr-only md:not-sr-only">Ver</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7" onClick={() => handleEditClick(video)}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    <span className="sr-only md:not-sr-only">Editar</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-destructive hover:text-destructive" onClick={() => handleDeleteClick(video.id)}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    <span className="sr-only md:not-sr-only">Excluir</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Diálogo de edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Vídeo</DialogTitle>
+          </DialogHeader>
+          {editingVideo && (
+            <VideoForm video={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Diálogo de visualização */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{previewVideo?.titulo}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+              {previewVideo?.url_video ? (
+                <iframe 
+                  src={getNormalizedVideoUrl(previewVideo.url_video)}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  Não foi possível carregar o vídeo
+                </div>
+              )}
+            </div>
+            
+            {previewVideo && (
+              <div>
+                <h3 className="font-semibold mb-1">{previewVideo.titulo}</h3>
+                <p className="text-muted-foreground text-sm">{previewVideo.descricao_curta}</p>
+                
+                {previewVideo.descricao_detalhada && (
+                  <p className="mt-2 text-sm">{previewVideo.descricao_detalhada}</p>
+                )}
+                
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {previewVideo.equipamentos?.map((equipamento: string) => (
+                    <Badge key={equipamento} variant="secondary">
+                      {equipamento}
+                    </Badge>
+                  ))}
+                </div>
+                
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={previewVideo.url_video} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Abrir no Vimeo
+                    </a>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleEditClick(previewVideo)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Confirmação de exclusão */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Excluir vídeo</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente este vídeo
-              da biblioteca de conteúdo.
+              Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={async () => {
-                if (deletingVideoId) {
-                  await onDelete(deletingVideoId);
-                  setDeletingVideoId(null);
-                }
-              }}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Excluir
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Sim, excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Video Preview Dialog */}
-      <Dialog open={!!viewVideoUrl} onOpenChange={() => setViewVideoUrl(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Visualização do Vídeo</DialogTitle>
-          </DialogHeader>
-          {viewVideoUrl && (
-            <div className="aspect-video">
-              <iframe
-                src={getNormalizedVideoUrl(viewVideoUrl)}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
