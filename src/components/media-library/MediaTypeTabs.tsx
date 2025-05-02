@@ -4,12 +4,16 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
+  TabsContent
 } from "@/components/ui/tabs";
 import {
   Video,
   FileText,
-  Image
+  Image,
+  Film,
+  Camera
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MediaTypeTabsProps {
   mediaType: string;
@@ -18,25 +22,49 @@ interface MediaTypeTabsProps {
 
 const MediaTypeTabs: React.FC<MediaTypeTabsProps> = ({ mediaType, setMediaType }) => {
   return (
-    <Tabs value={mediaType} onValueChange={setMediaType}>
-      <TabsList className="grid grid-cols-5 mb-6">
-        <TabsTrigger value="all">Todos</TabsTrigger>
-        <TabsTrigger value="video" className="flex items-center">
-          <Video className="h-4 w-4 mr-1.5" />
-          <span>Vídeos</span>
-        </TabsTrigger>
-        <TabsTrigger value="arte" className="flex items-center">
-          <Image className="h-4 w-4 mr-1.5" />
-          <span>Artes</span>
-        </TabsTrigger>
-        <TabsTrigger value="artigo" className="flex items-center">
-          <FileText className="h-4 w-4 mr-1.5" />
-          <span>Artigos</span>
-        </TabsTrigger>
-        <TabsTrigger value="documentacao" className="flex items-center">
-          <FileText className="h-4 w-4 mr-1.5" />
-          <span>Documentação</span>
-        </TabsTrigger>
+    <Tabs value={mediaType} onValueChange={setMediaType} className="w-full">
+      <TabsList className="grid grid-cols-1 sm:grid-cols-5 mb-6 w-full">
+        <TabsTrigger value="all" className="font-medium">Todos</TabsTrigger>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <TabsTrigger value="video" className="flex items-center gap-2 font-medium">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Vídeos</span>
+            </TabsTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">Vídeos</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <TabsTrigger value="arte" className="flex items-center gap-2 font-medium">
+              <Image className="h-4 w-4" />
+              <span className="hidden sm:inline">Artes</span>
+            </TabsTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">Artes</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <TabsTrigger value="artigo" className="flex items-center gap-2 font-medium">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Artigos</span>
+            </TabsTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">Artigos</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <TabsTrigger value="documentacao" className="flex items-center gap-2 font-medium">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Documentação</span>
+            </TabsTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">Documentação</TooltipContent>
+        </Tooltip>
       </TabsList>
     </Tabs>
   );

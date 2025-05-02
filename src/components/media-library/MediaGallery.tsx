@@ -6,7 +6,7 @@ import { LoaderIcon, Search } from "lucide-react";
 import { MediaItem } from "@/utils/api";
 import { TabsContent } from "@/components/ui/tabs";
 import MediaCard from "@/components/MediaCard";
-import { getMediaTypeIcon } from "./mediaUtils";
+import { getMediaTypeIcon, getMediaTypeName } from "./mediaUtils";
 
 interface MediaGalleryProps {
   mediaType: string;
@@ -23,27 +23,13 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   handleReset, 
   handleMediaUpdate 
 }) => {
-  const getMediaTypeName = (type: string) => {
-    switch (type) {
-      case "all": return "Todos os itens";
-      case "video": return "Vídeos";
-      case "arte": return "Artes";
-      case "artigo": return "Artigos";
-      case "documentacao": return "Documentação";
-      case "video_pronto": return "Vídeos Prontos";
-      case "take": return "Takes Brutos";
-      case "image": return "Imagens";
-      default: return "Mídia";
-    }
-  };
-
   return (
     <TabsContent value={mediaType} className="mt-0">
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center">
             <LoaderIcon className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Loading media...</p>
+            <p className="text-muted-foreground">Carregando mídia...</p>
           </div>
         </div>
       ) : filteredItems.length > 0 ? (
@@ -53,7 +39,7 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
               {mediaType !== "all" && getMediaTypeIcon(mediaType)}
               <span>{getMediaTypeName(mediaType)}</span>
             </h3>
-            <Badge variant="outline">{filteredItems.length} items</Badge>
+            <Badge variant="outline">{filteredItems.length} {filteredItems.length === 1 ? 'item' : 'itens'}</Badge>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -70,13 +56,16 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center">
             <Search className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No media found</p>
+            <p className="text-muted-foreground mb-2">Nenhuma mídia encontrada</p>
+            <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+              Não encontramos resultados para sua busca. Tente ajustar os filtros ou adicionar novo conteúdo.
+            </p>
             <Button 
               variant="outline" 
               onClick={handleReset}
-              className="mt-4"
+              className="mt-2"
             >
-              Reset Filters
+              Limpar Filtros
             </Button>
           </div>
         </div>

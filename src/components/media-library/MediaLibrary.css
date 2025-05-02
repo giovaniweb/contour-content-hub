@@ -1,0 +1,79 @@
+
+/* Estilos responsivos para Media Library */
+
+/* Ajustes para tabs em telas pequenas */
+@media (max-width: 640px) {
+  .media-tabs-mobile .tabs-list {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .media-tabs-mobile .tab-label {
+    display: none;
+  }
+  
+  .media-tabs-mobile .tab-icon {
+    margin-right: 0;
+  }
+}
+
+/* Ajustes para cards em diferentes tamanhos de tela */
+.media-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Animações para elementos interativos */
+.media-action-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.media-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Melhorias de acessibilidade */
+.media-filter-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+/* Skeletons para carregamento */
+.media-skeleton {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Cores para tipos de mídia */
+.media-type-video {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.media-type-arte {
+  color: #9333ea;
+  background-color: rgba(147, 51, 234, 0.1);
+}
+
+.media-type-artigo {
+  color: #16a34a;
+  background-color: rgba(22, 163, 74, 0.1);
+}
+
+.media-type-documentacao {
+  color: #d97706;
+  background-color: rgba(217, 119, 6, 0.1);
+}

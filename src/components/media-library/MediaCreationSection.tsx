@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { VideoIcon } from "lucide-react";
+import { VideoIcon, PlusCircle } from "lucide-react";
 
 const MediaCreationSection: React.FC = () => {
   return (
@@ -18,10 +18,13 @@ const MediaCreationSection: React.FC = () => {
         <Button variant="outline" className="rounded-full">Criativo para anúncio</Button>
       </div>
       
-      <Card className="bg-slate-50 p-4 mb-8">
-        <div className="flex justify-between items-center">
+      <Card className="bg-slate-50 p-4 mb-8 hover:shadow-md transition-all">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-700">Quer um vídeo, um folder, uma arte. Só pede!</p>
-          <Button className="rounded-full">Quero Agora</Button>
+          <Button className="rounded-full w-full sm:w-auto">
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Quero Agora
+          </Button>
         </div>
       </Card>
     </div>
