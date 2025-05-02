@@ -2,7 +2,8 @@
 import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const CustomGpt: React.FC = () => {
   useEffect(() => {
@@ -19,6 +20,15 @@ const CustomGpt: React.FC = () => {
         <p className="text-muted-foreground mb-6">
           Gere roteiros, big ideas e stories para equipamentos estéticos usando seu prompt personalizado.
         </p>
+        
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Dica</AlertTitle>
+          <AlertDescription>
+            A aplicação está mostrando equipamentos padrão e quaisquer equipamentos adicionais do banco de dados.
+            Se você não vir todos os equipamentos esperados, verifique as configurações de acesso aos dados no painel do Supabase.
+          </AlertDescription>
+        </Alert>
         
         <CustomGptForm />
       </div>

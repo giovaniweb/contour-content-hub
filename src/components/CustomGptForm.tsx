@@ -62,6 +62,60 @@ const defaultEquipamentos: Equipment[] = [
     beneficios: "Redução de medidas e melhora do contorno corporal",
     diferenciais: "Resultados em poucas sessões",
     linguagem: "Direta e motivacional"
+  },
+  { 
+    id: "focuskin-default", 
+    nome: "Focuskin", 
+    tecnologia: "Radiofrequência fracionada",
+    indicacoes: "Estrias e cicatrizes",
+    beneficios: "Remodelação do colágeno, melhor textura da pele",
+    diferenciais: "Ponteiras específicas para cada tipo de pele",
+    linguagem: "Técnica e detalhada"
+  },
+  { 
+    id: "hipro-default", 
+    nome: "Hipro", 
+    tecnologia: "Eletroestimulação muscular",
+    indicacoes: "Tonificação muscular e definição corporal",
+    beneficios: "Fortalecimento muscular, redução de gordura",
+    diferenciais: "Tratamento equivalente a milhares de contrações musculares",
+    linguagem: "Energética e motivacional"
+  },
+  { 
+    id: "crystal-default", 
+    nome: "Laser Crystal 3D Plus", 
+    tecnologia: "Laser de diodo",
+    indicacoes: "Depilação definitiva",
+    beneficios: "Pele livre de pelos, conforto durante o procedimento",
+    diferenciais: "Sistema de resfriamento, indolor",
+    linguagem: "Tranquilizadora e confiante"
+  },
+  { 
+    id: "multi-default", 
+    nome: "MultiShape", 
+    tecnologia: "Sistema multifuncional",
+    indicacoes: "Diversos tratamentos corporais",
+    beneficios: "Versatilidade, resultados personalizados",
+    diferenciais: "Várias tecnologias em um único aparelho",
+    linguagem: "Versátil e adaptável"
+  },
+  { 
+    id: "reverso-default", 
+    nome: "Reverso", 
+    tecnologia: "Tecnologia de reversão do envelhecimento",
+    indicacoes: "Rejuvenescimento facial e corporal",
+    beneficios: "Aspecto jovial, revitalização da pele",
+    diferenciais: "Protocolo exclusivo anti-aging",
+    linguagem: "Sofisticada e elegante"
+  },
+  { 
+    id: "supreme-default", 
+    nome: "Supreme Pro", 
+    tecnologia: "Alta frequência e estimulação celular",
+    indicacoes: "Lifting facial não invasivo",
+    beneficios: "Efeito lifting imediato, durabilidade dos resultados",
+    diferenciais: "Não requer tempo de recuperação",
+    linguagem: "Premium e exclusiva"
   }
 ];
 
@@ -82,7 +136,7 @@ const formSchema = z.object({
 
 const CustomGptForm = () => {
   const [loading, setLoading] = useState(false);
-  const [equipamentos, setEquipamentos] = useState<Equipment[]>([]);
+  const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
   const { toast } = useToast();
 
@@ -104,7 +158,22 @@ const CustomGptForm = () => {
         
         if (data && data.length > 0) {
           console.log(`${data.length} equipamentos carregados da API`);
-          setEquipamentos(data);
+          // Combinar equipamentos da API com os padrão para evitar duplicidades
+          const combinedEquipamentos = [...data];
+          
+          // Adicionar equipamentos padrão que não estão na lista da API
+          defaultEquipamentos.forEach(defaultEq => {
+            const exists = data.some(apiEq => 
+              apiEq.nome.toLowerCase() === defaultEq.nome.toLowerCase()
+            );
+            
+            if (!exists) {
+              combinedEquipamentos.push(defaultEq);
+            }
+          });
+          
+          console.log(`Total de ${combinedEquipamentos.length} equipamentos após combinação`);
+          setEquipamentos(combinedEquipamentos);
         } else {
           console.log("API retornou lista vazia, usando equipamentos padrão");
           setEquipamentos(defaultEquipamentos);

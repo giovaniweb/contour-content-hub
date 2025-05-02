@@ -5,13 +5,33 @@ import { Equipment } from '@/types/equipment';
 // Obter lista de equipamentos
 export const getEquipments = async (): Promise<Equipment[]> => {
   try {
-    const { data, error } = await supabase
+    console.log("Iniciando requisição para buscar equipamentos");
+    
+    // Verificar se a tabela existe antes de fazer a consulta
+    const { data: tableExists, error: tableCheckError } = await supabase
       .from('equipamentos')
-      .select('*')
+      .select('id', { count: 'exact', head: true });
+      
+    if (tableCheckError) {
+      console.error('Erro ao verificar tabela de equipamentos:', tableCheckError);
+    }
+    
+    console.log("Tabela equipamentos existe:", tableExists !== null);
+    
+    // Buscar todos os equipamentos, incluindo os inativos (para fins de depuração)
+    const { data, error, count } = await supabase
+      .from('equipamentos')
+      .select('*', { count: 'exact' })
       .order('nome');
       
-    if (error) throw error;
+    if (error) {
+      console.error('Erro detalhado ao buscar equipamentos:', error);
+      throw error;
+    }
     
+    console.log(`Encontrados ${count || 0} equipamentos no banco de dados`);
+    
+    // Se não houver dados ou o array estiver vazio, retornar um array vazio
     return data || [];
   } catch (error) {
     console.error('Erro ao buscar equipamentos:', error);
