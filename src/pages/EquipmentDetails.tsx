@@ -43,8 +43,8 @@ const EquipmentDetails: React.FC = () => {
     // Filtro de busca
     const matchesSearch = 
       equip.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (equip.descricao && equip.descricao.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (equip.categoria && equip.categoria.toLowerCase().includes(searchTerm.toLowerCase()));
+      (equip.tecnologia && equip.tecnologia.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (equip.beneficios && equip.beneficios.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Filtro de aba
     if (activeTab === "all") return matchesSearch;
@@ -135,11 +135,11 @@ function renderEquipmentList(equipments: Equipment[], isLoading: boolean) {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">{equip.nome}</CardTitle>
             <CardDescription className="text-xs">
-              {equip.categoria || "Sem categoria"}
+              {equip.tecnologia || "Sem tecnologia"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{equip.descricao || "Sem descrição disponível"}</p>
+            <p className="text-sm">{equip.beneficios || "Sem descrição disponível"}</p>
             <div className="mt-2 flex justify-between items-center">
               <span className={`text-xs px-2 py-1 rounded-full ${equip.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
                 {equip.ativo ? "Ativo" : "Inativo"}
