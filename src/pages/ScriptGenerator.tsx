@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -19,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -166,6 +166,15 @@ const ScriptGenerator: React.FC = () => {
       return;
     }
     
+    if (!marketingObjective) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, selecione um objetivo de marketing",
+      });
+      return;
+    }
+    
     try {
       setIsGenerating(true);
       
@@ -250,30 +259,6 @@ const ScriptGenerator: React.FC = () => {
             
             <CardContent>
               <form onSubmit={handleGenerateScript} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="scriptType">Tipo de Roteiro</Label>
-                  <Tabs
-                    value={scriptType}
-                    onValueChange={(value) => setScriptType(value as ScriptType)}
-                    className="w-full"
-                  >
-                    <TabsList className="grid grid-cols-3 w-full">
-                      <TabsTrigger value="videoScript">Vídeo</TabsTrigger>
-                      <TabsTrigger value="bigIdea">Campanha</TabsTrigger>
-                      <TabsTrigger value="dailySales">Vendas</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="videoScript">
-                      Roteiro para vídeos educativos de tratamentos
-                    </TabsContent>
-                    <TabsContent value="bigIdea">
-                      Campanha de marketing para mídia social
-                    </TabsContent>
-                    <TabsContent value="dailySales">
-                      Textos curtos para promoções e vendas
-                    </TabsContent>
-                  </Tabs>
-                </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="topic">Tema/Assunto Principal*</Label>
                   <Input
@@ -389,7 +374,7 @@ const ScriptGenerator: React.FC = () => {
                 </Accordion>
                 
                 <div className="flex gap-2 pt-2">
-                  <Button type="submit" disabled={isGenerating}>
+                  <Button type="submit" disabled={isGenerating || !marketingObjective}>
                     {isGenerating ? "Gerando..." : "Gerar Roteiro"}
                   </Button>
                   {generatedScript && (

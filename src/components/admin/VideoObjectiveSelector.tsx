@@ -54,7 +54,8 @@ const objectiveOptions: ObjectiveOption[] = [
 const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({ value, onValueChange, className = "" }) => {
   return (
     <div className={`space-y-3 ${className}`}>
-      <Label className="text-base">Objetivo de Marketing</Label>
+      <Label className="text-base font-medium">Qual o objetivo desse vídeo?</Label>
+      <p className="text-sm text-muted-foreground mb-2">Escolha o que você quer que o vídeo faça por você.</p>
       <RadioGroup 
         value={value} 
         onValueChange={(val) => onValueChange(val as MarketingObjectiveType)}
