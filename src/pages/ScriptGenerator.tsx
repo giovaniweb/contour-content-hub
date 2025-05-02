@@ -345,7 +345,7 @@ const ScriptGenerator: React.FC = () => {
           {generatedScript ? (
             <ScriptCard 
               script={generatedScript}
-              onFeedback={handleScriptFeedback}
+              onFeedbackSubmit={handleScriptFeedback}
             />
           ) : (
             <Card className="h-full flex items-center justify-center">
