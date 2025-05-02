@@ -7,10 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles } from "lucide-react";
+import { FileText, Download, ThumbsUp, ThumbsDown, Calendar, Sparkles, Star, Award } from "lucide-react";
 import { ScriptResponse, saveScriptFeedback, generatePDF } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
+import { getValidation } from "@/utils/ai-validation";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -24,7 +25,24 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
+  const [validationScore, setValidationScore] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Check if script has validation on mount
+  React.useEffect(() => {
+    const checkValidation = async () => {
+      try {
+        const validation = await getValidation(script.id);
+        if (validation) {
+          setValidationScore(validation.total);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar validação:", error);
+      }
+    };
+    
+    checkValidation();
+  }, [script.id]);
 
   const handleSubmitFeedback = async () => {
     try {
@@ -71,6 +89,12 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
     }
   };
 
+  const handleValidationComplete = (validation: any) => {
+    if (validation && validation.total) {
+      setValidationScore(validation.total);
+    }
+  };
+
   // Format the date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,17 +133,36 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
     }
   };
 
+  // Get validation badge color
+  const getValidationBadgeColor = (score: number | null) => {
+    if (score === null) return "bg-gray-200 text-gray-700";
+    if (score >= 8) return "bg-green-100 text-green-800";
+    if (score >= 6) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
+  };
+
   return (
     <>
       <Card className="w-full reelline-card">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <CardTitle className="text-lg md:text-xl">{script.title}</CardTitle>
-            <Badge variant={getBadgeVariant()}>{getScriptTypeLabel()}</Badge>
+            <div>
+              <CardTitle className="text-lg md:text-xl">{script.title}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Criado em {formatDate(script.createdAt)}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 items-end">
+              <Badge variant={getBadgeVariant()}>{getScriptTypeLabel()}</Badge>
+              
+              {validationScore !== null && (
+                <div className={`text-xs px-2 py-1 rounded-md flex items-center ${getValidationBadgeColor(validationScore)}`}>
+                  <Award className="h-3 w-3 mr-1" />
+                  Nota IA: {validationScore.toFixed(1)}/10
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Criado em {formatDate(script.createdAt)}
-          </p>
         </CardHeader>
         <CardContent className="pb-2">
           <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-line">
@@ -227,19 +270,22 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
             </Dialog>
 
             <Button
-              variant="outline"
+              variant={showValidation ? "secondary" : "outline"}
               size="sm"
               onClick={() => setShowValidation(!showValidation)}
             >
               <Sparkles className="h-4 w-4 mr-1" />
-              Validar
+              {showValidation ? "Ocultar Validação" : "Validar com IA"}
             </Button>
           </div>
         </CardFooter>
       </Card>
       
       {showValidation && (
-        <ScriptValidation script={script} />
+        <ScriptValidation 
+          script={script} 
+          onValidationComplete={handleValidationComplete}
+        />
       )}
     </>
   );

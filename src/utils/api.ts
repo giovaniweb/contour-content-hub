@@ -1,3 +1,4 @@
+
 // Script types and interfaces
 
 // Different script types
@@ -77,6 +78,13 @@ import {
   linkScriptToCalendar
 } from './api-scripts';
 
+// Script validation API functions
+import {
+  validateScript,
+  getValidation,
+  getQualityIndicator
+} from './ai-validation';
+
 // Export interface ScriptHistoryItem from here instead of importing it
 export interface ScriptHistoryItem {
   id: string;
@@ -113,6 +121,13 @@ export {
   updateScript,
   generateScriptPDF,
   linkScriptToCalendar
+};
+
+// Export script validation API functions
+export {
+  validateScript,
+  getValidation,
+  getQualityIndicator
 };
 
 // Media library interfaces
