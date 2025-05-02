@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
@@ -217,9 +216,9 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Body Area" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Body Areas</SelectItem>
+                  <SelectItem value="all">All Body Areas</SelectItem>
                   {bodyAreaOptions.map((area) => (
-                    <SelectItem key={area} value={area}>
+                    <SelectItem key={area} value={area || "other"}>
                       {area}
                     </SelectItem>
                   ))}

@@ -15,7 +15,7 @@ interface ToneSelectorProps {
 
 const ToneSelector: React.FC<ToneSelectorProps> = ({ value, onValueChange }) => {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value || "professional"} onValueChange={onValueChange}>
       <SelectTrigger>
         <SelectValue placeholder="Selecione o tom" />
       </SelectTrigger>

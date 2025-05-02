@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -249,7 +248,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ materialId, onSuccess, onCa
             </SelectTrigger>
             <SelectContent>
               {categoryOptions.map((category) => (
-                <SelectItem key={category} value={category}>
+                <SelectItem key={category} value={category || "outro"}>
                   {category}
                 </SelectItem>
               ))}
