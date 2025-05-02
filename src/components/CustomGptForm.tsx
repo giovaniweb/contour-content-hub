@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -213,9 +214,10 @@ const purposes = [
 
 interface CustomGptFormProps {
   mode: 'simple' | 'advanced';
+  onScriptGenerated?: (script: ScriptResponse) => void;
 }
 
-const CustomGptForm = ({ mode }: CustomGptFormProps) => {
+const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
   const [loading, setLoading] = useState(false);
   const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
@@ -371,6 +373,29 @@ const CustomGptForm = ({ mode }: CustomGptFormProps) => {
         title: "Conteúdo gerado com sucesso!",
         description: `${values.tipo.charAt(0).toUpperCase() + values.tipo.slice(1)} para ${values.equipamento} criado.`
       });
+      
+      // Notify parent component when script is generated
+      if (onScriptGenerated) {
+        const scriptType = values.tipo as CustomGptType;
+        let mappedType = "videoScript"; // Default
+        
+        // Map CustomGptType to ScriptType
+        if (scriptType === "bigIdea") {
+          mappedType = "bigIdea";
+        } else if (scriptType === "stories") {
+          mappedType = "dailySales";
+        }
+        
+        const scriptResponse: ScriptResponse = {
+          id: response.id || generatedScriptId,
+          title: `${values.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
+          content: response.content,
+          type: mappedType as any,
+          createdAt: new Date().toISOString()
+        };
+        
+        onScriptGenerated(scriptResponse);
+      }
     } catch (error) {
       console.error("Erro ao gerar conteúdo:", error);
       toast({
