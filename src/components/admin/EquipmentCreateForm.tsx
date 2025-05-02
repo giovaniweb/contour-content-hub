@@ -31,7 +31,8 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     diferenciais: '',
     linguagem: '',
     ativo: true,
-    image_url: ''
+    image_url: '',
+    efeito: ''  // Add new efeito field
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -294,6 +295,23 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             />
             {errors.beneficios && (
               <p className="text-destructive text-sm mt-1">{errors.beneficios}</p>
+            )}
+          </div>
+          
+          <div>
+            <Label htmlFor="efeito" className={errors.efeito ? "text-destructive" : ""}>
+              Efeito
+            </Label>
+            <Textarea 
+              id="efeito"
+              name="efeito"
+              value={equipment.efeito}
+              onChange={handleChange}
+              placeholder="Descreva os efeitos deste equipamento no tratamento..."
+              className={`mt-1 h-24 ${errors.efeito ? "border-destructive" : ""}`}
+            />
+            {errors.efeito && (
+              <p className="text-destructive text-sm mt-1">{errors.efeito}</p>
             )}
           </div>
           

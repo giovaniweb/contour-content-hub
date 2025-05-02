@@ -42,7 +42,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       diferenciais: '',
       linguagem: '',
       image_url: '',
-      ativo: true
+      ativo: true,
+      efeito: '' // Add new efeito field
     }
   });
 
@@ -303,6 +304,25 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       required 
                       {...field} 
                       placeholder="Ex: Efeito lifting visível sem cortes ou agulhas" 
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="efeito"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Efeito*</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      required 
+                      {...field} 
+                      placeholder="Ex: Estimula produção de colágeno em camadas profundas da pele" 
                       rows={3}
                     />
                   </FormControl>

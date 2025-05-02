@@ -156,6 +156,11 @@ const EquipmentDetailsPage: React.FC = () => {
                     </div>
                     
                     <div>
+                      <h3 className="text-lg font-semibold">Efeito</h3>
+                      <p className="mt-1 text-gray-600">{equipment.efeito || "Não informado"}</p>
+                    </div>
+                    
+                    <div>
                       <h3 className="text-lg font-semibold">Diferenciais</h3>
                       <p className="mt-1 text-gray-600">{equipment.diferenciais}</p>
                     </div>
