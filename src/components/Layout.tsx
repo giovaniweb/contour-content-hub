@@ -4,6 +4,8 @@ import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "./Navbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarGroupLabel, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { History } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -46,24 +48,56 @@ const Layout: React.FC<LayoutProps> = ({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-contourline-lightGray/20">
-      <Navbar />
-      
-      <ScrollArea className="flex-grow">
-        <main className={`mx-auto px-4 py-6 ${fullWidth ? 'w-full' : 'container'}`}>
-          {title && (
-            <h1 className="text-2xl md:text-3xl font-heading font-bold mb-6 text-contourline-gradient bg-clip-text text-transparent">{title}</h1>
+    <SidebarProvider>
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-contourline-lightGray/20 w-full">
+        <Navbar />
+        
+        <div className="flex flex-1">
+          {isAuthenticated && (
+            <Sidebar>
+              <SidebarHeader>
+                <div className="flex items-center pl-2">
+                  <History className="h-5 w-5 mr-2 text-blue-500" />
+                  <span className="font-medium">Histórico</span>
+                </div>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarGroup>
+                  <SidebarGroupLabel>Recentes</SidebarGroupLabel>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/script-history">Ver todo histórico</Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroup>
+              </SidebarContent>
+              <SidebarFooter>
+                <div className="text-xs text-muted-foreground p-2">
+                  Fluida © {new Date().getFullYear()}
+                </div>
+              </SidebarFooter>
+            </Sidebar>
           )}
-          <div className="animate-fade-in">
-            {children}
-          </div>
-        </main>
-      </ScrollArea>
-      
-      <footer className="py-4 px-6 bg-white border-t border-contourline-lightBlue/10 text-center text-sm text-contourline-darkBlue">
-        <p>© {new Date().getFullYear()} Fluida | Seu estúdio criativo, em um clique.</p>
-      </footer>
-    </div>
+          
+          <ScrollArea className="flex-grow">
+            <main className={`mx-auto px-4 py-6 ${fullWidth ? 'w-full' : 'container'}`}>
+              {title && (
+                <h1 className="text-2xl md:text-3xl font-heading font-bold mb-6 text-contourline-gradient bg-clip-text text-transparent">{title}</h1>
+              )}
+              <div className="animate-fade-in">
+                {children}
+              </div>
+            </main>
+          </ScrollArea>
+        </div>
+        
+        <footer className="py-4 px-6 bg-white border-t border-contourline-lightBlue/10 text-center text-sm text-contourline-darkBlue">
+          <p>© {new Date().getFullYear()} Fluida | Seu estúdio criativo, em um clique.</p>
+        </footer>
+      </div>
+    </SidebarProvider>
   );
 };
 

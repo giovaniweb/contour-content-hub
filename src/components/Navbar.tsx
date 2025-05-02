@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -25,7 +26,10 @@ import {
   Sun,
   FileVideo,
   Sparkles,
-  FileSearch
+  FileSearch,
+  Home,
+  FileText,
+  Film
 } from "lucide-react";
 import {
   Drawer,
@@ -114,37 +118,33 @@ const Navbar: React.FC = () => {
                 isActive ? "text-primary font-medium" : "hover:text-primary"
               }>
                 <div className="flex items-center px-3 py-2">
-                  <LayoutDashboard className="h-4 w-4 mr-1" />
-                  Dashboard
+                  <Home className="h-4 w-4 mr-1" />
+                  Inicio
                 </div>
               </NavLink>
               <NavLink to="/script-history" className={({isActive}) => 
                 isActive ? "text-primary font-medium" : "hover:text-primary"
               }>
                 <div className="flex items-center px-3 py-2">
-                  <History className="h-4 w-4 mr-1" />
-                  Histórico
+                  <FileText className="h-4 w-4 mr-1" />
+                  Roteiros Fluida
                 </div>
               </NavLink>
-              <NavLink to="/equipment-details" className={({isActive}) => 
+              <NavLink to="/media-library" className={({isActive}) => 
                 isActive ? "text-primary font-medium" : "hover:text-primary"
               }>
                 <div className="flex items-center px-3 py-2">
-                  <FileSearch className="h-4 w-4 mr-1" />
-                  Equipamentos
+                  <Film className="h-4 w-4 mr-1" />
+                  Mídia
                 </div>
               </NavLink>
-              <NavLink to="/media-library">
-                <Library className="h-4 w-4 mr-1" />
-                Mídia
-              </NavLink>
-              <NavLink to="/calendar">
-                <CalendarDays className="h-4 w-4 mr-1" />
-                Agenda
-              </NavLink>
-              <NavLink to="/custom-gpt">
-                <Sparkles className="h-4 w-4 mr-1" />
-                Fluida Personalizada
+              <NavLink to="/calendar" className={({isActive}) => 
+                isActive ? "text-primary font-medium" : "hover:text-primary"
+              }>
+                <div className="flex items-center px-3 py-2">
+                  <CalendarDays className="h-4 w-4 mr-1" />
+                  Agenda
+                </div>
               </NavLink>
             </>
           )}
@@ -167,16 +167,15 @@ const Navbar: React.FC = () => {
               <div className="space-y-1 px-2 py-3">
                 {isAuthenticated && (
                   <>
-                    <DrawerNavLink to="/dashboard" icon={<LayoutDashboard className="h-4 w-4 mr-2" />} label="Dashboard" />
-                    <DrawerNavLink to="/script-history" icon={<History className="h-4 w-4 mr-2" />} label="Histórico" />
-                    <DrawerNavLink to="/media-library" icon={<Library className="h-4 w-4 mr-2" />} label="Mídia" />
+                    <DrawerNavLink to="/dashboard" icon={<Home className="h-4 w-4 mr-2" />} label="Inicio" />
+                    <DrawerNavLink to="/script-history" icon={<FileText className="h-4 w-4 mr-2" />} label="Roteiros Fluida" />
+                    <DrawerNavLink to="/media-library" icon={<Film className="h-4 w-4 mr-2" />} label="Mídia" />
                     <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-4 w-4 mr-2" />} label="Agenda" />
-                    <DrawerNavLink to="/custom-gpt" icon={<Sparkles className="h-4 w-4 mr-2" />} label="Fluida Personalizada" />
                   </>
                 )}
                 {!isAuthenticated && (
                   <>
-                    <DrawerNavLink to="/" icon={<LayoutDashboard className="h-4 w-4 mr-2" />} label="Início" />
+                    <DrawerNavLink to="/" icon={<Home className="h-4 w-4 mr-2" />} label="Início" />
                     <DrawerNavLink to="/register" icon={<FileSearch className="h-4 w-4 mr-2" />} label="Criar conta" />
                   </>
                 )}
@@ -209,12 +208,25 @@ const Navbar: React.FC = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
               <DropdownMenuItem asChild>
+                <Link to="/script-history">
+                  <History className="mr-2 h-4 w-4" />
+                  Histórico
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/equipment-details">
+                  <FileSearch className="mr-2 h-4 w-4" />
+                  Equipamento
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link to="/profile">
                   Perfil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </Link>
               </DropdownMenuItem>
