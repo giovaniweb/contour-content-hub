@@ -83,6 +83,18 @@ const Navbar: React.FC = () => {
     );
   };
 
+  // Extract user display info with safety checks
+  const getUserDisplayName = () => {
+    if (!user) return "U";
+    // @ts-ignore - We're handling potential undefined values
+    return user.full_name || user.email || "U"; 
+  };
+  
+  const getUserInitial = () => {
+    const displayName = getUserDisplayName();
+    return displayName.charAt(0).toUpperCase();
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background">
       <nav className="container mx-auto px-4 flex h-16 items-center justify-between">
@@ -175,8 +187,12 @@ const Navbar: React.FC = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar_url || ""} alt={user.full_name || user.email || "Usuário"} />
-                  <AvatarFallback>{user.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                  {/* Use safe access with optional chaining */}
+                  <AvatarImage 
+                    src={user && 'avatar_url' in user ? user.avatar_url as string : ""} 
+                    alt={getUserDisplayName()} 
+                  />
+                  <AvatarFallback>{getUserInitial()}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Abrir menu de perfil</span>
               </Button>
