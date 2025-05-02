@@ -48,7 +48,7 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     console.log("Enviando solicitação para validação avançada com GPT-4o");
     
     // Criar uma promessa com timeout para evitar esperas infinitas
-    const validation = await Promise.race([
+    const validationResult: any = await Promise.race([
       supabase.functions.invoke('validate-script', {
         body: {
           content: contentToValidate,
@@ -63,12 +63,12 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     ]);
     
     // Verificar resultado da validação
-    if (!validation || validation.error) {
-      throw new Error(validation?.error || "Erro desconhecido na validação");
+    if (!validationResult || validationResult.error) {
+      throw new Error(validationResult?.error || "Erro desconhecido na validação");
     }
     
     console.log("Validação concluída com sucesso");
-    const data = validation.data;
+    const data = validationResult.data as ValidationResult;
     
     // 5. Salvar validação otimizada e registar análise sem bloquear o UI
     setTimeout(() => {
