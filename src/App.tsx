@@ -23,6 +23,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Settings = lazy(() => import('./pages/Settings'));
 const CustomGpt = lazy(() => import('./pages/CustomGpt'));
 const EquipmentDetails = lazy(() => import('./pages/EquipmentDetails'));
+const ScriptValidation = lazy(() => import('./pages/ScriptValidation'));
 
 // Lazy loaded admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -156,6 +157,13 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingFallback />}>
                         <ScriptHistory />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/script-validation" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ScriptValidation />
                       </Suspense>
                     </ProtectedRoute>
                   } />

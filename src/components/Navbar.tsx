@@ -21,7 +21,8 @@ import {
   Film,
   CalendarDays,
   Menu,
-  X
+  X,
+  CheckCircle
 } from "lucide-react";
 import {
   Drawer,
@@ -153,6 +154,19 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                  <NavLink to="/script-validation">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/script-validation" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Validador</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                   <NavLink to="/media-library">
                     <NavigationMenuLink 
                       className={cn(
@@ -212,6 +226,7 @@ const Navbar: React.FC = () => {
                     <>
                       <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
                       <DrawerNavLink to="/custom-gpt" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
+                      <DrawerNavLink to="/script-validation" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
                       <DrawerNavLink to="/media-library" icon={<Film className="h-5 w-5" />} label="Mídia" />
                       <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
                       <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
