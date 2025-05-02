@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Sparkles, Check, Calendar, RefreshCw } from "lucide-react";
-import { ScriptResponse } from '@/utils/api';
+import { Download, RefreshCw, Sparkles, Calendar, CheckCircle, X, Pencil } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScriptResponse } from "@/utils/api";
 
 interface ScriptActionsProps {
   script: ScriptResponse;
@@ -10,12 +11,13 @@ interface ScriptActionsProps {
   isScriptApproved: boolean;
   isApproving: boolean;
   showValidation: boolean;
-  onOpenFeedbackDialog: () => void;
+  onOpenFeedbackDialog?: () => void;
   onGeneratePDF: () => void;
   onToggleValidation: () => void;
   onApproveScript: () => void;
   onOpenCalendarDialog: () => void;
   onRejectScript?: () => void;
+  onToggleEditMode?: () => void;
 }
 
 const ScriptActions: React.FC<ScriptActionsProps> = ({
@@ -29,72 +31,98 @@ const ScriptActions: React.FC<ScriptActionsProps> = ({
   onToggleValidation,
   onApproveScript,
   onOpenCalendarDialog,
-  onRejectScript
+  onRejectScript,
+  onToggleEditMode,
 }) => {
   return (
-    <div className="flex gap-2 flex-wrap">
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={onGeneratePDF}
-        disabled={isGeneratingPDF}
-      >
-        <Download className="h-4 w-4 mr-1" />
-        {isGeneratingPDF ? "Gerando..." : "Guia CapCut"}
-      </Button>
-      
-      <Button 
-        variant="default" 
-        size="sm"
-        onClick={onOpenFeedbackDialog}
-      >
-        <FileText className="h-4 w-4 mr-1" />
-        Feedback
-      </Button>
-
-      <Button
-        variant={showValidation ? "secondary" : "outline"}
-        size="sm"
-        onClick={onToggleValidation}
-      >
-        <Sparkles className="h-4 w-4 mr-1" />
-        {showValidation ? "Ocultar Validação" : "Validar com IA"}
-      </Button>
-
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onApproveScript}
-        disabled={isApproving || isScriptApproved}
-        className={`${isScriptApproved ? 'bg-green-100 text-green-800' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-      >
-        <Check className="h-4 w-4 mr-1" />
-        {isScriptApproved ? "Roteiro Aprovado" : isApproving ? "Aprovando..." : "Aprovar Roteiro"}
-      </Button>
-
-      {onRejectScript && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onRejectScript}
-          disabled={isApproving || isScriptApproved}
-          className="bg-red-600 hover:bg-red-700 text-white"
-        >
-          <RefreshCw className="h-4 w-4 mr-1" />
-          Refazer
-        </Button>
-      )}
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onOpenCalendarDialog}
-        className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-      >
-        <Calendar className="h-4 w-4 mr-1" />
-        Agendar
-      </Button>
-    </div>
+    <TooltipProvider>
+      <div className="flex flex-wrap gap-2 w-full">
+        <div className="flex gap-2 mr-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onGeneratePDF}
+            disabled={isGeneratingPDF}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isGeneratingPDF ? "Gerando PDF..." : "Baixar PDF"}
+          </Button>
+          
+          <Button
+            variant={showValidation ? "secondary" : "outline"}
+            size="sm"
+            onClick={onToggleValidation}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {showValidation ? "Ocultar Validação" : "Validar com IA"}
+          </Button>
+          
+          {onToggleEditMode && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onToggleEditMode}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar Texto
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Editar o conteúdo do roteiro</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+        
+        <div className="flex gap-2">
+          {onRejectScript && !isScriptApproved && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={onRejectScript}
+                  className="text-gray-500 hover:text-red-600"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Rejeitar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Rejeitar este roteiro e gerar um novo</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
+          {!isScriptApproved && (
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={onApproveScript}
+              disabled={isApproving}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {isApproving ? "Processando..." : "Aprovar"}
+            </Button>
+          )}
+          
+          {isScriptApproved && (
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={onOpenCalendarDialog}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Agendar
+            </Button>
+          )}
+        </div>
+      </div>
+    </TooltipProvider>
   );
 };
 

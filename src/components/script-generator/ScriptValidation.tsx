@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, CheckCircle, Loader2, Sparkles, Info, RefreshCcw, Check, ThumbsUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import AnnotatedText, { TextAnnotation } from '@/components/script/AnnotatedText';
 
 interface ScriptValidationProps {
   script: ScriptResponse;
@@ -29,7 +30,72 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidatio
   const [isRevalidating, setIsRevalidating] = useState(false);
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
   const [suggestionsApplied, setSuggestionsApplied] = useState(false);
+  const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([]);
   const { toast } = useToast();
+
+  // Extract annotations from validation feedback
+  useEffect(() => {
+    if (!validation) return;
+    
+    const extractAnnotations = () => {
+      const annotations: TextAnnotation[] = [];
+      const content = script.content;
+
+      // Detect main parts of the script to annotate
+      const findOpening = content.substring(0, content.indexOf('\n\n') !== -1 ? content.indexOf('\n\n') : 100);
+      const findCta = content.substring(content.lastIndexOf('\n\n') !== -1 ? content.lastIndexOf('\n\n') : content.length - 100);
+      
+      // Example annotations based on validation scores
+      if (validation.gancho < 7) {
+        // Find hook in first paragraph
+        annotations.push({
+          type: 'negative',
+          text: findOpening,
+          suggestion: 'O gancho inicial precisa ser mais impactante',
+          score: validation.gancho,
+          action: 'Aplicar Sugestão'
+        });
+      } else if (validation.gancho >= 8) {
+        annotations.push({
+          type: 'positive',
+          text: findOpening,
+          suggestion: 'Excelente gancho inicial',
+          score: validation.gancho
+        });
+      }
+
+      // CTA annotation
+      const ctaRegex = /(venha|ligue|agende|compre|experimente|clique).*?(hoje|agora|já|imediatamente)/i;
+      const ctaMatch = content.match(ctaRegex);
+      if (ctaMatch && ctaMatch[0]) {
+        annotations.push({
+          type: validation.cta >= 7 ? 'positive' : 'negative',
+          text: ctaMatch[0],
+          suggestion: validation.cta >= 7 
+            ? 'CTA eficaz e persuasivo' 
+            : 'O CTA precisa ser mais direto e persuasivo',
+          score: validation.cta,
+          action: validation.cta < 7 ? 'Criar Conexão' : undefined
+        });
+      }
+      
+      // Find technical terms to explain better
+      const technicalTermsRegex = /(microfocad[a-z]+|microagulhamento|radiofrequ[êe]ncia|colágeno|peptídeos|ultrassom)/gi;
+      let match;
+      while ((match = technicalTermsRegex.exec(content)) !== null) {
+        annotations.push({
+          type: 'suggestion',
+          text: match[0],
+          suggestion: 'Esclareça melhor este termo técnico',
+          action: 'Esclarecer Mensagem'
+        });
+      }
+      
+      return annotations;
+    };
+    
+    setTextAnnotations(extractAnnotations());
+  }, [validation, script.content]);
 
   useEffect(() => {
     const checkExistingValidation = async () => {
@@ -272,9 +338,22 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidatio
                 <p className="text-right text-sm mt-1 font-medium">{getScoreText(validation.total)}</p>
               </div>
               
+              <div className="bg-muted/30 p-4 rounded-md mt-4">
+                <h4 className="font-medium mb-3 flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  Texto Avaliado com Sugestões
+                </h4>
+                <div className="border rounded-md p-4 bg-white">
+                  <AnnotatedText 
+                    content={script.content} 
+                    annotations={textAnnotations}
+                  />
+                </div>
+              </div>
+              
               <div className="bg-muted/50 p-4 rounded-md mt-4 border border-muted">
                 <h4 className="font-medium mb-2 flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <Info className="h-4 w-4 mr-2 text-blue-500" />
                   Sugestões de melhoria
                 </h4>
                 <p className="text-sm whitespace-pre-line">{validation.sugestoes}</p>

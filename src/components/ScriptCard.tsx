@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import FeedbackDialog from "./script/FeedbackDialog";
 import CalendarDialog from "./script/CalendarDialog";
+import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -31,10 +31,9 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
   const [showValidation, setShowValidation] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editedContent, setEditedContent] = useState(script.content);
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [calendarDialogOpen, setCalendarDialogOpen] = useState(false);
   const [isScriptApproved, setIsScriptApproved] = useState(false);
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([]);
 
   // Handle script approval
   const handleApproveScript = async () => {
@@ -104,35 +103,6 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
       setIsGeneratingPDF(false);
     }
   };
-  
-  // Handle feedback submission
-  const handleFeedbackSubmit = async (feedback: string, approved: boolean) => {
-    if (!onFeedbackSubmit) return;
-    
-    try {
-      setIsSubmittingFeedback(true);
-      await onFeedbackSubmit(script.id, feedback, approved);
-      
-      setFeedbackDialogOpen(false);
-      if (approved) {
-        setIsScriptApproved(true);
-      }
-      
-      toast({
-        title: approved ? "Feedback enviado e aprovado" : "Feedback enviado",
-        description: "Sua avaliação do roteiro foi registrada",
-      });
-    } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao enviar feedback",
-        description: "Não foi possível enviar seu feedback",
-      });
-    } finally {
-      setIsSubmittingFeedback(false);
-    }
-  };
 
   // Handle script rejection
   const handleRejectScript = async () => {
@@ -179,6 +149,47 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
     }
   };
 
+  // Handle validation complete
+  const handleValidationComplete = (validation: any) => {
+    // Exemplo simples de anotações baseado na validação
+    // Em uma implementação completa, você usaria uma API para gerar anotações mais precisas
+    const newAnnotations: TextAnnotation[] = [];
+    
+    // Se temos um gancho fraco, anotar o primeiro parágrafo
+    if (validation.gancho < 7) {
+      const firstParagraph = script.content.split('\n')[0];
+      if (firstParagraph) {
+        newAnnotations.push({
+          type: 'negative',
+          text: firstParagraph,
+          suggestion: 'O gancho inicial precisa ser mais impactante',
+          score: validation.gancho
+        });
+      }
+    }
+    
+    // Se temos um bom CTA, anotar
+    if (validation.cta >= 7) {
+      // Tentar encontrar o CTA no texto (geralmente no final)
+      const paragraphs = script.content.split('\n');
+      const lastParagraphs = paragraphs.slice(-2);
+      for (const para of lastParagraphs) {
+        if (para.includes('!') || para.includes('?') || 
+            /agende|venha|ligue|compre|experimente/i.test(para)) {
+          newAnnotations.push({
+            type: 'positive',
+            text: para,
+            suggestion: 'Bom CTA, direto e persuasivo',
+            score: validation.cta
+          });
+          break;
+        }
+      }
+    }
+    
+    setTextAnnotations(newAnnotations);
+  };
+
   // Get the appropriate component for the active tab
   const TypeBadge = () => {
     switch (script.type) {
@@ -218,16 +229,29 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           
           <TabsContent value="content">
             <div className="space-y-4">
-              <ScriptEditor 
-                content={editedContent} 
-                onChange={setEditedContent}
-                readOnly={!isEditingContent}
-              />
+              {isEditingContent ? (
+                <ScriptEditor 
+                  content={editedContent} 
+                  onChange={setEditedContent}
+                  readOnly={false}
+                />
+              ) : (
+                <div className="bg-gray-50 p-4 rounded-md text-sm border">
+                  {textAnnotations.length > 0 ? (
+                    <AnnotatedText 
+                      content={editedContent} 
+                      annotations={textAnnotations} 
+                    />
+                  ) : (
+                    <div className="whitespace-pre-line">{editedContent}</div>
+                  )}
+                </div>
+              )}
               
               {showValidation && (
                 <ScriptValidation 
                   script={{...script, content: editedContent}}
-                  onValidationComplete={() => {}}
+                  onValidationComplete={handleValidationComplete}
                 />
               )}
             </div>
@@ -286,7 +310,8 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           isScriptApproved={isScriptApproved}
           isApproving={isApproving}
           showValidation={showValidation}
-          onOpenFeedbackDialog={() => setFeedbackDialogOpen(true)}
+          onOpenFeedbackDialog={undefined} // Removido botão de feedback
+          onToggleEditMode={() => setIsEditingContent(!isEditingContent)}
           onGeneratePDF={handleGeneratePDF}
           onToggleValidation={() => setShowValidation(!showValidation)}
           onApproveScript={handleApproveScript}
@@ -294,13 +319,6 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           onRejectScript={onReject ? handleRejectScript : undefined}
         />
       </CardFooter>
-      
-      <FeedbackDialog 
-        open={feedbackDialogOpen}
-        onOpenChange={setFeedbackDialogOpen}
-        onSubmitFeedback={handleFeedbackSubmit}
-        isSubmitting={isSubmittingFeedback}
-      />
       
       <CalendarDialog
         open={calendarDialogOpen}

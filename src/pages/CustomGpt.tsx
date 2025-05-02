@@ -103,30 +103,6 @@ const CustomGpt: React.FC = () => {
       });
     }
   };
-  
-  const handleFeedbackSubmit = async (scriptId: string, feedback: string, approved: boolean) => {
-    try {
-      // Simulação de envio de feedback
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: approved ? "Feedback enviado e aprovado" : "Feedback enviado",
-        description: "Sua avaliação do roteiro foi registrada",
-      });
-      
-      if (approved) {
-        // Mostrar diálogo de calendário após aprovação
-        setCalendarDialogOpen(true);
-      }
-    } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao enviar feedback",
-        description: "Não foi possível enviar seu feedback",
-      });
-    }
-  };
 
   return (
     <Layout>
@@ -179,7 +155,6 @@ const CustomGpt: React.FC = () => {
               script={generatedScript} 
               onApprove={handleScriptApprove}
               onReject={handleScriptReject}
-              onFeedbackSubmit={handleFeedbackSubmit}
             />
             
             <div className="flex justify-end gap-2 mt-4">
