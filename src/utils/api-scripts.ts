@@ -30,7 +30,7 @@ export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
     // Converter de Markdown para HTML para exibição
     return (data || []).map(item => {
       // Usar marked de forma síncrona para converter Markdown para HTML
-      const contentHtml = marked(item.conteudo || '');
+      const contentHtml = marked.parse(item.conteudo || '', { async: false }) as string;
       
       return {
         id: item.id,
@@ -65,7 +65,7 @@ export const getScriptById = async (id: string): Promise<ScriptHistoryItem> => {
     
     // Converter de Markdown para HTML para exibição
     // Usar marked de forma síncrona para evitar Promise<string>
-    const contentHtml = marked(data.conteudo || '');
+    const contentHtml = marked.parse(data.conteudo || '', { async: false }) as string;
     
     return {
       id: data.id,
