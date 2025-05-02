@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import Index from './pages/Index';
 import Register from './pages/Register';
@@ -32,24 +33,26 @@ function App() {
         <AuthProvider>
           <LanguageProvider>
             <ThemeProvider attribute="class" defaultTheme="light">
-              <Toaster />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/script-generator" element={<ScriptGenerator />} />
-                <Route path="/script-history" element={<ScriptHistory />} />
-                <Route path="/media-library" element={<MediaLibrary />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/custom-gpt" element={<CustomGpt />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/equipments" element={<AdminEquipments />} />
-                <Route path="/admin/content" element={<AdminContent />} />
-                <Route path="/admin/integrations" element={<AdminIntegrations />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <TooltipProvider>
+                <Toaster />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/script-generator" element={<ScriptGenerator />} />
+                  <Route path="/script-history" element={<ScriptHistory />} />
+                  <Route path="/media-library" element={<MediaLibrary />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/custom-gpt" element={<CustomGpt />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/equipments" element={<AdminEquipments />} />
+                  <Route path="/admin/content" element={<AdminContent />} />
+                  <Route path="/admin/integrations" element={<AdminIntegrations />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </TooltipProvider>
             </ThemeProvider>
           </LanguageProvider>
         </AuthProvider>

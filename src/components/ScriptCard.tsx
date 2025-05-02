@@ -12,6 +12,7 @@ import { ScriptResponse, saveScriptFeedback, generatePDF } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import { getValidation } from "@/utils/ai-validation";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -142,7 +143,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
   };
 
   return (
-    <>
+    <TooltipProvider>
       <Card className="w-full reelline-card">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
@@ -287,7 +288,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
           onValidationComplete={handleValidationComplete}
         />
       )}
-    </>
+    </TooltipProvider>
   );
 };
 
