@@ -10,8 +10,9 @@ import {
   Video, 
   Calendar, 
   Sparkles, 
-  Settings,
-  MessageSquare
+  Settings, 
+  MessageSquare,
+  LayoutDashboard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -42,7 +43,7 @@ const Dashboard: React.FC = () => {
   
   return (
     <Layout fullWidth>
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section with Greeting */}
         <div className="bg-gray-50 rounded-2xl p-6 md:p-8">
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-800">
@@ -124,6 +125,24 @@ const Dashboard: React.FC = () => {
                     </Button>
                   </Link>
                 </div>
+                
+                {/* Link para o painel de integração e gerenciamento de conteúdo - para admin e operador */}
+                {(isAdmin() || isOperator()) && (
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <Link to="/admin/integrations">
+                      <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span>{t('adminPanel')}</span>
+                      </Button>
+                    </Link>
+                    <Link to="/admin/content" onClick={handleAdminAccess}>
+                      <Button variant="ghost" className="w-full justify-start text-contourline-mediumBlue">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        <span>Cadastrar Conteúdo</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
             
