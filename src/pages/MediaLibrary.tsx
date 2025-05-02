@@ -34,7 +34,9 @@ import {
   LayoutGrid,
   Clock,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  FileText,
+  Image,
 } from "lucide-react";
 
 const MediaLibrary: React.FC = () => {
@@ -172,6 +174,14 @@ const MediaLibrary: React.FC = () => {
   
   const getMediaTypeIcon = (type: string) => {
     switch (type) {
+      case "video":
+        return <Video className="h-4 w-4 mr-2" />;
+      case "arte":
+        return <Image className="h-4 w-4 mr-2" />;
+      case "artigo":
+        return <FileText className="h-4 w-4 mr-2" />;
+      case "documentacao":
+        return <FileText className="h-4 w-4 mr-2" />;
       case "video_pronto":
         return <Video className="h-4 w-4 mr-2" />;
       case "take":
@@ -348,24 +358,25 @@ const MediaLibrary: React.FC = () => {
           </div>
         </div>
         
-        {/* Media type tabs */}
+        {/* Updated Media type tabs to include the new categories */}
         <Tabs value={mediaType} onValueChange={setMediaType}>
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="video_pronto" className="flex items-center">
+          <TabsList className="grid grid-cols-5 mb-6">
+            <TabsTrigger value="all">Todos</TabsTrigger>
+            <TabsTrigger value="video" className="flex items-center">
               <Video className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Vídeos Prontos</span>
-              <span className="sm:hidden">Vídeos</span>
+              <span>Vídeos</span>
             </TabsTrigger>
-            <TabsTrigger value="take" className="flex items-center">
-              <Film className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Takes Brutos</span>
-              <span className="sm:hidden">Takes</span>
+            <TabsTrigger value="arte" className="flex items-center">
+              <Image className="h-4 w-4 mr-1.5" />
+              <span>Artes</span>
             </TabsTrigger>
-            <TabsTrigger value="image" className="flex items-center">
-              <Camera className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Images</span>
-              <span className="sm:hidden">Images</span>
+            <TabsTrigger value="artigo" className="flex items-center">
+              <FileText className="h-4 w-4 mr-1.5" />
+              <span>Artigos</span>
+            </TabsTrigger>
+            <TabsTrigger value="documentacao" className="flex items-center">
+              <FileText className="h-4 w-4 mr-1.5" />
+              <span>Documentação</span>
             </TabsTrigger>
           </TabsList>
           
@@ -384,6 +395,10 @@ const MediaLibrary: React.FC = () => {
                     {mediaType !== "all" && getMediaTypeIcon(mediaType)}
                     <span>
                       {mediaType === "all" ? "Todos os itens" : 
+                       mediaType === "video" ? "Vídeos" :
+                       mediaType === "arte" ? "Artes" :
+                       mediaType === "artigo" ? "Artigos" :
+                       mediaType === "documentacao" ? "Documentação" :
                        mediaType === "video_pronto" ? "Vídeos Prontos" :
                        mediaType === "take" ? "Takes Brutos" : "Imagens"}
                     </span>
