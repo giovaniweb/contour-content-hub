@@ -37,10 +37,42 @@ const MediaLibrary: React.FC = () => {
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Equipment, body area, and purpose options (would come from API in real app)
-  const equipmentOptions = ["UltraSonic", "Venus Freeze", "Laser", "Microneedling"];
-  const bodyAreaOptions = ["Face", "Neck", "Abdomen", "Thighs", "Full Body"];
-  const purposeOptions = ["Anti-aging", "Slimming", "Toning", "Hydration", "Content creation"];
+  // Equipment, body area, and purpose options based on the updated database schema
+  const equipmentOptions = [
+    "Adélla Laser",
+    "Enygma X-Orbital",
+    "Focuskin",
+    "Hipro",
+    "Hive Pro",
+    "Laser Crystal 3D Plus",
+    "MultiShape",
+    "Reverso",
+    "Supreme Pro",
+    "Ultralift - Endolaser",
+    "Unyque PRO",
+    "X-Tonus"
+  ];
+  
+  const bodyAreaOptions = [
+    "Face", 
+    "Pescoço", 
+    "Abdômen", 
+    "Coxas", 
+    "Glúteos", 
+    "Braços",
+    "Corpo todo"
+  ];
+  
+  const purposeOptions = [
+    "Rugas",
+    "Emagrecimento", 
+    "Tonificação", 
+    "Hidratação", 
+    "Flacidez",
+    "Gordura localizada",
+    "Lipedema",
+    "Sarcopenia"
+  ];
   
   // Fetch media items on component mount
   useEffect(() => {
@@ -126,9 +158,9 @@ const MediaLibrary: React.FC = () => {
   
   const getMediaTypeIcon = (type: string) => {
     switch (type) {
-      case "video":
+      case "video_pronto":
         return <Video className="h-4 w-4 mr-2" />;
-      case "raw":
+      case "take":
         return <Film className="h-4 w-4 mr-2" />;
       case "image":
         return <Camera className="h-4 w-4 mr-2" />;
@@ -169,7 +201,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Equipment" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all-equipment">All Equipment</SelectItem>
+                  <SelectItem value="">All Equipment</SelectItem>
                   {equipmentOptions.map((equipment) => (
                     <SelectItem key={equipment} value={equipment}>
                       {equipment}
@@ -185,7 +217,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Body Area" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all-areas">All Body Areas</SelectItem>
+                  <SelectItem value="">All Body Areas</SelectItem>
                   {bodyAreaOptions.map((area) => (
                     <SelectItem key={area} value={area}>
                       {area}
@@ -201,7 +233,7 @@ const MediaLibrary: React.FC = () => {
                   <SelectValue placeholder="Purpose" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all-purposes">All Purposes</SelectItem>
+                  <SelectItem value="">All Purposes</SelectItem>
                   {purposeOptions.map((purpose) => (
                     <SelectItem key={purpose} value={purpose}>
                       {purpose}
@@ -217,15 +249,15 @@ const MediaLibrary: React.FC = () => {
         <Tabs value={mediaType} onValueChange={setMediaType}>
           <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="video" className="flex items-center">
+            <TabsTrigger value="video_pronto" className="flex items-center">
               <Video className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Ready Videos</span>
-              <span className="sm:hidden">Videos</span>
+              <span className="hidden sm:inline">Vídeos Prontos</span>
+              <span className="sm:hidden">Vídeos</span>
             </TabsTrigger>
-            <TabsTrigger value="raw" className="flex items-center">
+            <TabsTrigger value="take" className="flex items-center">
               <Film className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Raw Footage</span>
-              <span className="sm:hidden">Raw</span>
+              <span className="hidden sm:inline">Takes Brutos</span>
+              <span className="sm:hidden">Takes</span>
             </TabsTrigger>
             <TabsTrigger value="image" className="flex items-center">
               <Camera className="h-4 w-4 mr-1.5" />
@@ -248,9 +280,9 @@ const MediaLibrary: React.FC = () => {
                   <h3 className="text-lg font-medium flex items-center gap-2">
                     {mediaType !== "all" && getMediaTypeIcon(mediaType)}
                     <span>
-                      {mediaType === "all" ? "All Media" : 
-                       mediaType === "video" ? "Ready Videos" :
-                       mediaType === "raw" ? "Raw Footage" : "Images"}
+                      {mediaType === "all" ? "Todos os itens" : 
+                       mediaType === "video_pronto" ? "Vídeos Prontos" :
+                       mediaType === "take" ? "Takes Brutos" : "Imagens"}
                     </span>
                   </h3>
                   <Badge variant="outline">{filteredItems.length} items</Badge>

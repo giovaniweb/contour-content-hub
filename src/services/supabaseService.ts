@@ -232,7 +232,7 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
       // Atualizar contagem na tabela de vídeos
       await supabase.rpc('decrement_favorites_count', {
         video_id: mediaId
-      }).catch(err => {
+      }).then(null, (err) => {
         console.error('Erro ao decrementar contagem de favoritos:', err);
         // Continue even if this fails
       });
@@ -252,7 +252,7 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
       // Atualizar contagem na tabela de vídeos
       await supabase.rpc('increment_favorites_count', {
         video_id: mediaId
-      }).catch(err => {
+      }).then(null, (err) => {
         console.error('Erro ao incrementar contagem de favoritos:', err);
         // Continue even if this fails
       });
