@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -78,6 +78,16 @@ const PopularContent: React.FC = () => {
   ];
 
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [likeAnimations, setLikeAnimations] = useState<Record<string, boolean>>({});
+  const clickTimers = useRef<Record<string, NodeJS.Timeout>>({});
+  const clickCounter = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    // Cleanup timers on unmount
+    return () => {
+      Object.values(clickTimers.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
 
   const handleShare = (item: PopularItem) => {
     // Em uma implementação real, abriria um modal de compartilhamento ou copiaria para o clipboard
@@ -90,15 +100,6 @@ const PopularContent: React.FC = () => {
     });
   };
 
-  const handleLike = (item: PopularItem) => {
-    console.log(`Curtindo: ${item.title}`);
-    toast({
-      title: item.title,
-      description: "Adicionado aos favoritos",
-    });
-    // Em uma implementação real, enviaria uma requisição para a API
-  };
-
   const handleDownload = (item: PopularItem) => {
     console.log(`Baixando: ${item.title}`);
     toast({
@@ -108,7 +109,11 @@ const PopularContent: React.FC = () => {
     // Em uma implementação real, iniciaria o download do conteúdo
   };
 
-  const toggleFavorite = (itemId: string) => {
+  const toggleFavorite = (itemId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
     setFavorites(prev => ({
       ...prev,
       [itemId]: !prev[itemId]
@@ -123,18 +128,64 @@ const PopularContent: React.FC = () => {
     }
   };
 
+  // Instagram style double-click to like
+  const handleItemClick = (itemId: string) => {
+    if (!clickCounter.current[itemId]) {
+      clickCounter.current[itemId] = 1;
+    } else {
+      clickCounter.current[itemId]++;
+    }
+
+    // Clear existing timer
+    if (clickTimers.current[itemId]) {
+      clearTimeout(clickTimers.current[itemId]);
+    }
+
+    // Set new timer
+    clickTimers.current[itemId] = setTimeout(() => {
+      // Double click
+      if (clickCounter.current[itemId] >= 2) {
+        if (!favorites[itemId]) {
+          toggleFavorite(itemId);
+          showLikeAnimation(itemId);
+        }
+      }
+      
+      // Reset counter
+      clickCounter.current[itemId] = 0;
+    }, 300); // 300ms threshold for double-click
+  };
+
+  const showLikeAnimation = (itemId: string) => {
+    setLikeAnimations(prev => ({ ...prev, [itemId]: true }));
+    
+    setTimeout(() => {
+      setLikeAnimations(prev => ({ ...prev, [itemId]: false }));
+    }, 1000);
+  };
+
   return (
     <TooltipProvider>
       <>
         {popularContent.map((item) => (
           <div key={item.id} className="group relative">
             <Card className="overflow-hidden hover:shadow-md transition-all cursor-pointer">
-              <div className="h-48 bg-gray-100 relative">
+              <div 
+                className="h-48 bg-gray-100 relative"
+                onClick={() => handleItemClick(item.id)}
+              >
                 <img 
                   src={item.imageUrl} 
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Heart Animation on Double Click */}
+                {likeAnimations[item.id] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Heart className="h-16 w-16 text-white fill-white animate-scale-in opacity-90" />
+                  </div>
+                )}
                 
                 {/* Duration Badge */}
                 {item.type === "Vídeo" && (
@@ -144,82 +195,88 @@ const PopularContent: React.FC = () => {
                 )}
                 
                 {/* Floating Action Buttons - Visible on hover */}
-                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={cn(
-                          "rounded-full bg-gray-200 bg-opacity-80 hover:bg-gray-300",
-                          favorites[item.id] && "text-yellow-500"
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(item.id);
-                        }}
-                      >
-                        <Star 
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                  <div className="flex gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
                           className={cn(
-                            "h-4 w-4",
-                            favorites[item.id] && "fill-yellow-500"
-                          )} 
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Favoritar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full bg-gray-200 bg-opacity-80 hover:bg-gray-300"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(item);
-                        }}
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Compartilhar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full bg-gray-200 bg-opacity-80 hover:bg-gray-300"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLike(item);
-                        }}
-                      >
-                        <Link className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copiar link</p>
-                    </TooltipContent>
-                  </Tooltip>
+                            "rounded-full bg-white hover:bg-white/90 w-10 h-10",
+                            favorites[item.id] ? "text-red-500" : "text-gray-800"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(item.id, e);
+                          }}
+                        >
+                          <Heart 
+                            className={cn(
+                              "h-5 w-5",
+                              favorites[item.id] && "fill-current"
+                            )} 
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Curtir</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full bg-white hover:bg-white/90 text-gray-800 w-10 h-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShare(item);
+                          }}
+                        >
+                          <Share2 className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Compartilhar</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full bg-white hover:bg-white/90 text-gray-800 w-10 h-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(item);
+                          }}
+                        >
+                          <Download className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Baixar</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
-              </div>
-              
-              <CardContent className="p-4">
-                <div className="flex items-center mb-2 gap-2">
-                  {item.isHot && (
+                
+                {/* Hot Badge */}
+                {item.isHot && (
+                  <div className="absolute top-2 left-2">
                     <Badge variant="secondary" className="bg-red-100 text-red-600 border-red-200">
                       <TrendingUp className="h-3 w-3 mr-1" />
                       Em alta
                     </Badge>
-                  )}
+                  </div>
+                )}
+              </div>
+              
+              <CardContent className="p-4">
+                <div className="flex items-center mb-2 gap-2">
                   <Badge variant="outline">
                     {item.type}
                   </Badge>
@@ -253,8 +310,8 @@ const PopularContent: React.FC = () => {
                     <span>{item.views}</span>
                   </div>
                   <div className="flex items-center">
-                    <Heart className="h-3 w-3 mr-1" />
-                    <span>{item.likes}</span>
+                    <Heart className={cn("h-3 w-3 mr-1", favorites[item.id] && "fill-red-500 text-red-500")} />
+                    <span>{favorites[item.id] ? item.likes + 1 : item.likes}</span>
                   </div>
                   <div className="flex items-center">
                     <MessageSquare className="h-3 w-3 mr-1" />
