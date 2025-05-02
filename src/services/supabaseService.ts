@@ -1,5 +1,5 @@
 import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
-import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion } from '@/utils/api';
+import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion, CalendarPreferences } from '@/utils/api';
 
 // Função para converter um roteiro do formato do banco para o formato da UI
 const convertRoteiro = (roteiro: any): ScriptResponse => {
@@ -383,7 +383,7 @@ export const saveEmailAlertPreferences = async (
 export const getCalendarSuggestions = async (
   month: number,
   year: number,
-  frequency: 1 | 2 | 3 = 2
+  preferences?: CalendarPreferences
 ): Promise<CalendarSuggestion[]> => {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -433,6 +433,7 @@ export const getCalendarSuggestions = async (
     } else {
       // Se não existir agenda, gerar sugestões
       const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const frequency = preferences?.frequency || 2;
       const interval = Math.floor(daysInMonth / (frequency * 4)); // distribuir ao longo de 4 semanas
       
       const suggestions: CalendarSuggestion[] = [];
@@ -466,27 +467,43 @@ export const getCalendarSuggestions = async (
       // Combinar tópicos
       const topics = userTopics.length > 0 ? [...userTopics, ...possibleTopics] : possibleTopics;
       
-      // Equipamentos
-      const equipments = userEquipments.length > 0 ? 
-        userEquipments : 
-        ["Adélla", "Enygma", "Hipro", "Reverso", "Ultralift"];
+      // Equipamento selecionado ou equipamentos do usuário
+      const selectedEquipment = preferences?.equipment;
+      const equipments = selectedEquipment ? 
+        [selectedEquipment] :
+        userEquipments.length > 0 ? 
+          userEquipments : 
+          ["Adélla", "Enygma", "Hipro", "Reverso", "Ultralift"];
+      
+      // Tipos de conteúdo permitidos
+      const contentTypes = preferences?.contentTypes || { video: true, story: true, image: true };
+      const availableFormats: Array<"video" | "story" | "image"> = [];
+      
+      if (contentTypes.video) availableFormats.push("video");
+      if (contentTypes.story) availableFormats.push("story");
+      if (contentTypes.image) availableFormats.push("image");
+      
+      // Se nenhum formato estiver selecionado, permitir todos
+      const formats = availableFormats.length > 0 ? 
+        availableFormats : 
+        ["video", "story", "image"];
       
       // Criar sugestões para cada dia selecionado
       for (let i = 1; i <= frequency * 4; i++) {
         const day = i * interval;
         if (day <= daysInMonth) {
-          // Alternar entre diferentes tipos de roteiro
-          const scriptType: ScriptType = i % 3 === 0 ? "dailySales" : i % 2 === 0 ? "bigIdea" : "videoScript";
+          // Selecionar um formato aleatório
+          const randomFormat = formats[Math.floor(Math.random() * formats.length)];
+          
+          // Definir tipo de script com base no formato
+          const scriptType: ScriptType = randomFormat === "video" ? "videoScript" : 
+                                        randomFormat === "story" ? "dailySales" : "bigIdea";
           
           // Selecionar um tópico aleatório
           const randomTopic = topics[Math.floor(Math.random() * topics.length)];
           
           // Selecionar um equipamento aleatório
           const randomEquipment = equipments[Math.floor(Math.random() * equipments.length)];
-          
-          // Definir o formato com base no tipo de script
-          const format = scriptType === "videoScript" ? "video" : 
-                        scriptType === "dailySales" ? "story" : "image";
           
           // Definir o objetivo com base no tipo de script
           const purpose = scriptType === "videoScript" ? "educate" : 
@@ -530,7 +547,7 @@ export const getCalendarSuggestions = async (
             completed: false,
             equipment: randomEquipment,
             purpose: purpose,
-            format: format,
+            format: randomFormat,
             hook: randomHook,
             caption: scriptType === "dailySales" ? "Toque para mais informações! ↗️ #saude #beleza" : undefined
           });
@@ -590,6 +607,90 @@ export const updateCalendarCompletion = async (
     }
   } catch (error) {
     console.error('Erro ao atualizar conclusão do calendário:', error);
+    throw error;
+  }
+};
+
+// Função para limpar o planejamento do calendário
+export const clearCalendarPlanning = async (
+  month: number,
+  year: number
+): Promise<void> => {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    // Definir intervalo de datas para o mês selecionado
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    
+    // Excluir todos os itens da agenda para o mês selecionado
+    const { error } = await supabase
+      .from('agenda')
+      .delete()
+      .eq('usuario_id', userId)
+      .gte('data', startDate.toISOString().split('T')[0])
+      .lte('data', endDate.toISOString().split('T')[0]);
+      
+    if (error) throw error;
+  } catch (error) {
+    console.error('Erro ao limpar planejamento do calendário:', error);
+    throw error;
+  }
+};
+
+// Função para aprovar o planejamento do calendário
+export const approveCalendarPlanning = async (
+  month: number,
+  year: number,
+  suggestions: CalendarSuggestion[]
+): Promise<void> => {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    // Criar ou atualizar itens da agenda com status "aprovado"
+    const agendaItems = suggestions.map(suggestion => ({
+      usuario_id: userId,
+      data: suggestion.date,
+      titulo: suggestion.title,
+      tipo: suggestion.type,
+      descricao: suggestion.description,
+      status: 'aprovado',
+      equipamento: suggestion.equipment,
+      objetivo: suggestion.purpose,
+      formato: suggestion.format,
+      gancho: suggestion.hook,
+      legenda: suggestion.caption
+    }));
+    
+    // Remover itens existentes para o mês selecionado
+    await clearCalendarPlanning(month, year);
+    
+    // Inserir novos itens aprovados
+    const { error } = await supabase
+      .from('agenda')
+      .insert(agendaItems);
+      
+    if (error) throw error;
+  } catch (error) {
+    console.error('Erro ao aprovar planejamento do calendário:', error);
+    throw error;
+  }
+};
+
+// Função para atualizar preferências do calendário
+export const updateCalendarPreferences = async (
+  preferences: CalendarPreferences
+): Promise<boolean> => {
+  try {
+    // Esta função apenas armazena as preferências temporariamente
+    // Em uma aplicação real, você poderia armazenar isso no banco de dados
+    
+    // No caso, não precisamos armazenar nada no banco já que usamos
+    // as preferências diretamente na chamada de getCalendarSuggestions
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar preferências do calendário:', error);
     throw error;
   }
 };

@@ -48,6 +48,9 @@ import {
   updateCalendarCompletion as updateCalendarCompletionInSupabase,
   updateUserPreferences,
   saveEmailAlertPreferences,
+  clearCalendarPlanning,
+  approveCalendarPlanning,
+  updateCalendarPreferences,
 } from '@/services/supabaseService';
 
 // Export the Supabase functions
@@ -97,9 +100,23 @@ export interface CalendarSuggestion {
   caption?: string;
 }
 
+// Calendar preferences interface
+export interface CalendarPreferences {
+  equipment?: string;
+  contentTypes: {
+    video: boolean;
+    story: boolean;
+    image: boolean;
+  };
+  frequency: 1 | 2 | 3;
+}
+
 // Export calendar functions
 export const getCalendarSuggestions = getCalendarSuggestionsFromSupabase;
 export const updateCalendarCompletion = updateCalendarCompletionInSupabase;
+export const clearPlanning = clearCalendarPlanning;
+export const approvePlanning = approveCalendarPlanning;
+export const setCalendarPreferences = updateCalendarPreferences;
 
 // Export user preference functions
 export const saveUserPreferences = updateUserPreferences;

@@ -1,3 +1,4 @@
+
 // Interfaces correspondentes às tabelas do banco de dados Supabase
 
 export interface Perfil {
@@ -80,7 +81,7 @@ export interface AgendaItem {
   tipo: string;
   descricao?: string;
   roteiro_id?: string;
-  status: 'pendente' | 'concluido';
+  status: 'pendente' | 'concluido' | 'aprovado';
   data_criacao: string;
   equipamento?: string;
   objetivo?: string;

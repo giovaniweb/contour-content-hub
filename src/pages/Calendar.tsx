@@ -23,10 +23,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { getCalendarSuggestions, CalendarSuggestion } from "@/utils/api";
+import { getCalendarSuggestions, CalendarSuggestion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import CalendarDay from "@/components/CalendarDay";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon, Mail, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon, Mail, Bell, Check, Trash } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -41,6 +42,14 @@ const Calendar: React.FC = () => {
   const [emailAlertOpen, setEmailAlertOpen] = useState(false);
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly" | "intelligent">("weekly");
   const [emailEnabled, setEmailEnabled] = useState(true);
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [contentTypes, setContentTypes] = useState({
+    video: true,
+    story: true,
+    image: true,
+  });
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
   
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -48,12 +57,17 @@ const Calendar: React.FC = () => {
   // Fetch calendar suggestions
   useEffect(() => {
     fetchCalendarSuggestions();
-  }, [currentMonth, currentYear, frequency]);
+  }, [currentMonth, currentYear, frequency, selectedEquipment, contentTypes]);
   
   const fetchCalendarSuggestions = async () => {
     try {
       setIsLoading(true);
-      const data = await getCalendarSuggestions(currentMonth, currentYear, frequency);
+      const preferences = {
+        equipment: selectedEquipment || undefined,
+        contentTypes,
+        frequency
+      };
+      const data = await getCalendarSuggestions(currentMonth, currentYear, preferences);
       setSuggestions(data);
     } catch (error) {
       toast({
@@ -138,6 +152,52 @@ const Calendar: React.FC = () => {
       }`,
     });
   };
+
+  // Handle clearing the planning
+  const handleClearPlanning = async () => {
+    try {
+      setIsLoading(true);
+      await clearPlanning(currentMonth, currentYear);
+      setConfirmClearOpen(false);
+      toast({
+        title: "Planejamento limpo",
+        description: "O planejamento do mês foi limpo com sucesso",
+      });
+      await fetchCalendarSuggestions();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Falha ao limpar planejamento",
+        description: "Não foi possível limpar o planejamento",
+      });
+      console.error("Failed to clear planning:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle approving the planning
+  const handleApprovePlanning = async () => {
+    try {
+      setIsLoading(true);
+      await approvePlanning(currentMonth, currentYear, suggestions);
+      setConfirmApproveOpen(false);
+      toast({
+        title: "Planejamento aprovado",
+        description: "O planejamento do mês foi aprovado com sucesso",
+      });
+      await fetchCalendarSuggestions();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Falha ao aprovar planejamento",
+        description: "Não foi possível aprovar o planejamento",
+      });
+      console.error("Failed to approve planning:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Format the month and year
   const formatMonthYear = () => {
@@ -145,6 +205,18 @@ const Calendar: React.FC = () => {
       month: "long",
       year: "numeric",
     }).format(currentDate).replace(/^\w/, (c) => c.toUpperCase());
+  };
+
+  // Handle toggling content types
+  const handleToggleContentType = (type: 'video' | 'story' | 'image') => {
+    setContentTypes(prev => {
+      const updated = { ...prev, [type]: !prev[type] };
+      // Ensure at least one type is selected
+      if (!updated.video && !updated.story && !updated.image) {
+        return prev;
+      }
+      return updated;
+    });
   };
   
   return (
@@ -187,52 +259,135 @@ const Calendar: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Frequência de Conteúdo
-                </label>
-                <div className="flex gap-4">
-                  <div className="flex-grow">
-                    <Select
-                      value={frequency.toString()}
-                      onValueChange={(value) => setFrequency(parseInt(value) as 1 | 2 | 3)}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Frequência de Conteúdo
+                  </label>
+                  <div className="flex gap-4">
+                    <div className="flex-grow">
+                      <Select
+                        value={frequency.toString()}
+                        onValueChange={(value) => setFrequency(parseInt(value) as 1 | 2 | 3)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a frequência" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1x por semana</SelectItem>
+                          <SelectItem value="2">2x por semana</SelectItem>
+                          <SelectItem value="3">3x por semana</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={() => setEmailAlertOpen(true)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a frequência" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1x por semana</SelectItem>
-                        <SelectItem value="2">2x por semana</SelectItem>
-                        <SelectItem value="3">3x por semana</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Mail className="h-4 w-4" />
+                      <span className="hidden sm:inline">Alertas</span>
+                    </Button>
                   </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center gap-2"
-                    onClick={() => setEmailAlertOpen(true)}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Equipamento
+                  </label>
+                  <Select
+                    value={selectedEquipment}
+                    onValueChange={setSelectedEquipment}
                   >
-                    <Mail className="h-4 w-4" />
-                    <span className="hidden sm:inline">Alertas</span>
-                  </Button>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um equipamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos equipamentos</SelectItem>
+                      <SelectItem value="Adélla">Adélla</SelectItem>
+                      <SelectItem value="Enygma">Enygma</SelectItem>
+                      <SelectItem value="Hipro">Hipro</SelectItem>
+                      <SelectItem value="Reverso">Reverso</SelectItem>
+                      <SelectItem value="Ultralift">Ultralift</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Tipos de Conteúdo
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="content-video" 
+                        checked={contentTypes.video}
+                        onCheckedChange={() => handleToggleContentType('video')}
+                      />
+                      <Label htmlFor="content-video">Vídeos</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="content-story" 
+                        checked={contentTypes.story}
+                        onCheckedChange={() => handleToggleContentType('story')}
+                      />
+                      <Label htmlFor="content-story">Stories</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="content-image" 
+                        checked={contentTypes.image}
+                        onCheckedChange={() => handleToggleContentType('image')}
+                      />
+                      <Label htmlFor="content-image">Imagens</Label>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Preferências de Conteúdo
-                </label>
-                <div className="flex space-x-2">
-                  <Textarea
-                    placeholder="Ex: Quero focar em tratamentos de lipedema este mês"
-                    value={observations}
-                    onChange={(e) => setObservations(e.target.value)}
-                    className="flex-grow"
-                  />
-                  <Button className="self-end" onClick={handleSaveObservations}>
-                    Salvar
-                  </Button>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Preferências de Conteúdo
+                  </label>
+                  <div className="flex space-x-2">
+                    <Textarea
+                      placeholder="Ex: Quero focar em tratamentos de lipedema este mês"
+                      value={observations}
+                      onChange={(e) => setObservations(e.target.value)}
+                      className="flex-grow"
+                    />
+                    <Button className="self-end" onClick={handleSaveObservations}>
+                      Salvar
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="pt-4">
+                  <Separator className="mb-4" />
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium">Ações do Planejamento</h3>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center gap-2"
+                        onClick={() => setConfirmClearOpen(true)}
+                      >
+                        <Trash className="h-4 w-4" />
+                        <span className="hidden sm:inline">Limpar</span>
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        className="flex items-center gap-2"
+                        onClick={() => setConfirmApproveOpen(true)}
+                      >
+                        <Check className="h-4 w-4" />
+                        <span className="hidden sm:inline">Aprovar</span>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -368,6 +523,45 @@ const Calendar: React.FC = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleSaveEmailPreferences}>
               Salvar Preferências
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Confirm Clear Planning Dialog */}
+      <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpar Planejamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja limpar todo o planejamento deste mês? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleClearPlanning}
+              className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
+            >
+              Limpar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Confirm Approve Planning Dialog */}
+      <AlertDialog open={confirmApproveOpen} onOpenChange={setConfirmApproveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aprovar Planejamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja aprovar o planejamento atual para este mês? Isso irá salvar todas as sugestões no calendário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApprovePlanning}>
+              Aprovar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
