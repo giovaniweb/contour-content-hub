@@ -8,8 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import CalendarDialog from "./script/ScriptDialog";
+import CalendarDialog from "./script/CalendarDialog";
 import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
+import { mapValidationToAnnotations } from "@/utils/validation/annotations";
 
 interface ScriptCardProps {
   script: ScriptResponse;
@@ -150,7 +151,6 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
 
   // Handle validation complete
   const handleValidationComplete = (validation: any) => {
-    // Importa as anotações diretamente da API refatorada
     const newAnnotations = mapValidationToAnnotations(validation);
     setTextAnnotations(newAnnotations);
   };
