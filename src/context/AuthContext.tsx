@@ -143,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo ao ReelLine!",
       });
       
-      // Navigate done by the calling component
+      // Navigation is now handled by the component that called login
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo ao ReelLine!",
       });
       
-      // Navigate done by the calling component
+      // Navigation is now handled by the component that called register
     } catch (error: any) {
       toast({
         variant: "destructive",

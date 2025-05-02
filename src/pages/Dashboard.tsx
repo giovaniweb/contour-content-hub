@@ -11,7 +11,7 @@ import {
   Calendar,
   ArrowRight
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ import PopularContent from "@/components/dashboard/PopularContent";
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const userName = user?.name || 'usuário';
   const [searchQuery, setSearchQuery] = useState("");
   

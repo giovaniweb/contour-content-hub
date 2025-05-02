@@ -84,6 +84,9 @@ const Register: React.FC = () => {
         title: "Registration successful",
         description: "Welcome to Fluida!",
       });
+      
+      // Navigate programmatically after successful registration
+      navigate("/dashboard");
     } catch (error) {
       toast({
         variant: "destructive",

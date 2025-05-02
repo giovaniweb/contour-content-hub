@@ -54,7 +54,7 @@ function App() {
       <Route path="/seller/client/:id" element={<ClientDetail />} />
       
       {/* Add redirect for equipment-details to either admin equipments or equipment details */}
-      <Route path="/equipment-details" element={<Navigate to="/admin/equipments" replace />} />
+      <Route path="/equipment-details" element={<EquipmentDetails />} />
       
       {/* General equipment details page */}
       <Route path="/equipment-details/:id" element={<EquipmentDetails />} />
