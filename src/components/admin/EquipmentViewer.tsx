@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { getEquipments } from '@/utils/api-equipment';
 import { Equipment } from '@/types/equipment';
-import { Shield, ShieldCheck } from 'lucide-react';
+import { Shield, ShieldCheck, RefreshCcw, Database } from 'lucide-react';
 
 const EquipmentViewer: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -13,23 +15,28 @@ const EquipmentViewer: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchEquipments() {
-      try {
-        setLoading(true);
-        const data = await getEquipments();
-        setEquipments(data);
-        if (data.length > 0) {
-          setSelectedEquipment(data[0]);
-        }
-      } catch (err) {
-        console.error('Erro ao buscar equipamentos:', err);
-        setError('Não foi possível carregar os equipamentos. Verifique o console para mais detalhes.');
-      } finally {
-        setLoading(false);
+  const fetchEquipments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log("Iniciando busca de equipamentos...");
+      const data = await getEquipments();
+      console.log(`Equipamentos carregados: ${data.length}`);
+      setEquipments(data);
+      if (data.length > 0) {
+        setSelectedEquipment(data[0]);
+      } else {
+        setSelectedEquipment(null);
       }
+    } catch (err) {
+      console.error('Erro ao buscar equipamentos:', err);
+      setError('Não foi possível carregar os equipamentos. Verifique o console para mais detalhes.');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchEquipments();
   }, []);
 
@@ -41,10 +48,12 @@ const EquipmentViewer: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Carregando equipamentos...</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Carregando equipamentos...</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center">
+          <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         </CardContent>
@@ -54,9 +63,20 @@ const EquipmentViewer: React.FC = () => {
 
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="mb-6">
         <AlertTitle>Erro ao carregar equipamentos</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription className="flex flex-col gap-4">
+          <p>{error}</p>
+          <Button 
+            onClick={fetchEquipments} 
+            variant="outline"
+            size="sm"
+            className="self-start"
+          >
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Tentar novamente
+          </Button>
+        </AlertDescription>
       </Alert>
     );
   }
@@ -65,15 +85,30 @@ const EquipmentViewer: React.FC = () => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Equipamentos Cadastrados</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={fetchEquipments}
+              className="h-8 w-8 p-0"
+              title="Atualizar lista"
+            >
+              <RefreshCcw className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {equipments.length === 0 ? (
+            {equipments.length === 0 ? (
+              <div className="py-8 text-center">
+                <Database className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
                 <p className="text-muted-foreground">Nenhum equipamento cadastrado.</p>
-              ) : (
-                equipments.map((eq) => (
+                <p className="text-sm text-muted-foreground/70 mt-1">
+                  Adicione equipamentos usando o botão "Novo Equipamento" acima.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {equipments.map((eq) => (
                   <div 
                     key={eq.id}
                     onClick={() => handleSelectEquipment(eq)}
@@ -90,9 +125,9 @@ const EquipmentViewer: React.FC = () => {
                       <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">Inativo</span>
                     )}
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -121,6 +156,7 @@ const EquipmentViewer: React.FC = () => {
                 <TabsList className="mb-4">
                   <TabsTrigger value="completo">Dados Completos</TabsTrigger>
                   <TabsTrigger value="prompt">Prompt Preview</TabsTrigger>
+                  <TabsTrigger value="tabela">Visão Tabular</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="completo">
@@ -176,15 +212,81 @@ Instruções: "Use APENAS informações fornecidas acima. NÃO invente benefíci
                     </div>
                   </div>
                 </TabsContent>
+                
+                <TabsContent value="tabela">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[150px]">Campo</TableHead>
+                          <TableHead>Conteúdo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-medium">Nome</TableCell>
+                          <TableCell>{selectedEquipment.nome}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Tecnologia</TableCell>
+                          <TableCell>{selectedEquipment.tecnologia}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Indicações</TableCell>
+                          <TableCell>{selectedEquipment.indicacoes}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Benefícios</TableCell>
+                          <TableCell>{selectedEquipment.beneficios}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Diferenciais</TableCell>
+                          <TableCell>{selectedEquipment.diferenciais}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Linguagem</TableCell>
+                          <TableCell>{selectedEquipment.linguagem}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Status</TableCell>
+                          <TableCell>
+                            {selectedEquipment.ativo ? (
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                Ativo
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                Inativo
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
         ) : (
           <Card>
             <CardContent className="py-10 text-center">
-              <p className="text-muted-foreground">
-                Selecione um equipamento para visualizar seus detalhes.
-              </p>
+              {equipments.length === 0 ? (
+                <div>
+                  <Database className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-muted-foreground">
+                    Nenhum equipamento cadastrado ainda.
+                  </p>
+                  <p className="text-sm text-muted-foreground/70 mt-2 max-w-md mx-auto">
+                    Para utilizar o gerador de conteúdo avançado, é necessário cadastrar pelo menos um equipamento.
+                    Use o botão "Novo Equipamento" para adicionar seus equipamentos.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Selecione um equipamento para visualizar seus detalhes.
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
