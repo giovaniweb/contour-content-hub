@@ -225,12 +225,22 @@ const CustomGptForm = () => {
       setLoading(true);
       setResultado("");
 
+      // Encontrar o equipamento selecionado na lista
+      const equipamentoSelecionado = equipamentos.find(eq => eq.nome === values.equipamento);
+      
+      if (!equipamentoSelecionado) {
+        throw new Error(`Equipamento ${values.equipamento} não encontrado na lista.`);
+      }
+
+      console.log("Enviando requisição para gerar conteúdo com equipamento:", equipamentoSelecionado);
+
       const response = await generateCustomContent({
         tipo: values.tipo as CustomGptType,
         equipamento: values.equipamento,
         quantidade: values.quantidade,
         tom: values.tom,
-        estrategiaConteudo: values.estrategiaConteudo as ConteudoEstrategia
+        estrategiaConteudo: values.estrategiaConteudo as ConteudoEstrategia,
+        equipamentoData: equipamentoSelecionado // Passar os dados completos do equipamento
       });
 
       setResultado(response.content);
@@ -244,7 +254,7 @@ const CustomGptForm = () => {
       toast({
         variant: "destructive",
         title: "Erro na geração",
-        description: "Não foi possível gerar o conteúdo solicitado."
+        description: error instanceof Error ? error.message : "Não foi possível gerar o conteúdo solicitado."
       });
     } finally {
       setLoading(false);

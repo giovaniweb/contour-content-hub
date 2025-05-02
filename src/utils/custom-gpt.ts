@@ -18,6 +18,7 @@ export interface CustomGptRequest {
   quantidade?: number;
   tom?: string;
   estrategiaConteudo?: ConteudoEstrategia;
+  equipamentoData?: Equipment; // Dados completos do equipamento selecionado
 }
 
 export interface CustomGptResponse {
@@ -34,14 +35,25 @@ export const generateCustomContent = async (request: CustomGptRequest): Promise<
   try {
     console.log("Iniciando geração de conteúdo personalizado:", request);
     
-    // Buscar todos os equipamentos para passar ao prompt
-    const equipamentos = await getEquipments();
+    // Verificar se temos os dados do equipamento
+    const equipamentoData = request.equipamentoData;
+    
+    if (!equipamentoData) {
+      console.error("Dados do equipamento não fornecidos");
+      throw new Error("Dados do equipamento não fornecidos. Selecione um equipamento válido.");
+    }
+    
+    console.log("Dados do equipamento para o prompt:", equipamentoData);
     
     // Chamar edge function para gerar conteúdo
     const { data, error } = await supabase.functions.invoke('custom-gpt', {
       body: {
-        ...request,
-        equipamentosData: equipamentos
+        tipo: request.tipo,
+        equipamento: request.equipamento,
+        quantidade: request.quantidade,
+        tom: request.tom,
+        estrategiaConteudo: request.estrategiaConteudo,
+        equipamentoData: equipamentoData // Enviar apenas os dados do equipamento selecionado
       }
     });
     

@@ -103,7 +103,7 @@ serve(async (req) => {
       quantidade = 1, // Quantidade de roteiros (default: 1)
       tom, // Tom desejado
       estrategiaConteudo, // 🟡 Atrair Atenção, 🟢 Criar Conexão, etc.
-      equipamentosData // Array com dados dos equipamentos
+      equipamentoData // Dados do equipamento selecionado
     } = requestData;
     
     if (!tipo || !equipamento) {
@@ -113,12 +113,10 @@ serve(async (req) => {
       );
     }
 
-    // Encontrar dados do equipamento solicitado
-    const equipamentoInfo = equipamentosData?.find(e => e.nome.toLowerCase() === equipamento.toLowerCase());
-    
-    if (!equipamentoInfo && equipamentosData) {
+    // Verificar se temos os dados do equipamento
+    if (!equipamentoData) {
       return new Response(
-        JSON.stringify({ error: 'Equipamento não encontrado no banco de dados' }), 
+        JSON.stringify({ error: 'Dados do equipamento não fornecidos' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -126,15 +124,13 @@ serve(async (req) => {
     // Construir prompt específico baseado nos parâmetros
     let userPrompt = '';
     
-    if (equipamentoInfo) {
-      userPrompt += `Dados do equipamento selecionado:\n`;
-      userPrompt += `Nome: ${equipamentoInfo.nome}\n`;
-      userPrompt += `Tecnologia: ${equipamentoInfo.tecnologia}\n`;
-      userPrompt += `Indicações: ${equipamentoInfo.indicacoes}\n`;
-      userPrompt += `Benefícios: ${equipamentoInfo.beneficios}\n`;
-      userPrompt += `Diferenciais: ${equipamentoInfo.diferenciais}\n`;
-      userPrompt += `Linguagem recomendada: ${equipamentoInfo.linguagem}\n\n`;
-    }
+    userPrompt += `Dados do equipamento selecionado:\n`;
+    userPrompt += `Nome: ${equipamentoData.nome}\n`;
+    userPrompt += `Tecnologia: ${equipamentoData.tecnologia}\n`;
+    userPrompt += `Indicações: ${equipamentoData.indicacoes}\n`;
+    userPrompt += `Benefícios: ${equipamentoData.beneficios}\n`;
+    userPrompt += `Diferenciais: ${equipamentoData.diferenciais}\n`;
+    userPrompt += `Linguagem recomendada: ${equipamentoData.linguagem}\n\n`;
     
     userPrompt += `Tipo de conteúdo solicitado: ${tipo}\n`;
     

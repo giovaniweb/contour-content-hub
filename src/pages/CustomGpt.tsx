@@ -25,9 +25,8 @@ const CustomGpt: React.FC = () => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Informação</AlertTitle>
           <AlertDescription>
-            A aplicação está mostrando os 12 equipamentos disponíveis no sistema.
-            Se você não visualizar todos os equipamentos esperados, verifique se eles foram
-            corretamente cadastrados no banco de dados.
+            A aplicação está mostrando os 12 equipamentos da lista padrão.
+            Selecione um equipamento para gerar conteúdo personalizado com base nas suas características.
           </AlertDescription>
         </Alert>
         
