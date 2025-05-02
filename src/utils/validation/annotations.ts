@@ -1,58 +1,51 @@
 
-import { ValidationResult } from './types';
+import { ValidationResult, ValidationBlock } from './types';
+import { TextAnnotation } from '@/components/script/AnnotatedText';
 
-export interface TextAnnotation {
-  type: 'positive' | 'negative' | 'suggestion' | 'gancho' | 'conflito' | 'virada' | 'cta';
-  text: string;
-  suggestion?: string;
-  score?: number;
-  blockType?: 'gancho' | 'conflito' | 'virada' | 'cta';
-  replace?: boolean;
-}
-
-// Função para mapear a validação para o formato de annotations
-export const mapValidationToAnnotations = (validation: ValidationResult | null): TextAnnotation[] => {
-  if (!validation) return [];
-
-  const annotations = [];
-
-  // Mapear os blocos para anotações
-  if (validation.blocos && validation.blocos.length > 0) {
-    for (const bloco of validation.blocos) {
-      const type = bloco.nota >= 7 ? 'positive' : 'negative';
-      
-      annotations.push({
-        type: bloco.tipo,
-        text: bloco.texto,
-        suggestion: bloco.sugestao,
-        score: bloco.nota,
-        blockType: bloco.tipo,
-        replace: bloco.substituir
-      });
-    }
-  } else {
-    // Fallback para o formato antigo se não houver blocos
-    // Criar anotações simuladas baseadas nos scores gerais
-    if (validation.gancho < 7) {
-      annotations.push({
-        type: 'gancho',
-        text: "Primeiro parágrafo do roteiro",
-        suggestion: "O gancho inicial precisa ser mais impactante e cativante",
-        score: validation.gancho,
-        blockType: 'gancho'
-      });
-    }
-    
-    if (validation.cta < 7) {
-      annotations.push({
-        type: 'cta',
-        text: "Último parágrafo do roteiro",
-        suggestion: "O CTA precisa ser mais direto e persuasivo",
-        score: validation.cta,
-        blockType: 'cta'
-      });
-    }
+/**
+ * Converte blocos de validação em anotações para o componente AnnotatedText
+ * @param validation Resultado da validação
+ * @returns Array de anotações de texto
+ */
+export const mapValidationToAnnotations = (validation: ValidationResult): TextAnnotation[] => {
+  const annotations: TextAnnotation[] = [];
+  
+  if (!validation.blocos || validation.blocos.length === 0) {
+    return annotations;
   }
-
+  
+  // Mapear cada bloco de validação para uma anotação
+  validation.blocos.forEach((bloco) => {
+    if (!bloco.texto) return;
+    
+    // Definir cor com base na nota do bloco
+    let color = "green";
+    if (bloco.nota < 4) color = "red";
+    else if (bloco.nota < 6) color = "orange";
+    else if (bloco.nota < 8) color = "yellow";
+    
+    // Definir tipo de ícone com base no tipo de bloco
+    let icon = "info";
+    if (bloco.tipo === "gancho") icon = "hook";
+    else if (bloco.tipo === "cta") icon = "target";
+    else if (bloco.tipo === "conflito") icon = "alert";
+    else if (bloco.tipo === "virada") icon = "sparkles";
+    
+    // Construir mensagem da anotação
+    const message = bloco.substituir
+      ? `Sugestão: ${bloco.sugestao}`
+      : `Pontuação: ${bloco.nota.toFixed(1)}/10`;
+    
+    // Adicionar anotação
+    annotations.push({
+      text: bloco.texto,
+      color,
+      icon,
+      message,
+      needsAttention: bloco.substituir === true,
+      suggestion: bloco.sugestao
+    });
+  });
+  
   return annotations;
 };

@@ -5,7 +5,7 @@ import { ScriptResponse } from '../api';
 import { ValidationCache } from './validation-cache';
 import { fetchValidationFromDB, saveValidationToDB } from './db-service';
 import { getLocalValidation, saveLocalValidation } from './local-storage';
-import { useToast } from '@/hooks/use-toast';
+import { logValidationAnalytics } from './analytics';
 
 // Cache de validações para evitar requisições duplicadas
 const validationCache = ValidationCache.getInstance();
@@ -53,6 +53,9 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     // 4. Salvar validação no banco de dados e cache
     await saveValidation(script.id, data);
     validationCache.set(script.id, data);
+    
+    // 5. Registrar dados para análise futura
+    await logValidationAnalytics(script.id, script.type, data);
     
     return data;
   } catch (error) {
