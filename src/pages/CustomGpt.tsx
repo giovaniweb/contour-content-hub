@@ -23,10 +23,11 @@ const CustomGpt: React.FC = () => {
         
         <Alert className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Dica</AlertTitle>
+          <AlertTitle>Informação</AlertTitle>
           <AlertDescription>
-            A aplicação está mostrando equipamentos padrão e quaisquer equipamentos adicionais do banco de dados.
-            Se você não vir todos os equipamentos esperados, verifique as configurações de acesso aos dados no painel do Supabase.
+            A aplicação está mostrando os equipamentos disponíveis no sistema.
+            Se você não visualizar todos os 12 equipamentos esperados, verifique se eles foram
+            corretamente cadastrados no banco de dados.
           </AlertDescription>
         </Alert>
         

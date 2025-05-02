@@ -116,6 +116,33 @@ const defaultEquipamentos: Equipment[] = [
     beneficios: "Efeito lifting imediato, durabilidade dos resultados",
     diferenciais: "Não requer tempo de recuperação",
     linguagem: "Premium e exclusiva"
+  },
+  { 
+    id: "ultralift-default", 
+    nome: "Ultralift - Endolaser", 
+    tecnologia: "Ultrassom associado a laser",
+    indicacoes: "Tratamento profundo da pele e tecidos",
+    beneficios: "Efeito lifting e rejuvenescimento",
+    diferenciais: "Tecnologia combinada para resultados superiores",
+    linguagem: "Científica e confiável"
+  },
+  { 
+    id: "unyque-default", 
+    nome: "Unyque PRO", 
+    tecnologia: "Crioterapia avançada",
+    indicacoes: "Tratamentos faciais e corporais",
+    beneficios: "Rápida recuperação, resultados duradouros",
+    diferenciais: "Conforto durante aplicação e eficácia",
+    linguagem: "Exclusiva e precisa"
+  },
+  { 
+    id: "xtonus-default", 
+    nome: "X-Tonus", 
+    tecnologia: "Eletroestimulação avançada",
+    indicacoes: "Flacidez e tonificação muscular",
+    beneficios: "Fortalecimento muscular sem esforço",
+    diferenciais: "Resultados em poucas sessões",
+    linguagem: "Dinâmica e objetiva"
   }
 ];
 

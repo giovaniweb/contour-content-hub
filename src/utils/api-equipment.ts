@@ -14,11 +14,12 @@ export const getEquipments = async (): Promise<Equipment[]> => {
       
     if (tableCheckError) {
       console.error('Erro ao verificar tabela de equipamentos:', tableCheckError);
+      console.error('Detalhes do erro:', JSON.stringify(tableCheckError));
     }
     
     console.log("Tabela equipamentos existe:", tableExists !== null);
     
-    // Buscar todos os equipamentos, incluindo os inativos (para fins de depuração)
+    // Buscar todos os equipamentos sem filtros para garantir que tudo seja retornado
     const { data, error, count } = await supabase
       .from('equipamentos')
       .select('*', { count: 'exact' })
@@ -26,10 +27,14 @@ export const getEquipments = async (): Promise<Equipment[]> => {
       
     if (error) {
       console.error('Erro detalhado ao buscar equipamentos:', error);
+      console.error('Detalhes completos:', JSON.stringify(error));
       throw error;
     }
     
     console.log(`Encontrados ${count || 0} equipamentos no banco de dados`);
+    if (data) {
+      console.log('Nomes dos equipamentos encontrados:', data.map(eq => eq.nome).join(', '));
+    }
     
     // Se não houver dados ou o array estiver vazio, retornar um array vazio
     return data || [];
