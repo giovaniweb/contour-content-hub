@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Save, Plus } from 'lucide-react';
+import { Loader2, Save, Plus, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 interface EquipmentCreateFormProps {
   onSuccess?: (equipment: Equipment) => void;
@@ -17,6 +19,7 @@ interface EquipmentCreateFormProps {
 
 const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, onCancel }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<Omit<Equipment, 'id'>>({
@@ -26,12 +29,93 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     beneficios: '',
     diferenciais: '',
     linguagem: '',
-    ativo: true
+    ativo: true,
+    image_url: ''
   });
+
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setEquipment(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: "Formato inválido",
+        description: "Por favor, envie apenas arquivos de imagem."
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é de 5MB."
+      });
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      
+      // Generate preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `equipment/${fileName}`;
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase
+        .storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      // Update equipment with image URL
+      setEquipment(prev => ({ ...prev, image_url: publicUrl }));
+      
+      toast({
+        title: "Imagem enviada",
+        description: "A imagem foi carregada com sucesso."
+      });
+    } catch (error) {
+      console.error('Erro ao fazer upload da imagem:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro no upload",
+        description: "Não foi possível enviar a imagem. Tente novamente."
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setEquipment(prev => ({ ...prev, image_url: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,6 +174,59 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
               placeholder="Ex: Ultralift HIFU"
               className="mt-1"
             />
+          </div>
+          
+          <div>
+            <Label>Imagem do Equipamento</Label>
+            <div className="mt-2">
+              {!imagePreview ? (
+                <div className="border border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/50">
+                  <Label 
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground mb-1">
+                      Clique para adicionar uma imagem
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      JPEG, PNG ou GIF (máx. 5MB)
+                    </span>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                  </Label>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview da imagem do equipamento" 
+                    className="max-h-60 rounded-lg object-contain border p-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {isUploading && (
+                <div className="flex items-center justify-center mt-2">
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  <span className="text-sm">Enviando imagem...</span>
+                </div>
+              )}
+            </div>
           </div>
           
           <div>
@@ -158,14 +295,14 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
                 type="button" 
                 variant="outline" 
                 onClick={onCancel}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
               >
                 Cancelar
               </Button>
             )}
             <Button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               {isSubmitting ? (
                 <>

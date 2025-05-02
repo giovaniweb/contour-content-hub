@@ -9,6 +9,7 @@ export interface Equipment {
   linguagem: string;
   ativo?: boolean;
   data_cadastro?: string;
+  image_url?: string;
 }
 
 export interface EquipmentValidation {

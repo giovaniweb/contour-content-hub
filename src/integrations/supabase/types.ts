@@ -159,6 +159,7 @@ export type Database = {
           data_cadastro: string | null
           diferenciais: string
           id: string
+          image_url: string | null
           indicacoes: string
           linguagem: string
           nome: string
@@ -170,6 +171,7 @@ export type Database = {
           data_cadastro?: string | null
           diferenciais: string
           id?: string
+          image_url?: string | null
           indicacoes: string
           linguagem: string
           nome: string
@@ -181,6 +183,7 @@ export type Database = {
           data_cadastro?: string | null
           diferenciais?: string
           id?: string
+          image_url?: string | null
           indicacoes?: string
           linguagem?: string
           nome?: string
