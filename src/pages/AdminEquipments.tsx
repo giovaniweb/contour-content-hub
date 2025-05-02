@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import EquipmentManager from "@/components/admin/EquipmentManager";
 import { Equipment } from "@/types/equipment";
+import { Card, CardContent } from "@/components/ui/card";
 
 const AdminEquipments: React.FC = () => {
   const { toast } = useToast();
