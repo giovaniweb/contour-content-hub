@@ -14,11 +14,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, LogOut, User, Shield, Users, BrainCircuit } from "lucide-react";
+import { Settings, LogOut, User, Shield, Users, BrainCircuit, LineChart } from "lucide-react";
 
 const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth();
-  const { isAdmin, isOperator } = usePermissions();
+  const { isAdmin, isOperator, isSeller } = usePermissions();
 
   if (!user) return null;
 
@@ -34,6 +34,9 @@ const ProfileMenu: React.FC = () => {
     }
     if (isOperator()) {
       return <Badge variant="outline" className="bg-contourline-mediumBlue/10 border-contourline-mediumBlue/20 text-contourline-mediumBlue">Operador</Badge>;
+    }
+    if (isSeller()) {
+      return <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500">Vendedor</Badge>;
     }
     return null;
   };
@@ -80,7 +83,7 @@ const ProfileMenu: React.FC = () => {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/admin" className="flex items-center cursor-pointer">
+              <Link to="/admin/dashboard" className="flex items-center cursor-pointer">
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Painel Admin</span>
               </Link>
@@ -98,9 +101,27 @@ const ProfileMenu: React.FC = () => {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/operator" className="flex items-center cursor-pointer">
+              <Link to="/operator/dashboard" className="flex items-center cursor-pointer">
                 <Users className="mr-2 h-4 w-4" />
                 <span>Área do Operador</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+        
+        {isSeller() && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/seller/clients" className="flex items-center cursor-pointer">
+                <Users className="mr-2 h-4 w-4" />
+                <span>Clientes</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/seller/dashboard" className="flex items-center cursor-pointer">
+                <LineChart className="mr-2 h-4 w-4" />
+                <span>Desempenho</span>
               </Link>
             </DropdownMenuItem>
           </>

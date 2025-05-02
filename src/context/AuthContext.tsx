@@ -16,7 +16,7 @@ type UserProfile = {
   language: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
   passwordChanged: boolean;
-  role: 'cliente' | 'admin' | 'operador';
+  role: 'cliente' | 'admin' | 'operador' | 'vendedor';
 };
 
 type AuthContextType = {
@@ -95,8 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Type guard to ensure role is one of the allowed values
-      const validateRole = (role: string): 'cliente' | 'admin' | 'operador' => {
-        if (role === 'cliente' || role === 'admin' || role === 'operador') {
+      const validateRole = (role: string): 'cliente' | 'admin' | 'operador' | 'vendedor' => {
+        if (role === 'cliente' || role === 'admin' || role === 'operador' || role === 'vendedor') {
           return role;
         }
         return 'cliente'; // Default to 'cliente' if an invalid role is found

@@ -41,3 +41,26 @@ export interface CacheEntry {
   total: number;
   timestamp: number;  // Este é o timestamp numérico usado para controle de cache
 }
+
+/**
+ * Representa um plano de assinatura
+ */
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  active: boolean;
+}
+
+/**
+ * Representa métricas de engajamento do cliente
+ */
+export interface ClientEngagement {
+  scriptsGenerated: number;
+  lastActive: Date;
+  weeklyActivity: number[];
+  validationScore: number;
+}

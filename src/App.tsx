@@ -32,6 +32,11 @@ const AdminEquipments = lazy(() => import('./pages/AdminEquipments'));
 const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminIntegrations = lazy(() => import('./pages/AdminIntegrations'));
 
+// Lazy loaded seller pages
+const SellerDashboard = lazy(() => import('./pages/seller/SellerDashboard'));
+const ClientList = lazy(() => import('./pages/seller/ClientList'));
+const ClientDetail = lazy(() => import('./pages/seller/ClientDetail'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -82,6 +87,22 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user || user.role !== 'admin') {
+    return <Navigate to="/dashboard" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Seller Route component
+const SellerRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  if (!user || (user.role !== 'vendedor' && user.role !== 'admin')) {
     return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
 
@@ -216,6 +237,29 @@ function App() {
                         <AdminIntegrations />
                       </Suspense>
                     </AdminRoute>
+                  } />
+                  
+                  {/* Rotas de vendedor (apenas vendedores e admins) */}
+                  <Route path="/seller/dashboard" element={
+                    <SellerRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <SellerDashboard />
+                      </Suspense>
+                    </SellerRoute>
+                  } />
+                  <Route path="/seller/clients" element={
+                    <SellerRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ClientList />
+                      </Suspense>
+                    </SellerRoute>
+                  } />
+                  <Route path="/seller/client/:id" element={
+                    <SellerRoute>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ClientDetail />
+                      </Suspense>
+                    </SellerRoute>
                   } />
                   
                   {/* Rota de redirecionamento para página inicial */}

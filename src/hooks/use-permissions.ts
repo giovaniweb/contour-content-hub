@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 
-type PermissionAction = 'viewAllUsers' | 'editAllContent' | 'accessAdminPanel' | 'manageRoles';
+type PermissionAction = 'viewAllUsers' | 'editAllContent' | 'accessAdminPanel' | 'manageRoles' | 'manageClients' | 'viewSales';
 
 /**
  * Hook para verificar permissões do usuário baseado em seu role
@@ -17,13 +17,17 @@ export const usePermissions = () => {
     
     switch (action) {
       case 'viewAllUsers':
-        return user.role === 'admin' || user.role === 'operador';
+        return user.role === 'admin' || user.role === 'operador' || user.role === 'vendedor';
       case 'editAllContent':
         return user.role === 'admin';
       case 'accessAdminPanel':
         return user.role === 'admin';
       case 'manageRoles':
         return user.role === 'admin';
+      case 'manageClients':
+        return user.role === 'admin' || user.role === 'vendedor';
+      case 'viewSales':
+        return user.role === 'admin' || user.role === 'vendedor';
       default:
         return false;
     }
@@ -50,10 +54,18 @@ export const usePermissions = () => {
     return user?.role === 'cliente';
   };
   
+  /**
+   * Verifica se o usuário é vendedor
+   */
+  const isSeller = (): boolean => {
+    return user?.role === 'vendedor';
+  };
+  
   return {
     hasPermission,
     isAdmin,
     isOperator,
-    isClient
+    isClient,
+    isSeller
   };
 };
