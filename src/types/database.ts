@@ -1,4 +1,3 @@
-
 // Interfaces correspondentes às tabelas do banco de dados Supabase
 
 export interface Perfil {
@@ -13,6 +12,7 @@ export interface Perfil {
   foto_url?: string;
   data_criacao: string;
   role: 'cliente' | 'admin' | 'operador';
+  observacoes_conteudo?: string;
 }
 
 export interface Roteiro {
@@ -82,6 +82,11 @@ export interface AgendaItem {
   roteiro_id?: string;
   status: 'pendente' | 'concluido';
   data_criacao: string;
+  equipamento?: string;
+  objetivo?: string;
+  formato?: string;
+  gancho?: string;
+  legenda?: string;
 }
 
 export interface AlertaEmail {

@@ -14,7 +14,12 @@ export type Database = {
           data: string | null
           data_criacao: string | null
           descricao: string | null
+          equipamento: string | null
+          formato: string | null
+          gancho: string | null
           id: string
+          legenda: string | null
+          objetivo: string | null
           roteiro_id: string | null
           status: string | null
           tipo: string | null
@@ -25,7 +30,12 @@ export type Database = {
           data?: string | null
           data_criacao?: string | null
           descricao?: string | null
+          equipamento?: string | null
+          formato?: string | null
+          gancho?: string | null
           id?: string
+          legenda?: string | null
+          objetivo?: string | null
           roteiro_id?: string | null
           status?: string | null
           tipo?: string | null
@@ -36,7 +46,12 @@ export type Database = {
           data?: string | null
           data_criacao?: string | null
           descricao?: string | null
+          equipamento?: string | null
+          formato?: string | null
+          gancho?: string | null
           id?: string
+          legenda?: string | null
+          objetivo?: string | null
           roteiro_id?: string | null
           status?: string | null
           tipo?: string | null
@@ -282,6 +297,7 @@ export type Database = {
           id: string
           idioma: string | null
           nome: string | null
+          observacoes_conteudo: string | null
           role: string | null
           telefone: string | null
         }
@@ -295,6 +311,7 @@ export type Database = {
           id: string
           idioma?: string | null
           nome?: string | null
+          observacoes_conteudo?: string | null
           role?: string | null
           telefone?: string | null
         }
@@ -308,6 +325,7 @@ export type Database = {
           id?: string
           idioma?: string | null
           nome?: string | null
+          observacoes_conteudo?: string | null
           role?: string | null
           telefone?: string | null
         }

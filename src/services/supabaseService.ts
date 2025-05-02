@@ -1,4 +1,3 @@
-
 import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion } from '@/utils/api';
 
