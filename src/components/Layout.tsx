@@ -17,7 +17,7 @@ import {
   SidebarMenuButton 
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { History, ChevronLeft, ChevronRight } from "lucide-react";
+import { History, ChevronLeft, ChevronRight, FileText, FileSearch } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -84,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({
         
         <div className="flex flex-1">
           {isAuthenticated && (
-            <Sidebar defaultCollapsed={sidebarCollapsed} collapsible>
+            <Sidebar defaultCollapsed={sidebarCollapsed} collapsible="icon">
               <SidebarHeader className="border-b pb-2">
                 <div className="flex items-center justify-between px-2">
                   <div className="flex items-center">
