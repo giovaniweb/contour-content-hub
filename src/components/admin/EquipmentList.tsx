@@ -27,9 +27,9 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
   if (equipments.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-muted-foreground">No equipment found.</p>
+        <p className="text-muted-foreground">Nenhum equipamento encontrado.</p>
         <p className="text-sm text-muted-foreground mt-2">
-          Add new equipment by clicking the "New Equipment" button above.
+          Adicione novos equipamentos clicando no botão "Novo Equipamento" acima.
         </p>
       </div>
     );
@@ -44,7 +44,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium">{equipment.nome}</h3>
                 <Badge variant={equipment.ativo ? "success" : "secondary"}>
-                  {equipment.ativo ? 'Active' : 'Inactive'}
+                  {equipment.ativo ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
               
@@ -60,7 +60,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
                     onClick={() => onEdit(equipment)}
                   >
                     <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                    Editar
                   </Button>
                   <Button 
                     variant="outline" 
@@ -69,7 +69,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
                     onClick={() => setEquipmentToDelete(equipment)}
                   >
                     <Trash className="h-4 w-4 mr-1" />
-                    Delete
+                    Excluir
                   </Button>
                 </div>
                 
@@ -80,7 +80,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
                 >
                   <Link to={`/admin/equipment/${equipment.id}`}>
                     <Eye className="h-4 w-4 mr-1" />
-                    View
+                    Visualizar
                   </Link>
                 </Button>
               </div>
@@ -92,19 +92,19 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
       <AlertDialog open={!!equipmentToDelete} onOpenChange={() => setEquipmentToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the equipment
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o equipamento
               <strong> {equipmentToDelete?.nome}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

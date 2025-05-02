@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -21,6 +22,8 @@ const EquipmentManager: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentEquipment, setCurrentEquipment] = useState<Equipment | null>(null);
   const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
@@ -75,10 +78,31 @@ const EquipmentManager: React.FC = () => {
     }
   };
 
+  const openEditDialog = (equipment: Equipment) => {
+    setCurrentEquipment(equipment);
+    setIsEditDialogOpen(true);
+  };
+
   const handleUpdateEquipment = async (updatedEquipment: Equipment) => {
     try {
-      await updateEquipment(updatedEquipment);
-      await loadEquipments();
+      console.log("Tentando atualizar equipamento com os dados:", updatedEquipment);
+      
+      // Extract efeito field before sending to API since it's not in the database
+      const { efeito, ...equipmentToUpdate } = updatedEquipment;
+      
+      const result = await updateEquipment(equipmentToUpdate);
+      console.log("Equipamento atualizado com sucesso:", result);
+      
+      // Update the equipment in the local state
+      setEquipments(currentEquipments => 
+        currentEquipments.map(item => 
+          item.id === updatedEquipment.id ? { ...result, efeito } : item
+        )
+      );
+      
+      setIsEditDialogOpen(false);
+      setCurrentEquipment(null);
+      
       toast({
         title: "Equipamento atualizado",
         description: "O equipamento foi atualizado com sucesso!",
@@ -88,7 +112,7 @@ const EquipmentManager: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível atualizar o equipamento.",
+        description: "Não foi possível atualizar o equipamento. Verifique o console para mais informações.",
       });
     }
   };
@@ -148,12 +172,13 @@ const EquipmentManager: React.FC = () => {
         ) : (
           <EquipmentList
             equipments={filteredEquipments}
-            onEdit={handleUpdateEquipment}
+            onEdit={openEditDialog}
             onDelete={handleDeleteEquipment}
           />
         )}
       </CardContent>
 
+      {/* New Equipment Dialog */}
       <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -167,6 +192,29 @@ const EquipmentManager: React.FC = () => {
             onSave={handleCreateEquipment}
             onCancel={() => setIsNewDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Equipment Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Equipamento</DialogTitle>
+            <DialogDescription>
+              Atualize os dados do equipamento
+            </DialogDescription>
+          </DialogHeader>
+          
+          {currentEquipment && (
+            <EquipmentForm
+              equipment={currentEquipment}
+              onSave={handleUpdateEquipment}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setCurrentEquipment(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </Card>

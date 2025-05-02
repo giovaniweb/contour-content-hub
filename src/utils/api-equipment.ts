@@ -98,10 +98,16 @@ export async function createEquipment(equipment: EquipmentCreationProps): Promis
  * Atualiza um equipamento existente
  */
 export async function updateEquipment(updates: EquipmentUpdateProps): Promise<Equipment> {
-  const { id, ...updateData } = updates;
+  console.log("Dados a serem atualizados:", updates);
+  
+  // Make sure to remove efeito as it's not a database column
+  const { efeito, ...updateData } = updates;
+
+  const { id, ...fieldsToUpdate } = updateData;
+  
   const { data, error } = await supabase
     .from("equipamentos")
-    .update(updateData)
+    .update(fieldsToUpdate)
     .eq("id", id)
     .select("*")
     .single();
@@ -111,7 +117,8 @@ export async function updateEquipment(updates: EquipmentUpdateProps): Promise<Eq
     throw error;
   }
   
-  return data as Equipment;
+  // Add efeito back to the returned object if it was provided
+  return { ...data, efeito } as Equipment;
 }
 
 /**
