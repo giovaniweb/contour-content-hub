@@ -1,16 +1,16 @@
 
-import React from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
 import { Sparkles } from 'lucide-react';
 
 const CustomGpt: React.FC = () => {
+  useEffect(() => {
+    document.title = "GPT Personalizado | Reelline";
+  }, []);
+
   return (
     <Layout>
-      <Helmet>
-        <title>GPT Personalizado | Reelline</title>
-      </Helmet>
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center mb-6">
           <Sparkles className="h-8 w-8 mr-2 text-blue-500" />
