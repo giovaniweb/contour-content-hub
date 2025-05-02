@@ -1,7 +1,8 @@
+
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/components/ui/theme-provider"
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/components/theme-provider"
 import {
   Sheet,
   SheetContent,
@@ -24,7 +25,7 @@ import {
   LogOut,
   Moon,
   Sun,
-  FileTypeVideo,
+  FileVideo,
   Sparkles
 } from "lucide-react";
 import {
@@ -89,7 +90,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
             <h1 className="text-lg font-semibold flex items-center">
-              <FileTypeVideo className="mr-2 h-6 w-6 text-blue-500" />
+              <FileVideo className="mr-2 h-6 w-6 text-blue-500" />
               <span className="hidden md:block">Reelline</span>
             </h1>
           </Link>
