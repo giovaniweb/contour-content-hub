@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import CalendarDialog from "./script/CalendarDialog";
+import CalendarDialog from "./script/ScriptDialog";
 import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
 
 interface ScriptCardProps {
@@ -150,42 +150,8 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
 
   // Handle validation complete
   const handleValidationComplete = (validation: any) => {
-    // Exemplo simples de anotações baseado na validação
-    // Em uma implementação completa, você usaria uma API para gerar anotações mais precisas
-    const newAnnotations: TextAnnotation[] = [];
-    
-    // Se temos um gancho fraco, anotar o primeiro parágrafo
-    if (validation.gancho < 7) {
-      const firstParagraph = script.content.split('\n')[0];
-      if (firstParagraph) {
-        newAnnotations.push({
-          type: 'negative',
-          text: firstParagraph,
-          suggestion: 'O gancho inicial precisa ser mais impactante',
-          score: validation.gancho
-        });
-      }
-    }
-    
-    // Se temos um bom CTA, anotar
-    if (validation.cta >= 7) {
-      // Tentar encontrar o CTA no texto (geralmente no final)
-      const paragraphs = script.content.split('\n');
-      const lastParagraphs = paragraphs.slice(-2);
-      for (const para of lastParagraphs) {
-        if (para.includes('!') || para.includes('?') || 
-            /agende|venha|ligue|compre|experimente/i.test(para)) {
-          newAnnotations.push({
-            type: 'positive',
-            text: para,
-            suggestion: 'Bom CTA, direto e persuasivo',
-            score: validation.cta
-          });
-          break;
-        }
-      }
-    }
-    
+    // Importa as anotações diretamente da API refatorada
+    const newAnnotations = mapValidationToAnnotations(validation);
     setTextAnnotations(newAnnotations);
   };
 
