@@ -65,15 +65,23 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       await onSave(data);
       toast({
         title: "Sucesso",
-        description: `Equipamento ${equipment ? 'atualizado' : 'cadastrado'} com sucesso!`,
-        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
+        description: (
+          <div className="flex items-center">
+            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+            <span>{`Equipamento ${equipment ? 'atualizado' : 'cadastrado'} com sucesso!`}</span>
+          </div>
+        ),
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: `Falha ao ${equipment ? 'atualizar' : 'cadastrar'} equipamento. Tente novamente.`,
-        icon: <AlertCircle className="h-4 w-4 text-destructive" />
+        description: (
+          <div className="flex items-center">
+            <AlertCircle className="h-4 w-4 text-destructive mr-2" />
+            <span>{`Falha ao ${equipment ? 'atualizar' : 'cadastrar'} equipamento. Tente novamente.`}</span>
+          </div>
+        ),
       });
       console.error("Erro ao salvar equipamento:", error);
     } finally {
