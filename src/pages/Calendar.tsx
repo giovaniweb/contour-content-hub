@@ -304,7 +304,7 @@ const Calendar: React.FC = () => {
                       <SelectValue placeholder="Selecione um equipamento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos equipamentos</SelectItem>
+                      <SelectItem value="all">Todos equipamentos</SelectItem>
                       <SelectItem value="Adélla">Adélla</SelectItem>
                       <SelectItem value="Enygma">Enygma</SelectItem>
                       <SelectItem value="Hipro">Hipro</SelectItem>

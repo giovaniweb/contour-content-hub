@@ -493,7 +493,7 @@ export const getCalendarSuggestions = async (
         const day = i * interval;
         if (day <= daysInMonth) {
           // Selecionar um formato aleatório
-          const randomFormat = formats[Math.floor(Math.random() * formats.length)];
+          const randomFormat = formats[Math.floor(Math.random() * formats.length)] as "video" | "story" | "image";
           
           // Definir tipo de script com base no formato
           const scriptType: ScriptType = randomFormat === "video" ? "videoScript" : 
