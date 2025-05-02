@@ -45,7 +45,9 @@ import {
   toggleFavorite as toggleFavoriteInSupabase,
   rateMedia as rateMediaInSupabase,
   getCalendarSuggestions as getCalendarSuggestionsFromSupabase,
-  updateCalendarCompletion as updateCalendarCompletionInSupabase
+  updateCalendarCompletion as updateCalendarCompletionInSupabase,
+  updateUserPreferences,
+  saveEmailAlertPreferences,
 } from '@/services/supabaseService';
 
 // Export the Supabase functions
@@ -71,6 +73,8 @@ export interface MediaItem {
 export const getMediaItems = getMediaItemsFromSupabase;
 export const toggleFavorite = toggleFavoriteInSupabase;
 export const rateMedia = rateMediaInSupabase;
+
+// Export file generation functions
 export const generatePDF = async (scriptId: string): Promise<string> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000));
@@ -79,15 +83,24 @@ export const generatePDF = async (scriptId: string): Promise<string> => {
   return `/api/pdf/${scriptId}`;
 };
 
-// Calendar suggestion interface
+// Calendar suggestion interface with enhanced fields
 export interface CalendarSuggestion {
   date: string;
   title: string;
   type: ScriptType;
   description: string;
   completed: boolean;
+  equipment?: string;
+  purpose?: "educate" | "engage" | "sell";
+  format?: "video" | "story" | "image";
+  hook?: string;
+  caption?: string;
 }
 
 // Export calendar functions
 export const getCalendarSuggestions = getCalendarSuggestionsFromSupabase;
 export const updateCalendarCompletion = updateCalendarCompletionInSupabase;
+
+// Export user preference functions
+export const saveUserPreferences = updateUserPreferences;
+export const setEmailPreferences = saveEmailAlertPreferences;

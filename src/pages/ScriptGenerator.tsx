@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +75,9 @@ const purposes = [
 
 const ScriptGenerator: React.FC = () => {
   const { toast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [scriptType, setScriptType] = useState<ScriptType>("videoScript");
   const [topic, setTopic] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
@@ -83,6 +88,51 @@ const ScriptGenerator: React.FC = () => {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<any | null>(null);
+  
+  // Parse query parameters to pre-fill form from calendar
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const typeParam = params.get('type');
+    const topicParam = params.get('topic');
+    
+    if (typeParam && ['videoScript', 'bigIdea', 'dailySales'].includes(typeParam)) {
+      setScriptType(typeParam as ScriptType);
+    }
+    
+    if (topicParam) {
+      setTopic(decodeURIComponent(topicParam));
+    }
+    
+    const equipmentParam = params.get('equipment');
+    if (equipmentParam) {
+      // Find if equipment exists in our options
+      const equipment = equipmentOptions.find(
+        e => e.label.toLowerCase() === decodeURIComponent(equipmentParam).toLowerCase()
+      );
+      
+      if (equipment) {
+        setSelectedEquipment([equipment.label]);
+      }
+    }
+    
+    const purposeParam = params.get('purpose');
+    if (purposeParam) {
+      let mappedPurpose;
+      
+      if (purposeParam === 'educate') {
+        mappedPurpose = purposes.find(p => p.value === 'rugas')?.label;
+      } else if (purposeParam === 'engage') {
+        mappedPurpose = purposes.find(p => p.value === 'flacidez')?.label;
+      } else if (purposeParam === 'sell') {
+        mappedPurpose = purposes.find(p => p.value === 'lipedema')?.label;
+      }
+      
+      if (mappedPurpose) {
+        setSelectedPurposes([mappedPurpose]);
+      }
+    }
+    
+  }, [location]);
   
   // Handle checkbox change for equipment
   const handleEquipmentChange = (value: string) => {
@@ -177,6 +227,9 @@ const ScriptGenerator: React.FC = () => {
     setAdditionalInfo("");
     setTone("professional");
     setGeneratedScript(null);
+    
+    // Clear URL parameters
+    navigate("/script-generator");
   };
   
   return (

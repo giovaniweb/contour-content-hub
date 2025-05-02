@@ -11,12 +11,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { getCalendarSuggestions, CalendarSuggestion } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import CalendarDay from "@/components/CalendarDay";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LoaderIcon, Mail, Bell } from "lucide-react";
 
-const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 const Calendar: React.FC = () => {
   const { toast } = useToast();
@@ -26,6 +38,9 @@ const Calendar: React.FC = () => {
   const [observations, setObservations] = useState("");
   const [suggestions, setSuggestions] = useState<CalendarSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [emailAlertOpen, setEmailAlertOpen] = useState(false);
+  const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly" | "intelligent">("weekly");
+  const [emailEnabled, setEmailEnabled] = useState(true);
   
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -43,8 +58,8 @@ const Calendar: React.FC = () => {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to load calendar",
-        description: "Could not load calendar suggestions",
+        title: "Falha ao carregar calendário",
+        description: "Não foi possível carregar as sugestões do calendário",
       });
       console.error("Failed to fetch calendar suggestions:", error);
     } finally {
@@ -101,21 +116,39 @@ const Calendar: React.FC = () => {
   const handleSaveObservations = () => {
     // In a real app, this would call an API to save the observations
     toast({
-      title: "Preferences saved",
-      description: "Your content preferences have been updated",
+      title: "Preferências salvas",
+      description: "Suas preferências de conteúdo foram atualizadas",
+    });
+    
+    // Reload calendar suggestions to reflect the new preferences
+    fetchCalendarSuggestions();
+  };
+  
+  // Handle updating email preferences
+  const handleSaveEmailPreferences = () => {
+    // In a real app, this would call an API to save the email preferences
+    setEmailAlertOpen(false);
+    
+    toast({
+      title: "Alertas de email configurados",
+      description: `Você receberá alertas ${emailEnabled ? "" : "não"} ${
+        emailFrequency === "daily" ? "diários" : 
+        emailFrequency === "weekly" ? "semanais" : 
+        "personalizados"
+      }`,
     });
   };
   
   // Format the month and year
   const formatMonthYear = () => {
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat("pt-BR", {
       month: "long",
       year: "numeric",
-    }).format(currentDate);
+    }).format(currentDate).replace(/^\w/, (c) => c.toUpperCase());
   };
   
   return (
-    <Layout title="Content Calendar">
+    <Layout title="Agenda Criativa">
       <div className="grid gap-6">
         {/* Calendar header and controls */}
         <Card>
@@ -124,7 +157,7 @@ const Calendar: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <CalendarIcon className="h-5 w-5 mr-2" />
-                  <span>Intelligent Content Agenda</span>
+                  <span>Agenda Criativa Inteligente</span>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -149,43 +182,56 @@ const Calendar: React.FC = () => {
               </div>
             </CardTitle>
             <CardDescription>
-              Plan your content schedule with AI-powered suggestions
+              Planeje sua agenda de conteúdo com sugestões personalizadas geradas por IA
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Content Frequency
+                  Frequência de Conteúdo
                 </label>
-                <Select
-                  value={frequency.toString()}
-                  onValueChange={(value) => setFrequency(parseInt(value) as 1 | 2 | 3)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1x per week</SelectItem>
-                    <SelectItem value="2">2x per week</SelectItem>
-                    <SelectItem value="3">3x per week</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-4">
+                  <div className="flex-grow">
+                    <Select
+                      value={frequency.toString()}
+                      onValueChange={(value) => setFrequency(parseInt(value) as 1 | 2 | 3)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a frequência" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1x por semana</SelectItem>
+                        <SelectItem value="2">2x por semana</SelectItem>
+                        <SelectItem value="3">3x por semana</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={() => setEmailAlertOpen(true)}
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden sm:inline">Alertas</span>
+                  </Button>
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Content Preferences
+                  Preferências de Conteúdo
                 </label>
                 <div className="flex space-x-2">
                   <Textarea
-                    placeholder="e.g., I want to focus on lipedema treatments this month"
+                    placeholder="Ex: Quero focar em tratamentos de lipedema este mês"
                     value={observations}
                     onChange={(e) => setObservations(e.target.value)}
                     className="flex-grow"
                   />
                   <Button className="self-end" onClick={handleSaveObservations}>
-                    Save
+                    Salvar
                   </Button>
                 </div>
               </div>
@@ -200,7 +246,7 @@ const Calendar: React.FC = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="flex flex-col items-center">
                   <LoaderIcon className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Generating your content calendar...</p>
+                  <p className="text-muted-foreground">Gerando sua agenda criativa...</p>
                 </div>
               </div>
             ) : (
@@ -232,6 +278,100 @@ const Calendar: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Email Alerts Dialog */}
+      <AlertDialog open={emailAlertOpen} onOpenChange={setEmailAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Configurar Alertas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Configure como e quando deseja receber alertas sobre seu calendário de conteúdo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="py-4 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="email-alerts">Alertas por e-mail</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba lembretes sobre sua agenda de conteúdo
+                </p>
+              </div>
+              <Switch 
+                id="email-alerts" 
+                checked={emailEnabled}
+                onCheckedChange={setEmailEnabled}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Frequência de alertas</Label>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="freq-daily"
+                    name="email-frequency"
+                    className="h-4 w-4"
+                    checked={emailFrequency === "daily"}
+                    onChange={() => setEmailFrequency("daily")}
+                    disabled={!emailEnabled}
+                  />
+                  <Label htmlFor="freq-daily" className="cursor-pointer">
+                    <div className="font-medium">📩 3 sugestões por semana</div>
+                    <div className="text-sm text-muted-foreground">
+                      Receba as melhores sugestões de conteúdo
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="freq-weekly"
+                    name="email-frequency"
+                    className="h-4 w-4"
+                    checked={emailFrequency === "weekly"}
+                    onChange={() => setEmailFrequency("weekly")}
+                    disabled={!emailEnabled}
+                  />
+                  <Label htmlFor="freq-weekly" className="cursor-pointer">
+                    <div className="font-medium">📩 1 grade completa semanal</div>
+                    <div className="text-sm text-muted-foreground">
+                      Receba todas as sugestões organizadas para a semana
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="freq-intelligent"
+                    name="email-frequency"
+                    className="h-4 w-4"
+                    checked={emailFrequency === "intelligent"}
+                    onChange={() => setEmailFrequency("intelligent")}
+                    disabled={!emailEnabled}
+                  />
+                  <Label htmlFor="freq-intelligent" className="cursor-pointer">
+                    <div className="font-medium">📩 Sugestões inteligentes</div>
+                    <div className="text-sm text-muted-foreground">
+                      Baseadas no seu comportamento e preferências
+                    </div>
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSaveEmailPreferences}>
+              Salvar Preferências
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

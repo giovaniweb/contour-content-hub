@@ -308,6 +308,78 @@ export const rateMedia = async (mediaId: string, rating: number): Promise<boolea
   }
 };
 
+// Função para atualizar preferências do usuário
+export const updateUserPreferences = async (observations: string): Promise<boolean> => {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    // Atualizar perfil do usuário com as observações
+    const { error } = await supabase
+      .from('perfis')
+      .update({
+        observacoes_conteudo: observations
+      })
+      .eq('id', userId);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar preferências:', error);
+    throw error;
+  }
+};
+
+// Função para atualizar preferências de alertas por email
+export const saveEmailAlertPreferences = async (
+  enabled: boolean,
+  frequency: "daily" | "weekly" | "intelligent"
+): Promise<boolean> => {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    // Verificar se já existe registro de alerta
+    const { data, error } = await supabase
+      .from('alertas_email')
+      .select('id')
+      .eq('usuario_id', userId)
+      .eq('tipo', 'agenda_criativa')
+      .maybeSingle();
+      
+    if (error) throw error;
+    
+    if (data) {
+      // Se já existe, atualizar
+      const { error: updateError } = await supabase
+        .from('alertas_email')
+        .update({
+          ativo: enabled,
+          config: { frequency }
+        })
+        .eq('id', data.id);
+        
+      if (updateError) throw updateError;
+    } else {
+      // Se não existe, criar novo
+      const { error: insertError } = await supabase
+        .from('alertas_email')
+        .insert({
+          usuario_id: userId,
+          tipo: 'agenda_criativa',
+          ativo: enabled,
+          config: { frequency }
+        });
+        
+      if (insertError) throw insertError;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar preferências de email:', error);
+    throw error;
+  }
+};
+
 // Função para obter sugestões do calendário
 export const getCalendarSuggestions = async (
   month: number,
@@ -316,6 +388,21 @@ export const getCalendarSuggestions = async (
 ): Promise<CalendarSuggestion[]> => {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
+    
+    // Buscar preferências do usuário
+    const { data: userProfile, error: profileError } = await supabase
+      .from('perfis')
+      .select('equipamentos, observacoes_conteudo')
+      .eq('id', userId)
+      .single();
+      
+    if (profileError) {
+      console.error('Erro ao buscar perfil do usuário:', profileError);
+      // Continue even if this fails
+    }
+    
+    const userEquipments = userProfile?.equipamentos || [];
+    const userObservations = userProfile?.observacoes_conteudo || '';
     
     // Buscar agenda existente no banco
     const startDate = new Date(year, month, 1);
@@ -336,8 +423,13 @@ export const getCalendarSuggestions = async (
         date: item.data,
         title: item.titulo,
         type: item.tipo as ScriptType,
-        description: item.descricao,
-        completed: item.status === 'concluido'
+        description: item.descricao || '',
+        completed: item.status === 'concluido',
+        equipment: item.equipamento,
+        purpose: item.objetivo as "educate" | "engage" | "sell",
+        format: item.formato as "video" | "story" | "image",
+        hook: item.gancho,
+        caption: item.legenda
       }));
     } else {
       // Se não existir agenda, gerar sugestões
@@ -346,6 +438,40 @@ export const getCalendarSuggestions = async (
       
       const suggestions: CalendarSuggestion[] = [];
       
+      // Tópicos possíveis baseados nas preferências do usuário
+      const possibleTopics = [
+        "Lipedema: diagnóstico e tratamento",
+        "Flacidez facial: tratamentos não-invasivos",
+        "Gordura localizada: mitos e verdades",
+        "Tratamentos para pós-operatório",
+        "Rejuvenescimento da pele",
+        "Redução de medidas sem cirurgia",
+        "Combate à celulite com tecnologia avançada",
+        "Tratamentos para os diferentes tipos de pele",
+        "Drenagem linfática: benefícios e indicações",
+        "Massagem modeladora: resultados reais"
+      ];
+      
+      // Tópicos específicos baseados nas observações do usuário
+      let userTopics: string[] = [];
+      if (userObservations) {
+        // Extrair possíveis tópicos das observações do usuário
+        const keywords = ["lipedema", "flacidez", "gordura", "celulite", "rejuvenescimento", "pós-operatório", "drenagem"];
+        keywords.forEach(keyword => {
+          if (userObservations.toLowerCase().includes(keyword)) {
+            userTopics.push(`${keyword.charAt(0).toUpperCase() + keyword.slice(1)}: tratamentos e cuidados`);
+          }
+        });
+      }
+      
+      // Combinar tópicos
+      const topics = userTopics.length > 0 ? [...userTopics, ...possibleTopics] : possibleTopics;
+      
+      // Equipamentos
+      const equipments = userEquipments.length > 0 ? 
+        userEquipments : 
+        ["Adélla", "Enygma", "Hipro", "Reverso", "Ultralift"];
+      
       // Criar sugestões para cada dia selecionado
       for (let i = 1; i <= frequency * 4; i++) {
         const day = i * interval;
@@ -353,21 +479,61 @@ export const getCalendarSuggestions = async (
           // Alternar entre diferentes tipos de roteiro
           const scriptType: ScriptType = i % 3 === 0 ? "dailySales" : i % 2 === 0 ? "bigIdea" : "videoScript";
           
+          // Selecionar um tópico aleatório
+          const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+          
+          // Selecionar um equipamento aleatório
+          const randomEquipment = equipments[Math.floor(Math.random() * equipments.length)];
+          
+          // Definir o formato com base no tipo de script
+          const format = scriptType === "videoScript" ? "video" : 
+                        scriptType === "dailySales" ? "story" : "image";
+          
+          // Definir o objetivo com base no tipo de script
+          const purpose = scriptType === "videoScript" ? "educate" : 
+                        scriptType === "bigIdea" ? "engage" : "sell";
+          
+          // Ganchos criativos baseados no tipo
+          const hooks = {
+            videoScript: [
+              "Você sabia que 80% das mulheres...",
+              "A ciência por trás de...",
+              "3 mitos sobre tratamentos que você precisa conhecer",
+              "Antes e depois: resultados impressionantes"
+            ],
+            bigIdea: [
+              "Transforme sua pele em apenas 30 dias",
+              "A revolução do tratamento estético chegou",
+              "Descubra o segredo das celebridades",
+              "Sua melhor versão está esperando por você"
+            ],
+            dailySales: [
+              "Última chance: promoção imperdível",
+              "Apenas hoje: 30% de desconto",
+              "Agende agora e ganhe uma sessão extra",
+              "Verão está chegando: prepare-se agora"
+            ]
+          };
+          
+          // Selecionar um gancho aleatório
+          const randomHook = hooks[scriptType][Math.floor(Math.random() * hooks[scriptType].length)];
+          
           // Criar a sugestão
           suggestions.push({
             date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-            title: scriptType === "videoScript" 
-              ? "Criar um vídeo de tratamento" 
-              : scriptType === "bigIdea" 
-                ? "Desenvolver uma campanha estratégica" 
-                : "Compartilhar uma promoção rápida",
+            title: randomTopic,
             type: scriptType,
-            description: scriptType === "videoScript"
-              ? "Mostre sua expertise com um vídeo informativo sobre tratamento"
-              : scriptType === "bigIdea"
-                ? "Construa a autoridade da marca com uma série de conteúdo estratégico"
+            description: scriptType === "videoScript" 
+              ? "Mostre sua expertise com um vídeo informativo sobre tratamento" 
+              : scriptType === "bigIdea" 
+                ? "Construa a autoridade da marca com uma série de conteúdo estratégico" 
                 : "Impulsione conversões com uma oferta por tempo limitado",
-            completed: false
+            completed: false,
+            equipment: randomEquipment,
+            purpose: purpose,
+            format: format,
+            hook: randomHook,
+            caption: scriptType === "dailySales" ? "Toque para mais informações! ↗️ #saude #beleza" : undefined
           });
         }
       }
