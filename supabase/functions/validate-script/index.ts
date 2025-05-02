@@ -90,7 +90,7 @@ serve(async (req) => {
       
       Além das pontuações, forneça sugestões específicas e acionáveis para melhorar o roteiro, detalhando até 3 pontos principais que poderiam ser otimizados, com exemplos práticos.
       
-      Responda em formato JSON com as seguintes propriedades:
+      Responda apenas em formato JSON válido com as seguintes propriedades, sem adição de markdown:
       {
         "gancho": número de 0 a 10 com uma casa decimal,
         "clareza": número de 0 a 10 com uma casa decimal,
@@ -169,8 +169,17 @@ serve(async (req) => {
       const content = data.choices[0].message.content;
       console.log("Processando resposta e convertendo para JSON");
       
+      // Extrair JSON mesmo se estiver dentro de blocos de código markdown
+      let jsonContent = content;
+      
+      // Remover blocos de código markdown se presentes
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch && jsonMatch[1]) {
+        jsonContent = jsonMatch[1].trim();
+      }
+      
       // Tentar parsear o JSON da resposta
-      const validationData = JSON.parse(content);
+      const validationData = JSON.parse(jsonContent);
       
       // Verificação de segurança nos dados
       const safeValidation = {
@@ -197,13 +206,69 @@ serve(async (req) => {
       console.error("Erro ao processar resposta:", jsonError);
       console.error("Conteúdo que causou o erro:", data.choices[0]?.message?.content);
       
-      return new Response(
-        JSON.stringify({ 
-          error: "Formato de resposta inválido da IA",
-          rawResponse: data.choices[0]?.message?.content || "No content"
-        }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Manipulação mais robusta de erro para tentar extrair informações úteis mesmo de respostas mal formatadas
+      try {
+        const content = data.choices[0].message.content;
+        const fallbackData = {
+          gancho: 5.0,
+          clareza: 5.0,
+          cta: 5.0,
+          emocao: 5.0,
+          total: 5.0,
+          sugestoes: "Não foi possível extrair sugestões detalhadas devido a um erro de formato. " +
+                     "Sugerimos revisar seu roteiro quanto à clareza, impacto do gancho inicial, " +
+                     "força da chamada à ação e conexão emocional com o público."
+        };
+        
+        // Tentar extrair números da resposta
+        const ganchoMatch = content.match(/gancho["']?\s*:\s*(\d+\.?\d*)/i);
+        const clarezaMatch = content.match(/clareza["']?\s*:\s*(\d+\.?\d*)/i);
+        const ctaMatch = content.match(/cta["']?\s*:\s*(\d+\.?\d*)/i);
+        const emocaoMatch = content.match(/emocao["']?\s*:\s*(\d+\.?\d*)/i);
+        const totalMatch = content.match(/total["']?\s*:\s*(\d+\.?\d*)/i);
+        
+        if (ganchoMatch) fallbackData.gancho = parseFloat(ganchoMatch[1]);
+        if (clarezaMatch) fallbackData.clareza = parseFloat(clarezaMatch[1]);
+        if (ctaMatch) fallbackData.cta = parseFloat(ctaMatch[1]);
+        if (emocaoMatch) fallbackData.emocao = parseFloat(emocaoMatch[1]);
+        if (totalMatch) fallbackData.total = parseFloat(totalMatch[1]);
+        
+        // Tentar extrair sugestões
+        const sugestoesMatch = content.match(/sugestoes["']?\s*:\s*["']([^"']+)["']/i);
+        if (sugestoesMatch) {
+          fallbackData.sugestoes = sugestoesMatch[1];
+        } else {
+          // Tentar extrair qualquer texto que pareça ser sugestões
+          const textBlocks = content.split(/[.,\n]+/);
+          const potentialSuggestions = textBlocks
+            .filter(block => 
+              block.toLowerCase().includes("sugest") || 
+              block.toLowerCase().includes("melhor") ||
+              block.toLowerCase().includes("ajust") ||
+              block.toLowerCase().includes("consider")
+            )
+            .join(". ");
+          
+          if (potentialSuggestions.length > 20) {
+            fallbackData.sugestoes = potentialSuggestions;
+          }
+        }
+        
+        console.log("Usando dados de fallback devido a erro de formato:", fallbackData);
+        
+        return new Response(JSON.stringify(fallbackData), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (fallbackError) {
+        console.error("Erro ao processar usando fallback:", fallbackError);
+        return new Response(
+          JSON.stringify({ 
+            error: "Formato de resposta inválido da IA",
+            rawResponse: data.choices[0]?.message?.content || "No content"
+          }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
   } catch (error) {
     console.error('Erro na função validate-script:', error);

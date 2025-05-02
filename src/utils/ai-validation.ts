@@ -56,6 +56,27 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
 export const getValidation = async (scriptId: string): Promise<ValidationScore & {timestamp?: string} | null> => {
   try {
     console.log("Buscando validação para roteiro:", scriptId);
+    
+    // Verificar se o ID é um UUID válido
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scriptId);
+    
+    // Se não for um UUID, usar uma tabela temporária ou armazenamento alternativo
+    if (!isUuid) {
+      // Usar localStorage para armazenar validações temporárias (para roteiros sem um UUID)
+      if (typeof window !== 'undefined') {
+        const validationKey = `validation_${scriptId}`;
+        const storedValidation = localStorage.getItem(validationKey);
+        
+        if (storedValidation) {
+          const validation = JSON.parse(storedValidation);
+          console.log("Validação encontrada em armazenamento temporário:", validation);
+          return validation;
+        }
+      }
+      return null;
+    }
+    
+    // Para UUIDs válidos, buscar no banco de dados
     const { data, error } = await supabase
       .from('roteiro_validacoes')
       .select('*')
@@ -89,6 +110,23 @@ export const getValidation = async (scriptId: string): Promise<ValidationScore &
 const saveValidation = async (scriptId: string, validation: ValidationScore): Promise<void> => {
   try {
     console.log("Salvando validação para roteiro:", scriptId);
+    
+    // Verificar se o ID é um UUID válido
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scriptId);
+    
+    // Se não for um UUID, usar uma tabela temporária ou armazenamento alternativo
+    if (!isUuid) {
+      // Usar localStorage para armazenar validações temporárias (para roteiros sem um UUID)
+      if (typeof window !== 'undefined') {
+        const validationKey = `validation_${scriptId}`;
+        const validationData = {...validation, timestamp: new Date().toISOString()};
+        localStorage.setItem(validationKey, JSON.stringify(validationData));
+        console.log("Validação salva em armazenamento temporário");
+      }
+      return;
+    }
+    
+    // Para UUIDs válidos, salvar no banco de dados
     const { error } = await supabase
       .from('roteiro_validacoes')
       .insert({
