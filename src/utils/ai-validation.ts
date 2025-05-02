@@ -27,6 +27,7 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     }
     
     // Chamar edge function para validar roteiro com IA
+    console.log("Enviando solicitação para validação avançada com GPT-4o");
     const { data, error } = await supabase.functions.invoke('validate-script', {
       body: {
         content: script.content,

@@ -59,36 +59,48 @@ serve(async (req) => {
         - A introdução captura atenção nos primeiros 5 segundos?
         - O roteiro mantém um ritmo adequado para vídeo?
         - Há instruções claras para demonstrações visuais?
+        - O script tem duração adequada para o público-alvo?
+        - As transições entre ideias são fluidas e naturais?
       `;
     } else if (type === 'bigIdea') {
       avaliacaoEspecifica = `
         Para ideias criativas, considere especialmente:
         - A ideia é verdadeiramente inovadora e diferenciada?
-        - Há um ângulo único que a destaca?
+        - Há um ângulo único que a destaca da concorrência?
         - A proposta é viável e bem desenvolvida?
+        - O conceito tem potencial viral ou de engajamento?
+        - A ideia resolve um problema real do público-alvo?
       `;
     } else if (type === 'dailySales') {
       avaliacaoEspecifica = `
         Para conteúdo de vendas, considere especialmente:
-        - O texto desperta urgência?
+        - O texto desperta urgência e escassez?
         - O problema e solução estão claramente articulados?
-        - O CTA é forte e direto?
+        - O CTA é forte, direto e persuasivo?
+        - Os benefícios são apresentados de forma convincente?
+        - As objeções potenciais são antecipadas e respondidas?
       `;
     }
 
-    // Criar prompt para análise do roteiro
+    // Criar prompt aprimorado para análise do roteiro
     const systemPrompt = `
-      Você é um especialista em marketing digital com mais de 10 anos de experiência em copywriting para mídias sociais.
-      Sua tarefa é avaliar o roteiro fornecido e atribuir pontuações de 0 a 10 para os seguintes critérios:
+      Você é um avaliador especialista em marketing digital com mais de 15 anos de experiência em copywriting para mídias sociais, com expertise específica em roteiros altamente persuasivos e engajantes.
       
-      1. Gancho: O roteiro possui um gancho de abertura atraente e cativante que captura atenção imediatamente?
-      2. Clareza: A mensagem é clara, objetiva e fácil de entender pelo público-alvo?
-      3. CTA (Call-to-Action): Existe um chamado à ação efetivo que direciona claramente o público para o próximo passo?
-      4. Emoção/Conexão: O roteiro estabelece conexão emocional com o público e apela para suas necessidades/desejos?
+      Sua tarefa é fazer uma análise crítica e detalhada do roteiro fornecido e atribuir pontuações precisas de 0 a 10 para os seguintes critérios:
+      
+      1. Gancho: O roteiro possui um gancho de abertura verdadeiramente cativante que captura atenção imediatamente e gera curiosidade para continuar assistindo/lendo? (0 = gancho fraco ou inexistente, 10 = gancho excepcionalmente poderoso que cria curiosidade irresistível)
+      
+      2. Clareza: A mensagem central é cristalina, bem articulada e facilmente compreensível pelo público-alvo? O fluxo de ideias é lógico e coerente? (0 = mensagem confusa ou desorganizada, 10 = mensagem extraordinariamente clara e estruturada)
+      
+      3. CTA (Call-to-Action): O chamado à ação é específico, motivador e estrategicamente posicionado? Ele direciona claramente o público para a ação desejada e cria senso de urgência? (0 = CTA ausente ou ineficaz, 10 = CTA extremamente persuasivo e impossível de ignorar)
+      
+      4. Emoção/Conexão: O roteiro estabelece uma conexão emocional autêntica com o público e apela para suas necessidades, desejos ou dores reais? Usa storytelling efetivo? (0 = conteúdo puramente informativo sem conexão emocional, 10 = conteúdo que gera resposta emocional profunda e memorável)
       
       ${avaliacaoEspecifica}
       
-      Além das pontuações, forneça sugestões específicas e acionáveis para melhorar o roteiro, detalhando até 3 pontos principais que poderiam ser otimizados, com exemplos práticos.
+      Para cada critério, seja meticuloso e analítico em sua avaliação. Justifique brevemente cada pontuação atribuída.
+      
+      Além das pontuações, forneça 3 a 5 sugestões altamente específicas e acionáveis para melhorar o roteiro, detalhando exatamente o que poderia ser otimizado, com exemplos práticos de reescrita quando possível.
       
       Responda apenas em formato JSON válido com as seguintes propriedades, sem adição de markdown:
       {
@@ -109,12 +121,12 @@ serve(async (req) => {
       Conteúdo:
       ${content}
       
-      Por favor, avalie este roteiro segundo os critérios estabelecidos.
+      Por favor, avalie este roteiro segundo os critérios estabelecidos com máxima precisão e rigor.
     `;
 
     console.log("Enviando requisição para OpenAI");
     
-    // Call OpenAI API
+    // Call OpenAI API com modelo mais avançado
     let response;
     try {
       response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -124,12 +136,13 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "gpt-4o", // Modelo mais avançado para análise mais precisa
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
           ],
-          temperature: 0.5
+          temperature: 0.3, // Temperatura mais baixa para análises mais consistentes e precisas
+          response_format: { type: "json_object" } // Forçar formato JSON na resposta
         })
       });
     } catch (fetchError) {
@@ -169,17 +182,8 @@ serve(async (req) => {
       const content = data.choices[0].message.content;
       console.log("Processando resposta e convertendo para JSON");
       
-      // Extrair JSON mesmo se estiver dentro de blocos de código markdown
-      let jsonContent = content;
-      
-      // Remover blocos de código markdown se presentes
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (jsonMatch && jsonMatch[1]) {
-        jsonContent = jsonMatch[1].trim();
-      }
-      
-      // Tentar parsear o JSON da resposta
-      const validationData = JSON.parse(jsonContent);
+      // Parse diretamente sem extrair de blocos de código (formato já é JSON)
+      const validationData = JSON.parse(content);
       
       // Verificação de segurança nos dados
       const safeValidation = {
