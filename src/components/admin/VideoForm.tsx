@@ -318,6 +318,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
     e.preventDefault();
     try {
       setIsLoading(true);
+      console.log("Submitting form with data:", formData);
 
       // Handle custom entries
       let finalEquipments = [...formData.equipamentos];
@@ -344,6 +345,8 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         tags: formData.tags
       };
 
+      console.log("Final video data for submission:", videoData);
+
       // Create new tags if they don't exist
       const tagPromises = formData.tags.map(async (tag) => {
         const { error } = await supabase
@@ -359,11 +362,13 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
 
       if (videoId) {
         // Update existing video
-        const { error } = await supabase
+        console.log("Updating existing video with id:", videoId);
+        const { data, error } = await supabase
           .from('videos')
           .update(videoData)
           .eq('id', videoId);
           
+        console.log("Update response:", { data, error });  
         if (error) throw error;
 
         toast({
@@ -372,10 +377,12 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
         });
       } else {
         // Create new video
-        const { error } = await supabase
+        console.log("Creating new video");
+        const { data, error } = await supabase
           .from('videos')
           .insert([videoData]);
           
+        console.log("Insert response:", { data, error });
         if (error) throw error;
 
         toast({
@@ -665,23 +672,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
               />
             </div>
             
-            <div className="flex justify-end">
-              <Button 
-                type="button" 
-                variant="secondary" 
-                onClick={generateWithAI}
-                disabled={isGenerating || !formData.titulo || formData.equipamentos.length === 0 || !formData.descricao_curta}
-                className="flex items-center gap-2"
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                {isGenerating ? "Gerando..." : "Gerar Descrição Detalhada com IA"}
-              </Button>
-            </div>
-
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="descricao_detalhada">Descrição Detalhada</Label>
@@ -690,6 +680,23 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
                     `${formData.descricao_detalhada.length} caracteres` : 
                     "Use o botão 'Gerar Descrição Detalhada com IA' ou escreva manualmente"}
                 </span>
+              </div>
+              
+              <div className="flex justify-end mb-2">
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={generateWithAI}
+                  disabled={isGenerating || !formData.titulo || formData.equipamentos.length === 0 || !formData.descricao_curta}
+                  className="flex items-center gap-2"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {isGenerating ? "Gerando..." : "Gerar Descrição Detalhada com IA"}
+                </Button>
               </div>
               
               {isGenerating ? (
