@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Equipment, EquipmentCreationProps, EquipmentUpdateProps } from "@/types/equipment";
 
@@ -68,10 +67,16 @@ export async function fetchActiveEquipments(): Promise<Equipment[]> {
  * Cria um novo equipamento
  */
 export async function createEquipment(equipment: EquipmentCreationProps): Promise<Equipment> {
+  // Create a copy of the equipment object without the efeito field
+  // as it doesn't exist in the database table yet
+  const { efeito, ...equipmentToSave } = equipment;
+  
   const equipmentWithDefaults = {
-    ...equipment,
-    ativo: equipment.ativo ?? true
+    ...equipmentToSave,
+    ativo: equipmentToSave.ativo ?? true
   };
+  
+  console.log("Dados do equipamento a serem enviados:", equipmentWithDefaults);
   
   const { data, error } = await supabase
     .from("equipamentos")
@@ -84,7 +89,9 @@ export async function createEquipment(equipment: EquipmentCreationProps): Promis
     throw error;
   }
   
-  return data as Equipment;
+  // Add the efeito property back to the returned object
+  // so the frontend can still use it
+  return { ...data, efeito } as Equipment;
 }
 
 /**

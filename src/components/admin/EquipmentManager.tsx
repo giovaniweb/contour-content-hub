@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -56,7 +55,10 @@ const EquipmentManager: React.FC = () => {
         linguagem: newEquipment.linguagem || '',
       };
       
-      await createEquipment(completeEquipment);
+      console.log("Tentando criar equipamento com os dados:", completeEquipment);
+      const createdEquipment = await createEquipment(completeEquipment);
+      console.log("Equipamento criado com sucesso:", createdEquipment);
+      
       await loadEquipments();
       setIsNewDialogOpen(false);
       toast({
@@ -68,7 +70,7 @@ const EquipmentManager: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível adicionar o equipamento.",
+        description: "Não foi possível adicionar o equipamento. Verifique o console para mais informações.",
       });
     }
   };
