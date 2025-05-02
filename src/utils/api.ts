@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type ScriptType = 'videoScript' | 'bigIdea' | 'dailySales';
@@ -81,12 +80,18 @@ export interface CalendarSuggestion {
 }
 
 export interface CalendarPreferences {
-  postFrequency: string;
+  frequency: "daily" | "weekly" | "biweekly";
+  contentTypes: { 
+    video: boolean; 
+    story: boolean; 
+    image: boolean 
+  };
+  equipment: string[];
+  topics: string[];
   preferredDays: string[];
-  preferredTimes: string[];
-  contentTypes: { video: boolean; story: boolean; image: boolean; };
-  frequency?: number;
-  equipment?: string;
+  audienceType: "general" | "specialized";
+  postFrequency?: string;
+  preferredTimes?: string[];
 }
 
 export const generateScript = async (
