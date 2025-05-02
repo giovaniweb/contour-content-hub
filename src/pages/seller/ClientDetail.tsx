@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/use-toast";
-import { AreaChart, BarChart3, Calendar, FileText, User, Clock, BarChart, CheckSquare, UploadCloud, Users } from "lucide-react";
-import { SubscriptionPlan, ClientEngagement } from "@/utils/validation/types";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, BarChart3, Calendar, FileText, User, Clock, BarChartIcon, CheckSquare, UploadCloud, Users } from "lucide-react";
+import { SubscriptionPlan, ClientEngagement, ClientAnalytics } from "@/utils/validation/types";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
 interface ClientDetails {
   id: string;
