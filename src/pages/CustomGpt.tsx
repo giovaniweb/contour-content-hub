@@ -29,8 +29,9 @@ const CustomGpt: React.FC = () => {
     const formData: any = {};
     
     if (params.get('topic')) formData.topic = params.get('topic');
-    if (params.get('equipment')) formData.equipment = params.get('equipment');
-    if (params.get('purpose')) formData.purpose = params.get('purpose');
+    if (params.get('equipment')) formData.equipamento = params.get('equipment');
+    if (params.get('purpose')) formData.purposes = [params.get('purpose')];
+    if (params.get('bodyArea')) formData.bodyArea = params.get('bodyArea');
     if (params.get('objective')) formData.marketingObjective = params.get('objective');
     if (params.get('additionalInfo')) formData.additionalInfo = params.get('additionalInfo');
     
@@ -43,7 +44,7 @@ const CustomGpt: React.FC = () => {
         description: "O formulário foi preenchido automaticamente com base no tema selecionado.",
       });
     }
-  }, [location]);
+  }, [location, toast]);
 
   const handleScriptGenerated = (script: ScriptResponse) => {
     setGeneratedScript(script);

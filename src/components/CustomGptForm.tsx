@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -215,9 +214,10 @@ const purposes = [
 interface CustomGptFormProps {
   mode: 'simple' | 'advanced';
   onScriptGenerated?: (script: ScriptResponse) => void;
+  initialData?: any; // Add the initialData prop
 }
 
-const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
+const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormProps) => {
   const [loading, setLoading] = useState(false);
   const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
@@ -243,6 +243,30 @@ const CustomGptForm = ({ mode, onScriptGenerated }: CustomGptFormProps) => {
       tom: "professional"
     }
   });
+
+  // Apply initialData to form if provided
+  useEffect(() => {
+    if (initialData) {
+      console.log("Applying initial data to form:", initialData);
+      
+      // Update form values for each property in initialData
+      Object.entries(initialData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          form.setValue(key as any, value as any);
+          
+          // If purposes is being set, also update the selectedPurposes state
+          if (key === 'purposes' && Array.isArray(value)) {
+            setSelectedPurposes(value as string[]);
+          }
+        }
+      });
+      
+      toast({
+        title: "Dados pré-preenchidos",
+        description: "O formulário foi preenchido com base nas suas escolhas anteriores."
+      });
+    }
+  }, [initialData, form, toast]);
 
   // Handle checkbox change for purposes
   const handlePurposeChange = (value: string) => {
