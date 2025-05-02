@@ -29,6 +29,15 @@ export interface ValidationResult {
 /**
  * Interface para entradas de cache com timestamp
  */
-export interface CacheEntry extends ValidationResult {
-  timestamp: number;
+export interface CacheEntry {
+  blocos: ValidationBlock[];
+  nota_geral: number;
+  sugestoes_gerais?: string[];
+  sugestoes?: string;
+  gancho: number;
+  clareza: number;
+  cta: number;
+  emocao: number;
+  total: number;
+  timestamp: number;  // Este é o timestamp numérico usado para controle de cache
 }
