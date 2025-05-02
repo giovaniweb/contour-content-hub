@@ -29,7 +29,7 @@ export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
     
     // Converter de Markdown para HTML para exibição
     return (data || []).map(item => {
-      // Usar marked para converter Markdown para HTML
+      // Usar marked de forma síncrona para converter Markdown para HTML
       const contentHtml = marked(item.conteudo);
       
       return {
@@ -38,9 +38,9 @@ export const getScriptHistory = async (): Promise<ScriptHistoryItem[]> => {
         content: item.conteudo,
         contentHtml,
         type: item.tipo as ScriptType,
-        status: item.status,
+        status: item.status as 'gerado' | 'aprovado' | 'editado',
         createdAt: item.data_criacao,
-        marketingObjective: item.objetivo_marketing,
+        marketingObjective: item.objetivo_marketing || item.tipo, // Usar tipo se objetivo_marketing não existir
         observation: item.observacoes,
         pdf_url: item.pdf_url,
         evento_agenda_id: item.evento_agenda_id
@@ -64,6 +64,7 @@ export const getScriptById = async (id: string): Promise<ScriptHistoryItem> => {
     if (error) throw error;
     
     // Converter de Markdown para HTML para exibição
+    // Usar marked de forma síncrona para evitar Promise<string>
     const contentHtml = marked(data.conteudo);
     
     return {
@@ -72,9 +73,9 @@ export const getScriptById = async (id: string): Promise<ScriptHistoryItem> => {
       content: data.conteudo,
       contentHtml,
       type: data.tipo as ScriptType,
-      status: data.status,
+      status: data.status as 'gerado' | 'aprovado' | 'editado',
       createdAt: data.data_criacao,
-      marketingObjective: data.objetivo_marketing,
+      marketingObjective: data.objetivo_marketing || data.tipo, // Usar tipo se objetivo_marketing não existir
       observation: data.observacoes,
       pdf_url: data.pdf_url,
       evento_agenda_id: data.evento_agenda_id
