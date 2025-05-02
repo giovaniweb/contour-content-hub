@@ -24,7 +24,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, CopyCheck, Copy, Download, Wand } from "lucide-react";
+import { Loader2, Sparkles, CopyCheck, Copy, Download, Wand, CheckCircle, BrainCircuit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import { getEquipments } from '@/utils/api-equipment';
@@ -38,6 +38,8 @@ import BodyAreaSelector from '@/components/script-generator/BodyAreaSelector';
 import PurposeSelector from '@/components/script-generator/PurposeSelector';
 import ToneSelector from '@/components/script-generator/ToneSelector';
 import { MarketingObjectiveType } from '@/utils/api';
+import ScriptValidation from '@/components/script-generator/ScriptValidation';
+import { ScriptResponse } from '@/utils/api';
 
 // Equipamentos padrão para garantir que sempre haja opções
 const defaultEquipamentos: Equipment[] = [
@@ -217,6 +219,8 @@ const CustomGptForm = ({ mode }: CustomGptFormProps) => {
   const [loading, setLoading] = useState(false);
   const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
   const [resultado, setResultado] = useState<string>("");
+  const [generatedScriptId, setGeneratedScriptId] = useState<string>("");
+  const [showValidation, setShowValidation] = useState(false);
   const { toast } = useToast();
   const [selectedPurposes, setSelectedPurposes] = useState<string[]>([]);
   
@@ -300,11 +304,34 @@ const CustomGptForm = ({ mode }: CustomGptFormProps) => {
     loadEquipamentos();
   }, [toast]);
 
+  // Prepare script data for validation
+  const prepareScriptData = (): ScriptResponse => {
+    const scriptType = form.getValues().tipo as CustomGptType;
+    let mappedType = "videoScript"; // Default
+    
+    // Map CustomGptType to ScriptType
+    if (scriptType === "bigIdea") {
+      mappedType = "bigIdea";
+    } else if (scriptType === "stories") {
+      mappedType = "dailySales";
+    }
+    
+    return {
+      id: generatedScriptId || `temp-${Date.now()}`,
+      title: `${form.getValues().equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
+      content: resultado,
+      type: mappedType as any,
+      createdAt: new Date().toISOString()
+    };
+  };
+
   // Lidar com o envio do formulário
   const onSubmit = async (values: z.infer<typeof simpleFormSchema> | z.infer<typeof advancedFormSchema>) => {
     try {
       setLoading(true);
       setResultado("");
+      setShowValidation(false);
+      setGeneratedScriptId(`temp-${Date.now()}`);
 
       // Encontrar o equipamento selecionado na lista
       const equipamentoSelecionado = equipamentos.find(eq => eq.nome === values.equipamento);
@@ -666,22 +693,47 @@ const CustomGptForm = ({ mode }: CustomGptFormProps) => {
       </Card>
 
       {resultado && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Resultado</CardTitle>
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={handleCopy}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-line border">
-              {resultado}
-            </div>
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg flex items-center">
+                  <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
+                  Conteúdo Gerado
+                </CardTitle>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar
+                  </Button>
+                  <Button 
+                    variant={showValidation ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => setShowValidation(!showValidation)}
+                  >
+                    <BrainCircuit className="h-4 w-4 mr-1" />
+                    {showValidation ? "Ocultar Validação" : "Validar com IA"}
+                  </Button>
+                </div>
+              </div>
+              <CardDescription>
+                {form.getValues().tipo.charAt(0).toUpperCase() + form.getValues().tipo.slice(1)} gerado para {form.getValues().equipamento}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-line border">
+                {resultado}
+              </div>
+            </CardContent>
+          </Card>
+
+          {showValidation && (
+            <ScriptValidation 
+              script={prepareScriptData()}
+              onValidationComplete={() => {}}
+            />
+          )}
+        </>
       )}
     </div>
   );
