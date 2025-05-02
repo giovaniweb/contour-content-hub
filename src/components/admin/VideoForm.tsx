@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +17,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -102,10 +102,11 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
 
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
 
-  // Filtered purpose options based on search
-  const filteredPurposeOptions = purposeOptions.filter(purpose => 
-    purpose.toLowerCase().includes(purposeSearch.toLowerCase())
-  );
+  // Fix: Make sure filteredPurposeOptions is always an array
+  const filteredPurposeOptions = purposeSearch.trim() !== "" 
+    ? purposeOptions.filter(purpose => 
+        purpose.toLowerCase().includes(purposeSearch.toLowerCase()))
+    : purposeOptions;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -475,7 +476,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
                 ))}
               </div>
 
-              {/* Autocomplete dropdown */}
+              {/* Fix: Ensure CommandList is present and populates CommandGroup */}
               <Popover open={purposeDropdownOpen} onOpenChange={setPurposeDropdownOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -495,48 +496,50 @@ const VideoForm: React.FC<VideoFormProps> = ({ videoId, onSuccess, onCancel }) =
                       onValueChange={setPurposeSearch} 
                       value={purposeSearch}
                     />
-                    <CommandEmpty>
-                      {purposeSearch.trim() !== "" ? (
-                        <div className="py-2 px-3 text-sm flex flex-col gap-2">
-                          <span>Nenhuma finalidade encontrada</span>
-                          <Button 
-                            size="sm" 
-                            onClick={() => {
-                              if (purposeSearch.trim()) {
-                                setFormData({
-                                  ...formData, 
-                                  finalidade: [...formData.finalidade, purposeSearch.trim()]
-                                });
-                                setPurposeSearch("");
-                                setPurposeDropdownOpen(false);
-                              }
+                    <CommandList>
+                      <CommandEmpty>
+                        {purposeSearch.trim() !== "" ? (
+                          <div className="py-2 px-3 text-sm flex flex-col gap-2">
+                            <span>Nenhuma finalidade encontrada</span>
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                if (purposeSearch.trim()) {
+                                  setFormData({
+                                    ...formData, 
+                                    finalidade: [...formData.finalidade, purposeSearch.trim()]
+                                  });
+                                  setPurposeSearch("");
+                                  setPurposeDropdownOpen(false);
+                                }
+                              }}
+                            >
+                              Adicionar "{purposeSearch}"
+                            </Button>
+                          </div>
+                        ) : (
+                          "Nenhuma finalidade encontrada"
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {filteredPurposeOptions.map((purpose) => (
+                          <CommandItem
+                            key={purpose}
+                            value={purpose}
+                            onSelect={() => {
+                              togglePurpose(purpose);
+                              setPurposeDropdownOpen(false);
                             }}
+                            className="flex items-center justify-between"
                           >
-                            Adicionar "{purposeSearch}"
-                          </Button>
-                        </div>
-                      ) : (
-                        "Nenhuma finalidade encontrada"
-                      )}
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {filteredPurposeOptions.map((purpose) => (
-                        <CommandItem
-                          key={purpose}
-                          value={purpose}
-                          onSelect={() => {
-                            togglePurpose(purpose);
-                            setPurposeDropdownOpen(false);
-                          }}
-                          className="flex items-center justify-between"
-                        >
-                          {purpose}
-                          {formData.finalidade.includes(purpose) && (
-                            <Check className="h-4 w-4" />
-                          )}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                            {purpose}
+                            {formData.finalidade.includes(purpose) && (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>

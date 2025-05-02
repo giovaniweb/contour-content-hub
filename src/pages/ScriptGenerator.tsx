@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -149,7 +148,7 @@ const ScriptGenerator: React.FC = () => {
     }
   };
   
-  // Handle script feedback
+  // Ensure handleScriptFeedback matches the expected function signature
   const handleScriptFeedback = async (scriptId: string, feedback: string, approved: boolean) => {
     try {
       await saveScriptFeedback(scriptId, feedback, approved);
