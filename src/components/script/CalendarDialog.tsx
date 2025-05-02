@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -29,9 +29,14 @@ const CalendarDialog: React.FC<CalendarDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (!date) return;
+    
     try {
       setIsSubmitting(true);
       await onSchedule(date, timeSlot);
+      // Reset form state after successful scheduling
+      setDate(undefined);
+      setTimeSlot("morning");
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao agendar:", error);
@@ -40,11 +45,23 @@ const CalendarDialog: React.FC<CalendarDialogProps> = ({
     }
   };
 
+  const handleDialogChange = (open: boolean) => {
+    if (!open && !isSubmitting) {
+      // Reset state when dialog is closed
+      setDate(undefined);
+      setTimeSlot("morning");
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Agendar Publicação</DialogTitle>
+          <DialogDescription>
+            Selecione uma data e período para agendar seu conteúdo.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -100,7 +117,7 @@ const CalendarDialog: React.FC<CalendarDialogProps> = ({
         <DialogFooter>
           <Button 
             variant="ghost" 
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleDialogChange(false)}
             disabled={isSubmitting}
           >
             Cancelar

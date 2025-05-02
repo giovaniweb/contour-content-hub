@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { FileText, ThumbsUp, Download, Calendar, RefreshCw, CheckCircle } from "lucide-react";
 import { ScriptResponse } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
@@ -271,8 +269,6 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         onSubmitFeedback={handleFeedbackSubmit}
         isSubmitting={isSubmittingFeedback}
       />
-      
-      {/* Outros diálogos como Calendar Dialog seriam implementados aqui */}
     </Card>
   );
 };

@@ -30,6 +30,9 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
   const handleClose = () => {
     if (!isSubmitting) {
       onOpenChange(false);
+      // Reset form when closing
+      setFeedback("");
+      setApproved(false);
     }
   };
 
