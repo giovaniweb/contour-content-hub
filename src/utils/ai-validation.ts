@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ScriptResponse } from './api';
 import { useToast } from '@/hooks/use-toast';

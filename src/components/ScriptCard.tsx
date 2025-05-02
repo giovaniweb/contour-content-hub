@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -310,7 +309,6 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           isScriptApproved={isScriptApproved}
           isApproving={isApproving}
           showValidation={showValidation}
-          onOpenFeedbackDialog={undefined} // Removido botão de feedback
           onToggleEditMode={() => setIsEditingContent(!isEditingContent)}
           onGeneratePDF={handleGeneratePDF}
           onToggleValidation={() => setShowValidation(!showValidation)}
