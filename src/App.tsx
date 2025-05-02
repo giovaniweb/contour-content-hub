@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,7 +16,6 @@ import NotFound from './pages/NotFound';
 
 // Lazy loaded app pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-const ScriptGenerator = lazy(() => import('./pages/ScriptGenerator'));
 const ScriptHistory = lazy(() => import('./pages/ScriptHistory'));
 const MediaLibrary = lazy(() => import('./pages/MediaLibrary'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -152,13 +150,8 @@ function App() {
                       </Suspense>
                     </ProtectedRoute>
                   } />
-                  <Route path="/script-generator" element={
-                    <ProtectedRoute>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <ScriptGenerator />
-                      </Suspense>
-                    </ProtectedRoute>
-                  } />
+                  {/* Redirect from script-generator to custom-gpt */}
+                  <Route path="/script-generator" element={<Navigate to="/custom-gpt" replace />} />
                   <Route path="/script-history" element={
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingFallback />}>

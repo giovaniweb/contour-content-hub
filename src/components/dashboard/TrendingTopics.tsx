@@ -93,8 +93,8 @@ const TrendingTopics: React.FC = () => {
       
       console.log("Topic analysis result:", analysisData);
       
-      // Determine which page to navigate to based on topic type
-      const targetPage = topic.type === "video" ? "script-generator" : "custom-gpt";
+      // Always navigate to custom-gpt instead of determining based on topic type
+      const targetPage = "custom-gpt";
       
       // Build query parameters based on the analysis
       const params = new URLSearchParams();
@@ -105,7 +105,7 @@ const TrendingTopics: React.FC = () => {
       if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
       if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
       
-      // Navigate to the appropriate page with query parameters
+      // Navigate to the custom-gpt page with query parameters
       navigate(`/${targetPage}?${params.toString()}`);
       
     } catch (error) {
