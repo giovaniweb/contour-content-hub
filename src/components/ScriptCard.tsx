@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ScriptCardProps {
   script: ScriptResponse;
-  onFeedbackSubmit?: () => void;
+  onFeedbackSubmit?: (scriptId: string, feedback: string, approved: boolean) => Promise<void> | void;
 }
 
 const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => {
@@ -33,7 +33,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onFeedbackSubmit }) => 
         description: "Obrigado pelo seu feedback.",
       });
       setDialogOpen(false);
-      if (onFeedbackSubmit) onFeedbackSubmit();
+      if (onFeedbackSubmit) onFeedbackSubmit(script.id, feedback, approved);
     } catch (error) {
       toast({
         variant: "destructive",
