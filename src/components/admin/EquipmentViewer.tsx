@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { getEquipments } from '@/utils/api-equipment';
 import { Equipment } from '@/types/equipment';
-import { Shield, ShieldCheck, RefreshCcw, Database } from 'lucide-react';
+import { Shield, ShieldCheck, RefreshCcw, Database, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const EquipmentViewer: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchEquipments = async () => {
     try {
@@ -28,9 +30,29 @@ const EquipmentViewer: React.FC = () => {
       } else {
         setSelectedEquipment(null);
       }
+      
+      // Feedback para o usuário
+      if (data.length > 0) {
+        toast({
+          title: "Equipamentos carregados",
+          description: `${data.length} equipamentos encontrados.`
+        });
+      } else {
+        toast({
+          title: "Nenhum equipamento encontrado",
+          description: "Cadastre equipamentos para começar."
+        });
+      }
+      
     } catch (err) {
       console.error('Erro ao buscar equipamentos:', err);
       setError('Não foi possível carregar os equipamentos. Verifique o console para mais detalhes.');
+      
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar equipamentos",
+        description: "Não foi possível conectar à API. Tente novamente mais tarde.",
+      });
     } finally {
       setLoading(false);
     }
@@ -64,6 +86,7 @@ const EquipmentViewer: React.FC = () => {
   if (error) {
     return (
       <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4 mr-2" />
         <AlertTitle>Erro ao carregar equipamentos</AlertTitle>
         <AlertDescription className="flex flex-col gap-4">
           <p>{error}</p>

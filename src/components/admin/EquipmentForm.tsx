@@ -15,7 +15,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Equipment } from '@/types/equipment';
+import { Equipment, validateEquipment, hasValidationErrors } from '@/types/equipment';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface EquipmentFormProps {
   equipment?: Equipment;
@@ -41,17 +42,38 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
 
   const handleSubmit = async (data: Equipment) => {
     try {
+      // Validação manual adicional
+      const validationErrors = validateEquipment(data);
+      if (hasValidationErrors(validationErrors)) {
+        // Exibir erros de validação
+        for (const [field, message] of Object.entries(validationErrors)) {
+          form.setError(field as any, {
+            type: 'manual',
+            message: message as string
+          });
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Erro de validação",
+          description: "Verifique os campos obrigatórios e tente novamente.",
+        });
+        return;
+      }
+      
       setIsSaving(true);
       await onSave(data);
       toast({
         title: "Sucesso",
         description: `Equipamento ${equipment ? 'atualizado' : 'cadastrado'} com sucesso!`,
+        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: `Falha ao ${equipment ? 'atualizar' : 'cadastrar'} equipamento. Tente novamente.`,
+        icon: <AlertCircle className="h-4 w-4 text-destructive" />
       });
       console.error("Erro ao salvar equipamento:", error);
     } finally {

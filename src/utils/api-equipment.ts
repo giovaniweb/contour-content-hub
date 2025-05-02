@@ -15,6 +15,7 @@ export const getEquipments = async (): Promise<Equipment[]> => {
     if (tableCheckError) {
       console.error('Erro ao verificar tabela de equipamentos:', tableCheckError);
       console.error('Detalhes do erro:', JSON.stringify(tableCheckError));
+      throw tableCheckError;
     }
     
     console.log("Tabela equipamentos existe:", tableExists !== null);
@@ -66,14 +67,20 @@ export const getEquipmentById = async (id: string): Promise<Equipment> => {
 // Criar novo equipamento
 export const createEquipment = async (equipment: Equipment): Promise<Equipment> => {
   try {
+    console.log('Iniciando criação de equipamento:', equipment.nome);
+    
     const { data, error } = await supabase
       .from('equipamentos')
       .insert([equipment])
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao criar equipamento:', error);
+      throw error;
+    }
     
+    console.log('Equipamento criado com sucesso:', data.nome);
     return data as Equipment;
   } catch (error) {
     console.error('Erro ao criar equipamento:', error);
@@ -88,6 +95,8 @@ export const updateEquipment = async (equipment: Equipment): Promise<Equipment> 
   }
 
   try {
+    console.log(`Iniciando atualização do equipamento ID: ${equipment.id}`);
+    
     const { data, error } = await supabase
       .from('equipamentos')
       .update(equipment)
@@ -95,8 +104,12 @@ export const updateEquipment = async (equipment: Equipment): Promise<Equipment> 
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao atualizar equipamento:', error);
+      throw error;
+    }
     
+    console.log('Equipamento atualizado com sucesso:', data.nome);
     return data as Equipment;
   } catch (error) {
     console.error(`Erro ao atualizar equipamento ID ${equipment.id}:`, error);
@@ -107,12 +120,19 @@ export const updateEquipment = async (equipment: Equipment): Promise<Equipment> 
 // Excluir equipamento
 export const deleteEquipment = async (id: string): Promise<void> => {
   try {
+    console.log(`Iniciando exclusão do equipamento ID: ${id}`);
+    
     const { error } = await supabase
       .from('equipamentos')
       .delete()
       .eq('id', id);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao excluir equipamento:', error);
+      throw error;
+    }
+    
+    console.log(`Equipamento ID ${id} excluído com sucesso`);
   } catch (error) {
     console.error(`Erro ao excluir equipamento ID ${id}:`, error);
     throw error;
@@ -122,13 +142,38 @@ export const deleteEquipment = async (id: string): Promise<void> => {
 // Importar equipamentos em lote
 export const importEquipments = async (equipments: Equipment[]): Promise<void> => {
   try {
+    console.log(`Iniciando importação de ${equipments.length} equipamentos`);
+    
     const { error } = await supabase
       .from('equipamentos')
       .insert(equipments);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao importar equipamentos:', error);
+      throw error;
+    }
+    
+    console.log(`${equipments.length} equipamentos importados com sucesso`);
   } catch (error) {
     console.error('Erro ao importar equipamentos:', error);
+    throw error;
+  }
+};
+
+// Buscar equipamentos por status (ativo/inativo)
+export const getEquipmentsByStatus = async (active: boolean): Promise<Equipment[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .select('*')
+      .eq('ativo', active)
+      .order('nome');
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error(`Erro ao buscar equipamentos ${active ? 'ativos' : 'inativos'}:`, error);
     throw error;
   }
 };
