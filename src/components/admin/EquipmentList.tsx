@@ -42,7 +42,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDel
           <Card key={equipment.id} className={`border-l-4 ${equipment.ativo ? 'border-l-green-500' : 'border-l-gray-300'}`}>
             <CardContent className="p-5">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium">{equipment.nome}</h3>
+                <div>
+                  <h3 className="font-medium">{equipment.nome}</h3>
+                  {equipment.efeito && (
+                    <p className="text-xs italic text-muted-foreground mt-1">
+                      "{equipment.efeito}"
+                    </p>
+                  )}
+                </div>
                 <Badge variant={equipment.ativo ? "success" : "secondary"}>
                   {equipment.ativo ? 'Ativo' : 'Inativo'}
                 </Badge>

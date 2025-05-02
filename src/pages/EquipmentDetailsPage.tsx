@@ -95,7 +95,14 @@ const EquipmentDetailsPage: React.FC = () => {
               Voltar
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">{equipment.nome}</h1>
+          <div>
+            <h1 className="text-3xl font-bold">{equipment.nome}</h1>
+            {equipment.efeito && (
+              <p className="text-lg italic text-muted-foreground mt-1">
+                "{equipment.efeito}"
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Main content */}

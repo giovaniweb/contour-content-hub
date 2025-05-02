@@ -134,6 +134,11 @@ function renderEquipmentList(equipments: Equipment[], isLoading: boolean) {
         <Card key={equip.id} className={`border-l-4 ${equip.ativo ? 'border-l-green-500' : 'border-l-gray-300'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">{equip.nome}</CardTitle>
+            {equip.efeito && (
+              <p className="text-xs italic text-muted-foreground">
+                "{equip.efeito}"
+              </p>
+            )}
             <CardDescription className="text-xs">
               {equip.tecnologia || "Sem tecnologia"}
             </CardDescription>

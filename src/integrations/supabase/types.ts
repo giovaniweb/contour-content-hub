@@ -188,6 +188,59 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_tecnicos: {
+        Row: {
+          conteudo_extraido: string | null
+          criado_por: string | null
+          data_criacao: string | null
+          descricao: string | null
+          equipamento_id: string | null
+          id: string
+          idioma_original: string | null
+          link_dropbox: string | null
+          status: string | null
+          tipo: string
+          titulo: string
+          vetor_embeddings: string | null
+        }
+        Insert: {
+          conteudo_extraido?: string | null
+          criado_por?: string | null
+          data_criacao?: string | null
+          descricao?: string | null
+          equipamento_id?: string | null
+          id?: string
+          idioma_original?: string | null
+          link_dropbox?: string | null
+          status?: string | null
+          tipo: string
+          titulo: string
+          vetor_embeddings?: string | null
+        }
+        Update: {
+          conteudo_extraido?: string | null
+          criado_por?: string | null
+          data_criacao?: string | null
+          descricao?: string | null
+          equipamento_id?: string | null
+          id?: string
+          idioma_original?: string | null
+          link_dropbox?: string | null
+          status?: string | null
+          tipo?: string
+          titulo?: string
+          vetor_embeddings?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_tecnicos_equipamento_id_fkey"
+            columns: ["equipamento_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipamentos: {
         Row: {
           ativo: boolean | null
@@ -730,6 +783,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
       decrement_favorites_count: {
         Args: { video_id: string }
         Returns: undefined
@@ -738,9 +795,97 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       increment_favorites_count: {
         Args: { video_id: string }
         Returns: undefined
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: string
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
     }
     Enums: {
