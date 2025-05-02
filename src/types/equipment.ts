@@ -92,3 +92,36 @@ export function validateEquipment(equipment: Partial<Equipment>): EquipmentValid
 export function hasValidationErrors(validation: EquipmentValidation): boolean {
   return Object.keys(validation).length > 0;
 }
+
+// Local storage functions for equipment form drafts
+const EQUIPMENT_DRAFT_KEY = 'equipment_form_draft';
+
+export function saveEquipmentDraft(formData: Partial<Equipment>): void {
+  try {
+    localStorage.setItem(EQUIPMENT_DRAFT_KEY, JSON.stringify({
+      data: formData,
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error) {
+    console.error('Erro ao salvar rascunho do equipamento:', error);
+  }
+}
+
+export function getEquipmentDraft(): {data: Partial<Equipment>, timestamp: string} | null {
+  try {
+    const savedData = localStorage.getItem(EQUIPMENT_DRAFT_KEY);
+    if (!savedData) return null;
+    return JSON.parse(savedData);
+  } catch (error) {
+    console.error('Erro ao recuperar rascunho do equipamento:', error);
+    return null;
+  }
+}
+
+export function clearEquipmentDraft(): void {
+  try {
+    localStorage.removeItem(EQUIPMENT_DRAFT_KEY);
+  } catch (error) {
+    console.error('Erro ao limpar rascunho do equipamento:', error);
+  }
+}

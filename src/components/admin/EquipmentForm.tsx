@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +15,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Equipment, validateEquipment, hasValidationErrors } from '@/types/equipment';
-import { AlertCircle, CheckCircle2, Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { 
+  Equipment, 
+  validateEquipment, 
+  hasValidationErrors,
+  saveEquipmentDraft,
+  getEquipmentDraft,
+  clearEquipmentDraft
+} from '@/types/equipment';
+import { AlertCircle, CheckCircle2, Upload, X, Loader2, Image as ImageIcon, Save } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EquipmentFormProps {
   equipment?: Equipment;
@@ -30,8 +39,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(equipment?.image_url || null);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [draftTimestamp, setDraftTimestamp] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Initialize form with equipment data or default values
   const form = useForm<Equipment>({
     defaultValues: equipment || {
       nome: '',
@@ -42,9 +54,84 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       linguagem: '',
       image_url: '',
       ativo: true,
-      efeito: '' // Add new efeito field with empty string default
+      efeito: '' // Default empty string for efeito field
     }
   });
+
+  // Check for draft on component mount
+  useEffect(() => {
+    // Only check for draft if we're creating a new equipment (not editing)
+    if (!equipment) {
+      const draft = getEquipmentDraft();
+      if (draft) {
+        setHasDraft(true);
+        setDraftTimestamp(draft.timestamp);
+        
+        // If there's an image URL in the draft, set the preview
+        if (draft.data.image_url) {
+          setImagePreview(draft.data.image_url as string);
+        }
+      }
+    }
+  }, [equipment]);
+
+  // Save draft as user types - use debounce to avoid saving too frequently
+  useEffect(() => {
+    if (!equipment) { // Only save drafts for new equipment, not when editing
+      const saveTimeout = setTimeout(() => {
+        const currentValues = form.getValues();
+        if (currentValues.nome || currentValues.tecnologia || currentValues.beneficios) {
+          saveEquipmentDraft(currentValues);
+          setHasDraft(true);
+          setDraftTimestamp(new Date().toISOString());
+        }
+      }, 1000); // Save after 1 second of inactivity
+      
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [form.watch(), equipment]);
+
+  // Function to load saved draft
+  const loadDraft = () => {
+    const draft = getEquipmentDraft();
+    if (draft) {
+      // Reset form with draft data
+      form.reset(draft.data as any);
+      
+      // Set image preview if available
+      if (draft.data.image_url) {
+        setImagePreview(draft.data.image_url as string);
+      }
+      
+      toast({
+        title: "Rascunho carregado",
+        description: "Os dados do seu último rascunho foram restaurados."
+      });
+    }
+  };
+
+  // Function to discard draft
+  const discardDraft = () => {
+    clearEquipmentDraft();
+    setHasDraft(false);
+    form.reset({
+      nome: '',
+      tecnologia: '',
+      indicacoes: '',
+      beneficios: '',
+      diferenciais: '',
+      linguagem: '',
+      image_url: '',
+      ativo: true,
+      efeito: ''
+    });
+    setImagePreview(null);
+    
+    toast({
+      title: "Rascunho descartado",
+      description: "O formulário foi limpo."
+    });
+  };
 
   // Function to handle image selection
   const handleSelectImage = () => {
@@ -156,6 +243,12 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       
       setIsSaving(true);
       await onSave(data);
+      
+      // Clear draft after successful save
+      if (!equipment) {
+        clearEquipmentDraft();
+      }
+      
       toast({
         title: "Sucesso",
         description: (
@@ -182,8 +275,53 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
     }
   };
 
+  // Format the timestamp to a readable date/time
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      return 'data desconhecida';
+    }
+  };
+
   return (
     <Form {...form}>
+      {/* Show draft notification if available */}
+      {!equipment && hasDraft && (
+        <Alert className="mb-4 bg-blue-50 border-blue-200">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <AlertDescription className="text-blue-800">
+              Existe um rascunho salvo em {draftTimestamp && formatTimestamp(draftTimestamp)}. Deseja recuperá-lo?
+            </AlertDescription>
+            <div className="flex gap-2 ml-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={discardDraft}
+              >
+                Descartar
+              </Button>
+              <Button 
+                type="button" 
+                variant="default" 
+                size="sm"
+                onClick={loadDraft}
+              >
+                Recuperar
+              </Button>
+            </div>
+          </div>
+        </Alert>
+      )}
+      
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -390,22 +528,46 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
           )}
         />
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isUploading}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isSaving || isUploading}>
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                {equipment ? "Atualizar" : "Cadastrar"}
-              </>
-            )}
-          </Button>
+        <div className="flex justify-between gap-2">
+          {/* Manual save draft button for new equipment */}
+          {!equipment && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                saveEquipmentDraft(form.getValues());
+                setHasDraft(true);
+                setDraftTimestamp(new Date().toISOString());
+                toast({
+                  title: "Rascunho salvo",
+                  description: "Seu progresso foi salvo como rascunho."
+                });
+              }}
+              disabled={isSaving || isUploading}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Salvar rascunho
+            </Button>
+          )}
+          
+          <div className="flex ml-auto gap-2">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isUploading}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSaving || isUploading}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  {equipment ? "Atualizar" : "Cadastrar"}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
