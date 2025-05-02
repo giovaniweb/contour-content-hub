@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createEquipment } from '@/utils/api-equipment';
-import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, EquipmentValidation } from '@/types/equipment';
+import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, EquipmentValidation, saveEquipmentDraft, getEquipmentDraft, clearEquipmentDraft } from '@/types/equipment';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { Loader2, Save, Plus, Upload, Image as ImageIcon, X } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EquipmentCreateFormProps {
   onSuccess?: (equipment: Equipment) => void;
@@ -36,6 +37,77 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [draftTimestamp, setDraftTimestamp] = useState<string | null>(null);
+
+  // Check for draft on component mount
+  useEffect(() => {
+    const draft = getEquipmentDraft();
+    if (draft) {
+      setHasDraft(true);
+      setDraftTimestamp(draft.timestamp);
+      
+      // If there's an image URL in the draft, set the preview
+      if (draft.data.image_url) {
+        setImagePreview(draft.data.image_url as string);
+      }
+    }
+  }, []);
+
+  // Save draft as user types - use debounce to avoid saving too frequently
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (equipment.nome || equipment.tecnologia || equipment.beneficios) {
+        saveEquipmentDraft(equipment);
+        setHasDraft(true);
+        setDraftTimestamp(new Date().toISOString());
+      }
+    }, 2000); // Save after 2 seconds of inactivity
+    
+    return () => clearTimeout(saveTimeout);
+  }, [equipment]);
+
+  // Function to load saved draft
+  const loadDraft = () => {
+    const draft = getEquipmentDraft();
+    if (draft) {
+      // Set equipment with draft data
+      setEquipment(draft.data as EquipmentCreationProps);
+      
+      // Set image preview if available
+      if (draft.data.image_url) {
+        setImagePreview(draft.data.image_url as string);
+      }
+      
+      toast({
+        title: "Rascunho carregado",
+        description: "Os dados do seu último rascunho foram restaurados."
+      });
+    }
+  };
+
+  // Function to discard draft
+  const discardDraft = () => {
+    clearEquipmentDraft();
+    setHasDraft(false);
+    setEquipment({
+      nome: '',
+      tecnologia: '',
+      indicacoes: '',
+      beneficios: '',
+      diferenciais: '',
+      linguagem: '',
+      ativo: true,
+      image_url: '',
+      efeito: ''
+    });
+    setImagePreview(null);
+    
+    toast({
+      title: "Rascunho descartado",
+      description: "O formulário foi limpo."
+    });
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -129,6 +201,22 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     setEquipment(prev => ({ ...prev, image_url: '' }));
   };
 
+  // Format the timestamp to a readable date/time
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      return 'data desconhecida';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -146,7 +234,13 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
 
     try {
       setIsSubmitting(true);
+      console.log('Enviando dados do equipamento:', equipment);
       const newEquipment = await createEquipment(equipment);
+      
+      // Clear draft after successful submit
+      clearEquipmentDraft();
+      setHasDraft(false);
+      
       toast({
         title: "Equipamento cadastrado",
         description: `${newEquipment.nome} foi adicionado com sucesso.`
@@ -157,14 +251,29 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       }
     } catch (error) {
       console.error('Erro ao cadastrar equipamento:', error);
+      // Save as draft automatically when error occurs
+      saveEquipmentDraft(equipment);
+      
       toast({
         variant: "destructive",
         title: "Erro ao cadastrar",
-        description: "Não foi possível adicionar o equipamento. Tente novamente."
+        description: "Não foi possível adicionar o equipamento. Seus dados foram salvos como rascunho."
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Manual save draft function
+  const saveDraft = () => {
+    saveEquipmentDraft(equipment);
+    setHasDraft(true);
+    setDraftTimestamp(new Date().toISOString());
+    
+    toast({
+      title: "Rascunho salvo",
+      description: "Seus dados foram salvos como rascunho."
+    });
   };
 
   return (
@@ -176,6 +285,35 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Show draft notification if available */}
+        {hasDraft && (
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <AlertDescription className="text-blue-800">
+                Existe um rascunho salvo em {draftTimestamp && formatTimestamp(draftTimestamp)}. Deseja recuperá-lo?
+              </AlertDescription>
+              <div className="flex gap-2 ml-auto">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={discardDraft}
+                >
+                  Descartar
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="default" 
+                  size="sm"
+                  onClick={loadDraft}
+                >
+                  Recuperar
+                </Button>
+              </div>
+            </div>
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="nome" className={errors.nome ? "text-destructive" : ""}>
@@ -305,7 +443,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             <Textarea 
               id="efeito"
               name="efeito"
-              value={equipment.efeito}
+              value={equipment.efeito || ''}
               onChange={handleChange}
               placeholder="Descreva os efeitos deste equipamento no tratamento..."
               className={`mt-1 h-24 ${errors.efeito ? "border-destructive" : ""}`}
@@ -349,33 +487,45 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             )}
           </div>
           
-          <div className="flex justify-end space-x-3 pt-2">
-            {onCancel && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onCancel}
-                disabled={isSubmitting || isUploading}
-              >
-                Cancelar
-              </Button>
-            )}
+          <div className="flex justify-between space-x-3 pt-2">
             <Button 
-              type="submit" 
+              type="button" 
+              variant="outline" 
+              onClick={saveDraft}
               disabled={isSubmitting || isUploading}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Cadastrando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Equipamento
-                </>
-              )}
+              <Save className="mr-2 h-4 w-4" />
+              Salvar rascunho
             </Button>
+            
+            <div className="flex space-x-3">
+              {onCancel && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onCancel}
+                  disabled={isSubmitting || isUploading}
+                >
+                  Cancelar
+                </Button>
+              )}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || isUploading}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Cadastrando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Equipamento
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>
