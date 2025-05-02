@@ -3,110 +3,54 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValidationResult } from './types';
 import { ScriptResponse } from '../api';
 import { ValidationCache } from './validation-cache';
-import { fetchValidationFromDB, saveValidationToDB } from './db-service';
-import { getLocalValidation, saveLocalValidation } from './local-storage';
-import { logValidationAnalytics } from './analytics';
 
 // Cache de validações para evitar requisições duplicadas
-const validationCache = ValidationCache.getInstance();
-
-/**
- * Função auxiliar para verificar dispositivos com poucos recursos
- * Compatível com TypeScript
- */
-const isLowMemoryDevice = (): boolean => {
-  try {
-    // Verificar se a API deviceMemory está disponível
-    return typeof window !== 'undefined' && 
-           'navigator' in window && 
-           // @ts-ignore - deviceMemory é experimental, mas queremos usar se disponível
-           typeof navigator.deviceMemory === 'number' && 
-           // @ts-ignore
-           navigator.deviceMemory < 4;
-  } catch {
-    // Se não conseguir verificar a memória, assume que não é dispositivo de baixa memória
-    return false;
+const validationCache = new class {
+  private cache: Map<string, ValidationResult> = new Map();
+  
+  get(id: string): ValidationResult | undefined {
+    return this.cache.get(id);
+  }
+  
+  set(id: string, data: ValidationResult): void {
+    this.cache.set(id, data);
+  }
+  
+  clear(): void {
+    this.cache.clear();
   }
 };
 
 /**
- * Valida um roteiro usando a Fluida
- * Otimizado para melhor performance e experiência de usuário
+ * Valida um roteiro usando a função edge validate-script
  */
 export const validateScript = async (script: ScriptResponse): Promise<ValidationResult> => {
   try {
-    // Verificação rápida para evitar processamento desnecessário
-    if (!script || !script.id || !script.content) {
-      console.log("Roteiro inválido para validação");
-      throw new Error("Roteiro inválido para validação");
-    }
-    
-    console.log("Iniciando validação para roteiro:", script.id);
-    
-    // 1. Verificar primeiro no cache em memória (mais rápido)
+    // Verificar cache
     const cachedValidation = validationCache.get(script.id);
     if (cachedValidation) {
-      console.log("Usando validação em cache");
       return cachedValidation;
     }
     
-    // 2. Verificar se já existe uma validação recente no banco ou localStorage
-    const existingValidation = await getValidation(script.id);
-    const thirtyMinutesAgo = new Date();
-    thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
-    
-    if (existingValidation && existingValidation.timestamp && new Date(existingValidation.timestamp) > thirtyMinutesAgo) {
-      console.log("Usando validação existente recente");
-      validationCache.set(script.id, existingValidation);
-      return existingValidation;
-    }
-    
-    // 3. Otimização: Preparar conteúdo para validação (limitar tamanho)
-    const MAX_CONTENT_LENGTH = 3000; // Reduzido para 3000 para melhor performance
-    let contentToValidate = script.content || "";
-    if (contentToValidate.length > MAX_CONTENT_LENGTH) {
-      contentToValidate = contentToValidate.substring(0, MAX_CONTENT_LENGTH) + 
-        "\n[...Conteúdo truncado para otimizar desempenho...]";
-    }
-    
-    // 4. Implementar validação com timeout mais curto
-    console.log("Enviando solicitação para validação otimizada");
-    
-    // Criar uma promessa com timeout reduzido para evitar esperas longas
-    const validationResult: any = await Promise.race([
-      supabase.functions.invoke('validate-script', {
-        body: {
-          content: contentToValidate,
-          type: script.type,
-          title: script.title,
-          scriptId: script.id
-        }
-      }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout: A validação do roteiro excedeu o tempo limite.")), 15000) // Reduzido para 15 segundos
-      )
-    ]);
-    
-    // Verificar resultado da validação
-    if (!validationResult || validationResult.error) {
-      throw new Error(validationResult?.error || "Erro desconhecido na validação");
-    }
-    
-    console.log("Validação concluída com sucesso");
-    const data = validationResult.data as ValidationResult;
-    
-    // 5. Salvar validação em segundo plano para não bloquear a UI
-    setTimeout(() => {
-      saveValidation(script.id, data).catch(console.error);
-      
-      // Apenas registrar analytics se não estiver em um dispositivo com pouca memória
-      if (!isLowMemoryDevice()) {
-        logValidationAnalytics(script.id, script.type, data).catch(console.error);
+    // Chamar função edge para validar roteiro
+    const { data, error } = await supabase.functions.invoke('validate-script', {
+      body: {
+        content: script.content,
+        type: script.type,
+        title: script.title,
+        scriptId: script.id
       }
-    }, 100);
+    });
     
-    // Adicionar ao cache imediatamente
-    validationCache.set(script.id, data);
+    if (error) {
+      throw new Error(`Erro ao validar roteiro: ${error.message}`);
+    }
+    
+    // Salvar validação para futura referência
+    if (data) {
+      await saveValidation(script.id, data);
+      validationCache.set(script.id, data);
+    }
     
     return data;
   } catch (error) {
@@ -115,68 +59,96 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
   }
 };
 
-// Função otimizada para buscar validação de diversas fontes
-export const getValidation = async (scriptId: string): Promise<ValidationResult & {timestamp?: string} | null> => {
+/**
+ * Busca validação existente por script ID
+ */
+export const getValidation = async (scriptId: string): Promise<ValidationResult | null> => {
   try {
-    // Verificar se o ID é um UUID válido
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scriptId);
-    
-    // Para IDs temporários, usar armazenamento local apenas
-    if (!isUuid) {
-      return getLocalValidation(scriptId);
+    // Verificar cache
+    const cachedValidation = validationCache.get(scriptId);
+    if (cachedValidation) {
+      return cachedValidation;
     }
     
-    // Para UUIDs válidos, buscar no banco de dados com timeout mais curto
-    try {
-      // Adicionar timeout mais curto para evitar esperas longas
-      const timeoutPromise = new Promise<null>((resolve) => 
-        setTimeout(() => resolve(null), 2000) // 2s timeout
-      );
+    // Primeiro tentar buscar do banco de dados
+    const { data, error } = await supabase
+      .from('roteiro_validacoes')
+      .select('*')
+      .eq('roteiro_id', scriptId)
+      .order('data_validacao', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.warn('Validação não encontrada no banco:', error);
       
-      const dbResult = await Promise.race([
-        fetchValidationFromDB(scriptId),
-        timeoutPromise
-      ]);
+      // Tentar buscar do localStorage como fallback
+      try {
+        const localData = localStorage.getItem(`script_validation_${scriptId}`);
+        if (localData) {
+          return JSON.parse(localData);
+        }
+      } catch (localError) {
+        console.error('Erro ao buscar validação do localStorage:', localError);
+      }
       
-      if (dbResult) return dbResult;
-      
-      // Fallback para storage local se o DB timeout
-      return getLocalValidation(scriptId);
-    } catch (dbError) {
-      console.warn('Usando localStorage como fallback:', dbError);
-      return getLocalValidation(scriptId);
+      return null;
     }
+    
+    // Mapear para formato ValidationResult
+    const result: ValidationResult = {
+      blocos: data.blocos || [],
+      nota_geral: data.pontuacao_total || 0,
+      gancho: data.pontuacao_gancho || 0,
+      clareza: data.pontuacao_clareza || 0,
+      cta: data.pontuacao_cta || 0,
+      emocao: data.pontuacao_emocao || 0,
+      total: data.pontuacao_total || 0,
+      sugestoes: data.sugestoes || '',
+      timestamp: data.data_validacao
+    };
+    
+    validationCache.set(scriptId, result);
+    return result;
   } catch (error) {
     console.error('Erro ao buscar validação:', error);
     return null;
   }
 };
 
-// Função para salvar validação em background
+/**
+ * Salva resultado de validação
+ */
 export const saveValidation = async (scriptId: string, validation: ValidationResult): Promise<void> => {
   try {
-    // Verificar se o ID é um UUID válido
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scriptId);
+    // Salvar no banco de dados
+    const { error } = await supabase.from('roteiro_validacoes').insert({
+      roteiro_id: scriptId,
+      pontuacao_gancho: validation.gancho,
+      pontuacao_clareza: validation.clareza,
+      pontuacao_cta: validation.cta,
+      pontuacao_emocao: validation.emocao,
+      pontuacao_total: validation.total || validation.nota_geral,
+      sugestoes: Array.isArray(validation.sugestoes_gerais) 
+        ? validation.sugestoes_gerais.join('\n') 
+        : validation.sugestoes,
+      blocos: validation.blocos
+    });
     
-    // Se não for um UUID, usar armazenamento local
-    if (!isUuid) {
-      saveLocalValidation(scriptId, validation);
-      return;
-    }
-    
-    // Para UUIDs válidos, tentar salvar no banco de dados
-    try {
-      await Promise.race([
-        saveValidationToDB(scriptId, validation),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("DB Timeout")), 3000)) // Reduzido para 3s
-      ]);
-    } catch (dbError) {
-      console.warn('Salvando no localStorage como fallback:', dbError);
-      saveLocalValidation(scriptId, validation);
+    if (error) {
+      console.error('Erro ao salvar validação no banco:', error);
+      
+      // Fallback para localStorage
+      try {
+        localStorage.setItem(`script_validation_${scriptId}`, JSON.stringify({
+          ...validation,
+          timestamp: new Date().toISOString()
+        }));
+      } catch (localError) {
+        console.error('Erro ao salvar validação no localStorage:', localError);
+      }
     }
   } catch (error) {
     console.error('Erro ao salvar validação:', error);
-    // Sempre tentar salvar localmente como fallback
-    saveLocalValidation(scriptId, validation);
   }
 };

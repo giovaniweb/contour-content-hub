@@ -3,56 +3,69 @@ import { ValidationResult, ValidationBlock } from './types';
 import { TextAnnotation } from '@/components/script/AnnotatedText';
 
 /**
- * Converte blocos de validação em anotações para o componente AnnotatedText
- * Super otimizado para performance com processamento mínimo
- * 
- * @param validation Resultado da validação
- * @returns Array de anotações de texto
+ * Mapeia os blocos de validação para anotações de texto que podem ser exibidas
+ * no componente AnnotatedText
  */
 export const mapValidationToAnnotations = (validation: ValidationResult): TextAnnotation[] => {
-  // Verificação rápida para retorno antecipado
-  if (!validation.blocos || validation.blocos.length === 0) {
-    return [];
+  const annotations: TextAnnotation[] = [];
+
+  // Adicionar blocos como anotações
+  if (validation.blocos) {
+    validation.blocos.forEach(bloco => {
+      if (!bloco.texto || bloco.texto.trim() === '') return;
+
+      // Determinar o tipo de anotação com base na nota do bloco
+      const type = bloco.nota >= 8 ? 'positive' : 
+                   bloco.nota >= 6 ? 'suggestion' : 'negative';
+
+      annotations.push({
+        type,
+        text: bloco.texto,
+        suggestion: bloco.sugestao || undefined,
+        score: bloco.nota,
+        blockType: bloco.tipo as any,
+        replace: bloco.substituir || false
+      });
+    });
+  }
+
+  return annotations;
+};
+
+/**
+ * Cria anotações para texto baseado em pontuações específicas
+ */
+export const createScoreAnnotations = (
+  content: string,
+  scores: {
+    gancho?: number,
+    clareza?: number,
+    cta?: number,
+    emocao?: number
+  }
+): TextAnnotation[] => {
+  const annotations: TextAnnotation[] = [];
+  
+  // Identifica parágrafos para classificação
+  const paragraphs = content.split(/\n\n+/);
+  
+  // Primeiro parágrafo é geralmente o gancho
+  if (paragraphs.length > 0 && scores.gancho !== undefined) {
+    annotations.push({
+      type: 'gancho',
+      text: paragraphs[0],
+      score: scores.gancho,
+      blockType: 'gancho'
+    });
   }
   
-  // Definir tamanho inicial do array para evitar realocações
-  const annotations: TextAnnotation[] = [];
-  const maxBlocks = 20; // Limitar ainda mais para melhor performance
-  const blocksCount = Math.min(validation.blocos.length, maxBlocks);
-  
-  // Processar apenas um número limitado de blocos para manter desempenho
-  for (let i = 0; i < blocksCount; i++) {
-    const bloco = validation.blocos[i];
-    if (!bloco.texto) continue;
-    
-    // Determinar tipo com lógica simplificada em única passagem
-    let type: "positive" | "negative" | "suggestion" | "gancho" | "conflito" | "virada" | "cta";
-    
-    // Mapeamento direto para eliminar condicionais
-    const typeMap: Record<string, "gancho" | "conflito" | "virada" | "cta"> = {
-      "gancho": "gancho",
-      "conflito": "conflito", 
-      "virada": "virada",
-      "cta": "cta"
-    };
-    
-    // Usar o tipo específico ou classificar por pontuação
-    type = typeMap[bloco.tipo] || 
-           (bloco.nota >= 8 ? "positive" : bloco.nota < 6 ? "negative" : "suggestion");
-    
-    // Criar mensagem de forma otimizada (sem template strings para economia de recursos)
-    const message = bloco.substituir ? "Sugestão: " + (bloco.sugestao || "") : 
-                                      "Pontuação: " + (bloco.nota.toFixed(1)) + "/10";
-    
-    // Adicionar apenas os campos necessários
+  // Último parágrafo geralmente contém o CTA
+  if (paragraphs.length > 1 && scores.cta !== undefined) {
     annotations.push({
-      text: bloco.texto,
-      type,
-      suggestion: bloco.sugestao,
-      score: bloco.nota,
-      blockType: bloco.tipo as any,
-      replace: bloco.substituir === true,
-      action: message
+      type: 'cta',
+      text: paragraphs[paragraphs.length - 1],
+      score: scores.cta,
+      blockType: 'cta'
     });
   }
   
