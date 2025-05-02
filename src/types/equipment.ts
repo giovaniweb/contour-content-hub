@@ -10,6 +10,7 @@ export interface Equipment {
   ativo: boolean;
   data_cadastro: string;
   linguagem?: string;
+  efeito?: string;
 }
 
 export interface EquipmentResponse {
@@ -26,6 +27,7 @@ export interface EquipmentCreationProps {
   image_url?: string;
   linguagem: string;
   ativo?: boolean;
+  efeito?: string;
 }
 
 export interface EquipmentUpdateProps {
@@ -38,6 +40,7 @@ export interface EquipmentUpdateProps {
   image_url?: string;
   linguagem?: string;
   ativo?: boolean;
+  efeito?: string;
 }
 
 // Validation interface
@@ -48,6 +51,7 @@ export interface EquipmentValidation {
   indicacoes?: string;
   diferenciais?: string;
   linguagem?: string;
+  efeito?: string;
   [key: string]: string | undefined;
 }
 
