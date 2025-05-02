@@ -1,5 +1,5 @@
 
-import { ValidationResult, ValidationBlock } from './types';
+import { ValidationResult } from './types';
 
 /**
  * Interface para estatísticas agregadas de validações
@@ -16,11 +16,13 @@ export interface ValidationStats {
   mostCommonSuggestions: string[];
 }
 
+// Armazenamento em memória para limitar uso do localStorage
+const analyticsMemoryBuffer: any[] = [];
+const MAX_ANALYTICS_BUFFER = 5;
+
 /**
  * Registra dados de validação para análise futura
- * @param scriptId ID do roteiro
- * @param scriptType Tipo do roteiro
- * @param validation Resultado da validação
+ * Implementação extremamente otimizada para baixo consumo de recursos
  */
 export const logValidationAnalytics = async (
   scriptId: string, 
@@ -28,6 +30,12 @@ export const logValidationAnalytics = async (
   validation: ValidationResult
 ): Promise<void> => {
   try {
+    // Verificar se estamos em um dispositivo com pouca memória
+    if (typeof navigator !== 'undefined' && navigator.deviceMemory && navigator.deviceMemory < 4) {
+      console.log("Dispositivo com pouca memória detectado, analytics desativado");
+      return; // Não registrar em dispositivos com pouca memória
+    }
+    
     // Preparar dados para análise de forma mais leve
     const analyticsData = {
       script_id: scriptId,
@@ -37,45 +45,52 @@ export const logValidationAnalytics = async (
       score_gancho: validation.gancho,
       score_clareza: validation.clareza,
       score_cta: validation.cta,
-      score_emocao: validation.emocao,
-      blocks_count: validation.blocos?.length || 0,
-      suggestions_count: validation.sugestoes_gerais?.length || 0,
-      has_improvement_suggestions: validation.blocos?.some(b => b.substituir === true) || false
+      score_emocao: validation.emocao
     };
     
-    // Otimização: armazenar menos dados e limitar tamanho do histórico
+    // Adicionar ao buffer em memória
+    analyticsMemoryBuffer.push(analyticsData);
+    
+    // Se o buffer atingir o limite, salvar no localStorage
+    if (analyticsMemoryBuffer.length >= MAX_ANALYTICS_BUFFER) {
+      // Salvar buffer no localStorage e limpar
+      saveAnalyticsToStorage(analyticsMemoryBuffer);
+      analyticsMemoryBuffer.length = 0;
+    }
+    
+    console.log('Analytics de validação registrado em buffer');
+  } catch (error) {
+    console.warn('Erro ao registrar analytics de validação:', error);
+  }
+};
+
+// Função para salvar analytics no localStorage
+const saveAnalyticsToStorage = (analyticsData: any[]): void => {
+  try {
     const storageKey = 'validation_analytics';
     const existingDataJson = localStorage.getItem(storageKey);
     
-    try {
-      // Usar uma abordagem mais otimizada para manipular localStorage
-      let analytics = [];
-      if (existingDataJson) {
-        analytics = JSON.parse(existingDataJson);
-        // Limitar a apenas 20 registros mais recentes para economia de memória
-        if (analytics.length > 20) {
-          analytics = analytics.slice(-20);
-        }
+    let analytics = [];
+    if (existingDataJson) {
+      analytics = JSON.parse(existingDataJson);
+      // Limitar a apenas 15 registros mais recentes para economia de memória
+      if (analytics.length > 15) {
+        analytics = analytics.slice(-15);
       }
-      
-      // Adicionar novo registro e salvar
-      analytics.push(analyticsData);
-      localStorage.setItem(storageKey, JSON.stringify(analytics));
-      
-      console.log('Analytics de validação registrado');
-    } catch (storageError) {
-      // Em caso de erro de armazenamento (como limite excedido), limpe e tente novamente
-      console.warn('Erro no localStorage, limpando analytics antigos:', storageError);
-      localStorage.removeItem(storageKey);
-      localStorage.setItem(storageKey, JSON.stringify([analyticsData]));
     }
-  } catch (error) {
-    console.error('Erro ao registrar analytics de validação:', error);
+    
+    // Adicionar novos registros e salvar
+    analytics.push(...analyticsData);
+    localStorage.setItem(storageKey, JSON.stringify(analytics));
+  } catch (storageError) {
+    console.warn('Erro no localStorage, limpando analytics:', storageError);
+    localStorage.removeItem('validation_analytics');
   }
 };
 
 /**
  * Extrai insights dos dados de validação acumulados
+ * Implementação otimizada para performance
  */
 export const getValidationInsights = async (): Promise<ValidationStats | null> => {
   try {
@@ -93,7 +108,7 @@ export const getValidationInsights = async (): Promise<ValidationStats | null> =
     
     return processValidationData(analytics);
   } catch (error) {
-    console.error('Erro ao obter insights de validação:', error);
+    console.warn('Erro ao obter insights de validação:', error);
     return null;
   }
 };
@@ -101,7 +116,7 @@ export const getValidationInsights = async (): Promise<ValidationStats | null> =
 // Função auxiliar para processar dados - otimizada para performance
 const processValidationData = (data: any[]): ValidationStats => {
   // Limitar o número de registros processados para evitar travamentos
-  const limitedData = data.length > 50 ? data.slice(-50) : data;
+  const limitedData = data.length > 15 ? data.slice(-15) : data;
   const countTotal = limitedData.length;
   
   // Usar reduce uma única vez para coletar todas as somas
@@ -123,6 +138,6 @@ const processValidationData = (data: any[]): ValidationStats => {
       virada: sums.emocao / countTotal,
       cta: sums.cta / countTotal,
     },
-    mostCommonSuggestions: [] // Implementação futura mais eficiente
+    mostCommonSuggestions: [] // Implementação simplificada para economizar recursos
   };
 };

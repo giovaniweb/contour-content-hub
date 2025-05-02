@@ -13,7 +13,7 @@ export class ValidationCache {
 
   private constructor() {
     this.cache = new Map();
-    this.maxSize = 20; // Reduzido para 20 para menor uso de memória
+    this.maxSize = 10; // Reduzido para 10 para menor uso de memória
   }
 
   public static getInstance(): ValidationCache {
@@ -28,8 +28,8 @@ export class ValidationCache {
     const cached = this.cache.get(scriptId);
     if (!cached) return null;
     
-    // Verificação de validade mais eficiente (máximo 30 minutos)
-    const maxAge = 30 * 60 * 1000; // 30 minutos em ms (reduzido de 60)
+    // Verificação de validade mais eficiente (máximo 20 minutos)
+    const maxAge = 20 * 60 * 1000; // 20 minutos em ms (reduzido de 30)
     const timestamp = new Date(cached.timestamp).getTime();
     
     if (Date.now() - timestamp > maxAge) {
@@ -47,8 +47,8 @@ export class ValidationCache {
       const oldEntries = [...this.cache.entries()]
         .sort((a, b) => new Date(a[1].timestamp).getTime() - new Date(b[1].timestamp).getTime());
       
-      // Remover os 25% mais antigos para liberar espaço em bloco
-      const removeCount = Math.max(1, Math.floor(this.maxSize * 0.25));
+      // Remover os 50% mais antigos para liberar espaço em bloco
+      const removeCount = Math.max(1, Math.floor(this.maxSize * 0.5));
       for (let i = 0; i < removeCount; i++) {
         if (oldEntries[i]) {
           this.cache.delete(oldEntries[i][0]);
@@ -56,23 +56,38 @@ export class ValidationCache {
       }
     }
     
-    // Filtrar blocos com textos muito longos para economizar memória
+    // Simplificar validação para economizar memória
+    const lightValidation: ValidationResult = {
+      nota_geral: validation.nota_geral,
+      gancho: validation.gancho,
+      clareza: validation.clareza,
+      cta: validation.cta,
+      emocao: validation.emocao,
+      total: validation.total,
+      sugestoes: validation.sugestoes,
+      sugestoes_gerais: validation.sugestoes_gerais ? 
+        validation.sugestoes_gerais.slice(0, 3) : [] // Limitar a 3 sugestões
+    };
+    
+    // Processar blocos com limite de tamanho
     if (validation.blocos && validation.blocos.length > 0) {
-      validation.blocos = validation.blocos.map(bloco => {
-        // Limitar tamanho de texto para economia de memória
-        if (bloco.texto && bloco.texto.length > 300) {
-          bloco.texto = bloco.texto.substring(0, 300) + "...";
-        }
-        if (bloco.sugestao && bloco.sugestao.length > 300) {
-          bloco.sugestao = bloco.sugestao.substring(0, 300) + "...";
-        }
-        return bloco;
-      });
+      lightValidation.blocos = validation.blocos
+        .slice(0, 10) // Limitar a 10 blocos no máximo
+        .map(bloco => {
+          // Limitar tamanho de texto para economia de memória
+          if (bloco.texto && bloco.texto.length > 200) {
+            bloco.texto = bloco.texto.substring(0, 200) + "...";
+          }
+          if (bloco.sugestao && bloco.sugestao.length > 200) {
+            bloco.sugestao = bloco.sugestao.substring(0, 200) + "...";
+          }
+          return bloco;
+        });
     }
     
     // Adicionar ao cache com timestamp
     this.cache.set(scriptId, {
-      ...validation,
+      ...lightValidation,
       timestamp: new Date().toISOString()
     });
   }

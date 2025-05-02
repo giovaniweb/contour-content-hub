@@ -16,6 +16,12 @@ const validationCache = ValidationCache.getInstance();
  */
 export const validateScript = async (script: ScriptResponse): Promise<ValidationResult> => {
   try {
+    // Verificação rápida para evitar processamento desnecessário
+    if (!script || !script.id || !script.content) {
+      console.log("Roteiro inválido para validação");
+      throw new Error("Roteiro inválido para validação");
+    }
+    
     console.log("Iniciando validação para roteiro:", script.id);
     
     // 1. Verificar primeiro no cache em memória (mais rápido)
@@ -36,18 +42,18 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
       return existingValidation;
     }
     
-    // 3. Otimização: Preparar conteúdo para validação (limitar tamanho se necessário)
-    let contentToValidate = script.content;
-    const MAX_CONTENT_LENGTH = 5000; // Limitar tamanho para melhorar desempenho
-    if (contentToValidate && contentToValidate.length > MAX_CONTENT_LENGTH) {
+    // 3. Otimização: Preparar conteúdo para validação (limitar tamanho)
+    const MAX_CONTENT_LENGTH = 3000; // Reduzido para 3000 para melhor performance
+    let contentToValidate = script.content || "";
+    if (contentToValidate.length > MAX_CONTENT_LENGTH) {
       contentToValidate = contentToValidate.substring(0, MAX_CONTENT_LENGTH) + 
         "\n[...Conteúdo truncado para otimizar desempenho...]";
     }
     
-    // 4. Implementar validação com timeout para evitar travamentos
-    console.log("Enviando solicitação para validação avançada com GPT-4o");
+    // 4. Implementar validação com timeout mais curto
+    console.log("Enviando solicitação para validação otimizada");
     
-    // Criar uma promessa com timeout para evitar esperas infinitas
+    // Criar uma promessa com timeout reduzido para evitar esperas longas
     const validationResult: any = await Promise.race([
       supabase.functions.invoke('validate-script', {
         body: {
@@ -58,7 +64,7 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
         }
       }),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout: A validação do roteiro excedeu o tempo limite.")), 30000)
+        setTimeout(() => reject(new Error("Timeout: A validação do roteiro excedeu o tempo limite.")), 15000) // Reduzido para 15 segundos
       )
     ]);
     
@@ -70,10 +76,14 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     console.log("Validação concluída com sucesso");
     const data = validationResult.data as ValidationResult;
     
-    // 5. Salvar validação otimizada e registar análise sem bloquear o UI
+    // 5. Salvar validação em segundo plano para não bloquear a UI
     setTimeout(() => {
       saveValidation(script.id, data).catch(console.error);
-      logValidationAnalytics(script.id, script.type, data).catch(console.error);
+      
+      // Apenas registrar analytics se não estiver em um dispositivo com pouca memória
+      if (!isLowMemoryDevice()) {
+        logValidationAnalytics(script.id, script.type, data).catch(console.error);
+      }
     }, 100);
     
     // Adicionar ao cache imediatamente
@@ -86,6 +96,14 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
   }
 };
 
+// Função para detectar dispositivos com pouca memória
+const isLowMemoryDevice = (): boolean => {
+  if (typeof navigator !== 'undefined' && navigator.deviceMemory) {
+    return navigator.deviceMemory < 4; // Menos de 4GB de RAM
+  }
+  return false;
+}
+
 // Função otimizada para buscar validação de diversas fontes
 export const getValidation = async (scriptId: string): Promise<ValidationResult & {timestamp?: string} | null> => {
   try {
@@ -97,11 +115,11 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
       return getLocalValidation(scriptId);
     }
     
-    // Para UUIDs válidos, buscar no banco de dados com timeout
+    // Para UUIDs válidos, buscar no banco de dados com timeout mais curto
     try {
-      // Adicionar timeout para evitar esperas longas
+      // Adicionar timeout mais curto para evitar esperas longas
       const timeoutPromise = new Promise<null>((resolve) => 
-        setTimeout(() => resolve(null), 3000) // 3s timeout
+        setTimeout(() => resolve(null), 2000) // 2s timeout
       );
       
       const dbResult = await Promise.race([
@@ -114,7 +132,7 @@ export const getValidation = async (scriptId: string): Promise<ValidationResult 
       // Fallback para storage local se o DB timeout
       return getLocalValidation(scriptId);
     } catch (dbError) {
-      console.warn('Erro ao buscar do DB, usando localStorage:', dbError);
+      console.warn('Usando localStorage como fallback:', dbError);
       return getLocalValidation(scriptId);
     }
   } catch (error) {
@@ -139,10 +157,10 @@ export const saveValidation = async (scriptId: string, validation: ValidationRes
     try {
       await Promise.race([
         saveValidationToDB(scriptId, validation),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("DB Timeout")), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("DB Timeout")), 3000)) // Reduzido para 3s
       ]);
     } catch (dbError) {
-      console.warn('Erro ao salvar no DB, usando localStorage:', dbError);
+      console.warn('Salvando no localStorage como fallback:', dbError);
       saveLocalValidation(scriptId, validation);
     }
   } catch (error) {

@@ -4,7 +4,7 @@ import { TextAnnotation } from '@/components/script/AnnotatedText';
 
 /**
  * Converte blocos de validação em anotações para o componente AnnotatedText
- * Otimizado para performance com processamento mínimo
+ * Super otimizado para performance com processamento mínimo
  * 
  * @param validation Resultado da validação
  * @returns Array de anotações de texto
@@ -17,29 +17,32 @@ export const mapValidationToAnnotations = (validation: ValidationResult): TextAn
   
   // Definir tamanho inicial do array para evitar realocações
   const annotations: TextAnnotation[] = [];
-  const blocksCount = Math.min(validation.blocos.length, 50); // Limitar para no máximo 50 blocos
+  const maxBlocks = 20; // Limitar ainda mais para melhor performance
+  const blocksCount = Math.min(validation.blocos.length, maxBlocks);
   
   // Processar apenas um número limitado de blocos para manter desempenho
   for (let i = 0; i < blocksCount; i++) {
     const bloco = validation.blocos[i];
     if (!bloco.texto) continue;
     
-    // Determinar tipo com lógica simplificada
+    // Determinar tipo com lógica simplificada em única passagem
     let type: "positive" | "negative" | "suggestion" | "gancho" | "conflito" | "virada" | "cta";
     
-    // Verificação simplificada para tipos conhecidos
-    switch (bloco.tipo) {
-      case "gancho": type = "gancho"; break;
-      case "conflito": type = "conflito"; break;
-      case "virada": type = "virada"; break;
-      case "cta": type = "cta"; break;
-      default:
-        // Para outros tipos, classificar por pontuação
-        type = bloco.nota >= 8 ? "positive" : bloco.nota < 6 ? "negative" : "suggestion";
-    }
+    // Mapeamento direto para eliminar condicionais
+    const typeMap: Record<string, "gancho" | "conflito" | "virada" | "cta"> = {
+      "gancho": "gancho",
+      "conflito": "conflito", 
+      "virada": "virada",
+      "cta": "cta"
+    };
     
-    // Criar mensagem de forma otimizada
-    const message = bloco.substituir ? `Sugestão: ${bloco.sugestao}` : `Pontuação: ${bloco.nota.toFixed(1)}/10`;
+    // Usar o tipo específico ou classificar por pontuação
+    type = typeMap[bloco.tipo] || 
+           (bloco.nota >= 8 ? "positive" : bloco.nota < 6 ? "negative" : "suggestion");
+    
+    // Criar mensagem de forma otimizada (sem template strings para economia de recursos)
+    const message = bloco.substituir ? "Sugestão: " + (bloco.sugestao || "") : 
+                                      "Pontuação: " + (bloco.nota.toFixed(1)) + "/10";
     
     // Adicionar apenas os campos necessários
     annotations.push({
