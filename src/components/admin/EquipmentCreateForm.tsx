@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { createEquipment } from '@/utils/api-equipment';
-import { Equipment } from '@/types/equipment';
+import { Equipment, validateEquipment, hasValidationErrors, EquipmentValidation } from '@/types/equipment';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const [errors, setErrors] = useState<EquipmentValidation>({});
   
   const [equipment, setEquipment] = useState<Omit<Equipment, 'id'>>({
     nome: '',
@@ -38,6 +39,15 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setEquipment(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user types
+    if (errors[name as keyof EquipmentValidation]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name as keyof EquipmentValidation];
+        return newErrors;
+      });
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,12 +131,14 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!equipment.nome || !equipment.tecnologia || !equipment.indicacoes || 
-        !equipment.beneficios || !equipment.diferenciais || !equipment.linguagem) {
+    // Validate form
+    const validationErrors = validateEquipment(equipment);
+    if (hasValidationErrors(validationErrors)) {
+      setErrors(validationErrors);
       toast({
         variant: "destructive",
         title: "Erro de validação",
-        description: "Todos os campos são obrigatórios."
+        description: "Por favor, corrija os campos destacados."
       });
       return;
     }
@@ -165,15 +177,20 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="nome">Nome do Equipamento</Label>
+            <Label htmlFor="nome" className={errors.nome ? "text-destructive" : ""}>
+              Nome do Equipamento
+            </Label>
             <Input 
               id="nome"
               name="nome"
               value={equipment.nome}
               onChange={handleChange}
               placeholder="Ex: Ultralift HIFU"
-              className="mt-1"
+              className={`mt-1 ${errors.nome ? "border-destructive" : ""}`}
             />
+            {errors.nome && (
+              <p className="text-destructive text-sm mt-1">{errors.nome}</p>
+            )}
           </div>
           
           <div>
@@ -230,63 +247,88 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
           </div>
           
           <div>
-            <Label htmlFor="tecnologia">Tecnologia</Label>
+            <Label htmlFor="tecnologia" className={errors.tecnologia ? "text-destructive" : ""}>
+              Tecnologia
+            </Label>
             <Textarea 
               id="tecnologia"
               name="tecnologia"
               value={equipment.tecnologia}
               onChange={handleChange}
               placeholder="Descreva a tecnologia do equipamento..."
-              className="mt-1 h-24"
+              className={`mt-1 h-24 ${errors.tecnologia ? "border-destructive" : ""}`}
             />
+            {errors.tecnologia && (
+              <p className="text-destructive text-sm mt-1">{errors.tecnologia}</p>
+            )}
           </div>
           
           <div>
-            <Label htmlFor="indicacoes">Indicações</Label>
+            <Label htmlFor="indicacoes" className={errors.indicacoes ? "text-destructive" : ""}>
+              Indicações
+            </Label>
             <Textarea 
               id="indicacoes"
               name="indicacoes"
               value={equipment.indicacoes}
               onChange={handleChange}
               placeholder="Liste as indicações e usos do equipamento..."
-              className="mt-1 h-24"
+              className={`mt-1 h-24 ${errors.indicacoes ? "border-destructive" : ""}`}
             />
+            {errors.indicacoes && (
+              <p className="text-destructive text-sm mt-1">{errors.indicacoes}</p>
+            )}
           </div>
           
           <div>
-            <Label htmlFor="beneficios">Benefícios</Label>
+            <Label htmlFor="beneficios" className={errors.beneficios ? "text-destructive" : ""}>
+              Benefícios
+            </Label>
             <Textarea 
               id="beneficios"
               name="beneficios"
               value={equipment.beneficios}
               onChange={handleChange}
               placeholder="Descreva os benefícios do tratamento..."
-              className="mt-1 h-24"
+              className={`mt-1 h-24 ${errors.beneficios ? "border-destructive" : ""}`}
             />
+            {errors.beneficios && (
+              <p className="text-destructive text-sm mt-1">{errors.beneficios}</p>
+            )}
           </div>
           
           <div>
-            <Label htmlFor="diferenciais">Diferenciais</Label>
+            <Label htmlFor="diferenciais" className={errors.diferenciais ? "text-destructive" : ""}>
+              Diferenciais
+            </Label>
             <Textarea 
               id="diferenciais"
               name="diferenciais"
               value={equipment.diferenciais}
               onChange={handleChange}
               placeholder="Descreva os diferenciais deste equipamento..."
-              className="mt-1 h-24"
+              className={`mt-1 h-24 ${errors.diferenciais ? "border-destructive" : ""}`}
             />
+            {errors.diferenciais && (
+              <p className="text-destructive text-sm mt-1">{errors.diferenciais}</p>
+            )}
           </div>
           
           <div>
-            <Label htmlFor="linguagem">Linguagem Recomendada</Label>
+            <Label htmlFor="linguagem" className={errors.linguagem ? "text-destructive" : ""}>
+              Linguagem Recomendada
+            </Label>
             <Textarea 
               id="linguagem"
               name="linguagem"
               value={equipment.linguagem}
               onChange={handleChange}
               placeholder="Descreva a linguagem recomendada para falar deste equipamento..."
-              className="mt-1 h-24"
+              className={`mt-1 h-24 ${errors.linguagem ? "border-destructive" : ""}`}
             />
+            {errors.linguagem && (
+              <p className="text-destructive text-sm mt-1">{errors.linguagem}</p>
+            )}
           </div>
           
           <div className="flex justify-end space-x-3 pt-2">
