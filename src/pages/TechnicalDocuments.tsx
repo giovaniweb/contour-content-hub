@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,11 +25,15 @@ const TechnicalDocumentsPage: React.FC = () => {
     search: undefined,
   });
   
-  // Effect to apply filters - Fixed by adding proper dependency array
-  useEffect(() => {
+  // Using a stable function reference to prevent loops
+  const applyFilters = useCallback(() => {
     fetchDocuments(filters);
-    // Only re-run when filters change or fetchDocuments changes
   }, [filters, fetchDocuments]);
+  
+  // Effect to apply filters - Using the stable callback
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
   
   const handleFiltersChange = (newFilters: Partial<GetDocumentsParams>) => {
     setFilters(prev => ({

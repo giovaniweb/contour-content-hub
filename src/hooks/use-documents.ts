@@ -9,7 +9,7 @@ export const useDocuments = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Using useCallback to ensure function identity is stable
+  // Using useCallback with complete dependency array to ensure stable function identity
   const fetchDocuments = useCallback(async (params?: GetDocumentsParams) => {
     try {
       setLoading(true);
@@ -104,7 +104,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]); // Only depends on toast
+  }, [toast]);
 
   const getDocumentById = useCallback(async (id: string): Promise<TechnicalDocument | null> => {
     try {
