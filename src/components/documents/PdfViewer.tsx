@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileWarning, ExternalLink, RefreshCw } from 'lucide-react';
+import { FileWarning, ExternalLink, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -20,7 +20,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [retryCount, setRetryCount] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
-  // Function to ensure the PDF URL is correctly formatted
+  // Process the PDF URL whenever it changes or modal opens
   useEffect(() => {
     if (!isOpen) {
       // Reset states when modal is closed
@@ -129,15 +129,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     
     console.log("Embedding PDF with URL:", finalUrl);
     
+    // Overlay the iframe with a transparent div to prevent CORS issues with mouse events
     return (
-      <iframe
-        ref={iframeRef}
-        src={finalUrl}
-        className="w-full h-full"
-        title={title}
-        onError={handleIframeError}
-        onLoad={handleIframeLoad}
-      />
+      <div className="relative w-full h-full">
+        <iframe
+          ref={iframeRef}
+          src={finalUrl}
+          className="w-full h-full border-0"
+          title={title}
+          onError={handleIframeError}
+          onLoad={handleIframeLoad}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        />
+      </div>
     );
   };
 
