@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { FileWarning, ExternalLink, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,99 +17,74 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
-  const [retryCount, setRetryCount] = useState(0);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  
-  // Process the PDF URL whenever it changes or modal opens
+
+  // Simplificamos para remover complexidade desnecessária
   useEffect(() => {
-    if (!isOpen) {
-      // Reset states when modal is closed
+    if (!isOpen || !pdfUrl) {
+      setLoading(false);
+      if (!pdfUrl) {
+        setError("URL do documento não encontrada");
+      }
+      return;
+    }
+
+    try {
+      console.log(`Preparando visualização do PDF (${documentId || 'unknown'}):`, pdfUrl);
       setLoading(true);
       setError(null);
-      setFinalUrl('');
-      setRetryCount(0);
-      return;
-    }
-    
-    if (!pdfUrl) {
-      console.error("PDF URL is undefined or empty");
-      setError("URL do documento não encontrada");
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      console.log(`Processing PDF URL for document ${documentId || 'unknown'}:`, pdfUrl);
       
       let processedUrl = pdfUrl.trim();
       
-      // For blob URLs (direct file references)
+      // Para URLs blob, usamos diretamente
       if (processedUrl.startsWith('blob:')) {
-        console.log("Using blob URL directly:", processedUrl);
+        console.log("Usando URL blob diretamente:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
-      // For Dropbox URLs that need conversion to direct download links
+      // Para URLs do Dropbox
       else if (processedUrl.includes('dropbox.com')) {
-        // Ensure it has the direct download parameter
         if (!processedUrl.includes('dl=1')) {
-          if (processedUrl.includes('?')) {
-            processedUrl += '&dl=1';
-          } else {
-            processedUrl += '?dl=1';
-          }
+          processedUrl = processedUrl.includes('?') 
+            ? `${processedUrl}&dl=1` 
+            : `${processedUrl}?dl=1`;
         }
-        console.log("Converted Dropbox URL:", processedUrl);
+        console.log("URL Dropbox processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
-      // For Google Drive URLs
+      // Para URLs do Google Drive
       else if (processedUrl.includes('drive.google.com')) {
-        // Convert sharing URL to direct download if needed
         if (processedUrl.includes('/view')) {
           processedUrl = processedUrl.replace('/view', '/preview');
         }
-        console.log("Converted Google Drive URL:", processedUrl);
+        console.log("URL Google Drive processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
-      // For external URLs, ensure they start with http or https
-      else if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
-        processedUrl = `https://${processedUrl}`;
-        console.log("Added https protocol:", processedUrl);
+      // Para outras URLs
+      else {
+        // Garantir que a URL começa com http ou https
+        if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
+          processedUrl = `https://${processedUrl}`;
+        }
+        console.log("URL genérica processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
-      } else {
-        console.log("Using URL as-is:", processedUrl);
-        setFinalUrl(processedUrl);
-        setLoading(false);
       }
-      
-      setError(null);
     } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
       setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
+    } finally {
       setLoading(false);
     }
-  }, [pdfUrl, isOpen, documentId, retryCount]);
+  }, [pdfUrl, isOpen, documentId]);
 
-  const handleIframeError = () => {
-    console.error("Erro ao carregar o PDF:", finalUrl);
-    setError("Não foi possível carregar o documento. Verifique se a URL está correta.");
-    setLoading(false);
-  };
-
-  const handleIframeLoad = () => {
-    console.log("PDF iframe loaded successfully");
-    setLoading(false);
-    setError(null);
-  };
-  
   const openInNewTab = () => {
     if (finalUrl) {
-      window.open(finalUrl, '_blank');
+      window.open(finalUrl, '_blank', 'noopener,noreferrer');
       toast("Abrindo documento", {
         description: "O documento está sendo aberto em uma nova aba."
+      });
+    } else if (pdfUrl) {
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+      toast("Abrindo documento original", {
+        description: "Abrindo a URL original em uma nova aba."
       });
     }
   };
@@ -117,32 +92,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const handleRetry = () => {
     setLoading(true);
     setError(null);
-    setRetryCount(prev => prev + 1);
-    toast("Tentando novamente", {
-      description: "Recarregando o documento..."
-    });
-  };
-  
-  // Use object URL directly if it's a blob URL to avoid CORS issues
-  const embedPdf = () => {
-    if (!finalUrl) return null;
-    
-    console.log("Embedding PDF with URL:", finalUrl);
-    
-    // Overlay the iframe with a transparent div to prevent CORS issues with mouse events
-    return (
-      <div className="relative w-full h-full">
-        <iframe
-          ref={iframeRef}
-          src={finalUrl}
-          className="w-full h-full border-0"
-          title={title}
-          onError={handleIframeError}
-          onLoad={handleIframeLoad}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-        />
-      </div>
-    );
+    // Forçar a reavaliação do useEffect
+    setFinalUrl('');
+    setTimeout(() => {
+      // Pequeno atraso para garantir que o estado seja atualizado
+      toast("Tentando novamente", {
+        description: "Recarregando o documento..."
+      });
+    }, 100);
   };
 
   return (
@@ -207,7 +164,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
               </div>
             </div>
           ) : (
-            !loading && finalUrl && embedPdf()
+            !loading && finalUrl && (
+              <iframe
+                src={finalUrl}
+                className="w-full h-full border-0"
+                title={title}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+                onLoad={() => console.log("PDF carregado com sucesso")}
+                onError={() => {
+                  console.error("Erro ao carregar o PDF");
+                  setError("Não foi possível carregar o documento.");
+                }}
+              />
+            )
           )}
         </div>
       </DialogContent>

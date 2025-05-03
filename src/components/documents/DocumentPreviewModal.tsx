@@ -17,7 +17,7 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 }) => {
   const [validPdfUrl, setValidPdfUrl] = useState<string | undefined>(undefined);
   
-  // Process the PDF URL when the document or modal state changes
+  // Processar a URL do PDF quando o documento ou o estado do modal muda
   useEffect(() => {
     if (!document || !isOpen) {
       setValidPdfUrl(undefined);
@@ -25,46 +25,31 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
     }
     
     try {
-      // Use link_dropbox as the primary source, and preview_url as fallback
-      let url = '';
+      console.log("Verificando URLs disponíveis para o documento:", document.id);
       
-      // Check for valid URL sources in priority order
+      // Uso de link_dropbox como fonte primária e preview_url como fallback
       if (document.link_dropbox && document.link_dropbox.trim() !== '') {
-        url = document.link_dropbox;
+        console.log("Usando link_dropbox:", document.link_dropbox);
+        setValidPdfUrl(document.link_dropbox);
       } else if (document.preview_url && document.preview_url.trim() !== '') {
-        url = document.preview_url;
+        console.log("Usando preview_url:", document.preview_url);
+        setValidPdfUrl(document.preview_url);
+      } else {
+        console.error("Nenhuma URL de PDF disponível para o documento:", document.id);
+        toast.error("Nenhuma URL de PDF disponível para este documento");
+        setValidPdfUrl(undefined);
       }
-      
-      console.log("Document PDF URL source details:", {
-        link_dropbox: document.link_dropbox,
-        preview_url: document.preview_url,
-        selectedUrl: url,
-        documentId: document.id,
-        titulo: document.titulo,
-        isBlob: url.startsWith('blob:')
-      });
-      
-      if (!url) {
-        console.error("No PDF URL available for document:", document.id);
-        toast.error("Nenhum URL de PDF disponível para este documento");
-        return;
-      }
-      
-      // Set the URL - the PdfViewer component will handle formatting
-      setValidPdfUrl(url);
     } catch (error) {
-      console.error("Error processing PDF URL:", error);
+      console.error("Erro ao processar URL do PDF:", error);
       toast.error("Erro ao processar URL do PDF");
       setValidPdfUrl(undefined);
     }
   }, [document, isOpen]);
   
-  // If there's no document or the modal is closed, don't render anything
+  // Se não houver documento ou o modal estiver fechado, não renderizar nada
   if (!document || !isOpen) {
     return null;
   }
-  
-  console.log("Rendering PdfViewer with URL:", validPdfUrl);
   
   return (
     <PdfViewer

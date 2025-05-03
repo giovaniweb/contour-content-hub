@@ -79,14 +79,14 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
 
   const handleViewOriginalPdf = () => {
     try {
-      console.log("Abrindo visualizador de PDF com URL:", {
+      console.log("Abrindo visualizador de PDF:", {
         link_dropbox: document.link_dropbox,
         preview_url: document.preview_url,
         id: document.id,
         titulo: document.titulo
       });
       
-      // Check if we have any URL before opening preview
+      // Verificar se temos alguma URL antes de abrir a pré-visualização
       if (!document.link_dropbox && !document.preview_url) {
         toast("Arquivo não disponível", {
           description: "O documento original não está disponível para visualização."
@@ -94,7 +94,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         return;
       }
       
-      // Open the PDF preview modal
+      // Abrir a modal de pré-visualização de PDF
       setPdfPreviewOpen(true);
     } catch (error) {
       console.error("Erro ao abrir visualizador:", error);
@@ -105,58 +105,67 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
   
   const handleDownloadPdf = () => {
-    if (document?.link_dropbox || document?.preview_url) {
-      try {
-        // Check and fix the URL format
-        let url = document.link_dropbox || document.preview_url || '';
-        
-        // If it's a blob URL, handle it differently
-        if (url.startsWith('blob:')) {
-          // Open directly in a new tab
-          window.open(url, '_blank');
-          toast("Abrindo documento", {
-            description: "O documento está sendo aberto em uma nova aba."
-          });
-          return;
-        } 
-        
-        // Handle Dropbox URLs
-        if (url.includes('dropbox.com')) {
-          // Convert to direct download link
-          if (!url.includes('dl=1')) {
-            if (url.includes('?')) {
-              url += '&dl=1';
-            } else {
-              url += '?dl=1';
-            }
-          }
-        }
-        // Handle Google Drive URLs
-        else if (url.includes('drive.google.com')) {
-          if (url.includes('/view')) {
-            // For direct download from Google Drive
-            url = url.replace('/view', '/preview');
-          }
-        }
-        // For external URLs, ensure they start with http or https
-        else if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
-        }
-        
-        // Open in a new tab for download
-        window.open(url, '_blank');
-        toast("Download iniciado", {
-          description: "O PDF está sendo baixado ou aberto em nova aba"
+    try {
+      console.log("Tentando baixar PDF:", {
+        link_dropbox: document.link_dropbox,
+        preview_url: document.preview_url,
+        id: document.id,
+      });
+      
+      // Verificar se temos alguma URL válida
+      if (!document?.link_dropbox && !document?.preview_url) {
+        toast("Arquivo não disponível", {
+          description: "O documento original não está disponível para download."
         });
-      } catch (error) {
-        console.error("Erro no download:", error);
-        toast("Erro no download", {
-          description: "Não foi possível baixar o documento"
-        });
+        return;
       }
-    } else {
-      toast("Arquivo não disponível", {
-        description: "O documento original não está disponível para download."
+
+      // Selecionar a URL disponível
+      let url = document.link_dropbox || document.preview_url || '';
+      
+      // Processar URL com base no tipo
+      if (url.startsWith('blob:')) {
+        // Para URLs blob, abrir diretamente
+        window.open(url, '_blank', 'noopener,noreferrer');
+        toast("Abrindo documento", {
+          description: "O documento está sendo aberto em uma nova aba."
+        });
+        return;
+      } 
+      
+      // Processar URL do Dropbox para download direto
+      if (url.includes('dropbox.com') && !url.includes('dl=1')) {
+        url = url.includes('?') ? `${url}&dl=1` : `${url}?dl=1`;
+        console.log("URL de download Dropbox processada:", url);
+      }
+      
+      // Processar URL do Google Drive
+      if (url.includes('drive.google.com') && url.includes('/view')) {
+        url = url.replace('/view', '/preview');
+        console.log("URL de download Google Drive processada:", url);
+      }
+      
+      // Para URLs externas, garantir que comecem com http ou https
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
+      }
+      
+      // Criar um link temporário e clicar nele
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast("Download iniciado", {
+        description: "O PDF está sendo baixado ou aberto em nova aba"
+      });
+    } catch (error) {
+      console.error("Erro no download:", error);
+      toast("Erro no download", {
+        description: "Não foi possível baixar o documento"
       });
     }
   };
