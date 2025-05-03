@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GetDocumentsParams, TechnicalDocument, DocumentType, DocumentStatus } from '@/types/document';
@@ -10,6 +9,7 @@ export const useDocuments = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Using useCallback to ensure function identity is stable
   const fetchDocuments = useCallback(async (params?: GetDocumentsParams) => {
     try {
       setLoading(true);
@@ -104,7 +104,7 @@ export const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast]); // Only depends on toast
 
   const getDocumentById = useCallback(async (id: string): Promise<TechnicalDocument | null> => {
     try {

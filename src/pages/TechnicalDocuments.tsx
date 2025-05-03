@@ -25,10 +25,11 @@ const TechnicalDocumentsPage: React.FC = () => {
     search: undefined,
   });
   
-  // Effect to apply filters
+  // Effect to apply filters - Fixed by adding proper dependency array
   useEffect(() => {
     fetchDocuments(filters);
-  }, [filters]);
+    // Only re-run when filters change or fetchDocuments changes
+  }, [filters, fetchDocuments]);
   
   const handleFiltersChange = (newFilters: Partial<GetDocumentsParams>) => {
     setFilters(prev => ({
