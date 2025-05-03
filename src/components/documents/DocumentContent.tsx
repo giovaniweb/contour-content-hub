@@ -16,40 +16,55 @@ interface DocumentContentProps {
 const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [extractionProgress, setExtractionProgress] = useState<string | null>(null);
 
   const handleExtractContent = async () => {
-    // Abordagem mais direta usando a edge function
     try {
       setExtracting(true);
+      setExtractionProgress("Iniciando processamento do documento...");
       toast("Processando documento", {
         description: "Extraindo conteúdo do documento..."
       });
       
       if (document?.id) {
+        setExtractionProgress("Enviando requisição para o servidor...");
+        
         // Chamar diretamente a edge function
-        const { error } = await supabase.functions.invoke('process-document', {
+        const { data, error } = await supabase.functions.invoke('process-document', {
           body: { documentId: document.id }
         });
         
         if (error) {
           console.error("Erro ao processar documento:", error);
+          toast("Erro no processamento", {
+            description: `Não foi possível processar o documento: ${error.message || 'Erro desconhecido'}`
+          });
           throw error;
         }
         
-        toast("Processamento concluído", {
-          description: "O documento foi processado com sucesso. Atualize a página para ver as alterações."
-        });
-        
-        // Opcionalmente, recarregar a página ou atualizar os dados
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        if (data && data.success) {
+          setExtractionProgress("Processamento concluído com sucesso!");
+          toast("Processamento concluído", {
+            description: "O documento foi processado com sucesso. A página será atualizada em instantes."
+          });
+          
+          // Opcionalmente, recarregar a página ou atualizar os dados
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          setExtractionProgress(null);
+          toast("Resposta inesperada", {
+            description: "Recebemos uma resposta inesperada do servidor. Tente novamente."
+          });
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro na extração:", error);
       toast("Falha no processamento", {
-        description: "Não foi possível extrair o conteúdo. Por favor, tente novamente."
+        description: `Não foi possível extrair o conteúdo: ${error.message || 'Erro desconhecido'}`
       });
+      setExtractionProgress(null);
     } finally {
       setExtracting(false);
     }
@@ -70,7 +85,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       <ScrollArea className="h-[calc(100vh-250px)] min-h-[500px] w-full rounded-md border p-6">
         {document.conteudo_extraido ? (
           <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
                 onClick={handleViewOriginalPdf}
@@ -103,7 +118,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
                 {extracting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
+                    {extractionProgress || "Processando..."}
                   </>
                 ) : (
                   <>
