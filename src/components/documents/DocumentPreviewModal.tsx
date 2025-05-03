@@ -64,6 +64,8 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
     return null;
   }
   
+  console.log("Rendering PdfViewer with URL:", validPdfUrl);
+  
   return (
     <PdfViewer
       isOpen={isOpen}

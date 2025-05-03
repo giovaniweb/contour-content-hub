@@ -94,6 +94,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         return;
       }
       
+      // Attempt to open preview modal
       setPdfPreviewOpen(true);
     } catch (error) {
       console.error("Erro ao abrir visualizador:", error);

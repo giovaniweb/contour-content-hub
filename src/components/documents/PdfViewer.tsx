@@ -32,6 +32,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }
     
     if (!pdfUrl) {
+      console.error("PDF URL is undefined or empty");
       setError("URL do documento não encontrada");
       setLoading(false);
       return;
@@ -99,16 +100,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   };
 
   const handleIframeLoad = () => {
-    // Check if the iframe actually loaded content or just an error page
-    try {
-      console.log("PDF iframe loaded, checking content:", finalUrl);
-      setLoading(false);
-      setError(null);
-    } catch (err) {
-      console.log("Could not verify iframe content due to CORS, assuming success");
-      setLoading(false);
-      setError(null);
-    }
+    console.log("PDF iframe loaded successfully");
+    setLoading(false);
+    setError(null);
   };
   
   const openInNewTab = () => {
@@ -128,6 +122,24 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       description: "Recarregando o documento..."
     });
   };
+  
+  // Use object URL directly if it's a blob URL to avoid CORS issues
+  const embedPdf = () => {
+    if (!finalUrl) return null;
+    
+    console.log("Embedding PDF with URL:", finalUrl);
+    
+    return (
+      <iframe
+        ref={iframeRef}
+        src={finalUrl}
+        className="w-full h-full"
+        title={title}
+        onError={handleIframeError}
+        onLoad={handleIframeLoad}
+      />
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -137,29 +149,25 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
           <DialogDescription className="flex justify-between items-center">
             <span>Visualização do documento original</span>
             <div className="flex gap-2">
-              {finalUrl && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRetry}
-                    className="flex items-center gap-1"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    <span>Recarregar</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={openInNewTab}
-                    className="flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Abrir em nova aba</span>
-                  </Button>
-                </>
-              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRetry}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Recarregar</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={openInNewTab}
+                className="flex items-center gap-1"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Abrir em nova aba</span>
+              </Button>
             </div>
           </DialogDescription>
         </DialogHeader>
@@ -178,8 +186,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
               <p className="text-muted-foreground mb-4">
                 {error || "Talvez ele tenha sido movido, editado ou excluído."}
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                URL: {pdfUrl ? pdfUrl.substring(0, 50) + (pdfUrl.length > 50 ? '...' : '') : "Indisponível"}
+              <p className="text-sm text-muted-foreground mb-4 max-w-lg break-all">
+                URL: {pdfUrl ? pdfUrl : "Indisponível"}
               </p>
               
               <div className="flex gap-2">
@@ -188,26 +196,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
                   <span>Tentar novamente</span>
                 </Button>
                 
-                {finalUrl && (
-                  <Button onClick={openInNewTab} className="flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Abrir em nova aba</span>
-                  </Button>
-                )}
+                <Button onClick={openInNewTab} className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Abrir em nova aba</span>
+                </Button>
               </div>
             </div>
           ) : (
-            finalUrl && (
-              <iframe
-                ref={iframeRef}
-                src={finalUrl}
-                className="w-full h-full"
-                title={title}
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-presentation"
-                onError={handleIframeError}
-                onLoad={handleIframeLoad}
-              />
-            )
+            !loading && finalUrl && embedPdf()
           )}
         </div>
       </DialogContent>
