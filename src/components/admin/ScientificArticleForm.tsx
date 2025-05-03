@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, FileUp, File, X } from "lucide-react";
+import { Loader2, Upload, FileUp, File, X, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,6 +70,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
+  const [processingFailed, setProcessingFailed] = useState<boolean>(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -117,6 +118,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setUploadError(null);
+      setProcessingFailed(false);
       
       // Reset extracted information when a new file is selected
       setSuggestedTitle('');
@@ -161,6 +163,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     try {
       setIsProcessing(true);
       setUploadError(null);
+      setProcessingFailed(false);
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
       
       // Read file as base64
@@ -188,14 +191,20 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       console.log("Extracted data:", extractionData);
       
       if (extractionData) {
-        // Set extracted data
-        setSuggestedTitle(extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
+        // Set extracted data - clean up the title first
+        let cleanTitle = extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' ');
+        
+        // Remove prefixes like "1 " and suffixes like "OK" from the filename-based title
+        cleanTitle = cleanTitle.replace(/^\d+\s+/, '');
+        cleanTitle = cleanTitle.replace(/\s+OK$/i, '');
+        
+        setSuggestedTitle(cleanTitle);
         setSuggestedDescription(extractionData.conclusion || '');
         setExtractedKeywords(extractionData.keywords || []);
         setExtractedResearchers(extractionData.researchers || []);
         
         // Update form values
-        form.setValue('titulo', extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
+        form.setValue('titulo', cleanTitle);
         form.setValue('descricao', extractionData.conclusion || '');
         
         // Upload file to storage
@@ -232,11 +241,13 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           description: "Informações extraídas com sucesso do documento."
         });
       } else {
+        setProcessingFailed(true);
         throw new Error("Nenhuma informação foi extraída do documento");
       }
     } catch (error: any) {
       console.error('Error processing file:', error);
       setUploadError(error.message || "Ocorreu um erro ao processar o arquivo. Por favor, tente novamente ou forneça um link externo.");
+      setProcessingFailed(true);
       toast({
         variant: "destructive",
         title: "Erro no processamento",
@@ -248,7 +259,8 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         const suggestedTitleFromFilename = file.name
           .replace('.pdf', '')
           .replace(/_/g, ' ')
-          .replace(/^\d+\s+/, ''); // Remove leading numbers and spaces
+          .replace(/^\d+\s+/, '') // Remove leading numbers and spaces
+          .replace(/\s+OK$/i, ''); // Remove trailing OK
           
         setSuggestedTitle(suggestedTitleFromFilename);
         form.setValue('titulo', suggestedTitleFromFilename);
@@ -407,11 +419,31 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {(suggestedTitle || suggestedDescription || extractedKeywords.length > 0 || extractedResearchers.length > 0) && (
-          <Alert className="bg-muted">
-            <AlertTitle>Informações extraídas do documento</AlertTitle>
+        {/* Extracted information alert */}
+        {(extractedKeywords.length > 0 || extractedResearchers.length > 0 || suggestedTitle || suggestedDescription) && (
+          <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-muted"}>
+            <AlertTitle className="flex items-center">
+              {processingFailed ? (
+                <>
+                  <AlertCircle className="h-4 w-4 mr-2 text-yellow-500" />
+                  Processamento parcial do documento
+                </>
+              ) : (
+                "Informações extraídas do documento"
+              )}
+            </AlertTitle>
             <AlertDescription>
-              <p className="text-sm">Informações foram extraídas automaticamente do documento.</p>
+              {processingFailed ? (
+                <p className="text-sm text-muted-foreground mb-2">
+                  O processamento do documento foi parcial. Algumas informações podem estar incompletas.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-2">
+                  As informações abaixo foram extraídas automaticamente do documento.
+                </p>
+              )}
+              
+              {/* Display keywords */}
               {extractedKeywords.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm font-medium">Palavras-chave:</p>
@@ -424,6 +456,8 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                   </div>
                 </div>
               )}
+              
+              {/* Display researchers */}
               {extractedResearchers.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm font-medium">Pesquisadores:</p>
@@ -615,6 +649,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           </div>
         )}
 
+        {/* Display keyword fields only if we have extracted keywords */}
         {extractedKeywords.length > 0 && (
           <div className="space-y-2">
             <Label>Palavras-chave</Label>
@@ -630,6 +665,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           </div>
         )}
 
+        {/* Display researcher fields only if we have extracted researchers */}
         {extractedResearchers.length > 0 && (
           <div className="space-y-2">
             <Label>Pesquisadores</Label>
