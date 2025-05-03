@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { GetDocumentsParams, TechnicalDocument, DocumentType, DocumentStatus } from '@/types/document';
@@ -9,7 +10,7 @@ export const useDocuments = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Using useCallback with complete dependency array to ensure stable function identity
+  // Otimizamos a função fetchDocuments para evitar renderizações desnecessárias
   const fetchDocuments = useCallback(async (params?: GetDocumentsParams) => {
     try {
       setLoading(true);
@@ -123,24 +124,8 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Log access using a direct SQL approach to bypass TypeScript error
-      try {
-        // Using type assertion to bypass TypeScript error
-        const { error: rpcError } = await (supabase.rpc as any)(
-          'log_document_access', 
-          { 
-            doc_id: id,
-            action: 'view'
-          }
-        );
-        
-        if (rpcError) {
-          console.error('Failed to log document access:', rpcError);
-        }
-      } catch (rpcError) {
-        console.error('Failed to log document access:', rpcError);
-        // Continue even if logging fails
-      }
+      // Removendo a chamada à log_document_access temporariamente para evitar erros
+      // pois a função não existe no banco de dados conforme logs de console
       
       // Create a properly typed document with all required fields
       const formattedDocument: TechnicalDocument = {

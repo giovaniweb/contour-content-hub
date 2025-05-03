@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -29,7 +29,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       if (document?.id) {
         setExtractionProgress("Enviando requisição para o servidor...");
         
-        // Chamar a edge function com o URL completo para garantir que a requisição seja processada corretamente
+        // Chamar a edge function com o ID do documento
         const { data, error } = await supabase.functions.invoke('process-document', {
           body: { 
             documentId: document.id,
@@ -46,6 +46,8 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           setExtracting(false);
           return;
         }
+        
+        console.log("Resposta da função process-document:", data);
         
         if (data && data.success) {
           setExtractionProgress("Processamento concluído com sucesso!");
@@ -88,16 +90,32 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const handleDownloadPdf = () => {
     if (document.link_dropbox) {
       try {
+        // Verifica e corrige o formato da URL
         let url = document.link_dropbox;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
+        
+        // Se for uma URL de blob local, tratar de outra forma
+        if (url.startsWith('blob:')) {
+          // Abre diretamente em uma nova aba
+          window.open(url, '_blank');
+        } else {
+          // Para URLs externas, garantir que comecem com http ou https
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          
+          // Criar um elemento de âncora temporário para download
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.download = document.titulo || 'documento.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
         }
         
-        // Abrir o URL em uma nova aba para download
-        window.open(url, '_blank');
-        
         toast("Download iniciado", {
-          description: "O PDF foi aberto em uma nova aba"
+          description: "O PDF está sendo baixado ou aberto em nova aba"
         });
       } catch (error) {
         console.error("Erro no download:", error);

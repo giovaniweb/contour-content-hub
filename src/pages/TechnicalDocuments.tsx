@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,21 +25,30 @@ const TechnicalDocumentsPage: React.FC = () => {
     search: undefined,
   });
   
-  // Using a stable function reference to prevent loops
-  const applyFilters = useCallback(() => {
-    fetchDocuments(filters);
-  }, [filters, fetchDocuments]);
+  // Eliminamos o uso de useCallback que estava causando problemas
+  // e movemos a lógica de carregar documentos diretamente para o useEffect
   
-  // Effect to apply filters - Using the stable callback
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    // Evitamos o problema de loop infinito aplicando os filtros apenas quando necessário
+    const loadDocuments = async () => {
+      await fetchDocuments(filters);
+    };
+    
+    loadDocuments();
+    // Dependência agora inclui apenas fetchDocuments, não os filters
+    // para evitar o loop infinito
+  }, [fetchDocuments]);
   
   const handleFiltersChange = (newFilters: Partial<GetDocumentsParams>) => {
-    setFilters(prev => ({
-      ...prev,
+    // Aplicamos os novos filtros e então fazemos o fetch manualmente
+    const updatedFilters = {
+      ...filters,
       ...newFilters
-    }));
+    };
+    
+    setFilters(updatedFilters);
+    // Chamamos fetchDocuments explicitamente após atualizar os filtros
+    fetchDocuments(updatedFilters);
   };
   
   return (
