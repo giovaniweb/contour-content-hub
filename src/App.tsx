@@ -18,6 +18,8 @@ import Calendar from './pages/Calendar';
 import CustomGpt from './pages/CustomGpt';
 import MediaLibrary from './pages/MediaLibrary';
 import ScriptHistory from './pages/ScriptHistory';
+import ScriptValidation from './pages/ScriptValidation';
+import ScriptValidationPage from './pages/ScriptValidationPage';
 import { LanguageProvider } from './context/LanguageContext';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './components/theme-provider';
@@ -48,6 +50,8 @@ function App() {
             <Route path="/custom-gpt" element={<CustomGpt />} />
             <Route path="/media" element={<MediaLibrary />} />
             <Route path="/scripts" element={<ScriptHistory />} />
+            <Route path="/validate-script" element={<ScriptValidationPage />} />
+            <Route path="/script-validation" element={<ScriptValidation />} />
             <Route path="/documents" element={<TechnicalDocumentsPage />} />
             <Route path="/documents/:id" element={<DocumentDetailPage />} />
             <Route path="/equipments/:id" element={<EquipmentDetails />} />

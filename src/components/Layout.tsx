@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -30,7 +31,8 @@ import {
   LayoutDashboard,
   User,
   Users,
-  Settings2
+  Settings2,
+  CheckCircle
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -144,6 +146,14 @@ const Layout: React.FC<LayoutProps> = ({
                         <Link to="/scripts" className="flex items-center">
                           <History className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Histórico de Roteiros</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/validate-script" className="flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Validador de Roteiros</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
