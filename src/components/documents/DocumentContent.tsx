@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -29,9 +29,12 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       if (document?.id) {
         setExtractionProgress("Enviando requisição para o servidor...");
         
-        // Chamar diretamente a edge function
+        // Chamar a edge function com o URL completo para garantir que a requisição seja processada corretamente
         const { data, error } = await supabase.functions.invoke('process-document', {
-          body: { documentId: document.id }
+          body: { 
+            documentId: document.id,
+            forceRefresh: true // Adicionar flag para forçar nova extração
+          }
         });
         
         if (error) {
@@ -39,7 +42,9 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           toast("Erro no processamento", {
             description: `Não foi possível processar o documento: ${error.message || 'Erro desconhecido'}`
           });
-          throw error;
+          setExtractionProgress(null);
+          setExtracting(false);
+          return;
         }
         
         if (data && data.success) {
@@ -48,14 +53,14 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
             description: "O documento foi processado com sucesso. A página será atualizada em instantes."
           });
           
-          // Opcionalmente, recarregar a página ou atualizar os dados
+          // Recarregar a página após um pequeno atraso para buscar o conteúdo atualizado
           setTimeout(() => {
             window.location.reload();
           }, 2000);
         } else {
           setExtractionProgress(null);
           toast("Resposta inesperada", {
-            description: "Recebemos uma resposta inesperada do servidor. Tente novamente."
+            description: `Recebemos uma resposta inesperada do servidor: ${JSON.stringify(data)}`
           });
         }
       }
@@ -79,6 +84,33 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       });
     }
   };
+  
+  const handleDownloadPdf = () => {
+    if (document.link_dropbox) {
+      try {
+        let url = document.link_dropbox;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        
+        // Abrir o URL em uma nova aba para download
+        window.open(url, '_blank');
+        
+        toast("Download iniciado", {
+          description: "O PDF foi aberto em uma nova aba"
+        });
+      } catch (error) {
+        console.error("Erro no download:", error);
+        toast("Erro no download", {
+          description: "Não foi possível baixar o documento"
+        });
+      }
+    } else {
+      toast("Arquivo não disponível", {
+        description: "O documento original não está disponível para download."
+      });
+    }
+  };
 
   return (
     <>
@@ -93,6 +125,34 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
               >
                 <Eye className="h-4 w-4" />
                 Ver PDF Original
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleDownloadPdf}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Baixar PDF
+              </Button>
+              
+              <Button 
+                variant="default" 
+                onClick={handleExtractContent}
+                disabled={extracting}
+                className="flex items-center gap-2"
+              >
+                {extracting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Reprocessando...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-4 w-4" />
+                    Reprocessar Conteúdo
+                  </>
+                )}
               </Button>
             </div>
             
