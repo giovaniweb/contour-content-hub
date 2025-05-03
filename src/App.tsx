@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
@@ -18,7 +18,6 @@ import Calendar from './pages/Calendar';
 import CustomGpt from './pages/CustomGpt';
 import MediaLibrary from './pages/MediaLibrary';
 import ScriptHistory from './pages/ScriptHistory';
-import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './components/theme-provider';
@@ -31,35 +30,31 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="fluida-theme">
       <HelmetProvider>
-        <AuthProvider>
-          <LanguageProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/equipments" element={<AdminEquipments />} />
-                <Route path="/admin/content" element={<AdminContent />} />
-                <Route path="/admin/integrations" element={<AdminIntegrations />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/custom-gpt" element={<CustomGpt />} />
-                <Route path="/media" element={<MediaLibrary />} />
-                <Route path="/scripts" element={<ScriptHistory />} />
-                <Route path="/documents" element={<TechnicalDocumentsPage />} />
-                <Route path="/documents/:id" element={<DocumentDetailPage />} />
-                <Route path="/equipments/:id" element={<EquipmentDetails />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Router>
-            <Toaster />
-          </LanguageProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/equipments" element={<AdminEquipments />} />
+            <Route path="/admin/content" element={<AdminContent />} />
+            <Route path="/admin/integrations" element={<AdminIntegrations />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/custom-gpt" element={<CustomGpt />} />
+            <Route path="/media" element={<MediaLibrary />} />
+            <Route path="/scripts" element={<ScriptHistory />} />
+            <Route path="/documents" element={<TechnicalDocumentsPage />} />
+            <Route path="/documents/:id" element={<DocumentDetailPage />} />
+            <Route path="/equipments/:id" element={<EquipmentDetails />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </LanguageProvider>
       </HelmetProvider>
     </ThemeProvider>
   );

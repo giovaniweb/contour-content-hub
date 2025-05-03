@@ -65,14 +65,22 @@ export const useDocuments = () => {
       }
       
       // Transform data to match TechnicalDocument type
-      const formattedDocuments: TechnicalDocument[] = data.map(doc => ({
-        ...doc,
-        tipo: doc.tipo as DocumentType,
-        status: doc.status as DocumentStatus,
-        equipamento_nome: doc.equipamentos?.nome,
-        // Add empty array for idiomas_traduzidos if it doesn't exist
-        idiomas_traduzidos: doc.idiomas_traduzidos || []
-      }));
+      const formattedDocuments: TechnicalDocument[] = data.map(doc => {
+        const documentData = {
+          ...doc,
+          tipo: doc.tipo as DocumentType,
+          status: doc.status as DocumentStatus,
+          equipamento_nome: doc.equipamentos?.nome,
+          idiomas_traduzidos: [] as string[]
+        };
+        
+        // Handle idiomas_traduzidos if it exists in the database record
+        if ('idiomas_traduzidos' in doc && doc.idiomas_traduzidos) {
+          documentData.idiomas_traduzidos = doc.idiomas_traduzidos;
+        }
+        
+        return documentData;
+      });
       
       setDocuments(formattedDocuments);
     } catch (err: any) {
@@ -105,13 +113,16 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Log access using a raw SQL RPC call
+      // Log access using a direct SQL approach to bypass TypeScript error
       try {
-        // Use a direct SQL query approach since TypeScript doesn't recognize our custom function
-        const { error: rpcError } = await supabase.rpc('log_document_access', { 
-          doc_id: id,
-          action: 'view'
-        } as any); // Use type assertion to bypass TypeScript error
+        // Using type assertion with any to bypass TypeScript error
+        const { error: rpcError } = await supabase.rpc(
+          'log_document_access' as any, 
+          { 
+            doc_id: id,
+            action: 'view'
+          }
+        );
         
         if (rpcError) {
           console.error('Failed to log document access:', rpcError);
@@ -121,15 +132,29 @@ export const useDocuments = () => {
         // Continue even if logging fails
       }
       
-      // Ensure all required fields are present in the returned document
+      // Create a properly typed document with all required fields
       const formattedDocument: TechnicalDocument = {
-        ...data,
+        id: data.id,
+        titulo: data.titulo,
+        descricao: data.descricao || '',
         tipo: data.tipo as DocumentType,
+        equipamento_id: data.equipamento_id || '',
+        equipamento_nome: data.equipamentos?.nome || '',
+        link_dropbox: data.link_dropbox || '',
+        idioma_original: data.idioma_original || '',
+        idiomas_traduzidos: [],
         status: data.status as DocumentStatus,
-        equipamento_nome: data.equipamentos?.nome,
-        // Add empty array for idiomas_traduzidos if it doesn't exist
-        idiomas_traduzidos: data.idiomas_traduzidos || []
+        criado_por: data.criado_por || '',
+        data_criacao: data.data_criacao || '',
+        conteudo_extraido: data.conteudo_extraido || '',
+        preview_url: data.preview_url || '',
+        vetor_embeddings: data.vetor_embeddings || ''
       };
+      
+      // Add idiomas_traduzidos if it exists in the database record
+      if ('idiomas_traduzidos' in data && data.idiomas_traduzidos) {
+        formattedDocument.idiomas_traduzidos = data.idiomas_traduzidos;
+      }
       
       return formattedDocument;
     } catch (err: any) {
