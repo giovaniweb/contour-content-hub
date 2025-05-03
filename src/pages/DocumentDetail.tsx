@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -193,20 +192,20 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       try {
         toast("Iniciando download");
         
-        // Implementar download do arquivo
+        // Implement file download without using document.createElement
         let url = document.link_dropbox;
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           url = 'https://' + url;
         }
         
-        // Criar um link temporário e simular o clique
-        const link = document.createElement('a');
+        // Create a temporary link and simulate the click using DOM API (not document object)
+        const link = window.document.createElement('a');
         link.href = url;
         link.setAttribute('download', `${document.titulo}.pdf`);
         link.setAttribute('target', '_blank');
-        document.body.appendChild(link);
+        window.document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        window.document.body.removeChild(link);
       } catch (error) {
         toast("Erro no download");
       }

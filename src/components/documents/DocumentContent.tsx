@@ -16,8 +16,9 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
 
   const handleExtractContent = () => {
-    // Encontra o botão de extrair conteúdo na página pai
-    const extractButton = document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))');
+    // Instead of trying to find a DOM element on the document object,
+    // we need to use the global document object to query the DOM
+    const extractButton = window.document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))');
     if (extractButton instanceof HTMLButtonElement) {
       extractButton.click();
     } else {
