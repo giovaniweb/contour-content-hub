@@ -23,7 +23,7 @@ export const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: () => void) => {
+export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -103,6 +103,11 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       }
       
       setFile(selectedFile);
+      
+      // Reset extracted data when a new file is selected
+      if (resetExtractedData) {
+        resetExtractedData();
+      }
     }
   };
 
@@ -260,17 +265,22 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
 
       console.log("Submitting article payload:", articlePayload);
 
+      let savedArticleData = null;
+
       if (articleData && articleData.id) {
         // Update existing article
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('documentos_tecnicos')
           .update(articlePayload)
-          .eq('id', articleData.id);
+          .eq('id', articleData.id)
+          .select();
           
         if (error) {
           console.error("Error updating article:", error);
           throw error;
         }
+
+        savedArticleData = data ? data[0] : articleData;
 
         toast({
           title: "Artigo atualizado",
@@ -280,13 +290,15 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         // Create new article
         const { error, data } = await supabase
           .from('documentos_tecnicos')
-          .insert([articlePayload]);
+          .insert([articlePayload])
+          .select();
           
         if (error) {
           console.error("Error inserting article:", error);
           throw error;
         }
 
+        savedArticleData = data ? data[0] : null;
         console.log("Article created successfully:", data);
         toast({
           title: "Artigo criado",
@@ -294,7 +306,8 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         });
       }
 
-      onSuccess();
+      // Pass the saved article data to the success handler
+      onSuccess(savedArticleData);
     } catch (error: any) {
       console.error('Error saving article:', error);
       toast({

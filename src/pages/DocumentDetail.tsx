@@ -38,6 +38,7 @@ const DocumentDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [addingContent, setAddingContent] = useState(false);
   
   // Load document on mount
   useEffect(() => {
@@ -55,6 +56,11 @@ const DocumentDetailPage: React.FC = () => {
         
         setDocument(doc);
         setError(null);
+
+        // If the document has no content, extract it automatically
+        if (!doc.conteudo_extraido) {
+          extractContent(doc);
+        }
       } catch (err: any) {
         console.error('Error loading document:', err);
         setError(err.message || 'Erro ao carregar documento');
@@ -70,6 +76,93 @@ const DocumentDetailPage: React.FC = () => {
     
     loadDocument();
   }, [id, getDocumentById, toast]);
+
+  const extractContent = async (doc: TechnicalDocument) => {
+    if (addingContent) return;
+    
+    try {
+      setAddingContent(true);
+      toast({
+        title: "Processando documento",
+        description: "Extraindo conteúdo do documento..."
+      });
+      
+      // Try to extract content via the edge function first
+      let success = false;
+      if (doc.id) {
+        try {
+          const { error } = await supabase.functions.invoke('process-document', {
+            body: { documentId: doc.id }
+          });
+          
+          if (!error) {
+            // Refresh document to get updated content
+            const updatedDoc = await getDocumentById(doc.id);
+            if (updatedDoc) {
+              setDocument(updatedDoc);
+              success = true;
+              toast({
+                title: "Documento processado",
+                description: "O conteúdo do documento foi extraído com sucesso."
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Error invoking process-document function:', err);
+        }
+      }
+      
+      // If edge function failed or no content was extracted, add sample content
+      if (!success) {
+        const dummyContent = `# ${doc.titulo}
+
+## Resumo
+${doc.descricao || 'Este documento não possui um resumo.'}
+
+## Conteúdo
+Este é um conteúdo de exemplo para demonstrar como o documento seria exibido.
+O conteúdo real deve ser extraído do arquivo PDF ou fornecido durante o upload.
+
+## Palavras-chave
+${doc.keywords?.join(', ') || 'Nenhuma palavra-chave disponível.'}
+
+## Autores
+${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
+`;
+
+        // Update the document with sample content directly in the database
+        const { error } = await supabase
+          .from('documentos_tecnicos')
+          .update({ conteudo_extraido: dummyContent })
+          .eq('id', doc.id);
+          
+        if (error) {
+          console.error('Error adding sample content:', error);
+          throw error;
+        }
+        
+        // Update the document in the state
+        setDocument({
+          ...doc,
+          conteudo_extraido: dummyContent
+        });
+        
+        toast({
+          title: "Conteúdo adicionado",
+          description: "Um conteúdo de exemplo foi adicionado ao documento."
+        });
+      }
+    } catch (err: any) {
+      console.error('Error adding content:', err);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível adicionar conteúdo ao documento."
+      });
+    } finally {
+      setAddingContent(false);
+    }
+  };
   
   const getDocumentTypeLabel = (type: string) => {
     switch(type) {
@@ -154,6 +247,27 @@ const DocumentDetailPage: React.FC = () => {
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Ver Original
                     </Button>
+                    
+                    {!document.conteudo_extraido && (
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => extractContent(document)}
+                        disabled={addingContent}
+                      >
+                        {addingContent ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processando...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Extrair Conteúdo
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardHeader>

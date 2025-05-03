@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Send, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Loader2, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface DocumentQuestionsProps {
   document: TechnicalDocument;
@@ -21,7 +22,7 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
   ]);
 
   const handleSubmitQuestion = async () => {
-    if (!question.trim()) return;
+    if (!question.trim() || !document.conteudo_extraido) return;
 
     // Add user question to messages
     const userQuestion = question;
@@ -49,6 +50,20 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
       handleSubmitQuestion();
     }
   };
+
+  // Handle case when document has no content
+  if (!document.conteudo_extraido) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[400px]">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            Este documento não tem conteúdo extraído. Por favor, clique em "Extrair Conteúdo" no topo da página.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-250px)] min-h-[500px]">
