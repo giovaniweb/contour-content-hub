@@ -152,7 +152,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       // Upload file to storage
       const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
       
-      const { error: uploadError, data } = await supabase
+      const { error: uploadError, data: uploadData } = await supabase
         .storage
         .from('documents')
         .upload(fileName, file);
@@ -179,13 +179,17 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       if (response.error) throw new Error(response.error);
       
       // Update form with suggested values
-      const data = response.data;
-      if (data) {
-        setSuggestedTitle(file.name.replace('.pdf', '').replace(/_/g, ' '));
-        setSuggestedDescription(data.detailedDescription || '');
+      const responseData = response.data;
+      if (responseData) {
+        const extractedTitle = file.name.replace('.pdf', '').replace(/_/g, ' ');
+        setSuggestedTitle(extractedTitle);
         
-        form.setValue('titulo', file.name.replace('.pdf', '').replace(/_/g, ' '));
-        form.setValue('descricao', data.detailedDescription || '');
+        // Check if detailedDescription exists in the response
+        const description = responseData.detailedDescription || '';
+        setSuggestedDescription(description);
+        
+        form.setValue('titulo', extractedTitle);
+        form.setValue('descricao', description);
       }
       
       // Move to form step
