@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -100,9 +99,8 @@ const ScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      toast("Não foi possível carregar a lista de artigos.", {
-        variant: "destructive"
-      });
+      // Fix: Use Sonner's toast API correctly
+      toast.error("Não foi possível carregar a lista de artigos.");
     } finally {
       setIsLoading(false);
     }
@@ -118,8 +116,8 @@ const ScientificArticleManager: React.FC = () => {
     // After article is added, automatically extract content
     if (articleData?.id) {
       try {
-        toast("Extraindo conteúdo do documento...", {
-          variant: "default",
+        // Fix: Use Sonner's toast API correctly
+        toast.info("Extraindo conteúdo do documento...", {
           duration: 10000
         });
         
@@ -129,13 +127,11 @@ const ScientificArticleManager: React.FC = () => {
         
         if (error) {
           console.error('Error processing document:', error);
-          toast("Não foi possível extrair o conteúdo do documento.", {
-            variant: "destructive"
-          });
+          // Fix: Use Sonner's toast API correctly
+          toast.error("Não foi possível extrair o conteúdo do documento.");
         } else {
-          toast("O conteúdo do documento foi extraído com sucesso.", {
-            variant: "success"
-          });
+          // Fix: Use Sonner's toast API correctly
+          toast.success("O conteúdo do documento foi extraído com sucesso.");
         }
       } catch (err) {
         console.error('Error processing document:', err);
@@ -155,14 +151,12 @@ const ScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      toast("O artigo científico foi excluído com sucesso.", {
-        variant: "success"
-      });
+      // Fix: Use Sonner's toast API correctly
+      toast.success("O artigo científico foi excluído com sucesso.");
     } catch (error) {
       console.error('Error deleting article:', error);
-      toast("Não foi possível excluir o artigo científico.", {
-        variant: "destructive"
-      });
+      // Fix: Use Sonner's toast API correctly
+      toast.error("Não foi possível excluir o artigo científico.");
     }
   };
 
