@@ -19,6 +19,7 @@ export interface TechnicalDocument {
   data_criacao: string;
   conteudo_extraido?: string;
   preview_url?: string;
+  vetor_embeddings?: string;
 }
 
 export interface GetDocumentsParams {

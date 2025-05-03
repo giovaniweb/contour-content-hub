@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { GetDocumentsParams, TechnicalDocument, DocumentType } from '@/types/document';
+import { GetDocumentsParams, TechnicalDocument, DocumentType, DocumentStatus } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 
 export const useDocuments = () => {
@@ -68,6 +68,7 @@ export const useDocuments = () => {
       const formattedDocuments: TechnicalDocument[] = data.map(doc => ({
         ...doc,
         tipo: doc.tipo as DocumentType, // Cast to ensure it matches the enum type
+        status: doc.status as DocumentStatus, // Cast status to match the enum type
         equipamento_nome: doc.equipamentos?.nome,
         idiomas_traduzidos: doc.idiomas_traduzidos || []
       }));
@@ -103,16 +104,21 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Log access using a raw SQL RPC call instead of trying to use the document_access_history table directly
-      // We're using the custom function created in the migration
-      await supabase.rpc('log_document_access', { 
-        doc_id: id,
-        action: 'view'
-      });
+      // Log access using a raw SQL RPC call
+      try {
+        await supabase.rpc('log_document_access', { 
+          doc_id: id,
+          action: 'view'
+        });
+      } catch (rpcError) {
+        console.error('Failed to log document access:', rpcError);
+        // Continue even if logging fails
+      }
       
       return {
         ...data,
-        tipo: data.tipo as DocumentType, // Cast to ensure it matches the enum type
+        tipo: data.tipo as DocumentType,
+        status: data.status as DocumentStatus,
         equipamento_nome: data.equipamentos?.nome,
         idiomas_traduzidos: data.idiomas_traduzidos || []
       };
