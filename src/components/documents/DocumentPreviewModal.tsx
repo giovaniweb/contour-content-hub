@@ -14,12 +14,18 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   onOpenChange, 
   document 
 }) => {
+  // Garantir que temos uma URL válida para o PDF
+  const validPdfUrl = document.link_dropbox || document.preview_url;
+  
+  // Se não tivermos uma URL válida, ainda podemos exibir o modal,
+  // o componente PdfViewer tratará o caso de erro
+  
   return (
     <PdfViewer
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title={document.titulo}
-      pdfUrl={document.link_dropbox}
+      pdfUrl={validPdfUrl}
     />
   );
 };

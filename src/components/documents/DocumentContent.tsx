@@ -78,7 +78,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
 
   const handleViewOriginalPdf = () => {
-    if (document.link_dropbox) {
+    if (document?.link_dropbox) {
       console.log("Abrindo visualizador de PDF com URL:", document.link_dropbox);
       setPdfViewerOpen(true);
     } else {
@@ -89,7 +89,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
   
   const handleDownloadPdf = () => {
-    if (document.link_dropbox) {
+    if (document?.link_dropbox) {
       try {
         // Verifica e corrige o formato da URL
         let url = document.link_dropbox;
