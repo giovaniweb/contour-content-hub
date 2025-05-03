@@ -1,23 +1,33 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileWarning } from 'lucide-react';
+import { FileWarning, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 interface PdfViewerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   pdfUrl: string | undefined;
+  documentId?: string;
 }
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfUrl }) => {
+const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfUrl, documentId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
   
   // Function to ensure the PDF URL is correctly formatted
   useEffect(() => {
+    if (!isOpen) {
+      // Reset states when modal is closed
+      setLoading(true);
+      setError(null);
+      setFinalUrl('');
+      return;
+    }
+    
     if (!pdfUrl) {
       setError("URL do documento não encontrada");
       setLoading(false);
@@ -25,32 +35,49 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }
     
     try {
-      console.log("Trying to format PDF URL:", pdfUrl);
+      console.log(`Processing PDF URL for document ${documentId || 'unknown'}:`, pdfUrl);
       
-      // For local blob URLs
-      if (pdfUrl.startsWith('blob:')) {
-        setFinalUrl(pdfUrl);
+      let processedUrl = pdfUrl.trim();
+      
+      // For blob URLs (direct file references)
+      if (processedUrl.startsWith('blob:')) {
+        console.log("Using blob URL directly:", processedUrl);
+        setFinalUrl(processedUrl);
+      }
+      // For Dropbox URLs that need conversion to direct download links
+      else if (processedUrl.includes('dropbox.com') && !processedUrl.includes('dl=1')) {
+        // Convert sharing URL to direct download link if needed
+        if (processedUrl.includes('?')) {
+          processedUrl += '&dl=1';
+        } else {
+          processedUrl += '?dl=1';
+        }
+        console.log("Converted Dropbox URL:", processedUrl);
+        setFinalUrl(processedUrl);
       }
       // For external URLs, ensure they start with http or https
-      else if (!pdfUrl.startsWith('http://') && !pdfUrl.startsWith('https://')) {
-        setFinalUrl(`https://${pdfUrl}`);
+      else if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
+        processedUrl = `https://${processedUrl}`;
+        console.log("Added https protocol:", processedUrl);
+        setFinalUrl(processedUrl);
       } else {
-        setFinalUrl(pdfUrl);
+        console.log("Using URL as-is:", processedUrl);
+        setFinalUrl(processedUrl);
       }
       
-      console.log("URL formatada para PDF:", finalUrl || pdfUrl);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
-      setError("Erro ao processar URL do documento");
+      setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
-  }, [pdfUrl, isOpen]);
+  }, [pdfUrl, isOpen, documentId]);
 
   const handleIframeError = () => {
     console.error("Erro ao carregar o PDF:", finalUrl);
     setError("Não foi possível carregar o documento. Verifique se a URL está correta.");
+    setLoading(false);
     toast.error("Erro ao carregar o PDF", {
       description: "Não foi possível carregar o documento."
     });
@@ -61,13 +88,35 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     setLoading(false);
     setError(null);
   };
+  
+  const openInNewTab = () => {
+    if (finalUrl) {
+      window.open(finalUrl, '_blank');
+      toast("Abrindo documento", {
+        description: "O documento está sendo aberto em uma nova aba."
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
         <DialogHeader className="p-4">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Visualização do documento original</DialogDescription>
+          <DialogDescription className="flex justify-between items-center">
+            <span>Visualização do documento original</span>
+            {finalUrl && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={openInNewTab}
+                className="flex items-center gap-1"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Abrir em nova aba</span>
+              </Button>
+            )}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="w-full h-[80vh] bg-gray-100">
@@ -84,7 +133,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
               <p className="text-muted-foreground mb-4">
                 {error || "Talvez ele tenha sido movido, editado ou excluído."}
               </p>
-              <p className="text-sm text-muted-foreground">URL: {pdfUrl || "Indisponível"}</p>
+              <p className="text-sm text-muted-foreground mb-4">URL: {pdfUrl || "Indisponível"}</p>
+              
+              {finalUrl && (
+                <Button onClick={openInNewTab} className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Tentar abrir em nova aba</span>
+                </Button>
+              )}
             </div>
           ) : (
             finalUrl && (

@@ -20,15 +20,24 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   useEffect(() => {
     if (document && isOpen) {
       // Use link_dropbox as the primary source, and preview_url as fallback
-      const url = document.link_dropbox || document.preview_url;
+      const url = document.link_dropbox || document.preview_url || '';
       
       console.log("Document PDF URL source:", {
         link_dropbox: document.link_dropbox,
         preview_url: document.preview_url,
-        selectedUrl: url
+        selectedUrl: url,
+        documentId: document.id,
+        titulo: document.titulo
       });
       
+      if (!url) {
+        console.error("No PDF URL available for document:", document.id);
+      }
+      
       setValidPdfUrl(url);
+    } else {
+      // Reset URL when modal is closed
+      setValidPdfUrl(undefined);
     }
   }, [document, isOpen]);
   
@@ -36,8 +45,9 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
     <PdfViewer
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title={document.titulo}
+      title={document?.titulo || 'Documento'}
       pdfUrl={validPdfUrl}
+      documentId={document?.id}
     />
   );
 };

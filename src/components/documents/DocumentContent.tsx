@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,7 +79,13 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
 
   const handleViewOriginalPdf = () => {
     if (document?.link_dropbox || document?.preview_url) {
-      console.log("Abrindo visualizador de PDF com URL:", document.link_dropbox || document.preview_url);
+      console.log("Abrindo visualizador de PDF com URL:", {
+        link_dropbox: document.link_dropbox,
+        preview_url: document.preview_url,
+        id: document.id,
+        titulo: document.titulo
+      });
+      
       setPdfPreviewOpen(true);
     } else {
       toast("Arquivo não disponível", {
@@ -88,17 +95,28 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
   
   const handleDownloadPdf = () => {
-    if (document?.link_dropbox) {
+    if (document?.link_dropbox || document?.preview_url) {
       try {
         // Check and fix the URL format
-        let url = document.link_dropbox;
+        let url = document.link_dropbox || document.preview_url || '';
         
         // If it's a blob URL, handle it differently
         if (url.startsWith('blob:')) {
           // Open directly in a new tab
           window.open(url, '_blank');
-        } else {
-          // For external URLs, ensure they start with http or https
+        } 
+        // Handle Dropbox URLs
+        else if (url.includes('dropbox.com') && !url.includes('dl=1')) {
+          // Convert to direct download link
+          if (url.includes('?')) {
+            url += '&dl=1';
+          } else {
+            url += '?dl=1';
+          }
+          window.open(url, '_blank');
+        }
+        // For external URLs, ensure they start with http or https
+        else {
           if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'https://' + url;
           }
