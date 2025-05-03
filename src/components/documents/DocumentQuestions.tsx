@@ -52,8 +52,8 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
   };
 
   return (
-    <div className="flex flex-col h-[500px]">
-      <ScrollArea className="flex-1 pr-4">
+    <div className="flex flex-col h-[calc(100vh-250px)] min-h-[500px]">
+      <ScrollArea className="flex-1 pr-4 mb-4">
         <div className="space-y-4 pb-4">
           {messages.map((msg, index) => (
             <div 
@@ -82,7 +82,7 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
         </div>
       </ScrollArea>
       
-      <div className="mt-4 flex gap-2 items-end">
+      <div className="flex gap-2 items-end">
         <Textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}

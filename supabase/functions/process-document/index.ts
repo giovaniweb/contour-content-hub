@@ -46,22 +46,25 @@ serve(async (req) => {
 
 async function processFileContent(fileContent: string, corsHeaders: HeadersInit) {
   try {
-    console.log("Processing file content...");
+    console.log("Processing new file content...");
     
     // In a real implementation, you would extract text from the PDF
     // For demo purposes, we'll simulate text extraction with OpenAI
-    let extractedText = "This is simulated extracted text from the PDF.";
+    // Start with empty data to avoid any contamination from previous runs
+    let extractedText = "This is new extracted text from the PDF.";
+    
+    // The fileName or title info won't be available here, so we need to extract it from content
     
     // For PDF analysis, we would extract real text here
-    // Adding some mock content to simulate PDF processing
-    extractedText += "\n\nTitle: Effects Of Cryofrequency on Localized Adiposity in Flanks\n\n";
-    extractedText += "Authors: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima\n\n";
-    extractedText += "Abstract: This study evaluates the efficacy of cryofrequency treatment for localized adiposity.\n\n";
-    extractedText += "Keywords: cryofrequency, adiposity, treatment, flanks, effectiveness, subcutaneous fat, non-invasive\n\n";
-    extractedText += "Conclusion: Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.";
+    // Adding placeholder content that will be replaced by OpenAI extraction
+    extractedText += "\n\nTitle: [To be extracted from document]\n\n";
+    extractedText += "Authors: [To be extracted from document]\n\n";
+    extractedText += "Abstract: [To be extracted from document]\n\n";
+    extractedText += "Keywords: [To be extracted from document]\n\n";
+    extractedText += "Conclusion: [To be extracted from document]";
     
-    // Extract key information using OpenAI
-    const documentInfo = await extractDocumentInfo(extractedText);
+    // Extract key information using OpenAI - clear reset of any cached data
+    const documentInfo = await extractDocumentInfo(extractedText, true);
     
     return new Response(
       JSON.stringify({ 
@@ -119,12 +122,12 @@ async function processDocumentById(documentId: string, userId: string | null, co
     const fileArrayBuffer = await fileResponse.arrayBuffer();
     const fileBuffer = new Uint8Array(fileArrayBuffer);
 
-    // Extract text from document
+    // Extract text from document - start with fresh data
     let extractedText = "";
     try {
       // In a real implementation, you would use a library to extract text from different file types
       // This is a simplified version that assumes text extraction works
-      extractedText = "This is extracted text from the document. In a real implementation, you would use libraries like pdf.js, docx-parser, etc.";
+      extractedText = "This is newly extracted text from the document. In a real implementation, you would use libraries like pdf.js, docx-parser, etc.";
       
       // For demo purposes, adding some content based on the document title
       extractedText += `\n\nDocument Title: ${document.titulo}`;
@@ -135,36 +138,23 @@ async function processDocumentById(documentId: string, userId: string | null, co
       // Add some fake content based on document type
       switch (document.tipo) {
         case 'artigo_cientifico':
-          extractedText += `\n\nTitle: Effects Of Cryofrequency on Localized Adiposity in Flanks`;
-          extractedText += `\n\nAbstract: This scientific article presents groundbreaking research in the field of ${document.titulo.toLowerCase()}.`;
-          extractedText += `\n\nMethodology: The study used a double-blind approach with control groups to validate the findings.`;
-          extractedText += `\n\nResults: The results show significant improvements over previous methods, with p-value < 0.05.`;
-          extractedText += `\n\nConclusion: Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.`;
-          extractedText += `\n\nKeywords: cryofrequency, adiposity, treatment, flanks, effectiveness, subcutaneous fat, non-invasive`;
-          extractedText += `\n\nAuthor: Dr. Maria Silva`;
-          extractedText += `\n\nCorresponding Author: Dr. João Santos`;
-          extractedText += `\n\nAdditional Authors: Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima`;
+          extractedText += `\n\nTitle: [Will be extracted from document]`;
+          extractedText += `\n\nAbstract: [Will be extracted from document]`;
+          extractedText += `\n\nMethodology: [Will be extracted from document]`;
+          extractedText += `\n\nResults: [Will be extracted from document]`;
+          extractedText += `\n\nConclusion: [Will be extracted from document]`;
+          extractedText += `\n\nKeywords: [Will be extracted from document]`;
+          extractedText += `\n\nAuthors: [Will be extracted from document]`;
           break;
           
         case 'ficha_tecnica':
           extractedText += `\n\nSpecifications for ${document.titulo}:`;
-          extractedText += `\n- Power: 220V/110V adjustable`;
-          extractedText += `\n- Frequency: 60Hz`;
-          extractedText += `\n- Dimensions: 50cm x 40cm x 30cm`;
-          extractedText += `\n- Weight: 5kg`;
-          extractedText += `\n- Materials: Medical-grade silicone and stainless steel`;
-          extractedText += `\n- Certifications: ANVISA, CE, FDA`;
+          extractedText += `\n- [Technical specifications will be extracted]`;
           break;
           
         case 'protocolo':
           extractedText += `\n\nTreatment Protocol for ${document.titulo}:`;
-          extractedText += `\n\nStep 1: Patient assessment and eligibility verification.`;
-          extractedText += `\n\nStep 2: Prepare the treatment area with antiseptic solution.`;
-          extractedText += `\n\nStep 3: Apply the device with medium intensity for 15 minutes.`;
-          extractedText += `\n\nStep 4: Increase intensity gradually based on patient feedback.`;
-          extractedText += `\n\nStep 5: Complete the session with a cooling gel application.`;
-          extractedText += `\n\nFrequency: 1 session per week for 6 weeks.`;
-          extractedText += `\n\nExpected outcomes: Visible improvement after 3 sessions.`;
+          extractedText += `\n\n[Protocol steps will be extracted]`;
           break;
           
         default:
@@ -179,8 +169,8 @@ async function processDocumentById(documentId: string, userId: string | null, co
       );
     }
 
-    // Extract key information using OpenAI
-    const documentInfo = await extractDocumentInfo(extractedText);
+    // Extract key information using OpenAI - force reset of previous data
+    const documentInfo = await extractDocumentInfo(extractedText, true);
 
     // Update document in database with extracted text, embeddings, and suggestions
     const { error: updateError } = await supabase
@@ -227,16 +217,26 @@ async function processDocumentById(documentId: string, userId: string | null, co
   }
 }
 
-async function extractDocumentInfo(text: string) {
+async function extractDocumentInfo(text: string, forceReset = false) {
   try {
     if (!OPENAI_API_KEY) {
       console.warn("OpenAI API key not found, using fallback extraction");
       // Fallback to basic extraction if no API key
+      // Make sure we're not reusing any fixed data if forceReset is true
+      if (forceReset) {
+        return {
+          title: "",
+          conclusion: "",
+          keywords: [],
+          researchers: []
+        };
+      }
+      
       return {
-        title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-        conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-        keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
-        researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
+        title: "Document Title",
+        conclusion: "Document conclusion extracted from content.",
+        keywords: ["keyword1", "keyword2", "keyword3"],
+        researchers: ["Author 1", "Author 2"]
       };
     }
 
@@ -253,25 +253,29 @@ async function extractDocumentInfo(text: string) {
           { 
             role: 'system', 
             content: `You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format.
-            Extract ONLY the following fields:
+            Extract ONLY the following fields from the document:
             1. title (the actual title of the paper, not the filename)
             2. conclusion (from the conclusion section)
             3. keywords (as an array of all found keywords)
             4. researchers (as an array of ONLY actual authors/researchers of the document)
             
-            Return ONLY these fields in valid JSON format. Make sure to:
-            - Extract the actual title from the document content, not the filename
-            - Remove any prefixes like numbers or suffixes like "OK" from the title
-            - Format keywords and researchers as arrays even if empty
-            - For researchers/authors, ONLY include names that are EXPLICITLY identified as authors in the document
-            - Look for authors in sections labeled "Author", "Authors", "Autor", "Autores", "Corresponding Author", "Autor Correspondente"
-            - DO NOT include names that appear elsewhere in the document unless they are clearly identified as authors
-            - Include titles like Dr., Prof., Ph.D. if present with the author names
-            - If no authors can be confidently identified, return an empty array for researchers`
+            For researchers/authors, ONLY include names that are EXPLICITLY identified as authors in the document.
+            Look specifically for sections labeled:
+            - "Author", "Authors", "Autor", "Autores"
+            - "Corresponding Author", "Autor Correspondente"
+            - "Principal Investigator", "Investigador Principal"
+            - "Research Team", "Equipe de Pesquisa", "Equipo de Investigación"
+            
+            DO NOT include names that appear elsewhere in the document unless they are clearly identified as authors.
+            Include titles like Dr., Prof., Ph.D. if present with the author names.
+            If no authors can be confidently identified, return an empty array for researchers.
+            
+            Return the data as a valid JSON object with these fields.
+            If a field cannot be extracted, use an empty string for text fields or an empty array for lists.`
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, keywords, and ONLY the actual authors/researchers from this scientific article text:\n\n${text}` 
+            content: `Extract ONLY the title, conclusion, keywords, and authors from this scientific document text:\n\n${text}` 
           }
         ],
         response_format: { type: "json_object" }
@@ -294,30 +298,61 @@ async function extractDocumentInfo(text: string) {
         
         return {
           title: cleanTitle,
-          conclusion: extractedData.conclusion || null,
+          conclusion: extractedData.conclusion || "",
           keywords: extractedData.keywords || [],
           researchers: extractedData.researchers || []
         };
       } catch (parseError) {
         console.error("Error parsing OpenAI JSON response:", parseError);
+        // Return empty data if forceReset is true to avoid contamination
+        if (forceReset) {
+          return {
+            title: "",
+            conclusion: "",
+            keywords: [],
+            researchers: []
+          };
+        }
+        
         return {
-          title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-          conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-          keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
-          researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
+          title: "Document Title",
+          conclusion: "Error extracting conclusion.",
+          keywords: [],
+          researchers: []
         };
       }
     } else {
+      console.error(`OpenAI API error: ${openaiResponse.status}`);
+      // Return empty data if forceReset is true to avoid contamination
+      if (forceReset) {
+        return {
+          title: "",
+          conclusion: "",
+          keywords: [],
+          researchers: []
+        };
+      }
+      
       throw new Error(`OpenAI API error: ${openaiResponse.status}`);
     }
   } catch (error) {
     console.error("Error in extractDocumentInfo:", error);
+    // Return empty data if forceReset is true to avoid contamination
+    if (forceReset) {
+      return {
+        title: "",
+        conclusion: "",
+        keywords: [],
+        researchers: []
+      };
+    }
+    
     // Return fallback extraction if OpenAI call fails
     return {
-      title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-      conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-      keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
-      researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
+      title: "Document Title",
+      conclusion: "Error extracting conclusion.",
+      keywords: ["error"],
+      researchers: []
     };
   }
 }
