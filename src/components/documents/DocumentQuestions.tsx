@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare, Send, Loader2, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface DocumentQuestionsProps {
   document: TechnicalDocument;
@@ -30,18 +31,35 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
     setQuestion('');
     setIsLoading(true);
 
-    // In a real implementation, this would call an API endpoint to process the question
-    // For this demo, we'll simulate a response
-    setTimeout(() => {
+    try {
+      // In a real implementation, this would call an API endpoint to process the question
+      // For now, we'll simulate a response
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+      
       setMessages(prev => [
         ...prev, 
         { 
           role: 'assistant', 
-          content: `Baseado no documento "${document.titulo}", posso informar que esta é uma resposta simulada. Em uma implementação real, eu processaria sua pergunta utilizando o conteúdo completo do documento e forneceria uma resposta precisa.` 
+          content: `Baseado no documento "${document.titulo}", posso informar que esta é uma resposta simulada. Em uma implementação real, eu processaria sua pergunta utilizando o conteúdo completo do documento e forneceria uma resposta precisa.
+          
+O documento trata sobre ${document.descricao || 'um tópico especializado'} e contém informações relevantes sobre esse assunto.`
         }
       ]);
+      
+      toast({
+        title: "Pergunta processada",
+        description: "Sua pergunta foi respondida com base no conteúdo do documento."
+      });
+    } catch (error) {
+      console.error("Error processing question:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível processar sua pergunta. Tente novamente."
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -81,7 +99,12 @@ const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
                     : 'bg-muted'
                 }`}
               >
-                {msg.content}
+                {msg.content.split('\n').map((text, i) => (
+                  <React.Fragment key={i}>
+                    {text}
+                    <br />
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           ))}

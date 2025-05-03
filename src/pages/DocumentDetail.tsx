@@ -24,10 +24,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/use-documents';
 import { TechnicalDocument } from '@/types/document';
+import { toast } from 'sonner';
 
 import DocumentContent from '@/components/documents/DocumentContent';
 import DocumentActions from '@/components/documents/DocumentActions';
 import DocumentQuestions from '@/components/documents/DocumentQuestions';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const DocumentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +41,8 @@ const DocumentDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('content');
   const [addingContent, setAddingContent] = useState(false);
+  const [contentProcessed, setContentProcessed] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   
   // Load document on mount
   useEffect(() => {
@@ -57,8 +61,8 @@ const DocumentDetailPage: React.FC = () => {
         setDocument(doc);
         setError(null);
 
-        // If the document has no content, extract it automatically
-        if (!doc.conteudo_extraido) {
+        // Only attempt content extraction if we haven't done it yet
+        if (!doc.conteudo_extraido && !contentProcessed) {
           extractContent(doc);
         }
       } catch (err: any) {
@@ -75,7 +79,7 @@ const DocumentDetailPage: React.FC = () => {
     };
     
     loadDocument();
-  }, [id, getDocumentById, toast]);
+  }, [id, getDocumentById, contentProcessed]);
 
   const extractContent = async (doc: TechnicalDocument) => {
     if (addingContent) return;
@@ -152,6 +156,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           description: "Um conteúdo de exemplo foi adicionado ao documento."
         });
       }
+
+      // Mark content as processed to prevent infinite loop
+      setContentProcessed(true);
     } catch (err: any) {
       console.error('Error adding content:', err);
       toast({
@@ -184,7 +191,61 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   
   const handleOpenOriginal = () => {
     if (document?.link_dropbox) {
-      window.open(document.link_dropbox, '_blank');
+      // Check if the URL starts with http or https
+      let url = document.link_dropbox;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      window.open(url, '_blank');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Link não disponível",
+        description: "Este documento não possui um link para o arquivo original."
+      });
+    }
+  };
+  
+  const handleDownloadFile = async () => {
+    if (document?.link_dropbox) {
+      try {
+        toast({
+          title: "Download iniciado",
+          description: "Seu download começará em instantes..."
+        });
+        
+        // Implement download logic based on link_dropbox URL
+        // For now, just open in a new tab as fallback
+        let url = document.link_dropbox;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        window.open(url, '_blank');
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro no download",
+          description: "Não foi possível baixar o arquivo."
+        });
+      }
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Arquivo não disponível",
+        description: "Este documento não possui um arquivo para download."
+      });
+    }
+  };
+  
+  const openPreviewModal = () => {
+    if (document?.preview_url) {
+      setPreviewModalOpen(true);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Prévia não disponível",
+        description: "Este documento não possui uma prévia disponível."
+      });
     }
   };
   
@@ -238,7 +299,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
               <CardHeader className="pb-3">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <CardTitle>{document.titulo}</CardTitle>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -246,6 +307,15 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Ver Original
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleDownloadFile}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
                     </Button>
                     
                     {!document.conteudo_extraido && (
@@ -354,6 +424,20 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           </div>
         </div>
       </div>
+      
+      {/* Document preview modal */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          {document?.preview_url && (
+            <iframe 
+              src={document.preview_url} 
+              title={document.titulo}
+              className="w-full h-[80vh]"
+              sandbox="allow-same-origin allow-scripts"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
