@@ -197,7 +197,9 @@ export type Database = {
           equipamento_id: string | null
           id: string
           idioma_original: string | null
+          keywords: string[] | null
           link_dropbox: string | null
+          researchers: string[] | null
           status: string | null
           tipo: string
           titulo: string
@@ -211,7 +213,9 @@ export type Database = {
           equipamento_id?: string | null
           id?: string
           idioma_original?: string | null
+          keywords?: string[] | null
           link_dropbox?: string | null
+          researchers?: string[] | null
           status?: string | null
           tipo: string
           titulo: string
@@ -225,7 +229,9 @@ export type Database = {
           equipamento_id?: string | null
           id?: string
           idioma_original?: string | null
+          keywords?: string[] | null
           link_dropbox?: string | null
+          researchers?: string[] | null
           status?: string | null
           tipo?: string
           titulo?: string

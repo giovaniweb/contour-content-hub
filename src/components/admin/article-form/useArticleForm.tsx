@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -236,11 +237,14 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
+      console.log("Submitting form with values:", values);
+      console.log("Keywords:", extractedKeywords);
+      console.log("Researchers:", extractedResearchers);
       
       // Use the fileUrl from the upload step or the link_dropbox value
       const finalFileUrl = fileUrl || values.link_dropbox || null;
       
-      // Store keywords and researchers as separate fields instead of in metadata
+      // Store keywords and researchers directly in their dedicated columns
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
@@ -250,10 +254,11 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         link_dropbox: finalFileUrl,
         status: 'ativo',
         criado_por: (await supabase.auth.getUser()).data.user?.id || null,
-        // Store as string arrays directly - if these columns don't exist, we'll need to add them
         keywords: extractedKeywords,
         researchers: extractedResearchers
       };
+
+      console.log("Submitting article payload:", articlePayload);
 
       if (articleData && articleData.id) {
         // Update existing article
@@ -262,7 +267,10 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
           .update(articlePayload)
           .eq('id', articleData.id);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating article:", error);
+          throw error;
+        }
 
         toast({
           title: "Artigo atualizado",
@@ -270,12 +278,16 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         });
       } else {
         // Create new article
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('documentos_tecnicos')
           .insert([articlePayload]);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error inserting article:", error);
+          throw error;
+        }
 
+        console.log("Article created successfully:", data);
         toast({
           title: "Artigo criado",
           description: "O novo artigo científico foi adicionado com sucesso."
@@ -283,7 +295,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving article:', error);
       toast({
         variant: "destructive",

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -113,6 +112,7 @@ const ScientificArticleManager: React.FC = () => {
       
       if (error) throw error;
       
+      console.log("Fetched articles:", data);
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
