@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import React from "react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Lightbulb, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ExtractedInfoProps {
@@ -9,37 +9,47 @@ interface ExtractedInfoProps {
   extractedResearchers: string[];
 }
 
-const ExtractedInfo: React.FC<ExtractedInfoProps> = ({
+const ExtractedInfo: React.FC<ExtractedInfoProps> = ({ 
   extractedKeywords,
-  extractedResearchers
+  extractedResearchers 
 }) => {
-  if (extractedKeywords.length === 0 && extractedResearchers.length === 0) {
+  if (!extractedKeywords.length && !extractedResearchers.length) {
     return null;
   }
 
   return (
-    <Alert>
-      <Info className="h-4 w-4" />
-      <AlertTitle>Informações extraídas</AlertTitle>
-      <AlertDescription>
-        <div className="mt-2 space-y-2">
+    <Alert className="bg-blue-50 border-blue-200">
+      <Lightbulb className="h-4 w-4 text-blue-600" />
+      <AlertTitle className="text-blue-700">Informações extraídas automaticamente</AlertTitle>
+      <AlertDescription className="text-blue-600">
+        <div className="space-y-3 mt-2">
           {extractedKeywords.length > 0 && (
             <div>
-              <p className="text-sm font-medium mb-1">Palavras-chave:</p>
+              <div className="flex items-center mb-1">
+                <Tag className="h-3.5 w-3.5 mr-1.5" />
+                <span className="text-sm font-medium">Palavras-chave:</span>
+              </div>
               <div className="flex flex-wrap gap-1">
-                {extractedKeywords.map((keyword, i) => (
-                  <Badge key={i} variant="secondary">{keyword}</Badge>
+                {extractedKeywords.map((keyword, index) => (
+                  <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    {keyword}
+                  </Badge>
                 ))}
               </div>
             </div>
           )}
-          
+
           {extractedResearchers.length > 0 && (
             <div>
-              <p className="text-sm font-medium mb-1">Pesquisadores:</p>
+              <div className="flex items-center mb-1">
+                <User className="h-3.5 w-3.5 mr-1.5" />
+                <span className="text-sm font-medium">Pesquisadores:</span>
+              </div>
               <div className="flex flex-wrap gap-1">
-                {extractedResearchers.map((researcher, i) => (
-                  <Badge key={i} variant="outline">{researcher}</Badge>
+                {extractedResearchers.map((researcher, index) => (
+                  <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    {researcher}
+                  </Badge>
                 ))}
               </div>
             </div>

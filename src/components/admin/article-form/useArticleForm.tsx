@@ -1,8 +1,10 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useEquipments } from "@/hooks/useEquipments";
+import { processFileContent, uploadFileToStorage } from "@/services/documentProcessing";
 
 interface ArticleData {
   id?: string;
@@ -25,45 +27,29 @@ export type FormValues = z.infer<typeof formSchema>;
 
 export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void) => {
   const { toast } = useToast();
+  const { equipments } = useEquipments();
+  
+  // Estado para controle da submissão do formulário
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Estados para controle do upload e processamento de arquivo
   const [isProcessing, setIsProcessing] = useState(false);
-  const [equipments, setEquipments] = useState<{id: string, nome: string}[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [uploadStep, setUploadStep] = useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
+  
+  // Estados para informações extraídas do documento
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
+  
+  // Estados para erros e progresso
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
   const [processingFailed, setProcessingFailed] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchEquipments = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('equipamentos')
-          .select('id, nome')
-          .eq('ativo', true)
-          .order('nome');
-          
-        if (error) throw error;
-        
-        setEquipments(data || []);
-      } catch (error) {
-        console.error('Error fetching equipments:', error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao buscar equipamentos",
-          description: "Não foi possível carregar a lista de equipamentos."
-        });
-      }
-    };
-    
-    fetchEquipments();
-  }, [toast]);
-
+  // Função para resetar os dados extraídos
   const resetExtractedData = useCallback(() => {
     console.log("Resetting extracted data");
     setSuggestedTitle('');
@@ -71,18 +57,20 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
     setExtractedKeywords([]);
     setExtractedResearchers([]);
     setProcessingFailed(false);
+    setUploadError(null);
   }, []);
 
+  // Trata a mudança de arquivo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
+      
+      // Reseta estados anteriores
       setUploadError(null);
       setProcessingFailed(false);
-      
-      // Reset all extracted information when a new file is selected
       resetExtractedData();
       
-      // Check if file is PDF
+      // Validações do arquivo
       if (selectedFile.type !== 'application/pdf') {
         toast({
           variant: "destructive",
@@ -92,7 +80,6 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         return;
       }
       
-      // Check file size (max 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         toast({
           variant: "destructive",
@@ -103,14 +90,10 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       }
       
       setFile(selectedFile);
-      
-      // Reset extracted data when a new file is selected
-      if (resetExtractedData) {
-        resetExtractedData();
-      }
     }
   };
 
+  // Processa o arquivo para extração de informações
   const handleFileUpload = async () => {
     if (!file) {
       toast({
@@ -125,12 +108,11 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       setIsProcessing(true);
       setUploadError(null);
       setProcessingFailed(false);
-      setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
-      
-      // Reset all extracted data before processing new file
       resetExtractedData();
       
-      // Read file as base64
+      setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
+      
+      // Ler arquivo como base64
       const fileReader = new FileReader();
       const fileContentPromise = new Promise<string>((resolve, reject) => {
         fileReader.onload = (e) => resolve(e.target?.result as string);
@@ -141,88 +123,50 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       
       setProcessingProgress("Analisando conteúdo do documento...");
       
-      // Process document content with edge function
-      const processResponse = await supabase.functions.invoke('process-document', {
-        body: { fileContent: fileContent.split(',')[1] } // Remove data URL prefix
-      });
+      // Extrair conteúdo do documento
+      const extractionResult = await processFileContent(fileContent.split(',')[1]);
       
-      if (processResponse.error) {
-        console.error("Error processing document:", processResponse.error);
-        throw new Error("Falha ao extrair conteúdo do documento");
+      if (extractionResult.error) {
+        throw new Error(extractionResult.error);
       }
       
-      const extractionData = processResponse.data;
-      console.log("Extracted data:", extractionData);
-      
-      if (extractionData) {
-        // Set extracted data
-        setSuggestedTitle(extractionData.title || '');
-        setSuggestedDescription(extractionData.conclusion || '');
-        setExtractedKeywords(extractionData.keywords || []);
-        setExtractedResearchers(extractionData.researchers || []);
+      // Definir dados extraídos
+      setSuggestedTitle(extractionResult.title || '');
+      setSuggestedDescription(extractionResult.conclusion || '');
+      setExtractedKeywords(extractionResult.keywords || []);
+      setExtractedResearchers(extractionResult.researchers || []);
 
-        // Upload file to storage
-        setProcessingProgress("Enviando arquivo para armazenamento...");
-        try {
-          const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-          
-          // In production, use the storage API
-          // For development, we'll mock the storage upload success
-          /* Uncomment for production 
-          const { error: uploadError, data: uploadData } = await supabase
-            .storage
-            .from('documents')
-            .upload(fileName, file);
-          */
-          
-          // For development (mocking success):
-          const uploadError = null;
-          const uploadData = { path: fileName };
-          
-          if (!uploadError && uploadData) {
-            // For development (mock URL):
-            const tempFileUrl = URL.createObjectURL(file);
-            setFileUrl(tempFileUrl);
-            
-            /* Uncomment for production:
-            const { data: urlData } = supabase
-              .storage
-              .from('documents')
-              .getPublicUrl(fileName);
-              
-            setFileUrl(urlData.publicUrl);
-            */
-          } else {
-            console.warn("Storage upload failed:", uploadError);
-            setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
-          }
-        } catch (storageError: any) {
-          console.warn("Error during storage upload:", storageError);
-          setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
-        }
-        
-        // Move to form step right away
-        setProcessingProgress(null);
-        setUploadStep('form');
-        toast({
-          title: "Documento processado",
-          description: "Informações extraídas com sucesso do documento."
-        });
-      } else {
-        setProcessingFailed(true);
-        throw new Error("Nenhuma informação foi extraída do documento");
+      // Upload do arquivo para storage
+      setProcessingProgress("Enviando arquivo para armazenamento...");
+      
+      try {
+        const publicUrl = await uploadFileToStorage(file);
+        setFileUrl(publicUrl);
+      } catch (storageError: any) {
+        console.warn("Error during storage upload:", storageError);
+        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
       }
+      
+      // Mover para o passo do formulário
+      setProcessingProgress(null);
+      setUploadStep('form');
+      
+      toast({
+        title: "Documento processado",
+        description: "Informações extraídas com sucesso do documento."
+      });
     } catch (error: any) {
       console.error('Error processing file:', error);
-      setUploadError(error.message || "Ocorreu um erro ao processar o arquivo. Por favor, tente novamente ou forneça um link externo.");
+      setUploadError(error.message || "Ocorreu um erro ao processar o arquivo.");
       setProcessingFailed(true);
+      
       toast({
         variant: "destructive",
         title: "Erro no processamento",
         description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
       
-      // Even on error, try to prepopulate the form with the filename at least
+      // Mesmo com erro, tenta usar o nome do arquivo como título
       if (file) {
         const suggestedTitleFromFilename = file.name
           .replace('.pdf', '')
@@ -230,7 +174,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
           
         setSuggestedTitle(suggestedTitleFromFilename);
         
-        // Continue to form step even when extraction fails
+        // Continuar para o formulário mesmo que a extração falhe
         setUploadStep('form');
       }
     } finally {
@@ -239,17 +183,16 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
     }
   };
 
+  // Submissão do formulário
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
       console.log("Submitting form with values:", values);
-      console.log("Keywords:", extractedKeywords);
-      console.log("Researchers:", extractedResearchers);
       
-      // Use the fileUrl from the upload step or the link_dropbox value
+      // Usar a fileUrl do passo de upload ou o valor link_dropbox
       const finalFileUrl = fileUrl || values.link_dropbox || null;
       
-      // Store keywords and researchers directly in their dedicated columns
+      // Construir payload do artigo
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
@@ -268,7 +211,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       let savedArticleData = null;
 
       if (articleData && articleData.id) {
-        // Update existing article
+        // Atualizar artigo existente
         const { error, data } = await supabase
           .from('documentos_tecnicos')
           .update(articlePayload)
@@ -287,7 +230,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
           description: "O artigo científico foi atualizado com sucesso."
         });
       } else {
-        // Create new article
+        // Criar novo artigo
         const { error, data } = await supabase
           .from('documentos_tecnicos')
           .insert([articlePayload])
@@ -299,14 +242,18 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         }
 
         savedArticleData = data ? data[0] : null;
-        console.log("Article created successfully:", data);
         toast({
           title: "Artigo criado",
           description: "O novo artigo científico foi adicionado com sucesso."
         });
       }
 
-      // Pass the saved article data to the success handler
+      // Resetar dados para evitar persistência entre cadastros
+      resetExtractedData();
+      setFile(null);
+      setFileUrl(null);
+      
+      // Passar os dados salvos para o handler de sucesso
       onSuccess(savedArticleData);
     } catch (error: any) {
       console.error('Error saving article:', error);

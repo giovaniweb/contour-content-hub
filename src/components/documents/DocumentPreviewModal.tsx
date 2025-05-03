@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import PdfViewer from './PdfViewer';
 import { toast } from 'sonner';
+import { isPdfUrlValid } from '@/utils/pdfUtils';
 
 interface DocumentPreviewModalProps {
   isOpen: boolean;
@@ -17,10 +18,16 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 }) => {
   const [validPdfUrl, setValidPdfUrl] = useState<string | undefined>(undefined);
   
-  // Processar a URL do PDF quando o documento ou o estado do modal muda
+  // Limpa o estado quando o modal é fechado
+  useEffect(() => {
+    if (!isOpen) {
+      setValidPdfUrl(undefined);
+    }
+  }, [isOpen]);
+  
+  // Processa a URL do PDF quando o documento ou o estado do modal muda
   useEffect(() => {
     if (!document || !isOpen) {
-      setValidPdfUrl(undefined);
       return;
     }
     
@@ -28,14 +35,14 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
       console.log("Verificando URLs disponíveis para o documento:", document.id);
       
       // Verificar se temos alguma URL válida
-      if (document.link_dropbox && document.link_dropbox.trim() !== '') {
+      if (document.link_dropbox && isPdfUrlValid(document.link_dropbox)) {
         console.log("Usando link_dropbox:", document.link_dropbox);
         setValidPdfUrl(document.link_dropbox);
-      } else if (document.preview_url && document.preview_url.trim() !== '') {
+      } else if (document.preview_url && isPdfUrlValid(document.preview_url)) {
         console.log("Usando preview_url:", document.preview_url);
         setValidPdfUrl(document.preview_url);
       } else {
-        console.error("Nenhuma URL de PDF disponível para o documento:", document.id);
+        console.error("Nenhuma URL de PDF válida disponível para o documento:", document.id);
         toast("Nenhuma URL de PDF disponível para este documento");
         setValidPdfUrl(undefined);
         // Fechar o modal se não houver URL

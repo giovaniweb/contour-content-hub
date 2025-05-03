@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { FileWarning, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { processPdfUrl, openPdfInNewTab } from '@/utils/pdfUtils';
 
 interface PdfViewerProps {
   isOpen: boolean;
@@ -18,11 +19,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
 
+  // Efeito para processar a URL do PDF quando o modal é aberto
   useEffect(() => {
+    // Se o modal estiver fechado, não fazemos nada
     if (!isOpen) {
       return;
     }
     
+    // Reset dos estados no início
+    setLoading(true);
+    setError(null);
+    setFinalUrl('');
+    
+    // Verificamos se temos uma URL
     if (!pdfUrl) {
       setLoading(false);
       setError("URL do documento não encontrada");
@@ -30,43 +39,15 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }
 
     console.log(`Preparando visualização do PDF (${documentId || 'unknown'}):`, pdfUrl);
-    setLoading(true);
-    setError(null);
       
     try {
-      let processedUrl = pdfUrl.trim();
+      // Processamos a URL usando nossa utilidade
+      const { processedUrl } = processPdfUrl(pdfUrl);
       
-      // Para URLs blob, usamos diretamente
-      if (processedUrl.startsWith('blob:')) {
-        console.log("Usando URL blob diretamente:", processedUrl);
+      if (processedUrl) {
         setFinalUrl(processedUrl);
-      }
-      // Para URLs do Dropbox
-      else if (processedUrl.includes('dropbox.com')) {
-        if (!processedUrl.includes('dl=1')) {
-          processedUrl = processedUrl.includes('?') 
-            ? `${processedUrl}&dl=1` 
-            : `${processedUrl}?dl=1`;
-        }
-        console.log("URL Dropbox processada:", processedUrl);
-        setFinalUrl(processedUrl);
-      }
-      // Para URLs do Google Drive
-      else if (processedUrl.includes('drive.google.com')) {
-        if (processedUrl.includes('/view')) {
-          processedUrl = processedUrl.replace('/view', '/preview');
-        }
-        console.log("URL Google Drive processada:", processedUrl);
-        setFinalUrl(processedUrl);
-      }
-      // Para outras URLs
-      else {
-        // Garantir que a URL começa com http ou https
-        if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
-          processedUrl = `https://${processedUrl}`;
-        }
-        console.log("URL genérica processada:", processedUrl);
-        setFinalUrl(processedUrl);
+      } else {
+        setError("URL do documento inválida");
       }
     } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
@@ -76,27 +57,35 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }
   }, [pdfUrl, isOpen, documentId]);
 
+  // Função para abrir o PDF em uma nova aba
   const openInNewTab = () => {
-    if (finalUrl) {
-      window.open(finalUrl, '_blank', 'noopener,noreferrer');
-      toast("Abrindo documento", {
-        description: "O documento está sendo aberto em uma nova aba."
-      });
-    } else if (pdfUrl) {
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-      toast("Abrindo documento original", {
-        description: "Abrindo a URL original em uma nova aba."
-      });
+    try {
+      if (finalUrl) {
+        openPdfInNewTab(finalUrl, title);
+        toast("Abrindo documento", {
+          description: "O documento está sendo aberto em uma nova aba."
+        });
+      } else if (pdfUrl) {
+        openPdfInNewTab(pdfUrl, title);
+        toast("Abrindo documento original", {
+          description: "Abrindo a URL original em uma nova aba."
+        });
+      } else {
+        toast.error("URL do documento não encontrada");
+      }
+    } catch (error: any) {
+      console.error("Erro ao abrir documento:", error);
+      toast.error(error.message || "Não foi possível abrir o documento");
     }
   };
   
+  // Função para tentar novamente carregar o PDF
   const handleRetry = () => {
     setLoading(true);
     setError(null);
-    // Forçar a reavaliação do useEffect
     setFinalUrl('');
+    
     setTimeout(() => {
-      // Pequeno atraso para garantir que o estado seja atualizado
       toast("Tentando novamente", {
         description: "Recarregando o documento..."
       });

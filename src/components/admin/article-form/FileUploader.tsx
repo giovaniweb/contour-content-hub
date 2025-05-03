@@ -1,12 +1,11 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { FileUp, Upload, Loader2, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from 'lucide-react';
 
 interface FileUploaderProps {
   file: File | null;
@@ -25,8 +24,6 @@ interface FileUploaderProps {
 const FileUploader: React.FC<FileUploaderProps> = ({
   file,
   setFile,
-  fileUrl,
-  setFileUrl,
   isProcessing,
   uploadError,
   processingProgress,
@@ -35,46 +32,28 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   onSetUploadStep,
   onResetData
 }) => {
-  const { toast } = useToast();
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      
-      // Check if file is PDF
-      if (selectedFile.type !== 'application/pdf') {
-        toast({
-          variant: "destructive",
-          title: "Formato inválido",
-          description: "Por favor, selecione um arquivo em formato PDF."
-        });
-        return;
-      }
-      
-      // Check file size (max 10MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "Arquivo muito grande",
-          description: "O tamanho máximo permitido é 10MB."
-        });
-        return;
-      }
-      
-      setFile(selectedFile);
-      
-      // Reset extracted data when a new file is selected
-      if (onResetData) {
-        onResetData();
-      }
+  // Função para limpar o arquivo e dados relacionados
+  const clearFile = () => {
+    setFile(null);
+    if (onResetData) {
+      onResetData();
     }
   };
 
-  // Upload step UI
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Sempre limpa o estado anterior completamente
+    clearFile();
+    
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {uploadError && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erro</AlertTitle>
           <AlertDescription>{uploadError}</AlertDescription>
         </Alert>
@@ -100,41 +79,56 @@ const FileUploader: React.FC<FileUploaderProps> = ({
               accept="application/pdf"
               onChange={handleFileChange}
               className="hidden"
+              disabled={isProcessing}
             />
           </label>
         </div>
-        {file && (
-          <Card className="mt-4">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                </div>
+        
+        {file && !isProcessing && (
+          <div className="mt-4 bg-muted/30 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{file.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {(file.size / (1024 * 1024)).toFixed(2)} MB
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={clearFile}
+                  disabled={isProcessing}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
                 <Button 
                   onClick={onProcessFile}
                   disabled={isProcessing}
                 >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {processingProgress || "Processando..."}
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Processar Artigo
-                    </>
-                  )}
+                  <Upload className="mr-2 h-4 w-4" />
+                  Processar Artigo
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
         
-        <div className="mt-4">
+        {isProcessing && (
+          <div className="mt-4 bg-muted/30 p-4 rounded-lg">
+            <div className="flex items-center">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin text-primary" />
+              <div>
+                <p className="font-medium">Processando arquivo</p>
+                <p className="text-sm text-muted-foreground">
+                  {processingProgress || "Aguarde enquanto processamos o arquivo..."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
             Ou <button 
               type="button" 

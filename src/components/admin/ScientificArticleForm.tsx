@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -48,22 +48,40 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     onSubmit,
     resetExtractedData,
     formSchema
-  } = useArticleForm(articleData, (data) => onSuccess(data));
+  } = useArticleForm(articleData, (data) => {
+    // Limpar o formulário antes de chamar onSuccess
+    form.reset();
+    resetExtractedData();
+    setFile(null);
+    setFileUrl(null);
+    onSuccess(data);
+  });
   
   // Initialize form using React Hook Form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      titulo: articleData?.titulo || suggestedTitle || "",
-      descricao: articleData?.descricao || suggestedDescription || "",
+      titulo: articleData?.titulo || "",
+      descricao: articleData?.descricao || "",
       equipamento_id: articleData?.equipamento_id || "",
       idioma_original: articleData?.idioma_original || "pt",
       link_dropbox: articleData?.link_dropbox || ""
     }
   });
 
-  // Update form values when suggested data is updated
-  React.useEffect(() => {
+  // Quando o componente é montado, resetar completamente o estado
+  useEffect(() => {
+    return () => {
+      // Limpar todos os estados ao desmontar o componente
+      resetExtractedData();
+      form.reset();
+      setFile(null);
+      setFileUrl(null);
+    };
+  }, []);
+
+  // Atualizar form quando dados sugeridos mudarem
+  useEffect(() => {
     if (suggestedTitle && !form.getValues("titulo")) {
       form.setValue("titulo", suggestedTitle);
     }
@@ -72,6 +90,12 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       form.setValue("descricao", suggestedDescription);
     }
   }, [suggestedTitle, suggestedDescription, form]);
+
+  // Limpar arquivo e resetar processamento
+  const handleClearFile = () => {
+    setFile(null);
+    setFileUrl(null);
+  };
 
   // Upload step UI
   if (uploadStep === 'upload') {
@@ -92,12 +116,12 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     );
   }
 
-  // Form step UI with extracted information
+  // Form step UI
   return (
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Extracted information alert */}
+          {/* Informações extraídas */}
           <ExtractedInfo 
             extractedKeywords={extractedKeywords} 
             extractedResearchers={extractedResearchers} 
@@ -111,22 +135,65 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
             </Alert>
           )}
 
-          {/* Form Fields */}
+          {/* Campos do formulário */}
           <ArticleFormFields 
             form={form} 
             equipments={equipments} 
-            fileUrl={fileUrl} 
-            file={file} 
           />
           
-          {/* File preview */}
-          <FilePreview file={file} fileUrl={fileUrl} />
+          {/* Visualização do arquivo */}
+          {(file || fileUrl) && (
+            <div className="mt-4">
+              <FilePreview 
+                file={file} 
+                fileUrl={fileUrl} 
+                onClearFile={handleClearFile} 
+              />
+            </div>
+          )}
+          
+          {/* Alternativa para upload de arquivo na etapa de formulário */}
+          {!file && !fileUrl && (
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Anexar documento PDF</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-primary file:text-white
+                    hover:file:bg-primary/90"
+                />
+                
+                {file && !fileUrl && !isProcessing && (
+                  <Button 
+                    type="button"
+                    onClick={handleFileUpload}
+                    disabled={isProcessing}
+                  >
+                    Processar arquivo
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
           
           <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={() => {
+                // Limpar formulário antes de cancelar
+                form.reset();
+                resetExtractedData();
+                setFile(null);
+                setFileUrl(null);
+                onCancel();
+              }}
               disabled={isLoading}
             >
               Cancelar

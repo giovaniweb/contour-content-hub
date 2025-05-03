@@ -8,6 +8,7 @@ import DocumentToolbar from './DocumentToolbar';
 import DocumentMarkdown from './DocumentMarkdown';
 import ExtractingMessage from './ExtractingMessage';
 import DocumentPreviewModal from './DocumentPreviewModal';
+import { openPdfInNewTab, isPdfUrlValid } from '@/utils/pdfUtils';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -18,6 +19,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [extracting, setExtracting] = useState(false);
   const [extractionProgress, setExtractionProgress] = useState<string | null>(null);
 
+  // Manipula a extração de conteúdo
   const handleExtractContent = async () => {
     try {
       setExtracting(true);
@@ -77,6 +79,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
     }
   };
 
+  // Manipula a visualização do PDF original
   const handleViewOriginalPdf = () => {
     try {
       console.log("Abrindo visualizador de PDF:", {
@@ -86,8 +89,8 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         titulo: document.titulo
       });
       
-      // Verificar se temos alguma URL antes de abrir a pré-visualização
-      if (!document.link_dropbox && !document.preview_url) {
+      // Verificar se temos alguma URL válida
+      if (!isPdfUrlValid(document.link_dropbox) && !isPdfUrlValid(document.preview_url)) {
         toast("Arquivo não disponível", {
           description: "O documento original não está disponível para visualização."
         });
@@ -96,14 +99,15 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       
       // Abrir a modal de pré-visualização de PDF
       setPdfPreviewOpen(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao abrir visualizador:", error);
       toast("Erro ao abrir visualizador", {
-        description: "Ocorreu um erro ao tentar abrir o visualizador de PDF."
+        description: `Ocorreu um erro ao tentar abrir o visualizador de PDF: ${error.message || "Erro desconhecido"}`
       });
     }
   };
   
+  // Manipula o download do PDF
   const handleDownloadPdf = () => {
     try {
       console.log("Tentando baixar PDF:", {
@@ -113,53 +117,25 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       });
       
       // Verificar se temos alguma URL válida
-      if (!document?.link_dropbox && !document?.preview_url) {
+      const validUrl = document.link_dropbox || document.preview_url;
+      
+      if (!validUrl || !isPdfUrlValid(validUrl)) {
         toast("Arquivo não disponível", {
           description: "O documento original não está disponível para download."
         });
         return;
       }
 
-      // Selecionar a URL disponível
-      let url = document.link_dropbox || document.preview_url || '';
-      
-      // Processar URL com base no tipo
-      if (url.startsWith('blob:')) {
-        // Para URLs blob, abrir diretamente
-        window.open(url, '_blank', 'noopener,noreferrer');
-        toast("Abrindo documento", {
-          description: "O documento está sendo aberto em uma nova aba."
-        });
-        return;
-      } 
-      
-      // Processar URL do Dropbox para download direto
-      if (url.includes('dropbox.com') && !url.includes('dl=1')) {
-        url = url.includes('?') ? `${url}&dl=1` : `${url}?dl=1`;
-        console.log("URL de download Dropbox processada:", url);
-      }
-      
-      // Processar URL do Google Drive
-      if (url.includes('drive.google.com') && url.includes('/view')) {
-        url = url.replace('/view', '/preview');
-        console.log("URL de download Google Drive processada:", url);
-      }
-      
-      // Para URLs externas, garantir que comecem com http ou https
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = `https://${url}`;
-      }
-      
-      // Usar método moderno para abrir em nova aba, evitando manipulação direta do DOM
-      window.open(url, '_blank', 'noopener,noreferrer');
+      // Usar nossa utilidade para abrir em nova aba
+      openPdfInNewTab(validUrl, document.titulo);
       
       toast("Download iniciado", {
         description: "O PDF está sendo baixado ou aberto em nova aba"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no download:", error);
       toast("Erro no download", {
-        description: "Não foi possível baixar o documento"
+        description: `Não foi possível baixar o documento: ${error.message || "Erro desconhecido"}`
       });
     }
   };

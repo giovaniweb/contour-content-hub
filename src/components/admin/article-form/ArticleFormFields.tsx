@@ -1,79 +1,35 @@
 
 import React from "react";
+import { Equipment } from "@/hooks/useEquipments";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UseFormReturn } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./useArticleForm";
 
 interface ArticleFormFieldsProps {
   form: UseFormReturn<FormValues>;
-  equipments: {id: string, nome: string}[];
-  fileUrl: string | null;
-  file: File | null;
+  equipments: Equipment[];
 }
 
-const ArticleFormFields: React.FC<ArticleFormFieldsProps> = ({
-  form,
-  equipments,
-  fileUrl,
-  file
-}) => {
+const ArticleFormFields: React.FC<ArticleFormFieldsProps> = ({ form, equipments }) => {
   return (
     <>
-      {/* Title field */}
       <FormField
         control={form.control}
         name="titulo"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Título do Artigo*</FormLabel>
+            <FormLabel>Título do artigo*</FormLabel>
             <FormControl>
-              <Input placeholder="Título do artigo científico" {...field} />
+              <Input placeholder="Digite o título do artigo" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
       
-      {/* Equipment field */}
-      <FormField
-        control={form.control}
-        name="equipamento_id"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Equipamento</FormLabel>
-            <Select 
-              value={field.value || ""} 
-              onValueChange={field.onChange}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um equipamento" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="none">Nenhum equipamento</SelectItem>
-                {equipments.map((equip) => (
-                  <SelectItem key={equip.id} value={equip.id}>
-                    {equip.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      {/* Description field */}
       <FormField
         control={form.control}
         name="descricao"
@@ -82,59 +38,91 @@ const ArticleFormFields: React.FC<ArticleFormFieldsProps> = ({
             <FormLabel>Descrição</FormLabel>
             <FormControl>
               <Textarea 
-                placeholder="Descrição ou resumo do artigo" 
-                className="resize-y min-h-[100px]"
-                {...field} 
+                placeholder="Descrição ou resumo do artigo"
+                className="min-h-[120px]"
+                {...field}
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-      
-      {/* Language field */}
-      <FormField
-        control={form.control}
-        name="idioma_original"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Idioma Original</FormLabel>
-            <Select 
-              value={field.value || "pt"} 
-              onValueChange={field.onChange}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o idioma" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="pt">Português</SelectItem>
-                <SelectItem value="en">Inglês</SelectItem>
-                <SelectItem value="es">Espanhol</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      {/* External link field */}
-      {(!file && !fileUrl) && (
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="link_dropbox"
+          name="equipamento_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Link Externo (Dropbox, Google Drive, etc.)</FormLabel>
-              <FormControl>
-                <Input placeholder="https://..." {...field} />
-              </FormControl>
+              <FormLabel>Equipamento relacionado</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || ''}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um equipamento" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {equipments.map((equipment) => (
+                    <SelectItem key={equipment.id} value={equipment.id}>
+                      {equipment.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-      )}
+
+        <FormField
+          control={form.control}
+          name="idioma_original"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Idioma original</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o idioma" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="pt">Português</SelectItem>
+                  <SelectItem value="en">Inglês</SelectItem>
+                  <SelectItem value="es">Espanhol</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="link_dropbox"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Link externo (opcional)</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="https://... (link para PDF externo)" 
+                {...field}
+                value={field.value || ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 };
