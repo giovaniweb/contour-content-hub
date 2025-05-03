@@ -67,9 +67,10 @@ export const useDocuments = () => {
       // Transform data to match TechnicalDocument type
       const formattedDocuments: TechnicalDocument[] = data.map(doc => ({
         ...doc,
-        tipo: doc.tipo as DocumentType, // Cast to ensure it matches the enum type
-        status: doc.status as DocumentStatus, // Cast status to match the enum type
+        tipo: doc.tipo as DocumentType,
+        status: doc.status as DocumentStatus,
         equipamento_nome: doc.equipamentos?.nome,
+        // Add empty array for idiomas_traduzidos if it doesn't exist
         idiomas_traduzidos: doc.idiomas_traduzidos || []
       }));
       
@@ -106,22 +107,31 @@ export const useDocuments = () => {
       
       // Log access using a raw SQL RPC call
       try {
-        await supabase.rpc('log_document_access', { 
+        // Use a direct SQL query approach since TypeScript doesn't recognize our custom function
+        const { error: rpcError } = await supabase.rpc('log_document_access', { 
           doc_id: id,
           action: 'view'
-        });
+        } as any); // Use type assertion to bypass TypeScript error
+        
+        if (rpcError) {
+          console.error('Failed to log document access:', rpcError);
+        }
       } catch (rpcError) {
         console.error('Failed to log document access:', rpcError);
         // Continue even if logging fails
       }
       
-      return {
+      // Ensure all required fields are present in the returned document
+      const formattedDocument: TechnicalDocument = {
         ...data,
         tipo: data.tipo as DocumentType,
         status: data.status as DocumentStatus,
         equipamento_nome: data.equipamentos?.nome,
+        // Add empty array for idiomas_traduzidos if it doesn't exist
         idiomas_traduzidos: data.idiomas_traduzidos || []
       };
+      
+      return formattedDocument;
     } catch (err: any) {
       console.error('Error fetching document:', err);
       setError(err.message || 'Erro ao buscar o documento');
