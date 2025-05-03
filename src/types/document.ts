@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 export type DocumentType = 'artigo_cientifico' | 'ficha_tecnica' | 'protocolo' | 'outro';
@@ -20,6 +19,8 @@ export interface TechnicalDocument {
   conteudo_extraido?: string;
   preview_url?: string;
   vetor_embeddings?: string;
+  keywords?: string[];
+  researchers?: string[];
 }
 
 export interface GetDocumentsParams {
