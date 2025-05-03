@@ -15,19 +15,34 @@ export interface ProcessingResult {
  */
 export const processFileContent = async (fileContent: string): Promise<ProcessingResult> => {
   try {
-    console.log("Processing file content...");
+    console.log("Iniciando processamento do conteúdo do arquivo...");
+    
+    // Se estiver em modo de desenvolvimento, simular o processamento para testes
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Modo de desenvolvimento detectado. Usando dados simulados.");
+      
+      // Simular um pequeno atraso para testes de UI
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return {
+        title: "Título simulado do artigo científico",
+        conclusion: "Esta é uma conclusão simulada para testes de desenvolvimento.",
+        keywords: ["Palavra-chave1", "Palavra-chave2", "Palavra-chave3"],
+        researchers: ["Pesquisador A", "Pesquisador B"]
+      };
+    }
     
     const processResponse = await supabase.functions.invoke('process-document', {
       body: { fileContent }
     });
     
     if (processResponse.error) {
-      console.error("Error processing document:", processResponse.error);
+      console.error("Erro ao processar documento:", processResponse.error);
       throw new Error("Falha ao extrair conteúdo do documento");
     }
     
     const extractionData = processResponse.data;
-    console.log("Extracted data:", extractionData);
+    console.log("Dados extraídos:", extractionData);
     
     if (!extractionData) {
       throw new Error("Nenhuma informação foi extraída do documento");
@@ -40,7 +55,7 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       researchers: extractionData.researchers || []
     };
   } catch (error: any) {
-    console.error("Error in processFileContent:", error);
+    console.error("Erro em processFileContent:", error);
     return {
       title: null,
       conclusion: null,
@@ -62,13 +77,13 @@ export const processExistingDocument = async (documentId: string): Promise<boole
     });
     
     if (error) {
-      console.error("Error processing document:", error);
+      console.error("Erro ao processar documento:", error);
       throw error;
     }
     
     return true;
   } catch (error) {
-    console.error("Error in processExistingDocument:", error);
+    console.error("Erro em processExistingDocument:", error);
     throw error;
   }
 };
@@ -80,7 +95,18 @@ export const processExistingDocument = async (documentId: string): Promise<boole
  */
 export const uploadFileToStorage = async (file: File, fileName?: string): Promise<string> => {
   try {
-    console.log("Starting file upload to storage:", file.name);
+    console.log("Iniciando upload do arquivo para storage:", file.name, file.type, file.size);
+    
+    // Em modo de desenvolvimento, simular o upload
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Modo de desenvolvimento detectado. Simulando upload.");
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay
+      
+      // Criar um URL de Blob local para simular o upload
+      const blobUrl = URL.createObjectURL(file);
+      console.log("URL de blob simulado criado:", blobUrl);
+      return blobUrl;
+    }
     
     const fileNameToUse = fileName || `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     
@@ -89,7 +115,7 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
       throw new Error('Arquivo inválido ou vazio');
     }
     
-    console.log(`Uploading file to path: documents/${fileNameToUse}`);
+    console.log(`Fazendo upload do arquivo para o caminho: documents/${fileNameToUse}`);
     
     const { error, data } = await supabase
       .storage
@@ -100,22 +126,22 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
       });
       
     if (error) {
-      console.error("Storage upload error:", error);
+      console.error("Erro no upload para storage:", error);
       throw error;
     }
     
-    console.log("Upload successful, getting public URL");
+    console.log("Upload concluído com sucesso, obtendo URL pública");
     
     const { data: urlData } = supabase
       .storage
       .from('documents')
       .getPublicUrl(fileNameToUse);
       
-    console.log("Public URL:", urlData.publicUrl);
+    console.log("URL pública:", urlData.publicUrl);
     
     return urlData.publicUrl;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Erro ao fazer upload do arquivo:", error);
     throw error;
   }
 };

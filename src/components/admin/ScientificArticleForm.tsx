@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -42,13 +42,18 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   
   // Extract file upload handling
   const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const {
     file,
+    setFile,
     fileUrl,
     setFileUrl,
     isProcessing,
     processingProgress,
     processingFailed,
+    uploadError: handlerUploadError,
+    setUploadError: setHandlerUploadError,
     handleFileChange,
     handleFileUpload,
     handleClearFile,
@@ -101,7 +106,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   useEffect(() => {
     // Clean up function
     return () => {
-      console.log("ScientificArticleForm unmounting, resetting all state");
+      console.log("ScientificArticleForm desmontando, redefinindo todos os estados");
       resetFormState();
       resetUploadState();
       resetExtractedData();
@@ -111,13 +116,18 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
 
   // Track dialog open/closed state and reset form when opened
   useEffect(() => {
-    console.log("isOpen changed:", isOpen);
+    console.log("isOpen mudou:", isOpen);
     if (isOpen) {
-      console.log("Dialog opened, resetting form");
+      console.log("Diálogo aberto, redefinindo formulário");
       // Reset all form state
       resetFormState();
       resetUploadState();
       resetExtractedData();
+      
+      // Reset file input value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       
       form.reset({
         titulo: articleData?.titulo || "",
@@ -131,7 +141,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
 
   // Update form when suggested data changes
   useEffect(() => {
-    console.log("Suggested data changed, updating form:", {
+    console.log("Dados sugeridos alterados, atualizando formulário:", {
       title: suggestedTitle,
       description: suggestedDescription
     });
@@ -148,6 +158,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   // Set file URL from article data if present
   useEffect(() => {
     if (articleData?.link_dropbox && !fileUrl) {
+      setFileUrl(articleData.link_dropbox);
       setUploadStep('form');
     }
   }, [articleData, fileUrl]);
@@ -157,11 +168,11 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     return (
       <FileUploader 
         file={file}
-        setFile={() => {}} // Pass a dummy function since we use handleFileChange instead
+        setFile={setFile}
         fileUrl={fileUrl}
         setFileUrl={setFileUrl}
         isProcessing={isProcessing}
-        uploadError={uploadError}
+        uploadError={uploadError || handlerUploadError}
         processingProgress={processingProgress}
         processingFailed={processingFailed}
         onProcessFile={handleFileUpload}
@@ -182,11 +193,11 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
             extractedResearchers={extractedResearchers} 
           />
 
-          {uploadError && (
+          {(uploadError || handlerUploadError) && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erro</AlertTitle>
-              <AlertDescription>{uploadError}</AlertDescription>
+              <AlertDescription>{uploadError || handlerUploadError}</AlertDescription>
             </Alert>
           )}
 
@@ -213,6 +224,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
               <div className="text-sm font-medium">Anexar documento PDF</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
@@ -227,7 +239,10 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
                 {file && !fileUrl && !isProcessing && (
                   <Button 
                     type="button"
-                    onClick={handleFileUpload}
+                    onClick={() => {
+                      console.log("Botão de processar arquivo clicado");
+                      handleFileUpload();
+                    }}
                     disabled={isProcessing}
                   >
                     Processar arquivo

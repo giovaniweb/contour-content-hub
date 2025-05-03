@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { FileUp, Upload, Loader2, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from 'lucide-react';
+import { toast } from "sonner";
 
 interface FileUploaderProps {
   file: File | null;
@@ -43,11 +44,15 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("File input change detected");
+    
     // Always clear previous state completely
     clearFile();
     
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      console.log("File selected:", selectedFile.name, selectedFile.size);
+      setFile(selectedFile);
     }
   };
 
@@ -105,7 +110,16 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                   <X className="h-4 w-4" />
                 </Button>
                 <Button 
-                  onClick={onProcessFile}
+                  onClick={() => {
+                    console.log("Iniciando processamento do arquivo:", file.name);
+                    onProcessFile().then(success => {
+                      if (success) {
+                        console.log("Arquivo processado com sucesso");
+                      } else {
+                        console.log("Falha ao processar arquivo");
+                      }
+                    });
+                  }}
                   disabled={isProcessing}
                 >
                   <Upload className="mr-2 h-4 w-4" />

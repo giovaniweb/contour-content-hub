@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { uploadFileToStorage, processFileContent } from "@/services/documentProcessing";
 
@@ -22,6 +22,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
   const [processingFailed, setProcessingFailed] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Reset upload state
   const resetUploadState = useCallback(() => {
@@ -29,22 +30,28 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
     setFileUrl(null);
     setProcessingProgress(null);
     setProcessingFailed(false);
+    setUploadError(null);
   }, []);
   
   // Handle file selection
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Função handleFileChange chamada");
+    
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
+      console.log("Arquivo selecionado:", selectedFile.name, selectedFile.size);
       
       // Reset states
       onReset();
       resetUploadState();
+      setUploadError(null);
       
       // Validate file
       if (selectedFile.type !== 'application/pdf') {
         toast.error("Formato inválido", {
           description: "Por favor, selecione um arquivo em formato PDF."
         });
+        setUploadError("Formato inválido. Por favor, selecione um arquivo em formato PDF.");
         return;
       }
       
@@ -52,10 +59,12 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
         toast.error("Arquivo muito grande", {
           description: "O tamanho máximo permitido é 10MB."
         });
+        setUploadError("Arquivo muito grande. O tamanho máximo permitido é 10MB.");
         return;
       }
       
       setFile(selectedFile);
+      console.log("Arquivo definido no estado:", selectedFile.name);
     }
   }, [onReset, resetUploadState]);
   
@@ -65,26 +74,38 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       toast.error("Nenhum arquivo selecionado", {
         description: "Por favor, selecione um arquivo PDF para upload."
       });
+      setUploadError("Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.");
       return false;
     }
 
+    console.log("Iniciando processamento do arquivo:", file.name);
+    
     try {
       setIsProcessing(true);
       setProcessingFailed(false);
+      setUploadError(null);
       onReset(); // Reset any previous extraction data
       
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
+      console.log("Lendo arquivo e extraindo conteúdo...");
       
       // Read file as base64
       const fileReader = new FileReader();
       const fileContentPromise = new Promise<string>((resolve, reject) => {
-        fileReader.onload = (e) => resolve(e.target?.result as string);
-        fileReader.onerror = (e) => reject(e);
+        fileReader.onload = (e) => {
+          console.log("Arquivo lido com sucesso");
+          resolve(e.target?.result as string);
+        };
+        fileReader.onerror = (e) => {
+          console.error("Erro ao ler arquivo:", e);
+          reject(e);
+        };
       });
       fileReader.readAsDataURL(file);
       const fileContent = await fileContentPromise;
       
       setProcessingProgress("Analisando conteúdo do documento...");
+      console.log("Analisando conteúdo do documento...");
       
       // Extract document content
       const extractionResult = await processFileContent(fileContent.split(',')[1]);
@@ -101,17 +122,20 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
         researchers: extractionResult.researchers || []
       };
       
-      console.log("Extracted data from document:", newExtractedData);
+      console.log("Dados extraídos do documento:", newExtractedData);
       onExtractedData(newExtractedData);
       
       // Upload file to storage
       setProcessingProgress("Enviando arquivo para armazenamento...");
+      console.log("Enviando arquivo para armazenamento...");
       
       try {
         const publicUrl = await uploadFileToStorage(file);
+        console.log("Upload concluído com sucesso. URL:", publicUrl);
         setFileUrl(publicUrl);
       } catch (storageError: any) {
-        console.warn("Error during storage upload:", storageError);
+        console.error("Erro durante o upload para o storage:", storageError);
+        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
         onError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
       }
       
@@ -123,7 +147,8 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       
       return true;
     } catch (error: any) {
-      console.error('Error processing file:', error);
+      console.error('Erro ao processar arquivo:', error);
+      setUploadError(error.message || "Ocorreu um erro ao processar o arquivo.");
       onError(error.message || "Ocorreu um erro ao processar o arquivo.");
       setProcessingFailed(true);
       
@@ -151,6 +176,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
   
   // Clear file and reset upload state
   const handleClearFile = useCallback(() => {
+    console.log("Limpando arquivo");
     resetUploadState();
   }, [resetUploadState]);
   
@@ -162,6 +188,8 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
     isProcessing,
     processingProgress,
     processingFailed,
+    uploadError, 
+    setUploadError,
     handleFileChange,
     handleFileUpload,
     handleClearFile,
