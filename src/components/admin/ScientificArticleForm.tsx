@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, FileUp, File, X, AlertCircle } from "lucide-react";
+import { Loader2, Upload, FileUp, File, X, AlertCircle, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,6 +70,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
   const [processingFailed, setProcessingFailed] = useState<boolean>(false);
+  const [newResearcher, setNewResearcher] = useState<string>('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -271,6 +271,27 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     } finally {
       setIsProcessing(false);
       setProcessingProgress(null);
+    }
+  };
+
+  const handleAddResearcher = () => {
+    if (newResearcher.trim()) {
+      // Check if researcher doesn't already exist
+      if (!extractedResearchers.includes(newResearcher.trim())) {
+        setExtractedResearchers([...extractedResearchers, newResearcher.trim()]);
+      }
+      setNewResearcher('');
+    }
+  };
+
+  const handleRemoveResearcher = (researcher: string) => {
+    setExtractedResearchers(extractedResearchers.filter(r => r !== researcher));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddResearcher();
     }
   };
 
@@ -564,6 +585,55 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           />
         </div>
         
+        {/* Add new researchers field */}
+        <div className="space-y-2">
+          <Label htmlFor="new-researcher">Adicionar Pesquisador/Autor</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="new-researcher"
+              value={newResearcher}
+              onChange={(e) => setNewResearcher(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Nome do pesquisador/autor"
+              className="flex-1"
+            />
+            <Button 
+              type="button" 
+              size="sm" 
+              onClick={handleAddResearcher}
+              disabled={!newResearcher.trim()}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
+          
+          {/* Display all researchers with option to remove */}
+          {extractedResearchers.length > 0 && (
+            <div className="mt-4 p-3 border rounded-md">
+              <Label className="text-sm">Pesquisadores/Autores</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {extractedResearchers.map((researcher, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary"
+                    className="flex items-center gap-1 py-1 px-2"
+                  >
+                    {researcher}
+                    <button 
+                      type="button"
+                      onClick={() => handleRemoveResearcher(researcher)}
+                      className="ml-1 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {!fileUrl && (
           <FormField
             control={form.control}

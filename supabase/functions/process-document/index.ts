@@ -238,7 +238,7 @@ async function extractDocumentInfo(text: string) {
       };
     }
 
-    // Call OpenAI to extract information with improved prompt for all authors
+    // Call OpenAI to extract information with enhanced prompt for ALL researchers
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -250,7 +250,21 @@ async function extractDocumentInfo(text: string) {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format. Extract ONLY the following fields: title (the actual title of the paper, not the filename), conclusion (from the conclusion section), keywords (as an array of all found keywords), and researchers (as an array of ALL researcher/author names found in the document, up to 20 names). Return ONLY these fields in valid JSON format. Make sure to extract the actual title from the document content, not the filename. Remove any prefixes like numbers or suffixes like "OK" from the title. Make sure keywords and researchers are properly formatted as arrays even if empty. Do a thorough analysis to find ALL researchers/authors mentioned anywhere in the document.'
+            content: `You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format.
+            Extract ONLY the following fields:
+            1. title (the actual title of the paper, not the filename)
+            2. conclusion (from the conclusion section)
+            3. keywords (as an array of all found keywords)
+            4. researchers (as an array of ALL researcher/author names found in the document, up to 30 names)
+            
+            Return ONLY these fields in valid JSON format. Make sure to:
+            - Extract the actual title from the document content, not the filename
+            - Remove any prefixes like numbers or suffixes like "OK" from the title
+            - Format keywords and researchers as arrays even if empty
+            - Perform a VERY thorough analysis to find ALL researchers/authors mentioned ANYWHERE in the document
+            - Look for authors in headers, footers, title pages, acknowledgements, references, and main text
+            - Include titles like Dr., Prof., Ph.D. if present with the researcher names
+            - Return all author names regardless of how many there are (up to 30 maximum)`
           },
           { 
             role: 'user', 
