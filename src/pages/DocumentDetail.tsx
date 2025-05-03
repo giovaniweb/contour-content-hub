@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -68,10 +67,9 @@ const DocumentDetailPage: React.FC = () => {
       } catch (err: any) {
         console.error('Error loading document:', err);
         setError(err.message || 'Erro ao carregar documento');
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Não foi possível carregar o documento"
+        toast("Erro", {
+          description: "Não foi possível carregar o documento",
+          variant: "destructive"
         });
       } finally {
         setLoading(false);
@@ -86,8 +84,7 @@ const DocumentDetailPage: React.FC = () => {
     
     try {
       setAddingContent(true);
-      toast({
-        title: "Processando documento",
+      toast("Processando documento", {
         description: "Extraindo conteúdo do documento..."
       });
       
@@ -105,7 +102,7 @@ const DocumentDetailPage: React.FC = () => {
             if (updatedDoc) {
               setDocument(updatedDoc);
               success = true;
-              toast({
+              toast("Documento processado", {
                 title: "Documento processado",
                 description: "O conteúdo do documento foi extraído com sucesso."
               });
@@ -151,8 +148,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           conteudo_extraido: dummyContent
         });
         
-        toast({
-          title: "Conteúdo adicionado",
+        toast("Conteúdo adicionado", {
           description: "Um conteúdo de exemplo foi adicionado ao documento."
         });
       }
@@ -161,10 +157,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       setContentProcessed(true);
     } catch (err: any) {
       console.error('Error adding content:', err);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível adicionar conteúdo ao documento."
+      toast("Erro", {
+        description: "Não foi possível adicionar conteúdo ao documento.",
+        variant: "destructive"
       });
     } finally {
       setAddingContent(false);
@@ -198,10 +193,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       }
       window.open(url, '_blank');
     } else {
-      toast({
-        variant: "destructive",
-        title: "Link não disponível",
-        description: "Este documento não possui um link para o arquivo original."
+      toast("Link não disponível", {
+        description: "Este documento não possui um link para o arquivo original.",
+        variant: "destructive"
       });
     }
   };
@@ -209,8 +203,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   const handleDownloadFile = async () => {
     if (document?.link_dropbox) {
       try {
-        toast({
-          title: "Download iniciado",
+        toast("Download iniciado", {
           description: "Seu download começará em instantes..."
         });
         
@@ -222,17 +215,15 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
         }
         window.open(url, '_blank');
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro no download",
-          description: "Não foi possível baixar o arquivo."
+        toast("Erro no download", {
+          description: "Não foi possível baixar o arquivo.",
+          variant: "destructive"
         });
       }
     } else {
-      toast({
-        variant: "destructive",
-        title: "Arquivo não disponível",
-        description: "Este documento não possui um arquivo para download."
+      toast("Arquivo não disponível", {
+        description: "Este documento não possui um arquivo para download.",
+        variant: "destructive"
       });
     }
   };
@@ -241,10 +232,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
     if (document?.preview_url) {
       setPreviewModalOpen(true);
     } else {
-      toast({
-        variant: "destructive",
-        title: "Prévia não disponível",
-        description: "Este documento não possui uma prévia disponível."
+      toast("Prévia não disponível", {
+        description: "Este documento não possui uma prévia disponível.",
+        variant: "destructive"
       });
     }
   };

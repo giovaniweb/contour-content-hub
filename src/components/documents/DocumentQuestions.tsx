@@ -46,16 +46,14 @@ O documento trata sobre ${document.descricao || 'um tópico especializado'} e co
         }
       ]);
       
-      toast({
-        title: "Pergunta processada",
+      toast("Pergunta processada", {
         description: "Sua pergunta foi respondida com base no conteúdo do documento."
       });
     } catch (error) {
       console.error("Error processing question:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível processar sua pergunta. Tente novamente."
+      toast("Erro", {
+        description: "Não foi possível processar sua pergunta. Tente novamente.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
