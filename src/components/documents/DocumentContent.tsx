@@ -151,13 +151,13 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       }
       
       // Criar um link temporário e clicar nele
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       
       toast("Download iniciado", {
         description: "O PDF está sendo baixado ou aberto em nova aba"
