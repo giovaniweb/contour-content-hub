@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
 import { MessageSquare, Send, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
