@@ -159,7 +159,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         criado_por: (await supabase.auth.getUser()).data.user?.id || null,
       };
 
-      if (articleData) {
+      if (articleData && articleData.id) {
         // Update existing article
         const { error } = await supabase
           .from('documentos_tecnicos')
@@ -244,7 +244,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                 <FormLabel>Equipamento Relacionado</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  value={field.value || ""}
+                  value={field.value || "none"}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -252,7 +252,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {equipments.map((equipment) => (
                       <SelectItem key={equipment.id} value={equipment.id}>
                         {equipment.nome}

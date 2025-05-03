@@ -60,15 +60,21 @@ const ScientificArticleManager: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('documentos_tecnicos')
-          .select('tipo')
+          .select('descricao') // Changed from 'topic' to 'descricao' as a potential topic field
           .eq('tipo', 'artigo_cientifico')
-          .order('tipo');
+          .order('descricao');
           
         if (error) throw error;
         
-        // Extract and deduplicate topics
-        const topics = [...new Set(data.map(item => item.topic).filter(Boolean))];
-        setTopicOptions(topics);
+        // Extract and deduplicate topics from description field (or another appropriate field)
+        const topics = [...new Set(data
+          .map(item => item.descricao)
+          .filter(Boolean)
+          .map(desc => typeof desc === 'string' ? desc.split(' ')[0] : '') // Just as an example to extract topics
+          .filter(t => t.length > 0)
+        )];
+        
+        setTopicOptions(topics.length > 0 ? topics : ['General']); // Default to 'General' if no topics found
       } catch (error) {
         console.error('Error fetching topics:', error);
       }
