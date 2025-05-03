@@ -71,7 +71,8 @@ export const useDocuments = () => {
           tipo: doc.tipo as DocumentType,
           status: doc.status as DocumentStatus,
           equipamento_nome: doc.equipamentos?.nome,
-          idiomas_traduzidos: [] as string[] // Initialize as empty array, not empty object
+          idiomas_traduzidos: [] as string[], // Initialize as empty array, not empty object
+          preview_url: doc.preview_url || '' // Add preview_url with default value
         };
         
         // Handle idiomas_traduzidos if it exists in the database record
