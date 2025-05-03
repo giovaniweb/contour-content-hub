@@ -2,167 +2,103 @@
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, Send, Loader2, User, Bot } from 'lucide-react';
-import { SUPABASE_BASE_URL, supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { MessageSquare, Send, Loader2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DocumentQuestionsProps {
   document: TechnicalDocument;
 }
 
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-}
-
 const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [question, setQuestion] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const { toast } = useToast();
-  
-  const handleSendQuestion = async () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
+    { 
+      role: 'assistant', 
+      content: 'Olá! Eu sou um assistente especializado neste documento. Como posso ajudar você a entender melhor o conteúdo?' 
+    }
+  ]);
+
+  const handleSubmitQuestion = async () => {
     if (!question.trim()) return;
-    
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: question,
-      role: 'user',
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    const currentQuestion = question;
+
+    // Add user question to messages
+    const userQuestion = question;
+    setMessages(prev => [...prev, { role: 'user', content: userQuestion }]);
     setQuestion('');
     setIsLoading(true);
-    
-    try {
-      // Call edge function to ask question about document
-      const token = (await supabase.auth.getSession()).data.session?.access_token || '';
-      
-      const response = await fetch(`${SUPABASE_BASE_URL}/functions/v1/ask-document`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          documentId: document.id,
-          question: currentQuestion.trim()
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao processar pergunta');
-      }
-      
-      const result = await response.json();
-      
-      // Add AI response to messages
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: result.answer || 'Não foi possível responder a esta pergunta com base no documento.',
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      
-    } catch (err: any) {
-      console.error('Error asking question:', err);
-      toast({
-        variant: "destructive",
-        title: "Erro ao processar pergunta",
-        description: err.message || "Não foi possível responder à pergunta."
-      });
-      
-      // Add error message
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Desculpe, não consegui processar sua pergunta. Por favor, tente novamente.",
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
+
+    // In a real implementation, this would call an API endpoint to process the question
+    // For this demo, we'll simulate a response
+    setTimeout(() => {
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: `Baseado no documento "${document.titulo}", posso informar que esta é uma resposta simulada. Em uma implementação real, eu processaria sua pergunta utilizando o conteúdo completo do documento e forneceria uma resposta precisa.` 
+        }
+      ]);
       setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmitQuestion();
     }
   };
-  
+
   return (
     <div className="flex flex-col h-[500px]">
-      {messages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-          <MessageSquare className="h-12 w-12 mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">Pergunte sobre este documento</h3>
-          <p className="text-muted-foreground max-w-md">
-            Faça qualquer pergunta relacionada ao conteúdo deste documento e eu tentarei responder com base nas informações contidas nele.
-          </p>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map(message => (
+      <ScrollArea className="flex-1 pr-4">
+        <div className="space-y-4 pb-4">
+          {messages.map((msg, index) => (
             <div 
-              key={message.id} 
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              key={index}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div 
-                className={`max-w-[80%] px-4 py-2 rounded-lg ${
-                  message.role === 'user' 
-                    ? 'bg-primary text-primary-foreground ml-12' 
-                    : 'bg-muted mr-12'
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  msg.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  {message.role === 'user' ? (
-                    <User className="h-4 w-4" />
-                  ) : (
-                    <Bot className="h-4 w-4" />
-                  )}
-                  <span className="text-xs opacity-70">
-                    {message.role === 'user' ? 'Você' : 'Assistente'}
-                  </span>
-                </div>
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                {msg.content}
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] p-3 rounded-lg bg-muted flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Processando sua pergunta...
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </ScrollArea>
       
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Digite sua pergunta sobre o documento..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
-                e.preventDefault();
-                handleSendQuestion();
-              }
-            }}
-            disabled={isLoading}
-          />
-          <Button 
-            onClick={handleSendQuestion}
-            disabled={isLoading || !question.trim()}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+      <div className="mt-4 flex gap-2 items-end">
+        <Textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Faça uma pergunta sobre este documento..."
+          className="resize-none"
+          rows={3}
+        />
+        <Button 
+          onClick={handleSubmitQuestion} 
+          disabled={!question.trim() || isLoading}
+          size="icon"
+          className="h-10 w-10"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

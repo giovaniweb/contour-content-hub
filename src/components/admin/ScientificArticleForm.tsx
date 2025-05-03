@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScientificArticleFormProps {
   articleData?: {
@@ -120,11 +122,8 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       setUploadError(null);
       setProcessingFailed(false);
       
-      // Reset extracted information when a new file is selected
-      setSuggestedTitle('');
-      setSuggestedDescription('');
-      setExtractedKeywords([]);
-      setExtractedResearchers([]);
+      // Reset all extracted information when a new file is selected
+      resetExtractedData();
       
       // Check if file is PDF
       if (selectedFile.type !== 'application/pdf') {
@@ -150,6 +149,16 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     }
   };
 
+  // Function to reset all extracted data
+  const resetExtractedData = () => {
+    setSuggestedTitle('');
+    setSuggestedDescription('');
+    setExtractedKeywords([]);
+    setExtractedResearchers([]);
+    form.setValue('titulo', '');
+    form.setValue('descricao', '');
+  };
+
   const handleFileUpload = async () => {
     if (!file) {
       toast({
@@ -165,6 +174,9 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       setUploadError(null);
       setProcessingFailed(false);
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
+      
+      // Reset all extracted data before processing new file
+      resetExtractedData();
       
       // Read file as base64
       const fileReader = new FileReader();
@@ -442,57 +454,59 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Extracted information alert */}
         {(extractedKeywords.length > 0 || extractedResearchers.length > 0 || suggestedTitle || suggestedDescription) && (
-          <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-muted"}>
-            <AlertTitle className="flex items-center">
-              {processingFailed ? (
-                <>
-                  <AlertCircle className="h-4 w-4 mr-2 text-yellow-500" />
-                  Processamento parcial do documento
-                </>
-              ) : (
-                "Informações extraídas do documento"
-              )}
-            </AlertTitle>
-            <AlertDescription>
-              {processingFailed ? (
-                <p className="text-sm text-muted-foreground mb-2">
-                  O processamento do documento foi parcial. Algumas informações podem estar incompletas.
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground mb-2">
-                  As informações abaixo foram extraídas automaticamente do documento.
-                </p>
-              )}
-              
-              {/* Display keywords */}
-              {extractedKeywords.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium">Palavras-chave:</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {extractedKeywords.map((keyword, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {keyword}
-                      </Badge>
-                    ))}
+          <ScrollArea className="h-auto max-h-[300px]">
+            <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-muted"}>
+              <AlertTitle className="flex items-center">
+                {processingFailed ? (
+                  <>
+                    <AlertCircle className="h-4 w-4 mr-2 text-yellow-500" />
+                    Processamento parcial do documento
+                  </>
+                ) : (
+                  "Informações extraídas do documento"
+                )}
+              </AlertTitle>
+              <AlertDescription>
+                {processingFailed ? (
+                  <p className="text-sm text-muted-foreground mb-2">
+                    O processamento do documento foi parcial. Algumas informações podem estar incompletas.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-2">
+                    As informações abaixo foram extraídas automaticamente do documento.
+                  </p>
+                )}
+                
+                {/* Display keywords */}
+                {extractedKeywords.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Palavras-chave:</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {extractedKeywords.map((keyword, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {/* Display researchers */}
-              {extractedResearchers.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium">Pesquisadores:</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {extractedResearchers.map((researcher, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {researcher}
-                      </Badge>
-                    ))}
+                )}
+                
+                {/* Display researchers */}
+                {extractedResearchers.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Pesquisadores:</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {extractedResearchers.map((researcher, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {researcher}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
+                )}
+              </AlertDescription>
+            </Alert>
+          </ScrollArea>
         )}
       
         <FormField
@@ -612,24 +626,26 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           {extractedResearchers.length > 0 && (
             <div className="mt-4 p-3 border rounded-md">
               <Label className="text-sm">Pesquisadores/Autores</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {extractedResearchers.map((researcher, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary"
-                    className="flex items-center gap-1 py-1 px-2"
-                  >
-                    {researcher}
-                    <button 
-                      type="button"
-                      onClick={() => handleRemoveResearcher(researcher)}
-                      className="ml-1 text-muted-foreground hover:text-destructive"
+              <ScrollArea className="h-auto max-h-[200px]">
+                <div className="flex flex-wrap gap-2 mt-2 p-2">
+                  {extractedResearchers.map((researcher, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary"
+                      className="flex items-center gap-1 py-1 px-2"
                     >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+                      {researcher}
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveResearcher(researcher)}
+                        className="ml-1 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
           )}
         </div>
@@ -723,31 +739,17 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         {extractedKeywords.length > 0 && (
           <div className="space-y-2">
             <Label>Palavras-chave</Label>
-            <div className="p-3 border rounded-md">
-              <div className="flex flex-wrap gap-2">
-                {extractedKeywords.map((keyword, index) => (
-                  <Badge key={index} variant="secondary">
-                    {keyword}
-                  </Badge>
-                ))}
+            <ScrollArea className="h-auto max-h-[150px]">
+              <div className="p-3 border rounded-md">
+                <div className="flex flex-wrap gap-2">
+                  {extractedKeywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Display researcher fields only if we have extracted researchers */}
-        {extractedResearchers.length > 0 && (
-          <div className="space-y-2">
-            <Label>Pesquisadores</Label>
-            <div className="p-3 border rounded-md">
-              <div className="flex flex-wrap gap-2">
-                {extractedResearchers.map((researcher, index) => (
-                  <Badge key={index} variant="outline">
-                    {researcher}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            </ScrollArea>
           </div>
         )}
 
