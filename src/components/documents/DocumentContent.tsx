@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,14 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 import DocumentToolbar from './DocumentToolbar';
 import DocumentMarkdown from './DocumentMarkdown';
 import ExtractingMessage from './ExtractingMessage';
-import PdfViewer from './PdfViewer';
+import DocumentPreviewModal from './DocumentPreviewModal';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
 }
 
 const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [extractionProgress, setExtractionProgress] = useState<string | null>(null);
 
@@ -78,9 +77,9 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
 
   const handleViewOriginalPdf = () => {
-    if (document?.link_dropbox) {
-      console.log("Abrindo visualizador de PDF com URL:", document.link_dropbox);
-      setPdfViewerOpen(true);
+    if (document?.link_dropbox || document?.preview_url) {
+      console.log("Abrindo visualizador de PDF com URL:", document.link_dropbox || document.preview_url);
+      setPdfPreviewOpen(true);
     } else {
       toast("Arquivo não disponível", {
         description: "O documento original não está disponível para visualização."
@@ -91,20 +90,20 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const handleDownloadPdf = () => {
     if (document?.link_dropbox) {
       try {
-        // Verifica e corrige o formato da URL
+        // Check and fix the URL format
         let url = document.link_dropbox;
         
-        // Se for uma URL de blob local, tratar de outra forma
+        // If it's a blob URL, handle it differently
         if (url.startsWith('blob:')) {
-          // Abre diretamente em uma nova aba
+          // Open directly in a new tab
           window.open(url, '_blank');
         } else {
-          // Para URLs externas, garantir que comecem com http ou https
+          // For external URLs, ensure they start with http or https
           if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'https://' + url;
           }
           
-          // Abrir em uma nova aba para download
+          // Open in a new tab for download
           window.open(url, '_blank');
         }
         
@@ -148,11 +147,10 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         )}
       </ScrollArea>
 
-      <PdfViewer 
-        isOpen={pdfViewerOpen}
-        onOpenChange={setPdfViewerOpen}
-        title={document.titulo}
-        pdfUrl={document.link_dropbox}
+      <DocumentPreviewModal 
+        isOpen={pdfPreviewOpen}
+        onOpenChange={setPdfPreviewOpen}
+        document={document}
       />
     </>
   );

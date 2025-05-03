@@ -16,7 +16,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
   
-  // Função para garantir que a URL do PDF esteja formatada corretamente
+  // Function to ensure the PDF URL is correctly formatted
   useEffect(() => {
     if (!pdfUrl) {
       setError("URL do documento não encontrada");
@@ -25,35 +25,39 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }
     
     try {
-      // Para URLs de blob local
+      console.log("Trying to format PDF URL:", pdfUrl);
+      
+      // For local blob URLs
       if (pdfUrl.startsWith('blob:')) {
         setFinalUrl(pdfUrl);
       }
-      // Para URLs externas, garantir que comecem com http ou https
+      // For external URLs, ensure they start with http or https
       else if (!pdfUrl.startsWith('http://') && !pdfUrl.startsWith('https://')) {
-        setFinalUrl('https://' + pdfUrl);
+        setFinalUrl(`https://${pdfUrl}`);
       } else {
         setFinalUrl(pdfUrl);
       }
       
-      setLoading(false);
-      console.log("URL formatada para PDF:", finalUrl);
-    } catch (error) {
-      console.error("Erro ao processar URL do PDF:", error);
+      console.log("URL formatada para PDF:", finalUrl || pdfUrl);
+      setError(null);
+    } catch (err) {
+      console.error("Erro ao processar URL do PDF:", err);
       setError("Erro ao processar URL do documento");
+    } finally {
       setLoading(false);
     }
-  }, [pdfUrl]);
+  }, [pdfUrl, isOpen]);
 
   const handleIframeError = () => {
     console.error("Erro ao carregar o PDF:", finalUrl);
     setError("Não foi possível carregar o documento. Verifique se a URL está correta.");
-    toast("Erro ao carregar o PDF", {
+    toast.error("Erro ao carregar o PDF", {
       description: "Não foi possível carregar o documento."
     });
   };
 
   const handleIframeLoad = () => {
+    console.log("PDF iframe loaded successfully:", finalUrl);
     setLoading(false);
     setError(null);
   };

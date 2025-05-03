@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import PdfViewer from './PdfViewer';
 
@@ -14,11 +14,23 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   onOpenChange, 
   document 
 }) => {
-  // Garantir que temos uma URL válida para o PDF
-  const validPdfUrl = document.link_dropbox || document.preview_url;
+  const [validPdfUrl, setValidPdfUrl] = useState<string | undefined>(undefined);
   
-  // Se não tivermos uma URL válida, ainda podemos exibir o modal,
-  // o componente PdfViewer tratará o caso de erro
+  // Process the PDF URL when the document or modal state changes
+  useEffect(() => {
+    if (document && isOpen) {
+      // Use link_dropbox as the primary source, and preview_url as fallback
+      const url = document.link_dropbox || document.preview_url;
+      
+      console.log("Document PDF URL source:", {
+        link_dropbox: document.link_dropbox,
+        preview_url: document.preview_url,
+        selectedUrl: url
+      });
+      
+      setValidPdfUrl(url);
+    }
+  }, [document, isOpen]);
   
   return (
     <PdfViewer
