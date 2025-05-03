@@ -66,13 +66,22 @@ export const useDocuments = () => {
       
       // Transform data to match TechnicalDocument type
       const formattedDocuments: TechnicalDocument[] = data.map(doc => {
+        // Use type assertion to access all properties
         const documentData = {
-          ...doc,
+          id: doc.id,
+          titulo: doc.titulo,
+          descricao: doc.descricao || '',
           tipo: doc.tipo as DocumentType,
           status: doc.status as DocumentStatus,
-          equipamento_nome: doc.equipamentos?.nome,
-          idiomas_traduzidos: [] as string[], // Initialize as empty array, not empty object
-          preview_url: doc.preview_url || '' // Add preview_url with default value
+          equipamento_id: doc.equipamento_id || '',
+          equipamento_nome: doc.equipamentos?.nome || '',
+          idioma_original: doc.idioma_original || '',
+          idiomas_traduzidos: [] as string[],
+          criado_por: doc.criado_por || '',
+          data_criacao: doc.data_criacao || '',
+          conteudo_extraido: doc.conteudo_extraido || '',
+          link_dropbox: doc.link_dropbox || '',
+          preview_url: (doc as any).preview_url || '' // Using type assertion for preview_url
         };
         
         // Handle idiomas_traduzidos if it exists in the database record
@@ -143,12 +152,12 @@ export const useDocuments = () => {
         equipamento_nome: data.equipamentos?.nome || '',
         link_dropbox: data.link_dropbox || '',
         idioma_original: data.idioma_original || '',
-        idiomas_traduzidos: [] as string[], // Initialize as empty array
+        idiomas_traduzidos: [] as string[],
         status: data.status as DocumentStatus,
         criado_por: data.criado_por || '',
         data_criacao: data.data_criacao || '',
         conteudo_extraido: data.conteudo_extraido || '',
-        preview_url: data.preview_url || ''  // Set default value if it doesn't exist
+        preview_url: (data as any).preview_url || ''  // Using type assertion for preview_url
       };
       
       // Add idiomas_traduzidos if it exists in the database record
