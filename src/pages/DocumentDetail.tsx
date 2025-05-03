@@ -192,22 +192,25 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       try {
         toast("Iniciando download");
         
-        // Use fetch API para obter o conteúdo do arquivo
+        // Get the file URL
         let url = document.link_dropbox;
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           url = 'https://' + url;
         }
         
-        // Tentar download direto via URL
+        // Create and trigger a download link
         const link = window.document.createElement('a');
         link.href = url;
         link.download = `${document.titulo || 'documento'}.pdf`;
-        // Importante: abrir em nova aba para evitar problemas de CORS
         link.target = '_blank';
-        // Adicionar ao DOM, clicar e remover
-        window.document.body.appendChild(link);
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
         link.click();
-        window.document.body.removeChild(link);
+        document.body.removeChild(link);
+        
+        toast("Download iniciado", {
+          description: "Verifique a pasta de downloads do seu navegador"
+        });
       } catch (error) {
         console.error("Erro no download:", error);
         toast("Erro no download");

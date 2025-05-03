@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, FileText, Eye } from 'lucide-react';
+import { Loader2, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -16,7 +16,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
 
   const handleExtractContent = () => {
-    // Criamos uma referência ao botão de extração na página de detalhes
+    // Find the extract button in the document header
     const extractButton = window.document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))');
     if (extractButton instanceof HTMLButtonElement) {
       extractButton.click();
@@ -61,19 +61,19 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
-            <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-center py-4">
-              Este documento ainda não tem conteúdo extraído.
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Clique em "Extrair Conteúdo" para processar o documento.
-            </p>
-            <Button 
-              variant="default" 
-              onClick={handleExtractContent}
-            >
-              Extrair Conteúdo
-            </Button>
+            <div className="text-center max-w-md">
+              <h3 className="text-lg font-medium mb-4">Sem conteúdo extraído</h3>
+              <p className="text-muted-foreground mb-6">
+                Este documento ainda não tem conteúdo extraído. 
+                Clique no botão abaixo para processar o conteúdo.
+              </p>
+              <Button 
+                variant="default" 
+                onClick={handleExtractContent}
+              >
+                Extrair Conteúdo
+              </Button>
+            </div>
           </div>
         )}
       </ScrollArea>
@@ -81,7 +81,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       {/* Modal para visualização do PDF */}
       <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <DialogHeader>
+          <DialogHeader className="p-4">
             <DialogTitle>{document.titulo}</DialogTitle>
           </DialogHeader>
           {document.link_dropbox && (
