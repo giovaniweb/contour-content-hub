@@ -67,7 +67,8 @@ export const useDocuments = () => {
       // Transform data
       const formattedDocuments: TechnicalDocument[] = data.map(doc => ({
         ...doc,
-        equipamento_nome: doc.equipamentos?.nome
+        equipamento_nome: doc.equipamentos?.nome,
+        idiomas_traduzidos: doc.idiomas_traduzidos || []
       }));
       
       setDocuments(formattedDocuments);
@@ -101,18 +102,20 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Log access
-      await supabase
-        .from('document_access_history')
-        .insert({
-          document_id: id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          action_type: 'view'
-        });
+      // Log access using a raw SQL RPC call instead of trying to use the document_access_history table directly
+      const { error: logError } = await supabase.rpc('log_document_access', { 
+        doc_id: id,
+        action: 'view'
+      });
+      
+      if (logError) {
+        console.error('Error logging document access:', logError);
+      }
       
       return {
         ...data,
-        equipamento_nome: data.equipamentos?.nome
+        equipamento_nome: data.equipamentos?.nome,
+        idiomas_traduzidos: data.idiomas_traduzidos || []
       };
     } catch (err: any) {
       console.error('Error fetching document:', err);

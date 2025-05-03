@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { GetDocumentsParams } from '@/types/document';
+import { GetDocumentsParams, DocumentType } from '@/types/document';
 import { Search, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,7 +18,7 @@ interface DocumentFiltersProps {
 
 const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
   const [searchInput, setSearchInput] = useState('');
-  const [documentType, setDocumentType] = useState<string>('');
+  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
   const [equipmentId, setEquipmentId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [equipments, setEquipments] = useState<{id: string, nome: string}[]>([]);
@@ -68,9 +68,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
   const handleFilterChange = (filterType: string, value: string) => {
     switch (filterType) {
       case 'type':
-        setDocumentType(value);
+        const typeValue = value as DocumentType | '';
+        setDocumentType(typeValue);
         onChange({ 
-          type: value || undefined,
+          type: typeValue || undefined,
           // Keep other filters
           equipmentId: equipmentId || undefined, 
           language: language || undefined,
@@ -143,7 +144,7 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
         <div>
           <Select
             value={documentType}
-            onValueChange={(value) => handleFilterChange('type', value)}
+            onValueChange={(value: string) => handleFilterChange('type', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Tipo de documento" />
