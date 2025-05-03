@@ -19,6 +19,7 @@ interface FileUploaderProps {
   processingFailed: boolean;
   onProcessFile: () => void;
   onSetUploadStep: (step: 'upload' | 'form') => void;
+  onResetData?: () => void;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = ({
@@ -32,6 +33,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   processingFailed,
   onProcessFile,
   onSetUploadStep,
+  onResetData
 }) => {
   const { toast } = useToast();
 
@@ -60,6 +62,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       }
       
       setFile(selectedFile);
+      
+      // Reset extracted data when a new file is selected
+      if (onResetData) {
+        onResetData();
+      }
     }
   };
 
