@@ -78,6 +78,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
 
   const handleViewOriginalPdf = () => {
+    // Check if we have a valid URL
     if (document?.link_dropbox || document?.preview_url) {
       console.log("Abrindo visualizador de PDF com URL:", {
         link_dropbox: document.link_dropbox,
@@ -106,12 +107,22 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           window.open(url, '_blank');
         } 
         // Handle Dropbox URLs
-        else if (url.includes('dropbox.com') && !url.includes('dl=1')) {
+        else if (url.includes('dropbox.com')) {
           // Convert to direct download link
-          if (url.includes('?')) {
-            url += '&dl=1';
-          } else {
-            url += '?dl=1';
+          if (!url.includes('dl=1')) {
+            if (url.includes('?')) {
+              url += '&dl=1';
+            } else {
+              url += '?dl=1';
+            }
+          }
+          window.open(url, '_blank');
+        }
+        // Handle Google Drive URLs
+        else if (url.includes('drive.google.com')) {
+          if (url.includes('/view')) {
+            // For direct download from Google Drive
+            url = url.replace('/view', '/preview');
           }
           window.open(url, '_blank');
         }

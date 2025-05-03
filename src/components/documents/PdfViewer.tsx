@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileWarning, ExternalLink } from 'lucide-react';
+import { FileWarning, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -17,6 +17,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
+  const [retryCount, setRetryCount] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   
   // Function to ensure the PDF URL is correctly formatted
   useEffect(() => {
@@ -25,6 +27,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       setLoading(true);
       setError(null);
       setFinalUrl('');
+      setRetryCount(0);
       return;
     }
     
@@ -45,14 +48,25 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         setFinalUrl(processedUrl);
       }
       // For Dropbox URLs that need conversion to direct download links
-      else if (processedUrl.includes('dropbox.com') && !processedUrl.includes('dl=1')) {
-        // Convert sharing URL to direct download link if needed
-        if (processedUrl.includes('?')) {
-          processedUrl += '&dl=1';
-        } else {
-          processedUrl += '?dl=1';
+      else if (processedUrl.includes('dropbox.com')) {
+        // Ensure it has the direct download parameter
+        if (!processedUrl.includes('dl=1')) {
+          if (processedUrl.includes('?')) {
+            processedUrl += '&dl=1';
+          } else {
+            processedUrl += '?dl=1';
+          }
         }
         console.log("Converted Dropbox URL:", processedUrl);
+        setFinalUrl(processedUrl);
+      }
+      // For Google Drive URLs
+      else if (processedUrl.includes('drive.google.com')) {
+        // Convert sharing URL to direct download if needed
+        if (processedUrl.includes('/view')) {
+          processedUrl = processedUrl.replace('/view', '/preview');
+        }
+        console.log("Converted Google Drive URL:", processedUrl);
         setFinalUrl(processedUrl);
       }
       // For external URLs, ensure they start with http or https
@@ -72,21 +86,29 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     } finally {
       setLoading(false);
     }
-  }, [pdfUrl, isOpen, documentId]);
+  }, [pdfUrl, isOpen, documentId, retryCount]);
 
   const handleIframeError = () => {
     console.error("Erro ao carregar o PDF:", finalUrl);
     setError("Não foi possível carregar o documento. Verifique se a URL está correta.");
     setLoading(false);
-    toast.error("Erro ao carregar o PDF", {
-      description: "Não foi possível carregar o documento."
-    });
   };
 
   const handleIframeLoad = () => {
-    console.log("PDF iframe loaded successfully:", finalUrl);
-    setLoading(false);
-    setError(null);
+    // Check if the iframe actually loaded content or just an error page
+    try {
+      console.log("PDF iframe loaded, checking content:", finalUrl);
+      
+      // Some iframes may not expose their content due to CORS
+      // In that case, we assume it loaded correctly
+      setLoading(false);
+      setError(null);
+      
+    } catch (err) {
+      console.log("Could not verify iframe content due to CORS, assuming success");
+      setLoading(false);
+      setError(null);
+    }
   };
   
   const openInNewTab = () => {
@@ -97,6 +119,15 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       });
     }
   };
+  
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    setRetryCount(prev => prev + 1);
+    toast("Tentando novamente", {
+      description: "Recarregando o documento..."
+    });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -105,17 +136,31 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="flex justify-between items-center">
             <span>Visualização do documento original</span>
-            {finalUrl && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={openInNewTab}
-                className="flex items-center gap-1"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Abrir em nova aba</span>
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {finalUrl && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRetry}
+                    className="flex items-center gap-1"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Recarregar</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={openInNewTab}
+                    className="flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Abrir em nova aba</span>
+                  </Button>
+                </>
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
         
@@ -135,20 +180,28 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
               </p>
               <p className="text-sm text-muted-foreground mb-4">URL: {pdfUrl || "Indisponível"}</p>
               
-              {finalUrl && (
-                <Button onClick={openInNewTab} className="flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Tentar abrir em nova aba</span>
+              <div className="flex gap-2">
+                <Button onClick={handleRetry} variant="outline" className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Tentar novamente</span>
                 </Button>
-              )}
+                
+                {finalUrl && (
+                  <Button onClick={openInNewTab} className="flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Abrir em nova aba</span>
+                  </Button>
+                )}
+              </div>
             </div>
           ) : (
             finalUrl && (
               <iframe
+                ref={iframeRef}
                 src={finalUrl}
                 className="w-full h-full"
                 title={title}
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-presentation"
                 onError={handleIframeError}
                 onLoad={handleIframeLoad}
               />

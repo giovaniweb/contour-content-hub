@@ -20,20 +20,29 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   useEffect(() => {
     if (document && isOpen) {
       // Use link_dropbox as the primary source, and preview_url as fallback
-      const url = document.link_dropbox || document.preview_url || '';
+      let url = '';
       
-      console.log("Document PDF URL source:", {
+      // Check for valid URL sources in priority order
+      if (document.link_dropbox && document.link_dropbox.trim() !== '') {
+        url = document.link_dropbox;
+      } else if (document.preview_url && document.preview_url.trim() !== '') {
+        url = document.preview_url;
+      }
+      
+      console.log("Document PDF URL source details:", {
         link_dropbox: document.link_dropbox,
         preview_url: document.preview_url,
         selectedUrl: url,
         documentId: document.id,
-        titulo: document.titulo
+        titulo: document.titulo,
+        isBlob: url.startsWith('blob:')
       });
       
       if (!url) {
         console.error("No PDF URL available for document:", document.id);
       }
       
+      // Set the URL regardless - the PdfViewer component will handle error cases
       setValidPdfUrl(url);
     } else {
       // Reset URL when modal is closed
