@@ -52,8 +52,7 @@ O documento trata sobre ${document.descricao || 'um tópico especializado'} e co
     } catch (error) {
       console.error("Error processing question:", error);
       toast("Erro", {
-        description: "Não foi possível processar sua pergunta. Tente novamente.",
-        variant: "destructive"
+        description: "Não foi possível processar sua pergunta. Tente novamente."
       });
     } finally {
       setIsLoading(false);

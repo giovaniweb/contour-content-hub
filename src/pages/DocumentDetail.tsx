@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -20,7 +21,6 @@ import {
   Download
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/use-documents';
 import { TechnicalDocument } from '@/types/document';
 import { toast } from 'sonner';
@@ -33,7 +33,6 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 const DocumentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { getDocumentById } = useDocuments();
   const [document, setDocument] = useState<TechnicalDocument | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,10 +66,7 @@ const DocumentDetailPage: React.FC = () => {
       } catch (err: any) {
         console.error('Error loading document:', err);
         setError(err.message || 'Erro ao carregar documento');
-        toast("Erro", {
-          description: "Não foi possível carregar o documento",
-          variant: "destructive"
-        });
+        toast("Erro ao carregar documento");
       } finally {
         setLoading(false);
       }
@@ -84,9 +80,7 @@ const DocumentDetailPage: React.FC = () => {
     
     try {
       setAddingContent(true);
-      toast("Processando documento", {
-        description: "Extraindo conteúdo do documento..."
-      });
+      toast("Processando documento");
       
       // Try to extract content via the edge function first
       let success = false;
@@ -102,10 +96,7 @@ const DocumentDetailPage: React.FC = () => {
             if (updatedDoc) {
               setDocument(updatedDoc);
               success = true;
-              toast("Documento processado", {
-                title: "Documento processado",
-                description: "O conteúdo do documento foi extraído com sucesso."
-              });
+              toast("Documento processado com sucesso");
             }
           }
         } catch (err) {
@@ -148,19 +139,14 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           conteudo_extraido: dummyContent
         });
         
-        toast("Conteúdo adicionado", {
-          description: "Um conteúdo de exemplo foi adicionado ao documento."
-        });
+        toast("Conteúdo de exemplo adicionado");
       }
 
       // Mark content as processed to prevent infinite loop
       setContentProcessed(true);
     } catch (err: any) {
       console.error('Error adding content:', err);
-      toast("Erro", {
-        description: "Não foi possível adicionar conteúdo ao documento.",
-        variant: "destructive"
-      });
+      toast("Erro ao adicionar conteúdo");
     } finally {
       setAddingContent(false);
     }
@@ -193,19 +179,14 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       }
       window.open(url, '_blank');
     } else {
-      toast("Link não disponível", {
-        description: "Este documento não possui um link para o arquivo original.",
-        variant: "destructive"
-      });
+      toast("Link não disponível");
     }
   };
   
   const handleDownloadFile = async () => {
     if (document?.link_dropbox) {
       try {
-        toast("Download iniciado", {
-          description: "Seu download começará em instantes..."
-        });
+        toast("Download iniciado");
         
         // Implement download logic based on link_dropbox URL
         // For now, just open in a new tab as fallback
@@ -215,16 +196,10 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
         }
         window.open(url, '_blank');
       } catch (error) {
-        toast("Erro no download", {
-          description: "Não foi possível baixar o arquivo.",
-          variant: "destructive"
-        });
+        toast("Erro no download");
       }
     } else {
-      toast("Arquivo não disponível", {
-        description: "Este documento não possui um arquivo para download.",
-        variant: "destructive"
-      });
+      toast("Arquivo não disponível");
     }
   };
   
@@ -232,10 +207,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
     if (document?.preview_url) {
       setPreviewModalOpen(true);
     } else {
-      toast("Prévia não disponível", {
-        description: "Este documento não possui uma prévia disponível.",
-        variant: "destructive"
-      });
+      toast("Prévia não disponível");
     }
   };
   

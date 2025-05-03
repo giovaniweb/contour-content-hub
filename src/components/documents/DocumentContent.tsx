@@ -31,7 +31,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
             variant="default" 
             onClick={() => {
               // This will be handled by the parent component
-              const extractButton = document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))')
+              const extractButton = window.document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))')
               if (extractButton instanceof HTMLButtonElement) {
                 extractButton.click();
               }
