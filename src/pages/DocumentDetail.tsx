@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import DocumentContent from '@/components/documents/DocumentContent';
 import DocumentActions from '@/components/documents/DocumentActions';
 import DocumentQuestions from '@/components/documents/DocumentQuestions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const DocumentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -198,18 +198,11 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           url = 'https://' + url;
         }
         
-        // Create and trigger a download link
-        const link = window.document.createElement('a');
-        link.href = url;
-        link.download = `${document.titulo || 'documento'}.pdf`;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Open the URL in a new tab instead of trying to use document.body
+        window.open(url, '_blank');
         
         toast("Download iniciado", {
-          description: "Verifique a pasta de downloads do seu navegador"
+          description: "O PDF foi aberto em uma nova aba"
         });
       } catch (error) {
         console.error("Erro no download:", error);
@@ -398,8 +391,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       {/* Document preview modal */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <DialogHeader>
+          <DialogHeader className="p-4">
             <DialogTitle>{document.titulo}</DialogTitle>
+            <DialogDescription>Visualização do documento original</DialogDescription>
           </DialogHeader>
           {document?.link_dropbox && (
             <iframe 
