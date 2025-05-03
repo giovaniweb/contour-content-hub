@@ -24,7 +24,7 @@ const KeywordsDisplay: React.FC<KeywordsDisplayProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       <Label>{title}</Label>
-      <ScrollArea className={`h-auto max-h-[${maxHeight}]`}>
+      <ScrollArea className="h-auto" style={{ maxHeight }}>
         <div className="p-3 border rounded-md">
           <div className="flex flex-wrap gap-2">
             {extractedKeywords.map((keyword, index) => (

@@ -26,7 +26,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
   }
 
   return (
-    <ScrollArea className="h-auto max-h-[300px]">
+    <ScrollArea className="h-auto max-h-[400px]">
       <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-muted"}>
         <AlertTitle className="flex items-center">
           {processingFailed ? (
@@ -51,7 +51,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
           
           {/* Display extracted title if available */}
           {suggestedTitle && (
-            <div className="mt-2">
+            <div className="mt-3">
               <p className="text-sm font-medium">Título:</p>
               <p className="text-sm">{suggestedTitle}</p>
             </div>
@@ -59,7 +59,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
           
           {/* Display conclusion if available */}
           {suggestedDescription && (
-            <div className="mt-2">
+            <div className="mt-3">
               <p className="text-sm font-medium">Conclusão:</p>
               <p className="text-sm">{suggestedDescription}</p>
             </div>
@@ -67,7 +67,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
           
           {/* Display keywords */}
           {extractedKeywords.length > 0 && (
-            <div className="mt-2">
+            <div className="mt-3">
               <p className="text-sm font-medium">Palavras-chave:</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {extractedKeywords.map((keyword, index) => (
@@ -81,7 +81,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
           
           {/* Display researchers */}
           {extractedResearchers.length > 0 && (
-            <div className="mt-2">
+            <div className="mt-3">
               <p className="text-sm font-medium">Pesquisadores:</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {extractedResearchers.map((researcher, index) => (

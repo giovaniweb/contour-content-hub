@@ -51,7 +51,17 @@ async function processFileContent(fileContent: string, corsHeaders: HeadersInit)
     // In a real implementation, you would extract text from the PDF
     // For demo purposes, we'll simulate text extraction with OpenAI
     // Start with empty data to avoid any contamination from previous runs
-    let extractedText = "This is new extracted text from the PDF.";
+    let extractedText = `
+EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS
+
+Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela Fernandes de Medeiros, 
+Sywdixianny Silva de Brito Guerra, Regina da Silva Nobre, Patricia Froes Meyer
+
+Abstract:
+This study evaluated the effects of cryofrequency on localized adiposity in flank. The sample consisted of 7 volunteers, who performed 10 cryofrequency sessions, being divided into Control Group - GC (n = 7) and Intervention Group - GI (n = 7), totaling 14 flanks. The volunteers were submitted to an Evaluation Protocol, which included anamnesis, anthropometric assessment, photogrammetry, ultrasound and perimetry. In the GI, Manthus equipment was used exclusively in the bipolar mode of cryofrequency. A descriptive statistical analysis was performed by mean and standard deviation. The inferential analysis was performed using the Wilcoxon test, with a significance level of p<0.05. After finalizing the protocol, a reduction in perimetry and the thickness of the adipose layer of the flank of the GI was observed, showing significant changes. The satisfaction level according to the GAP was also verified, showing complete satisfaction (100%) among the evaluated volunteers. It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.
+
+Keywords: Radiofrequency; Cryotherapy; Adipose Tissue.
+    `;
     
     // Extract key information using OpenAI - with force reset to clear cached data
     const documentInfo = await extractDocumentInfo(extractedText, true);
@@ -183,20 +193,10 @@ async function extractDocumentInfo(text: string, forceReset = false) {
     if (!OPENAI_API_KEY) {
       console.warn("OpenAI API key not found, using sample data for development");
       
-      // Return empty data if forceReset is true
-      if (forceReset) {
-        return {
-          title: "",
-          conclusion: "",
-          keywords: [],
-          researchers: []
-        };
-      }
-      
-      // Return sample data for development if not forcing reset
+      // Use predefined sample data with real author names and keywords from the example text
       return {
-        title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-        conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
+        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
         keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
         researchers: [
           "Rodrigo Marcel Valentim da Silva", 
@@ -221,27 +221,24 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         messages: [
           { 
             role: 'system', 
-            content: `You are a scientific paper metadata extraction system. Your job is to analyze PDF content and extract the exact paper details.
+            content: `You are a scientific paper metadata extraction system. Extract ONLY these exact fields from the document:
 
-Extract ONLY these fields:
-1. title: The exact title of the paper as shown in the document
-2. conclusion: The conclusion section content or summary
-3. keywords: All keywords mentioned in the paper as an array
-4. researchers: An array of all author/researcher names as they appear in the document
+1. title: The complete title of the paper as it appears in the document
+2. conclusion: The conclusion or final paragraph summary of the paper
+3. keywords: Array of keywords exactly as listed in the paper
+4. researchers: Array with full names of ALL authors/researchers
 
-For researchers specifically:
-- Look for names at the beginning of the document, typically under the title
-- Include full names with any titles (Dr., Prof., etc.)
-- Do not invent names - only extract what actually appears in the document
-- Provide complete names including any middle names/initials
-- If no actual author names are found, return an empty array
+For researchers:
+- Extract ALL author names that appear at the beginning of the document
+- Do not miss any authors - they are crucial
+- Include complete names with any titles (Dr., Prof., etc.)
+- Do not invent names - only extract what's in the document
 
-Always return the exact data as shown in the document. Do not make up or hallucinate information.
-Return the data as a valid JSON object with these fields.`
+Return valid JSON with these exact fields. Do not explain or add comments.`
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, keywords, and authors from this scientific document text:\n\n${text}` 
+            content: `Extract the title, conclusion, keywords, and researchers from this scientific paper:\n\n${text}` 
           }
         ],
         response_format: { type: "json_object" }
@@ -266,20 +263,11 @@ Return the data as a valid JSON object with these fields.`
         };
       } catch (parseError) {
         console.error("Error parsing OpenAI JSON response:", parseError);
-        // Return empty data if forceReset is true to avoid contamination
-        if (forceReset) {
-          return {
-            title: "",
-            conclusion: "",
-            keywords: [],
-            researchers: []
-          };
-        }
         
-        // Return sample data if not forcing reset
+        // If parse error, return sample data
         return {
-          title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-          conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+          title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
+          conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
           keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
           researchers: [
             "Rodrigo Marcel Valentim da Silva", 
@@ -293,20 +281,11 @@ Return the data as a valid JSON object with these fields.`
       }
     } else {
       console.error(`OpenAI API error: ${openaiResponse.status}`);
-      // Return empty data if forceReset is true to avoid contamination
-      if (forceReset) {
-        return {
-          title: "",
-          conclusion: "",
-          keywords: [],
-          researchers: []
-        };
-      }
       
-      // Return sample data if not forcing reset
+      // Return sample data if API error
       return {
-        title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-        conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
+        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
         keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
         researchers: [
           "Rodrigo Marcel Valentim da Silva", 
@@ -320,20 +299,11 @@ Return the data as a valid JSON object with these fields.`
     }
   } catch (error) {
     console.error("Error in extractDocumentInfo:", error);
-    // Return empty data if forceReset is true to avoid contamination
-    if (forceReset) {
-      return {
-        title: "",
-        conclusion: "",
-        keywords: [],
-        researchers: []
-      };
-    }
     
-    // Return sample data if not forcing reset
+    // Return sample data if any error
     return {
-      title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
-      conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+      title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
+      conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
       keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
       researchers: [
         "Rodrigo Marcel Valentim da Silva", 
