@@ -141,7 +141,9 @@ async function processDocumentById(documentId: string, userId: string | null, co
           extractedText += `\n\nResults: The results show significant improvements over previous methods, with p-value < 0.05.`;
           extractedText += `\n\nConclusion: Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.`;
           extractedText += `\n\nKeywords: cryofrequency, adiposity, treatment, flanks, effectiveness, subcutaneous fat, non-invasive`;
-          extractedText += `\n\nResearchers: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima`;
+          extractedText += `\n\nAuthor: Dr. Maria Silva`;
+          extractedText += `\n\nCorresponding Author: Dr. João Santos`;
+          extractedText += `\n\nAdditional Authors: Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima`;
           break;
           
         case 'ficha_tecnica':
@@ -238,7 +240,7 @@ async function extractDocumentInfo(text: string) {
       };
     }
 
-    // Call OpenAI to extract information with enhanced prompt for ALL researchers
+    // Call OpenAI to extract information with enhanced prompt to focus on actual authors
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -255,20 +257,21 @@ async function extractDocumentInfo(text: string) {
             1. title (the actual title of the paper, not the filename)
             2. conclusion (from the conclusion section)
             3. keywords (as an array of all found keywords)
-            4. researchers (as an array of ALL researcher/author names found in the document, up to 30 names)
+            4. researchers (as an array of ONLY actual authors/researchers of the document)
             
             Return ONLY these fields in valid JSON format. Make sure to:
             - Extract the actual title from the document content, not the filename
             - Remove any prefixes like numbers or suffixes like "OK" from the title
             - Format keywords and researchers as arrays even if empty
-            - Perform a VERY thorough analysis to find ALL researchers/authors mentioned ANYWHERE in the document
-            - Look for authors in headers, footers, title pages, acknowledgements, references, and main text
-            - Include titles like Dr., Prof., Ph.D. if present with the researcher names
-            - Return all author names regardless of how many there are (up to 30 maximum)`
+            - For researchers/authors, ONLY include names that are EXPLICITLY identified as authors in the document
+            - Look for authors in sections labeled "Author", "Authors", "Autor", "Autores", "Corresponding Author", "Autor Correspondente"
+            - DO NOT include names that appear elsewhere in the document unless they are clearly identified as authors
+            - Include titles like Dr., Prof., Ph.D. if present with the author names
+            - If no authors can be confidently identified, return an empty array for researchers`
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, ALL keywords, and ALL researchers/authors from this scientific article text:\n\n${text}` 
+            content: `Extract the title, conclusion, keywords, and ONLY the actual authors/researchers from this scientific article text:\n\n${text}` 
           }
         ],
         response_format: { type: "json_object" }
