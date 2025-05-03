@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +26,14 @@ import {
 } from "@/components/ui/form";
 
 interface ScientificArticleFormProps {
-  articleData?: any;
+  articleData?: {
+    id?: string;
+    titulo?: string;
+    descricao?: string;
+    equipamento_id?: string;
+    idioma_original?: string;
+    link_dropbox?: string;
+  };
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -148,10 +154,10 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         fileUrl = publicUrl;
       }
 
-      const articleData = {
+      const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
-        equipamento_id: values.equipamento_id || null,
+        equipamento_id: values.equipamento_id === "none" ? null : values.equipamento_id || null,
         tipo: 'artigo_cientifico',
         idioma_original: values.idioma_original,
         link_dropbox: fileUrl || null,
@@ -163,7 +169,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         // Update existing article
         const { error } = await supabase
           .from('documentos_tecnicos')
-          .update(articleData)
+          .update(articlePayload)
           .eq('id', articleData.id);
           
         if (error) throw error;
@@ -176,7 +182,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         // Create new article
         const { error } = await supabase
           .from('documentos_tecnicos')
-          .insert([articleData]);
+          .insert([articlePayload]);
           
         if (error) throw error;
 
