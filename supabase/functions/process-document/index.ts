@@ -55,9 +55,9 @@ async function processFileContent(fileContent: string, corsHeaders: HeadersInit)
     // For PDF analysis, we would extract real text here
     // Adding some mock content to simulate PDF processing
     extractedText += "\n\nTitle: Effects Of Cryofrequency on Localized Adiposity in Flanks\n\n";
-    extractedText += "Authors: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira\n\n";
+    extractedText += "Authors: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima\n\n";
     extractedText += "Abstract: This study evaluates the efficacy of cryofrequency treatment for localized adiposity.\n\n";
-    extractedText += "Keywords: cryofrequency, adiposity, treatment, flanks, effectiveness\n\n";
+    extractedText += "Keywords: cryofrequency, adiposity, treatment, flanks, effectiveness, subcutaneous fat, non-invasive\n\n";
     extractedText += "Conclusion: Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.";
     
     // Extract key information using OpenAI
@@ -140,8 +140,8 @@ async function processDocumentById(documentId: string, userId: string | null, co
           extractedText += `\n\nMethodology: The study used a double-blind approach with control groups to validate the findings.`;
           extractedText += `\n\nResults: The results show significant improvements over previous methods, with p-value < 0.05.`;
           extractedText += `\n\nConclusion: Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.`;
-          extractedText += `\n\nKeywords: cryofrequency, adiposity, treatment, flanks, effectiveness`;
-          extractedText += `\n\nResearchers: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira`;
+          extractedText += `\n\nKeywords: cryofrequency, adiposity, treatment, flanks, effectiveness, subcutaneous fat, non-invasive`;
+          extractedText += `\n\nResearchers: Dr. Maria Silva, Dr. João Santos, Dr. Ana Oliveira, Dr. Carlos Mendes, Dr. Eduardo Lima`;
           break;
           
         case 'ficha_tecnica':
@@ -233,12 +233,12 @@ async function extractDocumentInfo(text: string) {
       return {
         title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
         conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-        keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness"],
-        researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira"]
+        keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
+        researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
       };
     }
 
-    // Call OpenAI to extract information
+    // Call OpenAI to extract information with improved prompt for all authors
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -250,11 +250,11 @@ async function extractDocumentInfo(text: string) {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format. Extract ONLY the following fields: title (the actual title of the paper, not the filename), conclusion (from the conclusion section), keywords (as an array), and researchers (as an array of names). Return ONLY these fields in valid JSON format. Make sure to extract the actual title from the document content, not the filename. Remove any prefixes like numbers or suffixes like "OK" from the title. Make sure keywords and researchers are properly formatted as arrays even if empty.' 
+            content: 'You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format. Extract ONLY the following fields: title (the actual title of the paper, not the filename), conclusion (from the conclusion section), keywords (as an array of all found keywords), and researchers (as an array of ALL researcher/author names found in the document, up to 20 names). Return ONLY these fields in valid JSON format. Make sure to extract the actual title from the document content, not the filename. Remove any prefixes like numbers or suffixes like "OK" from the title. Make sure keywords and researchers are properly formatted as arrays even if empty. Do a thorough analysis to find ALL researchers/authors mentioned anywhere in the document.'
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, keywords, and researchers from this scientific article text:\n\n${text}` 
+            content: `Extract the title, conclusion, ALL keywords, and ALL researchers/authors from this scientific article text:\n\n${text}` 
           }
         ],
         response_format: { type: "json_object" }
@@ -286,8 +286,8 @@ async function extractDocumentInfo(text: string) {
         return {
           title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
           conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-          keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness"],
-          researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira"]
+          keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
+          researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
         };
       }
     } else {
@@ -299,8 +299,8 @@ async function extractDocumentInfo(text: string) {
     return {
       title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
       conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-      keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness"],
-      researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira"]
+      keywords: ["cryofrequency", "adiposity", "treatment", "flanks", "effectiveness", "subcutaneous fat", "non-invasive"],
+      researchers: ["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira", "Dr. Carlos Mendes", "Dr. Eduardo Lima"]
     };
   }
 }
