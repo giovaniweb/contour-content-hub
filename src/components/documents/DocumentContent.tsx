@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, FileText, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 interface DocumentContentProps {
@@ -16,8 +16,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
 
   const handleExtractContent = () => {
-    // Instead of trying to find a DOM element on the document object,
-    // we need to use the global document object to query the DOM
+    // Criamos uma referência ao botão de extração na página de detalhes
     const extractButton = window.document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))');
     if (extractButton instanceof HTMLButtonElement) {
       extractButton.click();
@@ -82,6 +81,9 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       {/* Modal para visualização do PDF */}
       <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader>
+            <DialogTitle>{document.titulo}</DialogTitle>
+          </DialogHeader>
           {document.link_dropbox && (
             <div className="w-full h-[80vh]">
               <iframe

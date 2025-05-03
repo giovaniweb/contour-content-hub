@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -17,8 +18,7 @@ import {
   Lightbulb,
   ExternalLink,
   Loader2,
-  Download,
-  Eye
+  Download
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDocuments } from '@/hooks/use-documents';
@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import DocumentContent from '@/components/documents/DocumentContent';
 import DocumentActions from '@/components/documents/DocumentActions';
 import DocumentQuestions from '@/components/documents/DocumentQuestions';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const DocumentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -192,21 +192,24 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       try {
         toast("Iniciando download");
         
-        // Implement file download without using document.createElement
+        // Use fetch API para obter o conteúdo do arquivo
         let url = document.link_dropbox;
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           url = 'https://' + url;
         }
         
-        // Create a temporary link and simulate the click using DOM API (not document object)
+        // Tentar download direto via URL
         const link = window.document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `${document.titulo}.pdf`);
-        link.setAttribute('target', '_blank');
+        link.download = `${document.titulo || 'documento'}.pdf`;
+        // Importante: abrir em nova aba para evitar problemas de CORS
+        link.target = '_blank';
+        // Adicionar ao DOM, clicar e remover
         window.document.body.appendChild(link);
         link.click();
         window.document.body.removeChild(link);
       } catch (error) {
+        console.error("Erro no download:", error);
         toast("Erro no download");
       }
     } else {
@@ -276,28 +279,10 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={handleOpenOriginal}
-                    >
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Ver Original
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm"
                       onClick={handleDownloadFile}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={openPreviewModal}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Visualizar PDF
                     </Button>
                     
                     {!document.conteudo_extraido && (
@@ -410,6 +395,9 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       {/* Document preview modal */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader>
+            <DialogTitle>{document.titulo}</DialogTitle>
+          </DialogHeader>
           {document?.link_dropbox && (
             <iframe 
               src={document.link_dropbox.startsWith('http') ? document.link_dropbox : `https://${document.link_dropbox}`} 
