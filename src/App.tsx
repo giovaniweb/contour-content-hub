@@ -51,9 +51,10 @@ function App() {
             <Route path="/documents" element={<TechnicalDocumentsPage />} />
             <Route path="/documents/:id" element={<DocumentDetailPage />} />
             <Route path="/equipments/:id" element={<EquipmentDetails />} />
-            {/* Add the new route for equipment-details */}
             <Route path="/equipment-details" element={<EquipmentDetails />} />
             <Route path="/equipment-details/:id" element={<EquipmentDetails />} />
+            <Route path="/media-library" element={<MediaLibrary />} />
+            <Route path="/script-history" element={<ScriptHistory />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

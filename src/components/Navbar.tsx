@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -154,11 +153,11 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavLink to="/script-validation">
+                  <NavLink to="/scripts">
                     <NavigationMenuLink 
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        location.pathname === "/script-validation" ? "bg-accent text-accent-foreground" : ""
+                        location.pathname === "/scripts" ? "bg-accent text-accent-foreground" : ""
                       )}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -167,11 +166,11 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavLink to="/media-library">
+                  <NavLink to="/media">
                     <NavigationMenuLink 
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        location.pathname === "/media-library" ? "bg-accent text-accent-foreground" : ""
+                        location.pathname === "/media" ? "bg-accent text-accent-foreground" : ""
                       )}
                     >
                       <Film className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -226,8 +225,8 @@ const Navbar: React.FC = () => {
                     <>
                       <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
                       <DrawerNavLink to="/custom-gpt" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
-                      <DrawerNavLink to="/script-validation" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
-                      <DrawerNavLink to="/media-library" icon={<Film className="h-5 w-5" />} label="Mídia" />
+                      <DrawerNavLink to="/scripts" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
+                      <DrawerNavLink to="/media" icon={<Film className="h-5 w-5" />} label="Mídia" />
                       <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
                       <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
                     </>

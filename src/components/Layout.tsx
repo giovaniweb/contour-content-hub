@@ -133,7 +133,7 @@ const Layout: React.FC<LayoutProps> = ({
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link to="/script-generator" className="flex items-center">
+                        <Link to="/custom-gpt" className="flex items-center">
                           <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Criar Roteiro</span>
                         </Link>
@@ -141,7 +141,7 @@ const Layout: React.FC<LayoutProps> = ({
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link to="/script-history" className="flex items-center">
+                        <Link to="/scripts" className="flex items-center">
                           <History className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Histórico de Roteiros</span>
                         </Link>
@@ -149,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link to="/media-library" className="flex items-center">
+                        <Link to="/media" className="flex items-center">
                           <Film className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Biblioteca de Mídia</span>
                         </Link>
