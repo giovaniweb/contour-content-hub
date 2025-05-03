@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Users, Search, Plus, Calendar, FileText, BarChart, UserPlus, User as UserIcon } from "lucide-react";
 
 interface Client {
@@ -42,9 +42,7 @@ const ClientList = () => {
   useEffect(() => {
     // Verificar permissões
     if (!hasPermission('manageClients')) {
-      toast({
-        variant: "destructive",
-        title: "Acesso negado",
+      toast("Acesso negado", {
         description: "Você não tem permissão para acessar esta página."
       });
       return;
@@ -109,9 +107,7 @@ const ClientList = () => {
       setClients(enrichedClients);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível carregar a lista de clientes."
       });
     } finally {

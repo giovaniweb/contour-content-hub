@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Users, FileText, BarChart, LineChart, PieChart, Calendar, Activity } from "lucide-react";
 import {
   LineChart as RechartsLineChart,
@@ -38,9 +38,7 @@ const SellerDashboard = () => {
   useEffect(() => {
     // Verificar permissões
     if (!hasPermission('viewSales')) {
-      toast({
-        variant: "destructive",
-        title: "Acesso negado",
+      toast("Acesso negado", {
         description: "Você não tem permissão para acessar esta página."
       });
       return;
@@ -119,9 +117,7 @@ const SellerDashboard = () => {
       setTopClients(simulatedTopClients);
     } catch (error) {
       console.error('Erro ao buscar dados do dashboard:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível carregar os dados do dashboard."
       });
     } finally {

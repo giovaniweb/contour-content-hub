@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { AreaChart, BarChart3, Calendar, FileText, User, Clock, BarChartIcon, CheckSquare, UploadCloud, Users } from "lucide-react";
 import { SubscriptionPlan, ClientEngagement, ClientAnalytics } from "@/utils/validation/types";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -44,9 +44,7 @@ const ClientDetail = () => {
   useEffect(() => {
     // Verificar permissões
     if (!hasPermission('manageClients')) {
-      toast({
-        variant: "destructive",
-        title: "Acesso negado",
+      toast("Acesso negado", {
         description: "Você não tem permissão para acessar esta página."
       });
       return;
@@ -108,9 +106,7 @@ const ClientDetail = () => {
       });
     } catch (error) {
       console.error('Erro ao buscar detalhes do cliente:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível carregar os detalhes do cliente."
       });
     } finally {
@@ -247,8 +243,7 @@ const ClientDetail = () => {
       // Buscar nome do plano
       const selectedPlan = availablePlans.find(p => p.id === planId);
       
-      toast({
-        title: "Plano atualizado",
+      toast("Plano atualizado", {
         description: `O cliente agora está no plano ${selectedPlan?.name || 'selecionado'}.`
       });
       
@@ -256,9 +251,7 @@ const ClientDetail = () => {
       fetchClientDetails();
     } catch (error) {
       console.error('Erro ao atualizar plano do cliente:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível atualizar o plano do cliente."
       });
     }
