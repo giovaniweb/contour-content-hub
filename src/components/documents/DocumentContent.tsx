@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 interface DocumentContentProps {
@@ -17,7 +17,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
 
   const handleExtractContent = () => {
     // Find the extract button in the document header
-    const extractButton = window.document.querySelector('button:has(.h-4.w-4:has(path[d*="M14 3v4a1 1"]))');
+    const extractButton = document.querySelector('button:has(.h-4.w-4:nth-child(1))[disabled="false"]');
     if (extractButton instanceof HTMLButtonElement) {
       extractButton.click();
     } else {
@@ -83,6 +83,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
           <DialogHeader className="p-4">
             <DialogTitle>{document.titulo}</DialogTitle>
+            <DialogDescription>Visualização do documento original</DialogDescription>
           </DialogHeader>
           {document.link_dropbox && (
             <div className="w-full h-[80vh]">

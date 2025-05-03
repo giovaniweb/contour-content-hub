@@ -1,33 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import {
-  ChevronLeft, 
-  FileText, 
-  FileQuestion, 
-  Languages,
-  MessageSquare,
-  Lightbulb,
-  ExternalLink,
-  Loader2,
-  Download
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDocuments } from '@/hooks/use-documents';
 import { TechnicalDocument } from '@/types/document';
 import { toast } from 'sonner';
 
-import DocumentContent from '@/components/documents/DocumentContent';
+import DocumentHeader from '@/components/documents/DocumentHeader';
+import DocumentTabs from '@/components/documents/DocumentTabs';
 import DocumentActions from '@/components/documents/DocumentActions';
-import DocumentQuestions from '@/components/documents/DocumentQuestions';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import DocumentPreviewModal from '@/components/documents/DocumentPreviewModal';
 
 const DocumentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -151,75 +140,6 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
     }
   };
   
-  const getDocumentTypeLabel = (type: string) => {
-    switch(type) {
-      case 'artigo_cientifico': return 'Artigo Científico';
-      case 'ficha_tecnica': return 'Ficha Técnica';
-      case 'protocolo': return 'Protocolo';
-      default: return 'Outro';
-    }
-  };
-  
-  const getLanguageLabel = (code: string) => {
-    switch(code) {
-      case 'pt': return 'Português';
-      case 'en': return 'Inglês';
-      case 'es': return 'Espanhol';
-      default: return code;
-    }
-  };
-  
-  const handleOpenOriginal = () => {
-    if (document?.link_dropbox) {
-      try {
-        // Check if the URL starts with http or https
-        let url = document.link_dropbox;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
-        }
-        window.open(url, '_blank');
-      } catch (error) {
-        toast("Erro ao abrir o link");
-      }
-    } else {
-      toast("Link não disponível");
-    }
-  };
-  
-  const handleDownloadFile = async () => {
-    if (document?.link_dropbox) {
-      try {
-        toast("Iniciando download");
-        
-        // Get the file URL
-        let url = document.link_dropbox;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
-        }
-        
-        // Open the URL in a new tab - this avoids using document.body
-        window.open(url, '_blank');
-        
-        toast("Download iniciado", {
-          description: "O PDF foi aberto em uma nova aba"
-        });
-      } catch (error) {
-        console.error("Erro no download:", error);
-        toast("Erro no download");
-      }
-    } else {
-      toast("Arquivo não disponível");
-    }
-  };
-  
-  const openPreviewModal = () => {
-    if (document?.link_dropbox) {
-      setPreviewModalOpen(true);
-    } else {
-      toast("Prévia não disponível");
-    }
-  };
-  
   if (loading) {
     return (
       <Layout>
@@ -254,126 +174,22 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       </Helmet>
       
       <div className="container py-6">
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/documents')}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Documentos
-          </Button>
-        </div>
-        
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 order-2 lg:order-1">
             <Card className="mb-6">
               <CardHeader className="pb-3">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <CardTitle>{document.titulo}</CardTitle>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleDownloadFile}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
-                    
-                    {!document.conteudo_extraido && (
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        onClick={() => extractContent(document)}
-                        disabled={addingContent}
-                      >
-                        {addingContent ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processando...
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Extrair Conteúdo
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <DocumentHeader
+                  document={document}
+                  addingContent={addingContent}
+                  onExtractContent={() => extractContent(document)}
+                />
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-3">
-                  {document.descricao || 'Sem descrição disponível'}
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge variant="secondary">
-                    {getDocumentTypeLabel(document.tipo)}
-                  </Badge>
-                  
-                  {document.idioma_original && (
-                    <Badge variant="outline">
-                      {getLanguageLabel(document.idioma_original)}
-                    </Badge>
-                  )}
-                  
-                  {document.equipamento_nome && (
-                    <Badge variant="outline">
-                      Equip: {document.equipamento_nome}
-                    </Badge>
-                  )}
-                </div>
-                
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="content" className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4" />
-                      <span>Conteúdo</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="translations" className="flex items-center">
-                      <Languages className="mr-2 h-4 w-4" />
-                      <span>Traduções</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="questions" className="flex items-center">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      <span>Perguntas</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="content-ideas" className="flex items-center">
-                      <Lightbulb className="mr-2 h-4 w-4" />
-                      <span>Ideias</span>
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="content">
-                    <DocumentContent document={document} />
-                  </TabsContent>
-                  
-                  <TabsContent value="translations">
-                    <div className="p-6 text-center">
-                      <Languages className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Traduções</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Use a barra lateral para traduzir este documento para outros idiomas.
-                      </p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="questions">
-                    <DocumentQuestions document={document} />
-                  </TabsContent>
-                  
-                  <TabsContent value="content-ideas">
-                    <div className="p-6 text-center">
-                      <Lightbulb className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Ideias de Conteúdo</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Use a barra lateral para gerar ideias de conteúdo a partir deste documento.
-                      </p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                <DocumentTabs 
+                  document={document} 
+                  activeTab={activeTab} 
+                  onChangeTab={setActiveTab}
+                />
               </CardContent>
             </Card>
           </div>
@@ -388,22 +204,11 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       </div>
       
       {/* Document preview modal */}
-      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <DialogHeader className="p-4">
-            <DialogTitle>{document.titulo}</DialogTitle>
-            <DialogDescription>Visualização do documento original</DialogDescription>
-          </DialogHeader>
-          {document?.link_dropbox && (
-            <iframe 
-              src={document.link_dropbox.startsWith('http') ? document.link_dropbox : `https://${document.link_dropbox}`} 
-              title={document.titulo}
-              className="w-full h-[80vh]"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <DocumentPreviewModal
+        isOpen={previewModalOpen}
+        onOpenChange={setPreviewModalOpen}
+        document={document}
+      />
     </Layout>
   );
 };
