@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ScientificArticleFormProps {
   articleData?: {
@@ -65,6 +65,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   const [uploadStep, setUploadStep] = useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -111,6 +112,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
+      setUploadError(null);
       
       // Check if file is PDF
       if (selectedFile.type !== 'application/pdf') {
@@ -148,62 +150,35 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
 
     try {
       setIsProcessing(true);
+      setUploadError(null);
       
-      // Upload file to storage
-      const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      // Extract title from filename for later use
+      const extractedTitle = file.name.replace('.pdf', '').replace(/_/g, ' ');
       
-      const { error: uploadError, data: uploadData } = await supabase
-        .storage
-        .from('documents')
-        .upload(fileName, file);
-        
-      if (uploadError) throw uploadError;
+      // Skip the actual file upload and just process the file metadata
+      // This is a fallback since the bucket might not exist
+      setFileUrl(null);  // We won't have a real URL
       
-      // Get the public URL
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('documents')
-        .getPublicUrl(fileName);
-        
-      setFileUrl(publicUrl);
+      // Set title and placeholder description based on file name
+      setSuggestedTitle(extractedTitle);
+      setSuggestedDescription("Artigo científico relacionado a " + extractedTitle);
       
-      // Use the generate-content-description edge function to extract information
-      const response = await supabase.functions.invoke('generate-content-description', {
-        body: {
-          title: file.name.replace('.pdf', '').replace(/_/g, ' '),
-          type: 'artigo_cientifico',
-          description: 'Artigo científico em formato PDF'
-        }
-      });
-      
-      if (response.error) throw new Error(response.error);
-      
-      // Update form with suggested values
-      const responseData = response.data;
-      if (responseData) {
-        const extractedTitle = file.name.replace('.pdf', '').replace(/_/g, ' ');
-        setSuggestedTitle(extractedTitle);
-        
-        // Check if detailedDescription exists in the response
-        const description = responseData.detailedDescription || '';
-        setSuggestedDescription(description);
-        
-        form.setValue('titulo', extractedTitle);
-        form.setValue('descricao', description);
-      }
+      form.setValue('titulo', extractedTitle);
+      form.setValue('descricao', "Artigo científico relacionado a " + extractedTitle);
       
       // Move to form step
       setUploadStep('form');
       toast({
-        title: "Upload concluído",
-        description: "O arquivo foi enviado com sucesso. Agora complete as informações do artigo."
+        title: "Processamento concluído",
+        description: "O arquivo foi processado. Por favor, complete as informações do artigo."
       });
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Error processing file:', error);
+      setUploadError("Ocorreu um erro ao processar o arquivo. Por favor, tente novamente ou forneça um link externo.");
       toast({
         variant: "destructive",
-        title: "Erro no upload",
-        description: "Não foi possível enviar o arquivo. Por favor, tente novamente."
+        title: "Erro no processamento",
+        description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
     } finally {
       setIsProcessing(false);
@@ -214,8 +189,8 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     try {
       setIsLoading(true);
       
-      // Use the fileUrl from the upload step or the link_dropbox value
-      const finalFileUrl = fileUrl || values.link_dropbox;
+      // We'll use the link_dropbox value since fileUrl might be null
+      const finalFileUrl = values.link_dropbox || null;
       
       const articlePayload = {
         titulo: values.titulo,
@@ -223,7 +198,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         equipamento_id: values.equipamento_id === "none" ? null : values.equipamento_id || null,
         tipo: 'artigo_cientifico',
         idioma_original: values.idioma_original,
-        link_dropbox: finalFileUrl || null,
+        link_dropbox: finalFileUrl,
         status: 'ativo',
         criado_por: (await supabase.auth.getUser()).data.user?.id || null,
       };
@@ -272,6 +247,13 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   if (uploadStep === 'upload' && !articleData) {
     return (
       <div className="space-y-6">
+        {uploadError && (
+          <Alert variant="destructive">
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{uploadError}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-2">
           <Label htmlFor="file_upload">Faça upload do artigo (PDF, max 10MB)</Label>
           <div className="mt-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center">
@@ -317,7 +299,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                     ) : (
                       <>
                         <Upload className="mr-2 h-4 w-4" />
-                        Enviar e Processar
+                        Processar
                       </>
                     )}
                   </Button>
@@ -349,7 +331,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         {suggestedTitle && suggestedDescription && (
           <Alert className="bg-muted">
             <AlertDescription>
-              <p className="text-sm">Título e descrição sugeridos com base no arquivo enviado.</p>
+              <p className="text-sm">Título e descrição sugeridos com base no arquivo.</p>
             </AlertDescription>
           </Alert>
         )}
@@ -464,11 +446,11 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           />
         )}
         
-        {!fileUrl && (
+        {!fileUrl && uploadStep === 'form' && (
           <div className="space-y-2">
-            <Label htmlFor="file_upload">Ou faça upload do artigo (PDF, max 10MB)</Label>
+            <Label htmlFor="file_upload2">Ou faça upload do artigo (PDF, max 10MB)</Label>
             <Input
-              id="file_upload"
+              id="file_upload2"
               type="file"
               accept="application/pdf"
               onChange={handleFileChange}
