@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Loader2, Book, Filter, Grid2x2, LayoutList } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner"; // Import toast directly from sonner
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,6 @@ import ScientificArticleList from "./ScientificArticleList";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ScientificArticleManager: React.FC = () => {
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [articles, setArticles] = useState<any[]>([]);
