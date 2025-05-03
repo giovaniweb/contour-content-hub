@@ -71,12 +71,12 @@ export const useDocuments = () => {
           tipo: doc.tipo as DocumentType,
           status: doc.status as DocumentStatus,
           equipamento_nome: doc.equipamentos?.nome,
-          idiomas_traduzidos: [] as string[]
+          idiomas_traduzidos: [] as string[] // Initialize as empty array, not empty object
         };
         
         // Handle idiomas_traduzidos if it exists in the database record
         if ('idiomas_traduzidos' in doc && doc.idiomas_traduzidos) {
-          documentData.idiomas_traduzidos = doc.idiomas_traduzidos;
+          documentData.idiomas_traduzidos = doc.idiomas_traduzidos as string[];
         }
         
         return documentData;
@@ -115,9 +115,9 @@ export const useDocuments = () => {
       
       // Log access using a direct SQL approach to bypass TypeScript error
       try {
-        // Using type assertion with any to bypass TypeScript error
-        const { error: rpcError } = await supabase.rpc(
-          'log_document_access' as any, 
+        // Using type assertion to bypass TypeScript error
+        const { error: rpcError } = await (supabase.rpc as any)(
+          'log_document_access', 
           { 
             doc_id: id,
             action: 'view'
@@ -142,18 +142,17 @@ export const useDocuments = () => {
         equipamento_nome: data.equipamentos?.nome || '',
         link_dropbox: data.link_dropbox || '',
         idioma_original: data.idioma_original || '',
-        idiomas_traduzidos: [],
+        idiomas_traduzidos: [] as string[], // Initialize as empty array
         status: data.status as DocumentStatus,
         criado_por: data.criado_por || '',
         data_criacao: data.data_criacao || '',
         conteudo_extraido: data.conteudo_extraido || '',
-        preview_url: data.preview_url || '',
-        vetor_embeddings: data.vetor_embeddings || ''
+        preview_url: data.preview_url || ''  // Set default value if it doesn't exist
       };
       
       // Add idiomas_traduzidos if it exists in the database record
       if ('idiomas_traduzidos' in data && data.idiomas_traduzidos) {
-        formattedDocument.idiomas_traduzidos = data.idiomas_traduzidos;
+        formattedDocument.idiomas_traduzidos = data.idiomas_traduzidos as string[];
       }
       
       return formattedDocument;
