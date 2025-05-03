@@ -250,7 +250,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {equipments.map(equipment => (
                         <SelectItem key={equipment.id} value={equipment.id}>
                           {equipment.nome}

@@ -18,9 +18,9 @@ interface DocumentFiltersProps {
 
 const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
   const [searchInput, setSearchInput] = useState('');
-  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
-  const [equipmentId, setEquipmentId] = useState<string>('');
-  const [language, setLanguage] = useState<string>('');
+  const [documentType, setDocumentType] = useState<DocumentType | 'all'>('all');
+  const [equipmentId, setEquipmentId] = useState<string>('all');
+  const [language, setLanguage] = useState<string>('all');
   const [equipments, setEquipments] = useState<{id: string, nome: string}[]>([]);
   const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -68,13 +68,13 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
   const handleFilterChange = (filterType: string, value: string) => {
     switch (filterType) {
       case 'type':
-        const typeValue = value as DocumentType | '';
+        const typeValue = value as DocumentType | 'all';
         setDocumentType(typeValue);
         onChange({ 
-          type: typeValue || undefined,
+          type: typeValue === 'all' ? undefined : typeValue,
           // Keep other filters
-          equipmentId: equipmentId || undefined, 
-          language: language || undefined,
+          equipmentId: equipmentId === 'all' ? undefined : equipmentId, 
+          language: language === 'all' ? undefined : language,
           search: searchInput || undefined
         });
         break;
@@ -82,10 +82,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
       case 'equipment':
         setEquipmentId(value);
         onChange({ 
-          equipmentId: value || undefined,
+          equipmentId: value === 'all' ? undefined : value,
           // Keep other filters
-          type: documentType || undefined,
-          language: language || undefined,
+          type: documentType === 'all' ? undefined : documentType,
+          language: language === 'all' ? undefined : language,
           search: searchInput || undefined
         });
         break;
@@ -93,10 +93,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
       case 'language':
         setLanguage(value);
         onChange({ 
-          language: value || undefined,
+          language: value === 'all' ? undefined : value,
           // Keep other filters
-          type: documentType || undefined,
-          equipmentId: equipmentId || undefined,
+          type: documentType === 'all' ? undefined : documentType,
+          equipmentId: equipmentId === 'all' ? undefined : equipmentId,
           search: searchInput || undefined
         });
         break;
@@ -106,9 +106,9 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
   // Clear all filters
   const clearFilters = () => {
     setSearchInput('');
-    setDocumentType('');
-    setEquipmentId('');
-    setLanguage('');
+    setDocumentType('all');
+    setEquipmentId('all');
+    setLanguage('all');
     
     onChange({
       type: undefined,
@@ -150,7 +150,7 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
               <SelectValue placeholder="Tipo de documento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
               <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
               <SelectItem value="protocolo">Protocolo</SelectItem>
@@ -168,7 +168,7 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
               <SelectValue placeholder="Equipamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {equipments.map(equipment => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
@@ -187,7 +187,7 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
               <SelectValue placeholder="Idioma" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="pt">Português</SelectItem>
               <SelectItem value="en">Inglês</SelectItem>
               <SelectItem value="es">Espanhol</SelectItem>
