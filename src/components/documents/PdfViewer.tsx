@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileWarning, ExternalLink, RefreshCw, X } from 'lucide-react';
+import { FileWarning, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -18,7 +18,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
 
-  // Simplificamos para remover complexidade desnecessária
   useEffect(() => {
     if (!isOpen || !pdfUrl) {
       setLoading(false);
@@ -39,6 +38,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       if (processedUrl.startsWith('blob:')) {
         console.log("Usando URL blob diretamente:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // Para URLs do Dropbox
       else if (processedUrl.includes('dropbox.com')) {
@@ -49,6 +49,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL Dropbox processada:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // Para URLs do Google Drive
       else if (processedUrl.includes('drive.google.com')) {
@@ -57,6 +58,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL Google Drive processada:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // Para outras URLs
       else {
@@ -66,11 +68,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL genérica processada:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
     } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
       setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
-    } finally {
       setLoading(false);
     }
   }, [pdfUrl, isOpen, documentId]);
