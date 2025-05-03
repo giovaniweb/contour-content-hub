@@ -104,14 +104,14 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           }
           
           // Criar um elemento de âncora temporário para download
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.download = document.titulo || 'documento.pdf';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          const anchor = window.document.createElement('a');
+          anchor.href = url;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.download = document.titulo || 'documento.pdf';
+          window.document.body.appendChild(anchor);
+          anchor.click();
+          window.document.body.removeChild(anchor);
         }
         
         toast("Download iniciado", {
