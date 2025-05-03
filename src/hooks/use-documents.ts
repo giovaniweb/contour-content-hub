@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { GetDocumentsParams, TechnicalDocument } from '@/types/document';
+import { GetDocumentsParams, TechnicalDocument, DocumentType } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 
 export const useDocuments = () => {
@@ -64,9 +64,10 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Transform data
+      // Transform data to match TechnicalDocument type
       const formattedDocuments: TechnicalDocument[] = data.map(doc => ({
         ...doc,
+        tipo: doc.tipo as DocumentType, // Cast to ensure it matches the enum type
         equipamento_nome: doc.equipamentos?.nome,
         idiomas_traduzidos: doc.idiomas_traduzidos || []
       }));
@@ -103,17 +104,15 @@ export const useDocuments = () => {
       }
       
       // Log access using a raw SQL RPC call instead of trying to use the document_access_history table directly
-      const { error: logError } = await supabase.rpc('log_document_access', { 
+      // We're using the custom function created in the migration
+      await supabase.rpc('log_document_access', { 
         doc_id: id,
         action: 'view'
       });
       
-      if (logError) {
-        console.error('Error logging document access:', logError);
-      }
-      
       return {
         ...data,
+        tipo: data.tipo as DocumentType, // Cast to ensure it matches the enum type
         equipamento_nome: data.equipamentos?.nome,
         idiomas_traduzidos: data.idiomas_traduzidos || []
       };
