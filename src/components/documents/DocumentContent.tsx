@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Eye } from 'lucide-react';
+import { Loader2, Eye, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -14,16 +15,43 @@ interface DocumentContentProps {
 
 const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [extracting, setExtracting] = useState(false);
 
-  const handleExtractContent = () => {
-    // Use global document object, not the document prop
-    const extractButton = window.document.querySelector('button:has(.h-4.w-4:nth-child(1))[disabled="false"]');
-    if (extractButton instanceof HTMLButtonElement) {
-      extractButton.click();
-    } else {
-      toast("Botão não encontrado", {
-        description: "Não foi possível iniciar a extração de conteúdo automaticamente."
+  const handleExtractContent = async () => {
+    // Abordagem mais direta usando a edge function
+    try {
+      setExtracting(true);
+      toast("Processando documento", {
+        description: "Extraindo conteúdo do documento..."
       });
+      
+      if (document?.id) {
+        // Chamar diretamente a edge function
+        const { error } = await supabase.functions.invoke('process-document', {
+          body: { documentId: document.id }
+        });
+        
+        if (error) {
+          console.error("Erro ao processar documento:", error);
+          throw error;
+        }
+        
+        toast("Processamento concluído", {
+          description: "O documento foi processado com sucesso. Atualize a página para ver as alterações."
+        });
+        
+        // Opcionalmente, recarregar a página ou atualizar os dados
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Erro na extração:", error);
+      toast("Falha no processamento", {
+        description: "Não foi possível extrair o conteúdo. Por favor, tente novamente."
+      });
+    } finally {
+      setExtracting(false);
     }
   };
 
@@ -70,8 +98,19 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
               <Button 
                 variant="default" 
                 onClick={handleExtractContent}
+                disabled={extracting}
               >
-                Extrair Conteúdo
+                {extracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Extrair Conteúdo
+                  </>
+                )}
               </Button>
             </div>
           </div>
