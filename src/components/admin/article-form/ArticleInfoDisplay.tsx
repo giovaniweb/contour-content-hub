@@ -49,6 +49,22 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
             </p>
           )}
           
+          {/* Display extracted title if available */}
+          {suggestedTitle && (
+            <div className="mt-2">
+              <p className="text-sm font-medium">Título:</p>
+              <p className="text-sm">{suggestedTitle}</p>
+            </div>
+          )}
+          
+          {/* Display conclusion if available */}
+          {suggestedDescription && (
+            <div className="mt-2">
+              <p className="text-sm font-medium">Conclusão:</p>
+              <p className="text-sm">{suggestedDescription}</p>
+            </div>
+          )}
+          
           {/* Display keywords */}
           {extractedKeywords.length > 0 && (
             <div className="mt-2">

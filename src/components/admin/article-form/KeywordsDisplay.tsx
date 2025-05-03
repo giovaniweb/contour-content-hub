@@ -8,12 +8,14 @@ interface KeywordsDisplayProps {
   extractedKeywords: string[];
   title?: string;
   className?: string;
+  maxHeight?: string;
 }
 
 const KeywordsDisplay: React.FC<KeywordsDisplayProps> = ({ 
   extractedKeywords, 
   title = "Palavras-chave",
-  className = "" 
+  className = "",
+  maxHeight = "150px" 
 }) => {
   if (extractedKeywords.length === 0) {
     return null;
@@ -22,11 +24,11 @@ const KeywordsDisplay: React.FC<KeywordsDisplayProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       <Label>{title}</Label>
-      <ScrollArea className="h-auto max-h-[150px]">
+      <ScrollArea className={`h-auto max-h-[${maxHeight}]`}>
         <div className="p-3 border rounded-md">
           <div className="flex flex-wrap gap-2">
             {extractedKeywords.map((keyword, index) => (
-              <Badge key={index} variant="secondary">
+              <Badge key={index} variant="secondary" className="text-sm">
                 {keyword}
               </Badge>
             ))}

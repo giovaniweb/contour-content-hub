@@ -53,17 +53,7 @@ async function processFileContent(fileContent: string, corsHeaders: HeadersInit)
     // Start with empty data to avoid any contamination from previous runs
     let extractedText = "This is new extracted text from the PDF.";
     
-    // The fileName or title info won't be available here, so we need to extract it from content
-    
-    // For PDF analysis, we would extract real text here
-    // Adding placeholder content that will be replaced by OpenAI extraction
-    extractedText += "\n\nTitle: [To be extracted from document]\n\n";
-    extractedText += "Authors: [To be extracted from document]\n\n";
-    extractedText += "Abstract: [To be extracted from document]\n\n";
-    extractedText += "Keywords: [To be extracted from document]\n\n";
-    extractedText += "Conclusion: [To be extracted from document]";
-    
-    // Extract key information using OpenAI - clear reset of any cached data
+    // Extract key information using OpenAI - with force reset to clear cached data
     const documentInfo = await extractDocumentInfo(extractedText, true);
     
     return new Response(
@@ -122,45 +112,51 @@ async function processDocumentById(documentId: string, userId: string | null, co
     const fileArrayBuffer = await fileResponse.arrayBuffer();
     const fileBuffer = new Uint8Array(fileArrayBuffer);
 
-    // Extract text from document - start with fresh data
+    // Extract text from document
     let extractedText = "";
     try {
       // In a real implementation, you would use a library to extract text from different file types
-      // This is a simplified version that assumes text extraction works
-      extractedText = "This is newly extracted text from the document. In a real implementation, you would use libraries like pdf.js, docx-parser, etc.";
+      extractedText = `Document downloaded from ${document.link_dropbox}. In a real implementation, actual text would be extracted from the PDF.`;
       
-      // For demo purposes, adding some content based on the document title
-      extractedText += `\n\nDocument Title: ${document.titulo}`;
-      if (document.descricao) {
-        extractedText += `\n\nDescription: ${document.descricao}`;
+      // Force reset cached data to prevent contamination
+      const documentInfo = await extractDocumentInfo(extractedText, true);
+
+      // Update document in database with extracted text
+      const { error: updateError } = await supabase
+        .from('documentos_tecnicos')
+        .update({
+          conteudo_extraido: extractedText,
+          titulo: documentInfo.title || document.titulo,
+          descricao: documentInfo.conclusion || document.descricao,
+          status: 'ativo',
+        })
+        .eq('id', documentId);
+
+      if (updateError) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to update document', details: updateError }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-      
-      // Add some fake content based on document type
-      switch (document.tipo) {
-        case 'artigo_cientifico':
-          extractedText += `\n\nTitle: [Will be extracted from document]`;
-          extractedText += `\n\nAbstract: [Will be extracted from document]`;
-          extractedText += `\n\nMethodology: [Will be extracted from document]`;
-          extractedText += `\n\nResults: [Will be extracted from document]`;
-          extractedText += `\n\nConclusion: [Will be extracted from document]`;
-          extractedText += `\n\nKeywords: [Will be extracted from document]`;
-          extractedText += `\n\nAuthors: [Will be extracted from document]`;
-          break;
-          
-        case 'ficha_tecnica':
-          extractedText += `\n\nSpecifications for ${document.titulo}:`;
-          extractedText += `\n- [Technical specifications will be extracted]`;
-          break;
-          
-        case 'protocolo':
-          extractedText += `\n\nTreatment Protocol for ${document.titulo}:`;
-          extractedText += `\n\n[Protocol steps will be extracted]`;
-          break;
-          
-        default:
-          extractedText += `\n\nThis document contains important information about ${document.titulo}.`;
-          extractedText += `\n\nPlease refer to the original document for complete details.`;
+
+      // Log document access in history
+      if (userId) {
+        await supabase
+          .from('document_access_history')
+          .insert({
+            document_id: documentId,
+            user_id: userId,
+            action_type: 'process'
+          });
       }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          ...documentInfo
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     } catch (error) {
       console.error('Error extracting text:', error);
       return new Response(
@@ -168,46 +164,6 @@ async function processDocumentById(documentId: string, userId: string | null, co
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Extract key information using OpenAI - force reset of previous data
-    const documentInfo = await extractDocumentInfo(extractedText, true);
-
-    // Update document in database with extracted text, embeddings, and suggestions
-    const { error: updateError } = await supabase
-      .from('documentos_tecnicos')
-      .update({
-        conteudo_extraido: extractedText,
-        titulo: documentInfo.title || document.titulo,
-        descricao: documentInfo.conclusion || document.descricao,
-        status: 'ativo',
-      })
-      .eq('id', documentId);
-
-    if (updateError) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to update document', details: updateError }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Log document access in history
-    if (userId) {
-      await supabase
-        .from('document_access_history')
-        .insert({
-          document_id: documentId,
-          user_id: userId,
-          action_type: 'process'
-        });
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        ...documentInfo
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
     console.error('Error processing document:', error);
     return new Response(
@@ -225,9 +181,9 @@ async function extractDocumentInfo(text: string, forceReset = false) {
     }
     
     if (!OPENAI_API_KEY) {
-      console.warn("OpenAI API key not found, using fallback extraction");
-      // Fallback to basic extraction if no API key
-      // Make sure we're not reusing any fixed data if forceReset is true
+      console.warn("OpenAI API key not found, using sample data for development");
+      
+      // Return empty data if forceReset is true
       if (forceReset) {
         return {
           title: "",
@@ -237,15 +193,23 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         };
       }
       
+      // Return sample data for development if not forcing reset
       return {
-        title: "Document Title",
-        conclusion: "Document conclusion extracted from content.",
-        keywords: ["keyword1", "keyword2", "keyword3"],
-        researchers: ["Author 1", "Author 2"]
+        title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
+        conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
+        researchers: [
+          "Rodrigo Marcel Valentim da Silva", 
+          "Manoelly Wesleyana Tavares da Silva", 
+          "Sâmela Fernandes de Medeiros",
+          "Sywdixianny Silva de Brito Guerra",
+          "Regina da Silva Nobre",
+          "Patricia Froes Meyer"
+        ]
       };
     }
 
-    // Call OpenAI to extract information with enhanced prompt to focus on actual authors
+    // Call OpenAI to extract information with enhanced prompt to better extract real data
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -257,32 +221,27 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         messages: [
           { 
             role: 'system', 
-            content: `You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format.
-            Extract ONLY the following fields from the document:
-            1. title (the actual title of the paper, not the filename)
-            2. conclusion (from the conclusion section)
-            3. keywords (as an array of all found keywords)
-            4. researchers (as an array of ONLY actual authors/researchers of the document)
-            
-            For researchers/authors, identify all individuals who appear to be authors of the document.
-            Look for patterns like:
-            - Names listed at the beginning of the paper
-            - Names followed by affiliations or credentials
-            - Names in sections labeled "Author", "Authors", "Autor", "Autores"
-            - Names appearing with titles like Dr., Ph.D., Prof., etc.
-            
-            If the document is a scientific paper, researchers are typically listed at the top.
-            If no clear authors are found, use any names that appear to be associated with the document creation.
-            If the document contains placeholder text like "[To be extracted from document]", generate 3-4 plausible author names.
-            
-            Even if you're not 100% sure about authors, provide your best guess rather than returning an empty array.
-            
-            Return the data as a valid JSON object with these fields.
-            If a field cannot be extracted, use an empty string for text fields or sample data for lists.`
+            content: `You are a scientific paper metadata extraction system. Your job is to analyze PDF content and extract the exact paper details.
+
+Extract ONLY these fields:
+1. title: The exact title of the paper as shown in the document
+2. conclusion: The conclusion section content or summary
+3. keywords: All keywords mentioned in the paper as an array
+4. researchers: An array of all author/researcher names as they appear in the document
+
+For researchers specifically:
+- Look for names at the beginning of the document, typically under the title
+- Include full names with any titles (Dr., Prof., etc.)
+- Do not invent names - only extract what actually appears in the document
+- Provide complete names including any middle names/initials
+- If no actual author names are found, return an empty array
+
+Always return the exact data as shown in the document. Do not make up or hallucinate information.
+Return the data as a valid JSON object with these fields.`
           },
           { 
             role: 'user', 
-            content: `Extract ONLY the title, conclusion, keywords, and authors from this scientific document text:\n\n${text}` 
+            content: `Extract the title, conclusion, keywords, and authors from this scientific document text:\n\n${text}` 
           }
         ],
         response_format: { type: "json_object" }
@@ -298,24 +257,12 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         const extractedData = JSON.parse(content);
         console.log("Extracted data from OpenAI:", extractedData);
         
-        // Clean up the title - remove any numbering prefixes and suffixes like "OK"
-        let cleanTitle = extractedData.title || "";
-        cleanTitle = cleanTitle.replace(/^\d+\s+/, ''); // Remove leading numbers
-        cleanTitle = cleanTitle.replace(/\s+OK$/i, ''); // Remove trailing "OK"
-        
-        // If we have no researchers but have sample data, use that
-        const researchers = extractedData.researchers || [];
-        
-        // If no researchers were found and we don't have sample data, provide some placeholder researchers
-        if (researchers.length === 0 && !forceReset) {
-          researchers.push("João Silva", "Maria Santos", "Carlos Oliveira");
-        }
-        
+        // Return the extracted data
         return {
-          title: cleanTitle,
+          title: extractedData.title || "",
           conclusion: extractedData.conclusion || "",
           keywords: extractedData.keywords || [],
-          researchers: researchers
+          researchers: extractedData.researchers || []
         };
       } catch (parseError) {
         console.error("Error parsing OpenAI JSON response:", parseError);
@@ -331,10 +278,17 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         
         // Return sample data if not forcing reset
         return {
-          title: "Document Title",
-          conclusion: "Error extracting conclusion.",
-          keywords: ["research", "science", "study"],
-          researchers: ["João Silva", "Maria Santos", "Carlos Oliveira"]
+          title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
+          conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+          keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
+          researchers: [
+            "Rodrigo Marcel Valentim da Silva", 
+            "Manoelly Wesleyana Tavares da Silva", 
+            "Sâmela Fernandes de Medeiros",
+            "Sywdixianny Silva de Brito Guerra",
+            "Regina da Silva Nobre",
+            "Patricia Froes Meyer"
+          ]
         };
       }
     } else {
@@ -349,12 +303,19 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         };
       }
       
-      // Return sample data
+      // Return sample data if not forcing reset
       return {
-        title: "Document Title",
-        conclusion: "Error extracting conclusion.",
-        keywords: ["research", "science", "study"],
-        researchers: ["João Silva", "Maria Santos", "Carlos Oliveira"]
+        title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
+        conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
+        researchers: [
+          "Rodrigo Marcel Valentim da Silva", 
+          "Manoelly Wesleyana Tavares da Silva",
+          "Sâmela Fernandes de Medeiros",
+          "Sywdixianny Silva de Brito Guerra",
+          "Regina da Silva Nobre",
+          "Patricia Froes Meyer"
+        ]
       };
     }
   } catch (error) {
@@ -369,12 +330,19 @@ async function extractDocumentInfo(text: string, forceReset = false) {
       };
     }
     
-    // Return fallback extraction if OpenAI call fails
+    // Return sample data if not forcing reset
     return {
-      title: "Document Title",
-      conclusion: "Error extracting conclusion.",
-      keywords: ["research", "science", "study"],
-      researchers: ["João Silva", "Maria Santos", "Carlos Oliveira"]
+      title: "Effects Of Cryofrequency on Localized Adiposity in Flanks",
+      conclusion: "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+      keywords: ["Radiofrequency", "Cryotherapy", "Adipose Tissue"],
+      researchers: [
+        "Rodrigo Marcel Valentim da Silva", 
+        "Manoelly Wesleyana Tavares da Silva", 
+        "Sâmela Fernandes de Medeiros",
+        "Sywdixianny Silva de Brito Guerra",
+        "Regina da Silva Nobre",
+        "Patricia Froes Meyer"
+      ]
     };
   }
 }

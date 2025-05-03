@@ -70,6 +70,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
     setSuggestedDescription('');
     setExtractedKeywords([]);
     setExtractedResearchers([]);
+    setProcessingFailed(false);
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,14 +150,8 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       console.log("Extracted data:", extractionData);
       
       if (extractionData) {
-        // Set extracted data - clean up the title first
-        let cleanTitle = extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' ');
-        
-        // Remove prefixes like "1 " and suffixes like "OK" from the filename-based title
-        cleanTitle = cleanTitle.replace(/^\d+\s+/, '');
-        cleanTitle = cleanTitle.replace(/\s+OK$/i, '');
-        
-        setSuggestedTitle(cleanTitle);
+        // Set extracted data
+        setSuggestedTitle(extractionData.title || '');
         setSuggestedDescription(extractionData.conclusion || '');
         setExtractedKeywords(extractionData.keywords || []);
         setExtractedResearchers(extractionData.researchers || []);
@@ -226,9 +221,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       if (file) {
         const suggestedTitleFromFilename = file.name
           .replace('.pdf', '')
-          .replace(/_/g, ' ')
-          .replace(/^\d+\s+/, '') // Remove leading numbers and spaces
-          .replace(/\s+OK$/i, ''); // Remove trailing OK
+          .replace(/_/g, ' ');
           
         setSuggestedTitle(suggestedTitleFromFilename);
         
