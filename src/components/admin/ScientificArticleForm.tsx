@@ -69,6 +69,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   
   // Extract form state handling
   const [uploadStep, setUploadStep] = React.useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
+  console.log("Estado atual do uploadStep:", uploadStep);
   
   const {
     isLoading,
@@ -162,6 +163,14 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       setUploadStep('form');
     }
   }, [articleData, fileUrl]);
+
+  // Atualizar o URL do arquivo no formulário quando ele for definido
+  useEffect(() => {
+    if (fileUrl) {
+      console.log("Atualizando link_dropbox no formulário com:", fileUrl);
+      form.setValue("link_dropbox", fileUrl);
+    }
+  }, [fileUrl, form]);
 
   // Upload step UI
   if (uploadStep === 'upload') {

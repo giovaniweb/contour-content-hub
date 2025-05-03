@@ -56,6 +56,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     }
   };
 
+  const handleProcessFile = async () => {
+    console.log("Iniciando processamento do arquivo...");
+    const success = await onProcessFile();
+    console.log("Resultado do processamento:", success);
+    
+    // Se o processamento for bem-sucedido, avançar para o formulário automaticamente
+    if (success) {
+      console.log("Processamento bem-sucedido, avançando para o formulário");
+      setTimeout(() => {
+        onSetUploadStep('form');
+      }, 1000); // Pequeno delay para dar tempo de ver a mensagem de sucesso
+    }
+  };
+
   return (
     <div className="space-y-6">
       {uploadError && (
@@ -110,16 +124,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                   <X className="h-4 w-4" />
                 </Button>
                 <Button 
-                  onClick={() => {
-                    console.log("Iniciando processamento do arquivo:", file.name);
-                    onProcessFile().then(success => {
-                      if (success) {
-                        console.log("Arquivo processado com sucesso");
-                      } else {
-                        console.log("Falha ao processar arquivo");
-                      }
-                    });
-                  }}
+                  onClick={handleProcessFile}
                   disabled={isProcessing}
                 >
                   <Upload className="mr-2 h-4 w-4" />
