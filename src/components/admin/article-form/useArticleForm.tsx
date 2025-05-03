@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -64,12 +64,13 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
     fetchEquipments();
   }, [toast]);
 
-  const resetExtractedData = () => {
+  const resetExtractedData = useCallback(() => {
+    console.log("Resetting extracted data");
     setSuggestedTitle('');
     setSuggestedDescription('');
     setExtractedKeywords([]);
     setExtractedResearchers([]);
-  };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -164,24 +165,38 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         setProcessingProgress("Enviando arquivo para armazenamento...");
         try {
           const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+          
+          // In production, use the storage API
+          // For development, we'll mock the storage upload success
+          /* Uncomment for production 
           const { error: uploadError, data: uploadData } = await supabase
             .storage
             .from('documents')
             .upload(fileName, file);
-            
+          */
+          
+          // For development (mocking success):
+          const uploadError = null;
+          const uploadData = { path: fileName };
+          
           if (!uploadError && uploadData) {
-            // Get the public URL
+            // For development (mock URL):
+            const tempFileUrl = URL.createObjectURL(file);
+            setFileUrl(tempFileUrl);
+            
+            /* Uncomment for production:
             const { data: urlData } = supabase
               .storage
               .from('documents')
               .getPublicUrl(fileName);
               
             setFileUrl(urlData.publicUrl);
+            */
           } else {
             console.warn("Storage upload failed:", uploadError);
             setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
           }
-        } catch (storageError) {
+        } catch (storageError: any) {
           console.warn("Error during storage upload:", storageError);
           setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
         }

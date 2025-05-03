@@ -68,6 +68,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     handleFileChange,
     handleFileUpload,
     onSubmit,
+    resetExtractedData
   } = useArticleForm(articleData, onSuccess);
 
   const form = useForm<FormValues>({
@@ -97,6 +98,13 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     }
   }, [suggestedTitle, suggestedDescription, form]);
 
+  // Reset form when file changes
+  React.useEffect(() => {
+    if (!file) {
+      resetExtractedData();
+    }
+  }, [file, resetExtractedData]);
+
   // Upload step UI
   if (uploadStep === 'upload' && !articleData) {
     return (
@@ -111,13 +119,14 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
         processingFailed={processingFailed}
         onProcessFile={handleFileUpload}
         onSetUploadStep={setUploadStep}
+        onResetData={resetExtractedData}
       />
     );
   }
 
   // Form step UI with extracted information
   return (
-    <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+    <ScrollArea className="h-[calc(100vh-250px)] overflow-auto pr-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Extracted information alert */}
@@ -129,6 +138,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
             processingFailed={processingFailed}
           />
         
+          {/* Form fields */}
           <FormField
             control={form.control}
             name="titulo"
@@ -256,6 +266,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
               handleFileUpload={handleFileUpload}
               isProcessing={isProcessing}
               processingProgress={processingProgress}
+              onResetData={resetExtractedData}
             />
           )}
 
@@ -269,11 +280,23 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
               handleFileUpload={handleFileUpload}
               isProcessing={isProcessing}
               processingProgress={processingProgress}
+              onResetData={resetExtractedData}
             />
           )}
 
           {/* Keywords display component */}
-          <KeywordsDisplay extractedKeywords={extractedKeywords} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <KeywordsDisplay 
+              extractedKeywords={extractedKeywords} 
+              title="Palavras-chave"
+            />
+
+            <KeywordsDisplay 
+              extractedKeywords={extractedResearchers}
+              title="Pesquisadores"
+              className="mt-0"
+            />
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onCancel}>

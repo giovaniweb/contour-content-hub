@@ -6,16 +6,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface KeywordsDisplayProps {
   extractedKeywords: string[];
+  title?: string;
+  className?: string;
 }
 
-const KeywordsDisplay: React.FC<KeywordsDisplayProps> = ({ extractedKeywords }) => {
+const KeywordsDisplay: React.FC<KeywordsDisplayProps> = ({ 
+  extractedKeywords, 
+  title = "Palavras-chave",
+  className = "" 
+}) => {
   if (extractedKeywords.length === 0) {
     return null;
   }
   
   return (
-    <div className="space-y-2">
-      <Label>Palavras-chave</Label>
+    <div className={`space-y-2 ${className}`}>
+      <Label>{title}</Label>
       <ScrollArea className="h-auto max-h-[150px]">
         <div className="p-3 border rounded-md">
           <div className="flex flex-wrap gap-2">

@@ -14,6 +14,7 @@ interface FileDisplayProps {
   handleFileUpload: () => void;
   isProcessing: boolean;
   processingProgress: string | null;
+  onResetData?: () => void;
 }
 
 const FileDisplay: React.FC<FileDisplayProps> = ({
@@ -24,7 +25,8 @@ const FileDisplay: React.FC<FileDisplayProps> = ({
   handleFileChange,
   handleFileUpload,
   isProcessing,
-  processingProgress
+  processingProgress,
+  onResetData
 }) => {
   if (fileUrl) {
     return (
@@ -48,6 +50,7 @@ const FileDisplay: React.FC<FileDisplayProps> = ({
             onClick={() => {
               setFileUrl(null);
               setFile(null);
+              if (onResetData) onResetData();
             }}
           >
             <X className="h-4 w-4 mr-1" />
