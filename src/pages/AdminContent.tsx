@@ -6,6 +6,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import VideoContentManager from "@/components/admin/VideoContentManager";
 import MaterialContentManager from "@/components/admin/MaterialContentManager";
+import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminContent: React.FC = () => {
@@ -30,15 +31,16 @@ const AdminContent: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Conteúdo ReelLine</h1>
             <p className="text-muted-foreground">
-              Gerencie vídeos e materiais da biblioteca de conteúdo
+              Gerencie vídeos, materiais e artigos científicos da biblioteca de conteúdo
             </p>
           </div>
         </div>
         
         <Tabs defaultValue="videos" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full md:w-auto grid-cols-2">
+          <TabsList className="grid w-full md:w-auto grid-cols-3">
             <TabsTrigger value="videos">Vídeos</TabsTrigger>
             <TabsTrigger value="materials">Materiais</TabsTrigger>
+            <TabsTrigger value="articles">Artigos Científicos</TabsTrigger>
           </TabsList>
           
           <TabsContent value="videos" className="space-y-4">
@@ -47,6 +49,10 @@ const AdminContent: React.FC = () => {
           
           <TabsContent value="materials" className="space-y-4">
             <MaterialContentManager />
+          </TabsContent>
+
+          <TabsContent value="articles" className="space-y-4">
+            <ScientificArticleManager />
           </TabsContent>
         </Tabs>
       </div>
