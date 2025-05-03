@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -214,12 +215,12 @@ const ScientificArticleManager: React.FC = () => {
         <ScientificArticleList 
           articles={articles} 
           onDelete={handleDeleteArticle} 
-          onUpdate={(article) => handleOpenEditArticleDialog(article)}
+          onUpdate={handleOpenEditArticleDialog}
           viewMode={viewMode}
         />
       )}
       
-      {/* Use the new ScientificArticleDialog component */}
+      {/* Use the ScientificArticleDialog component */}
       <ScientificArticleDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}

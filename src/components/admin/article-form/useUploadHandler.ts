@@ -65,7 +65,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       toast.error("Nenhum arquivo selecionado", {
         description: "Por favor, selecione um arquivo PDF para upload."
       });
-      return;
+      return false;
     }
 
     try {

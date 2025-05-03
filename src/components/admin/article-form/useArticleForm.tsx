@@ -43,6 +43,9 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
   // Reset all form state values to their defaults
   const resetFormState = useCallback(() => {
     console.log("Resetting form state");
+    // This function is designed to be called externally
+    // to reset form state when necessary (e.g., on dialog open,
+    // on form submission success, or when unmounting the component)
   }, []);
 
   // Form submission handler

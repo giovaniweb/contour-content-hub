@@ -45,6 +45,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   const {
     file,
     fileUrl,
+    setFileUrl,
     isProcessing,
     processingProgress,
     processingFailed,
@@ -108,11 +109,16 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     };
   }, []);
 
-  // Track dialog open/closed state
+  // Track dialog open/closed state and reset form when opened
   useEffect(() => {
     console.log("isOpen changed:", isOpen);
     if (isOpen) {
       console.log("Dialog opened, resetting form");
+      // Reset all form state
+      resetFormState();
+      resetUploadState();
+      resetExtractedData();
+      
       form.reset({
         titulo: articleData?.titulo || "",
         descricao: articleData?.descricao || "",
@@ -121,7 +127,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
         link_dropbox: articleData?.link_dropbox || ""
       });
     }
-  }, [isOpen, articleData, form]);
+  }, [isOpen, articleData, form, resetFormState, resetUploadState, resetExtractedData]);
 
   // Update form when suggested data changes
   useEffect(() => {
@@ -151,8 +157,9 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     return (
       <FileUploader 
         file={file}
-        setFile={setFile}
+        setFile={() => {}} // Pass a dummy function since we use handleFileChange instead
         fileUrl={fileUrl}
+        setFileUrl={setFileUrl}
         isProcessing={isProcessing}
         uploadError={uploadError}
         processingProgress={processingProgress}

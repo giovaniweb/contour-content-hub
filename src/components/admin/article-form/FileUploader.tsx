@@ -16,7 +16,7 @@ interface FileUploaderProps {
   uploadError: string | null;
   processingProgress: string | null;
   processingFailed: boolean;
-  onProcessFile: () => void;
+  onProcessFile: () => Promise<boolean>;
   onSetUploadStep: (step: 'upload' | 'form') => void;
   onResetData?: () => void;
 }
@@ -24,6 +24,8 @@ interface FileUploaderProps {
 const FileUploader: React.FC<FileUploaderProps> = ({
   file,
   setFile,
+  fileUrl,
+  setFileUrl,
   isProcessing,
   uploadError,
   processingProgress,
@@ -32,7 +34,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   onSetUploadStep,
   onResetData
 }) => {
-  // Função para limpar o arquivo e dados relacionados
+  // Function to clear the file and related data
   const clearFile = () => {
     setFile(null);
     if (onResetData) {
@@ -41,7 +43,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Sempre limpa o estado anterior completamente
+    // Always clear previous state completely
     clearFile();
     
     if (e.target.files && e.target.files.length > 0) {
