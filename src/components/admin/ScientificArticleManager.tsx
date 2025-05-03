@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -117,9 +116,7 @@ const ScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao buscar artigos científicos",
+      toast.error("Erro ao buscar artigos científicos", {
         description: "Não foi possível carregar a lista de artigos."
       });
     } finally {
@@ -137,8 +134,7 @@ const ScientificArticleManager: React.FC = () => {
     // After article is added, automatically extract content
     if (articleData?.id) {
       try {
-        toast({
-          title: "Processando documento",
+        toast.loading("Processando documento", {
           description: "Extraindo conteúdo do documento..."
         });
         
@@ -148,14 +144,11 @@ const ScientificArticleManager: React.FC = () => {
         
         if (error) {
           console.error('Error processing document:', error);
-          toast({
-            variant: "destructive",
-            title: "Erro ao processar documento",
+          toast.error("Erro ao processar documento", {
             description: "Não foi possível extrair o conteúdo do documento."
           });
         } else {
-          toast({
-            title: "Documento processado",
+          toast.success("Documento processado", {
             description: "O conteúdo do documento foi extraído com sucesso."
           });
         }
@@ -177,15 +170,12 @@ const ScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      toast({
-        title: "Artigo científico excluído",
+      toast.success("Artigo científico excluído", {
         description: "O artigo científico foi excluído com sucesso."
       });
     } catch (error) {
       console.error('Error deleting article:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao excluir artigo científico",
+      toast.error("Erro ao excluir artigo científico", {
         description: "Não foi possível excluir o artigo científico."
       });
     }

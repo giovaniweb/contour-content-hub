@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useEquipments } from "@/hooks/useEquipments";
@@ -26,9 +26,6 @@ export const formSchema = z.object({
 export type FormValues = z.infer<typeof formSchema>;
 
 export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void) => {
-  const { toast } = useToast();
-  const { equipments } = useEquipments();
-  
   // Estado para controle da submissão do formulário
   const [isLoading, setIsLoading] = useState(false);
   
@@ -48,6 +45,9 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
   const [processingFailed, setProcessingFailed] = useState<boolean>(false);
+
+  // Dados dos equipamentos disponíveis
+  const { equipments } = useEquipments();
 
   // Função para resetar os dados extraídos
   const resetExtractedData = useCallback(() => {
@@ -72,18 +72,14 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       
       // Validações do arquivo
       if (selectedFile.type !== 'application/pdf') {
-        toast({
-          variant: "destructive",
-          title: "Formato inválido",
+        toast.error("Formato inválido", {
           description: "Por favor, selecione um arquivo em formato PDF."
         });
         return;
       }
       
       if (selectedFile.size > 10 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "Arquivo muito grande",
+        toast.error("Arquivo muito grande", {
           description: "O tamanho máximo permitido é 10MB."
         });
         return;
@@ -96,9 +92,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
   // Processa o arquivo para extração de informações
   const handleFileUpload = async () => {
     if (!file) {
-      toast({
-        variant: "destructive",
-        title: "Nenhum arquivo selecionado",
+      toast.error("Nenhum arquivo selecionado", {
         description: "Por favor, selecione um arquivo PDF para upload."
       });
       return;
@@ -151,8 +145,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       setProcessingProgress(null);
       setUploadStep('form');
       
-      toast({
-        title: "Documento processado",
+      toast.success("Documento processado", {
         description: "Informações extraídas com sucesso do documento."
       });
     } catch (error: any) {
@@ -160,9 +153,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       setUploadError(error.message || "Ocorreu um erro ao processar o arquivo.");
       setProcessingFailed(true);
       
-      toast({
-        variant: "destructive",
-        title: "Erro no processamento",
+      toast.error("Erro no processamento", {
         description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
       
@@ -225,8 +216,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
 
         savedArticleData = data ? data[0] : articleData;
 
-        toast({
-          title: "Artigo atualizado",
+        toast.success("Artigo atualizado", {
           description: "O artigo científico foi atualizado com sucesso."
         });
       } else {
@@ -242,8 +232,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         }
 
         savedArticleData = data ? data[0] : null;
-        toast({
-          title: "Artigo criado",
+        toast.success("Artigo criado", {
           description: "O novo artigo científico foi adicionado com sucesso."
         });
       }
@@ -257,9 +246,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       onSuccess(savedArticleData);
     } catch (error: any) {
       console.error('Error saving article:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao salvar artigo",
+      toast.error("Erro ao salvar artigo", {
         description: "Não foi possível salvar o artigo científico. Por favor, tente novamente."
       });
     } finally {
