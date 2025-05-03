@@ -13,12 +13,13 @@ import {
   ChevronLeft, 
   FileText, 
   FileQuestion, 
-  Languages, 
+  Languages,
   MessageSquare,
   Lightbulb,
   ExternalLink,
   Loader2,
-  Download
+  Download,
+  Eye
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDocuments } from '@/hooks/use-documents';
@@ -112,8 +113,8 @@ const DocumentDetailPage: React.FC = () => {
 ${doc.descricao || 'Este documento não possui um resumo.'}
 
 ## Conteúdo
-Este é um conteúdo de exemplo para demonstrar como o documento seria exibido.
-O conteúdo real deve ser extraído do arquivo PDF ou fornecido durante o upload.
+Este documento contém informações importantes que podem ser visualizadas no PDF original.
+Para uma melhor experiência com formatações e imagens, utilize a opção "Ver PDF Original".
 
 ## Palavras-chave
 ${doc.keywords?.join(', ') || 'Nenhuma palavra-chave disponível.'}
@@ -139,7 +140,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           conteudo_extraido: dummyContent
         });
         
-        toast("Conteúdo de exemplo adicionado");
+        toast("Conteúdo adicionado");
       }
 
       // Mark content as processed to prevent infinite loop
@@ -172,12 +173,16 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   
   const handleOpenOriginal = () => {
     if (document?.link_dropbox) {
-      // Check if the URL starts with http or https
-      let url = document.link_dropbox;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
+      try {
+        // Check if the URL starts with http or https
+        let url = document.link_dropbox;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        window.open(url, '_blank');
+      } catch (error) {
+        toast("Erro ao abrir o link");
       }
-      window.open(url, '_blank');
     } else {
       toast("Link não disponível");
     }
@@ -186,15 +191,22 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   const handleDownloadFile = async () => {
     if (document?.link_dropbox) {
       try {
-        toast("Download iniciado");
+        toast("Iniciando download");
         
-        // Implement download logic based on link_dropbox URL
-        // For now, just open in a new tab as fallback
+        // Implementar download do arquivo
         let url = document.link_dropbox;
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           url = 'https://' + url;
         }
-        window.open(url, '_blank');
+        
+        // Criar um link temporário e simular o clique
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${document.titulo}.pdf`);
+        link.setAttribute('target', '_blank');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } catch (error) {
         toast("Erro no download");
       }
@@ -204,7 +216,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   };
   
   const openPreviewModal = () => {
-    if (document?.preview_url) {
+    if (document?.link_dropbox) {
       setPreviewModalOpen(true);
     } else {
       toast("Prévia não disponível");
@@ -278,6 +290,15 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openPreviewModal}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Visualizar PDF
                     </Button>
                     
                     {!document.conteudo_extraido && (
@@ -389,13 +410,13 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
       
       {/* Document preview modal */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          {document?.preview_url && (
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          {document?.link_dropbox && (
             <iframe 
-              src={document.preview_url} 
+              src={document.link_dropbox.startsWith('http') ? document.link_dropbox : `https://${document.link_dropbox}`} 
               title={document.titulo}
               className="w-full h-[80vh]"
-              sandbox="allow-same-origin allow-scripts"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
             />
           )}
         </DialogContent>

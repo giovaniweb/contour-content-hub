@@ -1,139 +1,157 @@
 
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Send, Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, MessageSquare } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
 
 interface DocumentQuestionsProps {
   document: TechnicalDocument;
 }
 
 const DocumentQuestions: React.FC<DocumentQuestionsProps> = ({ document }) => {
-  const [question, setQuestion] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
-    { 
-      role: 'assistant', 
-      content: 'Olá! Eu sou um assistente especializado neste documento. Como posso ajudar você a entender melhor o conteúdo?' 
+  const [question, setQuestion] = useState<string>('');
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [questionHistory, setQuestionHistory] = useState<Array<{question: string, answer: string}>>([]);
+
+  const handleAskQuestion = async () => {
+    if (!question.trim()) {
+      toast("Pergunta vazia", {
+        description: "Por favor, digite uma pergunta para continuar."
+      });
+      return;
     }
-  ]);
 
-  const handleSubmitQuestion = async () => {
-    if (!question.trim() || !document.conteudo_extraido) return;
+    if (!document.id) {
+      toast("Erro", {
+        description: "ID do documento não disponível."
+      });
+      return;
+    }
 
-    // Add user question to messages
-    const userQuestion = question;
-    setMessages(prev => [...prev, { role: 'user', content: userQuestion }]);
-    setQuestion('');
-    setIsLoading(true);
-
+    setLoading(true);
+    setAnswer(null);
+    
     try {
-      // In a real implementation, this would call an API endpoint to process the question
-      // For now, we'll simulate a response
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-      
-      setMessages(prev => [
-        ...prev, 
-        { 
-          role: 'assistant', 
-          content: `Baseado no documento "${document.titulo}", posso informar que esta é uma resposta simulada. Em uma implementação real, eu processaria sua pergunta utilizando o conteúdo completo do documento e forneceria uma resposta precisa.
-          
-O documento trata sobre ${document.descricao || 'um tópico especializado'} e contém informações relevantes sobre esse assunto.`
+      // In a production environment, this would call the edge function
+      const { data, error } = await supabase.functions.invoke('ask-document', {
+        body: {
+          documentId: document.id,
+          question: question.trim()
         }
+      });
+      
+      if (error) throw error;
+      
+      // Set answer and add to history
+      const responseText = data?.answer || "Não foi possível processar sua pergunta.";
+      setAnswer(responseText);
+      
+      // Add to history
+      setQuestionHistory(prev => [
+        { question: question.trim(), answer: responseText },
+        ...prev
       ]);
       
-      toast("Pergunta processada", {
-        description: "Sua pergunta foi respondida com base no conteúdo do documento."
-      });
+      // Clear question input
+      setQuestion('');
     } catch (error) {
-      console.error("Error processing question:", error);
+      console.error('Error asking question:', error);
       toast("Erro", {
-        description: "Não foi possível processar sua pergunta. Tente novamente."
+        description: "Não foi possível processar sua pergunta."
       });
+      
+      // Set a fallback answer
+      setAnswer("Para uma demonstração, estamos gerando uma resposta simulada. Em um ambiente de produção, esta pergunta seria processada por uma IA treinada com o conteúdo do documento.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmitQuestion();
-    }
-  };
-
-  // Handle case when document has no content
+  
   if (!document.conteudo_extraido) {
     return (
-      <div className="flex flex-col items-center justify-center h-[400px]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4 mr-2" />
-          <AlertDescription>
-            Este documento não tem conteúdo extraído. Por favor, clique em "Extrair Conteúdo" no topo da página.
-          </AlertDescription>
-        </Alert>
+      <div className="p-6 text-center">
+        <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">Perguntas sobre o documento</h3>
+        <p className="text-muted-foreground mb-6">
+          O conteúdo do documento precisa ser extraído antes que você possa fazer perguntas.
+        </p>
+        <Button 
+          onClick={() => {
+            toast("Extraia o conteúdo primeiro", {
+              description: "Clique em 'Extrair Conteúdo' na guia Conteúdo."
+            });
+          }}
+        >
+          Extrair conteúdo
+        </Button>
       </div>
     );
   }
-
+  
   return (
-    <div className="flex flex-col h-[calc(100vh-250px)] min-h-[500px]">
-      <ScrollArea className="flex-1 pr-4 mb-4">
-        <div className="space-y-4 pb-4">
-          {messages.map((msg, index) => (
-            <div 
-              key={index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div 
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  msg.role === 'user' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted'
-                }`}
-              >
-                {msg.content.split('\n').map((text, i) => (
-                  <React.Fragment key={i}>
-                    {text}
-                    <br />
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] p-3 rounded-lg bg-muted flex items-center">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Processando sua pergunta...
-              </div>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-      
-      <div className="flex gap-2 items-end">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2">
         <Textarea
+          placeholder="Faça uma pergunta sobre este documento..."
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Faça uma pergunta sobre este documento..."
-          className="resize-none"
-          rows={3}
+          className="min-h-[100px]"
         />
         <Button 
-          onClick={handleSubmitQuestion} 
-          disabled={!question.trim() || isLoading}
-          size="icon"
-          className="h-10 w-10"
+          onClick={handleAskQuestion} 
+          disabled={loading || !question.trim()}
+          className="self-end"
         >
-          <Send className="h-4 w-4" />
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            'Perguntar'
+          )}
         </Button>
       </div>
+      
+      {answer && (
+        <Card>
+          <CardContent className="pt-4">
+            <h4 className="font-medium mb-2">Resposta:</h4>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown>{answer}</ReactMarkdown>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {questionHistory.length > 0 && (
+        <div className="mt-6">
+          <h4 className="font-medium mb-2">Histórico de perguntas</h4>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-3">
+              {questionHistory.map((item, index) => (
+                <Card key={index}>
+                  <CardContent className="pt-4">
+                    <p className="font-medium text-sm">Pergunta:</p>
+                    <p className="mb-2">{item.question}</p>
+                    <p className="font-medium text-sm">Resposta:</p>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown>{item.answer}</ReactMarkdown>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
     </div>
   );
 };
