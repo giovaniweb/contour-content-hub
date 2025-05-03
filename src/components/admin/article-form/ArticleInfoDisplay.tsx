@@ -20,8 +20,24 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
   suggestedDescription,
   processingFailed,
 }) => {
-  // If no information was extracted, don't show the component
-  if (!extractedKeywords.length && !extractedResearchers.length && !suggestedTitle && !suggestedDescription) {
+  // Se nenhuma informação foi extraída ou tudo está vazio, não mostrar o componente
+  const hasNoContent = 
+    (!extractedKeywords || extractedKeywords.length === 0) && 
+    (!extractedResearchers || extractedResearchers.length === 0) && 
+    !suggestedTitle && 
+    !suggestedDescription;
+
+  if (hasNoContent) {
+    return null;
+  }
+
+  // Verifica se os valores são os simulados para desenvolvimento
+  const isSimulatedData = 
+    suggestedTitle === "Título simulado do artigo científico" &&
+    suggestedDescription === "Esta é uma conclusão simulada para testes de desenvolvimento.";
+    
+  // Se estamos em produção e só temos dados simulados, não mostrar
+  if (process.env.NODE_ENV === 'production' && isSimulatedData) {
     return null;
   }
 
@@ -70,7 +86,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
             )}
             
             {/* Display keywords */}
-            {extractedKeywords.length > 0 && (
+            {extractedKeywords && extractedKeywords.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-blue-700">Palavras-chave:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -84,7 +100,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
             )}
             
             {/* Display researchers */}
-            {extractedResearchers.length > 0 && (
+            {extractedResearchers && extractedResearchers.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-blue-700">Pesquisadores:</p>
                 <div className="flex flex-wrap gap-1 mt-1">

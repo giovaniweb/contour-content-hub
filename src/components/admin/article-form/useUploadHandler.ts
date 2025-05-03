@@ -123,6 +123,22 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       };
       
       console.log("Dados extraídos do documento:", newExtractedData);
+      
+      // Verifica se os dados extraídos são simulados e estamos em produção
+      const isSimulatedData = 
+        newExtractedData.title === "Título simulado do artigo científico" &&
+        newExtractedData.conclusion === "Esta é uma conclusão simulada para testes de desenvolvimento.";
+        
+      // Em produção, não use dados simulados se é um arquivo real
+      if (process.env.NODE_ENV === 'production' && isSimulatedData) {
+        // Em vez de usar dados simulados, tente extrair algo do nome do arquivo
+        newExtractedData.title = file.name
+          .replace('.pdf', '')
+          .replace(/_/g, ' ')
+          .replace(/-/g, ' ');
+        newExtractedData.conclusion = '';
+      }
+      
       onExtractedData(newExtractedData);
       
       // Upload file to storage

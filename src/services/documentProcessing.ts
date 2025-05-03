@@ -24,14 +24,16 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       // Simular um pequeno atraso para testes de UI
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Retornar dados de teste para desenvolvimento
       return {
-        title: "Título simulado do artigo científico",
-        conclusion: "Esta é uma conclusão simulada para testes de desenvolvimento.",
-        keywords: ["Palavra-chave1", "Palavra-chave2", "Palavra-chave3"],
-        researchers: ["Pesquisador A", "Pesquisador B"]
+        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
+        conclusion: "The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo"],
+        researchers: ["Rodrigo Marcel Valentim", "Patricia Froes Meyer"]
       };
     }
     
+    // Em produção, fazer o processamento real
     const processResponse = await supabase.functions.invoke('process-document', {
       body: { fileContent }
     });
