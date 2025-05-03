@@ -248,7 +248,15 @@ const ScientificArticleManager: React.FC = () => {
         />
       )}
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog 
+        open={isDialogOpen} 
+        onOpenChange={(open) => {
+          // Only close if open is false (user is closing dialog)
+          if (!open) {
+            setIsDialogOpen(false);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Artigo Científico</DialogTitle>
@@ -258,7 +266,10 @@ const ScientificArticleManager: React.FC = () => {
           </DialogHeader>
           
           <ScrollArea className="h-[calc(100vh-250px)] pr-4">
-            <ScientificArticleForm onSuccess={handleArticleAdded} onCancel={() => setIsDialogOpen(false)} />
+            <ScientificArticleForm 
+              onSuccess={handleArticleAdded} 
+              onCancel={() => setIsDialogOpen(false)} 
+            />
           </ScrollArea>
         </DialogContent>
       </Dialog>

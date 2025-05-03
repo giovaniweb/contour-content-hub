@@ -240,7 +240,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       // Use the fileUrl from the upload step or the link_dropbox value
       const finalFileUrl = fileUrl || values.link_dropbox || null;
       
-      // Create article payload without keywords and researchers fields
+      // Store keywords and researchers as separate fields instead of in metadata
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
@@ -250,11 +250,9 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         link_dropbox: finalFileUrl,
         status: 'ativo',
         criado_por: (await supabase.auth.getUser()).data.user?.id || null,
-        // Store keywords and researchers as metadata in JSON fields
-        metadata: {
-          keywords: extractedKeywords,
-          researchers: extractedResearchers
-        }
+        // Store as string arrays directly - if these columns don't exist, we'll need to add them
+        keywords: extractedKeywords,
+        researchers: extractedResearchers
       };
 
       if (articleData && articleData.id) {
