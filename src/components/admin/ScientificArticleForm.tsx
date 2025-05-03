@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, FileUp } from "lucide-react";
+import { Loader2, Upload, FileUp, File, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 interface ScientificArticleFormProps {
   articleData?: {
@@ -67,6 +69,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
+  const [processingProgress, setProcessingProgress] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -115,6 +118,12 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
       const selectedFile = e.target.files[0];
       setUploadError(null);
       
+      // Reset extracted information when a new file is selected
+      setSuggestedTitle('');
+      setSuggestedDescription('');
+      setExtractedKeywords([]);
+      setExtractedResearchers([]);
+      
       // Check if file is PDF
       if (selectedFile.type !== 'application/pdf') {
         toast({
@@ -152,105 +161,104 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     try {
       setIsProcessing(true);
       setUploadError(null);
+      setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
       
-      // First, try direct file content extraction
-      try {
-        // Read file as base64
-        const fileReader = new FileReader();
-        const fileContentPromise = new Promise<string>((resolve, reject) => {
-          fileReader.onload = (e) => resolve(e.target?.result as string);
-          fileReader.onerror = (e) => reject(e);
-        });
-        fileReader.readAsDataURL(file);
-        const fileContent = await fileContentPromise;
-        
-        // Process document content with edge function
-        const processResponse = await supabase.functions.invoke('process-document', {
-          body: { fileContent: fileContent.split(',')[1] } // Remove data URL prefix
-        });
-        
-        if (processResponse.error) {
-          console.warn("Error with direct content processing:", processResponse.error);
-          throw new Error("Failed to extract content directly");
-        }
-        
-        const extractionData = processResponse.data;
-        if (extractionData) {
-          setSuggestedTitle(extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
-          setSuggestedDescription(extractionData.conclusion || '');
-          setExtractedKeywords(extractionData.keywords || []);
-          setExtractedResearchers(extractionData.researchers || []);
-          
-          // Update form values
-          form.setValue('titulo', extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
-          form.setValue('descricao', extractionData.conclusion || '');
-          
-          // Move to form step right away if we got the content
-          setUploadStep('form');
-          toast({
-            title: "Documento processado",
-            description: "Informações extraídas com sucesso do documento."
-          });
-          return;
-        }
-      } catch (extractionError) {
-        console.warn("Direct content extraction failed, falling back to storage method:", extractionError);
+      // Read file as base64
+      const fileReader = new FileReader();
+      const fileContentPromise = new Promise<string>((resolve, reject) => {
+        fileReader.onload = (e) => resolve(e.target?.result as string);
+        fileReader.onerror = (e) => reject(e);
+      });
+      fileReader.readAsDataURL(file);
+      const fileContent = await fileContentPromise;
+      
+      setProcessingProgress("Analisando conteúdo do documento...");
+      
+      // Process document content with edge function
+      const processResponse = await supabase.functions.invoke('process-document', {
+        body: { fileContent: fileContent.split(',')[1] } // Remove data URL prefix
+      });
+      
+      if (processResponse.error) {
+        console.error("Error processing document:", processResponse.error);
+        throw new Error("Falha ao extrair conteúdo do documento");
       }
-
-      // Fallback to storage upload method
-      // Try to upload the file to storage
-      let uploadedFileUrl = null;
       
-      try {
-        const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        const { error: uploadError, data: uploadData } = await supabase
-          .storage
-          .from('documents')
-          .upload(fileName, file);
-          
-        if (!uploadError && uploadData) {
-          // Get the public URL
-          const { data: urlData } = supabase
+      const extractionData = processResponse.data;
+      console.log("Extracted data:", extractionData);
+      
+      if (extractionData) {
+        // Set extracted data
+        setSuggestedTitle(extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
+        setSuggestedDescription(extractionData.conclusion || '');
+        setExtractedKeywords(extractionData.keywords || []);
+        setExtractedResearchers(extractionData.researchers || []);
+        
+        // Update form values
+        form.setValue('titulo', extractionData.title || file.name.replace('.pdf', '').replace(/_/g, ' '));
+        form.setValue('descricao', extractionData.conclusion || '');
+        
+        // Upload file to storage
+        setProcessingProgress("Enviando arquivo para armazenamento...");
+        try {
+          const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+          const { error: uploadError, data: uploadData } = await supabase
             .storage
             .from('documents')
-            .getPublicUrl(fileName);
+            .upload(fileName, file);
             
-          uploadedFileUrl = urlData.publicUrl;
-          setFileUrl(uploadedFileUrl);
-        } else {
-          console.warn("Storage upload failed:", uploadError);
+          if (!uploadError && uploadData) {
+            // Get the public URL
+            const { data: urlData } = supabase
+              .storage
+              .from('documents')
+              .getPublicUrl(fileName);
+              
+            setFileUrl(urlData.publicUrl);
+          } else {
+            console.warn("Storage upload failed:", uploadError);
+            setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
+          }
+        } catch (storageError) {
+          console.warn("Error during storage upload:", storageError);
+          setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
         }
-      } catch (storageError) {
-        console.warn("Error during storage upload:", storageError);
+        
+        // Move to form step right away
+        setProcessingProgress(null);
+        setUploadStep('form');
+        toast({
+          title: "Documento processado",
+          description: "Informações extraídas com sucesso do documento."
+        });
+      } else {
+        throw new Error("Nenhuma informação foi extraída do documento");
       }
-      
-      // Fall back to simulated extraction if we couldn't get data directly
-      // This emulates what we might get from a PDF parser
-      setSuggestedTitle("Effects Of Cryofrequency on Localized Adiposity in Flanks");
-      setSuggestedDescription("Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.");
-      setExtractedKeywords(["cryofrequency", "adiposity", "treatment", "flanks"]);
-      setExtractedResearchers(["Dr. Maria Silva", "Dr. João Santos", "Dr. Ana Oliveira"]);
-      
-      // Set form values
-      form.setValue('titulo', "Effects Of Cryofrequency on Localized Adiposity in Flanks");
-      form.setValue('descricao', "Cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.");
-      
-      // Move to form step
-      setUploadStep('form');
-      toast({
-        title: "Documento processado",
-        description: "As informações foram extraídas do documento."
-      });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing file:', error);
-      setUploadError("Ocorreu um erro ao processar o arquivo. Por favor, tente novamente ou forneça um link externo.");
+      setUploadError(error.message || "Ocorreu um erro ao processar o arquivo. Por favor, tente novamente ou forneça um link externo.");
       toast({
         variant: "destructive",
         title: "Erro no processamento",
         description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
+      
+      // Even on error, try to prepopulate the form with the filename at least
+      if (file) {
+        const suggestedTitleFromFilename = file.name
+          .replace('.pdf', '')
+          .replace(/_/g, ' ')
+          .replace(/^\d+\s+/, ''); // Remove leading numbers and spaces
+          
+        setSuggestedTitle(suggestedTitleFromFilename);
+        form.setValue('titulo', suggestedTitleFromFilename);
+        
+        // Continue to form step even when extraction fails
+        setUploadStep('form');
+      }
     } finally {
       setIsProcessing(false);
+      setProcessingProgress(null);
     }
   };
 
@@ -365,7 +373,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                     {isProcessing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processando...
+                        {processingProgress || "Processando..."}
                       </>
                     ) : (
                       <>
@@ -399,21 +407,33 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {(suggestedTitle || suggestedDescription) && (
+        {(suggestedTitle || suggestedDescription || extractedKeywords.length > 0 || extractedResearchers.length > 0) && (
           <Alert className="bg-muted">
             <AlertTitle>Informações extraídas do documento</AlertTitle>
             <AlertDescription>
-              <p className="text-sm">Título e conclusão foram extraídos automaticamente do documento.</p>
+              <p className="text-sm">Informações foram extraídas automaticamente do documento.</p>
               {extractedKeywords.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm font-medium">Palavras-chave:</p>
-                  <p className="text-sm">{extractedKeywords.join(', ')}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {extractedKeywords.map((keyword, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
               {extractedResearchers.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm font-medium">Pesquisadores:</p>
-                  <p className="text-sm">{extractedResearchers.join(', ')}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {extractedResearchers.map((researcher, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {researcher}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </AlertDescription>
@@ -539,10 +559,28 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
               accept="application/pdf"
               onChange={handleFileChange}
             />
-            {file && (
-              <p className="text-sm text-muted-foreground">
-                Arquivo selecionado: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-              </p>
+            {file && !isProcessing && (
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-sm text-muted-foreground">
+                  Arquivo selecionado: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                </p>
+                <Button 
+                  type="button"
+                  variant="secondary"
+                  onClick={handleFileUpload}
+                  size="sm"
+                >
+                  Processar Arquivo
+                </Button>
+              </div>
+            )}
+            {isProcessing && (
+              <div className="flex items-center mt-2">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <p className="text-sm text-muted-foreground">
+                  {processingProgress || "Processando arquivo..."}
+                </p>
+              </div>
             )}
           </div>
         )}
@@ -570,8 +608,39 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
                   setFile(null);
                 }}
               >
+                <X className="h-4 w-4 mr-1" />
                 Remover
               </Button>
+            </div>
+          </div>
+        )}
+
+        {extractedKeywords.length > 0 && (
+          <div className="space-y-2">
+            <Label>Palavras-chave</Label>
+            <div className="p-3 border rounded-md">
+              <div className="flex flex-wrap gap-2">
+                {extractedKeywords.map((keyword, index) => (
+                  <Badge key={index} variant="secondary">
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {extractedResearchers.length > 0 && (
+          <div className="space-y-2">
+            <Label>Pesquisadores</Label>
+            <div className="p-3 border rounded-md">
+              <div className="flex flex-wrap gap-2">
+                {extractedResearchers.map((researcher, index) => (
+                  <Badge key={index} variant="outline">
+                    {researcher}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         )}

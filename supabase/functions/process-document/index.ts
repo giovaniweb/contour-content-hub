@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -240,7 +241,7 @@ async function extractDocumentInfo(text: string) {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format. Extract ONLY the following fields: title (the actual title of the paper, not the filename), conclusion (from the conclusion section), keywords (as an array), and researchers (as an array of names). Return ONLY these fields in valid JSON format.' 
+            content: 'You are a precise extraction tool that analyzes scientific articles and extracts specific information in JSON format. Extract ONLY the following fields: title (the actual title of the paper, not the filename), conclusion (from the conclusion section), keywords (as an array), and researchers (as an array of names). Return ONLY these fields in valid JSON format. Make sure to extract the actual title from the document content, not the filename.' 
           },
           { 
             role: 'user', 
@@ -258,6 +259,8 @@ async function extractDocumentInfo(text: string) {
       try {
         // Parse the JSON response
         const extractedData = JSON.parse(content);
+        console.log("Extracted data from OpenAI:", extractedData);
+        
         return {
           title: extractedData.title || null,
           conclusion: extractedData.conclusion || null,
