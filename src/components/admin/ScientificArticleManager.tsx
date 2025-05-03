@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -215,7 +214,7 @@ const ScientificArticleManager: React.FC = () => {
         <ScientificArticleList 
           articles={articles} 
           onDelete={handleDeleteArticle} 
-          onUpdate={handleOpenEditArticleDialog}
+          onUpdate={handleOpenEditArticleDialog} // This matches the expected (article: any) => void signature
           viewMode={viewMode}
         />
       )}

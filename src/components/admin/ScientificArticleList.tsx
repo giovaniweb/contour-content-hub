@@ -11,7 +11,7 @@ import ArticleListView from './article-list/ArticleListView';
 interface ScientificArticleListProps {
   articles: any[];
   onDelete: (id: string) => void;
-  onUpdate: () => void;
+  onUpdate: (article: any) => void; // Fixed: Properly define the expected parameter
   viewMode: "grid" | "list";
 }
 
@@ -83,7 +83,7 @@ const ScientificArticleList: React.FC<ScientificArticleListProps> = ({
               articleData={editingArticle} 
               onSuccess={() => {
                 setEditingArticle(null);
-                onUpdate();
+                onUpdate(editingArticle); // Pass the article to onUpdate
               }} 
               onCancel={() => setEditingArticle(null)} 
             />
