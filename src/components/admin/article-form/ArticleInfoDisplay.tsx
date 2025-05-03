@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,18 +27,21 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
 
   return (
     <ScrollArea className="h-auto max-h-[400px]">
-      <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-muted"}>
-        <AlertTitle className="flex items-center">
+      <Alert className={processingFailed ? "bg-yellow-50 border-yellow-200" : "bg-blue-50 border-blue-200"}>
+        <AlertTitle className="flex items-center text-blue-700">
           {processingFailed ? (
             <>
               <AlertCircle className="h-4 w-4 mr-2 text-yellow-500" />
               Processamento parcial do documento
             </>
           ) : (
-            "Informações extraídas do documento"
+            <>
+              <Lightbulb className="h-4 w-4 mr-2 text-blue-600" />
+              Informações extraídas automaticamente
+            </>
           )}
         </AlertTitle>
-        <AlertDescription>
+        <AlertDescription className="text-blue-600">
           {processingFailed ? (
             <p className="text-sm text-muted-foreground mb-2">
               O processamento do documento foi parcial. Algumas informações podem estar incompletas.
@@ -49,49 +52,51 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
             </p>
           )}
           
-          {/* Display extracted title if available */}
-          {suggestedTitle && (
-            <div className="mt-3">
-              <p className="text-sm font-medium">Título:</p>
-              <p className="text-sm">{suggestedTitle}</p>
-            </div>
-          )}
-          
-          {/* Display conclusion if available */}
-          {suggestedDescription && (
-            <div className="mt-3">
-              <p className="text-sm font-medium">Conclusão:</p>
-              <p className="text-sm">{suggestedDescription}</p>
-            </div>
-          )}
-          
-          {/* Display keywords */}
-          {extractedKeywords.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm font-medium">Palavras-chave:</p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {extractedKeywords.map((keyword, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {keyword}
-                  </Badge>
-                ))}
+          <div className="space-y-3 mt-2">
+            {/* Display extracted title if available */}
+            {suggestedTitle && (
+              <div>
+                <p className="text-sm font-medium text-blue-700">Título:</p>
+                <p className="text-sm text-blue-700">{suggestedTitle}</p>
               </div>
-            </div>
-          )}
-          
-          {/* Display researchers */}
-          {extractedResearchers.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm font-medium">Pesquisadores:</p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {extractedResearchers.map((researcher, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {researcher}
-                  </Badge>
-                ))}
+            )}
+            
+            {/* Display conclusion if available */}
+            {suggestedDescription && (
+              <div>
+                <p className="text-sm font-medium text-blue-700">Conclusão:</p>
+                <p className="text-sm text-blue-700">{suggestedDescription}</p>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Display keywords */}
+            {extractedKeywords.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-blue-700">Palavras-chave:</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {extractedKeywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Display researchers */}
+            {extractedResearchers.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-blue-700">Pesquisadores:</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {extractedResearchers.map((researcher, index) => (
+                    <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                      {researcher}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </AlertDescription>
       </Alert>
     </ScrollArea>

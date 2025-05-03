@@ -8,7 +8,7 @@ import { useArticleForm, FormValues } from "./article-form/useArticleForm";
 import FileUploader from "./article-form/FileUploader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import ExtractedInfo from "./article-form/ExtractedInfo";
+import ArticleInfoDisplay from "./article-form/ArticleInfoDisplay";
 import ArticleFormFields from "./article-form/ArticleFormFields";
 import FilePreview from "./article-form/FilePreview";
 import { useUploadHandler } from "./article-form/useUploadHandler";
@@ -196,10 +196,13 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Extracted information */}
-          <ExtractedInfo 
+          {/* Extracted information - Using ArticleInfoDisplay instead of ExtractedInfo */}
+          <ArticleInfoDisplay 
             extractedKeywords={extractedKeywords} 
-            extractedResearchers={extractedResearchers} 
+            extractedResearchers={extractedResearchers}
+            suggestedTitle={suggestedTitle}
+            suggestedDescription={suggestedDescription}
+            processingFailed={processingFailed} 
           />
 
           {(uploadError || handlerUploadError) && (
