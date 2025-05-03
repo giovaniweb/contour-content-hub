@@ -22,7 +22,8 @@ import {
   CalendarDays,
   Menu,
   X,
-  CheckCircle
+  CheckCircle,
+  BookOpen
 } from "lucide-react";
 import {
   Drawer,
@@ -167,6 +168,19 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                  <NavLink to="/documents">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/documents" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Artigos Científicos</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                   <NavLink to="/media">
                     <NavigationMenuLink 
                       className={cn(
@@ -227,6 +241,7 @@ const Navbar: React.FC = () => {
                       <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
                       <DrawerNavLink to="/custom-gpt" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
                       <DrawerNavLink to="/validate-script" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
+                      <DrawerNavLink to="/documents" icon={<BookOpen className="h-5 w-5" />} label="Artigos Científicos" />
                       <DrawerNavLink to="/media" icon={<Film className="h-5 w-5" />} label="Mídia" />
                       <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
                       <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />

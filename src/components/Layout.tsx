@@ -32,7 +32,8 @@ import {
   User,
   Users,
   Settings2,
-  CheckCircle
+  CheckCircle,
+  BookOpen
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -154,6 +155,14 @@ const Layout: React.FC<LayoutProps> = ({
                         <Link to="/validate-script" className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Validador de Roteiros</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/documents" className="flex items-center">
+                          <BookOpen className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Artigos Científicos</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
