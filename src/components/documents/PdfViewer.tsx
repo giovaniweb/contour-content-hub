@@ -19,26 +19,27 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [finalUrl, setFinalUrl] = useState<string>('');
 
   useEffect(() => {
-    if (!isOpen || !pdfUrl) {
+    if (!isOpen) {
+      return;
+    }
+    
+    if (!pdfUrl) {
       setLoading(false);
-      if (!pdfUrl) {
-        setError("URL do documento não encontrada");
-      }
+      setError("URL do documento não encontrada");
       return;
     }
 
-    try {
-      console.log(`Preparando visualização do PDF (${documentId || 'unknown'}):`, pdfUrl);
-      setLoading(true);
-      setError(null);
+    console.log(`Preparando visualização do PDF (${documentId || 'unknown'}):`, pdfUrl);
+    setLoading(true);
+    setError(null);
       
+    try {
       let processedUrl = pdfUrl.trim();
       
       // Para URLs blob, usamos diretamente
       if (processedUrl.startsWith('blob:')) {
         console.log("Usando URL blob diretamente:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
       // Para URLs do Dropbox
       else if (processedUrl.includes('dropbox.com')) {
@@ -49,7 +50,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL Dropbox processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
       // Para URLs do Google Drive
       else if (processedUrl.includes('drive.google.com')) {
@@ -58,7 +58,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL Google Drive processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
       // Para outras URLs
       else {
@@ -68,11 +67,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("URL genérica processada:", processedUrl);
         setFinalUrl(processedUrl);
-        setLoading(false);
       }
     } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
       setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
+    } finally {
       setLoading(false);
     }
   }, [pdfUrl, isOpen, documentId]);
@@ -173,8 +172,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
                 title={title}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
                 onLoad={() => console.log("PDF carregado com sucesso")}
-                onError={() => {
-                  console.error("Erro ao carregar o PDF");
+                onError={(e) => {
+                  console.error("Erro ao carregar o PDF", e);
                   setError("Não foi possível carregar o documento.");
                 }}
               />
