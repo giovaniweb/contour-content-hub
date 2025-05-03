@@ -21,7 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import FileUploader from "./article-form/FileUploader";
 import ArticleInfoDisplay from "./article-form/ArticleInfoDisplay";
 import ResearcherManager from "./article-form/ResearcherManager";
@@ -126,7 +125,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
 
   // Form step UI with extracted information
   return (
-    <ScrollArea className="h-[calc(100vh-250px)] overflow-auto pr-4">
+    <div className="space-y-6 pr-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Extracted information alert */}
@@ -309,7 +308,7 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           </div>
         </form>
       </Form>
-    </ScrollArea>
+    </div>
   );
 };
 

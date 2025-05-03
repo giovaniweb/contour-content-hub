@@ -24,6 +24,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import ScientificArticleForm from "./ScientificArticleForm";
 import ScientificArticleList from "./ScientificArticleList";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ScientificArticleManager: React.FC = () => {
   const { toast } = useToast();
@@ -248,7 +249,7 @@ const ScientificArticleManager: React.FC = () => {
       )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Artigo Científico</DialogTitle>
             <DialogDescription>
@@ -256,7 +257,9 @@ const ScientificArticleManager: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <ScientificArticleForm onSuccess={handleArticleAdded} onCancel={() => setIsDialogOpen(false)} />
+          <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+            <ScientificArticleForm onSuccess={handleArticleAdded} onCancel={() => setIsDialogOpen(false)} />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
