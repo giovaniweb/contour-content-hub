@@ -116,8 +116,9 @@ const ScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      toast.error("Erro ao buscar artigos científicos", {
-        description: "Não foi possível carregar a lista de artigos."
+      toast({
+        description: "Não foi possível carregar a lista de artigos.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -134,8 +135,10 @@ const ScientificArticleManager: React.FC = () => {
     // After article is added, automatically extract content
     if (articleData?.id) {
       try {
-        toast.loading("Processando documento", {
-          description: "Extraindo conteúdo do documento..."
+        toast({
+          description: "Extraindo conteúdo do documento...",
+          variant: "default",
+          duration: 10000
         });
         
         const { error } = await supabase.functions.invoke('process-document', {
@@ -144,12 +147,14 @@ const ScientificArticleManager: React.FC = () => {
         
         if (error) {
           console.error('Error processing document:', error);
-          toast.error("Erro ao processar documento", {
-            description: "Não foi possível extrair o conteúdo do documento."
+          toast({
+            description: "Não foi possível extrair o conteúdo do documento.",
+            variant: "destructive"
           });
         } else {
-          toast.success("Documento processado", {
-            description: "O conteúdo do documento foi extraído com sucesso."
+          toast({
+            description: "O conteúdo do documento foi extraído com sucesso.",
+            variant: "success"
           });
         }
       } catch (err) {
@@ -170,13 +175,15 @@ const ScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      toast.success("Artigo científico excluído", {
-        description: "O artigo científico foi excluído com sucesso."
+      toast({
+        description: "O artigo científico foi excluído com sucesso.",
+        variant: "success"
       });
     } catch (error) {
       console.error('Error deleting article:', error);
-      toast.error("Erro ao excluir artigo científico", {
-        description: "Não foi possível excluir o artigo científico."
+      toast({
+        description: "Não foi possível excluir o artigo científico.",
+        variant: "destructive"
       });
     }
   };
