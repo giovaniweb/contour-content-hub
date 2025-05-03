@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Loader2, Book, Filter, Grid2x2, LayoutList } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { 
   Select,
@@ -21,9 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import ScientificArticleForm from "./ScientificArticleForm";
 import ScientificArticleList from "./ScientificArticleList";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import ScientificArticleDialog from "./ScientificArticleDialog";
 import { useEquipments } from "@/hooks/useEquipments";
 
 const ScientificArticleManager: React.FC = () => {
@@ -37,10 +28,8 @@ const ScientificArticleManager: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const { equipments: equipmentOptions, loading: equipmentsLoading } = useEquipments();
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
   
-  // Track a unique key for the form to force a complete reset when opening new form
-  const [formKey, setFormKey] = useState<string>(`article-form-${Date.now()}`);
-
   // Get topics for filters
   useEffect(() => {
     const fetchTopics = async () => {
@@ -112,35 +101,7 @@ const ScientificArticleManager: React.FC = () => {
     fetchArticles();
   }, [searchQuery, filterEquipment]);
 
-  const handleArticleAdded = async (articleData: any) => {
-    // Generate a new form key to ensure complete reset
-    setFormKey(`article-form-${Date.now()}`);
-    
-    // Close dialog before processing
-    setIsDialogOpen(false);
-    
-    // After article is added, automatically extract content
-    if (articleData?.id) {
-      try {
-        toast.info("Extraindo conteúdo do documento...", {
-          duration: 10000
-        });
-        
-        const { error } = await supabase.functions.invoke('process-document', {
-          body: { documentId: articleData.id }
-        });
-        
-        if (error) {
-          console.error('Error processing document:', error);
-          toast.error("Não foi possível extrair o conteúdo do documento.");
-        } else {
-          toast.success("O conteúdo do documento foi extraído com sucesso.");
-        }
-      } catch (err) {
-        console.error('Error processing document:', err);
-      }
-    }
-    
+  const handleArticleAdded = (articleData: any) => {
     fetchArticles();
   };
 
@@ -161,9 +122,15 @@ const ScientificArticleManager: React.FC = () => {
     }
   };
 
-  // Handler for opening the dialog with a clean state
-  const handleOpenDialog = () => {
-    setFormKey(`article-form-${Date.now()}`); // Generate new key to force component recreation
+  // Handler for opening the dialog with a clean state for a new article
+  const handleOpenNewArticleDialog = () => {
+    setSelectedArticle(null);
+    setIsDialogOpen(true);
+  };
+
+  // Handler for opening the dialog to edit an existing article
+  const handleOpenEditArticleDialog = (article: any) => {
+    setSelectedArticle(article);
     setIsDialogOpen(true);
   };
 
@@ -172,7 +139,7 @@ const ScientificArticleManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
         <div className="flex items-center gap-4">
           <Button 
-            onClick={handleOpenDialog}
+            onClick={handleOpenNewArticleDialog}
             variant="default"
             size="lg"
             className="flex gap-2"
@@ -239,7 +206,7 @@ const ScientificArticleManager: React.FC = () => {
         <div className="bg-muted py-12 rounded-lg flex flex-col items-center justify-center">
           <Book className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">Nenhum artigo científico encontrado</p>
-          <Button onClick={handleOpenDialog}>
+          <Button onClick={handleOpenNewArticleDialog}>
             <Plus className="h-4 w-4 mr-2" /> Adicionar Artigo Científico
           </Button>
         </div>
@@ -247,39 +214,18 @@ const ScientificArticleManager: React.FC = () => {
         <ScientificArticleList 
           articles={articles} 
           onDelete={handleDeleteArticle} 
-          onUpdate={fetchArticles}
+          onUpdate={(article) => handleOpenEditArticleDialog(article)}
           viewMode={viewMode}
         />
       )}
       
-      <Dialog 
-        open={isDialogOpen} 
-        onOpenChange={(open) => {
-          // Only close if open is false (user is closing dialog)
-          if (!open) {
-            setIsDialogOpen(false);
-          }
-        }}
-      >
-        <DialogContent className="max-w-2xl max-h-[95vh]">
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Artigo Científico</DialogTitle>
-            <DialogDescription>
-              Preencha os detalhes do artigo científico para adicioná-lo à biblioteca de conteúdo.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <ScrollArea className="h-[calc(100vh-250px)] pr-4">
-            {/* Use key to force component recreation when dialog is opened */}
-            <ScientificArticleForm 
-              key={formKey}
-              onSuccess={handleArticleAdded} 
-              onCancel={() => setIsDialogOpen(false)}
-              isOpen={isDialogOpen}
-            />
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      {/* Use the new ScientificArticleDialog component */}
+      <ScientificArticleDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSuccess={handleArticleAdded}
+        articleData={selectedArticle}
+      />
     </div>
   );
 };

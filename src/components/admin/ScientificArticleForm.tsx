@@ -11,6 +11,9 @@ import { AlertCircle } from "lucide-react";
 import ExtractedInfo from "./article-form/ExtractedInfo";
 import ArticleFormFields from "./article-form/ArticleFormFields";
 import FilePreview from "./article-form/FilePreview";
+import { useUploadHandler } from "./article-form/useUploadHandler";
+import { useExtractedData } from "./article-form/useExtractedData";
+import { toast } from "sonner";
 
 interface ArticleFormProps {
   articleData?: any;
@@ -25,36 +28,59 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   onCancel,
   isOpen = true
 }) => {
+  // Extract extracted data handling
   const {
-    isLoading,
-    isProcessing,
-    equipments,
-    file,
-    setFile,
-    fileUrl,
-    setFileUrl,
-    uploadStep,
-    setUploadStep,
     suggestedTitle,
-    setSuggestedTitle,
     suggestedDescription,
-    setSuggestedDescription,
-    uploadError,
-    setUploadError,
     extractedKeywords,
     extractedResearchers,
+    handleExtractedData,
+    resetExtractedData
+  } = useExtractedData({
+    initialData: articleData
+  });
+  
+  // Extract file upload handling
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const {
+    file,
+    fileUrl,
+    isProcessing,
     processingProgress,
     processingFailed,
     handleFileChange,
     handleFileUpload,
-    onSubmit,
-    resetExtractedData,
+    handleClearFile,
+    resetUploadState
+  } = useUploadHandler({
+    onExtractedData: handleExtractedData,
+    onError: (message) => setUploadError(message),
+    onReset: () => {
+      setUploadError(null);
+      resetExtractedData();
+    }
+  });
+  
+  // Extract form state handling
+  const [uploadStep, setUploadStep] = React.useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
+  
+  const {
+    isLoading,
+    equipments,
     resetFormState,
+    onSubmit,
     formSchema
   } = useArticleForm(articleData, (data) => {
-    // Limpar o formulário antes de chamar onSuccess
+    // Clear form before calling onSuccess
     form.reset();
     resetFormState();
+    resetUploadState();
+    resetExtractedData();
+    toast.success(articleData ? "Artigo atualizado" : "Artigo criado", {
+      description: articleData 
+        ? "O artigo científico foi atualizado com sucesso."
+        : "O novo artigo científico foi adicionado com sucesso."
+    });
     onSuccess(data);
   }, isOpen);
   
@@ -76,6 +102,8 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     return () => {
       console.log("ScientificArticleForm unmounting, resetting all state");
       resetFormState();
+      resetUploadState();
+      resetExtractedData();
       form.reset();
     };
   }, []);
@@ -95,7 +123,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   }, [isOpen, articleData, form]);
 
-  // Atualizar form quando dados sugeridos mudarem
+  // Update form when suggested data changes
   useEffect(() => {
     console.log("Suggested data changed, updating form:", {
       title: suggestedTitle,
@@ -111,11 +139,12 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   }, [suggestedTitle, suggestedDescription, form]);
 
-  // Limpar arquivo e resetar processamento
-  const handleClearFile = () => {
-    setFile(null);
-    setFileUrl(null);
-  };
+  // Set file URL from article data if present
+  useEffect(() => {
+    if (articleData?.link_dropbox && !fileUrl) {
+      setUploadStep('form');
+    }
+  }, [articleData, fileUrl]);
 
   // Upload step UI
   if (uploadStep === 'upload') {
@@ -124,7 +153,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
         file={file}
         setFile={setFile}
         fileUrl={fileUrl}
-        setFileUrl={setFileUrl}
         isProcessing={isProcessing}
         uploadError={uploadError}
         processingProgress={processingProgress}
@@ -141,7 +169,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Informações extraídas */}
+          {/* Extracted information */}
           <ExtractedInfo 
             extractedKeywords={extractedKeywords} 
             extractedResearchers={extractedResearchers} 
@@ -155,25 +183,25 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
             </Alert>
           )}
 
-          {/* Campos do formulário */}
+          {/* Form fields */}
           <ArticleFormFields 
             form={form} 
             equipments={equipments} 
           />
           
-          {/* Visualização do arquivo */}
-          {(file || fileUrl) && (
+          {/* File preview */}
+          {(file || fileUrl || articleData?.link_dropbox) && (
             <div className="mt-4">
               <FilePreview 
                 file={file} 
-                fileUrl={fileUrl} 
+                fileUrl={fileUrl || articleData?.link_dropbox} 
                 onClearFile={handleClearFile} 
               />
             </div>
           )}
           
-          {/* Alternativa para upload de arquivo na etapa de formulário */}
-          {!file && !fileUrl && (
+          {/* Alternative file upload in form step */}
+          {!file && !fileUrl && !articleData?.link_dropbox && (
             <div className="space-y-2">
               <div className="text-sm font-medium">Anexar documento PDF</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,9 +235,11 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
               type="button"
               variant="outline"
               onClick={() => {
-                // Limpar formulário antes de cancelar
+                // Clear form before canceling
                 form.reset();
                 resetFormState();
+                resetUploadState();
+                resetExtractedData();
                 onCancel();
               }}
               disabled={isLoading}
@@ -218,7 +248,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isProcessing}
             >
               {isLoading ? "Salvando..." : "Salvar Artigo"}
             </Button>
