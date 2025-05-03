@@ -25,6 +25,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import ScientificArticleForm from "./ScientificArticleForm";
 import ScientificArticleList from "./ScientificArticleList";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEquipments } from "@/hooks/useEquipments";
 
 const ScientificArticleManager: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,27 +36,11 @@ const ScientificArticleManager: React.FC = () => {
   const [filterEquipment, setFilterEquipment] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [equipmentOptions, setEquipmentOptions] = useState<{id: string, nome: string}[]>([]);
+  const { equipments: equipmentOptions, loading: equipmentsLoading } = useEquipments();
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
 
-  // Get equipments for filters
+  // Get topics for filters
   useEffect(() => {
-    const fetchEquipments = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('equipamentos')
-          .select('id, nome')
-          .eq('ativo', true)
-          .order('nome');
-          
-        if (error) throw error;
-        
-        setEquipmentOptions(data || []);
-      } catch (error) {
-        console.error('Error fetching equipments:', error);
-      }
-    };
-
     const fetchTopics = async () => {
       try {
         const { data, error } = await supabase
@@ -80,7 +65,6 @@ const ScientificArticleManager: React.FC = () => {
       }
     };
     
-    fetchEquipments();
     fetchTopics();
   }, []);
 
@@ -116,8 +100,7 @@ const ScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      toast({
-        description: "Não foi possível carregar a lista de artigos.",
+      toast("Não foi possível carregar a lista de artigos.", {
         variant: "destructive"
       });
     } finally {
@@ -135,8 +118,7 @@ const ScientificArticleManager: React.FC = () => {
     // After article is added, automatically extract content
     if (articleData?.id) {
       try {
-        toast({
-          description: "Extraindo conteúdo do documento...",
+        toast("Extraindo conteúdo do documento...", {
           variant: "default",
           duration: 10000
         });
@@ -147,13 +129,11 @@ const ScientificArticleManager: React.FC = () => {
         
         if (error) {
           console.error('Error processing document:', error);
-          toast({
-            description: "Não foi possível extrair o conteúdo do documento.",
+          toast("Não foi possível extrair o conteúdo do documento.", {
             variant: "destructive"
           });
         } else {
-          toast({
-            description: "O conteúdo do documento foi extraído com sucesso.",
+          toast("O conteúdo do documento foi extraído com sucesso.", {
             variant: "success"
           });
         }
@@ -175,14 +155,12 @@ const ScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      toast({
-        description: "O artigo científico foi excluído com sucesso.",
+      toast("O artigo científico foi excluído com sucesso.", {
         variant: "success"
       });
     } catch (error) {
       console.error('Error deleting article:', error);
-      toast({
-        description: "Não foi possível excluir o artigo científico.",
+      toast("Não foi possível excluir o artigo científico.", {
         variant: "destructive"
       });
     }
