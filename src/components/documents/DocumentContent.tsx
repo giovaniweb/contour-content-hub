@@ -79,6 +79,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
 
   const handleViewOriginalPdf = () => {
     if (document.link_dropbox) {
+      console.log("Abrindo visualizador de PDF com URL:", document.link_dropbox);
       setPdfViewerOpen(true);
     } else {
       toast("Arquivo não disponível", {
@@ -128,6 +129,23 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         description: "O documento original não está disponível para download."
       });
     }
+  };
+
+  // Função para garantir que a URL do PDF esteja formatada corretamente
+  const getPdfUrl = (url: string): string => {
+    if (!url) return '';
+    
+    // Para URLs de blob local
+    if (url.startsWith('blob:')) {
+      return url;
+    }
+    
+    // Para URLs externas, garantir que comecem com http ou https
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'https://' + url;
+    }
+    
+    return url;
   };
 
   return (
@@ -220,7 +238,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           {document.link_dropbox && (
             <div className="w-full h-[80vh]">
               <iframe
-                src={document.link_dropbox.startsWith('http') ? document.link_dropbox : `https://${document.link_dropbox}`}
+                src={getPdfUrl(document.link_dropbox)}
                 className="w-full h-full"
                 title={document.titulo}
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
