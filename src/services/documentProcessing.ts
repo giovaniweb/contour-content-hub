@@ -15,6 +15,8 @@ export interface ProcessingResult {
  */
 export const processFileContent = async (fileContent: string): Promise<ProcessingResult> => {
   try {
+    console.log("Processing file content...");
+    
     const processResponse = await supabase.functions.invoke('process-document', {
       body: { fileContent }
     });
@@ -78,22 +80,39 @@ export const processExistingDocument = async (documentId: string): Promise<boole
  */
 export const uploadFileToStorage = async (file: File, fileName?: string): Promise<string> => {
   try {
+    console.log("Starting file upload to storage:", file.name);
+    
     const fileNameToUse = fileName || `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    
+    // Check if the file exists
+    if (!file || file.size === 0) {
+      throw new Error('Arquivo inválido ou vazio');
+    }
+    
+    console.log(`Uploading file to path: documents/${fileNameToUse}`);
     
     const { error, data } = await supabase
       .storage
       .from('documents')
-      .upload(fileNameToUse, file);
+      .upload(fileNameToUse, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
       
     if (error) {
+      console.error("Storage upload error:", error);
       throw error;
     }
+    
+    console.log("Upload successful, getting public URL");
     
     const { data: urlData } = supabase
       .storage
       .from('documents')
       .getPublicUrl(fileNameToUse);
       
+    console.log("Public URL:", urlData.publicUrl);
+    
     return urlData.publicUrl;
   } catch (error) {
     console.error("Error uploading file:", error);

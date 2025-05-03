@@ -99,7 +99,6 @@ const ScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      // Fix: Use Sonner's toast API correctly
       toast.error("Não foi possível carregar a lista de artigos.");
     } finally {
       setIsLoading(false);
@@ -116,7 +115,6 @@ const ScientificArticleManager: React.FC = () => {
     // After article is added, automatically extract content
     if (articleData?.id) {
       try {
-        // Fix: Use Sonner's toast API correctly
         toast.info("Extraindo conteúdo do documento...", {
           duration: 10000
         });
@@ -127,10 +125,8 @@ const ScientificArticleManager: React.FC = () => {
         
         if (error) {
           console.error('Error processing document:', error);
-          // Fix: Use Sonner's toast API correctly
           toast.error("Não foi possível extrair o conteúdo do documento.");
         } else {
-          // Fix: Use Sonner's toast API correctly
           toast.success("O conteúdo do documento foi extraído com sucesso.");
         }
       } catch (err) {
@@ -151,11 +147,9 @@ const ScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      // Fix: Use Sonner's toast API correctly
       toast.success("O artigo científico foi excluído com sucesso.");
     } catch (error) {
       console.error('Error deleting article:', error);
-      // Fix: Use Sonner's toast API correctly
       toast.error("Não foi possível excluir o artigo científico.");
     }
   };
