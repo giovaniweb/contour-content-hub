@@ -27,9 +27,7 @@ export const useEquipments = () => {
         setEquipments(data || []);
       } catch (error: any) {
         console.error('Error fetching equipments:', error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao buscar equipamentos",
+        toast.error("Erro ao buscar equipamentos", {
           description: "Não foi possível carregar a lista de equipamentos."
         });
       } finally {
