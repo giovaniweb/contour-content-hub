@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import PdfViewer from './PdfViewer';
+import { toast } from 'sonner';
 
 interface DocumentPreviewModalProps {
   isOpen: boolean;
@@ -18,7 +19,12 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   
   // Process the PDF URL when the document or modal state changes
   useEffect(() => {
-    if (document && isOpen) {
+    if (!document || !isOpen) {
+      setValidPdfUrl(undefined);
+      return;
+    }
+    
+    try {
       // Use link_dropbox as the primary source, and preview_url as fallback
       let url = '';
       
@@ -40,15 +46,23 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
       
       if (!url) {
         console.error("No PDF URL available for document:", document.id);
+        toast.error("Nenhum URL de PDF disponível para este documento");
+        return;
       }
       
-      // Set the URL regardless - the PdfViewer component will handle error cases
+      // Set the URL - the PdfViewer component will handle formatting
       setValidPdfUrl(url);
-    } else {
-      // Reset URL when modal is closed
+    } catch (error) {
+      console.error("Error processing PDF URL:", error);
+      toast.error("Erro ao processar URL do PDF");
       setValidPdfUrl(undefined);
     }
   }, [document, isOpen]);
+  
+  // If there's no document or the modal is closed, don't render anything
+  if (!document || !isOpen) {
+    return null;
+  }
   
   return (
     <PdfViewer

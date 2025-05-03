@@ -78,8 +78,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
   };
 
   const handleViewOriginalPdf = () => {
-    // Check if we have a valid URL
-    if (document?.link_dropbox || document?.preview_url) {
+    try {
       console.log("Abrindo visualizador de PDF com URL:", {
         link_dropbox: document.link_dropbox,
         preview_url: document.preview_url,
@@ -87,10 +86,19 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         titulo: document.titulo
       });
       
+      // Check if we have any URL before opening preview
+      if (!document.link_dropbox && !document.preview_url) {
+        toast("Arquivo não disponível", {
+          description: "O documento original não está disponível para visualização."
+        });
+        return;
+      }
+      
       setPdfPreviewOpen(true);
-    } else {
-      toast("Arquivo não disponível", {
-        description: "O documento original não está disponível para visualização."
+    } catch (error) {
+      console.error("Erro ao abrir visualizador:", error);
+      toast("Erro ao abrir visualizador", {
+        description: "Ocorreu um erro ao tentar abrir o visualizador de PDF."
       });
     }
   };

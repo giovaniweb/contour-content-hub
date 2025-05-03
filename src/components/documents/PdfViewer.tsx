@@ -46,6 +46,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       if (processedUrl.startsWith('blob:')) {
         console.log("Using blob URL directly:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // For Dropbox URLs that need conversion to direct download links
       else if (processedUrl.includes('dropbox.com')) {
@@ -59,6 +60,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("Converted Dropbox URL:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // For Google Drive URLs
       else if (processedUrl.includes('drive.google.com')) {
@@ -68,22 +70,24 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         }
         console.log("Converted Google Drive URL:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       // For external URLs, ensure they start with http or https
       else if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
         processedUrl = `https://${processedUrl}`;
         console.log("Added https protocol:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       } else {
         console.log("Using URL as-is:", processedUrl);
         setFinalUrl(processedUrl);
+        setLoading(false);
       }
       
       setError(null);
     } catch (err: any) {
       console.error("Erro ao processar URL do PDF:", err);
       setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
-    } finally {
       setLoading(false);
     }
   }, [pdfUrl, isOpen, documentId, retryCount]);
@@ -98,12 +102,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     // Check if the iframe actually loaded content or just an error page
     try {
       console.log("PDF iframe loaded, checking content:", finalUrl);
-      
-      // Some iframes may not expose their content due to CORS
-      // In that case, we assume it loaded correctly
       setLoading(false);
       setError(null);
-      
     } catch (err) {
       console.log("Could not verify iframe content due to CORS, assuming success");
       setLoading(false);
@@ -178,7 +178,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
               <p className="text-muted-foreground mb-4">
                 {error || "Talvez ele tenha sido movido, editado ou excluído."}
               </p>
-              <p className="text-sm text-muted-foreground mb-4">URL: {pdfUrl || "Indisponível"}</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                URL: {pdfUrl ? pdfUrl.substring(0, 50) + (pdfUrl.length > 50 ? '...' : '') : "Indisponível"}
+              </p>
               
               <div className="flex gap-2">
                 <Button onClick={handleRetry} variant="outline" className="flex items-center gap-2">
