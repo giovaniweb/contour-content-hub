@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Loader2, Book, Filter, Grid2x2, LayoutList } from "lucide-react";
-import { toast } from "sonner"; // Import toast directly from sonner
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,9 @@ const ScientificArticleManager: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const { equipments: equipmentOptions, loading: equipmentsLoading } = useEquipments();
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
+  
+  // Track a unique key for the form to force a complete reset when opening new form
+  const [formKey, setFormKey] = useState<string>(`article-form-${Date.now()}`);
 
   // Get topics for filters
   useEffect(() => {
@@ -110,6 +113,10 @@ const ScientificArticleManager: React.FC = () => {
   }, [searchQuery, filterEquipment]);
 
   const handleArticleAdded = async (articleData: any) => {
+    // Generate a new form key to ensure complete reset
+    setFormKey(`article-form-${Date.now()}`);
+    
+    // Close dialog before processing
     setIsDialogOpen(false);
     
     // After article is added, automatically extract content
@@ -154,12 +161,18 @@ const ScientificArticleManager: React.FC = () => {
     }
   };
 
+  // Handler for opening the dialog with a clean state
+  const handleOpenDialog = () => {
+    setFormKey(`article-form-${Date.now()}`); // Generate new key to force component recreation
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
         <div className="flex items-center gap-4">
           <Button 
-            onClick={() => setIsDialogOpen(true)}
+            onClick={handleOpenDialog}
             variant="default"
             size="lg"
             className="flex gap-2"
@@ -226,7 +239,7 @@ const ScientificArticleManager: React.FC = () => {
         <div className="bg-muted py-12 rounded-lg flex flex-col items-center justify-center">
           <Book className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">Nenhum artigo científico encontrado</p>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={handleOpenDialog}>
             <Plus className="h-4 w-4 mr-2" /> Adicionar Artigo Científico
           </Button>
         </div>
@@ -257,9 +270,12 @@ const ScientificArticleManager: React.FC = () => {
           </DialogHeader>
           
           <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+            {/* Use key to force component recreation when dialog is opened */}
             <ScientificArticleForm 
+              key={formKey}
               onSuccess={handleArticleAdded} 
-              onCancel={() => setIsDialogOpen(false)} 
+              onCancel={() => setIsDialogOpen(false)}
+              isOpen={isDialogOpen}
             />
           </ScrollArea>
         </DialogContent>

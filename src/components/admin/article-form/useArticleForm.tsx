@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -25,7 +25,24 @@ export const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void) => {
+// Default values for the form
+const defaultFormValues: FormValues = {
+  titulo: "",
+  descricao: "",
+  equipamento_id: "",
+  idioma_original: "pt",
+  link_dropbox: ""
+};
+
+// Create a separate interface for extracted data to separate concerns
+interface ExtractedData {
+  title?: string;
+  conclusion?: string;
+  keywords?: string[];
+  researchers?: string[];
+}
+
+export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void, isDialogOpen: boolean = false) => {
   // Estado para controle da submissão do formulário
   const [isLoading, setIsLoading] = useState(false);
   
@@ -35,7 +52,8 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [uploadStep, setUploadStep] = useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
   
-  // Estados para informações extraídas do documento
+  // Estados para informações extraídas do documento - agora separadas do estado do formulário
+  const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
@@ -48,16 +66,55 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
 
   // Dados dos equipamentos disponíveis
   const { equipments } = useEquipments();
-
-  // Função para resetar os dados extraídos
-  const resetExtractedData = useCallback(() => {
-    console.log("Resetting extracted data");
+  
+  // Reset all state values to their defaults
+  const resetFormState = useCallback(() => {
+    console.log("Resetting all form state values");
+    // Form data
     setSuggestedTitle('');
     setSuggestedDescription('');
+    
+    // Extracted data
+    setExtractedData(null);
     setExtractedKeywords([]);
     setExtractedResearchers([]);
-    setProcessingFailed(false);
+    
+    // Upload state
+    setFile(null);
+    setFileUrl(null);
     setUploadError(null);
+    setProcessingFailed(false);
+    setProcessingProgress(null);
+    setUploadStep(articleData ? 'form' : 'upload');
+  }, [articleData]);
+
+  // Reset form when dialog opens/closes or when articleData changes
+  useEffect(() => {
+    console.log("Dialog open state changed:", isDialogOpen);
+    if (isDialogOpen) {
+      resetFormState();
+    }
+  }, [isDialogOpen, resetFormState]);
+  
+  // Handle article data changes separately
+  useEffect(() => {
+    // Only set initial values if there's article data and we're in form step
+    if (articleData && uploadStep === 'form') {
+      console.log("Setting initial form values from articleData:", articleData);
+      setSuggestedTitle(articleData.titulo || '');
+      setSuggestedDescription(articleData.descricao || '');
+      setFileUrl(articleData.link_dropbox || null);
+    }
+  }, [articleData, uploadStep]);
+
+  // Function to reset extracted data 
+  const resetExtractedData = useCallback(() => {
+    console.log("Resetting extracted data");
+    setExtractedData(null);
+    setExtractedKeywords([]);
+    setExtractedResearchers([]);
+    setSuggestedTitle('');
+    setSuggestedDescription('');
   }, []);
 
   // Trata a mudança de arquivo
@@ -124,11 +181,22 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         throw new Error(extractionResult.error);
       }
       
-      // Definir dados extraídos
-      setSuggestedTitle(extractionResult.title || '');
-      setSuggestedDescription(extractionResult.conclusion || '');
-      setExtractedKeywords(extractionResult.keywords || []);
-      setExtractedResearchers(extractionResult.researchers || []);
+      // Save extracted data in a separate state object
+      const newExtractedData: ExtractedData = {
+        title: extractionResult.title || '',
+        conclusion: extractionResult.conclusion || '',
+        keywords: extractionResult.keywords || [],
+        researchers: extractionResult.researchers || []
+      };
+      
+      console.log("Extracted data from document:", newExtractedData);
+      setExtractedData(newExtractedData);
+      
+      // Definir dados extraídos nos estados separados
+      setSuggestedTitle(newExtractedData.title || '');
+      setSuggestedDescription(newExtractedData.conclusion || '');
+      setExtractedKeywords(newExtractedData.keywords || []);
+      setExtractedResearchers(newExtractedData.researchers || []);
 
       // Upload do arquivo para storage
       setProcessingProgress("Enviando arquivo para armazenamento...");
@@ -156,6 +224,9 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       toast.error("Erro no processamento", {
         description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
+      
+      // Reset extracted data on error
+      resetExtractedData();
       
       // Mesmo com erro, tenta usar o nome do arquivo como título
       if (file) {
@@ -238,9 +309,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       }
 
       // Resetar dados para evitar persistência entre cadastros
-      resetExtractedData();
-      setFile(null);
-      setFileUrl(null);
+      resetFormState();
       
       // Passar os dados salvos para o handler de sucesso
       onSuccess(savedArticleData);
@@ -271,15 +340,14 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
     uploadError,
     setUploadError,
     extractedKeywords,
-    setExtractedKeywords,
     extractedResearchers,
-    setExtractedResearchers,
     processingProgress,
     processingFailed,
     handleFileChange,
     handleFileUpload,
     onSubmit,
     resetExtractedData,
+    resetFormState,
     formSchema
   };
 };

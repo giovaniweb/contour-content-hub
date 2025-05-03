@@ -16,12 +16,14 @@ interface ArticleFormProps {
   articleData?: any;
   onSuccess: (articleData?: any) => void;
   onCancel: () => void;
+  isOpen?: boolean;
 }
 
 const ScientificArticleForm: React.FC<ArticleFormProps> = ({ 
   articleData,
   onSuccess, 
-  onCancel 
+  onCancel,
+  isOpen = true
 }) => {
   const {
     isLoading,
@@ -47,15 +49,14 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     handleFileUpload,
     onSubmit,
     resetExtractedData,
+    resetFormState,
     formSchema
   } = useArticleForm(articleData, (data) => {
     // Limpar o formulário antes de chamar onSuccess
     form.reset();
-    resetExtractedData();
-    setFile(null);
-    setFileUrl(null);
+    resetFormState();
     onSuccess(data);
-  });
+  }, isOpen);
   
   // Initialize form using React Hook Form
   const form = useForm<FormValues>({
@@ -69,19 +70,38 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   });
 
-  // Quando o componente é montado, resetar completamente o estado
+  // Reset form when component is mounted or unmounted
   useEffect(() => {
+    // Clean up function
     return () => {
-      // Limpar todos os estados ao desmontar o componente
-      resetExtractedData();
+      console.log("ScientificArticleForm unmounting, resetting all state");
+      resetFormState();
       form.reset();
-      setFile(null);
-      setFileUrl(null);
     };
   }, []);
 
+  // Track dialog open/closed state
+  useEffect(() => {
+    console.log("isOpen changed:", isOpen);
+    if (isOpen) {
+      console.log("Dialog opened, resetting form");
+      form.reset({
+        titulo: articleData?.titulo || "",
+        descricao: articleData?.descricao || "",
+        equipamento_id: articleData?.equipamento_id || "",
+        idioma_original: articleData?.idioma_original || "pt",
+        link_dropbox: articleData?.link_dropbox || ""
+      });
+    }
+  }, [isOpen, articleData, form]);
+
   // Atualizar form quando dados sugeridos mudarem
   useEffect(() => {
+    console.log("Suggested data changed, updating form:", {
+      title: suggestedTitle,
+      description: suggestedDescription
+    });
+    
     if (suggestedTitle && !form.getValues("titulo")) {
       form.setValue("titulo", suggestedTitle);
     }
@@ -189,9 +209,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
               onClick={() => {
                 // Limpar formulário antes de cancelar
                 form.reset();
-                resetExtractedData();
-                setFile(null);
-                setFileUrl(null);
+                resetFormState();
                 onCancel();
               }}
               disabled={isLoading}
