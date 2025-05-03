@@ -122,6 +122,54 @@ serve(async (req) => {
       );
     }
 
+    // Generate a summary and suggested title using OpenAI
+    let suggestedTitle = document.titulo;
+    let suggestedDescription = '';
+    
+    try {
+      // Call OpenAI to generate a summary and title suggestion
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an assistant that analyzes scientific articles and generates concise titles and descriptions.' 
+            },
+            { 
+              role: 'user', 
+              content: `Based on the following extracted text from a scientific article, suggest an improved title and write a concise description (2-3 sentences):\n\n${extractedText}` 
+            }
+          ],
+        }),
+      });
+      
+      if (openaiResponse.ok) {
+        const openaiData = await openaiResponse.json();
+        const content = openaiData.choices[0].message.content;
+        
+        // Try to parse the suggested title and description
+        const titleMatch = content.match(/Title: (.*?)(\n|$)/);
+        const descriptionMatch = content.match(/Description: ([\s\S]*?)($|\n\n)/);
+        
+        if (titleMatch && titleMatch[1]) {
+          suggestedTitle = titleMatch[1].trim();
+        }
+        
+        if (descriptionMatch && descriptionMatch[1]) {
+          suggestedDescription = descriptionMatch[1].trim();
+        }
+      }
+    } catch (error) {
+      console.error('Error generating title and description:', error);
+      // Continue without suggested title/description
+    }
+
     // Generate embeddings using OpenAI
     let embeddings = null;
     try {
@@ -149,13 +197,15 @@ serve(async (req) => {
       // Continue without embeddings
     }
 
-    // Update document in database with extracted text and embeddings
+    // Update document in database with extracted text, embeddings, and suggestions
     const { error: updateError } = await supabase
       .from('documentos_tecnicos')
       .update({
         conteudo_extraido: extractedText,
         vetor_embeddings: embeddings,
-        status: 'ativo'
+        status: 'ativo',
+        titulo: document.titulo || suggestedTitle, // Only update if not already set
+        descricao: document.descricao || suggestedDescription // Only update if not already set
       })
       .eq('id', documentId);
 
@@ -181,7 +231,9 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Document processed successfully',
-        extractedTextLength: extractedText.length
+        extractedTextLength: extractedText.length,
+        suggestedTitle,
+        suggestedDescription
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, FileUp } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ScientificArticleFormProps {
   articleData?: {
@@ -55,8 +58,13 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
 }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [equipments, setEquipments] = useState<{id: string, nome: string}[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [uploadStep, setUploadStep] = useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
+  const [suggestedTitle, setSuggestedTitle] = useState<string>('');
+  const [suggestedDescription, setSuggestedDescription] = useState<string>('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -128,39 +136,90 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     }
   };
 
+  const handleFileUpload = async () => {
+    if (!file) {
+      toast({
+        variant: "destructive",
+        title: "Nenhum arquivo selecionado",
+        description: "Por favor, selecione um arquivo PDF para upload."
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      // Upload file to storage
+      const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      
+      const { error: uploadError, data } = await supabase
+        .storage
+        .from('documents')
+        .upload(fileName, file);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('documents')
+        .getPublicUrl(fileName);
+        
+      setFileUrl(publicUrl);
+      
+      // Use the generate-content-description edge function to extract information
+      const response = await supabase.functions.invoke('generate-content-description', {
+        body: {
+          title: file.name.replace('.pdf', '').replace(/_/g, ' '),
+          type: 'artigo_cientifico',
+          description: 'Artigo científico em formato PDF'
+        }
+      });
+      
+      if (response.error) throw new Error(response.error);
+      
+      // Update form with suggested values
+      const data = response.data;
+      if (data) {
+        setSuggestedTitle(file.name.replace('.pdf', '').replace(/_/g, ' '));
+        setSuggestedDescription(data.detailedDescription || '');
+        
+        form.setValue('titulo', file.name.replace('.pdf', '').replace(/_/g, ' '));
+        form.setValue('descricao', data.detailedDescription || '');
+      }
+      
+      // Move to form step
+      setUploadStep('form');
+      toast({
+        title: "Upload concluído",
+        description: "O arquivo foi enviado com sucesso. Agora complete as informações do artigo."
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro no upload",
+        description: "Não foi possível enviar o arquivo. Por favor, tente novamente."
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
       
-      let fileUrl = values.link_dropbox;
+      // Use the fileUrl from the upload step or the link_dropbox value
+      const finalFileUrl = fileUrl || values.link_dropbox;
       
-      // Upload file if provided
-      if (file) {
-        const fileName = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        
-        const { error: uploadError, data } = await supabase
-          .storage
-          .from('documents')
-          .upload(fileName, file);
-          
-        if (uploadError) throw uploadError;
-        
-        // Get the public URL
-        const { data: { publicUrl } } = supabase
-          .storage
-          .from('documents')
-          .getPublicUrl(fileName);
-          
-        fileUrl = publicUrl;
-      }
-
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
         equipamento_id: values.equipamento_id === "none" ? null : values.equipamento_id || null,
         tipo: 'artigo_cientifico',
         idioma_original: values.idioma_original,
-        link_dropbox: fileUrl || null,
+        link_dropbox: finalFileUrl || null,
         status: 'ativo',
         criado_por: (await supabase.auth.getUser()).data.user?.id || null,
       };
@@ -205,9 +264,92 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
     }
   };
 
+  // Upload step UI
+  if (uploadStep === 'upload' && !articleData) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="file_upload">Faça upload do artigo (PDF, max 10MB)</Label>
+          <div className="mt-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center">
+            <label 
+              htmlFor="file_upload"
+              className="flex flex-col items-center justify-center cursor-pointer"
+            >
+              <FileUp className="h-10 w-10 text-muted-foreground mb-2" />
+              <span className="text-sm text-muted-foreground mb-1">
+                Clique para fazer upload de um artigo científico
+              </span>
+              <span className="text-xs text-muted-foreground">
+                PDF (máx. 10MB)
+              </span>
+              <Input
+                id="file_upload"
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {file && (
+            <Card className="mt-4">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{file.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleFileUpload}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Enviar e Processar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">
+              Ou <button 
+                type="button" 
+                className="text-primary hover:underline" 
+                onClick={() => setUploadStep('form')}
+              >
+                preencha o formulário manualmente
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Form step UI
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {suggestedTitle && suggestedDescription && (
+          <Alert className="bg-muted">
+            <AlertDescription>
+              <p className="text-sm">Título e descrição sugeridos com base no arquivo enviado.</p>
+            </AlertDescription>
+          </Alert>
+        )}
+      
         <FormField
           control={form.control}
           name="titulo"
@@ -298,38 +440,71 @@ const ScientificArticleForm: React.FC<ScientificArticleFormProps> = ({
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="link_dropbox"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link do Documento (Dropbox, Google Drive, etc)</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Cole o link para o documento" 
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="space-y-2">
-          <Label htmlFor="file_upload">Ou faça upload do artigo (PDF, max 10MB)</Label>
-          <Input
-            id="file_upload"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
+        {!fileUrl && (
+          <FormField
+            control={form.control}
+            name="link_dropbox"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link do Documento (Dropbox, Google Drive, etc)</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Cole o link para o documento" 
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {file && (
-            <p className="text-sm text-muted-foreground">
-              Arquivo selecionado: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-            </p>
-          )}
-        </div>
+        )}
+        
+        {!fileUrl && (
+          <div className="space-y-2">
+            <Label htmlFor="file_upload">Ou faça upload do artigo (PDF, max 10MB)</Label>
+            <Input
+              id="file_upload"
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+            />
+            {file && (
+              <p className="text-sm text-muted-foreground">
+                Arquivo selecionado: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
+        )}
+
+        {fileUrl && (
+          <div className="space-y-2">
+            <Label>Arquivo enviado</Label>
+            <div className="p-3 bg-muted rounded-md flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Arquivo PDF enviado com sucesso</p>
+                <a 
+                  href={fileUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Visualizar arquivo
+                </a>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setFileUrl(null);
+                  setFile(null);
+                }}
+              >
+                Remover
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
