@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -198,7 +197,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
           url = 'https://' + url;
         }
         
-        // Open the URL in a new tab instead of trying to use document.body
+        // Open the URL in a new tab - this avoids using document.body
         window.open(url, '_blank');
         
         toast("Download iniciado", {
