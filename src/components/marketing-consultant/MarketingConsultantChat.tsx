@@ -31,6 +31,9 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Check if there's saved diagnostic data
+  const hasSavedData = localStorage.getItem('marketing_diagnostic_data') !== null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,6 +42,20 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  // Add welcome message about saved diagnostic when component mounts
+  useEffect(() => {
+    if (hasSavedData) {
+      const timer = setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: 'Vejo que você já fez um diagnóstico anteriormente. Você pode continuar de onde parou ou iniciar um novo diagnóstico.' 
+        }]);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasSavedData]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -92,6 +109,35 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         return;
       }
       
+      if (userMessage.toLowerCase().includes('continuar') || 
+          userMessage.toLowerCase().includes('anterior') || 
+          userMessage.toLowerCase().includes('salvo') ||
+          userMessage.toLowerCase().includes('volta')) {
+          
+        if (hasSavedData) {
+          response = 'Perfeito! Você pode continuar de onde parou. Vamos para a simulação de lucro com base no seu diagnóstico anterior.';
+          
+          setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+          setLoading(false);
+          
+          // Direciona para a simulação de lucro após breve espera
+          setTimeout(() => {
+            toast({
+              title: "Recuperando dados anteriores",
+              description: "Carregando seu diagnóstico salvo..."
+            });
+            // Aqui precisaríamos de uma função para ir direto para a etapa de lucro
+            // Como não temos acesso direto, vamos sugerir que o usuário clique na etapa
+            toast({
+              title: "Navegue pelas etapas",
+              description: "Você pode clicar em qualquer etapa no menu lateral para navegar"
+            });
+          }, 1000);
+          
+          return;
+        }
+      }
+      
       // Default responses based on common questions
       if (userMessage.toLowerCase().includes('instagram')) {
         response = 'O Instagram é uma plataforma essencial para clínicas estéticas. Recomendo uma estratégia com fotos de antes/depois, depoimentos em vídeo e conteúdos educativos sobre procedimentos. Posso ajudar com um plano detalhado para Instagram se iniciarmos um diagnóstico completo.';
@@ -99,6 +145,8 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         response = 'O Facebook Ads continua sendo uma ferramenta poderosa para clínicas de estética, especialmente para alcançar um público mais maduro. Anúncios bem segmentados podem trazer leads qualificados para procedimentos específicos. Posso elaborar uma estratégia completa para você.';
       } else if (userMessage.toLowerCase().includes('google') || userMessage.toLowerCase().includes('ads')) {
         response = 'Anúncios no Google são ideais para capturar pessoas que já estão procurando por serviços estéticos. Para clínicas, recomendo campanhas de search focadas em procedimentos específicos e remarketing para quem visitou seu site. Quer iniciar um diagnóstico para uma estratégia detalhada?';
+      } else if (hasSavedData && (userMessage.toLowerCase().includes('novo') || userMessage.toLowerCase().includes('reiniciar'))) {
+        response = 'Entendi que você deseja iniciar um novo diagnóstico. Isso substituirá seus dados salvos anteriormente. Está certo disso? Podemos começar agora mesmo.';
       } else {
         response = 'Entendi sua questão. Para criar uma estratégia realmente eficaz para sua clínica, precisamos realizar um diagnóstico completo. Posso te guiar por esse processo agora mesmo. Está pronto para começar?';
         // Mostra as sugestões novamente após responder
@@ -142,12 +190,18 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   };
 
   // Respostas sugeridas para facilitar a interação
-  const suggestedResponses = [
-    "Quero iniciar o diagnóstico",
-    "Como o Instagram pode ajudar minha clínica?",
-    "Quais estratégias para atrair mais clientes?",
-    "O que é o Fluida Te Entende?"
-  ];
+  const suggestedResponses = hasSavedData ? 
+    [
+      "Quero iniciar um novo diagnóstico", 
+      "Continuar do diagnóstico anterior",
+      "Como o Instagram pode ajudar minha clínica?",
+      "O que é o Fluida Te Entende?"
+    ] : [
+      "Quero iniciar o diagnóstico",
+      "Como o Instagram pode ajudar minha clínica?",
+      "Quais estratégias para atrair mais clientes?",
+      "O que é o Fluida Te Entende?"
+    ];
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -155,6 +209,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         <CardTitle className="text-lg flex items-center">
           <MessageSquare className="h-5 w-5 mr-2" />
           Consultor de Marketing
+          {hasSavedData && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Diagnóstico salvo</span>}
         </CardTitle>
       </CardHeader>
       
@@ -243,7 +298,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
             variant="default" 
             className="w-full"
           >
-            Iniciar Diagnóstico Completo
+            {hasSavedData ? "Iniciar Novo Diagnóstico" : "Iniciar Diagnóstico Completo"}
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
           

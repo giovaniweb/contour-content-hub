@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,12 +17,51 @@ import GrowthStrategy from "@/components/marketing-consultant/GrowthStrategy";
 import ImplementationPlan from "@/components/marketing-consultant/ImplementationPlan";
 import DiagnosticChat from "@/components/marketing-consultant/DiagnosticChat";
 
+// Keys for localStorage
+const DIAGNOSTIC_DATA_KEY = 'marketing_diagnostic_data';
+const PROFIT_ANALYSIS_KEY = 'marketing_profit_analysis';
+const STRATEGY_KEY = 'marketing_strategy';
+
 const MarketingConsultant: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'chat' | 'diagnostic' | 'profit' | 'strategy' | 'implementation'>('chat');
   const [diagnosticData, setDiagnosticData] = useState<any>(null);
   const [profitAnalysis, setProfitAnalysis] = useState<any>(null);
   const [strategy, setStrategy] = useState<any>(null);
   const { toast } = useToast();
+  
+  // Load saved data from localStorage on component mount
+  useEffect(() => {
+    const savedDiagnosticData = localStorage.getItem(DIAGNOSTIC_DATA_KEY);
+    const savedProfitAnalysis = localStorage.getItem(PROFIT_ANALYSIS_KEY);
+    const savedStrategy = localStorage.getItem(STRATEGY_KEY);
+    
+    if (savedDiagnosticData) {
+      setDiagnosticData(JSON.parse(savedDiagnosticData));
+    }
+    
+    if (savedProfitAnalysis) {
+      setProfitAnalysis(JSON.parse(savedProfitAnalysis));
+    }
+    
+    if (savedStrategy) {
+      setStrategy(JSON.parse(savedStrategy));
+    }
+  }, []);
+  
+  // Save data to localStorage when it changes
+  useEffect(() => {
+    if (diagnosticData) {
+      localStorage.setItem(DIAGNOSTIC_DATA_KEY, JSON.stringify(diagnosticData));
+    }
+    
+    if (profitAnalysis) {
+      localStorage.setItem(PROFIT_ANALYSIS_KEY, JSON.stringify(profitAnalysis));
+    }
+    
+    if (strategy) {
+      localStorage.setItem(STRATEGY_KEY, JSON.stringify(strategy));
+    }
+  }, [diagnosticData, profitAnalysis, strategy]);
   
   const handleDiagnosticComplete = (data: any) => {
     setDiagnosticData(data);
@@ -70,7 +108,7 @@ const MarketingConsultant: React.FC = () => {
       improvedMargin = 0.4;
     }
     
-    setProfitAnalysis({
+    const newProfitAnalysis = {
       currentRevenue,
       potentialRevenue,
       currentProfit: currentRevenue * currentMargin,
@@ -83,7 +121,9 @@ const MarketingConsultant: React.FC = () => {
         hasWebsite ? null : 'Site ou landing page de captação',
         sellsPackages ? null : 'Venda de pacotes para aumentar ticket médio'
       ].filter(Boolean)
-    });
+    };
+    
+    setProfitAnalysis(newProfitAnalysis);
   };
 
   const handleStrategyCreation = (data: any) => {
@@ -103,6 +143,61 @@ const MarketingConsultant: React.FC = () => {
     toast({
       title: "Consultor de marketing iniciado",
       description: "Vamos começar seu diagnóstico personalizado.",
+    });
+  };
+
+  // Function to handle direct navigation to a specific step
+  const navigateToStep = (step: 'chat' | 'diagnostic' | 'profit' | 'strategy' | 'implementation') => {
+    // Check if we have the necessary data to navigate to this step
+    if (step === 'profit' || step === 'strategy' || step === 'implementation') {
+      if (!diagnosticData) {
+        toast({
+          title: "Diagnóstico necessário",
+          description: "Complete o diagnóstico primeiro para acessar esta etapa.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If wanting to skip to implementation but we don't have a strategy yet
+      if (step === 'implementation' && !strategy) {
+        if (!profitAnalysis) {
+          calculateProfit(diagnosticData); // Ensure we have profit analysis
+        }
+        toast({
+          title: "Estratégia necessária",
+          description: "Complete a criação da estratégia primeiro para acessar a implementação.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If wanting to skip to strategy but we don't have profit analysis yet
+      if (step === 'strategy' && !profitAnalysis) {
+        calculateProfit(diagnosticData); // Calculate profit before moving to strategy
+      }
+    }
+    
+    // If all checks pass, navigate to the selected step
+    setCurrentStep(step);
+  };
+
+  // Function to reset all data and start over
+  const resetConsultation = () => {
+    // Clear localStorage
+    localStorage.removeItem(DIAGNOSTIC_DATA_KEY);
+    localStorage.removeItem(PROFIT_ANALYSIS_KEY);
+    localStorage.removeItem(STRATEGY_KEY);
+    
+    // Reset state
+    setDiagnosticData(null);
+    setProfitAnalysis(null);
+    setStrategy(null);
+    setCurrentStep('chat');
+    
+    toast({
+      title: "Consulta reiniciada",
+      description: "Todos os dados foram limpos. Você pode iniciar um novo diagnóstico.",
     });
   };
 
@@ -133,12 +228,7 @@ const MarketingConsultant: React.FC = () => {
           <ImplementationPlan
             strategy={strategy}
             diagnosticData={diagnosticData}
-            onReset={() => {
-              setCurrentStep('chat');
-              setDiagnosticData(null);
-              setProfitAnalysis(null);
-              setStrategy(null);
-            }}
+            onReset={resetConsultation}
           />
         );
     }
@@ -157,6 +247,13 @@ const MarketingConsultant: React.FC = () => {
               </p>
             </div>
           </div>
+          
+          {/* Add reset button if we have diagnostic data */}
+          {diagnosticData && (
+            <Button variant="outline" onClick={resetConsultation}>
+              Reiniciar Consulta
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -165,7 +262,10 @@ const MarketingConsultant: React.FC = () => {
               <CardTitle className="text-lg">Etapas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
-              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+              <div 
+                className={`flex items-center gap-3 p-2 rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors`}
+                onClick={() => navigateToStep('chat')}
+              >
                 <div className={`rounded-full p-1.5 ${currentStep === 'chat' || currentStep === 'diagnostic' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   <MessageSquare className="h-4 w-4" />
                 </div>
@@ -178,7 +278,10 @@ const MarketingConsultant: React.FC = () => {
                 )}
               </div>
               
-              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+              <div 
+                className={`flex items-center gap-3 p-2 rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors ${!diagnosticData ? 'opacity-60' : ''}`}
+                onClick={() => navigateToStep('profit')}
+              >
                 <div className={`rounded-full p-1.5 ${currentStep === 'profit' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   <TrendingUp className="h-4 w-4" />
                 </div>
@@ -191,7 +294,10 @@ const MarketingConsultant: React.FC = () => {
                 )}
               </div>
               
-              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+              <div 
+                className={`flex items-center gap-3 p-2 rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors ${!diagnosticData || !profitAnalysis ? 'opacity-60' : ''}`}
+                onClick={() => navigateToStep('strategy')}
+              >
                 <div className={`rounded-full p-1.5 ${currentStep === 'strategy' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   <Sparkles className="h-4 w-4" />
                 </div>
@@ -204,7 +310,10 @@ const MarketingConsultant: React.FC = () => {
                 )}
               </div>
               
-              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+              <div 
+                className={`flex items-center gap-3 p-2 rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors ${!diagnosticData || !strategy ? 'opacity-60' : ''}`}
+                onClick={() => navigateToStep('implementation')}
+              >
                 <div className={`rounded-full p-1.5 ${currentStep === 'implementation' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   <Calendar className="h-4 w-4" />
                 </div>
