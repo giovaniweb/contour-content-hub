@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import Navbar from "./Navbar";
+import { Navbar } from "./Navbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   SidebarProvider, 
