@@ -17,7 +17,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
       `)
       .order('created_at', { ascending: false });
     
-    // Apply filters
+    // Apply filters - using simple comparison operations
     if (filters.equipamento_id) {
       query = query.eq('equipamento_id', filters.equipamento_id);
     }
@@ -58,7 +58,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     
     if (error) throw error;
     
-    return (data || []).map(item => transformToContentStrategyItem(item));
+    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
@@ -160,19 +160,21 @@ export const deleteContentStrategyItem = async (id: string): Promise<boolean> =>
 
 // Simplified versions of these functions to avoid TypeScript excessive depth errors
 export const calculateContentMetrics = (strategy: ContentStrategyItem) => {
-  return {
+  const metrics = {
     totalContent: 1,
     completedContent: strategy.status === 'Finalizado' ? 1 : 0,
     pendingReview: strategy.status === 'Em andamento' ? 1 : 0
   };
+  return metrics;
 };
 
 export const getContentStrategyStats = (strategies: ContentStrategyItem[]) => {
-  return {
+  const stats = {
     totalStrategies: strategies.length,
     activeStrategies: strategies.filter(s => s.status === 'Em andamento').length,
     completedStrategies: strategies.filter(s => s.status === 'Finalizado').length
   };
+  return stats;
 };
 
 export const processContentStrategy = (strategy: ContentStrategyItem): ContentStrategyItem => {
