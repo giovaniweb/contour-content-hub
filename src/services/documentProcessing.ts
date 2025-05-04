@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ProcessingResult {
@@ -16,8 +17,8 @@ export const processFileContent = async (fileContent: string): Promise<Processin
   try {
     console.log("Iniciando processamento do conteúdo do arquivo...");
     
-    // Generate unique processing ID to avoid any caching issues
-    const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    // Generate unique processing ID to prevent caching issues or state persistence
+    const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     console.log(`Processing ID: ${processingId}`);
     
     // Se estiver em modo de desenvolvimento, simular o processamento para testes
@@ -27,12 +28,13 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       // Simular um pequeno atraso para testes de UI
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Use the file name in the simulated response to ensure it's unique per file
-      // This helps verify we're not getting cached data
+      // Ensure we include the processing ID in the response to validate fresh data
+      // Generate different data each time to clearly show new processing results
+      const currentTime = new Date().toISOString().substring(11, 19); // HH:MM:SS
       return {
-        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-        conclusion: "The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo"],
+        title: `EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS (${currentTime})`,
+        conclusion: `The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers. [Session: ${processingId}]`,
+        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", processingId.substring(0, 6)],
         researchers: ["Rodrigo Marcel Valentim", "Patricia Froes Meyer"]
       };
     }
@@ -42,6 +44,7 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       body: { 
         fileContent,
         timestamp: Date.now(), // Add timestamp to avoid caching
+        processingId, // Add unique ID to force fresh processing
         forceRefresh: true // Force refresh to avoid getting cached data
       }
     });
@@ -83,7 +86,12 @@ export const processFileContent = async (fileContent: string): Promise<Processin
 export const processExistingDocument = async (documentId: string): Promise<boolean> => {
   try {
     const { error } = await supabase.functions.invoke('process-document', {
-      body: { documentId, forceRefresh: true }
+      body: { 
+        documentId, 
+        forceRefresh: true,
+        timestamp: Date.now(),
+        processingId: `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+      }
     });
     
     if (error) {
@@ -113,7 +121,9 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay
       
       // Criar um URL de Blob local para simular o upload
-      const blobUrl = URL.createObjectURL(file);
+      // Create a unique blob URL each time to prevent caching issues
+      const blobId = `blob-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const blobUrl = URL.createObjectURL(file) + `#${blobId}`;
       console.log("URL de blob simulado criado:", blobUrl);
       return blobUrl;
     }
@@ -160,10 +170,11 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
         
         console.log("Upload concluído com sucesso, obtendo URL pública");
         
+        // Add cache-busting parameter to URL to ensure fresh content
         const { data: urlData } = supabase
           .storage
           .from('documents')
-          .getPublicUrl(fileNameToUse);
+          .getPublicUrl(`${fileNameToUse}?t=${Date.now()}`);
           
         console.log("URL pública:", urlData.publicUrl);
         

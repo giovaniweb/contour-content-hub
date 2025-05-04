@@ -20,24 +20,30 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
   suggestedDescription,
   processingFailed,
 }) => {
-  // More strict conditions for showing content
-  // All strings must not be empty, arrays must have length > 0
+  // Generate a completely unique render ID for every render
+  // This ensures we always see fresh data and there's no stale state
+  const renderID = `render-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  console.log(`ArticleInfoDisplay rendering with ID: ${renderID}`);
+  
+  // Even more strict conditions for showing content
+  // Empty arrays, undefined, null, or empty strings should all be treated as no content
   const hasNoContent = 
     (!extractedKeywords || extractedKeywords.length === 0) && 
     (!extractedResearchers || extractedResearchers.length === 0) && 
     (!suggestedTitle || suggestedTitle.trim() === '') && 
     (!suggestedDescription || suggestedDescription.trim() === '');
 
+  console.log(`ArticleInfoDisplay: Content status -`, hasNoContent ? "No content to display" : "Has content to display");
+  console.log(`ArticleInfoDisplay: Content values - title:`, Boolean(suggestedTitle), 
+              `desc:`, Boolean(suggestedDescription), 
+              `keywords:`, extractedKeywords?.length || 0, 
+              `researchers:`, extractedResearchers?.length || 0);
+
   // If there's no content, don't render anything
   if (hasNoContent) {
-    console.log("ArticleInfoDisplay: No content to display");
+    console.log(`ArticleInfoDisplay: No content to display, returning null`);
     return null;
   }
-
-  // Generate a completely unique render ID for every render
-  // This ensures we always see fresh data
-  const renderID = `render-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-  console.log(`ArticleInfoDisplay rendering with ID: ${renderID}`);
 
   return (
     <ScrollArea className="h-auto max-h-[400px]">
@@ -89,7 +95,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
                 <p className="text-sm font-medium text-blue-700">Palavras-chave:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {extractedKeywords.map((keyword, index) => (
-                    <Badge key={`${renderID}-keyword-${index}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    <Badge key={`${renderID}-keyword-${index}-${keyword}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
                       {keyword}
                     </Badge>
                   ))}
@@ -103,7 +109,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
                 <p className="text-sm font-medium text-blue-700">Pesquisadores:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {extractedResearchers.map((researcher, index) => (
-                    <Badge key={`${renderID}-researcher-${index}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    <Badge key={`${renderID}-researcher-${index}-${researcher}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
                       {researcher}
                     </Badge>
                   ))}

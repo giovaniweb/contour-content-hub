@@ -20,15 +20,21 @@ interface ArticleFormProps {
   onSuccess: (articleData?: any) => void;
   onCancel: () => void;
   isOpen?: boolean;
+  forceClearState?: boolean; // Add flag to force state clearing
 }
 
 const ScientificArticleForm: React.FC<ArticleFormProps> = ({ 
   articleData,
   onSuccess, 
   onCancel,
-  isOpen = true
+  isOpen = true,
+  forceClearState = false
 }) => {
-  console.log("ScientificArticleForm renderizando, artigo:", articleData?.id || 'novo', "isOpen:", isOpen);
+  // For debugging and key generation
+  const instanceId = useRef(`form-instance-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  
+  console.log(`[${instanceId.current}] ScientificArticleForm rendering, article:`, 
+    articleData?.id || 'novo', "isOpen:", isOpen, "forceClearState:", forceClearState);
   
   // Extract extracted data handling with initialData only if this is an edit
   const {
@@ -45,7 +51,8 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       description: articleData.descricao || "",
       keywords: articleData.keywords || [],
       researchers: articleData.researchers || []
-    } : undefined
+    } : undefined,
+    forceClearState: forceClearState || !articleData // Force clear if explicitly requested or new article
   });
   
   // Extract file upload handling
@@ -72,12 +79,13 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     onReset: () => {
       setUploadError(null);
       resetExtractedData();
-    }
+    },
+    forceClearState: forceClearState || !articleData // Force clear if explicitly requested or new article
   });
   
   // Extract form state handling
   const [uploadStep, setUploadStep] = React.useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
-  console.log("Estado atual do uploadStep:", uploadStep);
+  console.log(`[${instanceId.current}] Estado atual do uploadStep:`, uploadStep);
   
   const {
     isLoading,
@@ -111,11 +119,50 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   });
 
-  // Reset form when component is mounted or unmounted
+  // Reset form when component is mounted
   useEffect(() => {
+    console.log(`[${instanceId.current}] Component mounted or forceClearState changed`);
+    
+    // Perform a complete state reset on mount
+    const resetAllStates = () => {
+      console.log(`[${instanceId.current}] Performing complete state reset`);
+      
+      // Reset form first
+      form.reset({
+        titulo: "",
+        descricao: "",
+        equipamento_id: "",
+        idioma_original: "pt",
+        link_dropbox: ""
+      });
+      
+      // Reset all other states
+      resetFormState();
+      resetUploadState();
+      resetExtractedData();
+      
+      // Reset file input value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // Reset URL and file state
+      setFileUrl(null);
+      setFile(null);
+      
+      // Reset errors
+      setUploadError(null);
+      setHandlerUploadError(null);
+    };
+    
+    // If forcing clear state, reset everything
+    if (forceClearState) {
+      resetAllStates();
+    }
+    
     // Complete initialization with articleData if present
     if (articleData) {
-      console.log("Inicializando formulário com dados do artigo:", articleData.id);
+      console.log(`[${instanceId.current}] Initializing form with article data:`, articleData.id);
       form.reset({
         titulo: articleData.titulo || "",
         descricao: articleData.descricao || "",
@@ -128,36 +175,23 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
         setFileUrl(articleData.link_dropbox);
       }
     } else {
-      console.log("Inicializando formulário para novo artigo");
-      // Reset form for new article
-      form.reset({
-        titulo: "",
-        descricao: "",
-        equipamento_id: "",
-        idioma_original: "pt",
-        link_dropbox: ""
-      });
+      console.log(`[${instanceId.current}] Initializing form for new article`);
+      // Explicitly reset form for new article
+      resetAllStates();
     }
     
     // Clean up function
     return () => {
-      console.log("ScientificArticleForm desmontando, redefinindo todos os estados");
-      resetFormState();
-      resetUploadState();
-      resetExtractedData();
-      form.reset();
+      console.log(`[${instanceId.current}] ScientificArticleForm unmounting, resetting all states`);
+      resetAllStates();
     };
-  }, []);
+  }, [forceClearState]);
 
   // Track dialog open/closed state and reset form when opened
   useEffect(() => {
-    console.log("isOpen ou articleData mudou:", isOpen, articleData?.id);
+    console.log(`[${instanceId.current}] isOpen or articleData changed:`, isOpen, articleData?.id);
     if (isOpen) {
-      console.log("Diálogo aberto, redefinindo formulário");
-      // Reset all form state
-      resetFormState();
-      resetUploadState();
-      resetExtractedData();
+      console.log(`[${instanceId.current}] Dialog open, resetting form`);
       
       // Reset file input value
       if (fileInputRef.current) {
@@ -166,7 +200,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       
       // Initialize form with articleData or empty values
       if (articleData) {
-        console.log("Preenchendo formulário com dados do artigo:", articleData.titulo);
+        console.log(`[${instanceId.current}] Filling form with article data:`, articleData.titulo);
         form.reset({
           titulo: articleData.titulo || "",
           descricao: articleData.descricao || "",
@@ -179,7 +213,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
           setFileUrl(articleData.link_dropbox);
         }
       } else {
-        console.log("Limpando formulário para novo artigo");
+        console.log(`[${instanceId.current}] Clearing form for new article`);
         form.reset({
           titulo: "",
           descricao: "",
@@ -187,21 +221,29 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
           idioma_original: "pt",
           link_dropbox: ""
         });
+        
+        // For new articles, ensure everything is reset
+        setFileUrl(null);
+        setFile(null);
+        resetExtractedData();
       }
     }
-  }, [isOpen, articleData, form, resetFormState, resetUploadState, resetExtractedData]);
+  }, [isOpen, articleData]);
 
-  // Update form when suggested data changes
+  // Update form when suggested data changes - but only if fields are empty
   useEffect(() => {
-    // Only update form with suggested data if the form fields are empty
+    const currentTitle = form.getValues("titulo");
+    const currentDesc = form.getValues("descricao");
+    
+    // Only update form with suggested data if the form fields are empty or very short
     // This prevents overwriting user input
-    if (suggestedTitle && !form.getValues("titulo")) {
-      console.log("Atualizando título com sugestão:", suggestedTitle);
+    if (suggestedTitle && (!currentTitle || currentTitle.length < 5)) {
+      console.log(`[${instanceId.current}] Updating title with suggestion:`, suggestedTitle);
       form.setValue("titulo", suggestedTitle);
     }
     
-    if (suggestedDescription && !form.getValues("descricao")) {
-      console.log("Atualizando descrição com sugestão:", suggestedDescription);
+    if (suggestedDescription && (!currentDesc || currentDesc.length < 10)) {
+      console.log(`[${instanceId.current}] Updating description with suggestion:`, suggestedDescription);
       form.setValue("descricao", suggestedDescription);
     }
   }, [suggestedTitle, suggestedDescription, form]);
@@ -209,22 +251,24 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   // Set file URL from article data if present
   useEffect(() => {
     if (articleData?.link_dropbox && !fileUrl) {
-      console.log("Definindo URL do arquivo a partir do artigo:", articleData.link_dropbox);
+      console.log(`[${instanceId.current}] Setting file URL from article:`, articleData.link_dropbox);
       setFileUrl(articleData.link_dropbox);
       setUploadStep('form');
-    } else if (!articleData) {
-      // If this is a new article, clear file URL
+    } else if (!articleData && !forceClearState) {
+      // If this is a new article and not already reset, clear file URL
+      console.log(`[${instanceId.current}] Clearing file URL for new article`);
       setFileUrl(null);
     }
-  }, [articleData, fileUrl, setFileUrl]);
+  }, [articleData, fileUrl, setFileUrl, forceClearState]);
 
-  // Atualizar o URL do arquivo no formulário quando ele for definido
+  // Update form's link_dropbox field when fileUrl changes
   useEffect(() => {
     if (fileUrl) {
-      console.log("Atualizando link_dropbox no formulário com:", fileUrl);
+      console.log(`[${instanceId.current}] Updating link_dropbox in form with:`, fileUrl);
       form.setValue("link_dropbox", fileUrl);
     } else {
       // If fileUrl is cleared, reset the form field too
+      console.log(`[${instanceId.current}] Clearing link_dropbox in form`);
       form.setValue("link_dropbox", "");
     }
   }, [fileUrl, form]);
@@ -253,7 +297,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Extracted information - Using ArticleInfoDisplay instead of ExtractedInfo */}
+          {/* Extracted information display */}
           <ArticleInfoDisplay 
             extractedKeywords={extractedKeywords} 
             extractedResearchers={extractedResearchers}
@@ -309,7 +353,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
                   <Button 
                     type="button"
                     onClick={() => {
-                      console.log("Botão de processar arquivo clicado");
+                      console.log(`[${instanceId.current}] Process file button clicked`);
                       handleFileUpload();
                     }}
                     disabled={isProcessing}
@@ -327,7 +371,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
               variant="outline"
               onClick={() => {
                 // Clear form before canceling
-                console.log("Cancelando e limpando formulário");
+                console.log(`[${instanceId.current}] Canceling and clearing form`);
                 form.reset();
                 resetFormState();
                 resetUploadState();

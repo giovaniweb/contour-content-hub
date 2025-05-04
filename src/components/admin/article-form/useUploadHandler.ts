@@ -1,5 +1,6 @@
 
-import { useState, useCallback, useRef } from "react";
+// I'll update the useUploadHandler hook to support the forceClearState flag
+import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { uploadFileToStorage, processFileContent } from "@/services/documentProcessing";
 
@@ -7,6 +8,7 @@ interface UseUploadHandlerProps {
   onExtractedData: (data: ExtractedData) => void;
   onError: (message: string) => void;
   onReset: () => void;
+  forceClearState?: boolean; // New prop to force state reset
 }
 
 export interface ExtractedData {
@@ -16,7 +18,16 @@ export interface ExtractedData {
   researchers?: string[];
 }
 
-export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploadHandlerProps) => {
+export const useUploadHandler = ({
+  onExtractedData,
+  onError,
+  onReset,
+  forceClearState = false
+}: UseUploadHandlerProps) => {
+  // For debugging
+  const instanceId = useRef(`upload-handler-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  
+  // State
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -26,6 +37,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
   
   // Reset upload state
   const resetUploadState = useCallback(() => {
+    console.log(`[${instanceId.current}] Resetting upload state`);
     setFile(null);
     setFileUrl(null);
     setProcessingProgress(null);
@@ -33,13 +45,33 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
     setUploadError(null);
   }, []);
   
+  // Handle forceClearState changes
+  useEffect(() => {
+    if (forceClearState) {
+      console.log(`[${instanceId.current}] forceClearState true, resetting upload state`);
+      resetUploadState();
+    }
+  }, [forceClearState, resetUploadState]);
+  
+  // On mount
+  useEffect(() => {
+    console.log(`[${instanceId.current}] useUploadHandler mounted`);
+    
+    // Clean up on unmount
+    return () => {
+      console.log(`[${instanceId.current}] useUploadHandler unmounting`);
+      // Ensure we reset state on unmount
+      resetUploadState();
+    };
+  }, [resetUploadState]);
+  
   // Handle file selection
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Função handleFileChange chamada");
+    console.log(`[${instanceId.current}] handleFileChange called`);
     
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      console.log("Arquivo selecionado:", selectedFile.name, selectedFile.size);
+      console.log(`[${instanceId.current}] File selected:`, selectedFile.name, selectedFile.size);
       
       // Reset states
       onReset();
@@ -64,7 +96,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       }
       
       setFile(selectedFile);
-      console.log("Arquivo definido no estado:", selectedFile.name);
+      console.log(`[${instanceId.current}] File set in state:`, selectedFile.name);
     }
   }, [onReset, resetUploadState]);
   
@@ -78,7 +110,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       return false;
     }
 
-    console.log("Iniciando processamento do arquivo:", file.name);
+    console.log(`[${instanceId.current}] Starting file processing:`, file.name);
     
     try {
       setIsProcessing(true);
@@ -87,19 +119,19 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       onReset(); // Reset any previous extraction data
       
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
-      console.log("Lendo arquivo e extraindo conteúdo...");
+      console.log(`[${instanceId.current}] Reading file and extracting content...`);
       
       // Upload file to storage first to ensure we have the URL
       setProcessingProgress("Enviando arquivo para armazenamento...");
-      console.log("Enviando arquivo para armazenamento...");
+      console.log(`[${instanceId.current}] Uploading file to storage...`);
       
       let publicUrl;
       try {
         publicUrl = await uploadFileToStorage(file);
-        console.log("Upload concluído com sucesso. URL:", publicUrl);
+        console.log(`[${instanceId.current}] Upload completed successfully. URL:`, publicUrl);
         setFileUrl(publicUrl);
       } catch (storageError: any) {
-        console.error("Erro durante o upload para o storage:", storageError);
+        console.error(`[${instanceId.current}] Error during storage upload:`, storageError);
         // We'll continue even with upload error, but record it
         setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
       }
@@ -108,11 +140,11 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       const fileReader = new FileReader();
       const fileContentPromise = new Promise<string>((resolve, reject) => {
         fileReader.onload = (e) => {
-          console.log("Arquivo lido com sucesso");
+          console.log(`[${instanceId.current}] File read successfully`);
           resolve(e.target?.result as string);
         };
         fileReader.onerror = (e) => {
-          console.error("Erro ao ler arquivo:", e);
+          console.error(`[${instanceId.current}] Error reading file:`, e);
           reject(e);
         };
       });
@@ -120,7 +152,11 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       const fileContent = await fileContentPromise;
       
       setProcessingProgress("Analisando conteúdo do documento...");
-      console.log("Analisando conteúdo do documento...");
+      console.log(`[${instanceId.current}] Analyzing document content...`);
+      
+      // Extract document content with unique processing ID
+      const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      console.log(`[${instanceId.current}] Processing ID: ${processingId}`);
       
       // Extract document content
       const extractionResult = await processFileContent(fileContent.split(',')[1]);
@@ -137,21 +173,30 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
         researchers: extractionResult.researchers || []
       };
       
-      console.log("Dados extraídos do documento:", newExtractedData);
+      console.log(`[${instanceId.current}] Data extracted from document:`, {
+        title: newExtractedData.title?.substring(0, 20) + '...',
+        conclusion: newExtractedData.conclusion?.substring(0, 20) + '...',
+        keywords: newExtractedData.keywords?.length,
+        researchers: newExtractedData.researchers?.length
+      });
       
-      // Verifica se os dados extraídos são simulados e estamos em produção
-      const isSimulatedData = 
-        newExtractedData.title === "Título simulado do artigo científico" &&
-        newExtractedData.conclusion === "Esta é uma conclusão simulada para testes de desenvolvimento.";
+      // Verify the data actually contains something meaningful
+      const hasEmptyExtraction = 
+        !newExtractedData.title && 
+        !newExtractedData.conclusion && 
+        (!newExtractedData.keywords || newExtractedData.keywords.length === 0) &&
+        (!newExtractedData.researchers || newExtractedData.researchers.length === 0);
         
-      // Em produção, não use dados simulados se é um arquivo real
-      if (process.env.NODE_ENV === 'production' && isSimulatedData) {
-        // Em vez de usar dados simulados, tente extrair algo do nome do arquivo
-        newExtractedData.title = file.name
-          .replace('.pdf', '')
-          .replace(/_/g, ' ')
-          .replace(/-/g, ' ');
-        newExtractedData.conclusion = '';
+      // If extraction is empty and we're in production, try to get title from filename
+      if (hasEmptyExtraction) {
+        console.log(`[${instanceId.current}] Extracted data is empty, using filename as fallback`);
+        // Use filename as title
+        if (file) {
+          newExtractedData.title = file.name
+            .replace('.pdf', '')
+            .replace(/_/g, ' ')
+            .replace(/-/g, ' ');
+        }
       }
       
       onExtractedData(newExtractedData);
@@ -171,7 +216,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       
       return true;
     } catch (error: any) {
-      console.error('Erro ao processar arquivo:', error);
+      console.error(`[${instanceId.current}] Error processing file:`, error);
       setUploadError(error.message || "Ocorreu um erro ao processar o arquivo.");
       onError(error.message || "Ocorreu um erro ao processar o arquivo.");
       setProcessingFailed(true);
@@ -196,13 +241,14 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       setIsProcessing(false);
       setProcessingProgress(null);
     }
-  }, [file, onExtractedData, onError, onReset, setUploadError]);
+  }, [file, onExtractedData, onError, onReset]);
   
   // Clear file and reset upload state
   const handleClearFile = useCallback(() => {
-    console.log("Limpando arquivo");
+    console.log(`[${instanceId.current}] Clearing file`);
     resetUploadState();
-  }, [resetUploadState]);
+    onReset(); // Also reset extraction data
+  }, [resetUploadState, onReset]);
   
   return {
     file,

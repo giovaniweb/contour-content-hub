@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ExtractedData } from "./useUploadHandler";
 
 interface UseExtractedDataProps {
@@ -15,33 +15,71 @@ interface UseExtractedDataProps {
     extractedKeywords: string[];
     extractedResearchers: string[];
   }) => void;
+  forceClearState?: boolean; // New flag to force clearing state
 }
 
-export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDataProps = {}) => {
+export const useExtractedData = ({ 
+  initialData, 
+  onDataChanged,
+  forceClearState = false
+}: UseExtractedDataProps = {}) => {
+  // Track mount/unmount cycles
+  const mountCountRef = useRef(0);
+  
   // Always initialize with empty state
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
   
+  // Debug tracking
+  const instanceId = useRef(`extracted-data-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  
+  // Forced reset of all state
+  const resetAllState = useCallback(() => {
+    console.log(`[${instanceId.current}] Forcibly resetting all extracted data states to empty`);
+    setSuggestedTitle('');
+    setSuggestedDescription('');
+    setExtractedKeywords([]);
+    setExtractedResearchers([]);
+  }, []);
+  
   // Create a ref to track if this is first mount to force reset
   const isInitialized = useCallback(() => {
     return initialData !== undefined;
   }, [initialData]);
   
+  // On component mount
+  useEffect(() => {
+    mountCountRef.current++;
+    console.log(`[${instanceId.current}] useExtractedData mounted (count: ${mountCountRef.current}), forceClearState: ${forceClearState}`);
+    
+    // Force reset on unmount
+    return () => {
+      console.log(`[${instanceId.current}] useExtractedData unmounting`);
+      // Ensure we reset state on unmount
+      resetAllState();
+    };
+  }, []);
+  
+  // Handle forceClearState prop changes
+  useEffect(() => {
+    if (forceClearState) {
+      console.log(`[${instanceId.current}] forceClearState is true, resetting all states`);
+      resetAllState();
+    }
+  }, [forceClearState, resetAllState]);
+  
   // Reset all data first, then set from initialData if available
   useEffect(() => {
-    console.log("useExtractedData effect triggered, initialData:", initialData ? "present" : "absent");
+    console.log(`[${instanceId.current}] initialData effect triggered, initialData:`, initialData ? "present" : "absent");
     
     // Always clear previous data first
-    setSuggestedTitle('');
-    setSuggestedDescription('');
-    setExtractedKeywords([]);
-    setExtractedResearchers([]);
+    resetAllState();
     
     // Only set data if initialData is provided (editing mode)
     if (initialData) {
-      console.log("Setting extracted data from initialData:", initialData);
+      console.log(`[${instanceId.current}] Setting extracted data from initialData:`, initialData);
       
       if (initialData.title) {
         setSuggestedTitle(initialData.title);
@@ -59,14 +97,14 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
         setExtractedResearchers(initialData.researchers);
       }
     } else {
-      console.log("No initialData provided, keeping all states empty");
+      console.log(`[${instanceId.current}] No initialData provided, keeping all states empty`);
     }
-  }, [initialData]);
+  }, [initialData, resetAllState]);
   
   // Notify parent component when extracted data changes
   useEffect(() => {
     if (onDataChanged) {
-      console.log("Notifying parent of extracted data change");
+      console.log(`[${instanceId.current}] Notifying parent of extracted data change`);
       onDataChanged({
         suggestedTitle,
         suggestedDescription,
@@ -78,7 +116,7 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
   
   // Process new extracted data from document
   const handleExtractedData = useCallback((data: ExtractedData) => {
-    console.log("Setting new extracted data from document:", data);
+    console.log(`[${instanceId.current}] Setting new extracted data from document:`, data);
     
     if (data.title) {
       setSuggestedTitle(data.title);
@@ -99,12 +137,9 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
   
   // Complete reset of all extracted data
   const resetExtractedData = useCallback(() => {
-    console.log("Explicitly resetting all extracted data to empty values");
-    setSuggestedTitle('');
-    setSuggestedDescription('');
-    setExtractedKeywords([]);
-    setExtractedResearchers([]);
-  }, []);
+    console.log(`[${instanceId.current}] Explicitly resetting all extracted data to empty values`);
+    resetAllState();
+  }, [resetAllState]);
   
   return {
     suggestedTitle,
