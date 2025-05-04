@@ -59,7 +59,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     // Execute the query
     const response = await query;
     
-    // Use type assertion to safely convert the response data
+    // Use type assertion with proper helper
     return safeQueryResult<ContentStrategyRowWithRelations>(response);
   } catch (error) {
     console.error("Error fetching content strategy items:", error);

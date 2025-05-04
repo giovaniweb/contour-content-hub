@@ -44,7 +44,7 @@ export async function safeQueryExample(
     // Execute the query
     const response = await query;
     
-    // Use unknown as intermediary type to break deep instantiation chain
+    // Parse the response using the helper function with explicit type
     const data = safeQueryResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
@@ -73,7 +73,7 @@ export async function safeSingleItemQueryExample(
       .eq('id', id)
       .single();
     
-    // Use unknown as intermediary type to break deep instantiation chain
+    // Parse the response using the helper function with explicit type
     const data = safeSingleResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
