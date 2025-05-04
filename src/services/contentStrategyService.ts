@@ -2,7 +2,7 @@
 // Re-export all functionalities from specific files
 // to maintain compatibility with existing code
 
-export {
+import {
   fetchContentStrategyItems,
   createContentStrategyItem,
   updateContentStrategyItem,
@@ -15,7 +15,22 @@ export {
   sortStrategiesByDate
 } from './contentStrategyCore';
 
-export {
+import {
   generateContentWithAI,
   scheduleContentInCalendar
 } from './contentStrategyIntegrations';
+
+export {
+  fetchContentStrategyItems,
+  createContentStrategyItem,
+  updateContentStrategyItem,
+  deleteContentStrategyItem,
+  calculateContentMetrics,
+  getContentStrategyStats,
+  processContentStrategy,
+  summarizeContentMetrics,
+  filterStrategiesByStatus,
+  sortStrategiesByDate,
+  generateContentWithAI,
+  scheduleContentInCalendar
+};

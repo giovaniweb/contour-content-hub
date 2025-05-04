@@ -82,7 +82,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert(preparedData)
+      .insert([preparedData])
       .select(`
         *,
         equipamento:equipamento_id (nome),
