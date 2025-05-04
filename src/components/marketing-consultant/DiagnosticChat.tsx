@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, Sparkles, ArrowRight, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { createClient } from '@supabase/supabase-js';
+import { useUser } from '@/hooks/useUser';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -48,12 +50,15 @@ type QuestionStage =
 
 const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   const { toast } = useToast();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentStage, setCurrentStage] = useState<QuestionStage>('welcome');
   const [diagnosticData, setDiagnosticData] = useState<Record<string, any>>({});
   const [progress, setProgress] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [prefilledData, setPrefilledData] = useState<Record<string, any>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const totalStages = 23; // Total number of stages including welcome and conclusion
@@ -66,10 +71,51 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Fetch user profile data when component mounts
+    const fetchUserProfile = async () => {
+      if (user) {
+        const supabase = createClient(
+          import.meta.env.VITE_SUPABASE_URL || '',
+          import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        );
+        
+        const { data, error } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (!error && data) {
+          setUserProfile(data);
+          
+          // Pre-fill data from profile
+          const prefilled: Record<string, any> = {};
+          if (data.clinica) prefilled.clinic_name = data.clinica;
+          if (data.nome) prefilled.user_name = data.nome;
+          if (data.cidade) prefilled.location = data.cidade;
+          if (data.equipamentos && data.equipamentos.length > 0) {
+            prefilled.equipments = data.equipamentos.join(', ');
+          }
+          
+          setPrefilledData(prefilled);
+          
+          // Update diagnostic data with prefilled info
+          setDiagnosticData(prev => ({
+            ...prev,
+            ...prefilled
+          }));
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
+
   // When component mounts, start the conversation
   useEffect(() => {
     startDiagnostic();
-  }, []);
+  }, [prefilledData]);
 
   // Update progress bar whenever stage changes
   useEffect(() => {
@@ -105,10 +151,17 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   }, [currentStage]);
 
   const startDiagnostic = () => {
+    let welcomeMessage = 'Olá! Vamos começar o diagnóstico da sua clínica de estética. Vou fazer algumas perguntas para entender melhor seu negócio e criar uma estratégia personalizada de marketing e crescimento.';
+    
+    // Personalize welcome message if we have user profile data
+    if (prefilledData.user_name) {
+      welcomeMessage = `Olá ${prefilledData.user_name}! Vamos fazer o diagnóstico para entender melhor a sua clínica e criar uma estratégia personalizada de marketing.`;
+    }
+    
     setMessages([
       {
         role: 'assistant',
-        content: 'Olá! Vamos começar o diagnóstico da sua clínica de estética. Vou fazer algumas perguntas para entender melhor seu negócio e criar uma estratégia personalizada de marketing e crescimento.'
+        content: welcomeMessage
       }
     ]);
     
@@ -172,7 +225,26 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       conclusion: 'conclusion' // End state
     };
     
-    const nextStage = stageProgression[currentStage];
+    let nextStage = stageProgression[currentStage];
+    
+    // Skip questions if we already have the prefilled data
+    while (prefilledData[nextStage] && nextStage !== 'conclusion') {
+      // Auto-fill the answer in the chat
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant',
+          content: getQuestionForStage(nextStage).content
+        },
+        {
+          role: 'user',
+          content: prefilledData[nextStage]
+        }
+      ]);
+      
+      nextStage = stageProgression[nextStage];
+    }
+    
     setCurrentStage(nextStage);
     
     if (nextStage === 'conclusion') {
@@ -182,9 +254,7 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
     }
   };
   
-  const askNextQuestion = () => {
-    setLoading(true);
-    
+  const getQuestionForStage = (stage: QuestionStage) => {
     const questions: Record<QuestionStage, { content: string, options?: string[], examples?: string[] }> = {
       welcome: {
         content: 'Vamos começar pelo perfil da sua clínica. Qual é o nome da sua clínica?',
@@ -284,12 +354,42 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       }
     };
     
-    const question = questions[currentStage];
+    return questions[stage] || questions.welcome;
+  };
+  
+  const askNextQuestion = () => {
+    setLoading(true);
+    
+    const question = getQuestionForStage(currentStage);
+    
+    // Customize questions based on previously collected data
+    let customizedContent = question.content;
+    
+    // For example, personalize the clinic name question if we know the user's name
+    if (currentStage === 'clinic_name' && prefilledData.user_name) {
+      customizedContent = `${prefilledData.user_name}, qual é o nome da sua clínica?`;
+    }
+    
+    // Personalize the main services question if we know the clinic name
+    if (currentStage === 'main_services' && diagnosticData.clinic_name) {
+      customizedContent = `Quais são os principais procedimentos oferecidos pela ${diagnosticData.clinic_name}?`;
+    }
+    
+    // Personalize the equipment question if we know the main services
+    if (currentStage === 'equipments' && diagnosticData.main_services) {
+      customizedContent = `Para oferecer ${diagnosticData.main_services}, quais equipamentos você utiliza na sua clínica?`;
+    }
+    
+    // Personalize questions based on previous answers
+    if (currentStage === 'revenue_goal' && diagnosticData.revenue) {
+      customizedContent = `Atualmente seu faturamento é de ${diagnosticData.revenue}. Qual seria sua meta ideal de faturamento mensal?`;
+    }
+    
     if (question) {
       setTimeout(() => {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: question.content,
+          content: customizedContent,
           options: question.options,
           examples: question.examples
         }]);
@@ -300,9 +400,16 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   
   const finalizeDiagnostic = () => {
     // Prepare final message
+    let finalMessage = 'Diagnóstico completo! Baseado nas suas respostas, vou gerar um relatório com análise de crescimento potencial e estratégias personalizadas para sua clínica.';
+    
+    // Personalize the final message based on data collected
+    if (diagnosticData.clinic_name) {
+      finalMessage = `Diagnóstico da ${diagnosticData.clinic_name} completo! Baseado nas suas respostas, vou gerar um relatório com análise de crescimento potencial e estratégias personalizadas para sua clínica.`;
+    }
+    
     setMessages(prev => [...prev, { 
       role: 'assistant', 
-      content: 'Diagnóstico completo! Baseado nas suas respostas, vou gerar um relatório com análise de crescimento potencial e estratégias personalizadas para sua clínica.'
+      content: finalMessage
     }]);
     
     // Process data if needed, for example convert revenue string to number
@@ -332,12 +439,14 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       marketingResults: diagnosticData.marketing_results,
       feeling: diagnosticData.feeling,
       routineChange: diagnosticData.routine_change,
-      solutionDesire: diagnosticData.solution_desire
+      solutionDesire: diagnosticData.solution_desire,
+      // Add user profile data if available
+      userProfile: userProfile || {}
     };
     
     // Show success message
     toast({
-      title: "Diagnóstico concluído!",
+      title: `Diagnóstico concluído!`,
       description: "Preparando sua análise personalizada...",
     });
     
