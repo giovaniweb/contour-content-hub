@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { getEquipmentById } from '@/utils/api-equipment';
+import { getEquipmentById } from '@/api/equipment';
 import { Equipment } from '@/types/equipment';
 import { ArrowLeft, Loader2, FileText, Video, CheckCircle, Image as ImageIcon } from 'lucide-react';
 import VimeoImporter from '@/components/admin/VimeoImporter';

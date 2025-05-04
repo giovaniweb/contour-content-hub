@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { getEquipmentById, fetchEquipmentFiles, fetchEquipmentVideos } from "@/utils/api-equipment";
+import { getEquipmentById, fetchEquipmentFiles, fetchEquipmentVideos } from '@/api/equipment';
 import { Equipment } from "@/types/equipment";
 import { FileText, Video, Image as ImageIcon, ChevronLeft, Upload, PlusSquare } from "lucide-react";
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import EquipmentForm from './EquipmentForm';
 import EquipmentList from './EquipmentList';
-import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api-equipment';
+import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/api/equipment';
 
 const EquipmentManager: React.FC = () => {
   const { toast } = useToast();
