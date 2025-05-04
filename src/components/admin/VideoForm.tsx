@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
 import VimeoImporter from './VimeoImporter';
+import { MarketingObjectiveType } from '@/utils/api';
 
 const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }) => {
   // Form state
@@ -27,7 +28,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
   const [purposes, setPurposes] = useState([]);
   const [tags, setTags] = useState('');
   const [instagramCaption, setInstagramCaption] = useState('');
-  const [marketingObjective, setMarketingObjective] = useState('');
+  const [marketingObjective, setMarketingObjective] = useState<MarketingObjectiveType>('atrair_atencao');
   
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +50,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
       setPurposes(videoData.finalidade || []);
       setTags(Array.isArray(videoData.tags) ? videoData.tags.join(', ') : videoData.tags || '');
       setInstagramCaption(videoData.legenda_instagram || '');
-      setMarketingObjective(videoData.objetivo_marketing || '');
+      setMarketingObjective((videoData.objetivo_marketing as MarketingObjectiveType) || 'atrair_atencao');
     }
     
     // Load equipment list and body areas
@@ -106,14 +107,15 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
             .single();
             
           if (data) {
-            // Fix: Use the correct property names from the equipamentos table
-            // If available, prefill body area based on available data
-            if (data.areas) {
-              setBodyArea(data.areas[0]);
+            // If the equipment has indicacoes property, use it for purposes
+            if (data.indicacoes) {
+              setPurposes(Array.isArray(data.indicacoes) ? data.indicacoes : []);
             }
             
-            if (data.indicacoes) {
-              setPurposes(data.indicacoes);
+            // Try to determine body area from equipment data if available
+            // For now, just set the first area as body area if available from equipment
+            if (data.indicacoes && data.indicacoes.length > 0) {
+              setBodyArea(data.indicacoes[0]);
             }
           }
         } catch (error) {

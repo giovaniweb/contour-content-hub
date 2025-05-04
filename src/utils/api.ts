@@ -31,6 +31,8 @@ export interface ScriptResponse {
   createdAt: string;
   suggestedVideos: MediaItem[];
   captionTips: string[];
+  pdf_url?: string;
+  evento_agenda_id?: string;
 }
 
 // Types for media library
@@ -69,3 +71,30 @@ export interface CalendarPreferences {
   equipment?: string;
   purpose?: string;
 }
+
+// Export functions from other files to centralize API access
+export { 
+  getScriptHistory,
+  getScriptById, 
+  updateScript,
+  generateScriptPDF as generatePDF,
+  linkScriptToCalendar
+} from './utils/api-scripts';
+
+export {
+  toggleFavorite,
+  rateMedia,
+  getMediaItems,
+  updateUserPreferences,
+  saveEmailAlertPreferences,
+  getCalendarSuggestions,
+  updateCalendarCompletion,
+  clearCalendarPlanning as clearPlanning,
+  approveCalendarPlanning as approvePlanning,
+  updateCalendarPreferences as setCalendarPreferences
+} from './services/supabaseService';
+
+export type { ScriptHistoryItem } from './utils/api-scripts';
+
+// Re-export validation types and functions
+export { validateScript } from './utils/validation/api';

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Eye, ThumbsUp, MoreVertical, Trash2, Edit, ExternalLink, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
 import {
@@ -92,6 +91,9 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
   const [deletingVideoId, setDeletingVideoId] = useState<string | null>(null);
   const [previewVideo, setPreviewVideo] = useState<any | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleDeleteClick = (id: string) => {
     setDeletingVideoId(id);
@@ -120,6 +122,14 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
   const handlePreviewClick = (video: any) => {
     setPreviewVideo(video);
     setIsPreviewOpen(true);
+  };
+
+  const handleVideoUpdate = (updatedVideo: any) => {
+    // Implement logic to update the video
+  };
+
+  const handleVideoAdded = (newVideo: any) => {
+    // Implement logic to add a new video
   };
 
   // Render videos as grid
@@ -518,6 +528,45 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Edit Modal */}
+      {isEditModalOpen && selectedVideo && (
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Vídeo</DialogTitle>
+              <DialogDescription>
+                Faça alterações nas informações do vídeo abaixo.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <VideoForm 
+              videoData={selectedVideo} 
+              onSuccess={handleVideoUpdate} 
+              onCancel={() => setIsEditModalOpen(false)} 
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Add Video Modal */}
+      {isAddModalOpen && (
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Adicionar Novo Vídeo</DialogTitle>
+              <DialogDescription>
+                Preencha as informações do vídeo abaixo.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <VideoForm 
+              onSuccess={handleVideoAdded} 
+              onCancel={() => setIsAddModalOpen(false)} 
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };
