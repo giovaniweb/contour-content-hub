@@ -4,16 +4,22 @@
 
 import {
   fetchContentStrategyItems,
-  createContentStrategyItem,
-  updateContentStrategyItem,
-  deleteContentStrategyItem,
   calculateContentMetrics,
   getContentStrategyStats,
   processContentStrategy,
   summarizeContentMetrics,
   filterStrategiesByStatus,
   sortStrategiesByDate
-} from './contentStrategyCore';
+} from './getContentStrategy';
+
+import {
+  createContentStrategyItem
+} from './insertContentStrategy';
+
+import {
+  updateContentStrategyItem,
+  deleteContentStrategyItem
+} from './updateContentStrategy';
 
 import {
   generateContentWithAI,

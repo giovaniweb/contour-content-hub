@@ -1,10 +1,11 @@
 
 import { ContentStrategyItem, ContentCategory, ContentFormat, ContentObjective, ContentStatus, ContentDistribution } from "@/types/content-strategy";
+import { ContentStrategyRowWithRelations } from "@/types/supabase/contentStrategy";
 
 /**
  * Transforma os dados brutos do Supabase em um objeto ContentStrategyItem tipado
  */
-export function transformToContentStrategyItem(data: any): ContentStrategyItem {
+export function transformToContentStrategyItem(data: ContentStrategyRowWithRelations): ContentStrategyItem {
   // Checagem de segurança para garantir que distribuicao exista
   const distribuicao = data.distribuicao ? 
     data.distribuicao as ContentDistribution : 
