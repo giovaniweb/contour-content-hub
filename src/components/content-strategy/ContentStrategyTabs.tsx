@@ -17,10 +17,10 @@ interface ContentStrategyTabsProps {
   users: { id: string; nome: string }[];
   filters: ContentStrategyFilter;
   onFilterChange: (filters: ContentStrategyFilter) => void;
-  onUpdateItem: (id: string, updates: Partial<ContentStrategyItem>) => void;
-  onDeleteItem: (id: string) => void;
-  onGenerateContent: (item: ContentStrategyItem) => void;
-  onScheduleContent: (item: ContentStrategyItem) => void;
+  onUpdateItem: (id: string, updates: Partial<ContentStrategyItem>) => Promise<void>;
+  onDeleteItem: (id: string) => Promise<void>;
+  onGenerateContent: (item: ContentStrategyItem) => Promise<void>;
+  onScheduleContent: (item: ContentStrategyItem) => Promise<void>;
 }
 
 const ContentStrategyTabs: React.FC<ContentStrategyTabsProps> = ({

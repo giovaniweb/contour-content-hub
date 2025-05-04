@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
-import { ContentStrategyItem } from "@/types/content-strategy";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePermissions } from "@/hooks/use-permissions";
 import ContentStrategyHeader from "@/components/content-strategy/ContentStrategyHeader";

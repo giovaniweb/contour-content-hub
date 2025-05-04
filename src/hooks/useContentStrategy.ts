@@ -103,8 +103,10 @@ export const useContentStrategy = () => {
           prev.map(item => (item.id === id ? { ...item, ...updates } : item))
         );
       }
+      return Promise.resolve();
     } catch (error) {
       console.error("Error updating item:", error);
+      return Promise.reject(error);
     }
   };
 
@@ -115,8 +117,10 @@ export const useContentStrategy = () => {
       if (success) {
         setItems(prev => prev.filter(item => item.id !== id));
       }
+      return Promise.resolve();
     } catch (error) {
       console.error("Error deleting item:", error);
+      return Promise.reject(error);
     }
   };
 
@@ -127,8 +131,10 @@ export const useContentStrategy = () => {
       if (content) {
         await handleUpdateItem(item.id, { conteudo: content });
       }
+      return Promise.resolve();
     } catch (error) {
       console.error("Error generating content:", error);
+      return Promise.reject(error);
     }
   };
 
@@ -136,8 +142,10 @@ export const useContentStrategy = () => {
   const handleScheduleContent = async (item: ContentStrategyItem) => {
     try {
       await scheduleContentInCalendar(item);
+      return Promise.resolve();
     } catch (error) {
       console.error("Error scheduling content:", error);
+      return Promise.reject(error);
     }
   };
 

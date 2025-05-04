@@ -3,14 +3,6 @@ import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-stra
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
 
-// Helper functions
-const safeParseInt = (value: string | number | undefined): number => {
-  if (typeof value === 'number') return value;
-  if (!value) return 0;
-  const parsed = parseInt(value.toString(), 10);
-  return isNaN(parsed) ? 0 : parsed;
-};
-
 /**
  * Fetch content strategy items with filters
  */
@@ -66,7 +58,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     
     if (error) throw error;
     
-    return (data || []).map(transformToContentStrategyItem);
+    return (data || []).map(item => transformToContentStrategyItem(item));
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
@@ -82,7 +74,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert([preparedData])
+      .insert(preparedData)
       .select(`
         *,
         equipamento:equipamento_id (nome),
