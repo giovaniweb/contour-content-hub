@@ -2,11 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, MessageSquare, TrendingUp, Calendar, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface GrowthStrategyProps {
@@ -32,13 +30,13 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
     
     // Simulate strategy generation
     setTimeout(() => {
-      // Using nullish coalescing to avoid undefined errors
+      // Using defensive programming with default values to avoid null/undefined errors
       const mainServices = diagnosticData?.main_services || 'Tratamentos estéticos';
       const clinicName = diagnosticData?.clinic_name || 'sua clínica';
       const mostProfitable = diagnosticData?.most_profitable || 'procedimentos estéticos';
-      const hasWebsite = (diagnosticData?.website || '').toLowerCase().includes('sim');
-      const usesSocialMedia = (diagnosticData?.social_media || '').toLowerCase() === 'sim';
-      const contentComfort = (diagnosticData?.content_comfort || '').toLowerCase() === 'sim';
+      const hasWebsite = ((diagnosticData?.website || '').toLowerCase().includes('sim'));
+      const usesSocialMedia = ((diagnosticData?.social_media || '').toLowerCase() === 'sim');
+      const contentComfort = ((diagnosticData?.content_comfort || '').toLowerCase() === 'sim');
       
       const strategyData = {
         summary: `Estratégia personalizada para aumentar a visibilidade e lucratividade da ${clinicName} em 90 dias`,
