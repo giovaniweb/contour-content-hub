@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import CustomGptForm from "@/components/CustomGptForm";
+import { FileText, Sparkles, MessageSquare } from "lucide-react";
 
 const CustomGpt: React.FC = () => {
   return (

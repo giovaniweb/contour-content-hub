@@ -1,374 +1,314 @@
-import React, { useState, useCallback } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { ContentStrategyItem } from "@/types/content-strategy";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { createContentStrategyItem, updateContentStrategyItem } from '@/services/contentStrategyCore';
+import { ContentStrategyItem, ContentCategory, ContentFormat, ContentObjective, ContentStatus, ContentDistribution } from '@/types/content-strategy';
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import * as z from "zod";
-import MarketingObjectiveSelector from "./MarketingObjectiveSelector";
-
-const formSchema = z.object({
-  equipamento_id: z.string().nullable(),
-  categoria: z.string().min(1, {
-    message: "Selecione uma categoria.",
-  }),
-  formato: z.string().min(1, {
-    message: "Selecione um formato.",
-  }),
-  responsavel_id: z.string().nullable(),
-  previsao: z.string().nullable(),
-  conteudo: z.string().nullable(),
-  objetivo: z.string().min(1, {
-    message: "Selecione um objetivo.",
-  }),
-  status: z.string().min(1, {
-    message: "Selecione um status.",
-  }),
-  distribuicao: z.string().min(1, {
-    message: "Selecione uma plataforma de distribuição.",
-  }),
-});
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { generateContentWithAI } from '@/services/contentStrategyIntegrations';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContentStrategyFormProps {
-  onSubmit: (values: Partial<ContentStrategyItem>) => Promise<void>;
-  equipments: { id: string; nome: string }[];
-  users: { id: string; nome: string }[];
-  isLoading?: boolean;
+  item?: ContentStrategyItem;
+  equipamentos: { id: string; nome: string }[];
+  responsaveis: { id: string; nome: string }[];
+  onClose: () => void;
+  onSave: () => void;
 }
 
-export const ContentStrategyForm: React.FC<ContentStrategyFormProps> = ({
-  onSubmit,
-  equipments,
-  users,
-  isLoading,
-}) => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      equipamento_id: null,
-      categoria: "",
-      formato: "",
-      responsavel_id: null,
-      previsao: null,
-      conteudo: null,
-      objetivo: "",
-      status: "",
-      distribuicao: "",
-    },
+export default function ContentStrategyForm({ item, equipamentos, responsaveis, onClose, onSave }: ContentStrategyFormProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<Partial<ContentStrategyItem>>({
+    id: item?.id || undefined,
+    equipamento_id: item?.equipamento_id || '_none',
+    categoria: item?.categoria || 'vendas',
+    formato: item?.formato || 'story',
+    responsavel_id: item?.responsavel_id || '_none',
+    previsao: item?.previsao || null,
+    conteudo: item?.conteudo || '',
+    objetivo: item?.objetivo || '🟡 Atrair Atenção',
+    status: item?.status || 'Planejado',
+    distribuicao: item?.distribuicao || 'Instagram',
+    equipamento_nome: item?.equipamento_nome,
+    responsavel_nome: item?.responsavel_nome,
   });
 
-  const handleDateSelect = useCallback((date: Date | undefined) => {
-    form.setValue(
-      "previsao",
-      date ? format(date, "yyyy-MM-dd") : null,
-      {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      }
-    );
-  }, [form.setValue]);
+  const handleChange = (field: keyof ContentStrategyItem, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-  const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
-    await onSubmit(values);
-    form.reset();
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const isoDate = date.toISOString();
+      handleChange('previsao', isoDate);
+    }
+  };
+
+  const handleGenerateContent = async () => {
+    try {
+      setLoading(true);
+      const generatedContent = await generateContentWithAI(formData);
+      if (generatedContent) {
+        handleChange('conteudo', generatedContent);
+        toast({
+          title: "Conteúdo gerado",
+          description: "Conteúdo gerado com sucesso usando IA."
+        });
+      }
+    } catch (error) {
+      console.error("Error generating content:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Ensure we cast the string values to their proper typed enums
+      const typedFormData: Partial<ContentStrategyItem> = {
+        ...formData,
+        categoria: formData.categoria as ContentCategory,
+        formato: formData.formato as ContentFormat,
+        objetivo: formData.objetivo as ContentObjective,
+        status: formData.status as ContentStatus,
+        distribuicao: formData.distribuicao as ContentDistribution
+      };
+
+      if (item?.id) {
+        await updateContentStrategyItem(item.id, typedFormData);
+      } else {
+        await createContentStrategyItem(typedFormData);
+      }
+      onSave();
+    } catch (error) {
+      console.error("Error saving content strategy item:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="equipamento_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Equipamento</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value || undefined}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um equipamento" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="_none">Nenhum</SelectItem>
-                  {equipments.map((equipment) => (
-                    <SelectItem key={equipment.id} value={equipment.id}>
-                      {equipment.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{item ? 'Editar Item de Estratégia' : 'Novo Item de Estratégia'}</DialogTitle>
+          <DialogDescription>
+            {item ? 'Atualize os detalhes deste item' : 'Adicione um novo item à sua estratégia de conteúdo'}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="equipamento">Equipamento</Label>
+            <Select
+              value={formData.equipamento_id || '_none'}
+              onValueChange={(value) => handleChange('equipamento_id', value === '_none' ? null : value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um equipamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">Nenhum</SelectItem>
+                {equipamentos.map(equipamento => (
+                  <SelectItem key={equipamento.id} value={equipamento.id}>
+                    {equipamento.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="categoria"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Categoria</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="branding">Branding</SelectItem>
-                  <SelectItem value="vendas">Vendas</SelectItem>
-                  <SelectItem value="educativo">Educativo</SelectItem>
-                  <SelectItem value="informativo">Informativo</SelectItem>
-                  <SelectItem value="engajamento">Engajamento</SelectItem>
-                  <SelectItem value="produto">Produto</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="categoria">Categoria</Label>
+            <Select
+              value={formData.categoria || 'vendas'}
+              onValueChange={(value) => handleChange('categoria', value as ContentCategory)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="branding">Branding</SelectItem>
+                <SelectItem value="vendas">Vendas</SelectItem>
+                <SelectItem value="educativo">Educativo</SelectItem>
+                <SelectItem value="informativo">Informativo</SelectItem>
+                <SelectItem value="engajamento">Engajamento</SelectItem>
+                <SelectItem value="produto">Produto</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="formato"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Formato</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um formato" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="story">Story</SelectItem>
-                  <SelectItem value="vídeo">Vídeo</SelectItem>
-                  <SelectItem value="layout">Layout</SelectItem>
-                  <SelectItem value="carrossel">Carrossel</SelectItem>
-                  <SelectItem value="reels">Reels</SelectItem>
-                  <SelectItem value="texto">Texto</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="formato">Formato</Label>
+            <Select
+              value={formData.formato || 'story'}
+              onValueChange={(value) => handleChange('formato', value as ContentFormat)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um formato" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="story">Story</SelectItem>
+                <SelectItem value="vídeo">Vídeo</SelectItem>
+                <SelectItem value="layout">Layout</SelectItem>
+                <SelectItem value="carrossel">Carrossel</SelectItem>
+                <SelectItem value="reels">Reels</SelectItem>
+                <SelectItem value="texto">Texto</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="responsavel_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Responsável</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value || undefined}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um responsável" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="_none">Nenhum</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="responsavel">Responsável</Label>
+            <Select
+              value={formData.responsavel_id || '_none'}
+              onValueChange={(value) => handleChange('responsavel_id', value === '_none' ? null : value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">Nenhum</SelectItem>
+                {responsaveis.map(responsavel => (
+                  <SelectItem key={responsavel.id} value={responsavel.id}>
+                    {responsavel.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="previsao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Previsão</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className="w-[240px] pl-3 text-left font-normal"
-                  >
-                    {field.value ? (
-                      format(new Date(field.value), "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center">
-                  <Calendar
-                    mode="single"
-                    locale={ptBR}
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={handleDateSelect}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="conteudo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Big Idea / Conteúdo</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva a ideia ou conteúdo a ser trabalhado"
-                  className="resize-none"
-                  {...field}
+          <div className="space-y-2">
+            <Label htmlFor="previsao">Previsão</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.previsao ? (
+                    format(new Date(formData.previsao), 'PPP', { locale: ptBR })
+                  ) : (
+                    <span>Selecione uma data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.previsao ? new Date(formData.previsao) : undefined}
+                  onSelect={handleDateSelect}
+                  initialFocus
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="objetivo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Objetivo</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="conteudo">Conteúdo</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateContent}
+                disabled={loading}
               >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um objetivo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="🟡 Atrair Atenção">
-                    🟡 Atrair Atenção
-                  </SelectItem>
-                  <SelectItem value="🟢 Criar Conexão">
-                    🟢 Criar Conexão
-                  </SelectItem>
-                  <SelectItem value="🔴 Fazer Comprar">
-                    🔴 Fazer Comprar
-                  </SelectItem>
-                  <SelectItem value="🔁 Reativar Interesse">
-                    🔁 Reativar Interesse
-                  </SelectItem>
-                  <SelectItem value="✅ Fechar Agora">
-                    ✅ Fechar Agora
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                Gerar com IA
+              </Button>
+            </div>
+            <Textarea
+              id="conteudo"
+              value={formData.conteudo || ''}
+              onChange={(e) => handleChange('conteudo', e.target.value)}
+              placeholder="Descreva o conteúdo..."
+              rows={4}
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Planejado">Planejado</SelectItem>
-                  <SelectItem value="Em andamento">Em andamento</SelectItem>
-                  <SelectItem value="Finalizado">Finalizado</SelectItem>
-                  <SelectItem value="Standby">Standby</SelectItem>
-                  <SelectItem value="Suspenso">Suspenso</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="objetivo">Objetivo</Label>
+            <Select
+              value={formData.objetivo || '🟡 Atrair Atenção'}
+              onValueChange={(value) => handleChange('objetivo', value as ContentObjective)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um objetivo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
+                <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
+                <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
+                <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
+                <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <FormField
-          control={form.control}
-          name="distribuicao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Plataforma de Distribuição</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma plataforma" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="YouTube">YouTube</SelectItem>
-                  <SelectItem value="TikTok">TikTok</SelectItem>
-                  <SelectItem value="Blog">Blog</SelectItem>
-                  <SelectItem value="Múltiplos">Múltiplos</SelectItem>
-                  <SelectItem value="Outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status || 'Planejado'}
+              onValueChange={(value) => handleChange('status', value as ContentStatus)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Planejado">Planejado</SelectItem>
+                <SelectItem value="Em andamento">Em andamento</SelectItem>
+                <SelectItem value="Finalizado">Finalizado</SelectItem>
+                <SelectItem value="Standby">Standby</SelectItem>
+                <SelectItem value="Suspenso">Suspenso</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Button type="submit" disabled={isLoading}>
-          Salvar
-        </Button>
-      </form>
-    </Form>
+          <div className="space-y-2">
+            <Label htmlFor="distribuicao">Distribuição</Label>
+            <Select
+              value={formData.distribuicao || 'Instagram'}
+              onValueChange={(value) => handleChange('distribuicao', value as ContentDistribution)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma plataforma" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Instagram">Instagram</SelectItem>
+                <SelectItem value="YouTube">YouTube</SelectItem>
+                <SelectItem value="TikTok">TikTok</SelectItem>
+                <SelectItem value="Blog">Blog</SelectItem>
+                <SelectItem value="Múltiplos">Múltiplos</SelectItem>
+                <SelectItem value="Outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Salvando...' : item ? 'Atualizar' : 'Adicionar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
-};
+}

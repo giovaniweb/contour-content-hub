@@ -53,7 +53,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         .lte('previsao', filters.dateRange.to.toISOString());
     }
 
-    // Ordenação - agora sem prioridade, ordena principalmente por data
+    // Ordenação por data
     query = query.order('previsao', { ascending: true });
 
     const { data, error } = await query;
@@ -85,9 +85,15 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     const userData = await supabase.auth.getUser();
     const userId = userData.data.user?.id || null;
     
+    // Certifique-se de que todos os campos obrigatórios estão presentes antes de inserir
+    const insertData = {
+      ...dataToInsert,
+      created_by: userId
+    };
+    
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert({ ...dataToInsert, created_by: userId })
+      .insert(insertData)
       .select(`
         *,
         equipamento:equipamentos(nome),
