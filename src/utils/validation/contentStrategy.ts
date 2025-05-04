@@ -12,7 +12,6 @@ export function transformToContentStrategyItem(data: any): ContentStrategyItem {
 
   const estrategiaItem: ContentStrategyItem = {
     id: data.id,
-    linha: data.linha,
     equipamento_id: data.equipamento_id,
     equipamento_nome: data.equipamento?.nome || null,
     categoria: data.categoria as ContentCategory,
@@ -25,7 +24,6 @@ export function transformToContentStrategyItem(data: any): ContentStrategyItem {
     prioridade: data.prioridade as ContentPriority,
     status: data.status as ContentStatus,
     distribuicao: distribuicao,
-    impedimento: data.impedimento,
     created_at: data.created_at,
     updated_at: data.updated_at,
     created_by: data.created_by
@@ -55,8 +53,6 @@ export function prepareContentStrategyData(item: Partial<ContentStrategyItem>): 
     conteudo: item.conteudo || null,
     prioridade: item.prioridade || 'Média',
     status: item.status || 'Planejado',
-    distribuicao: item.distribuicao || 'Instagram',
-    impedimento: item.impedimento || null,
-    linha: item.linha || null
+    distribuicao: item.distribuicao || 'Instagram'
   };
 }

@@ -17,7 +17,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         responsavel:perfis!responsavel_id(nome)
       `);
 
-    // Aplicação dos filtros de forma simplificada para evitar recursão de tipos
+    // Aplicação dos filtros de forma simplificada
     if (filters.equipamento_id) {
       query = query.eq('equipamento_id', filters.equipamento_id);
     }
@@ -91,10 +91,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert({
-        ...dataToInsert,
-        created_by: userId
-      })
+      .insert({ ...dataToInsert, created_by: userId })
       .select(`
         *,
         equipamento:equipamentos(nome),

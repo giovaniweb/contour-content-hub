@@ -1,7 +1,6 @@
 
 export interface ContentStrategyItem {
   id: string;
-  linha: string | null;
   equipamento_id: string | null;
   equipamento_nome?: string; // For UI display
   categoria: ContentCategory;
@@ -13,7 +12,6 @@ export interface ContentStrategyItem {
   objetivo: ContentObjective;
   prioridade: ContentPriority;
   status: ContentStatus;
-  impedimento: string | null;
   distribuicao: ContentDistribution; // Field for distribution platform
   created_at: string;
   updated_at: string;

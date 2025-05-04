@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import MarketingObjectiveSelector from "./MarketingObjectiveSelector";
 
 interface ContentStrategyTableProps {
   data: ContentStrategyItem[];
@@ -135,7 +136,6 @@ export function ContentStrategyTable({
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="whitespace-nowrap">Linha</TableHead>
               <TableHead className="whitespace-nowrap">Equipamento</TableHead>
               <TableHead className="whitespace-nowrap">Categoria</TableHead>
               <TableHead className="whitespace-nowrap">Formato</TableHead>
@@ -145,32 +145,19 @@ export function ContentStrategyTable({
               <TableHead className="whitespace-nowrap">Objetivo</TableHead>
               <TableHead className="whitespace-nowrap">Prioridade</TableHead>
               <TableHead className="whitespace-nowrap">Status</TableHead>
-              <TableHead className="whitespace-nowrap">Impedimento</TableHead>
               <TableHead className="whitespace-nowrap text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="h-24 text-center">
+                <TableCell colSpan={10} className="h-24 text-center">
                   Nenhum item de estratégia de conteúdo encontrado.
                 </TableCell>
               </TableRow>
             ) : (
               data.map((item) => (
                 <TableRow key={item.id} className={editableRow === item.id ? 'bg-muted/20' : ''}>
-                  <TableCell>
-                    {editableRow === item.id ? (
-                      <Input
-                        value={editValues.linha || ''}
-                        onChange={(e) => handleInputChange('linha', e.target.value)}
-                        className="w-full"
-                      />
-                    ) : (
-                      item.linha || '-'
-                    )}
-                  </TableCell>
-
                   <TableCell>
                     {editableRow === item.id ? (
                       <Select
@@ -321,13 +308,11 @@ export function ContentStrategyTable({
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="engajar">Engajar</SelectItem>
-                          <SelectItem value="vender">Vender</SelectItem>
-                          <SelectItem value="educar">Educar</SelectItem>
-                          <SelectItem value="informar">Informar</SelectItem>
-                          <SelectItem value="converter">Converter</SelectItem>
-                          <SelectItem value="construir autoridade">Autoridade</SelectItem>
-                          <SelectItem value="outro">Outro</SelectItem>
+                          <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
+                          <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
+                          <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
+                          <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
+                          <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
@@ -378,18 +363,6 @@ export function ContentStrategyTable({
                       <Badge className={getStatusColor(item.status)}>
                         {item.status}
                       </Badge>
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    {editableRow === item.id ? (
-                      <Input
-                        value={editValues.impedimento || ''}
-                        onChange={(e) => handleInputChange('impedimento', e.target.value)}
-                        className="w-full"
-                      />
-                    ) : (
-                      item.impedimento || '-'
                     )}
                   </TableCell>
 
