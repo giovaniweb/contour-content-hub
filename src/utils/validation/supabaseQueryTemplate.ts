@@ -33,23 +33,26 @@ export async function safeQueryExample(
         *,
         equipamento:equipamento_id (nome),
         responsavel:responsavel_id (nome)
-      `)
-      .order('created_at', { ascending: false });
+      `);
     
     // Add any filters
     if (someFilter) {
-      query.eq('some_column', someFilter);
+      // Force casting the query to any to break type inference chain
+      (query as any).eq('some_column', someFilter);
     }
     
-    // Execute the query
-    const response = await query;
+    // Execute the query - force type as any to break inference chain
+    const response = await (query as any);
     
-    // Break type inference chain with explicit helper
+    // Break type inference chain with explicit unknown cast
     // This prevents "Type instantiation is excessively deep" errors
-    const data = safeQueryResult<ExampleResultType>(response);
+    const rawData = response.data as unknown;
     
-    // Transform the data to the desired output format
-    return data ? data.map(item => transformData(item)) : [];
+    // Explicitly cast to the expected type
+    const data = rawData as ExampleResultType[] | null;
+    
+    // Transform the data to the desired output format - with explicit intermediate typing
+    return data ? data.map((item: ExampleResultType) => transformData(item)) : [];
   } catch (error) {
     console.error("Error in query:", error);
     return [];
@@ -63,22 +66,25 @@ export async function safeSingleItemQueryExample(
   id: string
 ): Promise<any | null> {
   try {
-    // Build and execute the query
-    const response = await supabase
+    // Build query with explicit any typing to break inference
+    const query = supabase
       .from('content_strategy_items')
       .select(`
         *,
         equipamento:equipamento_id (nome),
         responsavel:responsavel_id (nome)
-      `)
-      .eq('id', id)
-      .single();
+      `) as any;
     
-    // Break type inference chain with explicit helper
-    // This prevents "Type instantiation is excessively deep" errors
-    const data = safeSingleResult<ExampleResultType>(response);
+    // Execute with explicit any typing
+    const response = await query.eq('id', id).single();
     
-    // Transform the data to the desired output format
+    // Break type inference chain with explicit unknown helper
+    const rawData = response.data as unknown;
+    
+    // Cast to expected type
+    const data = rawData as ExampleResultType | null;
+    
+    // Transform the data with explicit typing
     return data ? transformData(data) : null;
   } catch (error) {
     console.error("Error in query:", error);
@@ -86,7 +92,7 @@ export async function safeSingleItemQueryExample(
   }
 }
 
-// Example data transformer function
+// Example data transformer function with explicit return type
 function transformData(data: ExampleResultType): any {
   // Transform the data here
   return {
