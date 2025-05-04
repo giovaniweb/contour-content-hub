@@ -17,24 +17,37 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
   onSuccess,
   articleData
 }) => {
-  // Generate a unique key whenever the dialog opens, articleData changes, or isOpen changes
-  // This forces a complete remount of the form component
-  const [dialogKey, setDialogKey] = useState<string>(() => `form-${Date.now()}`);
+  // More robust unique key generation that includes edit/new mode and timestamp
+  // This ensures the form is always completely remounted when dialog state changes
+  const [formKey, setFormKey] = useState<string>(`form-${Date.now()}`);
   
-  // Regenerate key when dialog opens, closes or articleData changes 
-  // This forces the form to be completely recreated
+  // Force remount when the dialog opens/closes or when article data changes
   useEffect(() => {
-    console.log("Dialog state changed - isOpen:", isOpen, "articleData:", articleData?.id || 'none');
-    // We generate a new unique key that includes whether this is an edit or create operation
-    const newKey = `form-${articleData ? 'edit' : 'new'}-${Date.now()}`;
-    setDialogKey(newKey);
-    console.log("Generated new form key:", newKey);
+    console.log(`Dialog state changed - isOpen: ${isOpen}, articleData: ${articleData?.id || 'none'}`);
+    
+    // Only regenerate key when the dialog is actually open
+    if (isOpen) {
+      // Include a clear indicator if this is an edit or create operation in the key
+      const operation = articleData ? 'edit' : 'new';
+      const timestamp = Date.now();
+      const uniqueId = Math.random().toString(36).substring(2, 9); // Add random component
+      const newKey = `form-${operation}-${timestamp}-${uniqueId}`;
+      
+      console.log(`Generating new form key: ${newKey}`);
+      setFormKey(newKey);
+    }
   }, [isOpen, articleData]);
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) onClose();
-    }}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) {
+          console.log("Dialog closing, calling onClose");
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{articleData ? 'Editar Artigo Científico' : 'Novo Artigo Científico'}</DialogTitle>
@@ -46,16 +59,23 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <ScientificArticleForm
-          key={dialogKey} // Force new instance with a more robust unique key
-          isOpen={isOpen}
-          articleData={articleData}
-          onSuccess={(data) => {
-            onSuccess(data);
-            onClose();
-          }}
-          onCancel={onClose}
-        />
+        {/* Key pattern includes edit/new status to ensure proper remounting */}
+        {isOpen && (
+          <ScientificArticleForm
+            key={formKey}
+            isOpen={isOpen}
+            articleData={articleData}
+            onSuccess={(data) => {
+              console.log("Form submitted successfully, calling onSuccess");
+              onSuccess(data);
+              onClose();
+            }}
+            onCancel={() => {
+              console.log("Form cancelled, calling onClose");
+              onClose();
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

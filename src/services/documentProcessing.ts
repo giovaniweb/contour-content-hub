@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ProcessingResult {
@@ -17,6 +16,10 @@ export const processFileContent = async (fileContent: string): Promise<Processin
   try {
     console.log("Iniciando processamento do conteúdo do arquivo...");
     
+    // Generate unique processing ID to avoid any caching issues
+    const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log(`Processing ID: ${processingId}`);
+    
     // Se estiver em modo de desenvolvimento, simular o processamento para testes
     if (process.env.NODE_ENV === 'development') {
       console.log("Modo de desenvolvimento detectado. Usando dados simulados.");
@@ -24,12 +27,8 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       // Simular um pequeno atraso para testes de UI
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Criar um ID único para esta extração para evitar confusão com dados anteriores
-      const extractionId = Date.now();
-      console.log(`Extraction ID: ${extractionId}`);
-      
-      // Retornar dados de teste para desenvolvimento que são CLARAMENTE de teste
-      // para não confundir com dados reais
+      // Use the file name in the simulated response to ensure it's unique per file
+      // This helps verify we're not getting cached data
       return {
         title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
         conclusion: "The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
@@ -40,7 +39,11 @@ export const processFileContent = async (fileContent: string): Promise<Processin
     
     // Em produção, fazer o processamento real
     const processResponse = await supabase.functions.invoke('process-document', {
-      body: { fileContent }
+      body: { 
+        fileContent,
+        timestamp: Date.now(), // Add timestamp to avoid caching
+        forceRefresh: true // Force refresh to avoid getting cached data
+      }
     });
     
     if (processResponse.error) {

@@ -18,35 +18,55 @@ interface UseExtractedDataProps {
 }
 
 export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDataProps = {}) => {
-  // Always start with empty states rather than initializing with initialData
+  // Always initialize with empty state
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
   
-  // Update extracted data when initialData changes
+  // Create a ref to track if this is first mount to force reset
+  const isInitialized = useCallback(() => {
+    return initialData !== undefined;
+  }, [initialData]);
+  
+  // Reset all data first, then set from initialData if available
   useEffect(() => {
-    // Clear previous data first to avoid stale data showing up
+    console.log("useExtractedData effect triggered, initialData:", initialData ? "present" : "absent");
+    
+    // Always clear previous data first
     setSuggestedTitle('');
     setSuggestedDescription('');
     setExtractedKeywords([]);
     setExtractedResearchers([]);
     
+    // Only set data if initialData is provided (editing mode)
     if (initialData) {
-      console.log("Inicializando dados extraídos a partir do initialData:", initialData);
-      // Only set values if they exist in initialData
-      if (initialData.title) setSuggestedTitle(initialData.title);
-      if (initialData.description) setSuggestedDescription(initialData.description);
-      if (initialData.keywords && initialData.keywords.length > 0) setExtractedKeywords(initialData.keywords);
-      if (initialData.researchers && initialData.researchers.length > 0) setExtractedResearchers(initialData.researchers);
+      console.log("Setting extracted data from initialData:", initialData);
+      
+      if (initialData.title) {
+        setSuggestedTitle(initialData.title);
+      }
+      
+      if (initialData.description) {
+        setSuggestedDescription(initialData.description);
+      }
+      
+      if (initialData.keywords && initialData.keywords.length > 0) {
+        setExtractedKeywords(initialData.keywords);
+      }
+      
+      if (initialData.researchers && initialData.researchers.length > 0) {
+        setExtractedResearchers(initialData.researchers);
+      }
     } else {
-      console.log("Não há initialData, estados ficam vazios");
+      console.log("No initialData provided, keeping all states empty");
     }
   }, [initialData]);
   
-  // Notify parent when extracted data changes
+  // Notify parent component when extracted data changes
   useEffect(() => {
     if (onDataChanged) {
+      console.log("Notifying parent of extracted data change");
       onDataChanged({
         suggestedTitle,
         suggestedDescription,
@@ -56,9 +76,9 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
     }
   }, [suggestedTitle, suggestedDescription, extractedKeywords, extractedResearchers, onDataChanged]);
   
-  // Handle new extracted data from document processing
+  // Process new extracted data from document
   const handleExtractedData = useCallback((data: ExtractedData) => {
-    console.log("Definindo novos dados extraídos:", data);
+    console.log("Setting new extracted data from document:", data);
     
     if (data.title) {
       setSuggestedTitle(data.title);
@@ -77,9 +97,9 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
     }
   }, []);
   
-  // Reset all extracted data
+  // Complete reset of all extracted data
   const resetExtractedData = useCallback(() => {
-    console.log("Resetando todos os dados extraídos");
+    console.log("Explicitly resetting all extracted data to empty values");
     setSuggestedTitle('');
     setSuggestedDescription('');
     setExtractedKeywords([]);
@@ -96,6 +116,7 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
     extractedResearchers, 
     setExtractedResearchers,
     handleExtractedData,
-    resetExtractedData
+    resetExtractedData,
+    isInitialized
   };
 };
