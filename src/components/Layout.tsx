@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -201,7 +200,7 @@ const Layout: React.FC<LayoutProps> = ({
                     </SidebarMenuItem>
                     <SidebarMenuItem active={isLinkActive('/equipment-details')}>
                       <SidebarMenuButton asChild>
-                        <Link to="/equipment-details" className="flex items-center">
+                        <Link to="/admin/equipments" className="flex items-center">
                           <FileSearch className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Equipamentos</span>
                         </Link>
@@ -210,7 +209,6 @@ const Layout: React.FC<LayoutProps> = ({
                   </SidebarMenu>
                 </SidebarGroup>
 
-                {/* Área Administrativa - visível apenas para admins e operadores */}
                 {(isAdmin() || isOperator()) && (
                   <>
                     <SidebarSeparator />
