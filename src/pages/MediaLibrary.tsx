@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { getMediaItems, MediaItem } from "@/utils/api";
@@ -77,14 +78,15 @@ const MediaLibrary: React.FC = () => {
     
     // Filter by body area
     if (selectedBodyArea && selectedBodyArea !== "none") {
-      const bodyAreaFilter = !selectedBodyArea || (item.bodyArea && item.bodyArea === selectedBodyArea);
-      filtered = filtered.filter(item => bodyAreaFilter);
+      filtered = filtered.filter(currentItem => 
+        currentItem.bodyArea === selectedBodyArea
+      );
     }
     
     // Filter by purpose
     if (selectedPurpose && selectedPurpose !== "none") {
-      filtered = filtered.filter(item => 
-        item.purpose.includes(selectedPurpose)
+      filtered = filtered.filter(currentItem => 
+        currentItem.purpose.includes(selectedPurpose)
       );
     }
     

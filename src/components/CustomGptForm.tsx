@@ -1,565 +1,352 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, Wand } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Equipment } from '@/types/equipment';
-import { getEquipments } from '@/utils/api-equipment';
-import { generateCustomContent, CustomGptType, ConteudoEstrategia } from '@/utils/custom-gpt';
-import { ScriptResponse, ScriptType } from '@/utils/api';
-import FormControls from './custom-gpt/FormControls';
-import GeneratedContent from './custom-gpt/GeneratedContent';
-import AdvancedOptions from './custom-gpt/AdvancedOptions';
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { useEquipments } from "@/hooks/useEquipments";
+import { CustomGptType, ConteudoEstrategia, CustomGptRequest, generateCustomContent, CustomGptResult } from "@/utils/custom-gpt";
 
-// Equipamentos padrão para garantir que sempre haja opções
-const defaultEquipamentos: Equipment[] = [
-  { 
-    id: "adella-default", 
-    nome: "Adélla Laser", 
-    tecnologia: "Laser de alta potência",
-    indicacoes: ["Tratamento de rugas, manchas e rejuvenescimento"],
-    beneficios: "Estimulação do colágeno, uniformização da pele",
-    diferenciais: "Exclusivo sistema de resfriamento",
-    linguagem: "Técnica com toques descontraídos",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "enygma-default", 
-    nome: "Enygma X-Orbital", 
-    tecnologia: "Sistema de ondas eletromagnéticas",
-    indicacoes: ["Flacidez facial e corporal"],
-    beneficios: "Firmeza e tonificação da pele",
-    diferenciais: "Tratamento sem dor e sem tempo de recuperação",
-    linguagem: "Informativa e acessível",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "hive-default", 
-    nome: "Hive Pro", 
-    tecnologia: "Ultrassom microfocado",
-    indicacoes: ["Gordura localizada e celulite"],
-    beneficios: "Redução de medidas e melhora do contorno corporal",
-    diferenciais: "Resultados em poucas sessões",
-    linguagem: "Direta e motivacional",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "focuskin-default", 
-    nome: "Focuskin", 
-    tecnologia: "Radiofrequência fracionada",
-    indicacoes: ["Estrias e cicatrizes"],
-    beneficios: "Remodelação do colágeno, melhor textura da pele",
-    diferenciais: "Ponteiras específicas para cada tipo de pele",
-    linguagem: "Técnica e detalhada",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "hipro-default", 
-    nome: "Hipro", 
-    tecnologia: "Eletroestimulação muscular",
-    indicacoes: ["Tonificação muscular e definição corporal"],
-    beneficios: "Fortalecimento muscular, redução de gordura",
-    diferenciais: "Tratamento equivalente a milhares de contrações musculares",
-    linguagem: "Energética e motivacional",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "crystal-default", 
-    nome: "Laser Crystal 3D Plus", 
-    tecnologia: "Laser de diodo",
-    indicacoes: ["Depilação definitiva"],
-    beneficios: "Pele livre de pelos, conforto durante o procedimento",
-    diferenciais: "Sistema de resfriamento, indolor",
-    linguagem: "Tranquilizadora e confiante",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "multi-default", 
-    nome: "MultiShape", 
-    tecnologia: "Sistema multifuncional",
-    indicacoes: ["Diversos tratamentos corporais"],
-    beneficios: "Versatilidade, resultados personalizados",
-    diferenciais: "Várias tecnologias em um único aparelho",
-    linguagem: "Versátil e adaptável",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "reverso-default", 
-    nome: "Reverso", 
-    tecnologia: "Tecnologia de reversão do envelhecimento",
-    indicacoes: ["Rejuvenescimento facial e corporal"],
-    beneficios: "Aspecto jovial, revitalização da pele",
-    diferenciais: "Protocolo exclusivo anti-aging",
-    linguagem: "Sofisticada e elegante",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "supreme-default", 
-    nome: "Supreme Pro", 
-    tecnologia: "Alta frequência e estimulação celular",
-    indicacoes: ["Lifting facial não invasivo"],
-    beneficios: "Efeito lifting imediato, durabilidade dos resultados",
-    diferenciais: "Não requer tempo de recuperação",
-    linguagem: "Premium e exclusiva",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "ultralift-default", 
-    nome: "Ultralift - Endolaser", 
-    tecnologia: "Ultrassom associado a laser",
-    indicacoes: ["Tratamento profundo da pele e tecidos"],
-    beneficios: "Efeito lifting e rejuvenescimento",
-    diferenciais: "Tecnologia combinada para resultados superiores",
-    linguagem: "Científica e confiável",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "unyque-default", 
-    nome: "Unyque PRO", 
-    tecnologia: "Crioterapia avançada",
-    indicacoes: ["Tratamentos faciais e corporais"],
-    beneficios: "Rápida recuperação, resultados duradouros",
-    diferenciais: "Conforto durante aplicação e eficácia",
-    linguagem: "Exclusiva e precisa",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  },
-  { 
-    id: "xtonus-default", 
-    nome: "X-Tonus", 
-    tecnologia: "Eletroestimulação avançada",
-    indicacoes: ["Flacidez e tonificação muscular"],
-    beneficios: "Fortalecimento muscular sem esforço",
-    diferenciais: "Resultados em poucas sessões",
-    linguagem: "Dinâmica e objetiva",
-    ativo: true,
-    data_cadastro: new Date().toISOString()
-  }
-];
-
-// Schema de validação do formulário para modo simples
-const simpleFormSchema = z.object({
-  tipo: z.enum(["roteiro", "bigIdea", "stories"]),
-  equipamento: z.string().min(1, "Selecione um equipamento"),
-  quantidade: z.number().min(1).max(10).optional(),
-  tom: z.string().optional(),
-  estrategiaConteudo: z.enum([
-    "🟡 Atrair Atenção",
-    "🟢 Criar Conexão",
-    "🔴 Fazer Comprar",
-    "🔁 Reativar Interesse",
-    "✅ Fechar Agora"
-  ]).optional()
-});
-
-// Schema de validação para modo avançado
-const advancedFormSchema = z.object({
-  tipo: z.enum(["roteiro", "bigIdea", "stories"]),
-  equipamento: z.string().min(1, "Selecione um equipamento"),
-  quantidade: z.number().min(1).max(10).optional(),
-  tom: z.string().optional(),
-  estrategiaConteudo: z.enum([
-    "🟡 Atrair Atenção",
-    "🟢 Criar Conexão",
-    "🔴 Fazer Comprar",
-    "🔁 Reativar Interesse",
-    "✅ Fechar Agora"
-  ]).optional(),
-  topic: z.string().optional(),
+const formSchema = z.object({
+  topic: z.string().min(2, {
+    message: "O tópico deve ter pelo menos 2 caracteres.",
+  }),
+  tone: z.string().optional(),
+  quantity: z.string().optional(),
+  additionalInfo: z.string().optional(),
+  resetAfterSubmit: z.boolean().default(false),
+  marketingObjective: z.string().optional(),
   bodyArea: z.string().optional(),
   purposes: z.array(z.string()).optional(),
-  additionalInfo: z.string().optional(),
-  marketingObjective: z.string().optional()
 });
 
-// Áreas do corpo
-const bodyAreas = [
-  { value: "face", label: "Face" },
-  { value: "pescoco", label: "Pescoço" },
-  { value: "abdomen", label: "Abdômen" },
-  { value: "coxas", label: "Coxas" },
-  { value: "gluteos", label: "Glúteos" },
-  { value: "bracos", label: "Braços" },
-  { value: "corpotodo", label: "Corpo todo" },
-];
-
-// Finalidades de tratamento
-const purposes = [
-  { value: "rugas", label: "Rugas" },
-  { value: "emagrecimento", label: "Emagrecimento" },
-  { value: "tonificacao", label: "Tonificação" },
-  { value: "hidratacao", label: "Hidratação" },
-  { value: "flacidez", label: "Flacidez" },
-  { value: "gordura", label: "Gordura localizada" },
-  { value: "lipedema", label: "Lipedema" },
-  { value: "sarcopenia", label: "Sarcopenia" },
-];
-
 interface CustomGptFormProps {
-  mode: 'simple' | 'advanced';
-  onScriptGenerated?: (script: ScriptResponse) => void;
-  initialData?: any; // Add the initialData prop
+  onResults: (results: CustomGptResult[]) => void;
 }
 
-const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormProps) => {
-  const [loading, setLoading] = useState(false);
-  const [equipamentos, setEquipamentos] = useState<Equipment[]>(defaultEquipamentos);
-  const [resultado, setResultado] = useState<string>("");
-  const [generatedScriptId, setGeneratedScriptId] = useState<string>("");
+const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
   const { toast } = useToast();
-  const [selectedPurposes, setSelectedPurposes] = useState<string[]>([]);
-  
-  // Form setup based on mode
-  const form = useForm<z.infer<typeof simpleFormSchema> | z.infer<typeof advancedFormSchema>>({
-    resolver: zodResolver(mode === 'simple' ? simpleFormSchema : advancedFormSchema),
-    defaultValues: mode === 'simple' ? {
-      tipo: "roteiro",
-      equipamento: "",
-      quantidade: 1
-    } : {
-      tipo: "roteiro",
-      equipamento: "",
-      quantidade: 1,
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { equipments, loading: equipmentsLoading } = useEquipments();
+  const [selectedType, setSelectedType] = useState<CustomGptType>("roteiro");
+  const [selectedEquipment, setSelectedEquipment] = useState<string | undefined>(undefined);
+  const [results, setResults] = useState<CustomGptResult[]>([]);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
       topic: "",
+      tone: "",
+      quantity: "1",
+      additionalInfo: "",
+      resetAfterSubmit: false,
+      marketingObjective: "",
       bodyArea: "",
       purposes: [],
-      additionalInfo: "",
-      tom: "professional"
-    }
+    },
   });
 
-  // Apply initialData to form if provided
   useEffect(() => {
-    if (initialData) {
-      console.log("Applying initial data to form:", initialData);
-      
-      // Update form values for each property in initialData
-      Object.entries(initialData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          form.setValue(key as any, value as any);
-          
-          // If purposes is being set, also update the selectedPurposes state
-          if (key === 'purposes' && Array.isArray(value)) {
-            setSelectedPurposes(value as string[]);
-          }
-        }
-      });
-      
-      toast({
-        title: "Dados pré-preenchidos",
-        description: "O formulário foi preenchido com base nas suas escolhas anteriores."
-      });
-    }
-  }, [initialData, form, toast]);
+    onResults(results);
+  }, [results, onResults]);
 
-  // Handle checkbox change for purposes
-  const handlePurposeChange = (value: string) => {
-    setSelectedPurposes(
-      selectedPurposes.includes(value)
-        ? selectedPurposes.filter((item) => item !== value)
-        : [...selectedPurposes, value]
-    );
-    
-    // Update form value if in advanced mode
-    if (mode === 'advanced') {
-      form.setValue('purposes', 
-        selectedPurposes.includes(value)
-          ? selectedPurposes.filter((item) => item !== value)
-          : [...selectedPurposes, value]
-      );
+  const getTypeName = (type: CustomGptType) => {
+    switch (type) {
+      case "roteiro":
+        return "Roteiro";
+      case "bigIdea":
+        return "Big Idea";
+      case "stories":
+        return "Stories";
+      default:
+        return "Conteúdo";
     }
   };
 
-  // Carregar equipamentos ao montar o componente
-  useEffect(() => {
-    const loadEquipamentos = async () => {
-      try {
-        console.log("Carregando equipamentos...");
-        const data = await getEquipments();
-        
-        if (data && data.length > 0) {
-          console.log(`${data.length} equipamentos carregados da API`);
-          // Combinar equipamentos da API com os padrão para evitar duplicidades
-          const combinedEquipamentos = [...data];
-          
-          // Adicionar equipamentos padrão que não estão na lista da API
-          defaultEquipamentos.forEach(defaultEq => {
-            const exists = data.some(apiEq => 
-              apiEq.nome.toLowerCase() === defaultEq.nome.toLowerCase()
-            );
-            
-            if (!exists) {
-              combinedEquipamentos.push(defaultEq);
-            }
-          });
-          
-          console.log(`Total de ${combinedEquipamentos.length} equipamentos após combinação`);
-          setEquipamentos(combinedEquipamentos);
-        } else {
-          console.log("API retornou lista vazia, usando equipamentos padrão");
-          setEquipamentos(defaultEquipamentos);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar equipamentos:", error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao carregar equipamentos",
-          description: "Usando lista de equipamentos padrão."
-        });
-        setEquipamentos(defaultEquipamentos);
-      }
-    };
-
-    loadEquipamentos();
-  }, [toast]);
-
-  // Prepare script data for validation
-  const prepareScriptData = (): ScriptResponse => {
-    const scriptType = form.getValues().tipo as CustomGptType;
-    let mappedType: ScriptType = "videoScript"; // Default
-    
-    // Map CustomGptType to ScriptType
-    if (scriptType === "bigIdea") {
-      mappedType = "bigIdea";
-    } else if (scriptType === "stories") {
-      mappedType = "dailySales";
-    }
-    
-    return {
-      id: generatedScriptId || `temp-${Date.now()}`,
-      title: `${form.getValues().equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
-      content: resultado,
-      type: mappedType,
-      createdAt: new Date().toISOString(),
-      suggestedVideos: [],
-      captionTips: []
-    };
+  const resetForm = () => {
+    form.reset();
+    setSelectedEquipment(undefined);
   };
 
-  // Lidar com o envio do formulário
-  const handleSubmit = async (data: any) => {
-    // Converta valores string para arrays quando necessário
-    const processedData = {
-      ...data,
-      // Se algum campo precisar ser array, converta-o aqui
-      equipment: Array.isArray(data.equipment) ? data.equipment : data.equipment ? [data.equipment] : [],
-      purposes: Array.isArray(data.purposes) ? data.purposes : data.purposes ? [data.purposes] : []
-    };
+  // Corrigir erros relacionados ao CustomGptRequest e dados do equipamento
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
     try {
-      setLoading(true);
-      setResultado("");
-      setGeneratedScriptId(`temp-${Date.now()}`);
-
-      // Encontrar o equipamento selecionado na lista
-      const equipamentoSelecionado = equipamentos.find(eq => eq.nome === processedData.equipamento);
+      setIsSubmitting(true);
       
-      if (!equipamentoSelecionado) {
-        throw new Error(`Equipamento ${processedData.equipamento} não encontrado na lista.`);
-      }
-
-      console.log("Enviando requisição para gerar conteúdo com equipamento:", equipamentoSelecionado);
+      // Cria a requisição para a API
+      const request: CustomGptRequest = {
+        tipo: selectedType,
+        equipamento: selectedEquipment || '',
+        quantidade: parseInt(form.getValues().quantity || "1") || 1,
+        tom: form.getValues().tone,
+        estrategiaConteudo: form.getValues().marketingObjective as ConteudoEstrategia,
+        topic: form.getValues().topic,
+        bodyArea: form.getValues().bodyArea,
+        purposes: form.getValues().purposes,
+        additionalInfo: form.getValues().additionalInfo,
+        marketingObjective: form.getValues().marketingObjective
+      };
       
-      // Preparar dados adicionais para o modo avançado
-      let additionalData = {};
-      if (mode === 'advanced') {
-        const advancedValues = processedData as z.infer<typeof advancedFormSchema>;
-        additionalData = {
-          topic: advancedValues.topic,
-          bodyArea: advancedValues.bodyArea,
-          purposes: selectedPurposes,
-          additionalInfo: advancedValues.additionalInfo,
-          marketingObjective: advancedValues.marketingObjective
-        };
+      // Faz a chamada para o custom GPT
+      const content = await generateCustomContent(request);
+      
+      // Simula um ID gerado para a resposta
+      const responseId = `gen-${Date.now()}`;
+      
+      // Adiciona o resultado à lista de resultados
+      setResults(prev => [
+        {
+          id: responseId,
+          content: content
+        },
+        ...prev
+      ]);
+      
+      // Reset do formulário
+      if (form.getValues().resetAfterSubmit) {
+        resetForm();
       }
-
-      const response = await generateCustomContent({
-        tipo: processedData.tipo as CustomGptType,
-        equipamento: processedData.equipamento,
-        quantidade: processedData.quantidade,
-        tom: processedData.tom,
-        estrategiaConteudo: processedData.estrategiaConteudo as ConteudoEstrategia,
-        equipamentoData: equipamentoSelecionado,
-        ...additionalData
-      });
-
-      setResultado(response.content);
-      setGeneratedScriptId(response.id || generatedScriptId);
       
       toast({
-        title: "Conteúdo gerado com sucesso!",
-        description: `${processedData.tipo.charAt(0).toUpperCase() + processedData.tipo.slice(1)} para ${processedData.equipamento} criado.`
+        title: "Conteúdo gerado com sucesso",
+        description: `O ${getTypeName(selectedType)} foi criado e está disponível para uso.`,
       });
-      
-      // Notify parent component when script is generated
-      if (onScriptGenerated) {
-        const scriptType = processedData.tipo as CustomGptType;
-        let mappedType: ScriptType = "videoScript"; // Default
-      
-        // Map CustomGptType to ScriptType
-        if (scriptType === "bigIdea") {
-          mappedType = "bigIdea";
-        } else if (scriptType === "stories") {
-          mappedType = "dailySales";
-        }
-        
-        const scriptResponse: ScriptResponse = {
-          id: response.id || generatedScriptId,
-          title: `${processedData.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
-          content: response.content,
-          type: mappedType,
-          createdAt: new Date().toISOString(),
-          suggestedVideos: [],
-          captionTips: []
-        };
-        
-        onScriptGenerated(scriptResponse);
-      }
     } catch (error) {
-      console.error("Erro ao gerar conteúdo:", error);
+      console.error('Erro ao gerar conteúdo:', error);
       toast({
         variant: "destructive",
-        title: "Erro na geração",
-        description: error instanceof Error ? error.message : "Não foi possível gerar o conteúdo solicitado."
+        title: "Erro ao gerar conteúdo",
+        description: "Ocorreu um erro ao tentar gerar o conteúdo personalizado."
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center">
-            {mode === 'simple' ? (
-              <>
-                <Sparkles className="h-5 w-5 mr-2 text-blue-500" />
-                Fluida - Roteiros e Ideias
-              </>
-            ) : (
-              <>
-                <Wand className="h-5 w-5 mr-2 text-blue-500" />
-                Roteiro Avançado - Personalização Completa
-              </>
-            )}
-          </CardTitle>
-          <CardDescription>
-            {mode === 'simple' 
-              ? "Gere roteiros, big ideas e stories para equipamentos estéticos" 
-              : "Crie conteúdo altamente personalizado com opções avançadas de customização"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              <Tabs defaultValue="roteiro" 
-                onValueChange={(value) => form.setValue("tipo", value as CustomGptType)}
-                className="w-full">
-                <TabsList className="grid grid-cols-3 mb-4">
-                  <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
-                  <TabsTrigger value="bigIdea">Big Idea</TabsTrigger>
-                  <TabsTrigger value="stories">Stories 10x</TabsTrigger>
-                </TabsList>
-                
-                <FormField
-                  control={form.control}
-                  name="equipamento"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>Equipamento</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um equipamento" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {equipamentos.length > 0 ? (
-                            equipamentos.map((eq) => (
-                              <SelectItem key={eq.id || eq.nome} value={eq.nome}>
-                                {eq.nome}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="carregando">Carregando equipamentos...</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="type">Tipo de Conteúdo</Label>
+          <Select value={selectedType} onValueChange={(value) => setSelectedType(value as CustomGptType)}>
+            <SelectTrigger id="type">
+              <SelectValue placeholder="Selecione o tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="roteiro">Roteiro para Vídeo</SelectItem>
+              <SelectItem value="bigIdea">Big Idea</SelectItem>
+              <SelectItem value="stories">Stories</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-                <TabsContent value="roteiro" className="space-y-4">
-                  <FormControls form={form} formType="roteiro" />
-                </TabsContent>
-                
-                <TabsContent value="bigIdea" className="space-y-4">
-                  <FormControls form={form} formType="bigIdea" />
-                </TabsContent>
-                
-                <TabsContent value="stories" className="space-y-4">
-                  <FormControls form={form} formType="stories" />
-                </TabsContent>
-              </Tabs>
-              
-              {/* Opções avançadas apenas para o modo advanced */}
-              {mode === 'advanced' && (
-                <AdvancedOptions 
-                  form={form}
-                  bodyAreas={bodyAreas}
-                  purposes={purposes}
-                  selectedPurposes={selectedPurposes}
-                  onPurposeChange={handlePurposeChange}
-                />
+        <div>
+          <Label htmlFor="equipment">Equipamento</Label>
+          <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+            <SelectTrigger id="equipment">
+              <SelectValue placeholder="Selecione o equipamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {equipmentsLoading ? (
+                <SelectItem value="loading" disabled>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Carregando...
+                </SelectItem>
+              ) : (
+                equipments.map((equipment) => (
+                  <SelectItem key={equipment.id} value={equipment.id}>
+                    {equipment.nome}
+                  </SelectItem>
+                ))
               )}
-              
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Gerar conteúdo personalizado
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </SelectContent>
+          </Select>
+        </div>
 
-      {resultado && (
-        <GeneratedContent
-          content={resultado}
-          title="Conteúdo Gerado"
-          description={`${form.getValues().tipo.charAt(0).toUpperCase() + form.getValues().tipo.slice(1)} gerado para ${form.getValues().equipamento}`}
-          scriptId={generatedScriptId}
-          prepareScriptData={prepareScriptData}
+        <FormField
+          control={form.control}
+          name="topic"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tópico</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Dicas de skincare" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      )}
-    </div>
+
+        <FormField
+          control={form.control}
+          name="tone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tom de voz</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Entusiasmado, informativo" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Quantidade</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="1" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="additionalInfo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Informações adicionais</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Ex: Mencionar a importância da proteção solar"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="marketingObjective"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Objetivo de Marketing</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o objetivo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
+                  <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
+                  <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
+                  <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
+                  <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bodyArea"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Área do Corpo</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Rosto, corpo" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="purposes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Finalidades</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                multiple
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione as finalidades" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="rugas">Rugas</SelectItem>
+                  <SelectItem value="flacidez">Flacidez</SelectItem>
+                  <SelectItem value="manchas">Manchas</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="resetAfterSubmit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Limpar após gerar</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Limpa os campos após o conteúdo ser gerado
+                </p>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Gerando...
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Gerar Conteúdo
+            </>
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };
 

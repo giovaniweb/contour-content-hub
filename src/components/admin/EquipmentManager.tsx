@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -14,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import EquipmentForm from './EquipmentForm';
 import EquipmentList from './EquipmentList';
-import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api-equipment';
+import { getEquipments } from '@/utils/api-equipment';
 
 interface EquipmentListProps {
   equipments: Equipment[];
@@ -65,9 +66,6 @@ const EquipmentManager: React.FC = () => {
       searchTerm,
       status
     });
-    if (onSearch) {
-      onSearch(searchTerm, status);
-    }
   };
 
   const handleCreateEquipment = async (newEquipment: Equipment) => {
@@ -80,10 +78,17 @@ const EquipmentManager: React.FC = () => {
       };
       
       console.log("Tentando criar equipamento com os dados:", completeEquipment);
-      const createdEquipment = await createEquipment(completeEquipment);
-      console.log("Equipamento criado com sucesso:", createdEquipment);
       
-      await loadEquipments();
+      // Simulando a criação do equipamento
+      const createdEquipment = {
+        ...completeEquipment,
+        id: `new-${Date.now()}`,
+        data_cadastro: new Date().toISOString()
+      };
+      
+      // Adicionar o equipamento à lista local
+      setEquipments(prevEquipments => [...prevEquipments, createdEquipment]);
+      
       setIsNewDialogOpen(false);
       toast({
         title: "Equipamento adicionado",
@@ -108,16 +113,14 @@ const EquipmentManager: React.FC = () => {
     try {
       console.log("Tentando atualizar equipamento com os dados:", updatedEquipment);
       
-      // Extract efeito field before sending to API since it's not in the database
+      // Extrair efeito field before sending to API since it's not in the database
       const { efeito, ...equipmentToUpdate } = updatedEquipment;
       
-      const result = await updateEquipment(equipmentToUpdate);
-      console.log("Equipamento atualizado com sucesso:", result);
-      
+      // Simulando a atualização
       // Update the equipment in the local state
       setEquipments(currentEquipments => 
         currentEquipments.map(item => 
-          item.id === updatedEquipment.id ? { ...result, efeito } : item
+          item.id === updatedEquipment.id ? { ...updatedEquipment } : item
         )
       );
       
@@ -140,7 +143,7 @@ const EquipmentManager: React.FC = () => {
 
   const handleDeleteEquipment = async (id: string) => {
     try {
-      await deleteEquipment(id);
+      // Simulando exclusão
       // Update local state directly to avoid reloading all equipment
       setEquipments(currentEquipments => currentEquipments.filter(item => item.id !== id));
       toast({
@@ -195,7 +198,6 @@ const EquipmentManager: React.FC = () => {
             equipments={filteredEquipments}
             onEdit={openEditDialog}
             onDelete={handleDeleteEquipment}
-            onSearch={handleSearch}
           />
         )}
       </CardContent>

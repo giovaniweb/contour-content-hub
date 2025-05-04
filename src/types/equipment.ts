@@ -7,8 +7,8 @@ export interface Equipment {
   id: string;
   nome: string;
   efeito?: string;
-  beneficios?: string;
-  tecnologia?: string;
+  beneficios: string;
+  tecnologia: string;
   fabricante?: string;
   site?: string;
   ativo: boolean;
@@ -21,15 +21,15 @@ export interface Equipment {
   garantia?: string;
   parametros?: string;
   protocolos?: string;
-  indicacoes?: string[];
+  indicacoes: string[];
   contraindicacoes?: string[];
   caracteristicas?: string[];
   beneficios_lista?: string[];
   areas_corpo?: string[];
   image_url?: string;
   data_cadastro?: string;
-  diferenciais?: string;
-  linguagem?: string;
+  diferenciais: string;
+  linguagem: string;
 }
 
 // Interface for equipment search filters
@@ -45,7 +45,7 @@ export interface EquipmentCreationProps {
   nome: string;
   efeito?: string;
   tecnologia: string;
-  indicacoes: string | string[];
+  indicacoes: string[] | string;
   beneficios: string;
   diferenciais: string;
   linguagem: string;

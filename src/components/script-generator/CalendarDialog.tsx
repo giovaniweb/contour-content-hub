@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -49,8 +48,7 @@ export function CalendarDialog({
       // Link the script to the calendar event
       const success = await linkScriptToCalendar(scriptId, eventId);
       
-      // Fix the truthiness check
-      if (success === true) {
+      if (success) {
         toast({
           title: "Conteúdo agendado com sucesso",
           description: `"${scriptTitle || 'Conteúdo'}" foi agendado para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`,

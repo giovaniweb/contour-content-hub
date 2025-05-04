@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 export type ScriptType = "videoScript" | "dailySales" | "bigIdea" | "reelsScript";
@@ -52,11 +51,12 @@ export interface MediaItem {
   videoUrl?: string;
   isFavorite: boolean;
   rating: number;
-  equipment?: string[];
-  purpose?: string[];
-  bodyArea?: string;
+  equipment: string[];
+  purpose: string[];
+  bodyArea: string;
   duration?: string;
   fecha_criacao?: string;
+  shortDescription?: string;
 }
 
 export interface CalendarSuggestion {
@@ -78,8 +78,8 @@ export interface CalendarPreferences {
   topics: string[];
   equipment: string[];
   autoGenerate: boolean;
-  formats?: string[];
-  purpose?: string[];
+  formats: string[];
+  purpose: string[];
 }
 
 export async function generatePDF(scriptId: string): Promise<string> {

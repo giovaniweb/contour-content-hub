@@ -1,5 +1,5 @@
 
-import { Equipment } from "@/types/equipment";
+import { Equipment, EquipmentCreationProps } from "@/types/equipment";
 
 // Function to get all equipment
 export async function getEquipments(): Promise<Equipment[]> {
@@ -76,14 +76,14 @@ export async function getEquipmentById(id: string): Promise<Equipment | null> {
   return allEquipments.find(equip => equip.id === id) || null;
 }
 
-// Create equipment function (missing)
-export async function createEquipment(equipment: Omit<Equipment, "id">): Promise<Equipment> {
+// Create equipment function
+export async function createEquipment(equipmentData: Omit<Equipment, "id">): Promise<Equipment> {
   // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 800));
   
   // Generate a new ID for the equipment
   const newEquipment: Equipment = {
-    ...equipment,
+    ...equipmentData,
     id: Math.random().toString(36).substring(2, 11),
     data_cadastro: new Date().toISOString()
   };
@@ -92,7 +92,7 @@ export async function createEquipment(equipment: Omit<Equipment, "id">): Promise
   return newEquipment;
 }
 
-// Update equipment function (missing)
+// Update equipment function
 export async function updateEquipment(equipment: Equipment): Promise<Equipment> {
   // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 700));
@@ -101,7 +101,7 @@ export async function updateEquipment(equipment: Equipment): Promise<Equipment> 
   return equipment;
 }
 
-// Delete equipment function (missing)
+// Delete equipment function
 export async function deleteEquipment(id: string): Promise<boolean> {
   // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -110,7 +110,7 @@ export async function deleteEquipment(id: string): Promise<boolean> {
   return true;
 }
 
-// Import equipment function (missing)
+// Import equipment function
 export async function importEquipments(equipmentsData: any[]): Promise<Equipment[]> {
   // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -159,7 +159,7 @@ export async function importEquipments(equipmentsData: any[]): Promise<Equipment
   return importedEquipments;
 }
 
-// Additional functions for equipment files and videos
+// Additional helper functions
 export async function fetchEquipmentFiles(equipmentId: string): Promise<any[]> {
   // Simulating an API call
   await new Promise(resolve => setTimeout(resolve, 500));

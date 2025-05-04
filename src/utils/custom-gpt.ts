@@ -18,6 +18,11 @@ export interface CustomGptRequest {
   marketingObjective?: string;
 }
 
+export interface CustomGptResult {
+  id: string;
+  content: string;
+}
+
 const sampleResponses: Record<CustomGptType, string[]> = {
   roteiro: [
     "# ROTEIRO: BENEFÍCIOS DO [EQUIPAMENTO]\n\n## GANCHO DE ABERTURA\n\"Você já se perguntou como conseguir resultados incríveis em tratamentos estéticos sem passar por procedimentos invasivos? Hoje vou te mostrar como o [EQUIPAMENTO] está revolucionando o mercado.\"\n\n## DESENVOLVIMENTO\n- Apresente o equipamento brevemente\n- Explique os 3 principais benefícios\n- Demonstre uma aplicação rápida\n- Mostre um antes e depois ou testimunho\n\n## CALL-TO-ACTION\n\"Marque uma avaliação gratuita e descubra como o [EQUIPAMENTO] pode transformar sua vida. Link na bio!\"",

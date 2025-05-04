@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import CalendarDialog from "./script-generator/CalendarDialog";
+import { CalendarDialog } from "./script-generator/CalendarDialog";
 import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
 import { mapValidationToAnnotations } from "@/utils/validation/annotations";
 

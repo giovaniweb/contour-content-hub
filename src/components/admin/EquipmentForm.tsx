@@ -20,7 +20,8 @@ import {
   hasValidationErrors,
   saveEquipmentDraft,
   getEquipmentDraft,
-  clearEquipmentDraft
+  clearEquipmentDraft,
+  convertStringToArray
 } from '@/types/equipment';
 import { AlertCircle, CheckCircle2, Upload, X, Loader2, Image as ImageIcon, Save } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -98,15 +99,15 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       // Reset form with draft data
       form.reset({
         id: 'new', // Add dummy ID for type safety
-        nome: '',
-        tecnologia: '',
-        indicacoes: [],
-        beneficios: '',
-        diferenciais: '',
-        linguagem: '',
-        image_url: '',
+        nome: draft.data.nome as string || '',
+        tecnologia: draft.data.tecnologia as string || '',
+        indicacoes: convertStringToArray(draft.data.indicacoes),
+        beneficios: draft.data.beneficios as string || '',
+        diferenciais: draft.data.diferenciais as string || '',
+        linguagem: draft.data.linguagem as string || '',
+        image_url: draft.data.image_url as string || '',
         ativo: true,
-        efeito: ''
+        efeito: draft.data.efeito as string || ''
       } as Equipment);
       
       // Set image preview if available
@@ -239,49 +240,40 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       if (hasValidationErrors(validationErrors)) {
         // Exibir erros de validação
         for (const [field, message] of Object.entries(validationErrors)) {
-          form.setError(field as any, {
-            type: 'manual',
-            message: message as string
+          form.setError(field as any, { 
+            type: "manual", 
+            message 
           });
         }
-        
-        toast({
-          variant: "destructive",
-          title: "Erro de validação",
-          description: "Verifique os campos obrigatórios e tente novamente.",
-        });
         return;
       }
-      
+
       setIsSaving(true);
+      
+      // Convert indicacoes to array if it's a string
+      if (typeof data.indicacoes === 'string') {
+        data.indicacoes = convertStringToArray(data.indicacoes);
+      }
+      
       await onSave(data);
       
-      // Clear draft after successful save
       if (!equipment) {
+        // Clear draft after successful new equipment creation
         clearEquipmentDraft();
+        setHasDraft(false);
       }
       
       toast({
-        title: "Sucesso",
-        description: (
-          <div className="flex items-center">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-            <span>{`Equipamento ${equipment ? 'atualizado' : 'cadastrado'} com sucesso!`}</span>
-          </div>
-        ),
+        title: equipment ? "Equipamento atualizado" : "Equipamento cadastrado",
+        description: `${data.nome} foi ${equipment ? "atualizado" : "cadastrado"} com sucesso.`
       });
     } catch (error) {
+      console.error(`Erro ao ${equipment ? "atualizar" : "cadastrar"} equipamento:`, error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: (
-          <div className="flex items-center">
-            <AlertCircle className="h-4 w-4 text-destructive mr-2" />
-            <span>{`Falha ao ${equipment ? 'atualizar' : 'cadastrar'} equipamento. Tente novamente.`}</span>
-          </div>
-        ),
+        title: `Erro ao ${equipment ? "atualizar" : "cadastrar"} equipamento`,
+        description: `Não foi possível ${equipment ? "atualizar" : "adicionar"} o equipamento.`
       });
-      console.error("Erro ao salvar equipamento:", error);
     } finally {
       setIsSaving(false);
     }
