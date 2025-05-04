@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, ArrowRight, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -19,6 +20,7 @@ interface MarketingConsultantChatProps {
 const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({ 
   onStartConsultation 
 }) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -73,6 +75,10 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         
         // After a short delay, start the consultation flow
         setTimeout(() => {
+          toast({
+            title: "Iniciando diagnóstico",
+            description: "Preparando formulário de diagnóstico para sua clínica..."
+          });
           onStartConsultation();
         }, 1500);
         
@@ -93,6 +99,14 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       setLoading(false);
     }, 1000);
+  };
+
+  const handleStartDiagnostic = () => {
+    toast({
+      title: "Iniciando diagnóstico",
+      description: "Preparando formulário de diagnóstico para sua clínica..."
+    });
+    onStartConsultation();
   };
 
   return (
@@ -147,7 +161,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         </ScrollArea>
       </CardContent>
       
-      <CardFooter className="pt-3 border-t">
+      <CardFooter className="pt-3 border-t flex-col gap-2">
         <div className="flex w-full items-center space-x-2">
           <Input
             placeholder="Digite sua mensagem..."
@@ -163,15 +177,28 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
           <Button onClick={handleSend} disabled={loading || !input.trim()}>
             <Send className="h-4 w-4" />
           </Button>
-          <Button onClick={onStartConsultation} variant="outline">
-            Iniciar Diagnóstico
+        </div>
+        
+        <div className="flex w-full justify-between">
+          <Button 
+            onClick={handleStartDiagnostic} 
+            variant="default" 
+            className="w-full"
+          >
+            Iniciar Diagnóstico Completo
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-2" 
+            onClick={() => setInput('O que é o Fluida Te Entende?')}
+          >
+            <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
+            Fluida Te Entende
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" className="ml-2" onClick={() => setInput('O que é o Fluida Te Entende?')}>
-          <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
-          Fluida Te Entende
-        </Button>
       </CardFooter>
     </Card>
   );
