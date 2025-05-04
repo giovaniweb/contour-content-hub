@@ -6,10 +6,8 @@ import { ContentStrategyRowWithRelations } from "@/types/supabase/contentStrateg
  * Transforma os dados brutos do Supabase em um objeto ContentStrategyItem tipado
  */
 export function transformToContentStrategyItem(data: ContentStrategyRowWithRelations): ContentStrategyItem {
-  // Checagem de segurança para garantir que distribuicao exista
-  const distribuicao = data.distribuicao ? 
-    data.distribuicao as ContentDistribution : 
-    'Instagram';
+  // Default value for distribuicao if it doesn't exist
+  const distribuicao = data.distribuicao as ContentDistribution || 'Instagram';
 
   const estrategiaItem: ContentStrategyItem = {
     id: data.id,

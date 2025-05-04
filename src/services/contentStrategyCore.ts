@@ -1,27 +1,8 @@
-
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
 import { PostgrestSingleResponse } from "@supabase/supabase-js";
-
-// Define interface for database rows to help with type safety
-interface ContentStrategyRow {
-  id: string;
-  categoria: string;
-  formato: string;
-  objetivo: string;
-  conteudo: string | null;
-  equipamento_id: string | null;
-  responsavel_id: string | null;
-  previsao: string | null;
-  status: string;
-  distribuicao: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-  equipamento?: { nome: string } | null;
-  responsavel?: { nome: string } | null;
-}
+import { ContentStrategyRow, ContentStrategyRowWithRelations, ContentStrategyInsert, ContentStrategyUpdate } from "@/types/supabase/contentStrategy";
 
 /**
  * Fetch content strategy items with filters
@@ -75,7 +56,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     }
     
     // Add explicit type annotation to the query result
-    const { data, error }: PostgrestSingleResponse<ContentStrategyRow[]> = await query;
+    const { data, error }: PostgrestSingleResponse<ContentStrategyRowWithRelations[]> = await query;
     
     if (error) throw error;
     
@@ -95,7 +76,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     const preparedData = prepareContentStrategyData(item);
     
     // Explicitly cast to match database structure with required fields
-    const insertData = {
+    const insertData: ContentStrategyInsert = {
       categoria: preparedData.categoria,
       formato: preparedData.formato,
       objetivo: preparedData.objetivo,
@@ -107,7 +88,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       distribuicao: preparedData.distribuicao
     };
     
-    const { data, error }: PostgrestSingleResponse<ContentStrategyRow> = await supabase
+    const { data, error }: PostgrestSingleResponse<ContentStrategyRowWithRelations> = await supabase
       .from('content_strategy_items')
       .insert([insertData])
       .select(`
@@ -134,7 +115,7 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
     const preparedData = prepareContentStrategyData(updates);
     
     // We need to provide the data in a format that matches the database table structure
-    const updateData = {
+    const updateData: ContentStrategyUpdate = {
       categoria: preparedData.categoria,
       formato: preparedData.formato,
       objetivo: preparedData.objetivo,
