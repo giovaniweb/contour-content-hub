@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -46,7 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
-const Navbar: React.FC = () => {
+export const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -212,11 +211,11 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavLink to="/equipment-details">
+                  <NavLink to="/admin/equipments">
                     <NavigationMenuLink 
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        location.pathname === "/equipment-details" ? "bg-accent text-accent-foreground" : ""
+                        location.pathname.includes("/admin/equipments") ? "bg-accent text-accent-foreground" : ""
                       )}
                     >
                       <CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -256,21 +255,84 @@ const Navbar: React.FC = () => {
                 <div className="space-y-1 px-2 py-4">
                   {isAuthenticated && (
                     <>
-                      <DrawerNavLink to="/dashboard" icon={<Home className="h-5 w-5" />} label="Inicio" />
-                      <DrawerNavLink to="/custom-gpt" icon={<FileText className="h-5 w-5" />} label="Roteiros Fluida" />
-                      <DrawerNavLink to="/validate-script" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
-                      <DrawerNavLink to="/documents" icon={<BookOpen className="h-5 w-5" />} label="Artigos Científicos" />
-                      <DrawerNavLink to="/media" icon={<Film className="h-5 w-5" />} label="Mídia" />
-                      <DrawerNavLink to="/content-strategy" icon={<ListTodo className="h-5 w-5" />} label="Estratégia de Conteúdo" isNew={true} />
-                      <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
-                      <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
+                      <Link 
+                        to="/dashboard" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><Home className="h-5 w-5" /></span>
+                        Inicio
+                      </Link>
+                      <Link 
+                        to="/custom-gpt" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><FileText className="h-5 w-5" /></span>
+                        Roteiros Fluida
+                      </Link>
+                      <Link 
+                        to="/validate-script" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><CheckCircle className="h-5 w-5" /></span>
+                        Validador de Roteiros
+                      </Link>
+                      <Link 
+                        to="/documents" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><BookOpen className="h-5 w-5" /></span>
+                        Artigos Científicos
+                      </Link>
+                      <Link 
+                        to="/media" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><Film className="h-5 w-5" /></span>
+                        Mídia
+                      </Link>
+                      <Link 
+                        to="/content-strategy" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><ListTodo className="h-5 w-5" /></span>
+                        Estratégia de Conteúdo
+                        <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
+                      </Link>
+                      <Link 
+                        to="/admin/equipments" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><CalendarDays className="h-5 w-5" /></span>
+                        Equipamentos
+                      </Link>
                     </>
                   )}
                   
                   {!isAuthenticated && (
                     <>
-                      <DrawerNavLink to="/" icon={<Home className="h-5 w-5" />} label="Início" />
-                      <DrawerNavLink to="/register" icon={<FileText className="h-5 w-5" />} label="Criar conta" />
+                      <Link 
+                        to="/" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><Home className="h-5 w-5" /></span>
+                        Início
+                      </Link>
+                      <Link 
+                        to="/register" 
+                        className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="mr-3 text-contourline-mediumBlue"><FileText className="h-5 w-5" /></span>
+                        Criar conta
+                      </Link>
                     </>
                   )}
                 </div>
@@ -313,5 +375,3 @@ const Navbar: React.FC = () => {
     </header>
   );
 };
-
-export default Navbar;
