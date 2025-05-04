@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import { getEquipments } from '@/utils/api-equipment';
 import { generateCustomContent, CustomGptType, ConteudoEstrategia } from '@/utils/custom-gpt';
-import { ScriptResponse } from '@/utils/api';
+import { ScriptResponse, ScriptType } from '@/utils/api';
 import FormControls from './custom-gpt/FormControls';
 import GeneratedContent from './custom-gpt/GeneratedContent';
 import AdvancedOptions from './custom-gpt/AdvancedOptions';
@@ -332,7 +332,7 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
   // Prepare script data for validation
   const prepareScriptData = (): ScriptResponse => {
     const scriptType = form.getValues().tipo as CustomGptType;
-    let mappedType = "videoScript"; // Default
+    let mappedType: ScriptType = "videoScript"; // Default
     
     // Map CustomGptType to ScriptType
     if (scriptType === "bigIdea") {
@@ -345,10 +345,10 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       id: generatedScriptId || `temp-${Date.now()}`,
       title: `${form.getValues().equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
       content: resultado,
-      type: mappedType as ScriptType,
+      type: mappedType,
       createdAt: new Date().toISOString(),
-      suggestedVideos: [],  // Added missing property
-      captionTips: []       // Added missing property
+      suggestedVideos: [],
+      captionTips: []
     };
   };
 
@@ -402,8 +402,8 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       // Notify parent component when script is generated
       if (onScriptGenerated) {
         const scriptType = values.tipo as CustomGptType;
-        let mappedType = "videoScript"; // Default
-        
+        let mappedType: ScriptType = "videoScript"; // Default
+      
         // Map CustomGptType to ScriptType
         if (scriptType === "bigIdea") {
           mappedType = "bigIdea";
@@ -415,10 +415,10 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
           id: response.id || generatedScriptId,
           title: `${values.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
           content: response.content,
-          type: mappedType as ScriptType,
+          type: mappedType,
           createdAt: new Date().toISOString(),
-          suggestedVideos: [],  // Added missing property
-          captionTips: []       // Added missing property
+          suggestedVideos: [],
+          captionTips: []
         };
         
         onScriptGenerated(scriptResponse);
