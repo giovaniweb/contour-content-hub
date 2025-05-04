@@ -1,8 +1,7 @@
-
 import { v4 as uuidv4 } from 'uuid';
+import { MarketingObjectiveType } from '@/types/script';
 
 export type ScriptType = "videoScript" | "dailySales" | "bigIdea" | "reelsScript";
-export type MarketingObjectiveType = "atrair_atencao" | "criar_conexao" | "fazer_comprar" | "reativar_interesse" | "fechar_agora";
 
 export interface ScriptResponse {
   id: string;
@@ -14,7 +13,7 @@ export interface ScriptResponse {
   captionTips: string[];
   pdf_url?: string;
   equipment?: string;
-  marketingObjective?: MarketingObjectiveType;
+  marketingObjective?: MarketingObjectiveType; // Using the MarketingObjectiveType from script.ts
   observation?: string;
 }
 

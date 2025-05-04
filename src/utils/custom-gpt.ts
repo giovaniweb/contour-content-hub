@@ -6,6 +6,9 @@ import { MarketingObjectiveType } from '@/types/script';
 
 export type CustomGptType = 'roteiro' | 'bigIdea' | 'stories';
 
+// Adding ConteudoEstrategia type that was missing
+export type ConteudoEstrategia = MarketingObjectiveType;
+
 export interface CustomGptRequest {
   tipo: CustomGptType;
   equipamento: string;

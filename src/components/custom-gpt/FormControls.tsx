@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessa
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from 'react-hook-form';
-import { ConteudoEstrategia, CustomGptType } from '@/utils/custom-gpt';
+import { CustomGptType, ConteudoEstrategia } from '@/utils/custom-gpt';
 
 interface FormControlsProps {
   form: UseFormReturn<any>;
