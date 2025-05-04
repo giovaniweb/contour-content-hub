@@ -1,27 +1,16 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { Equipment } from '@/types/equipment';
-import { ScriptResponse } from './api';
+import { Equipment } from "@/types/equipment";
+import { ScriptResponse } from "./api";
 
 export type CustomGptType = "roteiro" | "bigIdea" | "stories";
+export type ConteudoEstrategia = "🟡 Atrair Atenção" | "🟢 Criar Conexão" | "🔴 Fazer Comprar" | "🔁 Reativar Interesse" | "✅ Fechar Agora";
 
-export type ConteudoEstrategia = 
-  | "🟡 Atrair Atenção" 
-  | "🟢 Criar Conexão" 
-  | "🔴 Fazer Comprar" 
-  | "🔁 Reativar Interesse" 
-  | "✅ Fechar Agora";
-
-interface CustomGptRequestBase {
+export interface CustomGptRequest {
   tipo: CustomGptType;
   equipamento: string;
   quantidade?: number;
   tom?: string;
   estrategiaConteudo?: ConteudoEstrategia;
-  equipamentoData?: Equipment;
-}
-
-interface AdvancedCustomGptRequest extends CustomGptRequestBase {
   topic?: string;
   bodyArea?: string;
   purposes?: string[];
@@ -29,104 +18,73 @@ interface AdvancedCustomGptRequest extends CustomGptRequestBase {
   marketingObjective?: string;
 }
 
-export type CustomGptRequest = CustomGptRequestBase | AdvancedCustomGptRequest;
+const sampleResponses: Record<CustomGptType, string[]> = {
+  roteiro: [
+    "# ROTEIRO: BENEFÍCIOS DO [EQUIPAMENTO]\n\n## GANCHO DE ABERTURA\n\"Você já se perguntou como conseguir resultados incríveis em tratamentos estéticos sem passar por procedimentos invasivos? Hoje vou te mostrar como o [EQUIPAMENTO] está revolucionando o mercado.\"\n\n## DESENVOLVIMENTO\n- Apresente o equipamento brevemente\n- Explique os 3 principais benefícios\n- Demonstre uma aplicação rápida\n- Mostre um antes e depois ou testimunho\n\n## CALL-TO-ACTION\n\"Marque uma avaliação gratuita e descubra como o [EQUIPAMENTO] pode transformar sua vida. Link na bio!\"",
+    "# ROTEIRO: TRANSFORMAÇÕES COM [EQUIPAMENTO]\n\n## GANCHO DE ABERTURA\n\"O que torna um tratamento estético realmente eficaz? Vou te mostrar como o [EQUIPAMENTO] está transformando a vida das minhas pacientes.\"\n\n## DESENVOLVIMENTO\n- Conte a história de uma paciente (preservando identidade)\n- Explique o problema que ela enfrentava\n- Mostre como o [EQUIPAMENTO] resolveu esse problema\n- Apresente os resultados com antes e depois\n\n## CALL-TO-ACTION\n\"Quer conhecer mais histórias de transformação? Me siga e agende sua consulta para fazer parte destas histórias de sucesso!\"",
+    "# ROTEIRO: COMO FUNCIONA O [EQUIPAMENTO]\n\n## GANCHO DE ABERTURA\n\"Muitas pessoas me perguntam como exatamente o [EQUIPAMENTO] consegue resultados tão impressionantes. Hoje vou te mostrar o que acontece nos bastidores.\"\n\n## DESENVOLVIMENTO\n- Explique de forma simples a tecnologia por trás do equipamento\n- Demonstre em um modelo ou paciente voluntário\n- Destaque a segurança e o conforto durante o tratamento\n- Explique quanto tempo leva para ver resultados\n\n## CALL-TO-ACTION\n\"Tem alguma dúvida sobre como o [EQUIPAMENTO] pode ajudar no seu caso específico? Deixe nos comentários ou me chame no direct!\""
+  ],
+  bigIdea: [
+    "# BIG IDEA: CONQUISTE A MELHOR VERSÃO DE SI COM [EQUIPAMENTO]\n\n## HEADLINE PRINCIPAL\n\"Descubra como o [EQUIPAMENTO] está ajudando mulheres a recuperarem sua autoestima sem procedimentos invasivos\"\n\n## SUBHEADLINES\n1. \"A tecnologia que está revolucionando tratamentos estéticos\"\n2. \"Por que celebridades estão escolhendo esta opção?\"\n3. \"Resultados visíveis em apenas [X] sessões\"\n\n## ELEMENTOS DA CAMPANHA\n- Série de depoimentos em vídeo\n- Webinário gratuito sobre a tecnologia\n- Oferta especial para primeiras sessões\n- E-book sobre cuidados complementares\n\n## CALENDÁRIO DE PUBLICAÇÕES\n- Segunda: Live explicativa\n- Quarta: Destaque de resultados\n- Sexta: Promoção especial de fim de semana",
+    "# BIG IDEA: REVOLUÇÃO ESTÉTICA: O PODER DO [EQUIPAMENTO]\n\n## HEADLINE PRINCIPAL\n\"A tecnologia que está fazendo cirurgiões plásticos repensarem procedimentos invasivos\"\n\n## SUBHEADLINES\n1. \"Como o [EQUIPAMENTO] atinge resultados sem cortes ou agulhas\"\n2. \"O segredo que as clínicas de luxo não querem que você saiba\"\n3. \"A ciência por trás dos resultados impressionantes\"\n\n## ELEMENTOS DA CAMPANHA\n- Comparativo antes e depois (série de posts)\n- Desafio de transformação de 30 dias\n- Quiz: Qual tratamento é ideal para você?\n- Consultas demonstrativas gratuitas\n\n## CALENDÁRIO DE PUBLICAÇÕES\n- Terça: Post educativo sobre a tecnologia\n- Quinta: Depoimento em vídeo\n- Domingo: Perguntas e respostas nos Stories",
+    "# BIG IDEA: [EQUIPAMENTO] - SUA JORNADA PARA A CONFIANÇA\n\n## HEADLINE PRINCIPAL\n\"Transforme sua relação com o espelho em apenas [X] semanas com [EQUIPAMENTO]\"\n\n## SUBHEADLINES\n1. \"O método comprovado cientificamente para resultados duradouros\"\n2. \"Por que 95% das nossas pacientes recomendam este tratamento\"\n3. \"A solução definitiva para [problema específico]\"\n\n## ELEMENTOS DA CAMPANHA\n- Jornal de transformação (documentando resultados semanais)\n- Grupo exclusivo de suporte no WhatsApp\n- Evento presencial de demonstração\n- Parcerias com influenciadores locais\n\n## CALENDÁRIO DE PUBLICAÇÕES\n- Segunda a sexta: Mini-histórias diárias nos Stories\n- Terça e quinta: Posts de feed educativos\n- Sábado: Live com especialista convidado"
+  ],
+  stories: [
+    "# STORY 1: CURIOSIDADE SOBRE [EQUIPAMENTO]\n\nTexto: \"Você sabia que o [EQUIPAMENTO] usa a mesma tecnologia utilizada por atletas olímpicos para recuperação muscular? 😮\"\n\nVisual: Imagem do equipamento com destaque para sua tecnologia\n\nInteração: Enquete \"Você já conhecia essa tecnologia?\" (Sim/Não)\n\n---\n\n# STORY 2: DÚVIDA COMUM\n\nTexto: \"Muitas pessoas me perguntam se o tratamento com [EQUIPAMENTO] dói... A resposta é: absolutamente não! 🙌\"\n\nVisual: Vídeo curto mostrando uma paciente relaxada durante o procedimento\n\nInteração: Caixa de perguntas \"Qual sua dúvida sobre o [EQUIPAMENTO]?\"\n\n---\n\n# STORY 3: RESULTADO DO DIA\n\nTexto: \"Olha só esse resultado incrível após apenas 3 sessões de [EQUIPAMENTO]! 😍\"\n\nVisual: Foto de antes e depois (com autorização)\n\nInteração: Contador regressivo \"Última vaga da semana em 3, 2, 1...\"",
+    "# STORY 1: BASTIDORES\n\nTexto: \"Preparando a sala para mais um dia de tratamentos com [EQUIPAMENTO]! ✨\"\n\nVisual: Timelapse da preparação da sala e equipamento\n\nInteração: Caixa de perguntas \"Quer marcar seu horário hoje?\"\n\n---\n\n# STORY 2: QUIZ RÁPIDO\n\nTexto: \"Você sabe para que serve o [EQUIPAMENTO]? Deslize para descobrir! 👆\"\n\nVisual: Série de telas explicando as principais funções\n\nInteração: Quiz de verdadeiro ou falso sobre os benefícios\n\n---\n\n# STORY 3: PROMOÇÃO RELÂMPAGO\n\nTexto: \"APENAS HOJE: Avaliação gratuita + 15% OFF na primeira sessão de [EQUIPAMENTO]! 🔥\"\n\nVisual: Arte com detalhes da promoção\n\nInteração: Link direto para agendamento online",
+    "# STORY 1: DEPOIMENTO RÁPIDO\n\nTexto: \"A Renata compartilhou sua experiência com o [EQUIPAMENTO]! Ouça o que ela tem a dizer: 🗣️\"\n\nVisual: Vídeo curto de depoimento de cliente\n\nInteração: Emoji slider \"Quão impressionante é esse resultado?\"\n\n---\n\n# STORY 2: COMPARATIVO\n\nTexto: \"[EQUIPAMENTO] vs. Métodos tradicionais: veja a diferença! 👀\"\n\nVisual: Tabela comparativa com pontos positivos e negativos\n\nInteração: Enquete \"Qual você prefere?\"\n\n---\n\n# STORY 3: DICA PROFISSIONAL\n\nTexto: \"Dica da expert: para potencializar os resultados do [EQUIPAMENTO], faça isso em casa: 💪\"\n\nVisual: Vídeo curto demonstrando uma dica complementar\n\nInteração: Caixa de mensagem \"Quer mais dicas como essa?\""
+  ]
+};
 
-interface CustomGptResponse {
-  id: string;
-  content: string;
-}
-
-// Simulação de geração de conteúdo customizado (em um app real, isso seria uma chamada à API)
-export async function generateCustomContent(request: CustomGptRequest): Promise<CustomGptResponse> {
-  // Simular processamento
-  console.log("Gerando conteúdo customizado:", request);
-  
-  // Aguardar por um tempo simulando processamento
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Gerar ID único para o conteúdo
-  const contentId = uuidv4();
-  
-  // Gerar conteúdo baseado no tipo solicitado
-  const contentIntro = getContentIntro(request);
-  const contentBody = getContentBody(request);
-  const contentEnding = getContentEnding(request);
-  
-  // Retornar resposta formatada
-  return {
-    id: contentId,
-    content: `${contentIntro}\n\n${contentBody}\n\n${contentEnding}`
-  };
-}
-
-// Funções auxiliares para geração de conteúdo
-function getContentIntro(request: CustomGptRequest): string {
+export async function generateCustomContent(request: CustomGptRequest): Promise<string> {
   const { tipo, equipamento, estrategiaConteudo } = request;
   
-  switch (tipo) {
-    case "roteiro":
-      return `**ROTEIRO PARA ${equipamento.toUpperCase()}**\n\n${estrategiaConteudo ? `Estratégia: ${estrategiaConteudo}\n` : ''}Esse é um roteiro gerado para o equipamento ${equipamento}.`;
-    case "bigIdea":
-      return `**BIG IDEA: ${equipamento.toUpperCase()}**\n\n${estrategiaConteudo ? `Abordagem: ${estrategiaConteudo}\n` : ''}Uma ideia poderosa para comunicação do equipamento ${equipamento}.`;
-    case "stories":
-      return `**IDEIAS DE STORIES: ${equipamento.toUpperCase()}**\n\nSugestões criativas para stories sobre o equipamento ${equipamento}.`;
-    default:
-      return `**CONTEÚDO PERSONALIZADO: ${equipamento.toUpperCase()}**`;
+  // Simulate AI processing time
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Select a random response template based on the type
+  const templates = sampleResponses[tipo] || [];
+  const template = templates[Math.floor(Math.random() * templates.length)] || "Conteúdo não disponível para este tipo.";
+  
+  // Replace placeholders with actual values
+  let content = template.replace(/\[EQUIPAMENTO\]/g, equipamento);
+  
+  // Add strategy-specific content if provided
+  if (estrategiaConteudo) {
+    content += `\n\n## ESTRATÉGIA DE CONTEÚDO\nEste conteúdo foi criado seguindo a estratégia: ${estrategiaConteudo}`;
+    
+    switch (estrategiaConteudo) {
+      case "🟡 Atrair Atenção":
+        content += "\n- Foco em criar curiosidade e despertar interesse inicial";
+        break;
+      case "🟢 Criar Conexão":
+        content += "\n- Foco em estabelecer credibilidade e criar vínculo emocional";
+        break;
+      case "🔴 Fazer Comprar":
+        content += "\n- Foco em apresentar benefícios claros e chamadas para ação";
+        break;
+      case "🔁 Reativar Interesse":
+        content += "\n- Foco em reengajar clientes que já conhecem a marca";
+        break;
+      case "✅ Fechar Agora":
+        content += "\n- Foco em urgência e conversão imediata";
+        break;
+    }
   }
+  
+  return content;
 }
 
-function getContentBody(request: CustomGptRequest): string {
-  const { tipo, equipamento, equipamentoData } = request;
-  
-  const equipmentInfo = equipamentoData 
-    ? `Tecnologia: ${equipamentoData.tecnologia || 'Avançada'}\n\nBenefícios: ${equipamentoData.beneficios || 'Resultados superiores'}\n\nIndicações: ${equipamentoData.indicacoes ? Array.isArray(equipamentoData.indicacoes) ? equipamentoData.indicacoes.join(", ") : equipamentoData.indicacoes : 'Diversos tratamentos'}`
-    : `O ${equipamento} é um equipamento avançado com tecnologia de ponta.`;
-  
-  // Conteúdo adicional para o modo avançado
-  let advancedContent = '';
-  const advancedRequest = request as AdvancedCustomGptRequest;
-  
-  if (advancedRequest.topic) {
-    advancedContent += `\n\nTópico principal: ${advancedRequest.topic}`;
-  }
-  
-  if (advancedRequest.bodyArea) {
-    advancedContent += `\n\nÁrea do corpo: ${advancedRequest.bodyArea}`;
-  }
-  
-  if (advancedRequest.purposes && advancedRequest.purposes.length > 0) {
-    advancedContent += `\n\nFinalidades: ${advancedRequest.purposes.join(", ")}`;
-  }
-  
-  switch (tipo) {
+export async function translateScriptTypeToAPI(customType: CustomGptType): Promise<ScriptResponse["type"]> {
+  // Map custom GPT types to API script types
+  switch (customType) {
     case "roteiro":
-      return `## Informações sobre o equipamento\n${equipmentInfo}${advancedContent}\n\n## Gancho\n\nVocê já se perguntou como obter resultados profissionais sem precisar de procedimentos invasivos?\n\n## Corpo\n\nApresentamos o ${equipamento}, uma solução revolucionária que transforma o tratamento estético.\n\nEste equipamento utiliza tecnologia avançada para proporcionar resultados visíveis já nas primeiras sessões.\n\n## Chamada para ação\n\nAgende sua avaliação gratuita e descubra como o ${equipamento} pode transformar sua vida.`;
-    
+      return "videoScript";
     case "bigIdea":
-      return `## Conceito central\n\n"${equipamento}: Transformando o impossível em realidade"\n\n## Desenvolvimento\n${equipmentInfo}${advancedContent}\n\nEssa tecnologia revolucionária está mudando a forma como pensamos sobre tratamentos estéticos, proporcionando resultados que antes só eram possíveis com procedimentos invasivos.\n\n## Aplicações\n\nEssa ideia central pode ser aplicada em diversos formatos de conteúdo, desde postagens educativas até depoimentos de clientes satisfeitos, sempre enfatizando a transformação proporcionada.`;
-    
+      return "bigIdea";
     case "stories":
-      return `## Sugestão 1: Antes e depois\n\nMostre resultados reais com o ${equipamento}, destacando a transformação em poucas sessões.\n\n## Sugestão 2: Por trás da tecnologia\n\nExplique de forma visual e simples como funciona a tecnologia do ${equipamento}.\n\n## Sugestão 3: Perguntas frequentes\n\nResponda as dúvidas mais comuns sobre o ${equipamento} em formato de stories interativos.\n\n## Sugestão 4: Depoimento de cliente\n\nCompartilhe a experiência de um cliente satisfeito com o tratamento usando o ${equipamento}.\n\n## Sugestão 5: Promoção relâmpago\n\nCrie urgência com uma oferta especial de tempo limitado para o ${equipamento}.`;
-    
+      return "dailySales";
     default:
-      return `Informações detalhadas sobre o ${equipamento}:\n\n${equipmentInfo}${advancedContent}`;
-  }
-}
-
-function getContentEnding(request: CustomGptRequest): string {
-  const { tipo, equipamento } = request;
-  
-  switch (tipo) {
-    case "roteiro":
-      return `## Considerações finais\n\nEste roteiro foi gerado especificamente para o ${equipamento}. Adapte conforme necessário para seu estilo de comunicação e público-alvo específico.\n\nRecomendamos gravar em ambiente bem iluminado e usar elementos visuais que destaquem os benefícios do equipamento.`;
-    
-    case "bigIdea":
-      return `## Implementação\n\nEsta big idea pode ser desenvolvida em uma campanha completa, explorando diferentes aspectos da transformação proporcionada pelo ${equipamento}.\n\nRecomendamos criar conteúdos que mostrem o "antes e depois" da transformação, não apenas nos resultados físicos, mas também na qualidade de vida dos clientes.`;
-    
-    case "stories":
-      return `## Dicas de produção\n\n- Use cores vibrantes e chamativas\n- Mantenha textos curtos e diretos\n- Inclua elementos interativos como enquetes e perguntas\n- Use música que combine com a energia do seu negócio\n- Finalize sempre com um call-to-action claro\n\nEstas sugestões foram criadas especificamente para promover o ${equipamento}.`;
-    
-    default:
-      return `Conteúdo gerado para ${equipamento}. Personalize conforme necessário para sua estratégia de comunicação.`;
+      return "videoScript";
   }
 }

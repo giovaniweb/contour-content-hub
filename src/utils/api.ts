@@ -54,6 +54,7 @@ export interface MediaItem {
   rating: number;
   equipment?: string[];
   purpose?: string[];
+  bodyArea?: string;
   duration?: string;
   fecha_criacao?: string;
 }
@@ -68,6 +69,8 @@ export interface CalendarSuggestion {
   hook?: string;
   caption?: string;
   completed: boolean;
+  purpose?: string;
+  type?: string;
 }
 
 export interface CalendarPreferences {
@@ -75,36 +78,38 @@ export interface CalendarPreferences {
   topics: string[];
   equipment: string[];
   autoGenerate: boolean;
+  formats?: string[];
+  purpose?: string[];
 }
 
 export async function generatePDF(scriptId: string): Promise<string> {
-  // Simulação de geração de PDF
-  console.log(`Gerando PDF para o roteiro ${scriptId}`);
+  // Simulating PDF generation
+  console.log(`Generating PDF for script ${scriptId}`);
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Em um caso real, isso seria uma URL para o arquivo PDF gerado
+  // In a real case, this would be a URL to the generated PDF file
   return `https://example.com/scripts/${scriptId}.pdf`;
 }
 
 export async function linkScriptToCalendar(scriptId: string, calendarEventId: string): Promise<boolean> {
-  // Simulação de link entre roteiro e evento de calendário
-  console.log(`Vinculando roteiro ${scriptId} ao evento ${calendarEventId}`);
+  // Simulating link between script and calendar event
+  console.log(`Linking script ${scriptId} to event ${calendarEventId}`);
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // Em um caso real, aqui seria feito o vínculo no banco de dados
+  // In a real case, here the link would be made in the database
   return true;
 }
 
 export async function toggleFavorite(mediaId: string): Promise<boolean> {
-  // Simulação de alternância de favorito
-  console.log(`Alternando favorito para mídia ${mediaId}`);
+  // Simulating favorite toggle
+  console.log(`Toggling favorite for media ${mediaId}`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function rateMedia(mediaId: string, rating: number): Promise<boolean> {
-  // Simulação de avaliação de mídia
-  console.log(`Avaliando mídia ${mediaId} com ${rating} estrelas`);
+  // Simulating media rating
+  console.log(`Rating media ${mediaId} with ${rating} stars`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
@@ -115,87 +120,91 @@ export async function updateScript(
   observation?: string, 
   status?: "aprovado" | "editado" | "gerado"
 ): Promise<boolean> {
-  // Simulação de atualização de roteiro
-  console.log(`Atualizando roteiro ${scriptId}`);
+  // Simulating script update
+  console.log(`Updating script ${scriptId}`);
   await new Promise(resolve => setTimeout(resolve, 800));
   return true;
 }
 
 export async function updateCalendarCompletion(date: string, completed: boolean): Promise<boolean> {
-  // Simulação de atualização do status de conclusão do calendário
-  console.log(`Atualizando evento de ${date} para ${completed ? 'concluído' : 'pendente'}`);
+  // Simulating calendar completion status update
+  console.log(`Updating event from ${date} to ${completed ? 'completed' : 'pending'}`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
-  // Simulação de obtenção de sugestões do calendário
+  // Simulating getting calendar suggestions
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
     {
       id: '1',
       date: new Date().toISOString(),
-      title: 'Vídeo sobre tratamento facial',
-      description: 'Falar sobre os benefícios do tratamento facial com Adella Laser',
+      title: 'Video about facial treatment',
+      description: 'Talk about the benefits of facial treatment with Adella Laser',
       format: 'video',
       equipment: 'Adella Laser',
-      hook: 'Você sabia que é possível rejuvenescer a pele sem procedimentos invasivos?',
-      caption: 'Conheça o Adella Laser, a tecnologia que revoluciona o tratamento facial!',
-      completed: false
+      hook: 'Did you know it\'s possible to rejuvenate the skin without invasive procedures?',
+      caption: 'Meet Adella Laser, the technology that revolutionizes facial treatment!',
+      completed: false,
+      purpose: 'Demonstrate results'
     },
     {
       id: '2',
-      date: new Date(Date.now() + 86400000).toISOString(), // amanhã
-      title: 'Story sobre resultados',
-      description: 'Compartilhar resultados reais de clientes que usaram o Hipro',
+      date: new Date(Date.now() + 86400000).toISOString(), // tomorrow
+      title: 'Story about results',
+      description: 'Share real results from customers who used Hipro',
       format: 'story',
       equipment: 'Hipro',
-      completed: false
+      completed: false,
+      purpose: 'Show success stories'
     }
   ];
 }
 
 export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
-  // Simulação de busca de itens de mídia
+  // Simulating search for media items
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
     {
       id: '1',
-      title: 'Demonstração Adella Laser',
-      description: 'Vídeo demonstrando o uso do equipamento Adella Laser',
+      title: 'Adella Laser Demonstration',
+      description: 'Video demonstrating the use of Adella Laser equipment',
       type: 'video_pronto',
       thumbnailUrl: 'https://picsum.photos/seed/adella/300/200',
       videoUrl: 'https://example.com/videos/adella-demo',
       isFavorite: true,
       rating: 4.5,
       equipment: ['Adella Laser'],
-      purpose: ['Demonstração', 'Tutorial'],
+      purpose: ['Demonstration', 'Tutorial'],
+      bodyArea: 'Face',
       duration: '3:45'
     },
     {
       id: '2',
-      title: 'Antes e depois - Hipro',
-      description: 'Resultados impressionantes com o equipamento Hipro',
+      title: 'Before and After - Hipro',
+      description: 'Impressive results with Hipro equipment',
       type: 'image',
       thumbnailUrl: 'https://picsum.photos/seed/hipro/300/200',
       isFavorite: false,
       rating: 5,
       equipment: ['Hipro'],
-      purpose: ['Antes e depois', 'Resultados']
+      purpose: ['Before and after', 'Results'],
+      bodyArea: 'Abdomen'
     }
   ];
 }
 
 export async function getScriptHistory(): Promise<ScriptHistoryItem[]> {
-  // Simulação de obtenção do histórico de roteiros
+  // Simulating getting script history
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
     {
       id: '1',
-      title: 'Benefícios do Adella Laser',
+      title: 'Benefits of Adella Laser',
       content: 'Lorem ipsum dolor sit amet...',
       contentHtml: '<p>Lorem ipsum dolor sit amet...</p>',
       type: 'videoScript',
@@ -207,7 +216,7 @@ export async function getScriptHistory(): Promise<ScriptHistoryItem[]> {
     },
     {
       id: '2',
-      title: 'Campanha Hipro Verão',
+      title: 'Hipro Summer Campaign',
       content: 'Lorem ipsum dolor sit amet...',
       contentHtml: '<p>Lorem ipsum dolor sit amet...</p>',
       type: 'bigIdea',
@@ -220,19 +229,19 @@ export async function getScriptHistory(): Promise<ScriptHistoryItem[]> {
 }
 
 export async function clearPlanning(): Promise<boolean> {
-  console.log('Limpando planejamento de calendário');
+  console.log('Clearing calendar planning');
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function approvePlanning(): Promise<boolean> {
-  console.log('Aprovando planejamento de calendário');
+  console.log('Approving calendar planning');
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function setCalendarPreferences(prefs: CalendarPreferences): Promise<boolean> {
-  console.log('Salvando preferências de calendário', prefs);
+  console.log('Saving calendar preferences', prefs);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }

@@ -45,9 +45,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
   // Initialize form with equipment data or default values
   const form = useForm<Equipment>({
     defaultValues: equipment || {
+      id: 'new', // Add dummy ID for type safety
       nome: '',
       tecnologia: '',
-      indicacoes: '',
+      indicacoes: [],
       beneficios: '',
       diferenciais: '',
       linguagem: '',
@@ -95,7 +96,18 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
     const draft = getEquipmentDraft();
     if (draft) {
       // Reset form with draft data
-      form.reset(draft.data as any);
+      form.reset({
+        id: 'new', // Add dummy ID for type safety
+        nome: '',
+        tecnologia: '',
+        indicacoes: [],
+        beneficios: '',
+        diferenciais: '',
+        linguagem: '',
+        image_url: '',
+        ativo: true,
+        efeito: ''
+      } as Equipment);
       
       // Set image preview if available
       if (draft.data.image_url) {
@@ -114,9 +126,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
     clearEquipmentDraft();
     setHasDraft(false);
     form.reset({
+      id: 'new', // Add dummy ID for type safety
       nome: '',
       tecnologia: '',
-      indicacoes: '',
+      indicacoes: [],
       beneficios: '',
       diferenciais: '',
       linguagem: '',

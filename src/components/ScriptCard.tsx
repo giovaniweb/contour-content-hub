@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import CalendarDialog from "./script/ScriptActions";
+import CalendarDialog from "./script-generator/CalendarDialog";
 import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
 import { mapValidationToAnnotations } from "@/utils/validation/annotations";
 
@@ -296,8 +296,16 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
       <CalendarDialog
         open={calendarDialogOpen}
         onOpenChange={setCalendarDialogOpen}
-        onSchedule={handleSchedule}
+        onSuccess={(date, eventId) => {
+          // Handle successful scheduling
+          toast({
+            title: "Roteiro agendado",
+            description: `O conteúdo foi agendado para ${date.toLocaleDateString('pt-BR')}`,
+          });
+        }}
         scriptId={script.id}
+        scriptTitle={script.title}
+        scriptType={script.type}
       />
     </Card>
   );

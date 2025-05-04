@@ -16,6 +16,13 @@ import EquipmentForm from './EquipmentForm';
 import EquipmentList from './EquipmentList';
 import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api-equipment';
 
+interface EquipmentListProps {
+  equipments: Equipment[];
+  onEdit: (equipment: Equipment) => void;
+  onDelete: (id: string) => Promise<void>;
+  onSearch?: (searchTerm: string, status?: 'active' | 'inactive' | 'all') => void;
+}
+
 const EquipmentManager: React.FC = () => {
   const { toast } = useToast();
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -58,6 +65,9 @@ const EquipmentManager: React.FC = () => {
       searchTerm,
       status
     });
+    if (onSearch) {
+      onSearch(searchTerm, status);
+    }
   };
 
   const handleCreateEquipment = async (newEquipment: Equipment) => {

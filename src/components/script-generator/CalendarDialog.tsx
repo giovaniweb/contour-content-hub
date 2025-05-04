@@ -43,14 +43,14 @@ export function CalendarDialog({
     try {
       setIsScheduling(true);
       
-      // Gerar um ID de evento temporário (na implementação real, isso vem do backend)
+      // Generate a temporary event ID (in a real implementation, this would come from the backend)
       const eventId = `temp-${Date.now()}`;
       
-      // Vincular o roteiro ao evento do calendário
+      // Link the script to the calendar event
       const success = await linkScriptToCalendar(scriptId, eventId);
       
-      // Corrigindo o código para verificar o retorno da função linkScriptToCalendar
-      if (success) {
+      // Fix the truthiness check
+      if (success === true) {
         toast({
           title: "Conteúdo agendado com sucesso",
           description: `"${scriptTitle || 'Conteúdo'}" foi agendado para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`,

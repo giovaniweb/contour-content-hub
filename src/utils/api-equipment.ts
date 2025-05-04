@@ -1,12 +1,12 @@
 
 import { Equipment } from "@/types/equipment";
 
-// Função para obter todos os equipamentos
+// Function to get all equipment
 export async function getEquipments(): Promise<Equipment[]> {
-  // Simulando uma chamada de API com um tempo de espera
+  // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // Array de equipamentos simulados
+  // Array of simulated equipment
   return [
     {
       id: "1",
@@ -67,21 +67,104 @@ export async function getEquipments(): Promise<Equipment[]> {
   ];
 }
 
-// Função para obter um equipamento pelo ID
+// Function to get equipment by ID
 export async function getEquipmentById(id: string): Promise<Equipment | null> {
-  // Simulando uma chamada de API com um tempo de espera
+  // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 600));
   
   const allEquipments = await getEquipments();
   return allEquipments.find(equip => equip.id === id) || null;
 }
 
-// Funções adicionais para arquivos e vídeos relacionados a equipamentos
-export async function fetchEquipmentFiles(equipmentId: string): Promise<any[]> {
-  // Simulando uma chamada de API
+// Create equipment function (missing)
+export async function createEquipment(equipment: Omit<Equipment, "id">): Promise<Equipment> {
+  // Simulating an API call with a wait time
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Generate a new ID for the equipment
+  const newEquipment: Equipment = {
+    ...equipment,
+    id: Math.random().toString(36).substring(2, 11),
+    data_cadastro: new Date().toISOString()
+  };
+  
+  console.log("Equipment created:", newEquipment);
+  return newEquipment;
+}
+
+// Update equipment function (missing)
+export async function updateEquipment(equipment: Equipment): Promise<Equipment> {
+  // Simulating an API call with a wait time
+  await new Promise(resolve => setTimeout(resolve, 700));
+  
+  console.log("Equipment updated:", equipment);
+  return equipment;
+}
+
+// Delete equipment function (missing)
+export async function deleteEquipment(id: string): Promise<boolean> {
+  // Simulating an API call with a wait time
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Retorna arquivos simulados para o equipamento
+  console.log("Equipment deleted:", id);
+  return true;
+}
+
+// Import equipment function (missing)
+export async function importEquipments(equipmentsData: any[]): Promise<Equipment[]> {
+  // Simulating an API call with a wait time
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Process and convert imported data
+  const importedEquipments = equipmentsData.map((data, index) => ({
+    id: `imported-${Date.now()}-${index}`,
+    nome: data.name || data.nome || 'Equipamento sem nome',
+    efeito: data.effect || data.efeito || '',
+    beneficios: data.benefits || data.beneficios || '',
+    tecnologia: data.technology || data.tecnologia || '',
+    fabricante: data.manufacturer || data.fabricante || '',
+    site: data.website || data.site || '',
+    ativo: true,
+    categoria: data.category || data.categoria || '',
+    modelo: data.model || data.modelo || '',
+    pais_origem: data.country || data.pais_origem || '',
+    reg_anvisa: data.anvisa || data.reg_anvisa || '',
+    classificacao: data.classification || data.classificacao || '',
+    ano_lancamento: data.year || data.ano_lancamento || '',
+    garantia: data.warranty || data.garantia || '',
+    parametros: data.parameters || data.parametros || '',
+    protocolos: data.protocols || data.protocolos || '',
+    indicacoes: Array.isArray(data.indications || data.indicacoes) 
+      ? data.indications || data.indicacoes 
+      : [data.indications || data.indicacoes || ''],
+    contraindicacoes: Array.isArray(data.contraindications || data.contraindicacoes) 
+      ? data.contraindications || data.contraindicacoes 
+      : [data.contraindications || data.contraindicacoes || ''],
+    caracteristicas: Array.isArray(data.features || data.caracteristicas) 
+      ? data.features || data.caracteristicas 
+      : [data.features || data.caracteristicas || ''],
+    beneficios_lista: Array.isArray(data.benefits_list || data.beneficios_lista) 
+      ? data.benefits_list || data.beneficios_lista 
+      : [data.benefits_list || data.beneficios_lista || ''],
+    areas_corpo: Array.isArray(data.body_areas || data.areas_corpo) 
+      ? data.body_areas || data.areas_corpo 
+      : [data.body_areas || data.areas_corpo || ''],
+    image_url: data.image || data.image_url || '',
+    data_cadastro: new Date().toISOString(),
+    diferenciais: data.differentials || data.diferenciais || '',
+    linguagem: data.language || data.linguagem || 'Técnico-comercial'
+  } as Equipment));
+  
+  console.log("Equipments imported:", importedEquipments.length);
+  return importedEquipments;
+}
+
+// Additional functions for equipment files and videos
+export async function fetchEquipmentFiles(equipmentId: string): Promise<any[]> {
+  // Simulating an API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Return simulated files for the equipment
   return [
     {
       id: '1',
@@ -103,10 +186,10 @@ export async function fetchEquipmentFiles(equipmentId: string): Promise<any[]> {
 }
 
 export async function fetchEquipmentVideos(equipmentId: string): Promise<any[]> {
-  // Simulando uma chamada de API
+  // Simulating an API call
   await new Promise(resolve => setTimeout(resolve, 700));
   
-  // Retorna vídeos simulados para o equipamento
+  // Return simulated videos for the equipment
   return [
     {
       id: '1',

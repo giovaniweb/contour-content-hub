@@ -1,6 +1,6 @@
 
 /**
- * Tipos para equipamentos
+ * Types for equipment
  */
 
 export interface Equipment {
@@ -32,7 +32,7 @@ export interface Equipment {
   linguagem?: string;
 }
 
-// Interface para filtros de busca de equipamentos
+// Interface for equipment search filters
 export interface EquipmentFilters {
   searchTerm?: string;
   status?: 'active' | 'inactive' | 'all';
@@ -40,7 +40,7 @@ export interface EquipmentFilters {
   technology?: string;
 }
 
-// Interface para objetos de criação de equipamentos
+// Interface for equipment creation objects
 export interface EquipmentCreationProps {
   nome: string;
   efeito?: string;
@@ -54,7 +54,7 @@ export interface EquipmentCreationProps {
   [key: string]: any;
 }
 
-// Interface para validação de equipamentos
+// Interface for equipment validation
 export interface EquipmentValidation {
   nome?: string;
   tecnologia?: string;
@@ -66,7 +66,7 @@ export interface EquipmentValidation {
   [key: string]: string | undefined;
 }
 
-// Funções para validação
+// Validation functions
 export const validateEquipment = (equipment: Partial<Equipment> | EquipmentCreationProps): EquipmentValidation => {
   const errors: EquipmentValidation = {};
   
@@ -101,13 +101,13 @@ export const hasValidationErrors = (errors: EquipmentValidation): boolean => {
   return Object.keys(errors).length > 0;
 };
 
-// Interfaces e funções para rascunhos
+// Interfaces and functions for drafts
 interface EquipmentDraft {
   data: Partial<Equipment> | EquipmentCreationProps;
   timestamp: string;
 }
 
-// Salvar rascunho no localStorage
+// Save draft to localStorage
 export const saveEquipmentDraft = (equipment: Partial<Equipment> | EquipmentCreationProps): void => {
   const draft: EquipmentDraft = {
     data: equipment,
@@ -117,18 +117,18 @@ export const saveEquipmentDraft = (equipment: Partial<Equipment> | EquipmentCrea
   localStorage.setItem('equipment_draft', JSON.stringify(draft));
 };
 
-// Obter rascunho do localStorage
+// Get draft from localStorage
 export const getEquipmentDraft = (): EquipmentDraft | null => {
   const draft = localStorage.getItem('equipment_draft');
   return draft ? JSON.parse(draft) : null;
 };
 
-// Limpar rascunho do localStorage
+// Clear draft from localStorage
 export const clearEquipmentDraft = (): void => {
   localStorage.removeItem('equipment_draft');
 };
 
-// Função auxiliar para converter string para array quando necessário
+// Helper function to convert string to array when needed
 export const convertStringToArray = (value: string | string[] | undefined): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) return value;

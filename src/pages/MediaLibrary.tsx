@@ -77,9 +77,8 @@ const MediaLibrary: React.FC = () => {
     
     // Filter by body area
     if (selectedBodyArea && selectedBodyArea !== "none") {
-      filtered = filtered.filter(item => 
-        item.bodyArea.includes(selectedBodyArea)
-      );
+      const bodyAreaFilter = !selectedBodyArea || (item.bodyArea && item.bodyArea === selectedBodyArea);
+      filtered = filtered.filter(item => bodyAreaFilter);
     }
     
     // Filter by purpose
