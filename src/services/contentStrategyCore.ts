@@ -85,7 +85,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     const userData = await supabase.auth.getUser();
     const userId = userData.data.user?.id || null;
     
-    // Certifique-se de que todos os campos obrigatórios estão presentes antes de inserir
+    // Combinamos os dados preparados com o usuário atual
     const insertData = {
       ...dataToInsert,
       created_by: userId

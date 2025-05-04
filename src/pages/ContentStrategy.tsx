@@ -206,14 +206,17 @@ const ContentStrategy: React.FC = () => {
                     </SheetHeader>
                     <div className="py-6">
                       <ContentStrategyForm 
-                        onSubmit={handleCreateItem}
-                        equipments={equipments}
-                        users={users}
-                        isLoading={isSubmitting}
+                        equipamentos={equipments}
+                        responsaveis={users}
+                        onSave={handleCreateItem}
+                        onClose={() => {
+                          const sheetCloseButton = document.querySelector('.sheet-close-button') as HTMLButtonElement;
+                          if (sheetCloseButton) sheetCloseButton.click();
+                        }}
                       />
                     </div>
                     <SheetFooter>
-                      <SheetClose asChild>
+                      <SheetClose asChild className="sheet-close-button">
                         <Button type="button" variant="outline">Cancelar</Button>
                       </SheetClose>
                     </SheetFooter>
