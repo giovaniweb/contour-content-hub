@@ -1,26 +1,50 @@
 
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import Dashboard from "@/pages/Dashboard";
-import CustomGpt from "@/pages/CustomGpt";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
+import Profile from "@/pages/Profile";
+import ScriptHistory from "@/pages/ScriptHistory";
+import ScriptGenerator from "@/pages/ScriptGenerator";
+import MediaLibrary from "@/pages/MediaLibrary";
+import VideoDetails from "@/pages/VideoDetails";
+import ScriptDetails from "@/pages/ScriptDetails";
 import MarketingConsultant from "@/pages/MarketingConsultant";
-import Index from "@/pages/Index";
-import "./App.css";
+import CalendarPage from "@/pages/Calendar";
+import CustomGPT from "@/pages/CustomGPT";
+
+import { AuthProvider } from "@/context/AuthContext";
+import PrivateRoute from "@/components/PrivateRoute";
 
 function App() {
   return (
-    <>
-      <ThemeProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/custom-gpt" element={<CustomGpt />} />
-          <Route path="/marketing-consultant" element={<MarketingConsultant />} />
-        </Routes>
-        <Toaster />
+    <Router>
+      <ThemeProvider defaultTheme="light" attribute="class">
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/" element={<PrivateRoute element={<Dashboard />} />} />
+            <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+            <Route path="/scripts" element={<PrivateRoute element={<ScriptHistory />} />} />
+            <Route path="/script-generator" element={<PrivateRoute element={<ScriptGenerator />} />} />
+            <Route path="/media-library" element={<PrivateRoute element={<MediaLibrary />} />} />
+            <Route path="/video/:id" element={<PrivateRoute element={<VideoDetails />} />} />
+            <Route path="/script/:id" element={<PrivateRoute element={<ScriptDetails />} />} />
+            <Route path="/marketing-consultant" element={<PrivateRoute element={<MarketingConsultant />} />} />
+            <Route path="/calendar" element={<PrivateRoute element={<CalendarPage />} />} />
+            <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGPT />} />} />
+          </Routes>
+          <Toaster />
+        </AuthProvider>
       </ThemeProvider>
-    </>
+    </Router>
   );
 }
 
