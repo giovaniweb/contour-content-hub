@@ -53,14 +53,11 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
       return null;
     }
     
-    // Use any to break type inference chain
-    const query = supabase
+    const { data, error } = await supabase
       .from('equipamentos')
       .select('*')
       .eq('id', id)
-      .single() as any;
-      
-    const { data, error } = await query;
+      .single();
       
     if (error) {
       if (error.code === 'PGRST116') { // Not found error code
@@ -85,7 +82,7 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
     const equipment = {
       ...data,
       indicacoes: data.indicacoes ? convertStringToArray(data.indicacoes) : []
-    } as unknown as Equipment;
+    } as Equipment;
     
     return equipment;
     

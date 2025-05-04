@@ -1,64 +1,62 @@
 
-import { supabase } from './base';
+import { supabase, logQuery, logQueryResult } from './base';
 
 /**
- * Get equipment files
+ * Busca arquivos relacionados a um equipamento pelo nome
  */
-export const fetchEquipmentFiles = async (equipmentId: string): Promise<any[]> => {
+export const fetchEquipmentFiles = async (equipmentName: string): Promise<any[]> => {
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`Buscando arquivos para equipamento: ${equipmentName}`);
+    logQuery('select', 'materiais', { equipment: equipmentName });
     
-    // Return mock data
-    return [
-      {
-        id: 'file-1',
-        name: 'Manual do Equipamento.pdf',
-        type: 'pdf',
-        size: '1.2 MB',
-        url: '#',
-      },
-      {
-        id: 'file-2',
-        name: 'Especificações Técnicas.pdf',
-        type: 'pdf',
-        size: '890 KB',
-        url: '#',
-      },
-      {
-        id: 'file-3',
-        name: 'Treinamento.mp4',
-        type: 'video',
-        size: '24 MB',
-        url: '#',
-      }
-    ];
+    const { data, error } = await supabase
+      .from('materiais')
+      .select('*')
+      .ilike('tags', `%${equipmentName}%`);
+      
+    if (error) {
+      console.error('Erro ao buscar arquivos relacionados:', error);
+      logQueryResult('select', 'materiais', false, null, error);
+      throw error;
+    }
+    
+    console.log(`Arquivos encontrados para ${equipmentName}:`, data?.length || 0);
+    logQueryResult('select', 'materiais', true, { count: data?.length || 0 });
+    
+    return data || [];
     
   } catch (error) {
-    console.error(`Error fetching files for equipment ${equipmentId}:`, error);
+    console.error(`Erro ao buscar arquivos para ${equipmentName}:`, error);
     throw error;
   }
 };
 
 /**
- * Get equipment videos
+ * Busca vídeos relacionados a um equipamento pelo nome
  */
-export const fetchEquipmentVideos = async (equipmentId: string): Promise<any[]> => {
+export const fetchEquipmentVideos = async (equipmentName: string): Promise<any[]> => {
   try {
-    // Use supabase to get videos related to this equipment
+    console.log(`Buscando vídeos para equipamento: ${equipmentName}`);
+    logQuery('select', 'videos', { equipment: equipmentName });
+    
     const { data, error } = await supabase
       .from('videos')
       .select('*')
-      .contains('equipamentos', [equipmentId]);
+      .contains('equipamentos', [equipmentName]);
       
     if (error) {
+      console.error('Erro ao buscar vídeos relacionados:', error);
+      logQueryResult('select', 'videos', false, null, error);
       throw error;
     }
+    
+    console.log(`Vídeos encontrados para ${equipmentName}:`, data?.length || 0);
+    logQueryResult('select', 'videos', true, { count: data?.length || 0 });
     
     return data || [];
     
   } catch (error) {
-    console.error(`Error fetching videos for equipment ${equipmentId}:`, error);
-    return []; // Return empty array on error
+    console.error(`Erro ao buscar vídeos para ${equipmentName}:`, error);
+    throw error;
   }
 };

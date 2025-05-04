@@ -18,30 +18,44 @@ const EquipmentDetailsPage: React.FC = () => {
   const [relatedFiles, setRelatedFiles] = useState<any[]>([]);
   const [relatedVideos, setRelatedVideos] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("info");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       loadEquipment(id);
+    } else {
+      setError("ID do equipamento não especificado");
+      setIsLoading(false);
     }
   }, [id]);
 
   const loadEquipment = async (equipmentId: string) => {
     try {
+      console.log(`EquipmentDetailsPage: Carregando equipamento com ID ${equipmentId}`);
       setIsLoading(true);
+      setError(null);
+      
       const equipmentData = await getEquipmentById(equipmentId);
+      console.log("EquipmentDetailsPage: Dados recebidos:", equipmentData);
       
       if (equipmentData) {
         setEquipment(equipmentData);
         
         // Load related content
         if (equipmentData.nome) {
+          console.log(`EquipmentDetailsPage: Buscando arquivos para ${equipmentData.nome}`);
           const filesData = await fetchEquipmentFiles(equipmentData.nome);
           const videosData = await fetchEquipmentVideos(equipmentData.nome);
+          
+          console.log(`EquipmentDetailsPage: Arquivos encontrados: ${filesData?.length || 0}`);
+          console.log(`EquipmentDetailsPage: Vídeos encontrados: ${videosData?.length || 0}`);
           
           setRelatedFiles(filesData || []);
           setRelatedVideos(videosData || []);
         }
       } else {
+        console.error(`EquipmentDetailsPage: Equipamento não encontrado para ID ${equipmentId}`);
+        setError("Equipamento não encontrado");
         toast({
           variant: "destructive",
           title: "Equipamento não encontrado",
@@ -49,7 +63,8 @@ const EquipmentDetailsPage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Erro ao carregar equipamento:", error);
+      console.error("EquipmentDetailsPage: Erro ao carregar equipamento:", error);
+      setError("Erro ao carregar dados do equipamento");
       toast({
         variant: "destructive",
         title: "Erro",
@@ -65,6 +80,20 @@ const EquipmentDetailsPage: React.FC = () => {
       <Layout title="Carregando...">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout title="Erro">
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <h2 className="text-2xl font-semibold text-destructive">{error}</h2>
+          <p className="text-muted-foreground">Ocorreu um problema ao carregar os detalhes do equipamento.</p>
+          <Button asChild>
+            <Link to="/admin/equipments">Voltar para Gerenciamento de Equipamentos</Link>
+          </Button>
         </div>
       </Layout>
     );
