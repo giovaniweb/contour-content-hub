@@ -26,27 +26,72 @@ const MarketingConsultant: React.FC = () => {
   const handleDiagnosticComplete = (data: any) => {
     setDiagnosticData(data);
     calculateProfit(data);
+    
+    toast({
+      title: "Diagnóstico concluído",
+      description: "Analisando resultados e calculando potencial de crescimento.",
+    });
+    
     setCurrentStep('profit');
   };
 
   const calculateProfit = (data: any) => {
-    // Simulate profit calculation
-    // In a real scenario, this would use more complex logic
-    const currentRevenue = data.currentRevenue || 0;
-    const potentialRevenue = currentRevenue * 1.5; // 50% increase as projection
+    // Simulação de cálculo de lucro mais elaborada
+    // Considerando mais aspectos do diagnóstico
+    const currentRevenue = Number(data.currentRevenue?.replace(/\D/g, '')) || 0;
+    const hasMarketing = data.usesSocialMedia === 'yes';
+    const hasPaidAds = data.paidAds === 'yes';
+    const hasWebsite = data.hasWebsite === 'yes';
+    const sellsPackages = data.salesModel === 'packages' || data.salesModel === 'both';
+    
+    // Fatores que influenciam o crescimento
+    let growthRate = 30; // Base de 30%
+    
+    if (hasMarketing) growthRate += 5;
+    if (hasPaidAds) growthRate += 10;
+    if (hasWebsite) growthRate += 5;
+    if (sellsPackages) growthRate += 10;
+    
+    // Se o desafio principal for atrair clientes, podemos sugerir potencial ainda maior
+    if (data.mainChallenge === 'attract' || data.mainChallenge === 'content') {
+      growthRate += 15;
+    }
+    
+    const potentialRevenue = currentRevenue * (1 + (growthRate / 100));
+    
+    // Margem de lucro estimada
+    let currentMargin = 0.25; // 25% padrão
+    let improvedMargin = 0.32; // 32% com melhorias
+    
+    if (sellsPackages) {
+      currentMargin = 0.35;
+      improvedMargin = 0.4;
+    }
     
     setProfitAnalysis({
       currentRevenue,
       potentialRevenue,
-      currentProfit: currentRevenue * 0.3, // Assuming 30% profit margin
-      potentialProfit: potentialRevenue * 0.35, // Slightly improved margin with better strategy
-      growthRate: 50,
+      currentProfit: currentRevenue * currentMargin,
+      potentialProfit: potentialRevenue * improvedMargin,
+      growthRate,
       timeframe: '3 meses',
+      improvementAreas: [
+        hasMarketing ? null : 'Marketing em redes sociais',
+        hasPaidAds ? null : 'Tráfego pago para atrair clientes',
+        hasWebsite ? null : 'Site ou landing page de captação',
+        sellsPackages ? null : 'Venda de pacotes para aumentar ticket médio'
+      ].filter(Boolean)
     });
   };
 
   const handleStrategyCreation = (data: any) => {
     setStrategy(data);
+    
+    toast({
+      title: "Estratégia criada",
+      description: "Plano personalizado criado com base no seu diagnóstico.",
+    });
+    
     setCurrentStep('implementation');
   };
 
@@ -123,7 +168,7 @@ const MarketingConsultant: React.FC = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-sm">Diagnóstico</p>
-                  <p className="text-xs text-muted-foreground">Avaliação inicial</p>
+                  <p className="text-xs text-muted-foreground">Avaliação completa</p>
                 </div>
                 {(currentStep === 'profit' || currentStep === 'strategy' || currentStep === 'implementation') && (
                   <Check className="h-4 w-4 text-green-500" />
