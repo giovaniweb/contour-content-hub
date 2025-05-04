@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Eye, ThumbsUp, MoreVertical, Trash2, Edit, ExternalLink, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
 import {
@@ -21,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import VideoForm from "./VideoForm";
-import { MarketingObjectiveType } from "@/utils/api";
+import { MarketingObjectiveType } from "@/types/script";
 
 // Function to normalize video URLs for embed
 const getNormalizedVideoUrl = (url: string): string => {

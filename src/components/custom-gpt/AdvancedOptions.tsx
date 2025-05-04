@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -8,7 +7,7 @@ import { UseFormReturn } from 'react-hook-form';
 import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
 import BodyAreaSelector from '@/components/script-generator/BodyAreaSelector';
 import PurposeSelector from '@/components/script-generator/PurposeSelector';
-import { MarketingObjectiveType } from '@/utils/api';
+import { MarketingObjectiveType } from '@/types/script';
 
 interface AdvancedOptionsProps {
   form: UseFormReturn<any>;

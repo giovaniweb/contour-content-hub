@@ -2,7 +2,7 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { MarketingObjectiveType } from '@/utils/api';
+import { MarketingObjectiveType } from '@/types/script';
 import { Eye, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
 
 interface VideoObjectiveSelectorProps {

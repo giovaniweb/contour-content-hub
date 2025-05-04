@@ -10,7 +10,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ScriptType, MarketingObjectiveType } from "@/utils/api";
+import { ScriptType } from "@/utils/api";
+import { MarketingObjectiveType } from "@/types/script";
 import VideoObjectiveSelector from "@/components/admin/VideoObjectiveSelector";
 import EquipmentSelector from "./EquipmentSelector";
 import BodyAreaSelector from "./BodyAreaSelector";

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
 import VimeoImporter from './VimeoImporter';
-import { MarketingObjectiveType } from '@/utils/api';
+import { MarketingObjectiveType } from '@/types/script';
 
 // Add a prop interface for VideoForm
 interface VideoFormProps {
