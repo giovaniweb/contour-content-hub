@@ -31,15 +31,8 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
     return null;
   }
 
-  // Verifica se os valores são os simulados para desenvolvimento
-  const isSimulatedData = 
-    suggestedTitle === "Título simulado do artigo científico" &&
-    suggestedDescription === "Esta é uma conclusão simulada para testes de desenvolvimento.";
-    
-  // Se estamos em produção e só temos dados simulados, não mostrar
-  if (process.env.NODE_ENV === 'production' && isSimulatedData) {
-    return null;
-  }
+  // Adiciona um ID de renderização para garantir que estamos vendo dados recentes
+  const renderID = React.useId();
 
   return (
     <ScrollArea className="h-auto max-h-[400px]">
@@ -91,7 +84,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
                 <p className="text-sm font-medium text-blue-700">Palavras-chave:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {extractedKeywords.map((keyword, index) => (
-                    <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    <Badge key={`${renderID}-keyword-${index}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
                       {keyword}
                     </Badge>
                   ))}
@@ -105,7 +98,7 @@ const ArticleInfoDisplay: React.FC<ArticleInfoDisplayProps> = ({
                 <p className="text-sm font-medium text-blue-700">Pesquisadores:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {extractedResearchers.map((researcher, index) => (
-                    <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    <Badge key={`${renderID}-researcher-${index}`} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
                       {researcher}
                     </Badge>
                   ))}

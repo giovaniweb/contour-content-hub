@@ -24,6 +24,10 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       // Simular um pequeno atraso para testes de UI
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Criar um ID único para esta extração para evitar confusão com dados anteriores
+      const extractionId = Date.now();
+      console.log(`Extraction ID: ${extractionId}`);
+      
       // Retornar dados de teste para desenvolvimento que são CLARAMENTE de teste
       // para não confundir com dados reais
       return {

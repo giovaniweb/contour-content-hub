@@ -18,6 +18,7 @@ interface UseExtractedDataProps {
 }
 
 export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDataProps = {}) => {
+  // Always start with empty states rather than initializing with initialData
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
@@ -25,19 +26,21 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
   
   // Update extracted data when initialData changes
   useEffect(() => {
+    // Clear previous data first to avoid stale data showing up
+    setSuggestedTitle('');
+    setSuggestedDescription('');
+    setExtractedKeywords([]);
+    setExtractedResearchers([]);
+    
     if (initialData) {
       console.log("Inicializando dados extraídos a partir do initialData:", initialData);
-      setSuggestedTitle(initialData.title || '');
-      setSuggestedDescription(initialData.description || '');
-      setExtractedKeywords(initialData.keywords || []);
-      setExtractedResearchers(initialData.researchers || []);
+      // Only set values if they exist in initialData
+      if (initialData.title) setSuggestedTitle(initialData.title);
+      if (initialData.description) setSuggestedDescription(initialData.description);
+      if (initialData.keywords && initialData.keywords.length > 0) setExtractedKeywords(initialData.keywords);
+      if (initialData.researchers && initialData.researchers.length > 0) setExtractedResearchers(initialData.researchers);
     } else {
-      // Se não houver initialData, garantir que os estados estejam vazios
-      console.log("Resetando dados extraídos pois não há initialData");
-      setSuggestedTitle('');
-      setSuggestedDescription('');
-      setExtractedKeywords([]);
-      setExtractedResearchers([]);
+      console.log("Não há initialData, estados ficam vazios");
     }
   }, [initialData]);
   

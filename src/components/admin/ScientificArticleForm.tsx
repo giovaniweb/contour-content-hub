@@ -28,7 +28,9 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   onCancel,
   isOpen = true
 }) => {
-  // Extract extracted data handling
+  console.log("ScientificArticleForm renderizando, artigo:", articleData?.id || 'novo', "isOpen:", isOpen);
+  
+  // Extract extracted data handling with initialData only if this is an edit
   const {
     suggestedTitle,
     suggestedDescription,
@@ -37,7 +39,13 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     handleExtractedData,
     resetExtractedData
   } = useExtractedData({
-    initialData: articleData
+    // Only pass initialData if we're editing an existing article
+    initialData: articleData ? {
+      title: articleData.titulo || "",
+      description: articleData.descricao || "",
+      keywords: articleData.keywords || [],
+      researchers: articleData.researchers || []
+    } : undefined
   });
   
   // Extract file upload handling
@@ -95,16 +103,42 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      titulo: articleData?.titulo || "",
-      descricao: articleData?.descricao || "",
-      equipamento_id: articleData?.equipamento_id || "",
-      idioma_original: articleData?.idioma_original || "pt",
-      link_dropbox: articleData?.link_dropbox || ""
+      titulo: "",
+      descricao: "",
+      equipamento_id: "",
+      idioma_original: "pt",
+      link_dropbox: ""
     }
   });
 
   // Reset form when component is mounted or unmounted
   useEffect(() => {
+    // Complete initialization with articleData if present
+    if (articleData) {
+      console.log("Inicializando formulário com dados do artigo:", articleData.id);
+      form.reset({
+        titulo: articleData.titulo || "",
+        descricao: articleData.descricao || "",
+        equipamento_id: articleData.equipamento_id || "",
+        idioma_original: articleData.idioma_original || "pt",
+        link_dropbox: articleData.link_dropbox || ""
+      });
+      
+      if (articleData.link_dropbox) {
+        setFileUrl(articleData.link_dropbox);
+      }
+    } else {
+      console.log("Inicializando formulário para novo artigo");
+      // Reset form for new article
+      form.reset({
+        titulo: "",
+        descricao: "",
+        equipamento_id: "",
+        idioma_original: "pt",
+        link_dropbox: ""
+      });
+    }
+    
     // Clean up function
     return () => {
       console.log("ScientificArticleForm desmontando, redefinindo todos os estados");
@@ -117,7 +151,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
 
   // Track dialog open/closed state and reset form when opened
   useEffect(() => {
-    console.log("isOpen mudou:", isOpen);
+    console.log("isOpen ou articleData mudou:", isOpen, articleData?.id);
     if (isOpen) {
       console.log("Diálogo aberto, redefinindo formulário");
       // Reset all form state
@@ -130,28 +164,44 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
         fileInputRef.current.value = "";
       }
       
-      form.reset({
-        titulo: articleData?.titulo || "",
-        descricao: articleData?.descricao || "",
-        equipamento_id: articleData?.equipamento_id || "",
-        idioma_original: articleData?.idioma_original || "pt",
-        link_dropbox: articleData?.link_dropbox || ""
-      });
+      // Initialize form with articleData or empty values
+      if (articleData) {
+        console.log("Preenchendo formulário com dados do artigo:", articleData.titulo);
+        form.reset({
+          titulo: articleData.titulo || "",
+          descricao: articleData.descricao || "",
+          equipamento_id: articleData.equipamento_id || "",
+          idioma_original: articleData.idioma_original || "pt",
+          link_dropbox: articleData.link_dropbox || ""
+        });
+        
+        if (articleData.link_dropbox) {
+          setFileUrl(articleData.link_dropbox);
+        }
+      } else {
+        console.log("Limpando formulário para novo artigo");
+        form.reset({
+          titulo: "",
+          descricao: "",
+          equipamento_id: "",
+          idioma_original: "pt",
+          link_dropbox: ""
+        });
+      }
     }
   }, [isOpen, articleData, form, resetFormState, resetUploadState, resetExtractedData]);
 
   // Update form when suggested data changes
   useEffect(() => {
-    console.log("Dados sugeridos alterados, atualizando formulário:", {
-      title: suggestedTitle,
-      description: suggestedDescription
-    });
-    
+    // Only update form with suggested data if the form fields are empty
+    // This prevents overwriting user input
     if (suggestedTitle && !form.getValues("titulo")) {
+      console.log("Atualizando título com sugestão:", suggestedTitle);
       form.setValue("titulo", suggestedTitle);
     }
     
     if (suggestedDescription && !form.getValues("descricao")) {
+      console.log("Atualizando descrição com sugestão:", suggestedDescription);
       form.setValue("descricao", suggestedDescription);
     }
   }, [suggestedTitle, suggestedDescription, form]);
@@ -159,16 +209,23 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   // Set file URL from article data if present
   useEffect(() => {
     if (articleData?.link_dropbox && !fileUrl) {
+      console.log("Definindo URL do arquivo a partir do artigo:", articleData.link_dropbox);
       setFileUrl(articleData.link_dropbox);
       setUploadStep('form');
+    } else if (!articleData) {
+      // If this is a new article, clear file URL
+      setFileUrl(null);
     }
-  }, [articleData, fileUrl]);
+  }, [articleData, fileUrl, setFileUrl]);
 
   // Atualizar o URL do arquivo no formulário quando ele for definido
   useEffect(() => {
     if (fileUrl) {
       console.log("Atualizando link_dropbox no formulário com:", fileUrl);
       form.setValue("link_dropbox", fileUrl);
+    } else {
+      // If fileUrl is cleared, reset the form field too
+      form.setValue("link_dropbox", "");
     }
   }, [fileUrl, form]);
 
@@ -270,6 +327,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
               variant="outline"
               onClick={() => {
                 // Clear form before canceling
+                console.log("Cancelando e limpando formulário");
                 form.reset();
                 resetFormState();
                 resetUploadState();
