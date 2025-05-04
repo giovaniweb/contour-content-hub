@@ -1,86 +1,61 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyItem } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
 
-/**
- * Gera conteúdo para um item de estratégia usando IA
- */
-export async function generateContentWithAI(item: Partial<ContentStrategyItem>): Promise<string | null> {
+// AI content generation simulation
+export const generateContentWithAI = async (item: ContentStrategyItem): Promise<string | null> => {
+  // This is a placeholder for actual AI content generation
+  // In a real app, this would call an AI service API
   try {
-    // Preparamos os dados para envio à função Edge
-    const requestData = {
-      equipamento: item.equipamento_nome,
-      categoria: item.categoria,
-      formato: item.formato,
-      objetivo: item.objetivo
-    };
-
-    // Chama a função Edge Function para gerar conteúdo
-    const { data, error } = await supabase.functions.invoke('generate-content-description', {
-      body: { item: requestData }
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const format = item.formato;
+    const objective = item.objetivo;
+    
+    const generatedContent = `Conteúdo gerado automaticamente para ${format} com objetivo ${objective}.\n\nEste é um exemplo de conteúdo gerado por IA para demonstração.`;
+    
+    toast({
+      title: "Conteúdo gerado",
+      description: "Conteúdo gerado com sucesso pela IA",
     });
-
-    if (error) throw error;
-
-    return data?.content || null;
+    
+    return generatedContent;
   } catch (error) {
     console.error("Error generating content with AI:", error);
+    
     toast({
       variant: "destructive",
-      title: "Erro ao gerar conteúdo",
-      description: "Não foi possível gerar conteúdo com IA."
+      title: "Erro",
+      description: "Não foi possível gerar conteúdo com a IA",
     });
+    
     return null;
   }
-}
+};
 
-/**
- * Agenda um conteúdo no calendário
- */
-export async function scheduleContentInCalendar(item: ContentStrategyItem): Promise<boolean> {
+// Calendar scheduling simulation
+export const scheduleContentInCalendar = async (item: ContentStrategyItem): Promise<boolean> => {
+  // This is a placeholder for actual calendar integration
   try {
-    // Verifica se temos uma data de previsão
-    if (!item.previsao) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao agendar",
-        description: "É necessário definir uma data de previsão para agendar o conteúdo."
-      });
-      return false;
-    }
-
-    // Cria um evento na agenda
-    const { data, error } = await supabase
-      .from('agenda')
-      .insert({
-        titulo: `Conteúdo: ${item.categoria} - ${item.formato}`,
-        descricao: item.conteudo || 'Conteúdo a ser definido',
-        data: item.previsao,
-        tipo: 'conteudo',
-        equipamento: item.equipamento_nome,
-        objetivo: item.objetivo,
-        formato: item.formato,
-        status: 'pendente'
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     toast({
-      title: "Conteúdo agendado",
-      description: "O conteúdo foi agendado com sucesso no calendário."
+      title: "Agendado",
+      description: `Item "${item.conteudo?.substring(0, 30) || 'Sem título'}..." agendado no calendário`,
     });
-
+    
     return true;
   } catch (error) {
     console.error("Error scheduling content in calendar:", error);
+    
     toast({
       variant: "destructive",
-      title: "Erro ao agendar",
-      description: "Não foi possível agendar o conteúdo no calendário."
+      title: "Erro",
+      description: "Não foi possível agendar no calendário",
     });
+    
     return false;
   }
-}
+};

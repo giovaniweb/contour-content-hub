@@ -1,6 +1,6 @@
 
-// Re-exportamos todas as funcionalidades dos arquivos específicos
-// para manter a compatibilidade com o código existente
+// Re-export all functionalities from specific files
+// to maintain compatibility with existing code
 
 export {
   fetchContentStrategyItems,

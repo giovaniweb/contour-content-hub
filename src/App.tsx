@@ -37,6 +37,7 @@ function App() {
           <Route path="/calendar" element={<PrivateRoute element={<CalendarPage />} />} />
           <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
           <Route path="/script-validation" element={<PrivateRoute element={<ScriptValidationPage />} />} />
+          <Route path="/validate-script" element={<PrivateRoute element={<ScriptValidationPage />} />} />
           <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGpt />} />} />
           <Route path="/system-diagnostics" element={<PrivateRoute element={<SystemDiagnostics />} />} />
         </Routes>

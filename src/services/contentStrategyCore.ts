@@ -17,7 +17,7 @@ const safeParseInt = (value: string | number | undefined): number => {
 export const fetchContentStrategyItems = async (filters: ContentStrategyFilter = {}): Promise<ContentStrategyItem[]> => {
   try {
     let query = supabase
-      .from('content_strategy')
+      .from('content_strategy_items')
       .select(`
         *,
         equipamento:equipamento_id (nome),
@@ -81,7 +81,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     const preparedData = prepareContentStrategyData(item);
     
     const { data, error } = await supabase
-      .from('content_strategy')
+      .from('content_strategy_items')
       .insert(preparedData)
       .select(`
         *,
@@ -107,7 +107,7 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
     const preparedData = prepareContentStrategyData(updates);
     
     const { error } = await supabase
-      .from('content_strategy')
+      .from('content_strategy_items')
       .update(preparedData)
       .eq('id', id);
     
@@ -126,7 +126,7 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
 export const deleteContentStrategyItem = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('content_strategy')
+      .from('content_strategy_items')
       .delete()
       .eq('id', id);
     
@@ -139,11 +139,10 @@ export const deleteContentStrategyItem = async (id: string): Promise<boolean> =>
   }
 };
 
-// Type-safe functions to avoid excessive recursion
+// Simplified versions of these functions to avoid TypeScript excessive depth errors
 export const calculateContentMetrics = (strategy: ContentStrategyItem) => {
-  // Simple implementation to avoid deep type recursion
   return {
-    totalContent: 1, // Just a placeholder value
+    totalContent: 1,
     completedContent: strategy.status === 'Finalizado' ? 1 : 0,
     pendingReview: strategy.status === 'Em andamento' ? 1 : 0
   };
@@ -157,11 +156,8 @@ export const getContentStrategyStats = (strategies: ContentStrategyItem[]) => {
   };
 };
 
-// Safe processing functions that won't cause infinite recursion
 export const processContentStrategy = (strategy: ContentStrategyItem): ContentStrategyItem => {
-  return {
-    ...strategy,
-  };
+  return { ...strategy };
 };
 
 export const summarizeContentMetrics = (strategies: ContentStrategyItem[]) => {
@@ -175,7 +171,6 @@ export const summarizeContentMetrics = (strategies: ContentStrategyItem[]) => {
   };
 };
 
-// Export other required functions
 export const filterStrategiesByStatus = (strategies: ContentStrategyItem[], status: string) => {
   return strategies.filter(s => s.status === status);
 };
