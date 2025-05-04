@@ -8,9 +8,17 @@ import { toast } from "@/hooks/use-toast";
  */
 export async function generateContentWithAI(item: Partial<ContentStrategyItem>): Promise<string | null> {
   try {
+    // Preparamos os dados para envio à função Edge
+    const requestData = {
+      equipamento: item.equipamento_nome,
+      categoria: item.categoria,
+      formato: item.formato,
+      objetivo: item.objetivo
+    };
+
     // Chama a função Edge Function para gerar conteúdo
     const { data, error } = await supabase.functions.invoke('generate-content-description', {
-      body: { item }
+      body: { item: requestData }
     });
 
     if (error) throw error;

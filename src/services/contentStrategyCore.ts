@@ -128,7 +128,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
 export async function updateContentStrategyItem(id: string, updates: Partial<ContentStrategyItem>): Promise<boolean> {
   try {
     // Remove campos derivados que não estão no banco de dados
-    const { equipamento_nome, responsavel_nome, ...updateData } = updates;
+    const { equipamento_nome, responsavel_nome, ...updateData } = updates as Record<string, any>;
     
     // Prepara os dados para atualização
     const dataToUpdate = prepareContentStrategyData(updateData);
