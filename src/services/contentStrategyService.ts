@@ -38,6 +38,10 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
     if (filters.status) {
       query = query.eq('status', filters.status);
     }
+    // Add filter for distribution
+    if (filters.distribuicao) {
+      query = query.eq('distribuicao', filters.distribuicao);
+    }
     if (filters.dateRange?.from && filters.dateRange?.to) {
       query = query
         .gte('previsao', filters.dateRange.from.toISOString())
@@ -60,6 +64,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       objetivo: item.objetivo as ContentStrategyItem['objetivo'],
       prioridade: item.prioridade as ContentStrategyItem['prioridade'],
       status: item.status as ContentStrategyItem['status'],
+      distribuicao: item.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram', // Default value if not set
       equipamento_nome: item.equipamento?.nome || null,
       responsavel_nome: item.responsavel?.nome || null
     }));
@@ -95,6 +100,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
         objetivo: item.objetivo,
         prioridade: item.prioridade || 'Média',
         status: item.status || 'Planejado',
+        distribuicao: item.distribuicao || 'Instagram', // Default to Instagram if not provided
         impedimento: item.impedimento || null,
         created_by: (await supabase.auth.getUser()).data.user?.id || null
       })
@@ -120,6 +126,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       objetivo: data.objetivo as ContentStrategyItem['objetivo'],
       prioridade: data.prioridade as ContentStrategyItem['prioridade'],
       status: data.status as ContentStrategyItem['status'],
+      distribuicao: data.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram',
       equipamento_nome: data.equipamento?.nome || null,
       responsavel_nome: data.responsavel?.nome || null
     };

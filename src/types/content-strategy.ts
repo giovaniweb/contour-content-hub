@@ -14,6 +14,7 @@ export interface ContentStrategyItem {
   prioridade: ContentPriority;
   status: ContentStatus;
   impedimento: string | null;
+  distribuicao: ContentDistribution; // New field for distribution platform
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -58,6 +59,14 @@ export type ContentStatus =
   | 'Standby'
   | 'Suspenso';
 
+export type ContentDistribution =
+  | 'Instagram'
+  | 'YouTube'
+  | 'TikTok'
+  | 'Blog'
+  | 'Múltiplos'
+  | 'Outro';
+
 export interface ContentStrategyFilter {
   linha?: string;
   equipamento_id?: string;
@@ -67,6 +76,7 @@ export interface ContentStrategyFilter {
   objetivo?: ContentObjective;
   prioridade?: ContentPriority;
   status?: ContentStatus;
+  distribuicao?: ContentDistribution; // Add filter for distribution
   dateRange?: {
     from?: Date;
     to?: Date;

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,6 +50,7 @@ const formSchema = z.object({
   }),
   prioridade: z.enum(['Alta', 'Média', 'Baixa']).default("Média"),
   status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso']).default("Planejado"),
+  distribuicao: z.enum(['Instagram', 'YouTube', 'TikTok', 'Blog', 'Múltiplos', 'Outro']).default("Instagram"),
   impedimento: z.string().optional().nullable(),
 });
 
@@ -82,6 +82,7 @@ export function ContentStrategyForm({
       objetivo: "engajar",
       prioridade: "Média",
       status: "Planejado",
+      distribuicao: "Instagram", // Default value for distribution
       impedimento: "",
     },
   });
@@ -346,6 +347,36 @@ export function ContentStrategyForm({
                 </Select>
                 <FormDescription>
                   Nível de prioridade do conteúdo.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Distribuição */}
+          <FormField
+            control={form.control}
+            name="distribuicao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Distribuição</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma plataforma" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Instagram">Instagram</SelectItem>
+                    <SelectItem value="YouTube">YouTube</SelectItem>
+                    <SelectItem value="TikTok">TikTok</SelectItem>
+                    <SelectItem value="Blog">Blog</SelectItem>
+                    <SelectItem value="Múltiplos">Múltiplas plataformas</SelectItem>
+                    <SelectItem value="Outro">Outra</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Plataforma onde o conteúdo será distribuído.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

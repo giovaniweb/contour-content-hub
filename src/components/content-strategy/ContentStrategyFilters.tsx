@@ -40,6 +40,7 @@ const filterSchema = z.object({
   objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro', 'all']).optional(),
   prioridade: z.enum(['Alta', 'Média', 'Baixa', 'all']).optional(),
   status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso', 'all']).optional(),
+  distribuicao: z.enum(['Instagram', 'YouTube', 'TikTok', 'Blog', 'Múltiplos', 'Outro', 'all']).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -70,6 +71,7 @@ export function ContentStrategyFilters({
       objetivo: "all",
       prioridade: "all",
       status: "all",
+      distribuicao: "all",
       dateRange: { from: undefined, to: undefined },
     },
   });
@@ -85,6 +87,7 @@ export function ContentStrategyFilters({
       objetivo: data.objetivo === 'all' ? undefined : data.objetivo as ContentStrategyFilter["objetivo"],
       prioridade: data.prioridade === 'all' ? undefined : data.prioridade as ContentStrategyFilter["prioridade"],
       status: data.status === 'all' ? undefined : data.status as ContentStrategyFilter["status"],
+      distribuicao: data.distribuicao === 'all' ? undefined : data.distribuicao as ContentStrategyFilter["distribuicao"],
       dateRange: data.dateRange?.from && data.dateRange?.to ? data.dateRange : undefined
     };
     
@@ -101,6 +104,7 @@ export function ContentStrategyFilters({
       objetivo: "all",
       prioridade: "all",
       status: "all",
+      distribuicao: "all",
       dateRange: { from: undefined, to: undefined },
     });
     onFilterChange({});
@@ -332,6 +336,37 @@ export function ContentStrategyFilters({
                     <SelectItem value="Finalizado">Finalizado</SelectItem>
                     <SelectItem value="Standby">Standby</SelectItem>
                     <SelectItem value="Suspenso">Suspenso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* Distribuição */}
+          <FormField
+            control={form.control}
+            name="distribuicao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Distribuição</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma plataforma" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="Instagram">Instagram</SelectItem>
+                    <SelectItem value="YouTube">YouTube</SelectItem>
+                    <SelectItem value="TikTok">TikTok</SelectItem>
+                    <SelectItem value="Blog">Blog</SelectItem>
+                    <SelectItem value="Múltiplos">Múltiplas plataformas</SelectItem>
+                    <SelectItem value="Outro">Outra</SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>
