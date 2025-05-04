@@ -11,7 +11,7 @@ import {
 } from "@/services/contentStrategyService";
 import { ContentStrategyFilters } from "@/components/content-strategy/ContentStrategyFilters";
 import { ContentStrategyTable } from "@/components/content-strategy/ContentStrategyTable";
-import { ContentStrategyForm } from "@/components/content-strategy/ContentStrategyForm";
+import ContentStrategyForm from "@/components/content-strategy/ContentStrategyForm";
 import { ContentStrategyFilter, ContentStrategyItem } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
