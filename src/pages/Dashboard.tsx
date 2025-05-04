@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import TrendingTopics from "@/components/dashboard/TrendingTopics";
 import PopularContent from "@/components/dashboard/PopularContent";
+import PredictiveConsultant from "@/components/dashboard/PredictiveConsultant";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -109,6 +110,22 @@ const Dashboard: React.FC = () => {
               </Card>
             </Link>
           ))}
+        </section>
+        
+        {/* Nova seção: Consultor Preditivo Inteligente */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Sugestões Personalizadas
+            </h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/marketing-consultant')}>
+              Ver todas
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          <PredictiveConsultant />
         </section>
         
         {/* Conteúdo em Alta */}

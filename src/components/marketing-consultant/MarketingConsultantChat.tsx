@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, ArrowRight } from "lucide-react";
+import { MessageSquare, Send, ArrowRight, Sparkles } from "lucide-react";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -50,6 +50,17 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
     // Simulate AI thinking
     setTimeout(() => {
       let response = '';
+      
+      // Agora incluímos referências ao Fluida Te Entende
+      if (userMessage.toLowerCase().includes('fluida te entende') || 
+          userMessage.toLowerCase().includes('sugestões personalizadas') ||
+          userMessage.toLowerCase().includes('consultor preditivo')) {
+        response = 'O "Fluida Te Entende" é nosso consultor preditivo inteligente que analisa seus padrões de uso e interesses para oferecer sugestões personalizadas. Ele monitora quais equipamentos você consulta, vídeos que assiste, e integra isso com suas metas de marketing. Você pode encontrar sugestões personalizadas no seu Dashboard.';
+        
+        setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+        setLoading(false);
+        return;
+      }
       
       if (userMessage.toLowerCase().includes('diagnóstico') || 
           userMessage.toLowerCase().includes('começar') || 
@@ -157,6 +168,10 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
+        <Button variant="ghost" size="sm" className="ml-2" onClick={() => setInput('O que é o Fluida Te Entende?')}>
+          <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
+          Fluida Te Entende
+        </Button>
       </CardFooter>
     </Card>
   );
