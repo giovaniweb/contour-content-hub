@@ -29,6 +29,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -49,11 +50,14 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
     // Add user message
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     
+    // Hide suggestions after user sends a message
+    setShowSuggestions(false);
+    
     // Simulate AI thinking
     setTimeout(() => {
       let response = '';
       
-      // Agora incluímos referências ao Fluida Te Entende
+      // Incluímos referências ao Fluida Te Entende
       if (userMessage.toLowerCase().includes('fluida te entende') || 
           userMessage.toLowerCase().includes('sugestões personalizadas') ||
           userMessage.toLowerCase().includes('consultor preditivo')) {
@@ -68,7 +72,8 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
           userMessage.toLowerCase().includes('começar') || 
           userMessage.toLowerCase().includes('analise') ||
           userMessage.toLowerCase().includes('análise') ||
-          userMessage.toLowerCase().includes('pronto')) {
+          userMessage.toLowerCase().includes('pronto') ||
+          userMessage.toLowerCase().includes('sim')) {
         response = 'Vamos começar uma análise completa da sua clínica. Farei algumas perguntas para entender melhor seu negócio e criar uma estratégia personalizada.';
         
         setMessages(prev => [...prev, { role: 'assistant', content: response }]);
@@ -96,6 +101,8 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
         response = 'Anúncios no Google são ideais para capturar pessoas que já estão procurando por serviços estéticos. Para clínicas, recomendo campanhas de search focadas em procedimentos específicos e remarketing para quem visitou seu site. Quer iniciar um diagnóstico para uma estratégia detalhada?';
       } else {
         response = 'Entendi sua questão. Para criar uma estratégia realmente eficaz para sua clínica, precisamos realizar um diagnóstico completo. Posso te guiar por esse processo agora mesmo. Está pronto para começar?';
+        // Mostra as sugestões novamente após responder
+        setShowSuggestions(true);
       }
       
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
@@ -128,6 +135,19 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
       onStartConsultation();
     }, 1000);
   };
+
+  // Função para preencher o input com sugestões
+  const handleSetSuggestion = (text: string) => {
+    setInput(text);
+  };
+
+  // Respostas sugeridas para facilitar a interação
+  const suggestedResponses = [
+    "Quero iniciar o diagnóstico",
+    "Como o Instagram pode ajudar minha clínica?",
+    "Quais estratégias para atrair mais clientes?",
+    "O que é o Fluida Te Entende?"
+  ];
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -177,6 +197,24 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
               </div>
             </div>
           )}
+          
+          {/* Sugestões de resposta */}
+          {showSuggestions && !loading && messages.length > 0 && messages[messages.length - 1].role === 'assistant' && (
+            <div className="flex flex-wrap gap-2 my-4">
+              {suggestedResponses.map((suggestion, index) => (
+                <Button 
+                  key={index} 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleSetSuggestion(suggestion)}
+                  className="text-xs"
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </div>
+          )}
+          
           <div ref={messagesEndRef} />
         </ScrollArea>
       </CardContent>
