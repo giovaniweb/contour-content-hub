@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { getCalendarSuggestions, updateCalendarCompletion, clearCalendarPlanning } from '@/utils/api';
+import { getCalendarSuggestions, updateCalendarCompletion, clearPlanning } from '@/utils/api';
 import { CalendarSuggestion } from '@/utils/api';
 import { useUser } from '@/hooks/useUser';
 
@@ -32,8 +33,8 @@ const CalendarPage: React.FC = () => {
     
     try {
       setLoading(true);
-      const formattedDate = date.toISOString().split('T')[0];
-      const fetchedSuggestions = await getCalendarSuggestions(formattedDate);
+      // getCalendarSuggestions doesn't need a date parameter based on its implementation in supabaseService
+      const fetchedSuggestions = await getCalendarSuggestions();
       setSuggestions(fetchedSuggestions);
     } catch (error) {
       console.error("Erro ao buscar sugestões:", error);
@@ -47,10 +48,12 @@ const CalendarPage: React.FC = () => {
     }
   };
 
-  const handleCompletionToggle = async (id: string, completed: boolean) => {
+  const handleCompletionToggle = async (eventDate: string, completed: boolean) => {
     try {
-      await updateCalendarCompletion(id, completed);
-      setSuggestions(suggestions.map(s => s.id === id ? { ...s, completed } : s));
+      await updateCalendarCompletion(eventDate, completed);
+      setSuggestions(suggestions.map(s => 
+        s.date === eventDate ? { ...s, completed } : s
+      ));
       
       toast({
         title: "Status atualizado",
@@ -71,8 +74,8 @@ const CalendarPage: React.FC = () => {
     
     try {
       setLoading(true);
-      const userId = user.id;
-      await clearCalendarPlanning(userId); // Add userId parameter
+      // clearPlanning doesn't need a userId parameter based on its implementation
+      await clearPlanning();
       setSuggestions([]);
       toast({
         title: "Planejamento limpo",
@@ -128,7 +131,7 @@ const CalendarPage: React.FC = () => {
           <div className="space-y-4">
             {suggestions.length > 0 ? (
               suggestions.map(suggestion => (
-                <div key={suggestion.id} className="border rounded-md p-4">
+                <div key={suggestion.date} className="border rounded-md p-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-lg font-semibold">{suggestion.title}</h2>
@@ -137,7 +140,7 @@ const CalendarPage: React.FC = () => {
                     </div>
                     <Button 
                       variant={suggestion.completed ? "secondary" : "outline"}
-                      onClick={() => handleCompletionToggle(suggestion.id || '', !suggestion.completed)}
+                      onClick={() => handleCompletionToggle(suggestion.date, !suggestion.completed)}
                     >
                       {suggestion.completed ? 'Concluído' : 'Marcar como Concluído'}
                     </Button>
