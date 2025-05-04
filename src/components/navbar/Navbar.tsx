@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -107,3 +106,6 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
+
+// Add default export to fix the import issue
+export default Navbar;
