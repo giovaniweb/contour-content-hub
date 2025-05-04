@@ -1,14 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, Sparkles, ArrowRight, Check, Download } from "lucide-react";
+import { Calendar as CalendarIcon, Sparkles, ArrowRight, Check, Download, ChevronDown, ChevronUp, Wand } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import CalendarDialog from "@/components/script/CalendarDialog";
 
 interface ImplementationPlanProps {
   strategy: any;
@@ -35,6 +40,13 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
       { task: "Ajustes na estratégia", week: 4, done: false },
     ],
   });
+  const [contentQuantity, setContentQuantity] = useState<number>(5);
+  const [bigIdeas, setBigIdeas] = useState<any[]>([]);
+  const [selectedBigIdea, setSelectedBigIdea] = useState<any>(null);
+  const [expandedScript, setExpandedScript] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState<boolean>(false);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -73,12 +85,97 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
     });
   };
 
-  const handleContentGeneration = () => {
-    // Navigate to the content generation page with pre-filled info
-    // Use safe values to prevent undefined errors
-    navigate(`/custom-gpt?mode=advanced&topic=${encodeURIComponent(primaryTopic)}`);
+  // Generate big ideas based on content types and diagnostic data
+  const generateBigIdeas = () => {
+    setIsGenerating(true);
+    
+    // Example big ideas (in a real app, this would call an AI API)
+    setTimeout(() => {
+      const generatedIdeas = Array(contentQuantity).fill(null).map((_, idx) => {
+        const types = ['educational', 'before-after', 'testimonials'];
+        const availableTypes = contentTypes.length > 0 ? contentTypes : types;
+        const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+        
+        let title = '';
+        let description = '';
+        
+        switch(randomType) {
+          case 'educational':
+            title = `Os segredos de ${primaryTopic} que ninguém conta`;
+            description = `Conteúdo educativo sobre ${safeMainProcedures[0]} focado nas dúvidas mais comuns`;
+            break;
+          case 'before-after':
+            title = `Transformação incrível com ${safeMainProcedures[0]}`;
+            description = `Antes e depois com explicação detalhada do processo e resultados`;
+            break;
+          case 'testimonials':
+            title = `Por que minhas clientes escolhem ${primaryTopic}`;
+            description = `Depoimento real de cliente satisfeita com resultados de ${safeMainProcedures[0]}`;
+            break;
+          default:
+            title = `${primaryTopic} - o que você precisa saber`;
+            description = `Visão geral sobre ${safeMainProcedures[0]} e seus benefícios`;
+        }
+        
+        return {
+          id: idx + 1,
+          title,
+          description,
+          type: randomType,
+          marketingObjective: ['🟡 Atrair Atenção', '🟢 Criar Conexão', '🔴 Fazer Comprar'][idx % 3]
+        };
+      });
+      
+      setBigIdeas(generatedIdeas);
+      setIsGenerating(false);
+      
+      toast({
+        title: "Big Ideas geradas com sucesso",
+        description: `${contentQuantity} ideias de conteúdo foram criadas para você`,
+      });
+    }, 1500);
   };
-
+  
+  // Expand big idea into full content script
+  const expandBigIdea = (idea: any) => {
+    setIsGenerating(true);
+    setSelectedBigIdea(idea);
+    
+    // Example script generation (in a real app, this would call an AI API)
+    setTimeout(() => {
+      const script = {
+        ...idea,
+        content: `# Roteiro: ${idea.title}\n\n## Introdução (0:00 - 0:15)\n"Olá, pessoal! Hoje vamos falar sobre ${primaryTopic} e como isso pode transformar seus resultados."\n\n## Desenvolvimento (0:15 - 0:45)\n"O que muitas pessoas não sabem é que ${safeMainProcedures[0]} pode...\nVamos mostrar como funciona na prática..."\n\n## Exemplos e resultados (0:45 - 1:30)\n"Veja aqui alguns dos resultados impressionantes que conseguimos...\nNote a diferença em apenas X sessões..."\n\n## Conclusão (1:30 - 2:00)\n"É por isso que ${safeMainProcedures[0]} tem sido tão procurado...\nSe você ficou interessado, entre em contato agora mesmo!"\n\n## Chamada para ação\n"Agende sua avaliação gratuita hoje mesmo! Link na bio."`,
+      };
+      
+      setExpandedScript(script);
+      setIsGenerating(false);
+      
+      toast({
+        title: "Roteiro expandido",
+        description: "O roteiro completo foi gerado com base na Big Idea",
+      });
+    }, 2000);
+  };
+  
+  const handleContentGeneration = (customTopic = '') => {
+    const topic = customTopic || primaryTopic;
+    navigate(`/custom-gpt?mode=advanced&topic=${encodeURIComponent(topic)}`);
+  };
+  
+  const addToCalendar = (script: any) => {
+    setExpandedScript(script);
+    setIsCalendarDialogOpen(true);
+  };
+  
+  const handleScheduleScript = async (date: Date, timeSlot: string) => {
+    toast({
+      title: "Conteúdo agendado",
+      description: `"${expandedScript?.title}" foi agendado com sucesso para publicação.`,
+    });
+    setIsCalendarDialogOpen(false);
+  };
+  
   // Group tasks by week
   const tasksByWeek = schedule.implementation.reduce((acc: any, task: any) => {
     if (!acc[task.week]) {
@@ -163,7 +260,7 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
                   mode="single"
                   selected={schedule.date}
                   onSelect={(date) => setSchedule({ ...schedule, date })}
-                  className="rounded-md border"
+                  className="rounded-md border pointer-events-auto"
                 />
               </div>
             </div>
@@ -172,53 +269,165 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
           {/* Conteúdos Sugeridos */}
           <TabsContent value="content">
             <div className="space-y-4">
+              {/* Content Generator */}
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h3 className="font-medium">Temas Sugeridos para Conteúdo</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Baseados no seu diagnóstico e temas principais
-                </p>
+                <h3 className="font-medium mb-4">Gerador de Big Ideas</h3>
                 
-                <div className="space-y-3">
-                  {contentTypes.includes('educational') && (
-                    <div className="p-3 border rounded-lg bg-white">
-                      <h4 className="font-medium">Conteúdos Educativos</h4>
-                      <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Como funciona {primaryTopic} - passo a passo"</li>
-                        <li>"Mitos e verdades sobre {safeMainProcedures[0]}"</li>
-                        <li>"Quando você deve considerar {safeMainProcedures[0]}"</li>
-                        <li>"Perguntas frequentes sobre {safeMainProcedures[0]}"</li>
-                      </ul>
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="contentQuantity">Quantidade de ideias a gerar</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="contentQuantity"
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={contentQuantity}
+                        onChange={(e) => setContentQuantity(parseInt(e.target.value) || 1)}
+                        className="w-20"
+                      />
+                      <Button 
+                        onClick={generateBigIdeas}
+                        disabled={isGenerating}
+                        className="flex-1"
+                      >
+                        {isGenerating ? (
+                          <>Gerando...</>
+                        ) : (
+                          <>
+                            <Sparkles className="mr-2 h-4 w-4" />
+                            Gerar Big Ideas
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  )}
+                  </div>
                   
-                  {contentTypes.includes('before-after') && (
-                    <div className="p-3 border rounded-lg bg-white">
-                      <h4 className="font-medium">Antes e Depois</h4>
-                      <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Transformação com {safeMainProcedures[0]} - resultado em X dias"</li>
-                        <li>"Antes e depois: {primaryTopic} - resultado natural"</li>
-                        <li>"Resultados reais: tratamento de {safeMainProcedures[0]}"</li>
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {contentTypes.includes('testimonials') && (
-                    <div className="p-3 border rounded-lg bg-white">
-                      <h4 className="font-medium">Depoimentos</h4>
-                      <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Depoimento da cliente Maria - sua experiência com {safeMainProcedures[0]}"</li>
-                        <li>"Por que escolhi {primaryTopic} - depoimento real"</li>
-                        <li>"Como {safeMainProcedures[0]} mudou minha autoestima - história da Ana"</li>
-                      </ul>
+                  {bigIdeas.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-2">Big Ideas Geradas</h4>
+                      <ScrollArea className="h-[250px] border rounded-md p-3 bg-card">
+                        {bigIdeas.map((idea) => (
+                          <div key={idea.id} className="mb-4 border-b pb-3 last:border-b-0">
+                            <div className="flex justify-between">
+                              <h5 className="font-medium">{idea.title}</h5>
+                              <span className="text-xs bg-muted px-2 py-1 rounded-md">
+                                {idea.marketingObjective}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground my-2">
+                              {idea.description}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => expandBigIdea(idea)}
+                              >
+                                <Wand className="mr-2 h-4 w-4" />
+                                Expandir para Roteiro
+                              </Button>
+                              <Button
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => addToCalendar(idea)}
+                              >
+                                <CalendarIcon className="mr-1 h-4 w-4" />
+                                Agendar
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </ScrollArea>
                     </div>
                   )}
                 </div>
-                
-                <Button className="w-full mt-4" onClick={handleContentGeneration}>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Gerar Roteiros com IA
-                </Button>
               </div>
+              
+              {/* Expanded Script */}
+              {expandedScript && (
+                <div className="border p-4 rounded-lg mt-4 bg-card">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium">Roteiro Expandido</h3>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addToCalendar(expandedScript)}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        Agendar Publicação
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setExpandedScript(null)}
+                      >
+                        Fechar
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <ScrollArea className="h-[300px] mt-2">
+                    <div className="whitespace-pre-wrap">
+                      <h4 className="text-lg font-medium mb-2">{expandedScript.title}</h4>
+                      <div className="prose dark:prose-invert prose-sm max-w-none">
+                        {expandedScript.content}
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+              
+              {!expandedScript && !bigIdeas.length && (
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h3 className="font-medium">Temas Sugeridos para Conteúdo</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Baseados no seu diagnóstico e temas principais
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {contentTypes.includes('educational') && (
+                      <div className="p-3 border rounded-lg bg-white">
+                        <h4 className="font-medium">Conteúdos Educativos</h4>
+                        <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
+                          <li>"Como funciona {primaryTopic} - passo a passo"</li>
+                          <li>"Mitos e verdades sobre {safeMainProcedures[0]}"</li>
+                          <li>"Quando você deve considerar {safeMainProcedures[0]}"</li>
+                          <li>"Perguntas frequentes sobre {safeMainProcedures[0]}"</li>
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {contentTypes.includes('before-after') && (
+                      <div className="p-3 border rounded-lg bg-white">
+                        <h4 className="font-medium">Antes e Depois</h4>
+                        <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
+                          <li>"Transformação com {safeMainProcedures[0]} - resultado em X dias"</li>
+                          <li>"Antes e depois: {primaryTopic} - resultado natural"</li>
+                          <li>"Resultados reais: tratamento de {safeMainProcedures[0]}"</li>
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {contentTypes.includes('testimonials') && (
+                      <div className="p-3 border rounded-lg bg-white">
+                        <h4 className="font-medium">Depoimentos</h4>
+                        <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
+                          <li>"Depoimento da cliente Maria - sua experiência com {safeMainProcedures[0]}"</li>
+                          <li>"Por que escolhi {primaryTopic} - depoimento real"</li>
+                          <li>"Como {safeMainProcedures[0]} mudou minha autoestima - história da Ana"</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Button className="w-full mt-4" onClick={() => handleContentGeneration()}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Gerar Roteiros com IA
+                  </Button>
+                </div>
+              )}
               
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h3 className="font-medium mb-2">Próximos Passos para Conteúdo</h3>
@@ -280,13 +489,14 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
                         }</li>
                         <li>• Tema principal: {primaryTopic}</li>
                         <li>• Tipos de conteúdo: {
-                          contentTypes
-                            .map((type: string) => 
-                              type === 'before-after' ? 'Antes e Depois' :
-                              type === 'testimonials' ? 'Depoimentos' :
-                              type === 'educational' ? 'Conteúdo Educativo' : 'Promoções'
-                            )
-                            .join(', ') || "Não definido"
+                          contentTypes?.length > 0 ?
+                            contentTypes
+                              .map((type: string) => 
+                                type === 'before-after' ? 'Antes e Depois' :
+                                type === 'testimonials' ? 'Depoimentos' :
+                                type === 'educational' ? 'Conteúdo Educativo' : 'Promoções'
+                              )
+                              .join(', ') : "Não definido"
                         }</li>
                       </ul>
                     </div>
@@ -359,11 +569,18 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
           Nova Consultoria
         </Button>
         
-        <Button onClick={handleContentGeneration}>
+        <Button onClick={() => handleContentGeneration()}>
           Criar Conteúdos Sugeridos
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
+      
+      <CalendarDialog
+        open={isCalendarDialogOpen}
+        onOpenChange={setIsCalendarDialogOpen}
+        onSchedule={handleScheduleScript}
+        scriptId={expandedScript?.id || ""}
+      />
     </Card>
   );
 };
