@@ -67,20 +67,22 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
       if (userMessage.toLowerCase().includes('diagnóstico') || 
           userMessage.toLowerCase().includes('começar') || 
           userMessage.toLowerCase().includes('analise') ||
-          userMessage.toLowerCase().includes('análise')) {
+          userMessage.toLowerCase().includes('análise') ||
+          userMessage.toLowerCase().includes('pronto')) {
         response = 'Vamos começar uma análise completa da sua clínica. Farei algumas perguntas para entender melhor seu negócio e criar uma estratégia personalizada.';
         
         setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         setLoading(false);
         
-        // After a short delay, start the consultation flow
+        // Inicia o diagnóstico após breve espera
         setTimeout(() => {
           toast({
             title: "Iniciando diagnóstico",
             description: "Preparando formulário de diagnóstico para sua clínica..."
           });
+          // Chamamos diretamente a função onStartConsultation que vai mudar o estado em MarketingConsultant
           onStartConsultation();
-        }, 1500);
+        }, 1000);
         
         return;
       }
@@ -102,11 +104,29 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   };
 
   const handleStartDiagnostic = () => {
+    // Adicionamos uma mensagem do usuário indicando que quer iniciar
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: 'Estou pronto para iniciar o diagnóstico'
+    }]);
+    
+    // Adicionamos uma resposta do assistente
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: 'Ótimo! Vamos começar o diagnóstico personalizado para sua clínica de estética.'
+    }]);
+    
+    // Notificação para feedback visual
     toast({
       title: "Iniciando diagnóstico",
       description: "Preparando formulário de diagnóstico para sua clínica..."
     });
-    onStartConsultation();
+    
+    // Pequeno atraso para permitir que as mensagens sejam vistas
+    setTimeout(() => {
+      // Chamada para iniciar a consulta
+      onStartConsultation();
+    }, 1000);
   };
 
   return (

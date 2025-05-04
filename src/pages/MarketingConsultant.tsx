@@ -51,6 +51,7 @@ const MarketingConsultant: React.FC = () => {
   };
 
   const startConsultation = () => {
+    // Imediatamente muda para a etapa de diagnóstico
     setCurrentStep('diagnostic');
     toast({
       title: "Consultor de marketing iniciado",
