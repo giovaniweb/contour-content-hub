@@ -38,10 +38,6 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       query = query.eq('objetivo', filters.objetivo);
     }
     
-    if (filters.prioridade) {
-      query = query.eq('prioridade', filters.prioridade);
-    }
-    
     if (filters.status) {
       query = query.eq('status', filters.status);
     }
@@ -57,8 +53,8 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         .lte('previsao', filters.dateRange.to.toISOString());
     }
 
-    // Ordenação
-    query = query.order('prioridade', { ascending: false }).order('previsao', { ascending: true });
+    // Ordenação - agora sem prioridade, ordena principalmente por data
+    query = query.order('previsao', { ascending: true });
 
     const { data, error } = await query;
 

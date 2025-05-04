@@ -1,5 +1,5 @@
 
-import { ContentStrategyItem, ContentCategory, ContentFormat, ContentObjective, ContentPriority, ContentStatus, ContentDistribution } from "@/types/content-strategy";
+import { ContentStrategyItem, ContentCategory, ContentFormat, ContentObjective, ContentStatus, ContentDistribution } from "@/types/content-strategy";
 
 /**
  * Transforma os dados brutos do Supabase em um objeto ContentStrategyItem tipado
@@ -21,7 +21,6 @@ export function transformToContentStrategyItem(data: any): ContentStrategyItem {
     previsao: data.previsao,
     conteudo: data.conteudo,
     objetivo: data.objetivo as ContentObjective,
-    prioridade: data.prioridade as ContentPriority,
     status: data.status as ContentStatus,
     distribuicao: distribuicao,
     created_at: data.created_at,
@@ -51,7 +50,6 @@ export function prepareContentStrategyData(item: Partial<ContentStrategyItem>): 
     responsavel_id: responsavel_id,
     previsao: item.previsao || null,
     conteudo: item.conteudo || null,
-    prioridade: item.prioridade || 'Média',
     status: item.status || 'Planejado',
     distribuicao: item.distribuicao || 'Instagram'
   };

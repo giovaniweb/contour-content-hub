@@ -14,8 +14,7 @@ export async function generateContentWithAI(item: Partial<ContentStrategyItem>):
         equipamento: item.equipamento_nome,
         categoria: item.categoria,
         formato: item.formato,
-        objetivo: item.objetivo,
-        prioridade: item.prioridade
+        objetivo: item.objetivo
       })
     });
 

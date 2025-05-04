@@ -10,7 +10,6 @@ export interface ContentStrategyItem {
   previsao: string | null;
   conteudo: string | null;
   objetivo: ContentObjective;
-  prioridade: ContentPriority;
   status: ContentStatus;
   distribuicao: ContentDistribution; // Field for distribution platform
   created_at: string;
@@ -43,11 +42,6 @@ export type ContentObjective =
   | '🔁 Reativar Interesse'
   | '✅ Fechar Agora';
 
-export type ContentPriority = 
-  | 'Alta'
-  | 'Média'
-  | 'Baixa';
-
 export type ContentStatus = 
   | 'Planejado'
   | 'Em andamento'
@@ -69,7 +63,6 @@ export interface ContentStrategyFilter {
   formato?: ContentFormat;
   responsavel_id?: string;
   objetivo?: ContentObjective;
-  prioridade?: ContentPriority;
   status?: ContentStatus;
   distribuicao?: ContentDistribution;
   dateRange?: {

@@ -121,15 +121,6 @@ export function ContentStrategyTable({
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Alta': return 'bg-red-100 text-red-800';
-      case 'Média': return 'bg-yellow-100 text-yellow-800';
-      case 'Baixa': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <>
       <div className="rounded-md border overflow-x-auto">
@@ -143,7 +134,6 @@ export function ContentStrategyTable({
               <TableHead className="whitespace-nowrap">Previsão</TableHead>
               <TableHead className="whitespace-nowrap">Big Idea / Conteúdo</TableHead>
               <TableHead className="whitespace-nowrap">Objetivo</TableHead>
-              <TableHead className="whitespace-nowrap">Prioridade</TableHead>
               <TableHead className="whitespace-nowrap">Status</TableHead>
               <TableHead className="whitespace-nowrap text-right">Ações</TableHead>
             </TableRow>
@@ -151,7 +141,7 @@ export function ContentStrategyTable({
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-center">
+                <TableCell colSpan={9} className="h-24 text-center">
                   Nenhum item de estratégia de conteúdo encontrado.
                 </TableCell>
               </TableRow>
@@ -317,28 +307,6 @@ export function ContentStrategyTable({
                       </Select>
                     ) : (
                       item.objetivo
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    {editableRow === item.id ? (
-                      <Select
-                        value={editValues.prioridade || ''}
-                        onValueChange={(value) => handleInputChange('prioridade', value)}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Alta">Alta</SelectItem>
-                          <SelectItem value="Média">Média</SelectItem>
-                          <SelectItem value="Baixa">Baixa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Badge className={getPriorityColor(item.prioridade)}>
-                        {item.prioridade}
-                      </Badge>
                     )}
                   </TableCell>
 
