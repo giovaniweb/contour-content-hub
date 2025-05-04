@@ -37,15 +37,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  // Inicializar sessão e listener de autenticação
+  // Initialize session and authentication listener
   useEffect(() => {
-    // Configurar listener para mudanças de autenticação
+    // Set up listener for authentication changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Buscar perfil do usuário quando a sessão mudar
+          // Fetch user profile when session changes
           setTimeout(async () => {
             const userProfile = await fetchUserProfile(currentSession.user.id);
             setUser(userProfile);
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Verificar sessão inicial
+    // Check initial session
     const initSession = async () => {
       const { data: { session: initialSession } } = await supabase.auth.getSession();
       
