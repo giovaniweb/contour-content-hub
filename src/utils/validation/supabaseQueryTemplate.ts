@@ -22,9 +22,9 @@ type ExampleResultType = {
  * @param someFilter Optional filter parameter
  * @returns The fetched and transformed data
  */
-export async function safeQueryExample<ResultType = ExampleResultType, TransformedType = ResultType>(
+export async function safeQueryExample(
   someFilter?: string
-): Promise<TransformedType[]> {
+): Promise<any[]> {
   try {
     // Build the query
     const query = supabase
@@ -45,10 +45,10 @@ export async function safeQueryExample<ResultType = ExampleResultType, Transform
     const response = await query;
     
     // Safely get the result with type assertion after execution
-    const data = safeQueryResult<ResultType>(response);
+    const data = safeQueryResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
-    return data ? data.map(item => transformData(item)) as TransformedType[] : [];
+    return data ? data.map(item => transformData(item)) : [];
   } catch (error) {
     console.error("Error in query:", error);
     return [];
@@ -58,9 +58,9 @@ export async function safeQueryExample<ResultType = ExampleResultType, Transform
 /**
  * Example: Safe single-item query pattern
  */
-export async function safeSingleItemQueryExample<ResultType = ExampleResultType, TransformedType = ResultType>(
+export async function safeSingleItemQueryExample(
   id: string
-): Promise<TransformedType | null> {
+): Promise<any | null> {
   try {
     // Build and execute the query
     const response = await supabase
@@ -74,10 +74,10 @@ export async function safeSingleItemQueryExample<ResultType = ExampleResultType,
       .single();
     
     // Safely get the result with type assertion after execution
-    const data = safeSingleResult<ResultType>(response);
+    const data = safeSingleResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
-    return data ? transformData(data) as TransformedType : null;
+    return data ? transformData(data) : null;
   } catch (error) {
     console.error("Error in query:", error);
     return null;
@@ -85,7 +85,7 @@ export async function safeSingleItemQueryExample<ResultType = ExampleResultType,
 }
 
 // Example data transformer function
-function transformData<ResultType>(data: ResultType): unknown {
+function transformData(data: any): any {
   // Transform the data here
   return {
     ...data,
