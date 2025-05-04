@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
+import { ContentStrategyItem, ContentStrategyFilter, ContentCategory, ContentFormat, ContentObjective, ContentPriority, ContentStatus, ContentDistribution } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
 
 export async function fetchContentStrategyItems(filters: ContentStrategyFilter = {}): Promise<ContentStrategyItem[]> {
@@ -34,7 +34,6 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
     if (filters.status) {
       query = query.eq('status', filters.status);
     }
-    // Add filter for distribution
     if (filters.distribuicao) {
       query = query.eq('distribuicao', filters.distribuicao);
     }
@@ -58,18 +57,16 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         linha: item.linha,
         equipamento_id: item.equipamento_id,
         equipamento_nome: item.equipamento?.nome || null,
-        categoria: item.categoria as ContentStrategyItem['categoria'],
-        formato: item.formato as ContentStrategyItem['formato'],
+        categoria: item.categoria as ContentCategory,
+        formato: item.formato as ContentFormat,
         responsavel_id: item.responsavel_id,
         responsavel_nome: item.responsavel?.nome || null,
         previsao: item.previsao,
         conteudo: item.conteudo,
-        objetivo: item.objetivo as ContentStrategyItem['objetivo'],
-        prioridade: item.prioridade as ContentStrategyItem['prioridade'],
-        status: item.status as ContentStrategyItem['status'],
-        distribuicao: ('distribuicao' in item && item.distribuicao 
-          ? item.distribuicao as ContentStrategyItem['distribuicao'] 
-          : 'Instagram'),
+        objetivo: item.objetivo as ContentObjective,
+        prioridade: item.prioridade as ContentPriority,
+        status: item.status as ContentStatus,
+        distribuicao: (item.distribuicao ? item.distribuicao as ContentDistribution : 'Instagram'),
         impedimento: item.impedimento,
         created_at: item.created_at,
         updated_at: item.updated_at,
@@ -133,18 +130,16 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       linha: data.linha,
       equipamento_id: data.equipamento_id,
       equipamento_nome: data.equipamento?.nome || null,
-      categoria: data.categoria as ContentStrategyItem['categoria'],
-      formato: data.formato as ContentStrategyItem['formato'],
+      categoria: data.categoria as ContentCategory,
+      formato: data.formato as ContentFormat,
       responsavel_id: data.responsavel_id,
       responsavel_nome: data.responsavel?.nome || null,
       previsao: data.previsao,
       conteudo: data.conteudo,
-      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
-      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
-      status: data.status as ContentStrategyItem['status'],
-      distribuicao: ('distribuicao' in data && data.distribuicao 
-        ? data.distribuicao as ContentStrategyItem['distribuicao'] 
-        : 'Instagram'),
+      objetivo: data.objetivo as ContentObjective,
+      prioridade: data.prioridade as ContentPriority,
+      status: data.status as ContentStatus,
+      distribuicao: (data.distribuicao ? data.distribuicao as ContentDistribution : 'Instagram'),
       impedimento: data.impedimento,
       created_at: data.created_at,
       updated_at: data.updated_at,
