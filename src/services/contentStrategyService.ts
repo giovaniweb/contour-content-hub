@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
@@ -52,36 +51,32 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
 
     if (error) throw error;
 
-    // Transform data to match our interface with type assertions
+    // Transform data to match our interface with proper type assertions
     return (data || []).map(item => {
-      // Create the base object
-      const strategyItem: ContentStrategyItem = {
+      const estrategiaItem: ContentStrategyItem = {
         id: item.id,
         linha: item.linha,
         equipamento_id: item.equipamento_id,
         equipamento_nome: item.equipamento?.nome || null,
-        categoria: item.categoria,
-        formato: item.formato,
+        categoria: item.categoria as ContentStrategyItem['categoria'],
+        formato: item.formato as ContentStrategyItem['formato'],
         responsavel_id: item.responsavel_id,
         responsavel_nome: item.responsavel?.nome || null,
         previsao: item.previsao,
         conteudo: item.conteudo,
-        objetivo: item.objetivo,
-        prioridade: item.prioridade,
-        status: item.status,
-        distribuicao: 'Instagram', // Default value
+        objetivo: item.objetivo as ContentStrategyItem['objetivo'],
+        prioridade: item.prioridade as ContentStrategyItem['prioridade'],
+        status: item.status as ContentStrategyItem['status'],
+        distribuicao: ('distribuicao' in item && item.distribuicao 
+          ? item.distribuicao as ContentStrategyItem['distribuicao'] 
+          : 'Instagram'),
         impedimento: item.impedimento,
         created_at: item.created_at,
         updated_at: item.updated_at,
         created_by: item.created_by
       };
 
-      // If the distribuicao field exists in the response, use it
-      if ('distribuicao' in item && item.distribuicao) {
-        strategyItem.distribuicao = item.distribuicao;
-      }
-
-      return strategyItem;
+      return estrategiaItem;
     });
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
@@ -132,32 +127,29 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       description: "Item de estratégia de conteúdo criado com sucesso."
     });
 
-    // Create the response object with proper types
+    // Create properly typed ContentStrategyItem from response
     const strategyItem: ContentStrategyItem = {
       id: data.id,
       linha: data.linha,
       equipamento_id: data.equipamento_id,
       equipamento_nome: data.equipamento?.nome || null,
-      categoria: data.categoria,
-      formato: data.formato,
+      categoria: data.categoria as ContentStrategyItem['categoria'],
+      formato: data.formato as ContentStrategyItem['formato'],
       responsavel_id: data.responsavel_id,
       responsavel_nome: data.responsavel?.nome || null,
       previsao: data.previsao,
       conteudo: data.conteudo,
-      objetivo: data.objetivo,
-      prioridade: data.prioridade,
-      status: data.status,
-      distribuicao: 'Instagram', // Default value
+      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
+      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
+      status: data.status as ContentStrategyItem['status'],
+      distribuicao: ('distribuicao' in data && data.distribuicao 
+        ? data.distribuicao as ContentStrategyItem['distribuicao'] 
+        : 'Instagram'),
       impedimento: data.impedimento,
       created_at: data.created_at,
       updated_at: data.updated_at,
       created_by: data.created_by
     };
-
-    // If the distribuicao field exists in the response, use it
-    if ('distribuicao' in data && data.distribuicao) {
-      strategyItem.distribuicao = data.distribuicao;
-    }
 
     return strategyItem;
   } catch (error) {
