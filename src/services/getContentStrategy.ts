@@ -59,8 +59,10 @@ export const fetchContentStrategyItems = async (
       query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Execute the query and safely get the result with type assertion after execution
+    // Execute the query
     const response = await query;
+    
+    // Safely get the result with type assertion after execution
     const data = safeQueryResult<ContentStrategyRowWithRelations>(response);
     
     // Convert the data to the proper type after the query

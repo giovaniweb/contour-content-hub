@@ -1,4 +1,3 @@
-
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
@@ -49,16 +48,10 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
       query.eq('distribuicao', filters.distribuicao);
     }
     
-    if (filters.dateRange?.from) {
-      query.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
-    }
-    
-    if (filters.dateRange?.to) {
-      query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
-    }
-    
-    // Execute the query and safely get the result with type assertion after execution
+    // Execute the query
     const response = await query;
+    
+    // Safely get the result with type assertion after execution
     const data = safeQueryResult<ContentStrategyRowWithRelations>(response);
     
     // Convert the data to ContentStrategyItem objects
@@ -90,7 +83,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       distribuicao: preparedData.distribuicao
     };
     
-    // Execute the query and get the response
+    // Execute the query
     const response = await supabase
       .from('content_strategy_items')
       .insert([insertData])
@@ -165,7 +158,7 @@ export const deleteContentStrategyItem = async (id: string): Promise<boolean> =>
   }
 };
 
-// Simplified versions of these functions to avoid TypeScript excessive depth errors
+// Utility functions
 export const calculateContentMetrics = (strategy: ContentStrategyItem) => {
   const metrics = {
     totalContent: 1,

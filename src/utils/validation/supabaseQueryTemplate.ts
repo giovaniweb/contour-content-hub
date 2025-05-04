@@ -7,13 +7,22 @@
 import { supabase } from "@/integrations/supabase/client";
 import { safeQueryResult, safeSingleResult } from "./supabaseHelpers";
 
+// Example type definition for a result record
+type ExampleResultType = {
+  id: string;
+  categoria: string;
+  // Add other fields here
+  equipamento?: { nome: string } | null;
+  responsavel?: { nome: string } | null;
+};
+
 /**
  * Example: Safe query pattern for fetching items with joins
  * 
  * @param someFilter Optional filter parameter
  * @returns The fetched and transformed data
  */
-export async function safeQueryExample<ResultType, TransformedType>(
+export async function safeQueryExample<ResultType = ExampleResultType, TransformedType = ResultType>(
   someFilter?: string
 ): Promise<TransformedType[]> {
   try {
@@ -39,7 +48,7 @@ export async function safeQueryExample<ResultType, TransformedType>(
     const data = safeQueryResult<ResultType>(response);
     
     // Transform the data to the desired output format
-    return data ? data.map(item => transformData(item)) : [];
+    return data ? data.map(item => transformData(item)) as TransformedType[] : [];
   } catch (error) {
     console.error("Error in query:", error);
     return [];
@@ -49,7 +58,7 @@ export async function safeQueryExample<ResultType, TransformedType>(
 /**
  * Example: Safe single-item query pattern
  */
-export async function safeSingleItemQueryExample<ResultType, TransformedType>(
+export async function safeSingleItemQueryExample<ResultType = ExampleResultType, TransformedType = ResultType>(
   id: string
 ): Promise<TransformedType | null> {
   try {
@@ -68,7 +77,7 @@ export async function safeSingleItemQueryExample<ResultType, TransformedType>(
     const data = safeSingleResult<ResultType>(response);
     
     // Transform the data to the desired output format
-    return data ? transformData(data) : null;
+    return data ? transformData(data) as TransformedType : null;
   } catch (error) {
     console.error("Error in query:", error);
     return null;
@@ -76,7 +85,7 @@ export async function safeSingleItemQueryExample<ResultType, TransformedType>(
 }
 
 // Example data transformer function
-function transformData<ResultType>(data: ResultType): any {
+function transformData<ResultType>(data: ResultType): unknown {
   // Transform the data here
   return {
     ...data,
