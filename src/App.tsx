@@ -17,6 +17,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import PrivateRoute from "@/components/PrivateRoute";
 import ScriptValidationPage from "@/pages/ScriptValidationPage";
 import CustomGpt from "@/pages/CustomGpt";
+import SystemDiagnostics from "@/pages/SystemDiagnostics";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
           <Route path="/script-validation" element={<PrivateRoute element={<ScriptValidationPage />} />} />
           <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGpt />} />} />
+          <Route path="/system-diagnostics" element={<PrivateRoute element={<SystemDiagnostics />} />} />
         </Routes>
         <Toaster />
       </AuthProvider>

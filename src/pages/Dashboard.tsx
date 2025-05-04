@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,8 @@ import {
   Calendar,
   ArrowRight,
   Video,
-  BrainCircuit
+  BrainCircuit,
+  Shield
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -60,10 +60,10 @@ const Dashboard: React.FC = () => {
       color: "bg-purple-100 text-purple-700"
     },
     {
-      label: "Importar vídeo Vimeo",
-      icon: <Video className="h-5 w-5" />,
-      path: "/admin/content?tab=videos&action=import",
-      color: "bg-red-100 text-red-700"
+      label: "Diagnóstico do Sistema",
+      icon: <Shield className="h-5 w-5" />,
+      path: "/system-diagnostics",
+      color: "bg-green-100 text-green-700"
     }
   ];
   

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
@@ -271,7 +272,7 @@ const SystemDiagnostics: React.FC = () => {
   const repairIssue = async (issue: SystemIssue) => {
     if (!issue.repairAnalysis?.autoReparo) {
       toast({
-        variant: "warning",
+        variant: "destructive", // Changed from "warning" to "destructive"
         title: "Reparo manual necessário",
         description: "Este problema requer intervenção manual para ser corrigido."
       });
