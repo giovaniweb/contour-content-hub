@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -8,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
-import { ScriptResponse } from '@/types/script';
+import { ScriptResponse, MarketingObjectiveType } from '@/types/script';
 import CalendarDialog from '@/components/script/CalendarDialog';
 import { useToast } from '@/hooks/use-toast';
 

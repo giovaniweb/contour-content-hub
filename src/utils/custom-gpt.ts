@@ -1,81 +1,51 @@
 
-// Types for custom GPT integration
-export type CustomGptType = "roteiro" | "bigIdea" | "stories";
-export type ConteudoEstrategia = "atrair_atencao" | "criar_conexao" | "fazer_comprar" | "reativar_interesse" | "fechar_agora" | string;
+// Se este arquivo não puder ser editado, precisaríamos criar uma versão atualizada
+// ou criar um arquivo intermediário que corrige as tipagens
 
-// Request interface for Custom GPT
+import { MarketingObjectiveType } from '@/types/script';
+
+export type CustomGptType = 'roteiro' | 'bigIdea' | 'stories';
+
 export interface CustomGptRequest {
   tipo: CustomGptType;
-  equipamento?: string;
+  equipamento: string;
   quantidade: number;
   tom?: string;
-  estrategiaConteudo?: ConteudoEstrategia;
+  estrategiaConteudo?: MarketingObjectiveType;
   topic?: string;
   bodyArea?: string;
   purposes?: string[];
   additionalInfo?: string;
-  marketingObjective?: string;
+  marketingObjective?: MarketingObjectiveType;
 }
 
-// Result interface for Custom GPT
 export interface CustomGptResult {
   id: string;
   content: string;
 }
 
-// Function to generate custom content
-export const generateCustomContent = async (request: CustomGptRequest): Promise<string> => {
-  console.log("Generating custom content with request:", request);
-  
-  // Simulating API call delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Generate different content based on type
-  let baseContent = '';
-  
-  switch (request.tipo) {
-    case "roteiro":
-      baseContent = `# Roteiro para ${request.topic || 'Vídeo'}\n\n`;
-      baseContent += `## Abertura\n- Olá, hoje vamos falar sobre ${request.topic}.\n- [Apresentação rápida do tema]\n\n`;
-      baseContent += `## Desenvolvimento\n- Ponto 1: Benefícios do ${request.equipamento || 'equipamento'}\n`;
-      baseContent += `- Ponto 2: Como funciona o tratamento\n`;
-      baseContent += `- Ponto 3: Resultados esperados\n\n`;
-      baseContent += `## Fechamento\n- CTA: Agende sua avaliação\n- Informações de contato\n\n`;
+export async function generateCustomContent(request: CustomGptRequest): Promise<string> {
+  // Simulando uma chamada de API com uma promessa resolvida após um atraso
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Modelo de resposta simulada baseada no tipo de conteúdo
+      let content = '';
       
-      if (request.additionalInfo) {
-        baseContent += `## Observações adicionais\n${request.additionalInfo}\n\n`;
+      switch (request.tipo) {
+        case 'roteiro':
+          content = `# Roteiro: ${request.topic || 'Sem título'}\n\n## Introdução\nComece com um gancho forte sobre ${request.bodyArea || 'o tratamento'} usando ${request.equipamento || 'o equipamento'}.\n\n## Desenvolvimento\nExplique os benefícios principais:\n- Resultado rápido\n- Sem dor\n- Tecnologia avançada\n\n## Conclusão\nChame para ação com foco em ${request.marketingObjective || 'agendar consulta'}.`;
+          break;
+        case 'bigIdea':
+          content = `# Big Idea: ${request.topic || 'Transformação'}\n\n## Conceito Principal\nA grande ideia é mostrar como ${request.bodyArea || 'o tratamento'} pode transformar a vida do cliente.\n\n## Elementos Emocionais\n- Antes e depois emocional\n- Histórias de superação\n- Conexão com valores pessoais\n\n## Call-to-Action\nConvide para conhecer mais sobre ${request.equipamento || 'o tratamento'}.`;
+          break;
+        case 'stories':
+          content = `# Story: ${request.topic || 'Dica rápida'}\n\n## Slide 1\nPergunta intrigante sobre ${request.bodyArea || 'tratamento estético'}?\n\n## Slide 2\nRevele o problema comum que muitos enfrentam.\n\n## Slide 3\nApresente ${request.equipamento || 'a solução'} como resposta ideal.\n\n## Slide 4\nMostre resultados concretos e chame para ação.`;
+          break;
+        default:
+          content = `# Conteúdo Genérico\n\nConteúdo genérico sobre ${request.topic || 'tema não especificado'}.`;
       }
       
-      break;
-      
-    case "bigIdea":
-      baseContent = `# Big Idea: ${request.topic || 'Campanha'}\n\n`;
-      baseContent += `## Conceito Central\nUm novo conceito revolucionário para ${request.topic}.\n\n`;
-      baseContent += `## Mensagem Principal\n"${request.tom || 'Transforme sua vida'} com ${request.equipamento || 'nossa tecnologia'}"\n\n`;
-      baseContent += `## Elementos da Campanha\n1. Posts para redes sociais\n2. E-mail marketing\n3. Landing page\n\n`;
-      baseContent += `## Cronograma\n- Semana 1: Teaser\n- Semana 2: Lançamento\n- Semana 3: Depoimentos\n- Semana 4: Oferta especial\n\n`;
-      
-      break;
-      
-    case "stories":
-      baseContent = `# Story para Instagram\n\n`;
-      baseContent += `## Slide 1\n👋 Você sabia que ${request.topic || 'nosso tratamento'} pode mudar sua vida?\n\n`;
-      baseContent += `## Slide 2\n✨ ${request.equipamento || 'Nossa tecnologia'} oferece resultados incríveis.\n\n`;
-      baseContent += `## Slide 3\n🔎 Veja o antes e depois!\n\n`;
-      baseContent += `## Slide 4\n💬 Agende seu horário: [CONTATO]\n\n`;
-      
-      if (request.marketingObjective) {
-        baseContent += `## Objetivo: ${request.marketingObjective}\n`;
-      }
-      
-      break;
-      
-    default:
-      baseContent = `# Conteúdo Personalizado\n\n`;
-      baseContent += `Tópico: ${request.topic || 'Não especificado'}\n`;
-      baseContent += `Equipamento: ${request.equipamento || 'Não especificado'}\n`;
-      baseContent += `Informações adicionais: ${request.additionalInfo || 'Nenhuma'}\n`;
-  }
-  
-  return baseContent;
-};
+      resolve(content);
+    }, 2000); // Simula um atraso de 2 segundos
+  });
+}

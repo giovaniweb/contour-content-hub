@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useEquipments } from "@/hooks/useEquipments";
 import { CustomGptType, CustomGptRequest, CustomGptResult, generateCustomContent } from "@/utils/custom-gpt";
-import { ScriptResponse } from "@/types/script";
+import { ScriptResponse, MarketingObjectiveType } from '@/types/script';
 
 const formSchema = z.object({
   topic: z.string().min(2, {
@@ -130,12 +129,12 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
         equipamento: selectedEquipment || '',
         quantidade: parseInt(form.getValues().quantity || "1") || 1,
         tom: form.getValues().tone,
-        estrategiaConteudo: form.getValues().marketingObjective as any,
+        estrategiaConteudo: form.getValues().marketingObjective as MarketingObjectiveType,
         topic: form.getValues().topic,
         bodyArea: form.getValues().bodyArea,
         purposes: form.getValues().purposes || [],
         additionalInfo: form.getValues().additionalInfo,
-        marketingObjective: form.getValues().marketingObjective
+        marketingObjective: form.getValues().marketingObjective as MarketingObjectiveType
       };
       
       // Faz a chamada para o custom GPT

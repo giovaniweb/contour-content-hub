@@ -5,7 +5,7 @@ export type MarketingObjectiveType =
   | '🔴 Fazer Comprar'
   | '🔁 Reativar Interesse'
   | '✅ Fechar Agora'
-  | string;
+  | string; // Mantendo string para compatibilidade, mas idealmente deveria ser apenas os tipos específicos
 
 export interface ScriptResponse {
   id: string;
@@ -17,4 +17,5 @@ export interface ScriptResponse {
   captionTips: any[];
   equipment?: string;
   marketingObjective?: MarketingObjectiveType;
+  pdf_url?: string; // Adicionando para compatibilidade com ScriptCard
 }
