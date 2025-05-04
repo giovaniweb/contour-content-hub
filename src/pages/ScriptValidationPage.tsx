@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import ScriptEditor from "@/components/script-generator/ScriptEditor";
@@ -72,21 +73,17 @@ const ScriptValidationPage: React.FC = () => {
                 onChange={setContent}
                 readOnly={false}
               />
+              <div className="mt-4 flex justify-end">
+                <Button 
+                  onClick={handleValidate}
+                  disabled={!content.trim() || isValidating}
+                >
+                  {isValidating ? <RefreshCw className="h-5 w-5 mr-2 animate-spin" /> : <CheckCircle className="h-5 w-5 mr-2" />}
+                  Validar Roteiro
+                </Button>
+              </div>
             </CardContent>
           </Card>
-          
-          {/* Botão de validação centralizado entre os dois cards */}
-          <div className="flex justify-center -my-3 z-10">
-            <Button 
-              onClick={handleValidate}
-              disabled={!content.trim() || isValidating}
-              className="px-8 py-6 text-base shadow-lg"
-              size="lg"
-            >
-              {isValidating ? <RefreshCw className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
-              Validar Roteiro
-            </Button>
-          </div>
 
           {/* Resultados da Validação */}
           <Card>
@@ -129,8 +126,8 @@ const ScriptValidationPage: React.FC = () => {
                       title: "Roteiro temporário", 
                       type: "videoScript", 
                       createdAt: new Date().toISOString(),
-                      suggestedVideos: [], // Added missing property
-                      captionTips: []      // Added missing property
+                      suggestedVideos: [], 
+                      captionTips: []
                     }}
                     onValidationComplete={handleValidationComplete}
                     hideTitle={true}

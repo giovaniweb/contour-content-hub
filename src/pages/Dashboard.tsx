@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,16 @@ const Dashboard: React.FC = () => {
     }
   ];
   
+  // Add a new quick action for script validation
+  const additionalActions = [
+    {
+      label: "Validar roteiro",
+      icon: <Sparkles className="h-5 w-5" />,
+      path: "/script-validation",
+      color: "bg-violet-100 text-violet-700"
+    }
+  ];
+  
   return (
     <Layout fullWidth>
       <div className="max-w-7xl mx-auto px-4 space-y-8 py-6">
@@ -94,22 +105,51 @@ const Dashboard: React.FC = () => {
         </section>
         
         {/* Ações Rápidas */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <Link to={action.path} key={index} className="block">
-              <Card className="hover:shadow-md transition-all duration-200 h-full">
-                <CardContent className="p-5 flex items-center gap-4">
-                  <div className={`${action.color} p-3 rounded-lg`}>
-                    {action.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">{action.label}</h3>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-gray-400" />
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Ações Rápidas</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <Link to={action.path} key={index} className="block">
+                <Card className="hover:shadow-md transition-all duration-200 h-full">
+                  <CardContent className="p-5 flex items-center gap-4">
+                    <div className={`${action.color} p-3 rounded-lg`}>
+                      {action.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-800">{action.label}</h3>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-gray-400" />
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+        
+        {/* Additional Tools Section */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Ferramentas Adicionais</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {additionalActions.map((action, index) => (
+              <Link to={action.path} key={index} className="block">
+                <Card className="hover:shadow-md transition-all duration-200 h-full">
+                  <CardContent className="p-5 flex items-center gap-4">
+                    <div className={`${action.color} p-3 rounded-lg`}>
+                      {action.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-800">{action.label}</h3>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-gray-400" />
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </section>
         
         {/* Nova seção: Consultor Preditivo Inteligente */}
