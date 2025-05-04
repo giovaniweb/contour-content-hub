@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,7 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({
       enabled: true,
       frequency: 'daily',
       contentTypes: ['before-after', 'testimonials', 'educational'],
-      primaryTopic: diagnosticData?.mainProcedures[0] || 'Tratamentos estéticos',
+      primaryTopic: diagnosticData?.mainServices || 'Tratamentos estéticos',
     },
     internal: {
       enabled: true,
