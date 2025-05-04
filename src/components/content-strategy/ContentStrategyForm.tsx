@@ -33,6 +33,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContentStrategyItem } from "@/types/content-strategy";
+import MarketingObjectiveSelector from "./MarketingObjectiveSelector";
 
 const formSchema = z.object({
   equipamento_id: z.string().optional().nullable(),
@@ -45,8 +46,8 @@ const formSchema = z.object({
   responsavel_id: z.string().optional().nullable(),
   previsao: z.date().optional().nullable(),
   conteudo: z.string().optional().nullable(),
-  objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro'], {
-    required_error: "Objetivo é obrigatório" 
+  objetivo: z.string().min(1, {
+    message: "Objetivo é obrigatório" 
   }),
   prioridade: z.enum(['Alta', 'Média', 'Baixa']).default("Média"),
   status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso']).default("Planejado"),
@@ -78,7 +79,7 @@ export function ContentStrategyForm({
       responsavel_id: "",
       previsao: undefined,
       conteudo: "",
-      objetivo: "engajar",
+      objetivo: "🟡 Atrair Atenção",
       prioridade: "Média",
       status: "Planejado",
       distribuicao: "Instagram",
@@ -276,37 +277,6 @@ export function ContentStrategyForm({
             )}
           />
 
-          {/* Objetivo */}
-          <FormField
-            control={form.control}
-            name="objetivo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Objetivo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um objetivo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="engajar">Engajar</SelectItem>
-                    <SelectItem value="vender">Vender</SelectItem>
-                    <SelectItem value="educar">Educar</SelectItem>
-                    <SelectItem value="informar">Informar</SelectItem>
-                    <SelectItem value="converter">Converter</SelectItem>
-                    <SelectItem value="construir autoridade">Construir autoridade</SelectItem>
-                    <SelectItem value="outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Objetivo principal do conteúdo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Prioridade */}
           <FormField
             control={form.control}
@@ -393,6 +363,27 @@ export function ContentStrategyForm({
             )}
           />
         </div>
+
+        {/* Objetivo - Novo Visual */}
+        <FormField
+          control={form.control}
+          name="objetivo"
+          render={({ field }) => (
+            <FormItem className="space-y-4">
+              <FormLabel>Objetivo de Marketing</FormLabel>
+              <FormControl>
+                <MarketingObjectiveSelector 
+                  value={field.value as any}
+                  onValueChange={field.onChange}
+                />
+              </FormControl>
+              <FormDescription>
+                Selecione o objetivo principal deste conteúdo.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Conteúdo */}
         <FormField

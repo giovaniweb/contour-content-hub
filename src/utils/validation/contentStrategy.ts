@@ -46,9 +46,9 @@ export function prepareContentStrategyData(item: Partial<ContentStrategyItem>): 
   
   // Garantir que os campos obrigatórios estejam presentes
   return {
-    categoria: item.categoria || 'Educacional',
-    formato: item.formato || 'Video',
-    objetivo: item.objetivo || 'Educar',
+    categoria: item.categoria || 'vendas',
+    formato: item.formato || 'story',
+    objetivo: item.objetivo || '🟡 Atrair Atenção',
     equipamento_id: equipamento_id,
     responsavel_id: responsavel_id,
     previsao: item.previsao || null,
