@@ -85,7 +85,8 @@ export const useContentStrategy = () => {
     try {
       const newItem = await createContentStrategyItem(item);
       if (newItem) {
-        setItems(prev => [newItem, ...prev]);
+        // Ensure newItem is properly typed as ContentStrategyItem
+        setItems(prev => [newItem as ContentStrategyItem, ...prev]);
       }
     } catch (error) {
       console.error("Error creating item:", error);
@@ -100,7 +101,7 @@ export const useContentStrategy = () => {
       const success = await updateContentStrategyItem(id, updates);
       if (success) {
         setItems(prev =>
-          prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+          prev.map(item => (item.id === id ? { ...item, ...updates } as ContentStrategyItem : item))
         );
       }
       return Promise.resolve();

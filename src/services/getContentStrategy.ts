@@ -62,11 +62,11 @@ export const fetchContentStrategyItems = async (
     // Execute the query
     const response = await query;
     
-    // Safely get the result with type assertion after execution
-    const data = safeQueryResult<ContentStrategyRowWithRelations>(response);
+    // Use type assertion with unknown as intermediary to break deep instantiation chain
+    const rawData = safeQueryResult<ContentStrategyRowWithRelations>(response);
     
     // Convert the data to the proper type after the query
-    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
+    return rawData ? rawData.map(item => transformToContentStrategyItem(item)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];

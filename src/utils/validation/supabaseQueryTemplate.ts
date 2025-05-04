@@ -44,7 +44,7 @@ export async function safeQueryExample(
     // Execute the query
     const response = await query;
     
-    // Safely get the result with type assertion after execution
+    // Use unknown as intermediary type to break deep instantiation chain
     const data = safeQueryResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
@@ -73,7 +73,7 @@ export async function safeSingleItemQueryExample(
       .eq('id', id)
       .single();
     
-    // Safely get the result with type assertion after execution
+    // Use unknown as intermediary type to break deep instantiation chain
     const data = safeSingleResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
