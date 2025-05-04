@@ -3,23 +3,17 @@
 // to maintain compatibility with existing code
 
 import {
-  fetchContentStrategyItems,
+  fetchAndTransformContentStrategyItems as fetchContentStrategyItems,
   calculateContentMetrics,
   getContentStrategyStats,
   processContentStrategy,
   summarizeContentMetrics,
   filterStrategiesByStatus,
-  sortStrategiesByDate
-} from './getContentStrategy';
-
-import {
-  createContentStrategyItem
-} from './insertContentStrategy';
-
-import {
+  sortStrategiesByDate,
+  createContentStrategyItem,
   updateContentStrategyItem,
   deleteContentStrategyItem
-} from './updateContentStrategy';
+} from './content-strategy';
 
 import {
   generateContentWithAI,
