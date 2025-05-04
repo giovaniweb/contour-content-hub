@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment, EquipmentCreationProps, convertStringToArray } from '@/types/equipment';
+import { logQuery, logQueryResult } from '@/utils/validation/loggingUtils';
 
 /**
  * Get all equipment from the database
@@ -8,22 +9,31 @@ import { Equipment, EquipmentCreationProps, convertStringToArray } from '@/types
 export const getEquipments = async (): Promise<Equipment[]> => {
   try {
     console.log('Fetching all equipments...');
-    const { data, error } = await supabase
+    logQuery('select', 'equipamentos', { all: true });
+    
+    // Use any to break type inference chain
+    const query = supabase
       .from('equipamentos')
       .select('*')
-      .order('nome');
+      .order('nome') as any;
+      
+    const { data, error } = await query;
       
     if (error) {
       console.error('Error fetching equipments:', error);
+      logQueryResult('select', 'equipamentos', false, null, error);
       throw error;
     }
     
     console.log(`Successfully fetched ${data?.length || 0} equipments`);
+    logQueryResult('select', 'equipamentos', true, { count: data?.length || 0 });
     
-    return data.map((item: any) => ({
+    // Process with explicit typing
+    const processedData = (data || []) as any[];
+    return processedData.map((item: any) => ({
       ...item,
       // Convert string to array if needed for indicacoes
-      indicacoes: item.indicacoes || []
+      indicacoes: item.indicacoes ? convertStringToArray(item.indicacoes) : []
     })) as Equipment[];
     
   } catch (error) {
@@ -38,24 +48,30 @@ export const getEquipments = async (): Promise<Equipment[]> => {
 export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
   try {
     console.log(`Fetching equipment with ID: ${id}`);
+    logQuery('select', 'equipamentos', { id, method: 'getEquipmentById' });
     
     if (!id) {
       console.error('Invalid equipment ID provided: empty or undefined');
       return null;
     }
     
-    const { data, error } = await supabase
+    // Use any to break type inference chain
+    const query = supabase
       .from('equipamentos')
       .select('*')
       .eq('id', id)
-      .single();
+      .single() as any;
+      
+    const { data, error } = await query;
       
     if (error) {
       if (error.code === 'PGRST116') { // Not found error code
         console.log(`No equipment found with ID: ${id}`);
+        logQueryResult('select', 'equipamentos', false, null, { message: 'Not found' });
         return null;
       }
       console.error(`Error fetching equipment with ID ${id}:`, error);
+      logQueryResult('select', 'equipamentos', false, null, error);
       throw error;
     }
     
@@ -65,12 +81,15 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
     }
 
     console.log(`Successfully fetched equipment: ${data.nome}`);
+    logQueryResult('select', 'equipamentos', true, { id: data.id, nome: data.nome });
     
-    // Convert string to array if needed
-    return {
+    // Convert string to array if needed with explicit typing
+    const equipment = {
       ...data,
-      indicacoes: data.indicacoes || []
-    } as Equipment;
+      indicacoes: data.indicacoes ? convertStringToArray(data.indicacoes) : []
+    } as unknown as Equipment;
+    
+    return equipment;
     
   } catch (error) {
     console.error(`Error fetching equipment with ID ${id}:`, error);

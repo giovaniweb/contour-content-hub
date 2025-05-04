@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -9,6 +8,7 @@ import { Equipment } from '@/types/equipment';
 import { ArrowLeft, Loader2, FileText, Video, CheckCircle, Image as ImageIcon } from 'lucide-react';
 import VimeoImporter from '@/components/admin/VimeoImporter';
 import { useToast } from '@/hooks/use-toast';
+import { logQuery } from '@/utils/validation/loggingUtils';
 
 const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +29,7 @@ const EquipmentDetails: React.FC = () => {
       }
       
       console.log(`Attempting to fetch equipment with ID: ${id}`);
+      logQuery('select', 'equipamentos', { id, component: 'EquipmentDetails' });
       
       try {
         setLoading(true);
@@ -52,9 +53,9 @@ const EquipmentDetails: React.FC = () => {
         
         console.log("Setting equipment data:", data.nome);
         setEquipment(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching equipment:', err);
-        setError("Erro ao carregar dados do equipamento");
+        setError(err.message || "Erro ao carregar dados do equipamento");
         toast({
           variant: "destructive",
           title: "Erro ao carregar equipamento",
@@ -184,7 +185,7 @@ const EquipmentDetails: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Indicações</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        {formatIndicacoes(equipment.indicacoes).map((indicacao, index) => (
+                        {formatIndicacoes(equipment.indicacoes || []).map((indicacao, index) => (
                           <li key={index}>{indicacao}</li>
                         ))}
                       </ul>
@@ -229,13 +230,6 @@ const EquipmentDetails: React.FC = () => {
                     <span className="text-muted-foreground">ID:</span>
                     <span className="font-mono">{equipment.id}</span>
                   </div>
-                  
-                  {equipment.data_cadastro && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Cadastrado em:</span>
-                      <span>{new Date(equipment.data_cadastro).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
