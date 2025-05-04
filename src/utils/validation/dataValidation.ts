@@ -1,4 +1,5 @@
 
+
 /**
  * Validate that data matches expected shape
  * Useful for debugging Supabase query results

@@ -19,10 +19,11 @@ export async function safeQueryExample<ResultType, TransformedType>(
   try {
     // Build the query
     const query = supabase
-      .from('some_table')
+      .from('content_strategy_items')
       .select(`
         *,
-        related_table:related_id (field1, field2)
+        equipamento:equipamento_id (nome),
+        responsavel:responsavel_id (nome)
       `)
       .order('created_at', { ascending: false });
     
@@ -54,10 +55,11 @@ export async function safeSingleItemQueryExample<ResultType, TransformedType>(
   try {
     // Build and execute the query
     const response = await supabase
-      .from('some_table')
+      .from('content_strategy_items')
       .select(`
         *,
-        related_table:related_id (field1, field2)
+        equipamento:equipamento_id (nome),
+        responsavel:responsavel_id (nome)
       `)
       .eq('id', id)
       .single();
