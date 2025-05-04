@@ -16,29 +16,45 @@ const EquipmentDetails: React.FC = () => {
   const { toast } = useToast();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
     const fetchEquipment = async () => {
-      if (!id) return;
+      if (!id) {
+        console.error("No equipment ID provided in URL params");
+        setError("ID do equipamento não fornecido");
+        setLoading(false);
+        return;
+      }
+      
+      console.log(`Attempting to fetch equipment with ID: ${id}`);
       
       try {
         setLoading(true);
+        setError(null);
+        
         const data = await getEquipmentById(id);
+        console.log("Equipment data received:", data);
         
         if (!data) {
+          console.error("No equipment found with provided ID");
+          setError("Equipamento não encontrado");
           toast({
             variant: "destructive",
             title: "Equipamento não encontrado",
             description: "Não foi possível encontrar o equipamento solicitado."
           });
-          navigate('/equipments');
+          // Don't navigate away immediately so user can see the error
+          setLoading(false);
           return;
         }
         
+        console.log("Setting equipment data:", data.nome);
         setEquipment(data);
-      } catch (error) {
-        console.error('Error fetching equipment:', error);
+      } catch (err) {
+        console.error('Error fetching equipment:', err);
+        setError("Erro ao carregar dados do equipamento");
         toast({
           variant: "destructive",
           title: "Erro ao carregar equipamento",
@@ -77,6 +93,24 @@ const EquipmentDetails: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
           <p className="text-lg text-muted-foreground">Carregando detalhes do equipamento...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <p className="text-lg text-muted-foreground mb-4">{error}</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => navigate('/equipments')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para equipamentos
+          </Button>
         </div>
       </Layout>
     );

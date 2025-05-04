@@ -7,14 +7,18 @@ import { Equipment, EquipmentCreationProps, convertStringToArray } from '@/types
  */
 export const getEquipments = async (): Promise<Equipment[]> => {
   try {
+    console.log('Fetching all equipments...');
     const { data, error } = await supabase
       .from('equipamentos')
       .select('*')
       .order('nome');
       
     if (error) {
+      console.error('Error fetching equipments:', error);
       throw error;
     }
+    
+    console.log(`Successfully fetched ${data?.length || 0} equipments`);
     
     return data.map((item: any) => ({
       ...item,
@@ -33,6 +37,13 @@ export const getEquipments = async (): Promise<Equipment[]> => {
  */
 export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
   try {
+    console.log(`Fetching equipment with ID: ${id}`);
+    
+    if (!id) {
+      console.error('Invalid equipment ID provided: empty or undefined');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('equipamentos')
       .select('*')
@@ -41,15 +52,20 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
       
     if (error) {
       if (error.code === 'PGRST116') { // Not found error code
+        console.log(`No equipment found with ID: ${id}`);
         return null;
       }
+      console.error(`Error fetching equipment with ID ${id}:`, error);
       throw error;
     }
     
     if (!data) {
+      console.log(`No equipment found with ID: ${id}`);
       return null;
     }
 
+    console.log(`Successfully fetched equipment: ${data.nome}`);
+    
     // Convert string to array if needed
     return {
       ...data,

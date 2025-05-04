@@ -1,6 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyFilter } from "@/types/content-strategy";
 import { ContentStrategyRowWithRelations } from "@/types/supabase/contentStrategy";
+import { logQuery, logQueryResult } from "@/utils/validation/loggingUtils";
 
 /**
  * Fetch content strategy items with filters
@@ -9,6 +11,8 @@ export const fetchContentStrategyItems = async (
   filters: ContentStrategyFilter = {}
 ): Promise<ContentStrategyRowWithRelations[] | null> => {
   try {
+    logQuery('select', 'content_strategy_items', filters);
+    
     // Step 1: Build the base query - explicitly cast as any to break inference chain
     const baseQuery = supabase
       .from('content_strategy_items')
@@ -61,11 +65,22 @@ export const fetchContentStrategyItems = async (
     // Step 3: Order and execute the query
     const response = await query.order('created_at', { ascending: false });
     
-    // Step 4: Break type inference chain with explicit unknown cast
+    // Step 4: Check for errors
+    if (response.error) {
+      logQueryResult('select', 'content_strategy_items', false, null, response.error);
+      throw response.error;
+    }
+    
+    // Step 5: Break type inference chain with explicit unknown cast
     const rawData = response.data as unknown;
     
-    // Step 5: Explicitly cast to expected type
-    return rawData as ContentStrategyRowWithRelations[] | null;
+    // Step 6: Explicitly cast to expected type
+    const typedData = rawData as ContentStrategyRowWithRelations[] | null;
+    
+    logQueryResult('select', 'content_strategy_items', true, 
+      typedData ? `${typedData.length} items` : 'No items');
+    
+    return typedData;
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return null;
@@ -79,6 +94,8 @@ export const fetchContentStrategyItemById = async (
   id: string
 ): Promise<ContentStrategyRowWithRelations | null> => {
   try {
+    logQuery('select', 'content_strategy_items', { id });
+    
     // Step 1: Create the query - cast as any to break inference
     const query = supabase
       .from('content_strategy_items')
@@ -91,11 +108,27 @@ export const fetchContentStrategyItemById = async (
     // Step 2: Execute the query
     const response = await query.eq('id', id).single();
     
+    // Step 3: Check for errors
+    if (response.error) {
+      logQueryResult('select', 'content_strategy_items', false, null, response.error);
+      
+      // Handle "No rows returned" error differently than other errors
+      if (response.error.code === 'PGRST116') {
+        return null;
+      }
+      
+      throw response.error;
+    }
+    
     // Step 3: Break type inference with explicit unknown cast
     const rawData = response.data as unknown;
     
     // Step 4: Cast to expected type
-    return rawData as ContentStrategyRowWithRelations | null;
+    const typedData = rawData as ContentStrategyRowWithRelations | null;
+    
+    logQueryResult('select', 'content_strategy_items', true, typedData ? '1 item' : 'No item');
+    
+    return typedData;
   } catch (error) {
     console.error("Error fetching content strategy item:", error);
     return null;
