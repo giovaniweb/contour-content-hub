@@ -62,6 +62,7 @@ export const fetchContentStrategyItems = async (
     // Execute the query
     const response = await query;
     
+    // Break type inference chain with explicit unknown to avoid excessive depth errors
     // Use type assertion with unknown as intermediary to break deep instantiation chain
     const rawData = safeQueryResult<ContentStrategyRowWithRelations>(response);
     

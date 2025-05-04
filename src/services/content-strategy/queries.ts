@@ -59,7 +59,8 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     // Execute the query
     const response = await query;
     
-    // Use type assertion with proper helper
+    // Break type inference chain with explicit helper function
+    // This prevents "Type instantiation is excessively deep" errors
     return safeQueryResult<ContentStrategyRowWithRelations>(response);
   } catch (error) {
     console.error("Error fetching content strategy items:", error);

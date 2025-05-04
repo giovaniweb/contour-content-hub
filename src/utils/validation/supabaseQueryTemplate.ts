@@ -44,7 +44,8 @@ export async function safeQueryExample(
     // Execute the query
     const response = await query;
     
-    // Parse the response using the helper function with explicit type
+    // Break type inference chain with explicit helper
+    // This prevents "Type instantiation is excessively deep" errors
     const data = safeQueryResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
@@ -73,7 +74,8 @@ export async function safeSingleItemQueryExample(
       .eq('id', id)
       .single();
     
-    // Parse the response using the helper function with explicit type
+    // Break type inference chain with explicit helper
+    // This prevents "Type instantiation is excessively deep" errors
     const data = safeSingleResult<ExampleResultType>(response);
     
     // Transform the data to the desired output format
