@@ -10,7 +10,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel:perfis(id, nome)
+        responsavel:perfis!responsavel_id(nome)
       `);
 
     // Apply filters
@@ -101,7 +101,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel:perfis(id, nome)
+        responsavel:perfis!responsavel_id(nome)
       `)
       .single();
 
