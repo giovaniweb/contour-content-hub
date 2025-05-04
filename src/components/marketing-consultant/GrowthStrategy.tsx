@@ -20,9 +20,16 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
   const [currentTab, setCurrentTab] = useState("overview");
   
   useEffect(() => {
-    // Garantir que temos dados válidos antes de gerar a estratégia
+    // Only generate strategy if we have valid data
     if (diagnosticData && profitData) {
       generateStrategy();
+    } else {
+      // Show error if missing data
+      toast({
+        title: "Dados insuficientes",
+        description: "Não foi possível gerar a estratégia com os dados fornecidos.",
+        variant: "destructive"
+      });
     }
   }, [diagnosticData, profitData]);
   
@@ -32,34 +39,42 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
     // Simulate strategy generation
     setTimeout(() => {
       try {
-        // Atribuir valores padrão para todas as propriedades usadas
-        const mainServices = diagnosticData?.main_services || 'Tratamentos estéticos';
-        const clinicName = diagnosticData?.clinic_name || 'sua clínica';
-        const mostProfitable = diagnosticData?.most_profitable || 'procedimentos estéticos';
+        // Ensure we have safe default values for everything
+        const safeData = {
+          // Clinic information
+          clinic_name: String(diagnosticData?.clinic_name || diagnosticData?.clinicName || 'sua clínica'),
+          main_services: String(diagnosticData?.main_services || diagnosticData?.mainServices || 'Tratamentos estéticos'),
+          most_profitable: String(diagnosticData?.most_profitable || diagnosticData?.mostProfitable || 'procedimentos estéticos'),
+          
+          // Digital presence
+          website: String(diagnosticData?.website || diagnosticData?.hasWebsite || '').toLowerCase(),
+          social_media: String(diagnosticData?.social_media || diagnosticData?.usesSocialMedia || '').toLowerCase(),
+          content_comfort: String(diagnosticData?.content_comfort || '').toLowerCase(),
+          
+          // Challenge
+          main_challenge: String(diagnosticData?.main_challenge || 'captação de clientes'),
+          
+          // Financial
+          growthRate: Number(profitData?.growthRate || 30),
+          potentialRevenue: Number(profitData?.potentialRevenue || 10000)
+        };
         
-        // Garantir que todas as propriedades são strings antes de chamar toLowerCase()
-        const websiteValue = String(diagnosticData?.website || '');
-        const socialMediaValue = String(diagnosticData?.social_media || '');
-        const contentComfortValue = String(diagnosticData?.content_comfort || '');
+        // Process boolean values safely
+        const hasWebsite = safeData.website.includes('sim') || safeData.website === 'yes';
+        const usesSocialMedia = safeData.social_media === 'sim' || safeData.social_media === 'yes';
+        const contentComfort = safeData.content_comfort === 'sim' || safeData.content_comfort === 'yes';
         
-        // Depois verificar as condições com segurança
-        const hasWebsite = websiteValue.toLowerCase().includes('sim');
-        const usesSocialMedia = socialMediaValue.toLowerCase() === 'sim';
-        const contentComfort = contentComfortValue.toLowerCase() === 'sim';
-        
-        // Usar valores seguros para cálculos numéricos
-        const growthRate = profitData?.growthRate || 30;
-        const potentialRevenue = profitData?.potentialRevenue || 10000;
-        const roundedRevenue = Math.round((potentialRevenue || 0) / 100) * 100;
+        // Safe calculation
+        const roundedRevenue = Math.round((safeData.potentialRevenue || 0) / 100) * 100;
         
         const strategyData = {
-          summary: `Estratégia personalizada para aumentar a visibilidade e lucratividade da ${clinicName} em 90 dias`,
+          summary: `Estratégia personalizada para aumentar a visibilidade e lucratividade da ${safeData.clinic_name} em 90 dias`,
           overview: `
             Com base no diagnóstico realizado, desenvolvemos uma estratégia completa de crescimento
-            para a ${clinicName}, focando nos principais procedimentos (${mainServices})
-            e no desafio principal identificado: ${getMainChallenge(diagnosticData?.main_challenge || '')}.
+            para a ${safeData.clinic_name}, focando nos principais procedimentos (${safeData.main_services})
+            e no desafio principal identificado: ${getMainChallenge(safeData.main_challenge)}.
             
-            Esta estratégia foi desenvolvida para atingir um crescimento de ${growthRate}% 
+            Esta estratégia foi desenvolvida para atingir um crescimento de ${safeData.growthRate}% 
             em faturamento nos próximos 3 meses, alcançando aproximadamente 
             R$ ${roundedRevenue} mensais.
           `,
@@ -86,7 +101,7 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
             },
             {
               title: "Sistema de Vendas",
-              description: `Aumento do ticket médio e taxa de conversão para ${mostProfitable}`,
+              description: `Aumento do ticket médio e taxa de conversão para ${safeData.most_profitable}`,
               actions: ["Script de atendimento consultivo", "Criação de pacotes promocionais", "Programa de indicação de clientes"]
             }
           ],

@@ -16,6 +16,7 @@ interface Message {
   content: string;
   options?: string[];
   examples?: string[];
+  suggestions?: string[]; // Add suggestions as another option type
 }
 
 interface DiagnosticChatProps {
@@ -60,6 +61,7 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [prefilledData, setPrefilledData] = useState<Record<string, any>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [inputSuggestions, setInputSuggestions] = useState<string[]>([]);
   
   const totalStages = 23; // Total number of stages including welcome and conclusion
 
@@ -74,38 +76,42 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   useEffect(() => {
     // Fetch user profile data when component mounts
     const fetchUserProfile = async () => {
-      if (user) {
-        const supabase = createClient(
-          import.meta.env.VITE_SUPABASE_URL || '',
-          import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-        );
-        
-        const { data, error } = await supabase
-          .from('perfis')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+      try {
+        if (user) {
+          const supabase = createClient(
+            import.meta.env.VITE_SUPABASE_URL || '',
+            import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+          );
           
-        if (!error && data) {
-          setUserProfile(data);
-          
-          // Pre-fill data from profile
-          const prefilled: Record<string, any> = {};
-          if (data.clinica) prefilled.clinic_name = data.clinica;
-          if (data.nome) prefilled.user_name = data.nome;
-          if (data.cidade) prefilled.location = data.cidade;
-          if (data.equipamentos && data.equipamentos.length > 0) {
-            prefilled.equipments = data.equipamentos.join(', ');
+          const { data, error } = await supabase
+            .from('perfis')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+            
+          if (!error && data) {
+            setUserProfile(data);
+            
+            // Pre-fill data from profile
+            const prefilled: Record<string, any> = {};
+            if (data.clinica) prefilled.clinic_name = data.clinica;
+            if (data.nome) prefilled.user_name = data.nome;
+            if (data.cidade) prefilled.location = data.cidade;
+            if (data.equipamentos && data.equipamentos.length > 0) {
+              prefilled.equipments = data.equipamentos.join(', ');
+            }
+            
+            setPrefilledData(prefilled);
+            
+            // Update diagnostic data with prefilled info
+            setDiagnosticData(prev => ({
+              ...prev,
+              ...prefilled
+            }));
           }
-          
-          setPrefilledData(prefilled);
-          
-          // Update diagnostic data with prefilled info
-          setDiagnosticData(prev => ({
-            ...prev,
-            ...prefilled
-          }));
         }
+      } catch (error) {
+        console.error("Erro ao buscar perfil:", error);
       }
     };
     
@@ -148,7 +154,42 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
 
     const currentProgress = stageToProgressMap[currentStage] || 0;
     setProgress(Math.floor((currentProgress / totalStages) * 100));
+    
+    // Set input suggestions based on the current stage
+    updateInputSuggestions(currentStage);
   }, [currentStage]);
+  
+  // Update input suggestions based on the current stage
+  const updateInputSuggestions = (stage: QuestionStage) => {
+    const suggestions: Record<QuestionStage, string[]> = {
+      welcome: [],
+      clinic_name: ["Clínica Beleza Natural", "Estética Avançada", "Centro de Estética Daiana"],
+      years_in_business: ["2 anos", "6 meses", "10 anos"],
+      team_size: ["Apenas eu", "3 pessoas", "5 profissionais"],
+      main_services: ["Botox e preenchimento", "Tratamentos faciais e corporais", "Depilação a laser"],
+      equipments: ["HIFU e radiofrequência", "Criolipólise", "Laser para depilação"],
+      location: ["São Paulo, público feminino classe B", "Rio de Janeiro, profissionais 30-50 anos"],
+      revenue: ["R$ 15.000", "R$ 5.000", "R$ 30.000"],
+      revenue_goal: ["R$ 25.000", "Dobrar para R$ 30.000", "R$ 50.000"],
+      weekly_clients: ["15 clientes", "25 atendimentos", "10 pacientes"],
+      most_profitable: ["Botox", "Pacotes de emagrecimento", "Tratamentos corporais"],
+      sales_model: [],
+      social_media: [],
+      posting_frequency: [],
+      paid_ads: [],
+      content_comfort: [],
+      website: [],
+      main_challenge: ["Atrair mais clientes", "Converter leads em vendas", "Criar conteúdo relevante"],
+      improvement_goal: ["Aumentar o faturamento em 30%", "Melhorar presença digital", "Captar mais pacientes"],
+      marketing_results: ["Mais pacientes novos", "Vender mais pacotes", "Ganhar autoridade no mercado"],
+      feeling: ["Preocupada com a queda de movimento", "Animada, mas preciso de direção"],
+      routine_change: ["Menos tempo em tarefas administrativas", "Não me preocupar com captação"],
+      solution_desire: ["Trazer mais clientes qualificados", "Automatizar captação", "Sistema de fidelização"],
+      conclusion: []
+    };
+    
+    setInputSuggestions(suggestions[stage] || []);
+  };
 
   const startDiagnostic = () => {
     let welcomeMessage = 'Olá! Vamos começar o diagnóstico da sua clínica de estética. Vou fazer algumas perguntas para entender melhor seu negócio e criar uma estratégia personalizada de marketing e crescimento.';
@@ -195,6 +236,10 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
     if (!input.trim()) return;
     handleUserResponse(input);
     setInput('');
+  };
+  
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
   };
 
   const advanceStage = () => {
@@ -255,7 +300,7 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   };
   
   const getQuestionForStage = (stage: QuestionStage) => {
-    const questions: Record<QuestionStage, { content: string, options?: string[], examples?: string[] }> = {
+    const questions: Record<QuestionStage, { content: string, options?: string[], examples?: string[], suggestions?: string[] }> = {
       welcome: {
         content: 'Vamos começar pelo perfil da sua clínica. Qual é o nome da sua clínica?',
         examples: ['Espaço Beleza & Saúde', 'Clínica Estética Renascer', 'Estética Avançada Dra. Ana']
@@ -391,7 +436,8 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
           role: 'assistant', 
           content: customizedContent,
           options: question.options,
-          examples: question.examples
+          examples: question.examples,
+          suggestions: question.suggestions
         }]);
         setLoading(false);
       }, 800);
@@ -494,6 +540,27 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
     );
   };
 
+  // Render suggestion prompts above input field
+  const renderSuggestionPrompts = () => {
+    if (!inputSuggestions || inputSuggestions.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 mb-2">
+        {inputSuggestions.map((suggestion, idx) => (
+          <Button
+            key={idx}
+            size="sm"
+            variant="secondary"
+            onClick={() => handleSuggestionClick(suggestion)}
+            className="text-xs py-1 h-auto"
+          >
+            {suggestion}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card className="h-[600px] flex flex-col">
       <CardHeader className="pb-3">
@@ -574,21 +641,24 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       </CardContent>
       
       <CardFooter className="pt-3 border-t">
-        <div className="flex w-full items-center space-x-2">
-          <Input
-            placeholder="Digite sua resposta..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleInputSubmit();
-              }
-            }}
-            className="flex-1"
-          />
-          <Button onClick={handleInputSubmit} disabled={loading || !input.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="flex flex-col w-full space-y-2">
+          {renderSuggestionPrompts()}
+          <div className="flex w-full items-center space-x-2">
+            <Input
+              placeholder="Digite sua resposta..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleInputSubmit();
+                }
+              }}
+              className="flex-1"
+            />
+            <Button onClick={handleInputSubmit} disabled={loading || !input.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardFooter>
     </Card>
