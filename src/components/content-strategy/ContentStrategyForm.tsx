@@ -135,7 +135,7 @@ export function ContentStrategyForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="_none">Nenhum</SelectItem>
                     {equipments.map(equipment => (
                       <SelectItem key={equipment.id} value={equipment.id}>
                         {equipment.nome}
@@ -231,7 +231,7 @@ export function ContentStrategyForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Não definido</SelectItem>
+                    <SelectItem value="_none">Não definido</SelectItem>
                     {users.map(user => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.nome}

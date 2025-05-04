@@ -10,7 +10,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel_id(id, nome)
+        responsavel:perfis(id, nome)
       `);
 
     // Apply filters
@@ -61,7 +61,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       prioridade: item.prioridade as ContentStrategyItem['prioridade'],
       status: item.status as ContentStrategyItem['status'],
       equipamento_nome: item.equipamento?.nome || null,
-      responsavel_nome: item.responsavel_id?.nome || null
+      responsavel_nome: item.responsavel?.nome || null
     }));
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
@@ -76,14 +76,20 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
 
 export async function createContentStrategyItem(item: Partial<ContentStrategyItem>): Promise<ContentStrategyItem | null> {
   try {
+    // Process equipamento_id - convert empty string to null
+    const equipamento_id = item.equipamento_id === '_none' || !item.equipamento_id ? null : item.equipamento_id;
+    
+    // Process responsavel_id - convert empty string to null
+    const responsavel_id = item.responsavel_id === '_none' || !item.responsavel_id ? null : item.responsavel_id;
+    
     const { data, error } = await supabase
       .from('content_strategy_items')
       .insert({
         linha: item.linha || null,
-        equipamento_id: item.equipamento_id || null,
+        equipamento_id: equipamento_id,
         categoria: item.categoria,
         formato: item.formato,
-        responsavel_id: item.responsavel_id || null,
+        responsavel_id: responsavel_id,
         previsao: item.previsao || null,
         conteudo: item.conteudo || null,
         objetivo: item.objetivo,
@@ -95,7 +101,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel_id(id, nome)
+        responsavel:perfis(id, nome)
       `)
       .single();
 
@@ -115,7 +121,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       prioridade: data.prioridade as ContentStrategyItem['prioridade'],
       status: data.status as ContentStrategyItem['status'],
       equipamento_nome: data.equipamento?.nome || null,
-      responsavel_nome: data.responsavel_id?.nome || null
+      responsavel_nome: data.responsavel?.nome || null
     };
   } catch (error) {
     console.error("Error creating content strategy item:", error);
@@ -132,6 +138,16 @@ export async function updateContentStrategyItem(id: string, updates: Partial<Con
   try {
     // Remove derived fields that are not in the database
     const { equipamento_nome, responsavel_nome, ...updateData } = updates;
+
+    // Process equipamento_id - convert empty string to null
+    if (updateData.equipamento_id === '_none' || updateData.equipamento_id === '') {
+      updateData.equipamento_id = null;
+    }
+    
+    // Process responsavel_id - convert empty string to null
+    if (updateData.responsavel_id === '_none' || updateData.responsavel_id === '') {
+      updateData.responsavel_id = null;
+    }
 
     const { error } = await supabase
       .from('content_strategy_items')

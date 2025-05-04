@@ -1,3 +1,4 @@
+
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -33,12 +34,12 @@ import { ContentStrategyFilter } from "@/types/content-strategy";
 const filterSchema = z.object({
   linha: z.string().optional(),
   equipamento_id: z.string().optional(),
-  categoria: z.enum(['branding', 'vendas', 'educativo', 'informativo', 'engajamento', 'produto', 'outro', '']).optional(),
-  formato: z.enum(['story', 'vídeo', 'layout', 'carrossel', 'reels', 'texto', 'outro', '']).optional(),
+  categoria: z.enum(['branding', 'vendas', 'educativo', 'informativo', 'engajamento', 'produto', 'outro', 'all']).optional(),
+  formato: z.enum(['story', 'vídeo', 'layout', 'carrossel', 'reels', 'texto', 'outro', 'all']).optional(),
   responsavel_id: z.string().optional(),
-  objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro', '']).optional(),
-  prioridade: z.enum(['Alta', 'Média', 'Baixa', '']).optional(),
-  status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso', '']).optional(),
+  objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro', 'all']).optional(),
+  prioridade: z.enum(['Alta', 'Média', 'Baixa', 'all']).optional(),
+  status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso', 'all']).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -63,28 +64,28 @@ export function ContentStrategyFilters({
     defaultValues: {
       linha: "",
       equipamento_id: "",
-      categoria: "",
-      formato: "",
+      categoria: "all",
+      formato: "all",
       responsavel_id: "",
-      objetivo: "",
-      prioridade: "",
-      status: "",
+      objetivo: "all",
+      prioridade: "all",
+      status: "all",
       dateRange: { from: undefined, to: undefined },
     },
   });
 
   function onSubmit(data: FilterFormValues) {
-    // Convert empty strings to undefined to correctly apply the filters
+    // Convert special 'all' values to undefined to correctly apply the filters
     const filters: ContentStrategyFilter = {
       linha: data.linha || undefined,
       equipamento_id: data.equipamento_id || undefined,
-      categoria: data.categoria as ContentStrategyFilter["categoria"] || undefined,
-      formato: data.formato as ContentStrategyFilter["formato"] || undefined,
+      categoria: data.categoria === 'all' ? undefined : data.categoria as ContentStrategyFilter["categoria"],
+      formato: data.formato === 'all' ? undefined : data.formato as ContentStrategyFilter["formato"],
       responsavel_id: data.responsavel_id || undefined,
-      objetivo: data.objetivo as ContentStrategyFilter["objetivo"] || undefined,
-      prioridade: data.prioridade as ContentStrategyFilter["prioridade"] || undefined,
-      status: data.status as ContentStrategyFilter["status"] || undefined,
-      dateRange: data.dateRange
+      objetivo: data.objetivo === 'all' ? undefined : data.objetivo as ContentStrategyFilter["objetivo"],
+      prioridade: data.prioridade === 'all' ? undefined : data.prioridade as ContentStrategyFilter["prioridade"],
+      status: data.status === 'all' ? undefined : data.status as ContentStrategyFilter["status"],
+      dateRange: data.dateRange?.from && data.dateRange?.to ? data.dateRange : undefined
     };
     
     onFilterChange(filters);
@@ -94,12 +95,12 @@ export function ContentStrategyFilters({
     form.reset({
       linha: "",
       equipamento_id: "",
-      categoria: "",
-      formato: "",
+      categoria: "all",
+      formato: "all",
       responsavel_id: "",
-      objetivo: "",
-      prioridade: "",
-      status: "",
+      objetivo: "all",
+      prioridade: "all",
+      status: "all",
       dateRange: { from: undefined, to: undefined },
     });
     onFilterChange({});
@@ -141,7 +142,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     {equipments.map(equipment => (
                       <SelectItem key={equipment.id} value={equipment.id}>
                         {equipment.nome}
@@ -171,7 +172,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="branding">Branding</SelectItem>
                     <SelectItem value="vendas">Vendas</SelectItem>
                     <SelectItem value="educativo">Educativo</SelectItem>
@@ -203,7 +204,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="story">Story</SelectItem>
                     <SelectItem value="vídeo">Vídeo</SelectItem>
                     <SelectItem value="layout">Layout</SelectItem>
@@ -235,7 +236,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     {users.map(user => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.nome}
@@ -265,7 +266,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="engajar">Engajar</SelectItem>
                     <SelectItem value="vender">Vender</SelectItem>
                     <SelectItem value="educar">Educar</SelectItem>
@@ -297,7 +298,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="Alta">Alta</SelectItem>
                     <SelectItem value="Média">Média</SelectItem>
                     <SelectItem value="Baixa">Baixa</SelectItem>
@@ -325,7 +326,7 @@ export function ContentStrategyFilters({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="Planejado">Planejado</SelectItem>
                     <SelectItem value="Em andamento">Em andamento</SelectItem>
                     <SelectItem value="Finalizado">Finalizado</SelectItem>
