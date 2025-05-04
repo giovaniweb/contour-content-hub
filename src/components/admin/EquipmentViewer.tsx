@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { getEquipments } from '@/utils/api-equipment';
+import { getEquipments } from '@/api/equipment';
 import { Equipment } from '@/types/equipment';
 import { Shield, ShieldCheck, RefreshCcw, Database, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

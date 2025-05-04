@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import EquipmentManager from '@/components/admin/EquipmentManager';
 import { Button } from '@/components/ui/button';
-import { getEquipments, importEquipments } from '@/utils/api-equipment';
+import { getEquipments, importEquipments } from '@/api/equipment';
 import { Equipment } from '@/types/equipment';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
