@@ -45,7 +45,7 @@ export const AppSidebar = ({
   const location = useLocation();
   const { open, setOpen } = useSidebar();
   const { user } = useAuth();
-  const { hasPermission } = usePermissions();
+  const { isAdmin, isSeller } = usePermissions();
 
   // Sincronizar o estado do sidebar contexts com os props
   useEffect(() => {
@@ -59,8 +59,8 @@ export const AppSidebar = ({
   };
   
   // Decidir quais itens mostrar com base nas permissões
-  const hasAdminAccess = hasPermission('admin');
-  const hasSellerAccess = hasPermission('seller');
+  const hasAdminAccess = isAdmin();
+  const hasSellerAccess = isSeller();
   
   return (
     <SidebarContainer>
@@ -171,3 +171,4 @@ export const AppSidebar = ({
     </SidebarContainer>
   );
 };
+

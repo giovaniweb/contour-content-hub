@@ -10,6 +10,7 @@ import Layout from './components/Layout';
 import EquipmentDetails from './pages/EquipmentDetails';
 import Index from './pages/Index';
 import SellerDashboard from './pages/seller/SellerDashboard';
+import ContentStrategy from './pages/ContentStrategy';
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
         <Route path="/admin/equipments" element={<AdminEquipments />} />
         <Route path="/equipment-details/:id" element={<EquipmentDetailsPage />} />
         <Route path="/equipments/:id" element={<EquipmentDetails />} />
+        
+        {/* Estratégia de conteúdo */}
+        <Route path="/content-strategy" element={<ContentStrategy />} />
         
         {/* Dashboard de vendedor */}
         <Route path="/seller/dashboard" element={<SellerDashboard />} />

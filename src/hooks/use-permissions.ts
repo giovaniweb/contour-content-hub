@@ -1,7 +1,15 @@
 
 import { useAuth } from "@/context/AuthContext";
 
-type PermissionAction = 'viewAllUsers' | 'editAllContent' | 'accessAdminPanel' | 'manageRoles' | 'manageClients' | 'viewSales';
+export type PermissionAction = 
+  | 'viewAllUsers' 
+  | 'editAllContent' 
+  | 'accessAdminPanel' 
+  | 'manageRoles' 
+  | 'manageClients' 
+  | 'viewSales'
+  | 'admin'
+  | 'seller';
 
 /**
  * Hook para verificar permissões do usuário baseado em seu role
@@ -28,6 +36,10 @@ export const usePermissions = () => {
         return user.role === 'admin' || user.role === 'vendedor';
       case 'viewSales':
         return user.role === 'admin' || user.role === 'vendedor';
+      case 'admin':
+        return user.role === 'admin';
+      case 'seller':
+        return user.role === 'vendedor';
       default:
         return false;
     }
