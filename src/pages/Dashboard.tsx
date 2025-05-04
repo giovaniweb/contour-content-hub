@@ -10,7 +10,8 @@ import {
   TrendingUp,
   Calendar,
   ArrowRight,
-  Video
+  Video,
+  BrainCircuit
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -46,10 +47,10 @@ const Dashboard: React.FC = () => {
       color: "bg-blue-100 text-blue-700"
     },
     {
-      label: "Ver equipamentos",
-      icon: <Search className="h-5 w-5" />,
-      path: "/equipment-details",
-      color: "bg-green-100 text-green-700"
+      label: "Consultor de Marketing",
+      icon: <BrainCircuit className="h-5 w-5" />,
+      path: "/marketing-consultant",
+      color: "bg-amber-100 text-amber-700"
     },
     {
       label: "Planejar agenda",
