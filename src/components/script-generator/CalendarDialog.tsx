@@ -13,8 +13,8 @@ interface CalendarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   scriptId: string;
-  scriptTitle: string;
-  scriptType: string;
+  scriptTitle?: string;
+  scriptType?: string;
   onSuccess?: (date: Date, eventId: string) => void;
 }
 
@@ -49,10 +49,11 @@ export function CalendarDialog({
       // Vincular o roteiro ao evento do calendário
       const success = await linkScriptToCalendar(scriptId, eventId);
       
+      // Corrigindo o código para verificar o retorno da função linkScriptToCalendar
       if (success) {
         toast({
           title: "Conteúdo agendado com sucesso",
-          description: `"${scriptTitle}" foi agendado para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`,
+          description: `"${scriptTitle || 'Conteúdo'}" foi agendado para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`,
         });
         
         if (onSuccess) {
@@ -76,6 +77,8 @@ export function CalendarDialog({
   };
 
   const getScriptTypeLabel = () => {
+    if (!scriptType) return "Conteúdo";
+    
     switch (scriptType) {
       case "videoScript":
         return "Roteiro para Vídeo";
@@ -97,7 +100,7 @@ export function CalendarDialog({
             Agendar Conteúdo no Calendário
           </DialogTitle>
           <DialogDescription>
-            Escolha uma data para publicar seu {getScriptTypeLabel().toLowerCase()}: <span className="font-medium">{scriptTitle}</span>
+            Escolha uma data para publicar seu {getScriptTypeLabel().toLowerCase()}: <span className="font-medium">{scriptTitle || 'Sem título'}</span>
           </DialogDescription>
         </DialogHeader>
         

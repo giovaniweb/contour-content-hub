@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
@@ -72,7 +71,7 @@ const ScriptHistory: React.FC = () => {
       });
       
       // Em uma implementação real, você redirecionaria para o URL ou abriria em nova aba
-      window.open(pdfUrl, "_blank");
+      handleOpenPDF(pdfUrl);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -81,6 +80,18 @@ const ScriptHistory: React.FC = () => {
       });
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleOpenPDF = (pdfUrl: string) => {
+    if (pdfUrl) {
+      window.open(pdfUrl, "_blank");
+    } else {
+      toast({
+        variant: "destructive",
+        title: "PDF não disponível",
+        description: "Não há PDF disponível para este roteiro"
+      });
     }
   };
 

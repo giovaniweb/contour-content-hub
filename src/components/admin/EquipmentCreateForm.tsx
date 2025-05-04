@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { createEquipment } from '@/utils/api-equipment';
 import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, EquipmentValidation, saveEquipmentDraft, getEquipmentDraft, clearEquipmentDraft } from '@/types/equipment';
@@ -232,10 +231,18 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       return;
     }
 
+    // Modificar a função handleSubmit para converter campos string em arrays quando necessário
+    // Na linha 238 ou próximo a ela
+    const processedEquipment: EquipmentCreationProps = {
+      ...equipment,
+      // Converter indicações de string para array se necessário
+      indicacoes: typeof equipment.indicacoes === 'string' ? [equipment.indicacoes] : equipment.indicacoes
+    };
+
     try {
       setIsSubmitting(true);
-      console.log('Enviando dados do equipamento:', equipment);
-      const newEquipment = await createEquipment(equipment);
+      console.log('Enviando dados do equipamento:', processedEquipment);
+      const newEquipment = await createEquipment(processedEquipment);
       
       // Clear draft after successful submit
       clearEquipmentDraft();

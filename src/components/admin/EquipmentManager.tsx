@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -25,6 +24,10 @@ const EquipmentManager: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentEquipment, setCurrentEquipment] = useState<Equipment | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    status: 'all'
+  });
 
   useEffect(() => {
     loadEquipments();
@@ -47,6 +50,14 @@ const EquipmentManager: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = (searchTerm: string, status: 'active' | 'inactive' | 'all' = 'all') => {
+    setFilters({
+      ...filters,
+      searchTerm,
+      status
+    });
   };
 
   const handleCreateEquipment = async (newEquipment: Equipment) => {
@@ -174,6 +185,7 @@ const EquipmentManager: React.FC = () => {
             equipments={filteredEquipments}
             onEdit={openEditDialog}
             onDelete={handleDeleteEquipment}
+            onSearch={handleSearch}
           />
         )}
       </CardContent>

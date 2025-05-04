@@ -135,7 +135,7 @@ const TrendingTopics: React.FC = () => {
           id: "1",
           nome: analysisData.equipment || "Equipamento Genérico",
           tecnologia: "Tecnologia avançada",
-          indicacoes: "Diversos tratamentos estéticos",
+          indicacoes: ["Diversos tratamentos estéticos"], // Convertendo para array
           beneficios: "Resultados rápidos e duradouros",
           diferenciais: "Tecnologia exclusiva",
           linguagem: "Técnica",
@@ -167,9 +167,9 @@ const TrendingTopics: React.FC = () => {
         content: generatedContent.content,
         type: "videoScript",
         createdAt: new Date().toISOString(),
-        suggestedVideos: [], // Added missing property
-        captionTips: [],     // Added missing property
-        equipment: analysisData.equipment // Now this is allowed in our updated type
+        suggestedVideos: [], // Garantir que é um array conforme tipo esperado
+        captionTips: []     // Garantir que é um array conforme tipo esperado
+        // Remover equipment se não estiver definido no tipo ScriptResponse
       };
       
       setGeneratedScript(scriptResponse);

@@ -353,17 +353,25 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
   };
 
   // Lidar com o envio do formulário
-  const onSubmit = async (values: z.infer<typeof simpleFormSchema> | z.infer<typeof advancedFormSchema>) => {
+  const handleSubmit = async (data: any) => {
+    // Converta valores string para arrays quando necessário
+    const processedData = {
+      ...data,
+      // Se algum campo precisar ser array, converta-o aqui
+      equipment: Array.isArray(data.equipment) ? data.equipment : data.equipment ? [data.equipment] : [],
+      purposes: Array.isArray(data.purposes) ? data.purposes : data.purposes ? [data.purposes] : []
+    };
+    
     try {
       setLoading(true);
       setResultado("");
       setGeneratedScriptId(`temp-${Date.now()}`);
 
       // Encontrar o equipamento selecionado na lista
-      const equipamentoSelecionado = equipamentos.find(eq => eq.nome === values.equipamento);
+      const equipamentoSelecionado = equipamentos.find(eq => eq.nome === processedData.equipamento);
       
       if (!equipamentoSelecionado) {
-        throw new Error(`Equipamento ${values.equipamento} não encontrado na lista.`);
+        throw new Error(`Equipamento ${processedData.equipamento} não encontrado na lista.`);
       }
 
       console.log("Enviando requisição para gerar conteúdo com equipamento:", equipamentoSelecionado);
@@ -371,7 +379,7 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       // Preparar dados adicionais para o modo avançado
       let additionalData = {};
       if (mode === 'advanced') {
-        const advancedValues = values as z.infer<typeof advancedFormSchema>;
+        const advancedValues = processedData as z.infer<typeof advancedFormSchema>;
         additionalData = {
           topic: advancedValues.topic,
           bodyArea: advancedValues.bodyArea,
@@ -382,11 +390,11 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       }
 
       const response = await generateCustomContent({
-        tipo: values.tipo as CustomGptType,
-        equipamento: values.equipamento,
-        quantidade: values.quantidade,
-        tom: values.tom,
-        estrategiaConteudo: values.estrategiaConteudo as ConteudoEstrategia,
+        tipo: processedData.tipo as CustomGptType,
+        equipamento: processedData.equipamento,
+        quantidade: processedData.quantidade,
+        tom: processedData.tom,
+        estrategiaConteudo: processedData.estrategiaConteudo as ConteudoEstrategia,
         equipamentoData: equipamentoSelecionado,
         ...additionalData
       });
@@ -396,12 +404,12 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       
       toast({
         title: "Conteúdo gerado com sucesso!",
-        description: `${values.tipo.charAt(0).toUpperCase() + values.tipo.slice(1)} para ${values.equipamento} criado.`
+        description: `${processedData.tipo.charAt(0).toUpperCase() + processedData.tipo.slice(1)} para ${processedData.equipamento} criado.`
       });
       
       // Notify parent component when script is generated
       if (onScriptGenerated) {
-        const scriptType = values.tipo as CustomGptType;
+        const scriptType = processedData.tipo as CustomGptType;
         let mappedType: ScriptType = "videoScript"; // Default
       
         // Map CustomGptType to ScriptType
@@ -413,7 +421,7 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
         
         const scriptResponse: ScriptResponse = {
           id: response.id || generatedScriptId,
-          title: `${values.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
+          title: `${processedData.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
           content: response.content,
           type: mappedType,
           createdAt: new Date().toISOString(),
@@ -461,7 +469,7 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
               <Tabs defaultValue="roteiro" 
                 onValueChange={(value) => form.setValue("tipo", value as CustomGptType)}
                 className="w-full">

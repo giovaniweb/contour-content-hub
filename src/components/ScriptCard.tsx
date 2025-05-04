@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScriptValidation from "./script-generator/ScriptValidation";
 import ScriptEditor from "./script-generator/ScriptEditor";
 import ScriptActions from "./script/ScriptActions";
-import CalendarDialog from "./script/CalendarDialog";
+import CalendarDialog from "./script/ScriptActions";
 import AnnotatedText, { TextAnnotation } from "./script/AnnotatedText";
 import { mapValidationToAnnotations } from "@/utils/validation/annotations";
 
@@ -63,7 +62,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
     }
   };
 
-  // Handle PDF generation
+  // Ajustando o método handleGeneratePDF
   const handleGeneratePDF = async () => {
     try {
       setIsGeneratingPDF(true);
@@ -79,7 +78,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
         description: "Aguarde enquanto geramos o PDF do seu roteiro",
       });
       
-      // Chamar a API real para gerar o PDF
+      // Chamar a API para gerar o PDF
       const pdfUrl = await generatePDF(script.id);
       
       if (pdfUrl) {
@@ -170,6 +169,39 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
     }
   };
 
+  // Ajuste na renderização da seção de vídeos sugeridos
+  const renderSuggestedVideos = () => {
+    if (!script.suggestedVideos || script.suggestedVideos.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium">Vídeos Sugeridos</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+          {script.suggestedVideos.map((video, index) => (
+            <div 
+              key={`video-${index}`} 
+              className="border rounded-md p-2 flex items-center gap-2"
+            >
+              {video.thumbnailUrl && (
+                <img 
+                  src={video.thumbnailUrl} 
+                  alt={video.title} 
+                  className="h-12 w-16 rounded object-cover"
+                />
+              )}
+              <div className="truncate">
+                <p className="text-xs font-medium truncate">{video.title}</p>
+                <span className="text-xs text-muted-foreground">{video.duration}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -225,31 +257,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           
           <TabsContent value="suggestions">
             <div className="space-y-4">
-              {script.suggestedVideos && script.suggestedVideos.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Vídeos Sugeridos</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {script.suggestedVideos.map((video, index) => (
-                      <div 
-                        key={`video-${index}`} 
-                        className="border rounded-md p-2 flex items-center gap-2"
-                      >
-                        {video.thumbnailUrl && (
-                          <img 
-                            src={video.thumbnailUrl} 
-                            alt={video.title} 
-                            className="h-12 w-16 rounded object-cover"
-                          />
-                        )}
-                        <div className="truncate">
-                          <p className="text-xs font-medium truncate">{video.title}</p>
-                          <span className="text-xs text-muted-foreground">{video.duration}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {renderSuggestedVideos()}
               
               {script.captionTips && script.captionTips.length > 0 && (
                 <div className="space-y-2">

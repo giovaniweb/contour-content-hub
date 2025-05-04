@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
@@ -299,15 +298,24 @@ const SystemDiagnostics: React.FC = () => {
     }
   };
 
-  const getProgressColor = (value: number, target: number) => {
-    const percentage = (value / target) * 100;
-    if (value > target) {
-      return "bg-red-500";
-    } else if (percentage > 90) {
-      return "bg-yellow-500";
-    } else {
-      return "bg-green-500";
-    }
+  const renderHealthStatus = (percentual: number) => {
+    const getHealthClassName = (value: number) => {
+      if (value >= 90) return "text-green-500";
+      if (value >= 70) return "text-yellow-500";
+      return "text-red-500";
+    };
+
+    return (
+      <div className="flex items-center">
+        <Progress 
+          value={percentual} 
+          className="h-3"
+        />
+        <span className={`ml-2 text-sm font-medium ${getHealthClassName(percentual)}`}>
+          {percentual}%
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -470,11 +478,6 @@ const SystemDiagnostics: React.FC = () => {
                             <Progress 
                               value={(metric.value / metric.target) * 100} 
                               className="h-2" 
-                              indicatorClassName={
-                                metric.status === 'good' ? 'bg-green-500' :
-                                metric.status === 'warning' ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }
                             />
                           </div>
                         </CardContent>

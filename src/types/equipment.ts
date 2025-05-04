@@ -45,7 +45,7 @@ export interface EquipmentCreationProps {
   nome: string;
   efeito?: string;
   tecnologia: string;
-  indicacoes: string;
+  indicacoes: string | string[];
   beneficios: string;
   diferenciais: string;
   linguagem: string;
@@ -78,7 +78,7 @@ export const validateEquipment = (equipment: Partial<Equipment> | EquipmentCreat
     errors.tecnologia = "A tecnologia do equipamento é obrigatória";
   }
   
-  if (!equipment.indicacoes || equipment.indicacoes.toString().trim() === '') {
+  if (!equipment.indicacoes || (typeof equipment.indicacoes === 'string' ? equipment.indicacoes.trim() === '' : equipment.indicacoes.length === 0)) {
     errors.indicacoes = "As indicações do equipamento são obrigatórias";
   }
   
@@ -126,4 +126,11 @@ export const getEquipmentDraft = (): EquipmentDraft | null => {
 // Limpar rascunho do localStorage
 export const clearEquipmentDraft = (): void => {
   localStorage.removeItem('equipment_draft');
+};
+
+// Função auxiliar para converter string para array quando necessário
+export const convertStringToArray = (value: string | string[] | undefined): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  return value.split(',').map(item => item.trim()).filter(Boolean);
 };
