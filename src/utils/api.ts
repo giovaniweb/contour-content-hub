@@ -1,103 +1,34 @@
 
-// Define common types used across the application
+import { v4 as uuidv4 } from 'uuid';
 
-// Types for marketing objectives
-export type MarketingObjectiveType = 
-  | "atrair_atencao" 
-  | "criar_conexao" 
-  | "fazer_comprar" 
-  | "reativar_interesse" 
-  | "fechar_agora";
-
-// Types for script generation
-export type ScriptType = "videoScript" | "dailySales" | "bigIdea";
-
-export interface ScriptRequest {
-  title: string;
-  type: ScriptType;
-  equipment?: string;
-  audience?: string;
-  purpose?: string;
-  length?: string;
-  tone?: string;
-  extraInstructions?: string;
-}
+export type ScriptType = "videoScript" | "dailySales" | "bigIdea" | "reelsScript";
 
 export interface ScriptResponse {
   id: string;
-  content: string;
   title: string;
+  content: string;
   type: ScriptType;
   createdAt: string;
-  suggestedVideos: MediaItem[];
+  suggestedVideos: string[];
   captionTips: string[];
-  pdf_url?: string;
-  evento_agenda_id?: string;
-  equipment?: string;
 }
 
-// Types for media library
-export interface MediaItem {
-  id: string;
-  title: string;
-  thumbnailUrl: string;
-  videoUrl: string;
-  type: 'video_pronto' | 'take' | 'image';
-  equipment: string[];
-  bodyArea: string[];
-  purpose: string[];
-  duration?: string;
-  rating?: number;
-  isFavorite?: boolean;
-  shortDescription?: string;
-  description?: string; // Added to fix errors in MediaLibrary.tsx
+export async function generatePDF(scriptId: string): Promise<{url: string}> {
+  // Simulação de geração de PDF
+  console.log(`Gerando PDF para o roteiro ${scriptId}`);
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Em um caso real, isso seria uma URL para o arquivo PDF gerado
+  return {
+    url: `https://example.com/scripts/${scriptId}.pdf`
+  };
 }
 
-// Calendar types
-export interface CalendarSuggestion {
-  date: string;
-  title: string;
-  description: string;
-  format: "video" | "story" | "image";
-  completed: boolean;
-  equipment?: string;
-  purpose?: string;
-  hook?: string;
-  caption?: string;
-  type?: ScriptType;
-  evento_agenda_id?: string;
+export async function linkScriptToCalendar(scriptId: string, calendarEventId: string): Promise<void> {
+  // Simulação de link entre roteiro e evento de calendário
+  console.log(`Vinculando roteiro ${scriptId} ao evento ${calendarEventId}`);
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Em um caso real, aqui seria feito o vínculo no banco de dados
+  return Promise.resolve();
 }
-
-export interface CalendarPreferences {
-  frequency: number;
-  formats: Array<"video" | "story" | "image">;
-  equipment?: string;
-  purpose?: string;
-}
-
-// Export functions from other files to centralize API access
-export { 
-  getScriptHistory,
-  getScriptById, 
-  updateScript,
-  generateScriptPDF as generatePDF,
-  linkScriptToCalendar
-} from '@/utils/api-scripts';
-
-export {
-  toggleFavorite,
-  rateMedia,
-  getMediaItems,
-  updateUserPreferences,
-  saveEmailAlertPreferences,
-  getCalendarSuggestions,
-  updateCalendarCompletion,
-  clearCalendarPlanning as clearPlanning,
-  approveCalendarPlanning as approvePlanning,
-  updateCalendarPreferences as setCalendarPreferences
-} from '@/services/supabaseService';
-
-export type { ScriptHistoryItem } from '@/utils/api-scripts';
-
-// Re-export validation types and functions
-export { validateScript } from '@/utils/validation/api';
