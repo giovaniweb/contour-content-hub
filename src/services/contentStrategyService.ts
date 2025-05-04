@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyItem, ContentStrategyFilter, ContentCategory, ContentFormat, ContentObjective, ContentPriority, ContentStatus, ContentDistribution } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
@@ -66,7 +67,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         objetivo: item.objetivo as ContentObjective,
         prioridade: item.prioridade as ContentPriority,
         status: item.status as ContentStatus,
-        distribuicao: (item.distribuicao ? item.distribuicao as ContentDistribution : 'Instagram'),
+        distribuicao: 'distribuicao' in item ? item.distribuicao as ContentDistribution : 'Instagram',
         impedimento: item.impedimento,
         created_at: item.created_at,
         updated_at: item.updated_at,
@@ -139,7 +140,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       objetivo: data.objetivo as ContentObjective,
       prioridade: data.prioridade as ContentPriority,
       status: data.status as ContentStatus,
-      distribuicao: (data.distribuicao ? data.distribuicao as ContentDistribution : 'Instagram'),
+      distribuicao: 'distribuicao' in data ? data.distribuicao as ContentDistribution : 'Instagram',
       impedimento: data.impedimento,
       created_at: data.created_at,
       updated_at: data.updated_at,
