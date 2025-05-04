@@ -25,6 +25,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<PrivateRoute element={<Dashboard />} />} />
+          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
           <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
           <Route path="/scripts" element={<PrivateRoute element={<ScriptHistory />} />} />
           <Route path="/media-library" element={<PrivateRoute element={<MediaLibrary />} />} />

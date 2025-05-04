@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -112,7 +111,7 @@ const Navbar: React.FC = () => {
         {/* Logo e título */}
         <div className="flex items-center">
           <Link 
-            to={isAuthenticated ? "/dashboard" : "/"} 
+            to={isAuthenticated ? "/" : "/"} 
             className="flex items-center" 
             aria-label="Ir para página inicial Fluida"
           >

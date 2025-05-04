@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -133,9 +132,9 @@ const Layout: React.FC<LayoutProps> = ({
                 <SidebarGroup>
                   <SidebarGroupLabel>Navegação</SidebarGroupLabel>
                   <SidebarMenu>
-                    <SidebarMenuItem active={isLinkActive('/dashboard')}>
+                    <SidebarMenuItem active={isLinkActive('/') || isLinkActive('/dashboard')}>
                       <SidebarMenuButton asChild>
-                        <Link to="/dashboard" className="flex items-center">
+                        <Link to="/" className="flex items-center">
                           <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Dashboard</span>
                         </Link>
