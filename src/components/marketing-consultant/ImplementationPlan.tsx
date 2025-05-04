@@ -38,6 +38,16 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Ensure that the objects have safe default values
+  const safeStrategy = strategy || {};
+  const safeOrganic = safeStrategy.organic || {};
+  const safeDiagnosticData = diagnosticData || {};
+  const safeMainProcedures = safeDiagnosticData.mainProcedures || ['tratamento estético'];
+  
+  // Create a safe content types array to prevent undefined access
+  const contentTypes = safeOrganic.contentTypes || [];
+  const primaryTopic = safeOrganic.primaryTopic || 'tratamentos estéticos';
+
   const handleDownload = () => {
     toast({
       title: "Plano estratégico gerado",
@@ -65,7 +75,8 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
 
   const handleContentGeneration = () => {
     // Navigate to the content generation page with pre-filled info
-    navigate(`/custom-gpt?mode=advanced&topic=${encodeURIComponent(strategy.organic.primaryTopic)}`);
+    // Use safe values to prevent undefined errors
+    navigate(`/custom-gpt?mode=advanced&topic=${encodeURIComponent(primaryTopic)}`);
   };
 
   // Group tasks by week
@@ -168,36 +179,36 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
                 </p>
                 
                 <div className="space-y-3">
-                  {strategy.organic.contentTypes.includes('educational') && (
+                  {contentTypes.includes('educational') && (
                     <div className="p-3 border rounded-lg bg-white">
                       <h4 className="font-medium">Conteúdos Educativos</h4>
                       <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Como funciona {strategy.organic.primaryTopic} - passo a passo"</li>
-                        <li>"Mitos e verdades sobre {diagnosticData.mainProcedures[0]}"</li>
-                        <li>"Quando você deve considerar {diagnosticData.mainProcedures[0]}"</li>
-                        <li>"Perguntas frequentes sobre {diagnosticData.mainProcedures[0]}"</li>
+                        <li>"Como funciona {primaryTopic} - passo a passo"</li>
+                        <li>"Mitos e verdades sobre {safeMainProcedures[0]}"</li>
+                        <li>"Quando você deve considerar {safeMainProcedures[0]}"</li>
+                        <li>"Perguntas frequentes sobre {safeMainProcedures[0]}"</li>
                       </ul>
                     </div>
                   )}
                   
-                  {strategy.organic.contentTypes.includes('before-after') && (
+                  {contentTypes.includes('before-after') && (
                     <div className="p-3 border rounded-lg bg-white">
                       <h4 className="font-medium">Antes e Depois</h4>
                       <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Transformação com {diagnosticData.mainProcedures[0]} - resultado em X dias"</li>
-                        <li>"Antes e depois: {strategy.organic.primaryTopic} - resultado natural"</li>
-                        <li>"Resultados reais: tratamento de {diagnosticData.mainProcedures[0]}"</li>
+                        <li>"Transformação com {safeMainProcedures[0]} - resultado em X dias"</li>
+                        <li>"Antes e depois: {primaryTopic} - resultado natural"</li>
+                        <li>"Resultados reais: tratamento de {safeMainProcedures[0]}"</li>
                       </ul>
                     </div>
                   )}
                   
-                  {strategy.organic.contentTypes.includes('testimonials') && (
+                  {contentTypes.includes('testimonials') && (
                     <div className="p-3 border rounded-lg bg-white">
                       <h4 className="font-medium">Depoimentos</h4>
                       <ul className="mt-2 space-y-2 text-sm pl-5 list-disc">
-                        <li>"Depoimento da cliente Maria - sua experiência com {diagnosticData.mainProcedures[0]}"</li>
-                        <li>"Por que escolhi {strategy.organic.primaryTopic} - depoimento real"</li>
-                        <li>"Como {diagnosticData.mainProcedures[0]} mudou minha autoestima - história da Ana"</li>
+                        <li>"Depoimento da cliente Maria - sua experiência com {safeMainProcedures[0]}"</li>
+                        <li>"Por que escolhi {primaryTopic} - depoimento real"</li>
+                        <li>"Como {safeMainProcedures[0]} mudou minha autoestima - história da Ana"</li>
                       </ul>
                     </div>
                   )}
@@ -233,64 +244,68 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium">Meta de faturamento</h4>
-                    <p className="text-lg">{diagnosticData.revenueGoal}</p>
+                    <p className="text-lg">{safeDiagnosticData.revenueGoal || "Não definido"}</p>
                   </div>
                   
                   <Separator />
                   
-                  {strategy.paid.enabled && (
+                  {safeStrategy.paid && safeStrategy.paid.enabled && (
                     <div>
                       <h4 className="text-sm font-medium">Tráfego Pago</h4>
                       <ul className="mt-1 text-sm space-y-1">
-                        <li>• Orçamento mensal: R$ {strategy.paid.budget}</li>
+                        <li>• Orçamento mensal: R$ {safeStrategy.paid?.budget || "Não definido"}</li>
                         <li>• Plataforma principal: {
-                          strategy.paid.platform === 'meta' ? 'Meta/Facebook' :
-                          strategy.paid.platform === 'google' ? 'Google' : 'Instagram'
+                          safeStrategy.paid?.platform === 'meta' ? 'Meta/Facebook' :
+                          safeStrategy.paid?.platform === 'google' ? 'Google' : 'Instagram'
                         }</li>
                         <li>• Objetivo: {
-                          strategy.paid.objective === 'leads' ? 'Gerar leads/consultas' : 'Aumentar conhecimento da marca'
+                          safeStrategy.paid?.objective === 'leads' ? 'Gerar leads/consultas' : 'Aumentar conhecimento da marca'
                         }</li>
-                        <li>• Faixa etária: {strategy.paid.ageRange[0]} a {strategy.paid.ageRange[1]} anos</li>
+                        <li>• Faixa etária: {
+                          safeStrategy.paid?.ageRange ? 
+                            `${safeStrategy.paid.ageRange[0]} a ${safeStrategy.paid.ageRange[1]} anos` : 
+                            "Não definido"
+                        }</li>
                       </ul>
                     </div>
                   )}
                   
-                  {strategy.organic.enabled && (
+                  {safeOrganic.enabled && (
                     <div>
                       <h4 className="text-sm font-medium">Tráfego Orgânico</h4>
                       <ul className="mt-1 text-sm space-y-1">
                         <li>• Frequência: {
-                          strategy.organic.frequency === 'daily' ? 'Diária' :
-                          strategy.organic.frequency === '3x' ? '3x por semana' : 'Semanal'
+                          safeOrganic.frequency === 'daily' ? 'Diária' :
+                          safeOrganic.frequency === '3x' ? '3x por semana' : 'Semanal'
                         }</li>
-                        <li>• Tema principal: {strategy.organic.primaryTopic}</li>
+                        <li>• Tema principal: {primaryTopic}</li>
                         <li>• Tipos de conteúdo: {
-                          strategy.organic.contentTypes
+                          contentTypes
                             .map((type: string) => 
                               type === 'before-after' ? 'Antes e Depois' :
                               type === 'testimonials' ? 'Depoimentos' :
                               type === 'educational' ? 'Conteúdo Educativo' : 'Promoções'
                             )
-                            .join(', ')
+                            .join(', ') || "Não definido"
                         }</li>
                       </ul>
                     </div>
                   )}
                   
-                  {strategy.internal.enabled && (
+                  {safeStrategy.internal && safeStrategy.internal.enabled && (
                     <div>
                       <h4 className="text-sm font-medium">Marketing Interno</h4>
                       <ul className="mt-1 text-sm space-y-1">
-                        {strategy.internal.referralProgram && (
+                        {safeStrategy.internal.referralProgram && (
                           <li>• Programa de Indicação</li>
                         )}
-                        {strategy.internal.loyaltyProgram && (
+                        {safeStrategy.internal.loyaltyProgram && (
                           <li>• Programa de Fidelidade</li>
                         )}
-                        {strategy.internal.packages && (
+                        {safeStrategy.internal.packages && (
                           <li>• Pacotes e Combos</li>
                         )}
-                        {strategy.internal.events && (
+                        {safeStrategy.internal.events && (
                           <li>• Eventos de Relacionamento</li>
                         )}
                       </ul>
@@ -302,12 +317,16 @@ const ImplementationPlan: React.FC<ImplementationPlanProps> = ({
                   <div>
                     <h4 className="text-sm font-medium">Resultados Esperados (mensal)</h4>
                     <ul className="mt-1 text-sm space-y-1">
-                      <li>• Novos clientes: {strategy.expectedResults.newClients}</li>
-                      <li>• Aumento de receita: {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(strategy.expectedResults.revenueIncrease)}</li>
-                      <li>• Horizonte de implementação: {strategy.expectedResults.timeline}</li>
+                      <li>• Novos clientes: {safeStrategy.expectedResults?.newClients || "Não definido"}</li>
+                      <li>• Aumento de receita: {
+                        safeStrategy.expectedResults?.revenueIncrease ? 
+                        new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(safeStrategy.expectedResults.revenueIncrease) : 
+                        "Não definido"
+                      }</li>
+                      <li>• Horizonte de implementação: {safeStrategy.expectedResults?.timeline || "3 meses"}</li>
                     </ul>
                   </div>
                 </div>
