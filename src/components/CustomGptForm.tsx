@@ -10,6 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -24,10 +25,10 @@ import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useEquipments } from "@/hooks/useEquipments";
-import { CustomGptType, ConteudoEstrategia, CustomGptRequest, generateCustomContent, CustomGptResult } from "@/utils/custom-gpt";
-import { ScriptResponse } from "@/utils/api";
+import { CustomGptType, CustomGptRequest, CustomGptResult, generateCustomContent } from "@/utils/custom-gpt";
+import { ScriptResponse } from "@/types/script";
 
 const formSchema = z.object({
   topic: z.string().min(2, {
@@ -42,7 +43,7 @@ const formSchema = z.object({
   purposes: z.array(z.string()).optional(),
 });
 
-interface CustomGptFormProps {
+export interface CustomGptFormProps {
   onResults?: (results: CustomGptResult[]) => void;
   onScriptGenerated?: (script: ScriptResponse) => void;
   initialData?: any;
@@ -117,7 +118,6 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
     setSelectedEquipment(undefined);
   };
 
-  // Corrigir erros relacionados ao CustomGptRequest e dados do equipamento
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -130,7 +130,7 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
         equipamento: selectedEquipment || '',
         quantidade: parseInt(form.getValues().quantity || "1") || 1,
         tom: form.getValues().tone,
-        estrategiaConteudo: form.getValues().marketingObjective as ConteudoEstrategia,
+        estrategiaConteudo: form.getValues().marketingObjective as any,
         topic: form.getValues().topic,
         bodyArea: form.getValues().bodyArea,
         purposes: form.getValues().purposes || [],
@@ -156,7 +156,7 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
           suggestedVideos: [],
           captionTips: [],
           equipment: selectedEquipment,
-          marketingObjective: request.marketingObjective as any,
+          marketingObjective: request.marketingObjective,
         };
         
         onScriptGenerated(scriptResponse);

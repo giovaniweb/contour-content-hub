@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface EquipmentFormProps {
+export interface EquipmentFormProps {
   equipment?: Equipment;
   onSave: (equipment: Equipment) => Promise<void>;
   onCancel: () => void;

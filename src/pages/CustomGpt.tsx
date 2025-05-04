@@ -8,10 +8,22 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
-import { ScriptResponse } from '@/utils/api';
+import { ScriptResponse } from '@/types/script';
 import CalendarDialog from '@/components/script/CalendarDialog';
 import { useToast } from '@/hooks/use-toast';
-import { Label } from "@/components/ui/label";
+
+// Add missing type
+export interface ScriptResponse {
+  id: string;
+  title: string;
+  content: string;
+  type: 'videoScript' | 'bigIdea' | 'dailySales';
+  createdAt: string;
+  suggestedVideos: any[];
+  captionTips: any[];
+  equipment?: string;
+  marketingObjective?: string;
+}
 
 const CustomGpt: React.FC = () => {
   const location = useLocation();
@@ -169,17 +181,17 @@ const CustomGpt: React.FC = () => {
             
             <TabsContent value="fluida">
               <CustomGptForm 
-                mode="simple" 
                 onScriptGenerated={handleScriptGenerated} 
                 initialData={initialFormData}
+                mode="simple"
               />
             </TabsContent>
             
             <TabsContent value="roteiro">
               <CustomGptForm 
-                mode="advanced" 
                 onScriptGenerated={handleScriptGenerated} 
                 initialData={initialFormData}
+                mode="advanced"
               />
             </TabsContent>
           </Tabs>

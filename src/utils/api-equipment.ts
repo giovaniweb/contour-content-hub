@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment, EquipmentCreationProps } from '@/types/equipment';
 
@@ -67,9 +66,10 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
  */
 export const createEquipment = async (equipment: EquipmentCreationProps): Promise<Equipment> => {
   try {
+    // Ensure we're passing a single object, not an array of objects
     const { data, error } = await supabase
       .from('equipamentos')
-      .insert([equipment])
+      .insert([equipment]) // Wrap in array here for supabase
       .select();
       
     if (error) {
@@ -153,7 +153,9 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
         indicacoes: ['Indicação importada 1', 'Indicação importada 2'],
         diferenciais: 'Diferenciais importados',
         linguagem: 'pt-BR',
-        ativo: true
+        ativo: true,
+        efeito: 'Efeito importado',
+        image_url: ''
       },
       {
         id: `imported-${Date.now()}-2`,
@@ -163,14 +165,13 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
         indicacoes: ['Indicação importada 3', 'Indicação importada 4'],
         diferenciais: 'Diferenciais importados 2',
         linguagem: 'pt-BR',
-        ativo: true
+        ativo: true,
+        efeito: 'Efeito importado 2',
+        image_url: ''
       }
     ];
     
-    return {
-      ...importedEquipments,
-      imported: true
-    } as any;
+    return importedEquipments;
     
   } catch (error) {
     console.error('Error importing equipments:', error);

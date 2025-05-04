@@ -1,24 +1,32 @@
+
 import React, { useState, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, getMonth, getYear } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarSuggestion, CalendarPreferences, getCalendarSuggestions, updateCalendarCompletion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
+import { CalendarSuggestion, CalendarPreferences, NewCalendarEvent } from "@/types/calendar";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue,
+  SelectGroup
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Calendar as CalendarIcon, Check, X, ChevronLeft, ChevronRight, Settings, RefreshCw, Save, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Settings, RefreshCw, PlusCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import CalendarDay from "@/components/CalendarDay";
 import { useEquipments } from "@/hooks/useEquipments";
+import { VideoIcon, ImageIcon, StoryIcon, RefreshCcw, CalendarPlus } from "@/components/ui/icons";
 
 const frequencyOptions = [
   { value: "daily", label: "Diário" },
@@ -29,7 +37,7 @@ const frequencyOptions = [
 const contentFormats = [
   { value: "video", label: "Vídeo", icon: <VideoIcon className="h-4 w-4 mr-2" /> },
   { value: "image", label: "Imagem", icon: <ImageIcon className="h-4 w-4 mr-2" /> },
-  { value: "story", label: "Story", icon: <History className="h-4 w-4 mr-2" /> }
+  { value: "story", label: "Story", icon: <StoryIcon className="h-4 w-4 mr-2" /> }
 ];
 
 const contentPurposes = [
@@ -45,6 +53,50 @@ const defaultPreferences: CalendarPreferences = {
   equipment: [],
   autoGenerate: true,
   formats: ["video", "image", "story"],
+  purpose: [],
+};
+
+const defaultNewEvent: NewCalendarEvent = {
+  date: format(new Date(), 'yyyy-MM-dd'),
+  title: '',
+  description: '',
+  format: "video",
+  completed: false,
+  equipment: '',
+};
+
+// Mock API functions for demonstration
+const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Mock data
+  return [
+    {
+      id: '1',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      title: 'Video sobre benefícios do HIFU',
+      description: 'Explicar os principais benefícios do tratamento com HIFU',
+      format: "video",
+      completed: false,
+      equipment: 'hifu-001',
+    },
+    {
+      id: '2',
+      date: format(new Date(Date.now() + 86400000), 'yyyy-MM-dd'),
+      title: 'Story com antes/depois',
+      description: 'Mostrar resultados do tratamento com fotos de antes e depois',
+      format: "story",
+      completed: true,
+      equipment: 'hifu-001',
+    }
+  ];
+};
+
+const updateCalendarCompletion = async (date: string, completed: boolean): Promise<void> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  console.log(`Updated event on ${date} to ${completed ? 'completed' : 'pending'}`);
 };
 
 const CalendarPage: React.FC = () => {
@@ -52,14 +104,17 @@ const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [suggestions, setSuggestions] = useState<CalendarSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("calendar");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dayEvents, setDayEvents] = useState<CalendarSuggestion[]>([]);
   const [preferences, setPreferences] = useState<CalendarPreferences>(defaultPreferences);
+  const [newEvent, setNewEvent] = useState<NewCalendarEvent>(defaultNewEvent);
   const [newTopic, setNewTopic] = useState("");
+  const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
+  const [newEventDialogOpen, setNewEventDialogOpen] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<"video" | "story" | "image">("video");
   
   const { toast } = useToast();
   const { equipments, loading: equipmentsLoading } = useEquipments();
@@ -114,7 +169,8 @@ const CalendarPage: React.FC = () => {
   const handleClearPlanning = async () => {
     try {
       setRegenerating(true);
-      await clearPlanning();
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "Planejamento limpo",
         description: "O planejamento do calendário foi limpo com sucesso."
@@ -135,7 +191,8 @@ const CalendarPage: React.FC = () => {
   const handleApprovePlanning = async () => {
     try {
       setApproving(true);
-      await approvePlanning();
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "Planejamento aprovado",
         description: "O planejamento do calendário foi aprovado com sucesso."
@@ -157,7 +214,8 @@ const CalendarPage: React.FC = () => {
     try {
       setSaving(true);
       
-      await setCalendarPreferences(preferences);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Preferências salvas",
@@ -243,15 +301,15 @@ const CalendarPage: React.FC = () => {
   const lastDayOfMonth = endOfMonth(currentDate);
 
   const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setCurrentDate(addMonths(currentDate, -1));
   };
 
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setCurrentDate(addMonths(currentDate, 1));
   };
 
   return (
-    <Layout>
+    <Layout title="Calendário de Conteúdo">
       <div className="space-y-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -265,10 +323,12 @@ const CalendarPage: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" onClick={prevMonth}>
+                <ChevronLeft className="h-4 w-4 mr-1" />
                 Anterior
               </Button>
               <Button variant="outline" size="sm" onClick={nextMonth}>
                 Próximo
+                <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           </CardHeader>
@@ -364,11 +424,11 @@ const CalendarPage: React.FC = () => {
                   {contentFormats.map((formatOption) => (
                     <Button
                       key={formatOption.value}
-                      variant={preferences.formats?.includes(formatOption.value) ? "default" : "outline"}
+                      variant={preferences.formats?.includes(formatOption.value as any) ? "default" : "outline"}
                       onClick={() => {
-                        const newFormats = preferences.formats?.includes(formatOption.value)
+                        const newFormats = preferences.formats?.includes(formatOption.value as any)
                           ? preferences.formats.filter(f => f !== formatOption.value)
-                          : [...(preferences.formats || []), formatOption.value];
+                          : [...(preferences.formats || []), formatOption.value as any];
                         setPreferences({ ...preferences, formats: newFormats });
                       }}
                     >

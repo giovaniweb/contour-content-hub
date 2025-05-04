@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
@@ -16,12 +16,12 @@ interface CalendarDialogProps {
   scriptId: string;
 }
 
-export function CalendarDialog({ 
-  open, 
-  onOpenChange, 
+const CalendarDialog: React.FC<CalendarDialogProps> = ({
+  open,
+  onOpenChange,
   onSchedule,
   scriptId
-}: CalendarDialogProps) {
+}) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("morning");
   const [isScheduling, setIsScheduling] = useState(false);
@@ -56,14 +56,11 @@ export function CalendarDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-blue-500" />
-            Agendar Conteúdo no Calendário
-          </DialogTitle>
+          <DialogTitle>Agendar Conteúdo</DialogTitle>
           <DialogDescription>
-            Escolha uma data e horário para publicar seu conteúdo
+            Selecione a data e horário para agendar este conteúdo.
           </DialogDescription>
         </DialogHeader>
         
@@ -125,6 +122,6 @@ export function CalendarDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default CalendarDialog;

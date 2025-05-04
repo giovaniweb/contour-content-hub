@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { Equipment } from '@/types/equipment';
 
-interface EquipmentListProps {
+export interface EquipmentListProps {
   equipments: Equipment[];
   onEdit: (equipment: Equipment) => void;
   onDelete: (id: string) => Promise<void>;

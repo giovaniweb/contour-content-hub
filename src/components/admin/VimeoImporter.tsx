@@ -10,6 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -24,13 +25,13 @@ import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEquipments } from "@/hooks/useEquipments";
 import { Equipment } from '@/types/equipment';
 
 // Prop interface
-interface VimeoImporterProps {
+export interface VimeoImporterProps {
   onCompleteImport: (importedData: any) => void;
   selectedEquipmentId?: string;
 }
@@ -96,7 +97,7 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
         pictures: { 
           sizes: [{ link: 'https://i.vimeocdn.com/video/0000000_300x200.jpg' }]
         },
-        duration: "180",
+        duration: 180,
       };
 
       // Check if the video already exists for the selected equipment and body area
@@ -143,7 +144,7 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
         descricao_curta: vimeoData.description,
         url_video: vimeoData.link,
         preview_url: vimeoData.pictures.sizes[0].link,
-        duracao: vimeoData.duration,
+        duracao: vimeoData.duration.toString(),
         equipamentos: [values.equipment],
         area_corpo: values.bodyArea,
         finalidade: [values.purpose],

@@ -116,9 +116,13 @@ const EquipmentManager: React.FC = () => {
     }
   };
   
-  const handleDeleteClick = (id: string) => {
-    setDeletingId(id);
-    setShowDeleteDialog(true);
+  // Changed to async/Promise
+  const handleDeleteClick = async (id: string): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      setDeletingId(id);
+      setShowDeleteDialog(true);
+      resolve();
+    });
   };
   
   const handleDeleteConfirm = async () => {
@@ -215,9 +219,8 @@ const EquipmentManager: React.FC = () => {
           </DialogHeader>
           
           <EquipmentForm 
-            onSubmit={handleCreateEquipment} 
+            onSave={handleCreateEquipment} 
             onCancel={() => setShowNewForm(false)}
-            isProcessing={isProcessing}
           />
         </DialogContent>
       </Dialog>
@@ -235,9 +238,8 @@ const EquipmentManager: React.FC = () => {
           {currentEquipment && (
             <EquipmentForm 
               equipment={currentEquipment}
-              onSubmit={handleUpdateEquipment}
+              onSave={handleUpdateEquipment}
               onCancel={() => setShowEditForm(false)}
-              isProcessing={isProcessing}
             />
           )}
         </DialogContent>

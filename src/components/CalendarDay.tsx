@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CalendarSuggestion } from '@/utils/api';
+import { CalendarSuggestion } from '@/types/calendar';
 
 export interface CalendarDayProps {
-  key: string;
   date: Date;
   events: CalendarSuggestion[];
   onClick: () => void;
