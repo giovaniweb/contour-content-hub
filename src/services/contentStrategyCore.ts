@@ -81,14 +81,21 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     // Preparamos os dados para inserção com os campos obrigatórios
     const dataToInsert = prepareContentStrategyData(item);
     
+    // Adicionamos os campos obrigatórios se não estiverem presentes
+    const requiredFields = {
+      categoria: item.categoria || 'Não categorizado',
+      formato: item.formato || 'Texto',
+      objetivo: item.objetivo || 'Atrair Atenção'
+    };
+    
     // Adicionamos o usuário que criou
     const userData = await supabase.auth.getUser();
     const userId = userData.data.user?.id || null;
     
-    // Combinamos os dados preparados com o usuário atual
-    // Garantimos que todos os campos obrigatórios estão presentes
+    // Combinamos os dados preparados com o usuário atual e campos obrigatórios
     const insertData = {
       ...dataToInsert,
+      ...requiredFields,
       created_by: userId
     };
     

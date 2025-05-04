@@ -10,8 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle,
   CheckCircle2,
-  Cog,
-  Settings,
   Activity,
   ListChecks,
   RefreshCw,
@@ -20,35 +18,32 @@ import {
   Terminal,
   Brain,
   Shield,
-  Gauge
+  Gauge,
+  Sparkles,
+  Search
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-
-// Interfaces para o sistema de diagnóstico
-interface SystemIssue {
-  id: string;
-  component: string;
-  description: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  status: 'pending' | 'in-progress' | 'resolved';
-  created_at: string;
-  resolved_at?: string;
-  category: 'bug' | 'improvement' | 'feature';
-  assignedTo?: string;
-  priority: number;
-}
-
-interface SystemMetric {
-  name: string;
-  value: number;
-  target: number;
-  unit: string;
-  status: 'good' | 'warning' | 'critical';
-  category: 'performance' | 'usage' | 'quality';
-}
+import { 
+  SystemIssue, 
+  SystemMetric, 
+  analyzeIssueWithAI, 
+  executeAutoRepair,
+  runFullSystemCheck
+} from "@/services/systemDiagnosticService";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SystemDiagnostics: React.FC = () => {
   const { toast } = useToast();
@@ -58,7 +53,10 @@ const SystemDiagnostics: React.FC = () => {
   const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRunningCheck, setIsRunningCheck] = useState<boolean>(false);
-
+  const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
+  const [isRepairing, setIsRepairing] = useState<string | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<SystemIssue | null>(null);
+  
   // Mock de dados para demonstração
   const mockIssues: SystemIssue[] = [
     {
@@ -203,26 +201,22 @@ const SystemDiagnostics: React.FC = () => {
   const runSystemCheck = async () => {
     setIsRunningCheck(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulação de processamento
+      const result = await runFullSystemCheck();
       
-      toast({
-        title: "Verificação Concluída",
-        description: "O sistema foi verificado com sucesso",
-      });
+      // Adicionar novos problemas encontrados
+      if (result.newIssues.length > 0) {
+        setSystemIssues(prev => [...prev, ...result.newIssues]);
+      }
       
-      // Atualiza a lista com novos problemas encontrados
-      const newIssue: SystemIssue = {
-        id: `new-${Date.now()}`,
-        component: "Suporte a Dispositivos",
-        description: "Melhorar responsividade para tablets em modo paisagem",
-        severity: "medium",
-        status: "pending",
-        created_at: new Date().toISOString(),
-        category: "improvement",
-        priority: systemIssues.length + 1
-      };
-      
-      setSystemIssues([...systemIssues, newIssue]);
+      // Atualizar métricas melhoradas
+      if (result.improvedMetrics.length > 0) {
+        setSystemMetrics(prev => 
+          prev.map(metric => {
+            const improved = result.improvedMetrics.find(im => im.name === metric.name);
+            return improved || metric;
+          })
+        );
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -251,6 +245,48 @@ const SystemDiagnostics: React.FC = () => {
         'resolvido'
       }`,
     });
+  };
+
+  // Nova função para analisar problema com IA
+  const analyzeIssue = async (issue: SystemIssue) => {
+    setIsAnalyzing(issue.id);
+    try {
+      const analysis = await analyzeIssueWithAI(issue);
+      if (analysis) {
+        setSystemIssues(issues => 
+          issues.map(i => 
+            i.id === issue.id 
+              ? { ...i, repairAnalysis: analysis } 
+              : i
+          )
+        );
+        setSelectedIssue({...issue, repairAnalysis: analysis});
+      }
+    } finally {
+      setIsAnalyzing(null);
+    }
+  };
+
+  // Nova função para executar reparo automático
+  const repairIssue = async (issue: SystemIssue) => {
+    if (!issue.repairAnalysis?.autoReparo) {
+      toast({
+        variant: "warning",
+        title: "Reparo manual necessário",
+        description: "Este problema requer intervenção manual para ser corrigido."
+      });
+      return;
+    }
+
+    setIsRepairing(issue.id);
+    try {
+      const success = await executeAutoRepair(issue);
+      if (success) {
+        updateIssueStatus(issue.id, 'resolved');
+      }
+    } finally {
+      setIsRepairing(null);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -298,6 +334,15 @@ const SystemDiagnostics: React.FC = () => {
     }
   };
 
+  const getComplexityColor = (complexity: string) => {
+    switch (complexity) {
+      case 'baixa': return 'text-green-600';
+      case 'média': return 'text-yellow-600';
+      case 'alta': return 'text-red-600';
+      default: return 'text-gray-600';
+    }
+  };
+
   const renderHealthStatus = (percentual: number) => {
     const getHealthClassName = (value: number) => {
       if (value >= 90) return "text-green-500";
@@ -330,7 +375,7 @@ const SystemDiagnostics: React.FC = () => {
                   Diagnóstico do Sistema
                 </CardTitle>
                 <CardDescription>
-                  Monitoramento de saúde, problemas e melhorias do sistema
+                  Monitoramento de saúde, problemas e melhorias do sistema com diagnóstico avançado de IA
                 </CardDescription>
               </div>
               <Button 
@@ -399,8 +444,16 @@ const SystemDiagnostics: React.FC = () => {
                           <p className="text-xs text-muted-foreground mt-2">
                             Criado em: {new Date(issue.created_at).toLocaleDateString()}
                           </p>
+                          {issue.repairAnalysis && (
+                            <div className="mt-2">
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                <Sparkles className="h-3 w-3 mr-1" /> 
+                                Análise de IA disponível
+                              </Badge>
+                            </div>
+                          )}
                         </CardContent>
-                        <CardFooter className="pt-2 mt-auto pl-5 flex gap-2">
+                        <CardFooter className="pt-2 mt-auto pl-5 flex flex-wrap gap-2">
                           {issue.status !== 'resolved' && (
                             <>
                               {issue.status === 'pending' ? (
@@ -440,6 +493,146 @@ const SystemDiagnostics: React.FC = () => {
                             >
                               <RefreshCw className="h-4 w-4 mr-1" />
                               Reabrir
+                            </Button>
+                          )}
+                          
+                          {/* Botão de diagnóstico por IA */}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="secondary"
+                                onClick={() => issue.repairAnalysis ? setSelectedIssue(issue) : analyzeIssue(issue)}
+                                disabled={isAnalyzing === issue.id}
+                              >
+                                {isAnalyzing === issue.id ? (
+                                  <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                ) : issue.repairAnalysis ? (
+                                  <Search className="h-4 w-4 mr-1" />
+                                ) : (
+                                  <Brain className="h-4 w-4 mr-1" />
+                                )}
+                                {isAnalyzing === issue.id ? "Analisando..." : 
+                                 issue.repairAnalysis ? "Ver Diagnóstico" : "Diagnosticar"}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Diagnóstico de IA</DialogTitle>
+                                <DialogDescription>
+                                  Análise avançada do problema e possíveis soluções
+                                </DialogDescription>
+                              </DialogHeader>
+                              
+                              {selectedIssue && selectedIssue.repairAnalysis && (
+                                <ScrollArea className="h-[60vh] pr-4">
+                                  <div className="space-y-6">
+                                    <div>
+                                      <h3 className="text-lg font-semibold mb-2">Problema</h3>
+                                      <div className="bg-gray-50 p-3 rounded-md">
+                                        <p className="font-medium">{selectedIssue.component}</p>
+                                        <p className="text-sm">{selectedIssue.description}</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                          {getCategoryBadge(selectedIssue.category)}
+                                          <Badge variant="outline" className={`${getSeverityColor(selectedIssue.severity)} bg-opacity-10 text-xs`}>
+                                            Severidade: {selectedIssue.severity}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <h3 className="text-lg font-semibold mb-2">Diagnóstico</h3>
+                                      <div className="bg-blue-50 p-3 rounded-md">
+                                        <p className="whitespace-pre-line">{selectedIssue.repairAnalysis.diagnóstico}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <h3 className="text-lg font-semibold mb-2">Solução Recomendada</h3>
+                                      <div className="bg-green-50 p-3 rounded-md">
+                                        <p className="whitespace-pre-line">{selectedIssue.repairAnalysis.solução}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <h3 className="text-lg font-semibold mb-2">Passos de Implementação</h3>
+                                      <div className="bg-yellow-50 p-3 rounded-md">
+                                        <p className="whitespace-pre-line">{selectedIssue.repairAnalysis.passos}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <h3 className="text-base font-semibold mb-2">Complexidade</h3>
+                                        <div className="bg-gray-50 p-3 rounded-md">
+                                          <p className={`font-medium ${getComplexityColor(selectedIssue.repairAnalysis.complexidade)}`}>
+                                            {selectedIssue.repairAnalysis.complexidade.toUpperCase()}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div>
+                                        <h3 className="text-base font-semibold mb-2">Auto-reparo</h3>
+                                        <div className="bg-gray-50 p-3 rounded-md">
+                                          <p className={`font-medium ${selectedIssue.repairAnalysis.autoReparo ? 'text-green-600' : 'text-orange-600'}`}>
+                                            {selectedIssue.repairAnalysis.autoReparo ? 'POSSÍVEL' : 'INTERVENÇÃO MANUAL'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </ScrollArea>
+                              )}
+                              
+                              <DialogFooter className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground">
+                                  Diagnóstico feito por inteligência artificial
+                                </p>
+                                <div className="flex gap-2">
+                                  {selectedIssue && selectedIssue.repairAnalysis && (
+                                    <Button 
+                                      variant="default"
+                                      disabled={isRepairing === selectedIssue.id || !selectedIssue.repairAnalysis.autoReparo}
+                                      onClick={() => repairIssue(selectedIssue)}
+                                    >
+                                      {isRepairing === selectedIssue.id ? (
+                                        <>
+                                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                          Reparando...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Wrench className="mr-2 h-4 w-4" />
+                                          {selectedIssue.repairAnalysis.autoReparo ? 'Executar Auto-Reparo' : 'Reparo Manual Necessário'}
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                  
+                                  <DialogClose asChild>
+                                    <Button variant="outline">Fechar</Button>
+                                  </DialogClose>
+                                </div>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          
+                          {/* Botão de auto-reparo direto para itens já analisados */}
+                          {issue.repairAnalysis?.autoReparo && issue.status !== 'resolved' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                              onClick={() => repairIssue(issue)}
+                              disabled={isRepairing === issue.id}
+                            >
+                              {isRepairing === issue.id ? (
+                                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                              ) : (
+                                <Wrench className="h-4 w-4 mr-1" />
+                              )}
+                              {isRepairing === issue.id ? "Reparando..." : "Auto-reparo"}
                             </Button>
                           )}
                         </CardFooter>
@@ -504,6 +697,8 @@ const SystemDiagnostics: React.FC = () => {
                       <p className="text-gray-400">[2025-05-04 01:40:12] INFO: Backup automático concluído</p>
                       <p className="text-red-400">[2025-05-04 01:41:36] ERROR: Falha ao enviar email de notificação</p>
                       <p className="text-gray-400">[2025-05-04 01:42:05] INFO: Validação de roteiro concluída (ID: 5632)</p>
+                      <p className="text-purple-400">[2025-05-04 01:42:35] AI: Análise de problema iniciada para "Dashboard"</p>
+                      <p className="text-green-400">[2025-05-04 01:42:58] AI: Auto-reparo executado com sucesso para "Dashboard"</p>
                       <p className="text-gray-400">[2025-05-04 01:43:22] INFO: Calendário atualizado para o usuário ID 123</p>
                       <p className="text-gray-400">[2025-05-04 01:44:15] INFO: Dispositivo móvel detectado - iPhone 14</p>
                       <p className="text-gray-400">[2025-05-04 01:45:33] INFO: Visualização de documento PDF (ID: 234)</p>
@@ -549,10 +744,10 @@ const SystemDiagnostics: React.FC = () => {
               
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex items-center space-x-2">
-                  <Gauge className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium text-purple-700">Saúde</span>
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium text-purple-700">AI Assistant</span>
                 </div>
-                <p className="mt-1 text-sm text-purple-600">92% de saúde geral do sistema</p>
+                <p className="mt-1 text-sm text-purple-600">Auto-reparo ativo e monitorando</p>
               </div>
             </div>
             
@@ -578,9 +773,15 @@ const SystemDiagnostics: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <Checkbox id="check4" />
+                  <Checkbox id="check4" checked />
                   <label htmlFor="check4" className="ml-2 text-sm">
-                    Auditoria de permissões (Pendente)
+                    Diagnóstico de IA (Último: há 10 minutos)
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <Checkbox id="check5" />
+                  <label htmlFor="check5" className="ml-2 text-sm">
+                    Auditoria de permissões (Agendada para hoje)
                   </label>
                 </div>
               </div>
