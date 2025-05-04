@@ -74,7 +74,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert([preparedData]) // Changed to array to fix type error
+      .insert([preparedData]) // Using array for insert to match the API expectations
       .select(`
         *,
         equipamento:equipamento_id (nome),
