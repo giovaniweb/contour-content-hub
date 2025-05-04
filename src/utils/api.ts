@@ -33,6 +33,7 @@ export interface ScriptResponse {
   captionTips: string[];
   pdf_url?: string;
   evento_agenda_id?: string;
+  equipment?: string;
 }
 
 // Types for media library
@@ -48,7 +49,8 @@ export interface MediaItem {
   duration?: string;
   rating?: number;
   isFavorite?: boolean;
-  shortDescription?: string; // Added to fix UI errors
+  shortDescription?: string;
+  description?: string; // Added to fix errors in MediaLibrary.tsx
 }
 
 // Calendar types

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Video as VideoIcon, Camera, Loader2 } from "lucide-react";
@@ -161,14 +160,16 @@ const TrendingTopics: React.FC = () => {
       
       console.log("Conteúdo gerado:", generatedContent);
       
-      // Converter para o formato ScriptResponse para exibir no ScriptCard
+      // Convert to the format ScriptResponse for display in ScriptCard
       const scriptResponse: ScriptResponse = {
         id: new Date().getTime().toString(),
         title: analysisData.topic || topic.title,
         content: generatedContent.content,
         type: "videoScript",
         createdAt: new Date().toISOString(),
-        equipment: analysisData.equipment
+        suggestedVideos: [], // Added missing property
+        captionTips: [],     // Added missing property
+        equipment: analysisData.equipment // Now this is allowed in our updated type
       };
       
       setGeneratedScript(scriptResponse);

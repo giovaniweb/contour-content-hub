@@ -1,321 +1,166 @@
-
-import React, { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-  AlertCircle, Calendar as CalendarIcon, Check, RefreshCcw, Settings
-} from "lucide-react";
-import CalendarDay from "@/components/CalendarDay";
-import CalendarSettings from "@/components/CalendarSettings";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { getCalendarSuggestions, CalendarSuggestion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
-import { format, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { getCalendarSuggestions, updateCalendarCompletion, clearCalendarPlanning } from '@/utils/api';
+import { CalendarSuggestion } from '@/utils/api';
+import { useUser } from '@/hooks/useUser';
 
 const CalendarPage: React.FC = () => {
   const { toast } = useToast();
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [suggestions, setSuggestions] = useState<CalendarSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
-  const [isConfirmApproveOpen, setIsConfirmApproveOpen] = useState(false);
-
-  useEffect(() => {
-    loadCalendarSuggestions();
-  }, [currentMonth, currentYear]);
+  const [loading, setLoading] = useState(false);
+  const { user, isLoading: isUserLoading } = useUser();
   
-  const loadCalendarSuggestions = async () => {
+  // Ensure user is loaded before fetching suggestions
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      fetchSuggestions();
+    }
+  }, [date, user, isUserLoading]);
+
+  const fetchSuggestions = async () => {
+    if (!user || !date) return;
+    
     try {
-      setIsLoading(true);
-      const data = await getCalendarSuggestions();
-      setSuggestions(data);
+      setLoading(true);
+      const formattedDate = date.toISOString().split('T')[0];
+      const fetchedSuggestions = await getCalendarSuggestions(formattedDate);
+      setSuggestions(fetchedSuggestions);
     } catch (error) {
-      console.error("Erro ao buscar sugestões do calendário:", error);
+      console.error("Erro ao buscar sugestões:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar as sugestões para o calendário.",
+        title: "Erro ao carregar sugestões",
+        description: "Não foi possível carregar as sugestões para este dia.",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
-  const handleClearPlanning = async () => {
+
+  const handleCompletionToggle = async (id: string, completed: boolean) => {
     try {
-      await clearPlanning();
+      await updateCalendarCompletion(id, completed);
+      setSuggestions(suggestions.map(s => s.id === id ? { ...s, completed } : s));
+      
+      toast({
+        title: "Status atualizado",
+        description: `A sugestão foi marcada como ${completed ? 'concluída' : 'não concluída'}.`,
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar status",
+        description: "Não foi possível atualizar o status da sugestão.",
+      });
+    }
+  };
+
+  const handleClearPlanning = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const userId = user.id;
+      await clearCalendarPlanning(userId); // Add userId parameter
       setSuggestions([]);
-      setIsConfirmClearOpen(false);
       toast({
         title: "Planejamento limpo",
-        description: "Todas as sugestões foram removidas.",
+        description: "Todas as sugestões foram removidas do seu calendário.",
       });
     } catch (error) {
       console.error("Erro ao limpar planejamento:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível limpar o planejamento.",
+        title: "Erro ao limpar planejamento",
+        description: "Não foi possível limpar o planejamento do calendário.",
       });
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const handleApprovePlanning = async () => {
-    try {
-      await approvePlanning();
-      setIsConfirmApproveOpen(false);
-      toast({
-        title: "Planejamento aprovado",
-        description: "Suas sugestões foram salvas na agenda.",
-      });
-    } catch (error) {
-      console.error("Erro ao aprovar planejamento:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível aprovar o planejamento.",
-      });
-    }
-  };
-  
-  const handleSaveSettings = async (preferences: any) => {
-    try {
-      await setCalendarPreferences(preferences);
-      setIsSettingsOpen(false);
-      loadCalendarSuggestions();
-      toast({
-        title: "Preferências salvas",
-        description: "Suas preferências foram atualizadas.",
-      });
-    } catch (error) {
-      console.error("Erro ao salvar preferências:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível salvar suas preferências.",
-      });
-    }
-  };
-  
-  const getEventsForDate = (date: Date): CalendarSuggestion[] => {
-    return suggestions.filter(sugg => {
-      const suggDate = new Date(sugg.date);
-      return isSameDay(suggDate, date);
-    });
-  };
-  
-  const hasEvents = (date: Date) => {
-    return suggestions.some(sugg => isSameDay(new Date(sugg.date), date));
-  };
-  
-  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
-  const hasSelectedDateEvents = selectedDate ? hasEvents(selectedDate) : false;
-  
+
   return (
-    <Layout title="Agenda Criativa">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Agenda Criativa</h1>
-            <p className="text-muted-foreground">
-              Organize e planeje seu conteúdo para redes sociais
-            </p>
-          </div>
-          <div className="flex gap-3 mt-4 md:mt-0">
-            <Button
-              variant="outline" 
-              size="sm"
-              onClick={() => loadCalendarSuggestions()}
-            >
-              <RefreshCcw className="h-4 w-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configurar
-            </Button>
-          </div>
+    <Layout title="Calendário de Conteúdo">
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Calendário de Conteúdo</h1>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[280px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? date?.toLocaleDateString() : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center" side="bottom">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("2023-01-01")
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         
-        <div className="border rounded-lg">
-          <Tabs defaultValue="month" className="w-full">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b px-4 py-2">
-              <TabsList className="mb-2 sm:mb-0">
-                <TabsTrigger value="month">Mês</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
-                <TabsTrigger value="plan">Planejamento</TabsTrigger>
-              </TabsList>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsConfirmClearOpen(true)}
-                >
-                  Limpar
-                </Button>
-                <Button 
-                  size="sm"
-                  onClick={() => setIsConfirmApproveOpen(true)}
-                >
-                  <Check className="h-4 w-4 mr-1" />
-                  Aprovar
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex flex-col lg:flex-row">
-              {/* Calendário para selecionar data */}
-              <div className="p-4 border-b lg:border-b-0 lg:border-r lg:w-1/2">
-                <div className="flex items-center justify-center">
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  <h2 className="text-lg font-medium">
-                    {format(new Date(currentYear, currentMonth), 'MMMM yyyy', { locale: ptBR })}
-                  </h2>
-                </div>
-                
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  month={new Date(currentYear, currentMonth)}
-                  onMonthChange={(date) => {
-                    setCurrentMonth(date.getMonth());
-                    setCurrentYear(date.getFullYear());
-                  }}
-                  className="w-full mt-4"
-                  locale={ptBR}
-                  modifiers={{
-                    hasEvent: (date) => hasEvents(date)
-                  }}
-                  modifiersClassNames={{
-                    hasEvent: 'bg-blue-100 font-bold text-blue-600 hover:bg-blue-200'
-                  }}
-                  showOutsideDays={false}
-                />
-              </div>
-              
-              {/* Detalhes do dia selecionado */}
-              <div className="p-4 lg:w-1/2">
-                <div className="flex items-center mb-4">
-                  <h2 className="text-lg font-medium">
-                    {selectedDate 
-                      ? format(selectedDate, 'EEEE, dd MMMM yyyy', { locale: ptBR })
-                      : "Selecione uma data"
-                    }
-                  </h2>
-                </div>
-                
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-40">
-                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+        {loading ? (
+          <p>Carregando sugestões...</p>
+        ) : (
+          <div className="space-y-4">
+            {suggestions.length > 0 ? (
+              suggestions.map(suggestion => (
+                <div key={suggestion.id} className="border rounded-md p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-lg font-semibold">{suggestion.title}</h2>
+                      <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                      <p className="text-xs text-gray-500">Formato: {suggestion.format}</p>
+                    </div>
+                    <Button 
+                      variant={suggestion.completed ? "secondary" : "outline"}
+                      onClick={() => handleCompletionToggle(suggestion.id || '', !suggestion.completed)}
+                    >
+                      {suggestion.completed ? 'Concluído' : 'Marcar como Concluído'}
+                    </Button>
                   </div>
-                ) : (
-                  <>
-                    {selectedDate && (
-                      <>
-                        {hasSelectedDateEvents ? (
-                          <div className="space-y-4">
-                            {selectedDateEvents.map((event, idx) => (
-                              <CalendarDay 
-                                key={`${event.date}-${idx}`}
-                                event={event}
-                                onRefresh={loadCalendarSuggestions}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <Alert>
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Nenhum conteúdo planejado</AlertTitle>
-                            <AlertDescription>
-                              Não há sugestões de conteúdo para esta data.
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center h-48 text-center">
+                <h2 className="text-xl font-semibold mb-2">Nenhum conteúdo planejado para este dia</h2>
+                <p className="text-muted-foreground">
+                  Comece a planejar seu conteúdo para bombar nas redes sociais!
+                </p>
               </div>
-            </div>
-          </Tabs>
-        </div>
+            )}
+            
+            {suggestions.length > 0 && (
+              <Button variant="destructive" onClick={handleClearPlanning} disabled={loading}>
+                Limpar Planejamento
+              </Button>
+            )}
+          </div>
+        )}
       </div>
-      
-      {/* Diálogo de configurações */}
-      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Configurações da Agenda Criativa</DialogTitle>
-            <DialogDescription>
-              Personalize como suas sugestões de conteúdo são geradas
-            </DialogDescription>
-          </DialogHeader>
-          
-          <CalendarSettings onSave={handleSaveSettings} onCancel={() => setIsSettingsOpen(false)} />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Diálogos de confirmação */}
-      <Dialog open={isConfirmClearOpen} onOpenChange={setIsConfirmClearOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Limpar Planejamento</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja limpar todo o planejamento do mês atual?
-              Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsConfirmClearOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleClearPlanning}>
-              Limpar Planejamento
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={isConfirmApproveOpen} onOpenChange={setIsConfirmApproveOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Aprovar Planejamento</DialogTitle>
-            <DialogDescription>
-              Ao aprovar o planejamento, todas as sugestões serão salvas na sua agenda
-              e você receberá lembretes sobre as publicações programadas.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsConfirmApproveOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleApprovePlanning}>
-              <Check className="h-4 w-4 mr-1" />
-              Aprovar Planejamento
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };

@@ -8,17 +8,19 @@ import { Eye, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-reac
 interface VideoObjectiveSelectorProps {
   value: MarketingObjectiveType;
   onValueChange: (value: MarketingObjectiveType) => void;
+  className?: string; // Added className prop
 }
 
 const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({
   value,
-  onValueChange
+  onValueChange,
+  className = "" // Default to empty string
 }) => {
   return (
     <RadioGroup
       value={value}
       onValueChange={(val) => onValueChange(val as MarketingObjectiveType)}
-      className="grid grid-cols-1 md:grid-cols-5 gap-3"
+      className={`grid grid-cols-1 md:grid-cols-5 gap-3 ${className}`}
     >
       <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
            onClick={() => onValueChange("atrair_atencao")}

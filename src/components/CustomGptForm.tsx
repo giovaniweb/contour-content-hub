@@ -345,8 +345,10 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
       id: generatedScriptId || `temp-${Date.now()}`,
       title: `${form.getValues().equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
       content: resultado,
-      type: mappedType as any,
-      createdAt: new Date().toISOString()
+      type: mappedType as ScriptType,
+      createdAt: new Date().toISOString(),
+      suggestedVideos: [],  // Added missing property
+      captionTips: []       // Added missing property
     };
   };
 
@@ -413,8 +415,10 @@ const CustomGptForm = ({ mode, onScriptGenerated, initialData }: CustomGptFormPr
           id: response.id || generatedScriptId,
           title: `${values.equipamento} - ${scriptType.charAt(0).toUpperCase() + scriptType.slice(1)}`,
           content: response.content,
-          type: mappedType as any,
-          createdAt: new Date().toISOString()
+          type: mappedType as ScriptType,
+          createdAt: new Date().toISOString(),
+          suggestedVideos: [],  // Added missing property
+          captionTips: []       // Added missing property
         };
         
         onScriptGenerated(scriptResponse);

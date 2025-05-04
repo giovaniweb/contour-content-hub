@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import ScriptEditor from "@/components/script-generator/ScriptEditor";
@@ -124,7 +123,15 @@ const ScriptValidationPage: React.FC = () => {
                   )}
                   
                   <ScriptValidationComponent
-                    script={{id: "temp", content, title: "Roteiro temporário", type: "videoScript", createdAt: new Date().toISOString()}}
+                    script={{
+                      id: "temp", 
+                      content, 
+                      title: "Roteiro temporário", 
+                      type: "videoScript", 
+                      createdAt: new Date().toISOString(),
+                      suggestedVideos: [], // Added missing property
+                      captionTips: []      // Added missing property
+                    }}
                     onValidationComplete={handleValidationComplete}
                     hideTitle={true}
                   />
