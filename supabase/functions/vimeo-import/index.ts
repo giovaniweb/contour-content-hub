@@ -25,7 +25,8 @@ serve(async (req) => {
     console.log(`Fetching Vimeo video with ID: ${vimeoId}`);
     
     // Fetch video data from Vimeo's oEmbed API (public API that doesn't require authentication)
-    const vimeoResponse = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}`);
+    // Adicionando cache-busting parameter para prevenir problemas de cache
+    const vimeoResponse = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}&_=${Date.now()}`);
     
     if (!vimeoResponse.ok) {
       const errorText = await vimeoResponse.text();
@@ -46,7 +47,10 @@ serve(async (req) => {
       videoUrl: `https://vimeo.com/${vimeoId}`,
       vimeoId,
       width: vimeoData.width,
-      height: vimeoData.height
+      height: vimeoData.height,
+      // Campos adicionais para evitar erros no processamento
+      upload_date: vimeoData.upload_date || new Date().toISOString().split('T')[0],
+      duration: vimeoData.duration || 0
     };
 
     return new Response(JSON.stringify({ 

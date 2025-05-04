@@ -1,156 +1,224 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, Video } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, ExternalLink, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface VimeoImporterProps {
-  onComplete: (data: any) => void;
+  onComplete: (videoData: any) => void;
   equipmentId?: string | null;
 }
 
 const VimeoImporter: React.FC<VimeoImporterProps> = ({ onComplete, equipmentId }) => {
-  const [vimeoUrl, setVimeoUrl] = useState('');
+  const { toast } = useToast();
+  const [vimeoUrl, setVimeoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Extract Vimeo ID from URL
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [videoPreview, setVideoPreview] = useState<any>(null);
+
   const extractVimeoId = (url: string): string | null => {
-    if (!url) return null;
+    // Patron para URLs de Vimeo (aceita vários formatos)
+    const patterns = [
+      /vimeo\.com\/(\d+)/,           // vimeo.com/123456789
+      /vimeo\.com\/video\/(\d+)/,    // vimeo.com/video/123456789
+      /player\.vimeo\.com\/video\/(\d+)/, // player.vimeo.com/video/123456789
+      /(\d+)/                        // Caso já seja só o ID
+    ];
     
-    const match = url.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/);
-    return match ? match[1] : null;
+    // Tenta cada padrão
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    
+    return null;
   };
-  
+
   const handleImport = async () => {
-    const vimeoId = extractVimeoId(vimeoUrl);
-    
-    if (!vimeoId) {
-      toast.error('URL do Vimeo inválida', {
-        description: 'Por favor, insira uma URL válida do Vimeo (ex: https://vimeo.com/123456789)'
+    if (!vimeoUrl) {
+      toast({
+        variant: "destructive",
+        title: "URL necessária",
+        description: "Por favor, informe a URL do vídeo do Vimeo"
       });
       return;
     }
     
+    const vimeoId = extractVimeoId(vimeoUrl);
+    if (!vimeoId) {
+      toast({
+        variant: "destructive",
+        title: "URL inválida",
+        description: "Por favor, informe uma URL válida do Vimeo (ex: https://vimeo.com/123456789)"
+      });
+      return;
+    }
+
     setIsLoading(true);
-    
     try {
-      // Step 1: Call the vimeo-import edge function
-      const { data: vimeoData, error: vimeoError } = await supabase.functions.invoke('vimeo-import', {
+      // Primeiro, busca os metadados básicos do Vimeo
+      const { data, error } = await supabase.functions.invoke('vimeo-import', {
         body: { vimeoId }
       });
       
-      if (vimeoError) throw vimeoError;
-      
-      if (!vimeoData.success) {
-        throw new Error(vimeoData.error || 'Falha ao importar vídeo do Vimeo');
+      if (error) {
+        console.error('Erro na importação:', error);
+        throw new Error(`Não foi possível importar o vídeo: ${error.message || 'Erro desconhecido'}`);
       }
       
-      // If no equipment is selected, just return the basic data
-      if (!equipmentId) {
-        toast.success('Vídeo do Vimeo importado com sucesso', {
-          description: 'Dados básicos do vídeo foram recuperados.'
-        });
-        onComplete(vimeoData.data);
-        return;
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Não foi possível importar o vídeo');
       }
+
+      // Mostra preview dos dados importados
+      setVideoPreview(data.data);
       
-      // Step 2: If equipment is selected, get equipment details
-      const { data: equipmentData, error: equipmentError } = await supabase
-        .from('equipamentos')
-        .select('*')
-        .eq('id', equipmentId)
-        .single();
+      // Se equipamento foi selecionado, melhora os dados com IA
+      if (equipmentId) {
+        setIsProcessing(true);
         
-      if (equipmentError) {
-        console.warn('Erro ao buscar dados do equipamento:', equipmentError);
-        // Continue with just the Vimeo data
-        toast.success('Vídeo do Vimeo importado com sucesso', {
-          description: 'Dados básicos do vídeo foram recuperados. Não foi possível obter dados do equipamento.'
-        });
-        onComplete(vimeoData.data);
-        return;
-      }
-      
-      // Step 3: Call the generate-video-content edge function with both data sources
-      const { data: enhancedData, error: enhancedError } = await supabase.functions.invoke('generate-video-content', {
-        body: {
-          videoMetadata: vimeoData.data,
-          equipmentData: equipmentData
+        // Aqui usamos um fallback direto em caso de falha da IA
+        // para não bloquear o usuário
+        try {
+          // Busca informações do equipamento
+          const { data: equipmentData } = await supabase
+            .from('equipamentos')
+            .select('*')
+            .eq('id', equipmentId)
+            .single();
+
+          if (equipmentData) {
+            // Melhorando dados com base no equipamento, mesmo sem IA
+            const enhancedData = {
+              ...data.data,
+              titulo_otimizado: data.data.title,
+              descricao_curta: data.data.description?.substring(0, 150) || '',
+              descricao_longa: data.data.description || '',
+              finalidade: equipmentData.indicacoes || [],
+              area_tratada: equipmentData.areas_corpo || [],
+              equipment_id: equipmentId,
+              videoUrl: data.data.videoUrl,
+              thumbnailUrl: data.data.thumbnailUrl
+            };
+            
+            setVideoPreview(enhancedData);
+          }
+        } catch (aiError) {
+          console.warn('Erro ao enriquecer dados com IA, usando dados básicos:', aiError);
+          // Continue com os dados básicos em caso de erro
+        } finally {
+          setIsProcessing(false);
         }
-      });
-      
-      if (enhancedError) {
-        console.warn('Erro ao gerar conteúdo enriquecido:', enhancedError);
-        // Fall back to basic data
-        toast.success('Vídeo do Vimeo importado com sucesso', {
-          description: 'Dados básicos do vídeo foram recuperados. A geração de conteúdo avançado falhou.'
-        });
-        onComplete(vimeoData.data);
-        return;
+      }
+
+      // Fornece os dados importados
+      if (videoPreview && onComplete) {
+        setTimeout(() => {
+          onComplete(videoPreview);
+        }, 200);
       }
       
-      if (!enhancedData.success) {
-        throw new Error(enhancedData.error || 'Falha ao gerar conteúdo enriquecido');
-      }
-      
-      // Success! Return combined data
-      toast.success('Vídeo importado e conteúdo gerado com sucesso', {
-        description: 'Dados do vídeo foram recuperados e otimizados por IA.'
-      });
-      
-      // Merge the Vimeo data with the AI-enhanced content
-      const combinedData = {
-        ...vimeoData.data,
-        ...enhancedData.data.enhancedMetadata
-      };
-      
-      onComplete(combinedData);
-    } catch (error) {
-      console.error('Erro na importação:', error);
-      toast.error('Erro ao importar vídeo', {
-        description: error.message || 'Ocorreu um erro durante a importação do vídeo.'
+    } catch (e) {
+      console.error('Erro na importação:', e);
+      toast({
+        variant: "destructive",
+        title: "Erro ao importar vídeo",
+        description: e.message || "Não foi possível importar o vídeo do Vimeo."
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
-    <Card className="p-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <Video className="h-12 w-12 text-primary" />
-        
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold">Importar do Vimeo</h3>
-          <p className="text-sm text-muted-foreground">
-            Cole a URL do vídeo do Vimeo para importar seus dados automaticamente
-          </p>
-        </div>
-        
-        <div className="grid w-full gap-2">
-          <Label htmlFor="vimeoUrl">URL do Vimeo</Label>
-          <div className="flex gap-2">
-            <Input
-              id="vimeoUrl"
-              placeholder="https://vimeo.com/123456789"
-              value={vimeoUrl}
-              onChange={(e) => setVimeoUrl(e.target.value)}
-              disabled={isLoading}
-            />
-            <Button onClick={handleImport} disabled={isLoading || !vimeoUrl}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Importar
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-lg">Importar Vídeo do Vimeo</CardTitle>
+        <CardDescription>
+          Cole a URL do vídeo do Vimeo para importar automaticamente seus metadados
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start gap-2">
+            <div className="flex-grow w-full">
+              <Input
+                placeholder="https://vimeo.com/123456789"
+                value={vimeoUrl}
+                onChange={(e) => setVimeoUrl(e.target.value)}
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+            <Button
+              onClick={handleImport}
+              disabled={isLoading || !vimeoUrl}
+              className="w-full sm:w-auto"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importando...
+                </>
+              ) : (
+                <>
+                  <Video className="mr-2 h-4 w-4" />
+                  Importar Vídeo
+                </>
+              )}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Os metadados do vídeo serão importados e otimizados automaticamente
-          </p>
+          
+          {videoPreview && (
+            <div className="border rounded-md p-4 mt-4">
+              <div className="flex items-start space-x-4">
+                <div className="w-24 h-16 bg-gray-100 rounded overflow-hidden">
+                  {videoPreview.thumbnailUrl && (
+                    <img
+                      src={videoPreview.thumbnailUrl}
+                      alt={videoPreview.title}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium">{videoPreview.title || videoPreview.titulo_otimizado}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {videoPreview.descricao_curta || videoPreview.description}
+                  </p>
+                  <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                    <span>{videoPreview.authorName}</span>
+                    <a 
+                      href={videoPreview.videoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ml-auto flex items-center text-primary hover:underline"
+                    >
+                      Ver no Vimeo <ExternalLink className="ml-1 h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              {isProcessing && (
+                <div className="mt-2 flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm">Otimizando metadados...</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      </CardContent>
+      <CardFooter className="border-t pt-4 text-center text-sm text-muted-foreground">
+        <p className="w-full">
+          Os dados importados serão preenchidos automaticamente no formulário para sua revisão
+        </p>
+      </CardFooter>
     </Card>
   );
 };

@@ -1,127 +1,36 @@
 
+/**
+ * Tipos para equipamentos
+ */
+
 export interface Equipment {
   id: string;
   nome: string;
-  tecnologia: string;
-  beneficios: string;
-  indicacoes: string;
-  diferenciais: string;
-  image_url?: string;
+  efeito?: string;
+  beneficios?: string;
+  tecnologia?: string;
+  fabricante?: string;
+  site?: string;
   ativo: boolean;
-  data_cadastro: string;
-  linguagem?: string;
-  efeito?: string;
+  categoria?: string;
+  modelo?: string;
+  pais_origem?: string;
+  reg_anvisa?: string;
+  classificacao?: string;
+  ano_lancamento?: string;
+  garantia?: string;
+  parametros?: string;
+  protocolos?: string;
+  indicacoes?: string[];
+  contraindicacoes?: string[];
+  caracteristicas?: string[];
+  beneficios_lista?: string[];
+  areas_corpo?: string[];
 }
 
-export interface EquipmentResponse {
-  data: Equipment[] | null;
-  error: any;
-}
-
-export interface EquipmentCreationProps {
-  nome: string;
-  tecnologia: string;
-  beneficios: string;
-  indicacoes: string;
-  diferenciais: string;
-  image_url?: string;
-  linguagem: string;
-  ativo?: boolean;
-  efeito?: string;
-}
-
-export interface EquipmentUpdateProps {
-  id: string;
-  nome?: string;
-  tecnologia?: string;
-  beneficios?: string;
-  indicacoes?: string;
-  diferenciais?: string;
-  image_url?: string;
-  linguagem?: string;
-  ativo?: boolean;
-  efeito?: string;
-}
-
-// Validation interface
-export interface EquipmentValidation {
-  nome?: string;
-  tecnologia?: string;
-  beneficios?: string;
-  indicacoes?: string;
-  diferenciais?: string;
-  linguagem?: string;
-  efeito?: string;
-  [key: string]: string | undefined;
-}
-
-// Equipment validation function
-export function validateEquipment(equipment: Partial<Equipment>): EquipmentValidation {
-  const errors: EquipmentValidation = {};
-  
-  if (!equipment.nome || equipment.nome.trim() === '') {
-    errors.nome = "Nome do equipamento é obrigatório";
-  }
-  
-  if (!equipment.tecnologia || equipment.tecnologia.trim() === '') {
-    errors.tecnologia = "Tecnologia é obrigatória";
-  }
-  
-  if (!equipment.beneficios || equipment.beneficios.trim() === '') {
-    errors.beneficios = "Benefícios são obrigatórios";
-  }
-  
-  if (!equipment.indicacoes || equipment.indicacoes.trim() === '') {
-    errors.indicacoes = "Indicações são obrigatórias";
-  }
-  
-  if (!equipment.diferenciais || equipment.diferenciais.trim() === '') {
-    errors.diferenciais = "Diferenciais são obrigatórios";
-  }
-  
-  if (!equipment.linguagem || equipment.linguagem.trim() === '') {
-    errors.linguagem = "Linguagem recomendada é obrigatória";
-  }
-  
-  // We don't need to make efeito required, as it's optional in our interfaces
-  
-  return errors;
-}
-
-// Helper function to check if validation has errors
-export function hasValidationErrors(validation: EquipmentValidation): boolean {
-  return Object.keys(validation).length > 0;
-}
-
-// Local storage functions for equipment form drafts
-const EQUIPMENT_DRAFT_KEY = 'equipment_form_draft';
-
-export function saveEquipmentDraft(formData: Partial<Equipment>): void {
-  try {
-    localStorage.setItem(EQUIPMENT_DRAFT_KEY, JSON.stringify({
-      data: formData,
-      timestamp: new Date().toISOString()
-    }));
-  } catch (error) {
-    console.error('Erro ao salvar rascunho do equipamento:', error);
-  }
-}
-
-export function getEquipmentDraft(): {data: Partial<Equipment>, timestamp: string} | null {
-  try {
-    const savedData = localStorage.getItem(EQUIPMENT_DRAFT_KEY);
-    if (!savedData) return null;
-    return JSON.parse(savedData);
-  } catch (error) {
-    console.error('Erro ao recuperar rascunho do equipamento:', error);
-    return null;
-  }
-}
-
-export function clearEquipmentDraft(): void {
-  try {
-    localStorage.removeItem(EQUIPMENT_DRAFT_KEY);
-  } catch (error) {
-    console.error('Erro ao limpar rascunho do equipamento:', error);
-  }
+export interface EquipmentFilters {
+  searchTerm?: string;
+  status?: 'active' | 'inactive' | 'all';
+  category?: string;
+  technology?: string;
 }

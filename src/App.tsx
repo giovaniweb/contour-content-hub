@@ -26,6 +26,7 @@ import { ThemeProvider } from './components/theme-provider';
 import TechnicalDocumentsPage from './pages/TechnicalDocuments';
 import DocumentDetailPage from './pages/DocumentDetail';
 import EquipmentDetails from './pages/EquipmentDetails';
+import SystemDiagnostics from './pages/SystemDiagnostics';
 import './App.css';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="/admin/equipments" element={<AdminEquipments />} />
             <Route path="/admin/content" element={<AdminContent />} />
             <Route path="/admin/integrations" element={<AdminIntegrations />} />
+            <Route path="/admin/system-diagnostics" element={<SystemDiagnostics />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/custom-gpt" element={<CustomGpt />} />
             <Route path="/media" element={<MediaLibrary />} />

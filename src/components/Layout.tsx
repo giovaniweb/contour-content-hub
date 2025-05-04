@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "./Navbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,7 +33,8 @@ import {
   Users,
   Settings2,
   CheckCircle,
-  BookOpen
+  BookOpen,
+  Brain
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -53,6 +54,7 @@ const Layout: React.FC<LayoutProps> = ({
   const { isAuthenticated, isLoading } = useAuth();
   const { isAdmin, isOperator } = usePermissions();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
+  const location = useLocation();
 
   // Gerenciar estado do sidebar com base no tamanho da tela
   useEffect(() => {
@@ -96,6 +98,11 @@ const Layout: React.FC<LayoutProps> = ({
     return <Navigate to="/" replace />;
   }
 
+  // Verifica se o link está ativo (corresponde à rota atual)
+  const isLinkActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
   return (
     <SidebarProvider defaultOpen={!sidebarCollapsed}>
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-contourline-lightGray/20 w-full">
@@ -126,7 +133,7 @@ const Layout: React.FC<LayoutProps> = ({
                 <SidebarGroup>
                   <SidebarGroupLabel>Navegação</SidebarGroupLabel>
                   <SidebarMenu>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/dashboard')}>
                       <SidebarMenuButton asChild>
                         <Link to="/dashboard" className="flex items-center">
                           <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -134,7 +141,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/custom-gpt')}>
                       <SidebarMenuButton asChild>
                         <Link to="/custom-gpt" className="flex items-center">
                           <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -142,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/scripts') || isLinkActive('/script-history')}>
                       <SidebarMenuButton asChild>
                         <Link to="/scripts" className="flex items-center">
                           <History className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -150,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/validate-script')}>
                       <SidebarMenuButton asChild>
                         <Link to="/validate-script" className="flex items-center">
                           <CheckCircle className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -158,7 +165,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/documents')}>
                       <SidebarMenuButton asChild>
                         <Link to="/documents" className="flex items-center">
                           <BookOpen className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -166,7 +173,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/media') || isLinkActive('/media-library')}>
                       <SidebarMenuButton asChild>
                         <Link to="/media" className="flex items-center">
                           <Film className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -174,7 +181,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/calendar')}>
                       <SidebarMenuButton asChild>
                         <Link to="/calendar" className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -182,7 +189,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/equipment-details')}>
                       <SidebarMenuButton asChild>
                         <Link to="/equipment-details" className="flex items-center">
                           <FileSearch className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -200,7 +207,7 @@ const Layout: React.FC<LayoutProps> = ({
                     <SidebarGroup>
                       <SidebarGroupLabel>Administração</SidebarGroupLabel>
                       <SidebarMenu>
-                        <SidebarMenuItem>
+                        <SidebarMenuItem active={isLinkActive('/admin/dashboard')}>
                           <SidebarMenuButton asChild>
                             <Link to="/admin/dashboard" className="flex items-center">
                               <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -208,7 +215,7 @@ const Layout: React.FC<LayoutProps> = ({
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                        <SidebarMenuItem>
+                        <SidebarMenuItem active={isLinkActive('/admin/equipments')}>
                           <SidebarMenuButton asChild>
                             <Link to="/admin/equipments" className="flex items-center">
                               <Settings2 className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -216,7 +223,7 @@ const Layout: React.FC<LayoutProps> = ({
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                        <SidebarMenuItem>
+                        <SidebarMenuItem active={isLinkActive('/admin/content')}>
                           <SidebarMenuButton asChild>
                             <Link to="/admin/content" className="flex items-center">
                               <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -224,7 +231,7 @@ const Layout: React.FC<LayoutProps> = ({
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                        <SidebarMenuItem>
+                        <SidebarMenuItem active={isLinkActive('/admin/integrations')}>
                           <SidebarMenuButton asChild>
                             <Link to="/admin/integrations" className="flex items-center">
                               <Settings className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -232,9 +239,18 @@ const Layout: React.FC<LayoutProps> = ({
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
+                        <SidebarMenuItem active={isLinkActive('/admin/system-diagnostics')}>
+                          <SidebarMenuButton asChild>
+                            <Link to="/admin/system-diagnostics" className="flex items-center">
+                              <Brain className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                              <span>Diagnóstico do Sistema</span>
+                              <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
                         {isAdmin() && (
                           <>
-                            <SidebarMenuItem>
+                            <SidebarMenuItem active={isLinkActive('/seller/clients')}>
                               <SidebarMenuButton asChild>
                                 <Link to="/seller/clients" className="flex items-center">
                                   <Users className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
@@ -242,7 +258,7 @@ const Layout: React.FC<LayoutProps> = ({
                                 </Link>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
-                            <SidebarMenuItem>
+                            <SidebarMenuItem active={isLinkActive('/seller/dashboard')}>
                               <SidebarMenuButton asChild>
                                 <Link to="/seller/dashboard" className="flex items-center">
                                   <User className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
