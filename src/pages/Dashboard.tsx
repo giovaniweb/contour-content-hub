@@ -9,7 +9,8 @@ import {
   Sparkles, 
   TrendingUp,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  Video
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -55,6 +56,12 @@ const Dashboard: React.FC = () => {
       icon: <Calendar className="h-5 w-5" />,
       path: "/calendar",
       color: "bg-purple-100 text-purple-700"
+    },
+    {
+      label: "Importar vídeo Vimeo",
+      icon: <Video className="h-5 w-5" />,
+      path: "/admin/content?tab=videos&action=import",
+      color: "bg-red-100 text-red-700"
     }
   ];
   
@@ -85,7 +92,7 @@ const Dashboard: React.FC = () => {
         </section>
         
         {/* Ações Rápidas */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {quickActions.map((action, index) => (
             <Link to={action.path} key={index} className="block">
               <Card className="hover:shadow-md transition-all duration-200 h-full">
