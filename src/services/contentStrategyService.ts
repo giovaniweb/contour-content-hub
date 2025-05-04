@@ -53,26 +53,36 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
     if (error) throw error;
 
     // Transform data to match our interface with type assertions
-    return (data || []).map(item => ({
-      id: item.id,
-      linha: item.linha,
-      equipamento_id: item.equipamento_id,
-      equipamento_nome: item.equipamento?.nome || null,
-      categoria: item.categoria as ContentStrategyItem['categoria'],
-      formato: item.formato as ContentStrategyItem['formato'],
-      responsavel_id: item.responsavel_id,
-      responsavel_nome: item.responsavel?.nome || null,
-      previsao: item.previsao,
-      conteudo: item.conteudo,
-      objetivo: item.objetivo as ContentStrategyItem['objetivo'],
-      prioridade: item.prioridade as ContentStrategyItem['prioridade'],
-      status: item.status as ContentStrategyItem['status'],
-      distribuicao: item.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram', // Default if not defined
-      impedimento: item.impedimento,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      created_by: item.created_by
-    }));
+    return (data || []).map(item => {
+      // Create the base object
+      const strategyItem: ContentStrategyItem = {
+        id: item.id,
+        linha: item.linha,
+        equipamento_id: item.equipamento_id,
+        equipamento_nome: item.equipamento?.nome || null,
+        categoria: item.categoria,
+        formato: item.formato,
+        responsavel_id: item.responsavel_id,
+        responsavel_nome: item.responsavel?.nome || null,
+        previsao: item.previsao,
+        conteudo: item.conteudo,
+        objetivo: item.objetivo,
+        prioridade: item.prioridade,
+        status: item.status,
+        distribuicao: 'Instagram', // Default value
+        impedimento: item.impedimento,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        created_by: item.created_by
+      };
+
+      // If the distribuicao field exists in the response, use it
+      if ('distribuicao' in item && item.distribuicao) {
+        strategyItem.distribuicao = item.distribuicao;
+      }
+
+      return strategyItem;
+    });
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     toast({
@@ -122,26 +132,34 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       description: "Item de estratégia de conteúdo criado com sucesso."
     });
 
-    return {
+    // Create the response object with proper types
+    const strategyItem: ContentStrategyItem = {
       id: data.id,
       linha: data.linha,
       equipamento_id: data.equipamento_id,
       equipamento_nome: data.equipamento?.nome || null,
-      categoria: data.categoria as ContentStrategyItem['categoria'],
-      formato: data.formato as ContentStrategyItem['formato'],
+      categoria: data.categoria,
+      formato: data.formato,
       responsavel_id: data.responsavel_id,
       responsavel_nome: data.responsavel?.nome || null,
       previsao: data.previsao,
       conteudo: data.conteudo,
-      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
-      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
-      status: data.status as ContentStrategyItem['status'],
-      distribuicao: data.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram',
+      objetivo: data.objetivo,
+      prioridade: data.prioridade,
+      status: data.status,
+      distribuicao: 'Instagram', // Default value
       impedimento: data.impedimento,
       created_at: data.created_at,
       updated_at: data.updated_at,
       created_by: data.created_by
     };
+
+    // If the distribuicao field exists in the response, use it
+    if ('distribuicao' in data && data.distribuicao) {
+      strategyItem.distribuicao = data.distribuicao;
+    }
+
+    return strategyItem;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     toast({
