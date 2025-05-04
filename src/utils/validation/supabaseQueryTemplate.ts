@@ -87,7 +87,7 @@ export async function safeSingleItemQueryExample(
 }
 
 // Example data transformer function
-function transformData(data: any): any {
+function transformData(data: ExampleResultType): any {
   // Transform the data here
   return {
     ...data,

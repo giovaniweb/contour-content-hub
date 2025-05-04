@@ -7,7 +7,7 @@ import { safeQueryResult, safeSingleResult } from "@/utils/validation/supabaseHe
 /**
  * Fetch content strategy items with filters
  */
-export const fetchContentStrategyItems = async (filters: ContentStrategyFilter = {}) => {
+export const fetchContentStrategyItems = async (filters: ContentStrategyFilter = {}): Promise<ContentStrategyRowWithRelations[] | null> => {
   try {
     // Build the query
     const query = supabase
@@ -71,7 +71,7 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
 /**
  * Fetch a single content strategy item by ID
  */
-export const fetchContentStrategyItemById = async (id: string) => {
+export const fetchContentStrategyItemById = async (id: string): Promise<ContentStrategyRowWithRelations | null> => {
   try {
     const response = await supabase
       .from('content_strategy_items')

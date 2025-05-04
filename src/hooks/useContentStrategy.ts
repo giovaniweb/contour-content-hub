@@ -86,7 +86,8 @@ export const useContentStrategy = () => {
       const newItem = await createContentStrategyItem(item);
       if (newItem) {
         // Ensure newItem is properly typed as ContentStrategyItem
-        setItems(prev => [newItem as ContentStrategyItem, ...prev]);
+        const typedItem: ContentStrategyItem = newItem as ContentStrategyItem;
+        setItems(prev => [typedItem, ...prev]);
       }
     } catch (error) {
       console.error("Error creating item:", error);
