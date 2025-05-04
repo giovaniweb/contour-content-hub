@@ -18,7 +18,7 @@ export const EquipmentDetailsError: React.FC<EquipmentDetailsErrorProps> = ({ er
         <Button 
           variant="outline" 
           className="mt-4"
-          onClick={() => navigate('/equipments')}
+          onClick={() => navigate('/admin/equipments')}
         >
           Voltar para equipamentos
         </Button>

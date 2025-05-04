@@ -9,16 +9,27 @@ import HomePage from './pages/HomePage';
 import Layout from './components/Layout';
 import EquipmentDetails from './pages/EquipmentDetails';
 import Index from './pages/Index';
+import SellerDashboard from './pages/seller/SellerDashboard';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Páginas públicas */}
         <Route path="/" element={<Index />} />
+        
+        {/* Páginas autenticadas */}
         <Route path="/dashboard" element={<Dashboard />} />
+        
+        {/* Rotas de equipamentos */}
         <Route path="/admin/equipments" element={<AdminEquipments />} />
         <Route path="/equipment-details/:id" element={<EquipmentDetailsPage />} />
         <Route path="/equipments/:id" element={<EquipmentDetails />} />
+        
+        {/* Dashboard de vendedor */}
+        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        
+        {/* Rota para página não encontrada */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

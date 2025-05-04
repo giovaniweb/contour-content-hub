@@ -1,234 +1,173 @@
 
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { 
-  Sidebar as UISidebar,
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarFooter, 
-  SidebarGroupLabel, 
-  SidebarGroup, 
-  SidebarMenu, 
-  SidebarMenuItem, 
+  Sidebar as SidebarContainer,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
   SidebarMenuButton,
-  SidebarSeparator
+  useSidebar
 } from "@/components/ui/sidebar";
-import { usePermissions } from "@/hooks/use-permissions";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  FileText, 
-  FileSearch,
-  Home,
-  Calendar,
-  Film,
-  Settings,
-  LayoutDashboard,
-  User,
-  Users,
-  Settings2,
-  CheckCircle,
-  BookOpen,
-  Brain,
-  ListTodo,
-  History
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Home,
+  FileText,
+  Settings,
+  Users,
+  Calendar,
+  BrainCircuit,
+  Video,
+  ArrowLeftToLine,
+  ArrowRightToLine,
+  ListChecks,
+  Package,
+  BookOpen,
+  Laptop,
+  CheckCircle,
+  ListTodo
+} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
+import { cn } from "@/lib/utils";
 
-interface SidebarProps {
-  sidebarCollapsed: boolean;
-  setSidebarCollapsed: (collapsed: boolean) => void;
-}
-
-export const AppSidebar: React.FC<SidebarProps> = ({ 
+export const AppSidebar = ({ 
   sidebarCollapsed, 
   setSidebarCollapsed 
+}: {
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (value: boolean) => void;
 }) => {
   const location = useLocation();
-  const { isAdmin, isOperator } = usePermissions();
+  const { open, setOpen } = useSidebar();
+  const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  // Verifica se o link está ativo (corresponde à rota atual)
-  const isLinkActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+  // Sincronizar o estado do sidebar contexts com os props
+  useEffect(() => {
+    if (open !== !sidebarCollapsed) {
+      setOpen(!sidebarCollapsed);
+    }
+  }, [sidebarCollapsed, open, setOpen]);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
-
+  
+  // Decidir quais itens mostrar com base nas permissões
+  const hasAdminAccess = hasPermission('admin');
+  const hasSellerAccess = hasPermission('seller');
+  
   return (
-    <UISidebar collapsible="icon">
-      <SidebarHeader className="border-b pb-2">
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center">
-            <Home className="h-5 w-5 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-            <span className="font-medium">Menu Principal</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-7 w-7 p-0 rounded-full"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label={sidebarCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
-          >
-            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        </div>
+    <SidebarContainer>
+      <SidebarHeader className="flex justify-end">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="ml-auto" 
+          onClick={toggleSidebar}
+          aria-label={open ? "Colapsar menu" : "Expandir menu"}
+        >
+          {open ? <ArrowLeftToLine className="h-5 w-5" /> : <ArrowRightToLine className="h-5 w-5" />}
+        </Button>
       </SidebarHeader>
+      
       <SidebarContent>
-        {/* Menu principal */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem active={isLinkActive('/') || isLinkActive('/dashboard')}>
-              <SidebarMenuButton asChild>
-                <Link to="/" className="flex items-center">
-                  <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Dashboard</span>
-                </Link>
+        <SidebarMenu>
+          <SidebarMenuItem active={location.pathname === '/dashboard'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/dashboard' ? "active" : "default"}>
+              <NavLink to="/dashboard" className="flex items-center">
+                <Home className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Início</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname === '/custom-gpt'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/custom-gpt' ? "active" : "default"}>
+              <NavLink to="/custom-gpt" className="flex items-center">
+                <FileText className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Roteiros</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname === '/validate-script'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/validate-script' ? "active" : "default"}>
+              <NavLink to="/validate-script" className="flex items-center">
+                <CheckCircle className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Validador</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname === '/media'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/media' ? "active" : "default"}>
+              <NavLink to="/media" className="flex items-center">
+                <Video className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Mídia</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname === '/documents'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/documents' ? "active" : "default"}>
+              <NavLink to="/documents" className="flex items-center">
+                <BookOpen className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Artigos</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname === '/content-strategy'}>
+            <SidebarMenuButton asChild variant={location.pathname === '/content-strategy' ? "active" : "default"}>
+              <NavLink to="/content-strategy" className="flex items-center">
+                <ListTodo className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Estratégia</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem active={location.pathname.includes('/admin/equipments')}>
+            <SidebarMenuButton asChild variant={location.pathname.includes('/admin/equipments') ? "active" : "default"}>
+              <NavLink to="/admin/equipments" className="flex items-center">
+                <Package className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                {open && <span>Equipamentos</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {hasSellerAccess && (
+            <SidebarMenuItem active={location.pathname.includes('/seller')}>
+              <SidebarMenuButton asChild variant={location.pathname.includes('/seller') ? "active" : "default"}>
+                <NavLink to="/seller/dashboard" className="flex items-center">
+                  <Users className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                  {open && <span>Vendas</span>}
+                </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/custom-gpt')}>
-              <SidebarMenuButton asChild>
-                <Link to="/custom-gpt" className="flex items-center">
-                  <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Criar Roteiro</span>
-                </Link>
+          )}
+          
+          {hasAdminAccess && (
+            <SidebarMenuItem active={location.pathname === '/admin'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/admin' ? "active" : "default"}>
+                <NavLink to="/admin" className="flex items-center">
+                  <Settings className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                  {open && <span>Admin</span>}
+                </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/scripts') || isLinkActive('/script-history')}>
-              <SidebarMenuButton asChild>
-                <Link to="/scripts" className="flex items-center">
-                  <History className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Histórico de Roteiros</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/validate-script')}>
-              <SidebarMenuButton asChild>
-                <Link to="/validate-script" className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Validador de Roteiros</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/documents')}>
-              <SidebarMenuButton asChild>
-                <Link to="/documents" className="flex items-center">
-                  <BookOpen className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Artigos Científicos</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/media') || isLinkActive('/media-library')}>
-              <SidebarMenuButton asChild>
-                <Link to="/media" className="flex items-center">
-                  <Film className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Biblioteca de Mídia</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/content-strategy')}>
-              <SidebarMenuButton asChild>
-                <Link to="/content-strategy" className="flex items-center">
-                  <ListTodo className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Estratégia de Conteúdo</span>
-                  <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/calendar')}>
-              <SidebarMenuButton asChild>
-                <Link to="/calendar" className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Agenda Inteligente</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem active={isLinkActive('/equipment-details')}>
-              <SidebarMenuButton asChild>
-                <Link to="/admin/equipments" className="flex items-center">
-                  <FileSearch className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                  <span>Equipamentos</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        {(isAdmin() || isOperator()) && (
-          <>
-            <SidebarSeparator />
-            <SidebarGroup>
-              <SidebarGroupLabel>Administração</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem active={isLinkActive('/admin/dashboard')}>
-                  <SidebarMenuButton asChild>
-                    <Link to="/admin/dashboard" className="flex items-center">
-                      <LayoutDashboard className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                      <span>Painel Admin</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem active={isLinkActive('/admin/equipments')}>
-                  <SidebarMenuButton asChild>
-                    <Link to="/admin/equipments" className="flex items-center">
-                      <Settings2 className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                      <span>Gerenciar Equipamentos</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem active={isLinkActive('/admin/content')}>
-                  <SidebarMenuButton asChild>
-                    <Link to="/admin/content" className="flex items-center">
-                      <FileText className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                      <span>Gerenciar Conteúdo</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem active={isLinkActive('/admin/integrations')}>
-                  <SidebarMenuButton asChild>
-                    <Link to="/admin/integrations" className="flex items-center">
-                      <Settings className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                      <span>Integrações</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem active={isLinkActive('/admin/system-diagnostics')}>
-                  <SidebarMenuButton asChild>
-                    <Link to="/admin/system-diagnostics" className="flex items-center">
-                      <Brain className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                      <span>Diagnóstico do Sistema</span>
-                      <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                {isAdmin() && (
-                  <>
-                    <SidebarMenuItem active={isLinkActive('/seller/clients')}>
-                      <SidebarMenuButton asChild>
-                        <Link to="/seller/clients" className="flex items-center">
-                          <Users className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                          <span>Gerenciar Clientes</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem active={isLinkActive('/seller/dashboard')}>
-                      <SidebarMenuButton asChild>
-                        <Link to="/seller/dashboard" className="flex items-center">
-                          <User className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
-                          <span>Painel de Vendedor</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </>
-                )}
-              </SidebarMenu>
-            </SidebarGroup>
-          </>
-        )}
+          )}
+        </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t pt-2">
-        <div className="text-xs text-muted-foreground p-2 text-center">
-          Fluida © {new Date().getFullYear()}
-        </div>
+      
+      <SidebarFooter className="p-4">
+        {open && <div className="text-xs text-gray-500">Fluida v1.0</div>}
       </SidebarFooter>
-    </UISidebar>
+    </SidebarContainer>
   );
 };
