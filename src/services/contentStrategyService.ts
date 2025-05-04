@@ -10,7 +10,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel:perfis(nome)
+        responsavel_id(id, nome)
       `);
 
     // Apply filters
@@ -54,8 +54,14 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
     // Transform data to match our interface
     return (data || []).map(item => ({
       ...item,
+      // Ensure our type conversion matches ContentStrategyItem
+      categoria: item.categoria as ContentStrategyItem['categoria'],
+      formato: item.formato as ContentStrategyItem['formato'],
+      objetivo: item.objetivo as ContentStrategyItem['objetivo'],
+      prioridade: item.prioridade as ContentStrategyItem['prioridade'],
+      status: item.status as ContentStrategyItem['status'],
       equipamento_nome: item.equipamento?.nome || null,
-      responsavel_nome: item.responsavel?.nome || null
+      responsavel_nome: item.responsavel_id?.nome || null
     }));
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
@@ -89,7 +95,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       .select(`
         *,
         equipamento:equipamentos(nome),
-        responsavel:perfis(nome)
+        responsavel_id(id, nome)
       `)
       .single();
 
@@ -102,8 +108,14 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
 
     return {
       ...data,
+      // Ensure our type conversion matches ContentStrategyItem
+      categoria: data.categoria as ContentStrategyItem['categoria'],
+      formato: data.formato as ContentStrategyItem['formato'],
+      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
+      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
+      status: data.status as ContentStrategyItem['status'],
       equipamento_nome: data.equipamento?.nome || null,
-      responsavel_nome: data.responsavel?.nome || null
+      responsavel_nome: data.responsavel_id?.nome || null
     };
   } catch (error) {
     console.error("Error creating content strategy item:", error);
