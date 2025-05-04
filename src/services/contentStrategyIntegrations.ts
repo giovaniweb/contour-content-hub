@@ -4,35 +4,6 @@ import { ContentStrategyItem } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
 
 /**
- * Remove um item de estratégia de conteúdo
- */
-export async function deleteContentStrategyItem(id: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('content_strategy_items')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    toast({
-      title: "Item removido",
-      description: "Item de estratégia de conteúdo removido com sucesso."
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Error deleting content strategy item:", error);
-    toast({
-      variant: "destructive",
-      title: "Erro ao remover item",
-      description: "Não foi possível remover o item de estratégia de conteúdo."
-    });
-    return false;
-  }
-}
-
-/**
  * Gera conteúdo usando IA com base nos dados do item
  */
 export async function generateContentWithAI(item: Partial<ContentStrategyItem>): Promise<string | null> {

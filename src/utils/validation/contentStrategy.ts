@@ -5,6 +5,11 @@ import { ContentStrategyItem, ContentCategory, ContentFormat, ContentObjective, 
  * Transforma os dados brutos do Supabase em um objeto ContentStrategyItem tipado
  */
 export function transformToContentStrategyItem(data: any): ContentStrategyItem {
+  // Checagem de segurança para garantir que distribuicao exista
+  const distribuicao = data.distribuicao ? 
+    data.distribuicao as ContentDistribution : 
+    'Instagram';
+
   const estrategiaItem: ContentStrategyItem = {
     id: data.id,
     linha: data.linha,
@@ -19,7 +24,7 @@ export function transformToContentStrategyItem(data: any): ContentStrategyItem {
     objetivo: data.objetivo as ContentObjective,
     prioridade: data.prioridade as ContentPriority,
     status: data.status as ContentStatus,
-    distribuicao: 'distribuicao' in data ? data.distribuicao as ContentDistribution : 'Instagram',
+    distribuicao: distribuicao,
     impedimento: data.impedimento,
     created_at: data.created_at,
     updated_at: data.updated_at,
@@ -51,5 +56,6 @@ export function prepareContentStrategyData(item: Partial<ContentStrategyItem>): 
     status: item.status || 'Planejado',
     distribuicao: item.distribuicao || 'Instagram',
     impedimento: item.impedimento || null,
+    linha: item.linha || null
   };
 }
