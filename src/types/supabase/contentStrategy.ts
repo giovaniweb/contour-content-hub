@@ -11,6 +11,7 @@ export type ContentStrategyUpdate = ContentStrategyTable["Update"];
 export interface ContentStrategyRowWithRelations extends ContentStrategyRow {
   equipamento?: { nome: string } | null;
   responsavel?: { nome: string } | null;
+  distribuicao: string; // Adicionado o campo distribuicao que estava faltando
 }
 
 // Error response type
