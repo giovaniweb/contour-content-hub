@@ -9,14 +9,15 @@ import { PostgrestResponse, PostgrestSingleResponse } from "@supabase/supabase-j
  * @param response The raw response from a Supabase query
  * @returns The properly typed data array or null if there was an error
  */
-export function safeQueryResult<T>(response: PostgrestResponse<unknown>): T[] | null {
+export function safeQueryResult<T>(response: PostgrestResponse<any>): T[] | null {
   if (response.error) {
     console.error("Error executing Supabase query:", response.error);
     return null;
   }
   
   // Use explicit unknown casting to break deep type inference chain
-  return (response.data as unknown) as T[];
+  const rawData = response.data as unknown;
+  return rawData as T[];
 }
 
 /**
@@ -26,12 +27,13 @@ export function safeQueryResult<T>(response: PostgrestResponse<unknown>): T[] | 
  * @param response The raw response from a Supabase query
  * @returns The properly typed single record or null if there was an error
  */
-export function safeSingleResult<T>(response: PostgrestSingleResponse<unknown>): T | null {
+export function safeSingleResult<T>(response: PostgrestSingleResponse<any>): T | null {
   if (response.error) {
     console.error("Error executing Supabase query:", response.error);
     return null;
   }
   
   // Use explicit unknown casting to break deep type inference chain
-  return (response.data as unknown) as T;
+  const rawData = response.data as unknown;
+  return rawData as T;
 }

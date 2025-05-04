@@ -12,17 +12,16 @@ export const fetchContentStrategyItems = async (
   filters: ContentStrategyFilter = {}
 ): Promise<ContentStrategyItem[]> => {
   try {
-    // Build the query
+    // Build the query - using explicit any cast to break type inference
     const query = supabase
       .from('content_strategy_items')
       .select(`
         *,
         equipamento:equipamento_id (nome),
         responsavel:responsavel_id (nome)
-      `)
-      .order('created_at', { ascending: false });
+      `) as any; // Break type inference with any
     
-    // Apply filters - using simple comparison operations
+    // Apply filters with explicit any typing to avoid excessive depth
     if (filters.equipamento_id) {
       query.eq('equipamento_id', filters.equipamento_id);
     }
@@ -59,15 +58,20 @@ export const fetchContentStrategyItems = async (
       query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
+    // Add ordering
+    query.order('created_at', { ascending: false });
+    
     // Execute the query
     const response = await query;
     
-    // Break type inference chain with explicit unknown to avoid excessive depth errors
-    // Use type assertion with unknown as intermediary to break deep instantiation chain
-    const rawData = safeQueryResult<ContentStrategyRowWithRelations>(response);
+    // Use intermediate variable with explicit unknown type to break the inference chain
+    const rawData = response.data as unknown;
     
-    // Convert the data to the proper type after the query
-    return rawData ? rawData.map(item => transformToContentStrategyItem(item)) : [];
+    // Cast to the expected type after breaking inference chain
+    const typedData = rawData as ContentStrategyRowWithRelations[] | null;
+    
+    // Transform the data to the final type - explicitly typed
+    return typedData ? typedData.map(item => transformToContentStrategyItem(item)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
