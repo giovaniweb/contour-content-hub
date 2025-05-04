@@ -1,15 +1,16 @@
-
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
 import { ContentStrategyRow, ContentStrategyRowWithRelations, ContentStrategyInsert, ContentStrategyUpdate } from "@/types/supabase/contentStrategy";
+import { safeQueryResult, safeSingleResult } from "@/utils/validation/supabaseHelpers";
 
 /**
  * Fetch content strategy items with filters
  */
 export const fetchContentStrategyItems = async (filters: ContentStrategyFilter = {}): Promise<ContentStrategyItem[]> => {
   try {
-    let query = supabase
+    // Build the query
+    const query = supabase
       .from('content_strategy_items')
       .select(`
         *,
@@ -20,48 +21,47 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
     
     // Apply filters - using simple comparison operations
     if (filters.equipamento_id) {
-      query = query.eq('equipamento_id', filters.equipamento_id);
+      query.eq('equipamento_id', filters.equipamento_id);
     }
     
     if (filters.categoria) {
-      query = query.eq('categoria', filters.categoria);
+      query.eq('categoria', filters.categoria);
     }
     
     if (filters.formato) {
-      query = query.eq('formato', filters.formato);
+      query.eq('formato', filters.formato);
     }
     
     if (filters.responsavel_id) {
-      query = query.eq('responsavel_id', filters.responsavel_id);
+      query.eq('responsavel_id', filters.responsavel_id);
     }
     
     if (filters.objetivo) {
-      query = query.eq('objetivo', filters.objetivo);
+      query.eq('objetivo', filters.objetivo);
     }
     
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      query.eq('status', filters.status);
     }
     
     if (filters.distribuicao) {
-      query = query.eq('distribuicao', filters.distribuicao);
+      query.eq('distribuicao', filters.distribuicao);
     }
     
     if (filters.dateRange?.from) {
-      query = query.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
+      query.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
     }
     
     if (filters.dateRange?.to) {
-      query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
+      query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Get query result without type annotations that cause deep instantiation
-    const { data, error } = await query;
+    // Execute the query and safely get the result with type assertion after execution
+    const response = await query;
+    const data = safeQueryResult<ContentStrategyRowWithRelations>(response);
     
-    if (error) throw error;
-    
-    // Convert the data to the proper type after the query
-    return data ? data.map(item => transformToContentStrategyItem(item as unknown as ContentStrategyRowWithRelations)) : [];
+    // Convert the data to ContentStrategyItem objects
+    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
@@ -89,7 +89,8 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       distribuicao: preparedData.distribuicao
     };
     
-    const { data, error } = await supabase
+    // Execute the query and get the response
+    const response = await supabase
       .from('content_strategy_items')
       .insert([insertData])
       .select(`
@@ -99,10 +100,11 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       `)
       .single();
     
-    if (error) throw error;
+    // Safely get the result with type assertion after execution
+    const data = safeSingleResult<ContentStrategyRowWithRelations>(response);
     
-    // Convert the data to the proper type after the query
-    return data ? transformToContentStrategyItem(data as unknown as ContentStrategyRowWithRelations) : null;
+    // Convert the data to a ContentStrategyItem object
+    return data ? transformToContentStrategyItem(data) : null;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     return null;

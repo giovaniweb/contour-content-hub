@@ -1,8 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyFilter, ContentStrategyItem } from "@/types/content-strategy";
 import { ContentStrategyRowWithRelations } from "@/types/supabase/contentStrategy";
 import { transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
+import { safeQueryResult } from "@/utils/validation/supabaseHelpers";
 
 /**
  * Fetch content strategy items with filters
@@ -11,7 +11,7 @@ export const fetchContentStrategyItems = async (
   filters: ContentStrategyFilter = {}
 ): Promise<ContentStrategyItem[]> => {
   try {
-    let query = supabase
+    const response = await supabase
       .from('content_strategy_items')
       .select(`
         *,
@@ -22,48 +22,46 @@ export const fetchContentStrategyItems = async (
     
     // Apply filters - using simple comparison operations
     if (filters.equipamento_id) {
-      query = query.eq('equipamento_id', filters.equipamento_id);
+      response.eq('equipamento_id', filters.equipamento_id);
     }
     
     if (filters.categoria) {
-      query = query.eq('categoria', filters.categoria);
+      response.eq('categoria', filters.categoria);
     }
     
     if (filters.formato) {
-      query = query.eq('formato', filters.formato);
+      response.eq('formato', filters.formato);
     }
     
     if (filters.responsavel_id) {
-      query = query.eq('responsavel_id', filters.responsavel_id);
+      response.eq('responsavel_id', filters.responsavel_id);
     }
     
     if (filters.objetivo) {
-      query = query.eq('objetivo', filters.objetivo);
+      response.eq('objetivo', filters.objetivo);
     }
     
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      response.eq('status', filters.status);
     }
     
     if (filters.distribuicao) {
-      query = query.eq('distribuicao', filters.distribuicao);
+      response.eq('distribuicao', filters.distribuicao);
     }
     
     if (filters.dateRange?.from) {
-      query = query.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
+      response.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
     }
     
     if (filters.dateRange?.to) {
-      query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
+      response.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Get query result without explicit type casting
-    const { data, error } = await query;
-    
-    if (error) throw error;
+    // Safely get the query result and cast it after execution
+    const data = safeQueryResult<ContentStrategyRowWithRelations>(response);
     
     // Convert the data to the proper type after the query
-    return data ? data.map(item => transformToContentStrategyItem(item as unknown as ContentStrategyRowWithRelations)) : [];
+    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
