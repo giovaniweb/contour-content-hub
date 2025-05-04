@@ -11,6 +11,7 @@ import { useContentStrategy } from "@/hooks/useContentStrategy";
 const ContentStrategy: React.FC = () => {
   const { isAdmin, isOperator } = usePermissions();
   const [activeTab, setActiveTab] = useState("lista");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   
   const {
     items,
@@ -33,6 +34,7 @@ const ContentStrategy: React.FC = () => {
       <Card>
         <ContentStrategyHeader 
           onShowFilters={() => setActiveTab("filtros")}
+          onNewItem={() => setIsSheetOpen(true)}
           canEdit={canEdit}
         />
         <CardContent>
@@ -53,12 +55,14 @@ const ContentStrategy: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* We need to render the Sheet content separately from the trigger due to the refactoring */}
+      {/* Sheet is now properly wrapped with the Sheet context */}
       {canEdit && (
         <ContentStrategySheet
           equipments={equipments}
           users={users}
           onSave={handleCreateItem}
+          open={isSheetOpen}
+          onOpenChange={setIsSheetOpen}
         />
       )}
     </Layout>
