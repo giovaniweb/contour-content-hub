@@ -15,6 +15,7 @@ import DiagnosticForm from "@/components/marketing-consultant/DiagnosticForm";
 import ProfitCalculator from "@/components/marketing-consultant/ProfitCalculator";
 import GrowthStrategy from "@/components/marketing-consultant/GrowthStrategy";
 import ImplementationPlan from "@/components/marketing-consultant/ImplementationPlan";
+import DiagnosticChat from "@/components/marketing-consultant/DiagnosticChat";
 
 const MarketingConsultant: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'chat' | 'diagnostic' | 'profit' | 'strategy' | 'implementation'>('chat');
@@ -109,7 +110,8 @@ const MarketingConsultant: React.FC = () => {
       case 'chat':
         return <MarketingConsultantChat onStartConsultation={startConsultation} />;
       case 'diagnostic':
-        return <DiagnosticForm onComplete={handleDiagnosticComplete} />;
+        // Replace form with chat-based diagnostic
+        return <DiagnosticChat onComplete={handleDiagnosticComplete} />;
       case 'profit':
         return (
           <ProfitCalculator 
