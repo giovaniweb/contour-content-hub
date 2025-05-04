@@ -1,3 +1,4 @@
+
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
@@ -55,12 +56,12 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
       query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Add explicit type annotation to the query result
-    const { data, error }: PostgrestSingleResponse<ContentStrategyRowWithRelations[]> = await query;
+    // Get query result without explicit type casting
+    const { data, error } = await query;
     
     if (error) throw error;
     
-    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
+    return data ? data.map(item => transformToContentStrategyItem(item as ContentStrategyRowWithRelations)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
@@ -88,7 +89,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       distribuicao: preparedData.distribuicao
     };
     
-    const { data, error }: PostgrestSingleResponse<ContentStrategyRowWithRelations> = await supabase
+    const { data, error } = await supabase
       .from('content_strategy_items')
       .insert([insertData])
       .select(`
@@ -100,7 +101,7 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     
     if (error) throw error;
     
-    return data ? transformToContentStrategyItem(data) : null;
+    return data ? transformToContentStrategyItem(data as ContentStrategyRowWithRelations) : null;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     return null;
@@ -127,7 +128,7 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
       distribuicao: preparedData.distribuicao
     };
     
-    const { error }: PostgrestSingleResponse<null> = await supabase
+    const { error } = await supabase
       .from('content_strategy_items')
       .update(updateData)
       .eq('id', id);
@@ -146,7 +147,7 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
  */
 export const deleteContentStrategyItem = async (id: string): Promise<boolean> => {
   try {
-    const { error }: PostgrestSingleResponse<null> = await supabase
+    const { error } = await supabase
       .from('content_strategy_items')
       .delete()
       .eq('id', id);
