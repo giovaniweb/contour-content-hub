@@ -6,7 +6,13 @@ export {
   fetchContentStrategyItems,
   createContentStrategyItem,
   updateContentStrategyItem,
-  deleteContentStrategyItem
+  deleteContentStrategyItem,
+  calculateContentMetrics,
+  getContentStrategyStats,
+  processContentStrategy,
+  summarizeContentMetrics,
+  filterStrategiesByStatus,
+  sortStrategiesByDate
 } from './contentStrategyCore';
 
 export {
