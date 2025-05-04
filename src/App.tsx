@@ -11,6 +11,10 @@ import EquipmentDetails from './pages/EquipmentDetails';
 import Index from './pages/Index';
 import SellerDashboard from './pages/seller/SellerDashboard';
 import ContentStrategy from './pages/ContentStrategy';
+import CustomGpt from './pages/CustomGpt';
+import ScriptValidationPage from './pages/ScriptValidationPage';
+import MediaLibrary from './pages/MediaLibrary';
+import TechnicalDocuments from './pages/TechnicalDocuments';
 
 function App() {
   return (
@@ -29,6 +33,14 @@ function App() {
         
         {/* Estratégia de conteúdo */}
         <Route path="/content-strategy" element={<ContentStrategy />} />
+        
+        {/* Custom GPT e funcionalidades relacionadas */}
+        <Route path="/custom-gpt" element={<CustomGpt />} />
+        <Route path="/validate-script" element={<ScriptValidationPage />} />
+        
+        {/* Media e documentos */}
+        <Route path="/media" element={<MediaLibrary />} />
+        <Route path="/documents" element={<TechnicalDocuments />} />
         
         {/* Dashboard de vendedor */}
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
