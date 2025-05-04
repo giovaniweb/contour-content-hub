@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,7 +237,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                 <SelectValue placeholder="Selecione um equipamento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum equipamento</SelectItem>
+                <SelectItem value="none">Nenhum equipamento</SelectItem>
                 {equipmentsList.map(eq => (
                   <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
                 ))}
@@ -325,7 +326,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                       <SelectValue placeholder="Selecione um equipamento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum equipamento</SelectItem>
+                      <SelectItem value="none">Nenhum equipamento</SelectItem>
                       {equipmentsList.map(eq => (
                         <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
                       ))}
@@ -340,7 +341,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                       <SelectValue placeholder="Selecione uma área do corpo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Selecione</SelectItem>
+                      <SelectItem value="nenhuma">Selecione</SelectItem>
                       {bodyAreasList.map(area => (
                         <SelectItem key={area.id} value={area.id}>{area.nome}</SelectItem>
                       ))}
@@ -383,19 +384,27 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                     id="instagramCaption"
                     value={instagramCaption}
                     onChange={(e) => setInstagramCaption(e.target.value)}
-                    placeholder="Legenda com tom de influenciador + gancho"
-                    className="min-h-[80px]"
+                    placeholder="Legenda para postagens no Instagram"
+                    className="min-h-[100px]"
                   />
                 </div>
               </div>
               
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={onCancel}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {videoData ? 'Atualizar Vídeo' : 'Cadastrar Vídeo'}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : videoData?.id ? (
+                    'Atualizar Vídeo'
+                  ) : (
+                    'Cadastrar Vídeo'
+                  )}
                 </Button>
               </div>
             </Card>
