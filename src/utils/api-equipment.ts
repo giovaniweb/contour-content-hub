@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { Equipment, EquipmentCreationProps } from '@/types/equipment';
+import { Equipment, EquipmentCreationProps, convertStringToArray } from '@/types/equipment';
 
 /**
  * Get all equipment from the database
@@ -66,10 +67,18 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
  */
 export const createEquipment = async (equipment: EquipmentCreationProps): Promise<Equipment> => {
   try {
+    // Process indicacoes to ensure it's a string for database storage
+    const processedEquipment = {
+      ...equipment,
+      indicacoes: Array.isArray(equipment.indicacoes) 
+        ? equipment.indicacoes.join(';') 
+        : equipment.indicacoes
+    };
+    
     // Ensure we're passing a single object, not an array of objects
     const { data, error } = await supabase
       .from('equipamentos')
-      .insert([equipment]) // Wrap in array here for supabase
+      .insert(processedEquipment) // No need to wrap in array now
       .select();
       
     if (error) {
@@ -80,7 +89,10 @@ export const createEquipment = async (equipment: EquipmentCreationProps): Promis
       throw new Error('No data returned from equipment creation');
     }
     
-    return data[0] as Equipment;
+    return {
+      ...data[0],
+      indicacoes: convertStringToArray(data[0].indicacoes)
+    } as Equipment;
     
   } catch (error) {
     console.error('Error creating equipment:', error);
@@ -93,9 +105,19 @@ export const createEquipment = async (equipment: EquipmentCreationProps): Promis
  */
 export const updateEquipment = async (id: string, equipment: Partial<Equipment>): Promise<Equipment> => {
   try {
+    // Process indicacoes to ensure it's a string for database storage if it exists
+    const processedEquipment = {
+      ...equipment,
+      indicacoes: equipment.indicacoes ? 
+        (Array.isArray(equipment.indicacoes) ? 
+          equipment.indicacoes.join(';') : 
+          equipment.indicacoes) : 
+        undefined
+    };
+    
     const { data, error } = await supabase
       .from('equipamentos')
-      .update(equipment)
+      .update(processedEquipment)
       .eq('id', id)
       .select();
       
@@ -107,7 +129,10 @@ export const updateEquipment = async (id: string, equipment: Partial<Equipment>)
       throw new Error(`Equipment with ID ${id} not found`);
     }
     
-    return data[0] as Equipment;
+    return {
+      ...data[0],
+      indicacoes: convertStringToArray(data[0].indicacoes)
+    } as Equipment;
     
   } catch (error) {
     console.error(`Error updating equipment with ID ${id}:`, error);

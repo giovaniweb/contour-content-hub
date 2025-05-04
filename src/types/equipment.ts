@@ -25,12 +25,17 @@ export interface EquipmentCreationProps {
   efeito?: string;
 }
 
+// Added EquipmentValidation interface to fix missing export error
+export interface EquipmentValidation {
+  [key: string]: string;
+}
+
 export interface ValidationErrors {
   [key: string]: string;
 }
 
 // Helper to validate equipment data
-export const validateEquipment = (data: Equipment): ValidationErrors => {
+export const validateEquipment = (data: Equipment | EquipmentCreationProps): ValidationErrors => {
   const errors: ValidationErrors = {};
 
   if (!data.nome || data.nome.trim().length < 2) {

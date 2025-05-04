@@ -1,4 +1,12 @@
 
+export type MarketingObjectiveType = 
+  | '🟡 Atrair Atenção'
+  | '🟢 Criar Conexão'
+  | '🔴 Fazer Comprar'
+  | '🔁 Reativar Interesse'
+  | '✅ Fechar Agora'
+  | string;
+
 export interface ScriptResponse {
   id: string;
   title: string;
@@ -8,5 +16,5 @@ export interface ScriptResponse {
   suggestedVideos: any[];
   captionTips: any[];
   equipment?: string;
-  marketingObjective?: string;
+  marketingObjective?: MarketingObjectiveType;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, EquipmentValidation, saveEquipmentDraft, getEquipmentDraft, clearEquipmentDraft, convertStringToArray } from '@/types/equipment';
+import { Equipment, EquipmentCreationProps, validateEquipment, hasValidationErrors, ValidationErrors, saveEquipmentDraft, getEquipmentDraft, clearEquipmentDraft, convertStringToArray } from '@/types/equipment';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const [errors, setErrors] = useState<EquipmentValidation>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
   
   const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
@@ -112,10 +112,10 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     setEquipment(prev => ({ ...prev, [name]: value }));
     
     // Clear error for this field when user types
-    if (errors[name as keyof EquipmentValidation]) {
+    if (errors[name as keyof ValidationErrors]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[name as keyof EquipmentValidation];
+        delete newErrors[name as keyof ValidationErrors];
         return newErrors;
       });
     }
@@ -239,9 +239,10 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       beneficios: equipment.beneficios,
       diferenciais: equipment.diferenciais,
       linguagem: equipment.linguagem,
-      ativo: equipment.ativo,
-      image_url: equipment.image_url,
-      efeito: equipment.efeito
+      ativo: equipment.ativo !== undefined ? equipment.ativo : true,
+      image_url: equipment.image_url || '',
+      efeito: equipment.efeito || '',
+      data_cadastro: new Date().toISOString()
     };
 
     try {
