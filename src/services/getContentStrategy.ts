@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyFilter, ContentStrategyItem } from "@/types/content-strategy";
 import { ContentStrategyRowWithRelations } from "@/types/supabase/contentStrategy";
-import { PostgrestSingleResponse } from "@supabase/supabase-js";
 import { transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
 
 /**
@@ -58,12 +57,13 @@ export const fetchContentStrategyItems = async (
       query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Add explicit type annotation to the query result
-    const { data, error }: PostgrestSingleResponse<ContentStrategyRowWithRelations[]> = await query;
+    // Get query result without explicit type casting
+    const { data, error } = await query;
     
     if (error) throw error;
     
-    return data ? data.map(item => transformToContentStrategyItem(item)) : [];
+    // Convert the data to the proper type after the query
+    return data ? data.map(item => transformToContentStrategyItem(item as unknown as ContentStrategyRowWithRelations)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];

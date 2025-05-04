@@ -2,7 +2,6 @@
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
-import { PostgrestSingleResponse } from "@supabase/supabase-js";
 import { ContentStrategyRow, ContentStrategyRowWithRelations, ContentStrategyInsert, ContentStrategyUpdate } from "@/types/supabase/contentStrategy";
 
 /**
@@ -56,12 +55,13 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
       query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
     }
     
-    // Get query result without explicit type casting
+    // Get query result without type annotations that cause deep instantiation
     const { data, error } = await query;
     
     if (error) throw error;
     
-    return data ? data.map(item => transformToContentStrategyItem(item as ContentStrategyRowWithRelations)) : [];
+    // Convert the data to the proper type after the query
+    return data ? data.map(item => transformToContentStrategyItem(item as unknown as ContentStrategyRowWithRelations)) : [];
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     return [];
@@ -101,7 +101,8 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
     
     if (error) throw error;
     
-    return data ? transformToContentStrategyItem(data as ContentStrategyRowWithRelations) : null;
+    // Convert the data to the proper type after the query
+    return data ? transformToContentStrategyItem(data as unknown as ContentStrategyRowWithRelations) : null;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     return null;
