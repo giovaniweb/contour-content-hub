@@ -2,7 +2,7 @@
 import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { supabase } from "@/integrations/supabase/client";
 import { prepareContentStrategyData, transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
-import { PostgrestFilterBuilder, PostgrestSingleResponse } from "@supabase/supabase-js";
+import { PostgrestSingleResponse } from "@supabase/supabase-js";
 
 // Define interface for database rows to help with type safety
 interface ContentStrategyRow {
