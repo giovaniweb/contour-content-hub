@@ -70,11 +70,25 @@ export const fetchContentStrategyItems = async (filters: ContentStrategyFilter =
  */
 export const createContentStrategyItem = async (item: Partial<ContentStrategyItem>): Promise<ContentStrategyItem | null> => {
   try {
+    // Get the prepared data with all required fields
     const preparedData = prepareContentStrategyData(item);
+    
+    // Explicitly cast to match database structure with required fields
+    const insertData = {
+      categoria: preparedData.categoria,
+      formato: preparedData.formato,
+      objetivo: preparedData.objetivo,
+      equipamento_id: preparedData.equipamento_id,
+      responsavel_id: preparedData.responsavel_id,
+      previsao: preparedData.previsao,
+      conteudo: preparedData.conteudo,
+      status: preparedData.status,
+      distribuicao: preparedData.distribuicao
+    };
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert(preparedData)
+      .insert([insertData])
       .select(`
         *,
         equipamento:equipamento_id (nome),
@@ -98,9 +112,22 @@ export const updateContentStrategyItem = async (id: string, updates: Partial<Con
   try {
     const preparedData = prepareContentStrategyData(updates);
     
+    // We need to provide the data in a format that matches the database table structure
+    const updateData = {
+      categoria: preparedData.categoria,
+      formato: preparedData.formato,
+      objetivo: preparedData.objetivo,
+      equipamento_id: preparedData.equipamento_id,
+      responsavel_id: preparedData.responsavel_id,
+      previsao: preparedData.previsao,
+      conteudo: preparedData.conteudo,
+      status: preparedData.status,
+      distribuicao: preparedData.distribuicao
+    };
+    
     const { error } = await supabase
       .from('content_strategy_items')
-      .update(preparedData)
+      .update(updateData)
       .eq('id', id);
     
     if (error) throw error;
