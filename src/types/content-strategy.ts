@@ -41,14 +41,7 @@ export type ContentObjective =
   | '🟢 Criar Conexão'
   | '🔴 Fazer Comprar'
   | '🔁 Reativar Interesse'
-  | '✅ Fechar Agora'
-  | 'engajar'
-  | 'vender'
-  | 'educar'
-  | 'informar'
-  | 'converter'
-  | 'construir autoridade'
-  | 'outro';
+  | '✅ Fechar Agora';
 
 export type ContentPriority = 
   | 'Alta'

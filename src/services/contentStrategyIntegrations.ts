@@ -11,12 +11,10 @@ export async function generateContentWithAI(item: Partial<ContentStrategyItem>):
     // Chama a edge function para gerar conteúdo com IA
     const { data, error } = await supabase.functions.invoke('generate-content-description', {
       body: JSON.stringify({
-        linha: item.linha,
         equipamento: item.equipamento_nome,
         categoria: item.categoria,
         formato: item.formato,
         objetivo: item.objetivo,
-        impedimento: item.impedimento,
         prioridade: item.prioridade
       })
     });
@@ -44,7 +42,7 @@ export async function scheduleContentInCalendar(item: ContentStrategyItem): Prom
     const { error } = await supabase
       .from('agenda')
       .insert({
-        titulo: `Content: ${item.linha || item.categoria}`,
+        titulo: `Content: ${item.categoria}`,
         data: item.previsao,
         tipo: "content_strategy",
         usuario_id: (await supabase.auth.getUser()).data.user?.id,
