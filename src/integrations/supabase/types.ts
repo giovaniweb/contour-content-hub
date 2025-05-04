@@ -188,6 +188,82 @@ export type Database = {
         }
         Relationships: []
       }
+      content_strategy_items: {
+        Row: {
+          categoria: string
+          conteudo: string | null
+          created_at: string
+          created_by: string | null
+          equipamento_id: string | null
+          formato: string
+          id: string
+          impedimento: string | null
+          linha: string | null
+          objetivo: string
+          previsao: string | null
+          prioridade: string
+          responsavel_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          categoria: string
+          conteudo?: string | null
+          created_at?: string
+          created_by?: string | null
+          equipamento_id?: string | null
+          formato: string
+          id?: string
+          impedimento?: string | null
+          linha?: string | null
+          objetivo: string
+          previsao?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          conteudo?: string | null
+          created_at?: string
+          created_by?: string | null
+          equipamento_id?: string | null
+          formato?: string
+          id?: string
+          impedimento?: string | null
+          linha?: string | null
+          objetivo?: string
+          previsao?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_strategy_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_strategy_items_equipamento_id_fkey"
+            columns: ["equipamento_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_strategy_items_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_tecnicos: {
         Row: {
           conteudo_extraido: string | null

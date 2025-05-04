@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -33,7 +34,8 @@ import {
   Settings2,
   CheckCircle,
   BookOpen,
-  Brain
+  Brain,
+  ListTodo
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -177,6 +179,15 @@ const Layout: React.FC<LayoutProps> = ({
                         <Link to="/media" className="flex items-center">
                           <Film className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
                           <span>Biblioteca de Mídia</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem active={isLinkActive('/content-strategy')}>
+                      <SidebarMenuButton asChild>
+                        <Link to="/content-strategy" className="flex items-center">
+                          <ListTodo className="h-4 w-4 mr-2 text-contourline-mediumBlue" aria-hidden="true" />
+                          <span>Estratégia de Conteúdo</span>
+                          <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

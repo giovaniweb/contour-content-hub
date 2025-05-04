@@ -12,6 +12,7 @@ import ScriptHistory from "@/pages/ScriptHistory";
 import MediaLibrary from "@/pages/MediaLibrary";
 import MarketingConsultant from "@/pages/MarketingConsultant";
 import CalendarPage from "@/pages/Calendar";
+import ContentStrategy from "@/pages/ContentStrategy";
 import { AuthProvider } from "@/context/AuthContext";
 import PrivateRoute from "@/components/PrivateRoute";
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="/media-library" element={<PrivateRoute element={<MediaLibrary />} />} />
           <Route path="/marketing-consultant" element={<PrivateRoute element={<MarketingConsultant />} />} />
           <Route path="/calendar" element={<PrivateRoute element={<CalendarPage />} />} />
+          <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
         </Routes>
         <Toaster />
       </AuthProvider>

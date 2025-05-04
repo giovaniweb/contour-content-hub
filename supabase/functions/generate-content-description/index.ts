@@ -1,7 +1,9 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,167 +11,88 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
-  
+
   try {
-    // Get OpenAI API key from environment variables
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not found');
+    if (!openAIApiKey) {
+      throw new Error("OPENAI_API_KEY não está configurada");
     }
-    
-    // Get Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
-    
-    // Verify JWT token to make sure the user is authenticated
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing Authorization header');
-    }
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-    
-    if (userError || !user) {
-      throw new Error('Invalid JWT token');
-    }
-    
-    // Get content data from request
-    const { title, equipments, bodyArea, purposes, description, type } = await req.json();
-    
-    // Prepare prompt for OpenAI
-    const prompt = `
-      Você é um assistente especializado em criar conteúdo para uma plataforma médica e estética.
-      
-      Com base nas informações abaixo, crie:
-      1. Uma descrição detalhada profissional (2-3 parágrafos)
-      2. Uma lista de 5-8 tags relevantes (palavras ou frases curtas)
-      
-      Informações:
-      - Título: ${title}
-      - Tipo de conteúdo: ${type === 'video_pronto' ? 'Vídeo pronto' : type === 'take' ? 'Take bruto' : 'Imagem'}
-      - Equipamento(s): ${Array.isArray(equipments) ? equipments.join(", ") : equipments || 'Não especificado'}
-      - Área do corpo: ${bodyArea || 'Não especificada'}
-      - Finalidade(s): ${Array.isArray(purposes) ? purposes.join(", ") : purposes || 'Não especificada'}
-      - Descrição breve: ${description || 'Não fornecida'}
-      
-      A descrição detalhada deve ser profissional, informativa e útil para profissionais da área de estética e medicina.
-      As tags devem incluir:
-      - Termos das finalidades (como rugas, flacidez, lipedema, sarcopenia) quando relevantes
-      - Nome(s) dos equipamentos
-      - Áreas do corpo tratadas
-      - Outros termos relevantes para estética médica
-      
-      Responda apenas com a descrição detalhada e as tags, sem introduções ou explicações adicionais.
-      Formate como JSON com as chaves "detailedDescription" e "suggestedTags" (array).
-    `;
-    
-    // Call OpenAI API
+
+    const { linha, equipamento, categoria, formato, objetivo, impedimento, prioridade } = await req.json();
+
+    // Build the prompt
+    const systemPrompt = `Você é um especialista em marketing para clínicas de estética que oferece ideias de conteúdo estratégico. 
+Seu objetivo é criar descrições de conteúdo que contenham ideias criativas, adaptadas ao formato solicitado.`;
+
+    const userPrompt = `Crie uma descrição detalhada de conteúdo com as seguintes características:
+${linha ? `- Linha/Marca: ${linha}` : ''}
+${equipamento ? `- Equipamento: ${equipamento}` : ''}
+- Categoria de conteúdo: ${categoria || 'Não especificado'}
+- Formato desejado: ${formato || 'Não especificado'}
+- Objetivo de marketing: ${objetivo || 'Não especificado'}
+${impedimento ? `- Considerações especiais: ${impedimento}` : ''}
+- Prioridade: ${prioridade || 'Média'}
+
+Forneça uma descrição clara e atraente para este conteúdo, incluindo ideias para hooks, pontos principais a abordar e uma conclusão com chamada para ação.
+Use linguagem persuasiva e focada em resultados.
+Limite-se a no máximo 300 palavras.`;
+
+    // Call OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o-mini",
         messages: [
-          { role: 'system', content: 'You are a professional content creator for aesthetic and medical professionals.' },
-          { role: 'user', content: prompt }
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
         ],
-        temperature: 0.7,
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Try to parse the response as JSON
-    let result;
-    try {
-      // First try to parse the generated content directly as JSON
-      const content = data.choices[0].message.content.trim();
-      result = JSON.parse(content);
-    } catch (parseError) {
-      // If direct parsing fails, try to extract JSON from the response
-      console.error('Failed to parse response as JSON directly:', parseError);
-      
-      const content = data.choices[0].message.content.trim();
-      
-      // Look for JSON-like structure
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          result = JSON.parse(jsonMatch[0]);
-        } catch (secondParseError) {
-          console.error('Failed to parse extracted JSON:', secondParseError);
-          
-          // Fallback: extract text manually
-          const detailedDescriptionMatch = content.match(/detailedDescription["\s:]+([^"]+)/);
-          const tagsMatch = content.match(/suggestedTags["\s:]+\[([\s\S]*?)\]/);
-          
-          result = {
-            detailedDescription: detailedDescriptionMatch ? detailedDescriptionMatch[1] : 'Não foi possível gerar uma descrição.',
-            suggestedTags: tagsMatch ? 
-              tagsMatch[1].split(',').map(tag => tag.trim().replace(/['"]/g, '')) : 
-              []
-          };
-        }
-      } else {
-        // Last resort: return reasonable defaults
-        result = {
-          detailedDescription: 'Não foi possível gerar uma descrição detalhada automaticamente. Por favor, adicione manualmente.',
-          suggestedTags: []
-        };
-      }
-    }
-    
-    // Log user action
-    await supabase
-      .from('logs_uso')
-      .insert({
-        usuario_id: user.id,
-        acao: 'generate_ai_content',
-        detalhe: `Generated content for: ${title}`
+        temperature: 0.7
       })
-      .select();
-      
-    // Return the result
-    return new Response(
-      JSON.stringify(result),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+
+    // Log the request for monitoring
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
-    
-  } catch (error) {
-    console.error('Error in generate-content-description:', error);
-    
+
+    try {
+      await supabaseAdmin.from('logs_uso').insert({
+        acao: 'generate_content',
+        detalhe: `Geração de descrição de conteúdo para ${formato || 'não especificado'}`,
+        usuario_id: null // This would ideally be the user ID from the request
+      });
+    } catch (logError) {
+      console.error("Error logging usage:", logError);
+      // Continue even if logging fails
+    }
+
+    // Return the generated content
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'An error occurred while generating content' 
-      }),
-      { 
-        status: 500, 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+      JSON.stringify({ content }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error:', error.message);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

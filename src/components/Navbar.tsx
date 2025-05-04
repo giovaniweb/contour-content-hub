@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +23,8 @@ import {
   Menu,
   X,
   CheckCircle,
-  BookOpen
+  BookOpen,
+  ListTodo
 } from "lucide-react";
 import {
   Drawer,
@@ -84,7 +86,7 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const DrawerNavLink: React.FC<{ to: string; icon: React.ReactNode; label: string }> = ({ to, icon, label }) => {
+  const DrawerNavLink: React.FC<{ to: string; icon: React.ReactNode; label: string; isNew?: boolean }> = ({ to, icon, label, isNew }) => {
     const isActive = location.pathname === to;
     return (
       <Link 
@@ -94,6 +96,9 @@ const Navbar: React.FC = () => {
       >
         <span className="mr-3 text-contourline-mediumBlue">{icon}</span>
         {label}
+        {isNew && (
+          <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
+        )}
       </Link>
     );
   };
@@ -193,6 +198,20 @@ const Navbar: React.FC = () => {
                   </NavLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                  <NavLink to="/content-strategy">
+                    <NavigationMenuLink 
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === "/content-strategy" ? "bg-accent text-accent-foreground" : ""
+                      )}
+                    >
+                      <ListTodo className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Estratégia de Conteúdo</span>
+                      <span className="ml-1 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
+                    </NavigationMenuLink>
+                  </NavLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                   <NavLink to="/equipment-details">
                     <NavigationMenuLink 
                       className={cn(
@@ -242,6 +261,7 @@ const Navbar: React.FC = () => {
                       <DrawerNavLink to="/validate-script" icon={<CheckCircle className="h-5 w-5" />} label="Validador de Roteiros" />
                       <DrawerNavLink to="/documents" icon={<BookOpen className="h-5 w-5" />} label="Artigos Científicos" />
                       <DrawerNavLink to="/media" icon={<Film className="h-5 w-5" />} label="Mídia" />
+                      <DrawerNavLink to="/content-strategy" icon={<ListTodo className="h-5 w-5" />} label="Estratégia de Conteúdo" isNew={true} />
                       <DrawerNavLink to="/calendar" icon={<CalendarDays className="h-5 w-5" />} label="Agenda" />
                       <DrawerNavLink to="/equipment-details" icon={<CalendarDays className="h-5 w-5" />} label="Equipamentos" />
                     </>
