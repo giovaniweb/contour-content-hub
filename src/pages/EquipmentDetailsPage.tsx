@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { getEquipmentById, fetchEquipmentFiles, fetchEquipmentVideos } from '@/api/equipment';
+import { getEquipmentById } from '@/api/equipment/getEquipment';
+import { fetchEquipmentFiles, fetchEquipmentVideos } from '@/api/equipment/equipmentFiles';
 import { Equipment } from "@/types/equipment";
 import { FileText, Video, Image as ImageIcon, ChevronLeft, Upload, PlusSquare } from "lucide-react";
 
@@ -26,6 +27,7 @@ const EquipmentDetailsPage: React.FC = () => {
     } else {
       setError("ID do equipamento não especificado");
       setIsLoading(false);
+      console.error("ID do equipamento não fornecido na URL");
     }
   }, [id]);
 
@@ -74,6 +76,9 @@ const EquipmentDetailsPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Adicionar console.logs para depuração
+  console.log("Estado atual:", { isLoading, error, equipment, relatedFiles: relatedFiles.length, relatedVideos: relatedVideos.length });
 
   if (isLoading) {
     return (
@@ -183,7 +188,9 @@ const EquipmentDetailsPage: React.FC = () => {
                     
                     <div>
                       <h3 className="text-lg font-semibold">Indicações</h3>
-                      <p className="mt-1 text-gray-600">{equipment.indicacoes}</p>
+                      <p className="mt-1 text-gray-600">{Array.isArray(equipment.indicacoes) 
+                        ? equipment.indicacoes.join(", ") 
+                        : equipment.indicacoes}</p>
                     </div>
                     
                     <div>

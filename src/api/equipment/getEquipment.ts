@@ -53,18 +53,14 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
       return null;
     }
     
+    // Using maybeSingle instead of single to avoid throwing errors when no records are found
     const { data, error } = await supabase
       .from('equipamentos')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
       
     if (error) {
-      if (error.code === 'PGRST116') { // Not found error code
-        console.log(`No equipment found with ID: ${id}`);
-        logQueryResult('select', 'equipamentos', false, null, { message: 'Not found' });
-        return null;
-      }
       console.error(`Error fetching equipment with ID ${id}:`, error);
       logQueryResult('select', 'equipamentos', false, null, error);
       throw error;
@@ -88,6 +84,6 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
     
   } catch (error) {
     console.error(`Error fetching equipment with ID ${id}:`, error);
-    throw error;
+    return null; // Return null instead of throwing to handle errors gracefully
   }
 };
