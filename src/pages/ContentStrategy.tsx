@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import {
@@ -17,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { SheetPlus, FilterIcon, Calendar, Loader2 } from "lucide-react";
+import { SheetPlus, FilterIcon, Calendar, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -193,7 +192,7 @@ const ContentStrategy: React.FC = () => {
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button className="flex items-center gap-2">
-                      <SheetPlus className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                       <span>Novo Item</span>
                     </Button>
                   </SheetTrigger>

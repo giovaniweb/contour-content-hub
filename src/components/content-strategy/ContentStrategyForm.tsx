@@ -37,14 +37,20 @@ import { ContentStrategyItem } from "@/types/content-strategy";
 const formSchema = z.object({
   linha: z.string().optional().nullable(),
   equipamento_id: z.string().optional().nullable(),
-  categoria: z.string({ required_error: "Categoria é obrigatória" }),
-  formato: z.string({ required_error: "Formato é obrigatório" }),
+  categoria: z.enum(['branding', 'vendas', 'educativo', 'informativo', 'engajamento', 'produto', 'outro'], { 
+    required_error: "Categoria é obrigatória" 
+  }),
+  formato: z.enum(['story', 'vídeo', 'layout', 'carrossel', 'reels', 'texto', 'outro'], { 
+    required_error: "Formato é obrigatório" 
+  }),
   responsavel_id: z.string().optional().nullable(),
   previsao: z.date().optional().nullable(),
   conteudo: z.string().optional().nullable(),
-  objetivo: z.string({ required_error: "Objetivo é obrigatório" }),
-  prioridade: z.string().default("Média"),
-  status: z.string().default("Planejado"),
+  objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro'], {
+    required_error: "Objetivo é obrigatório" 
+  }),
+  prioridade: z.enum(['Alta', 'Média', 'Baixa']).default("Média"),
+  status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso']).default("Planejado"),
   impedimento: z.string().optional().nullable(),
 });
 
@@ -68,12 +74,12 @@ export function ContentStrategyForm({
     defaultValues: {
       linha: "",
       equipamento_id: "",
-      categoria: "",
-      formato: "",
+      categoria: "vendas",
+      formato: "story",
       responsavel_id: "",
       previsao: undefined,
       conteudo: "",
-      objetivo: "",
+      objetivo: "engajar",
       prioridade: "Média",
       status: "Planejado",
       impedimento: "",
@@ -85,7 +91,7 @@ export function ContentStrategyForm({
       ...data,
       previsao: data.previsao ? format(data.previsao, 'yyyy-MM-dd') : null,
     };
-    await onSubmit(formattedData);
+    await onSubmit(formattedData as Partial<ContentStrategyItem>);
     form.reset();
   }
 

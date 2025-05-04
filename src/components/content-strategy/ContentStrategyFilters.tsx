@@ -1,4 +1,3 @@
-
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,12 +33,12 @@ import { ContentStrategyFilter } from "@/types/content-strategy";
 const filterSchema = z.object({
   linha: z.string().optional(),
   equipamento_id: z.string().optional(),
-  categoria: z.string().optional(),
-  formato: z.string().optional(),
+  categoria: z.enum(['branding', 'vendas', 'educativo', 'informativo', 'engajamento', 'produto', 'outro', '']).optional(),
+  formato: z.enum(['story', 'vídeo', 'layout', 'carrossel', 'reels', 'texto', 'outro', '']).optional(),
   responsavel_id: z.string().optional(),
-  objetivo: z.string().optional(),
-  prioridade: z.string().optional(),
-  status: z.string().optional(),
+  objetivo: z.enum(['engajar', 'vender', 'educar', 'informar', 'converter', 'construir autoridade', 'outro', '']).optional(),
+  prioridade: z.enum(['Alta', 'Média', 'Baixa', '']).optional(),
+  status: z.enum(['Planejado', 'Em andamento', 'Finalizado', 'Standby', 'Suspenso', '']).optional(),
   dateRange: z.object({
     from: z.date().optional(),
     to: z.date().optional(),
@@ -75,7 +74,20 @@ export function ContentStrategyFilters({
   });
 
   function onSubmit(data: FilterFormValues) {
-    onFilterChange(data);
+    // Convert empty strings to undefined to correctly apply the filters
+    const filters: ContentStrategyFilter = {
+      linha: data.linha || undefined,
+      equipamento_id: data.equipamento_id || undefined,
+      categoria: data.categoria as ContentStrategyFilter["categoria"] || undefined,
+      formato: data.formato as ContentStrategyFilter["formato"] || undefined,
+      responsavel_id: data.responsavel_id || undefined,
+      objetivo: data.objetivo as ContentStrategyFilter["objetivo"] || undefined,
+      prioridade: data.prioridade as ContentStrategyFilter["prioridade"] || undefined,
+      status: data.status as ContentStrategyFilter["status"] || undefined,
+      dateRange: data.dateRange
+    };
+    
+    onFilterChange(filters);
   }
 
   function handleReset() {
