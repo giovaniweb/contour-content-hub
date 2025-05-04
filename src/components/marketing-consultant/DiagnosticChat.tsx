@@ -5,13 +5,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, Sparkles, ArrowRight } from "lucide-react";
+import { MessageSquare, Send, Sparkles, ArrowRight, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   options?: string[];
+  examples?: string[];
 }
 
 interface DiagnosticChatProps {
@@ -183,36 +185,46 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
   const askNextQuestion = () => {
     setLoading(true);
     
-    const questions: Record<QuestionStage, { content: string, options?: string[] }> = {
+    const questions: Record<QuestionStage, { content: string, options?: string[], examples?: string[] }> = {
       welcome: {
-        content: 'Vamos começar pelo perfil da sua clínica. Qual é o nome da sua clínica?'
+        content: 'Vamos começar pelo perfil da sua clínica. Qual é o nome da sua clínica?',
+        examples: ['Espaço Beleza & Saúde', 'Clínica Estética Renascer', 'Estética Avançada Dra. Ana']
       },
       clinic_name: {
-        content: 'Ótimo! Há quanto tempo a clínica está no mercado?'
+        content: 'Ótimo! Há quanto tempo a clínica está no mercado?',
+        examples: ['2 anos', '6 meses', 'Estamos começando agora', '10 anos']
       },
       years_in_business: {
-        content: 'Quantos profissionais fazem parte da sua equipe atualmente?'
+        content: 'Quantos profissionais fazem parte da sua equipe atualmente?',
+        examples: ['Só eu', '3 profissionais', 'Temos 5 pessoas na equipe']
       },
       team_size: {
-        content: 'Quais são os principais procedimentos oferecidos pela sua clínica?'
+        content: 'Quais são os principais procedimentos oferecidos pela sua clínica?',
+        examples: ['Botox, preenchimento e limpeza de pele', 'Tratamentos corporais e faciais', 'Laser, depilação e microagulhamento']
       },
       main_services: {
-        content: 'Quais equipamentos estéticos você utiliza atualmente na sua clínica?'
+        content: 'Quais equipamentos estéticos você utiliza atualmente na sua clínica?',
+        examples: ['HIFU, radiofrequência e ultrassom', 'Não temos equipamentos', 'Laser para depilação e criolipólise']
       },
       equipments: {
-        content: 'Em qual cidade sua clínica está localizada e qual é seu público-alvo principal?'
+        content: 'Em qual cidade sua clínica está localizada e qual é seu público-alvo principal?',
+        examples: ['São Paulo, mulheres 30-50 anos classe B', 'Rio de Janeiro, público feminino e masculino', 'Fortaleza, foco em noivas e debutantes']
       },
       location: {
-        content: 'Vamos falar sobre a situação financeira e comercial. Qual é o faturamento médio mensal atual da sua clínica?'
+        content: 'Vamos falar sobre a situação financeira e comercial. Qual é o faturamento médio mensal atual da sua clínica?',
+        examples: ['R$ 15.000', 'Entre R$ 5.000 e R$ 8.000', 'Cerca de R$ 30.000 mensais']
       },
       revenue: {
-        content: 'Qual seria sua meta ideal de faturamento mensal?'
+        content: 'Qual seria sua meta ideal de faturamento mensal?',
+        examples: ['R$ 25.000', 'Dobrar o atual, para R$ 60.000', 'No mínimo R$ 10.000']
       },
       revenue_goal: {
-        content: 'Quantos atendimentos sua clínica realiza por semana, em média?'
+        content: 'Quantos atendimentos sua clínica realiza por semana, em média?',
+        examples: ['15 atendimentos', 'Entre 20 e 30', 'Menos de 10 atualmente']
       },
       weekly_clients: {
-        content: 'Quais são os procedimentos mais lucrativos da sua clínica atualmente?'
+        content: 'Quais são os procedimentos mais lucrativos da sua clínica atualmente?',
+        examples: ['Botox e preenchimento', 'Pacotes de emagrecimento', 'Tratamentos corporais com aparelhos']
       },
       most_profitable: {
         content: 'Você vende pacotes ou trabalha por sessão única?',
@@ -240,10 +252,12 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       },
       website: {
         content: 'Qual é o maior desafio da sua clínica hoje?',
-        options: ['Atrair mais clientes', 'Converter leads em clientes', 'Criar conteúdo relevante', 'Fidelizar clientes existentes', 'Precificar serviços', 'Outro (especifique)']
+        options: ['Atrair mais clientes', 'Converter leads em clientes', 'Criar conteúdo relevante', 'Fidelizar clientes existentes', 'Precificar serviços', 'Outro (especifique)'],
+        examples: ['Não consigo fechar as vendas quando o cliente chega', 'Tenho dificuldade em fazer os clientes voltarem']
       },
       main_challenge: {
-        content: 'O que você gostaria de melhorar na sua clínica nos próximos 3 meses?'
+        content: 'O que você gostaria de melhorar na sua clínica nos próximos 3 meses?',
+        examples: ['Aumentar o faturamento em 30%', 'Ter mais agendamentos por semana', 'Melhorar minha presença nas redes sociais']
       },
       improvement_goal: {
         content: 'Quais resultados você considera satisfatórios com marketing?',
@@ -251,13 +265,16 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
       },
       marketing_results: {
         content: 'Como você está se sentindo em relação ao seu negócio hoje?',
-        options: ['Animado(a)', 'Satisfeito(a)', 'Preocupado(a)', 'Frustrado(a)', 'Esgotado(a)', 'Outro (especifique)']
+        options: ['Animado(a)', 'Satisfeito(a)', 'Preocupado(a)', 'Frustrado(a)', 'Esgotado(a)', 'Outro (especifique)'],
+        examples: ['Estou preocupada porque o movimento caiu nos últimos meses']
       },
       feeling: {
-        content: 'O que você gostaria de mudar na sua rotina como profissional?'
+        content: 'O que você gostaria de mudar na sua rotina como profissional?',
+        examples: ['Ter mais tempo para atendimentos e menos para tarefas administrativas', 'Não precisar me preocupar tanto com captação de clientes', 'Trabalhar menos horas por dia']
       },
       routine_change: {
-        content: 'Se tivesse uma solução agora para seu maior problema, o que ela faria?'
+        content: 'Se tivesse uma solução agora para seu maior problema, o que ela faria?',
+        examples: ['Traria mais clientes qualificados para a clínica', 'Automatizaria o processo de captação', 'Me ajudaria a criar conteúdo facilmente']
       },
       solution_desire: {
         content: 'Obrigado por todas essas informações! Agora tenho uma visão completa da sua clínica e seus desafios.'
@@ -273,7 +290,8 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
           content: question.content,
-          options: question.options
+          options: question.options,
+          examples: question.examples
         }]);
         setLoading(false);
       }, 800);
@@ -327,6 +345,44 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
     setTimeout(() => {
       onComplete(processedData);
     }, 1500);
+  };
+
+  // Helper function to handle showing examples as clickable suggestions
+  const renderExamples = (examples: string[]) => {
+    if (!examples || examples.length === 0) return null;
+    
+    return (
+      <div className="mt-3">
+        <div className="text-xs text-muted-foreground mb-1 flex items-center">
+          <span>Exemplos de respostas:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-5 w-5 ml-1">
+                <HelpCircle className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <p className="text-xs">
+                Clique em um exemplo para usar ou digite sua própria resposta no campo abaixo.
+              </p>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {examples.map((example, idx) => (
+            <Button
+              key={idx}
+              size="sm"
+              variant="outline"
+              onClick={() => handleOptionsClick(example)}
+              className="text-xs bg-background hover:bg-muted/80"
+            >
+              {example}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -384,6 +440,8 @@ const DiagnosticChat: React.FC<DiagnosticChatProps> = ({ onComplete }) => {
                     ))}
                   </div>
                 )}
+
+                {message.role === 'assistant' && message.examples && renderExamples(message.examples)}
               </div>
             </div>
           ))}

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BrainCircuit, MessageSquare, TrendingUp, Calendar, ArrowRight, Check, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MarketingConsultantChat from "@/components/marketing-consultant/MarketingConsultantChat";
