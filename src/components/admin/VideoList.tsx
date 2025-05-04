@@ -239,7 +239,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
               <DialogTitle>Editar Vídeo</DialogTitle>
             </DialogHeader>
             {editingVideo && (
-              <VideoForm video={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
+              <VideoForm videoData={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
@@ -438,7 +438,7 @@ const VideoList: React.FC<VideoListProps> = ({ videos, onDelete, onUpdate, viewM
             <DialogTitle>Editar Vídeo</DialogTitle>
           </DialogHeader>
           {editingVideo && (
-            <VideoForm video={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
+            <VideoForm videoData={editingVideo} onSuccess={handleEditSuccess} onCancel={() => setIsEditDialogOpen(false)} />
           )}
         </DialogContent>
       </Dialog>

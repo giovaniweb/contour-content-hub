@@ -27,6 +27,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
   const [purposes, setPurposes] = useState([]);
   const [tags, setTags] = useState('');
   const [instagramCaption, setInstagramCaption] = useState('');
+  const [marketingObjective, setMarketingObjective] = useState('');
   
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +49,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
       setPurposes(videoData.finalidade || []);
       setTags(Array.isArray(videoData.tags) ? videoData.tags.join(', ') : videoData.tags || '');
       setInstagramCaption(videoData.legenda_instagram || '');
+      setMarketingObjective(videoData.objetivo_marketing || '');
     }
     
     // Load equipment list and body areas
@@ -63,14 +65,25 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
           setEquipmentsList(equipmentsData);
         }
         
-        // Fetch body areas
+        // Fix: Query the areas from videos table since areas_corpo table doesn't exist
+        // Get distinct areas from videos table
         const { data: areasData } = await supabase
-          .from('areas_corpo')
-          .select('id, nome')
-          .order('nome');
+          .from('videos')
+          .select('area_corpo')
+          .not('area_corpo', 'is', null)
+          .order('area_corpo');
           
         if (areasData) {
-          setBodyAreasList(areasData);
+          // Extract unique areas
+          const uniqueAreas = [...new Set(areasData.map(item => item.area_corpo))].filter(Boolean);
+          
+          // Transform to expected format
+          const formattedAreas = uniqueAreas.map(area => ({
+            id: area,
+            nome: area
+          }));
+          
+          setBodyAreasList(formattedAreas);
         }
       } catch (error) {
         console.error('Error fetching reference data:', error);
@@ -88,17 +101,18 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
         try {
           const { data } = await supabase
             .from('equipamentos')
-            .select('areas_aplicacao, indicacoes')
+            .select('*')
             .eq('id', equipment)
             .single();
             
           if (data) {
-            // If available, prefill body area and purposes
-            if (data.areas_aplicacao?.length > 0) {
-              setBodyArea(data.areas_aplicacao[0]);
+            // Fix: Use the correct property names from the equipamentos table
+            // If available, prefill body area based on available data
+            if (data.areas) {
+              setBodyArea(data.areas[0]);
             }
             
-            if (data.indicacoes?.length > 0) {
+            if (data.indicacoes) {
               setPurposes(data.indicacoes);
             }
           }
@@ -163,7 +177,8 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
         area_corpo: bodyArea || null,
         finalidade: purposes,
         tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-        legenda_instagram: instagramCaption || null
+        legenda_instagram: instagramCaption || null,
+        objetivo_marketing: marketingObjective || null
       };
 
       let result;
@@ -335,8 +350,8 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                 <div className="space-y-2 md:col-span-2">
                   <Label>Finalidade</Label>
                   <VideoObjectiveSelector
-                    selected={purposes}
-                    onChange={setPurposes}
+                    value={marketingObjective}
+                    onValueChange={setMarketingObjective}
                   />
                 </div>
                 
