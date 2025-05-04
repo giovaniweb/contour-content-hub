@@ -14,9 +14,6 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
       `);
 
     // Apply filters
-    if (filters.linha) {
-      query = query.ilike('linha', `%${filters.linha}%`);
-    }
     if (filters.equipamento_id) {
       query = query.eq('equipamento_id', filters.equipamento_id);
     }
@@ -57,16 +54,24 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
 
     // Transform data to match our interface
     return (data || []).map(item => ({
-      ...item,
-      // Ensure our type conversion matches ContentStrategyItem
-      categoria: item.categoria as ContentStrategyItem['categoria'],
-      formato: item.formato as ContentStrategyItem['formato'],
-      objetivo: item.objetivo as ContentStrategyItem['objetivo'],
-      prioridade: item.prioridade as ContentStrategyItem['prioridade'],
-      status: item.status as ContentStrategyItem['status'],
-      distribuicao: item.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram', // Default value if not set
+      id: item.id,
+      linha: item.linha,
+      equipamento_id: item.equipamento_id,
       equipamento_nome: item.equipamento?.nome || null,
-      responsavel_nome: item.responsavel?.nome || null
+      categoria: item.categoria,
+      formato: item.formato,
+      responsavel_id: item.responsavel_id,
+      responsavel_nome: item.responsavel?.nome || null,
+      previsao: item.previsao,
+      conteudo: item.conteudo,
+      objetivo: item.objetivo,
+      prioridade: item.prioridade,
+      status: item.status,
+      distribuicao: item.distribuicao || 'Instagram', // Default if not defined
+      impedimento: item.impedimento,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      created_by: item.created_by
     }));
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
@@ -90,7 +95,6 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     const { data, error } = await supabase
       .from('content_strategy_items')
       .insert({
-        linha: item.linha || null,
         equipamento_id: equipamento_id,
         categoria: item.categoria,
         formato: item.formato,
@@ -100,7 +104,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
         objetivo: item.objetivo,
         prioridade: item.prioridade || 'Média',
         status: item.status || 'Planejado',
-        distribuicao: item.distribuicao || 'Instagram', // Default to Instagram if not provided
+        distribuicao: item.distribuicao || 'Instagram',
         impedimento: item.impedimento || null,
         created_by: (await supabase.auth.getUser()).data.user?.id || null
       })
@@ -119,16 +123,24 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     });
 
     return {
-      ...data,
-      // Ensure our type conversion matches ContentStrategyItem
-      categoria: data.categoria as ContentStrategyItem['categoria'],
-      formato: data.formato as ContentStrategyItem['formato'],
-      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
-      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
-      status: data.status as ContentStrategyItem['status'],
-      distribuicao: data.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram',
+      id: data.id,
+      linha: data.linha,
+      equipamento_id: data.equipamento_id,
       equipamento_nome: data.equipamento?.nome || null,
-      responsavel_nome: data.responsavel?.nome || null
+      categoria: data.categoria,
+      formato: data.formato,
+      responsavel_id: data.responsavel_id,
+      responsavel_nome: data.responsavel?.nome || null,
+      previsao: data.previsao,
+      conteudo: data.conteudo,
+      objetivo: data.objetivo,
+      prioridade: data.prioridade,
+      status: data.status,
+      distribuicao: data.distribuicao || 'Instagram',
+      impedimento: data.impedimento,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      created_by: data.created_by
     };
   } catch (error) {
     console.error("Error creating content strategy item:", error);

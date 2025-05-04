@@ -14,7 +14,7 @@ export interface ContentStrategyItem {
   prioridade: ContentPriority;
   status: ContentStatus;
   impedimento: string | null;
-  distribuicao: ContentDistribution; // New field for distribution platform
+  distribuicao: ContentDistribution; // Field for distribution platform
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -68,7 +68,6 @@ export type ContentDistribution =
   | 'Outro';
 
 export interface ContentStrategyFilter {
-  linha?: string;
   equipamento_id?: string;
   categoria?: ContentCategory;
   formato?: ContentFormat;
@@ -76,7 +75,7 @@ export interface ContentStrategyFilter {
   objetivo?: ContentObjective;
   prioridade?: ContentPriority;
   status?: ContentStatus;
-  distribuicao?: ContentDistribution; // Add filter for distribution
+  distribuicao?: ContentDistribution;
   dateRange?: {
     from?: Date;
     to?: Date;

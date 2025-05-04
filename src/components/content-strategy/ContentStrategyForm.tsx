@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +35,6 @@ import { cn } from "@/lib/utils";
 import { ContentStrategyItem } from "@/types/content-strategy";
 
 const formSchema = z.object({
-  linha: z.string().optional().nullable(),
   equipamento_id: z.string().optional().nullable(),
   categoria: z.enum(['branding', 'vendas', 'educativo', 'informativo', 'engajamento', 'produto', 'outro'], { 
     required_error: "Categoria é obrigatória" 
@@ -72,7 +72,6 @@ export function ContentStrategyForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      linha: "",
       equipamento_id: "",
       categoria: "vendas",
       formato: "story",
@@ -82,7 +81,7 @@ export function ContentStrategyForm({
       objetivo: "engajar",
       prioridade: "Média",
       status: "Planejado",
-      distribuicao: "Instagram", // Default value for distribution
+      distribuicao: "Instagram",
       impedimento: "",
     },
   });
@@ -100,24 +99,6 @@ export function ContentStrategyForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Linha/Marca */}
-          <FormField
-            control={form.control}
-            name="linha"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Linha/Marca</FormLabel>
-                <FormControl>
-                  <Input placeholder="Digite a linha ou marca" {...field} value={field.value || ''} />
-                </FormControl>
-                <FormDescription>
-                  Nome da marca ou linha de produtos.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Equipamento */}
           <FormField
             control={form.control}
