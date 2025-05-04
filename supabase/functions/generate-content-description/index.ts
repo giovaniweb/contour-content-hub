@@ -23,6 +23,30 @@ serve(async (req) => {
 
     const { linha, equipamento, categoria, formato, objetivo, impedimento, prioridade } = await req.json();
 
+    // Map marketing objective to context
+    let objetivoContext = "";
+    if (objetivo) {
+      switch (objetivo) {
+        case "🟡 Atrair Atenção":
+          objetivoContext = "criar curiosidade, interromper o scroll, gerar clique";
+          break;
+        case "🟢 Criar Conexão":
+          objetivoContext = "gerar empatia, identificação, mostrar 'por que você'";
+          break;
+        case "🔴 Fazer Comprar":
+          objetivoContext = "destacar valor, diferencial, benefício, quebrar objeções";
+          break;
+        case "🔁 Reativar Interesse":
+          objetivoContext = "resgatar contatos frios, leads antigos, pacientes inativos";
+          break;
+        case "✅ Fechar Agora":
+          objetivoContext = "ação imediata, urgência, chamada para conversão direta";
+          break;
+        default:
+          objetivoContext = objetivo;
+      }
+    }
+
     // Build the prompt
     const systemPrompt = `Você é um especialista em marketing para clínicas de estética que oferece ideias de conteúdo estratégico. 
 Seu objetivo é criar descrições de conteúdo que contenham ideias criativas, adaptadas ao formato solicitado.`;
@@ -32,12 +56,13 @@ ${linha ? `- Linha/Marca: ${linha}` : ''}
 ${equipamento ? `- Equipamento: ${equipamento}` : ''}
 - Categoria de conteúdo: ${categoria || 'Não especificado'}
 - Formato desejado: ${formato || 'Não especificado'}
-- Objetivo de marketing: ${objetivo || 'Não especificado'}
+- Objetivo de marketing: ${objetivo || 'Não especificado'} (${objetivoContext})
 ${impedimento ? `- Considerações especiais: ${impedimento}` : ''}
 - Prioridade: ${prioridade || 'Média'}
 
 Forneça uma descrição clara e atraente para este conteúdo, incluindo ideias para hooks, pontos principais a abordar e uma conclusão com chamada para ação.
 Use linguagem persuasiva e focada em resultados.
+Assegure-se que o conteúdo está alinhado com o objetivo de marketing escolhido.
 Limite-se a no máximo 300 palavras.`;
 
     // Call OpenAI

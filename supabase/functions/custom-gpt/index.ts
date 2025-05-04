@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -159,10 +158,36 @@ serve(async (req) => {
       
       if (estrategiaConteudo) {
         userPrompt += `Estratégia de conteúdo: ${estrategiaConteudo}\n`;
+        
+        // Adicionar contextos específicos para cada objetivo
+        if (estrategiaConteudo === '🟡 Atrair Atenção') {
+          userPrompt += `Contexto do objetivo: Criar curiosidade, interromper o scroll, gerar clique\n`;
+        } else if (estrategiaConteudo === '🟢 Criar Conexão') {
+          userPrompt += `Contexto do objetivo: Gerar empatia, identificação, mostrar "por que você"\n`;
+        } else if (estrategiaConteudo === '🔴 Fazer Comprar') {
+          userPrompt += `Contexto do objetivo: Destacar valor, diferencial, benefício, quebrar objeções\n`;
+        } else if (estrategiaConteudo === '🔁 Reativar Interesse') {
+          userPrompt += `Contexto do objetivo: Resgatar contatos frios, leads antigos, pacientes inativos\n`;
+        } else if (estrategiaConteudo === '✅ Fechar Agora') {
+          userPrompt += `Contexto do objetivo: Ação imediata, urgência, chamada para conversão direta\n`;
+        }
       }
     } else if (tipo === 'bigIdea') {
       if (estrategiaConteudo) {
         userPrompt += `Estratégia de conteúdo: ${estrategiaConteudo}\n`;
+        
+        // Adicionar contextos específicos para cada objetivo
+        if (estrategiaConteudo === '🟡 Atrair Atenção') {
+          userPrompt += `Contexto do objetivo: Criar curiosidade, interromper o scroll, gerar clique\n`;
+        } else if (estrategiaConteudo === '🟢 Criar Conexão') {
+          userPrompt += `Contexto do objetivo: Gerar empatia, identificação, mostrar "por que você"\n`;
+        } else if (estrategiaConteudo === '🔴 Fazer Comprar') {
+          userPrompt += `Contexto do objetivo: Destacar valor, diferencial, benefício, quebrar objeções\n`;
+        } else if (estrategiaConteudo === '🔁 Reativar Interesse') {
+          userPrompt += `Contexto do objetivo: Resgatar contatos frios, leads antigos, pacientes inativos\n`;
+        } else if (estrategiaConteudo === '✅ Fechar Agora') {
+          userPrompt += `Contexto do objetivo: Ação imediata, urgência, chamada para conversão direta\n`;
+        }
       }
     } else if (tipo === 'stories') {
       userPrompt += `Tom desejado: ${tom || 'Use o tom indicado no cadastro do equipamento'}\n`;
@@ -188,6 +213,19 @@ serve(async (req) => {
     
     if (marketingObjective) {
       userPrompt += `Objetivo de marketing: ${marketingObjective}\n`;
+      
+      // Adicionar contextos específicos para cada objetivo
+      if (marketingObjective === '🟡 Atrair Atenção') {
+        userPrompt += `Contexto do objetivo: Criar curiosidade, interromper o scroll, gerar clique\n`;
+      } else if (marketingObjective === '🟢 Criar Conexão') {
+        userPrompt += `Contexto do objetivo: Gerar empatia, identificação, mostrar "por que você"\n`;
+      } else if (marketingObjective === '🔴 Fazer Comprar') {
+        userPrompt += `Contexto do objetivo: Destacar valor, diferencial, benefício, quebrar objeções\n`;
+      } else if (marketingObjective === '🔁 Reativar Interesse') {
+        userPrompt += `Contexto do objetivo: Resgatar contatos frios, leads antigos, pacientes inativos\n`;
+      } else if (marketingObjective === '✅ Fechar Agora') {
+        userPrompt += `Contexto do objetivo: Ação imediata, urgência, chamada para conversão direta\n`;
+      }
     }
     
     // Aqui definimos qual tipo específico de saída queremos

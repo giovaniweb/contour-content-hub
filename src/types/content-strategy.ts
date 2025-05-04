@@ -39,6 +39,11 @@ export type ContentFormat =
   | 'outro';
 
 export type ContentObjective = 
+  | '🟡 Atrair Atenção'
+  | '🟢 Criar Conexão'
+  | '🔴 Fazer Comprar'
+  | '🔁 Reativar Interesse'
+  | '✅ Fechar Agora'
   | 'engajar'
   | 'vender'
   | 'educar'

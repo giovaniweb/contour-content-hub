@@ -46,19 +46,19 @@ export function buildPrompt(params: PromptBuilderParams): PromptResult {
   let marketingContext = "";
   if (marketingObjective) {
     switch (marketingObjective) {
-      case "atrair_atencao":
+      case "🟡 Atrair Atenção":
         marketingContext = "O conteúdo deve ser impactante, chamar atenção nos primeiros segundos e criar curiosidade para quem não conhece o tratamento. Use frases de efeito e estatísticas surpreendentes.";
         break;
-      case "criar_conexao":
+      case "🟢 Criar Conexão":
         marketingContext = "O conteúdo deve humanizar a marca, contar histórias pessoais e criar conexão emocional. Foque em experiências e sentimentos dos pacientes, não apenas nos resultados técnicos.";
         break;
-      case "fazer_comprar":
+      case "🔴 Fazer Comprar":
         marketingContext = "O conteúdo deve focar nos benefícios concretos, apresentar provas sociais e ter chamadas para ação claras. Destaque o valor do tratamento e como ele resolve problemas específicos.";
         break;
-      case "reativar_interesse":
+      case "🔁 Reativar Interesse":
         marketingContext = "O conteúdo deve lembrar a audiência de problemas que ainda não resolveram e trazer novidades ou abordagens diferentes. Reforce a autoridade da clínica e o diferencial do tratamento.";
         break;
-      case "fechar_agora":
+      case "✅ Fechar Agora":
         marketingContext = "O conteúdo deve criar senso de urgência, destacar limitação de tempo/vagas e ter múltiplas chamadas para ação. Use frases como 'últimas vagas' e destaque condições especiais.";
         break;
     }
