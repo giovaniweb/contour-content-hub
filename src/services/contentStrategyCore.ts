@@ -17,36 +17,21 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         responsavel:perfis!responsavel_id(nome)
       `);
 
-    // Aplicação dos filtros
-    if (filters.equipamento_id) {
-      query = query.eq('equipamento_id', filters.equipamento_id);
-    }
-    if (filters.categoria) {
-      query = query.eq('categoria', filters.categoria);
-    }
-    if (filters.formato) {
-      query = query.eq('formato', filters.formato);
-    }
-    if (filters.responsavel_id) {
-      query = query.eq('responsavel_id', filters.responsavel_id);
-    }
-    if (filters.objetivo) {
-      query = query.eq('objetivo', filters.objetivo);
-    }
-    if (filters.prioridade) {
-      query = query.eq('prioridade', filters.prioridade);
-    }
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
-    if (filters.distribuicao) {
-      query = query.eq('distribuicao', filters.distribuicao);
-    }
-    if (filters.dateRange?.from && filters.dateRange?.to) {
-      query = query
-        .gte('previsao', filters.dateRange.from.toISOString())
-        .lte('previsao', filters.dateRange.to.toISOString());
-    }
+    // Aplicação dos filtros de forma simplificada para evitar recursão de tipos
+    Object.entries(filters).forEach(([key, value]) => {
+      // Tratamento especial para o dateRange
+      if (key === 'dateRange' && value && value.from && value.to) {
+        query = query
+          .gte('previsao', value.from.toISOString())
+          .lte('previsao', value.to.toISOString());
+        return;
+      }
+
+      // Aplicação dos demais filtros se o valor existir
+      if (value && key !== 'dateRange') {
+        query = query.eq(key, value);
+      }
+    });
 
     // Ordenação
     query = query.order('prioridade', { ascending: false }).order('previsao', { ascending: true });

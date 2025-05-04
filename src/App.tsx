@@ -15,6 +15,8 @@ import CalendarPage from "@/pages/Calendar";
 import ContentStrategy from "@/pages/ContentStrategy";
 import { AuthProvider } from "@/context/AuthContext";
 import PrivateRoute from "@/components/PrivateRoute";
+import ScriptValidationPage from "@/pages/ScriptValidationPage";
+import CustomGpt from "@/pages/CustomGpt";
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="/marketing-consultant" element={<PrivateRoute element={<MarketingConsultant />} />} />
           <Route path="/calendar" element={<PrivateRoute element={<CalendarPage />} />} />
           <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
+          <Route path="/script-validation" element={<PrivateRoute element={<ScriptValidationPage />} />} />
+          <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGpt />} />} />
         </Routes>
         <Toaster />
       </AuthProvider>

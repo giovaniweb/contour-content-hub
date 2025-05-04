@@ -44,14 +44,15 @@ export function prepareContentStrategyData(item: Partial<ContentStrategyItem>): 
   // Processa responsavel_id - converte string vazia para null
   const responsavel_id = item.responsavel_id === '_none' || !item.responsavel_id ? null : item.responsavel_id;
   
+  // Garantir que os campos obrigatórios estejam presentes
   return {
+    categoria: item.categoria || 'Educacional',
+    formato: item.formato || 'Video',
+    objetivo: item.objetivo || 'Educar',
     equipamento_id: equipamento_id,
-    categoria: item.categoria,
-    formato: item.formato,
     responsavel_id: responsavel_id,
     previsao: item.previsao || null,
     conteudo: item.conteudo || null,
-    objetivo: item.objetivo,
     prioridade: item.prioridade || 'Média',
     status: item.status || 'Planejado',
     distribuicao: item.distribuicao || 'Instagram',
