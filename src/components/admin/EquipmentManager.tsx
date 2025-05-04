@@ -1,247 +1,280 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Loader2, Search, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import EquipmentForm from './EquipmentForm';
 import EquipmentList from './EquipmentList';
-import { getEquipments } from '@/utils/api-equipment';
-
-interface EquipmentListProps {
-  equipments: Equipment[];
-  onEdit: (equipment: Equipment) => void;
-  onDelete: (id: string) => Promise<void>;
-  onSearch?: (searchTerm: string, status?: 'active' | 'inactive' | 'all') => void;
-}
+import { getEquipments, createEquipment, updateEquipment, deleteEquipment } from '@/utils/api-equipment';
 
 const EquipmentManager: React.FC = () => {
   const { toast } = useToast();
+  
+  // State
   const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [filteredEquipments, setFilteredEquipments] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentEquipment, setCurrentEquipment] = useState<Equipment | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
-  const [filters, setFilters] = useState({
-    searchTerm: '',
-    status: 'all'
-  });
-
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Fetch equipment data
   useEffect(() => {
-    loadEquipments();
+    fetchEquipments();
   }, []);
-
-  const loadEquipments = async () => {
+  
+  // Filter equipments based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredEquipments(equipments);
+    } else {
+      const lowercaseSearch = searchTerm.toLowerCase();
+      const filtered = equipments.filter(eq => 
+        eq.nome.toLowerCase().includes(lowercaseSearch) || 
+        eq.tecnologia.toLowerCase().includes(lowercaseSearch)
+      );
+      setFilteredEquipments(filtered);
+    }
+  }, [searchTerm, equipments]);
+  
+  const fetchEquipments = async () => {
     try {
-      setIsLoading(true);
-      console.log("Carregando equipamentos...");
+      setLoading(true);
       const data = await getEquipments();
-      console.log("Equipamentos carregados:", data);
-      setEquipments(data as Equipment[]);
+      setEquipments(data);
+      setFilteredEquipments(data);
     } catch (error) {
-      console.error("Erro ao carregar equipamentos:", error);
+      console.error('Error fetching equipments:', error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível carregar a lista de equipamentos.",
+        title: "Erro ao carregar equipamentos",
+        description: "Não foi possível buscar os equipamentos. Por favor, tente novamente.",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  const handleSearch = (searchTerm: string, status: 'active' | 'inactive' | 'all' = 'all') => {
-    setFilters({
-      ...filters,
-      searchTerm,
-      status
-    });
-  };
-
-  const handleCreateEquipment = async (newEquipment: Equipment) => {
+  
+  const handleCreateEquipment = async (equipment: any) => {
     try {
-      // Ensure all required fields are present before passing to createEquipment
-      const completeEquipment = {
-        ...newEquipment,
-        // Add default values for any required fields that might be missing
-        linguagem: newEquipment.linguagem || '',
-      };
-      
-      console.log("Tentando criar equipamento com os dados:", completeEquipment);
-      
-      // Simulando a criação do equipamento
-      const createdEquipment = {
-        ...completeEquipment,
-        id: `new-${Date.now()}`,
-        data_cadastro: new Date().toISOString()
-      };
-      
-      // Adicionar o equipamento à lista local
-      setEquipments(prevEquipments => [...prevEquipments, createdEquipment]);
-      
-      setIsNewDialogOpen(false);
+      setIsProcessing(true);
+      const createdEquipment = await createEquipment(equipment);
+      setEquipments(prev => [...prev, createdEquipment]);
+      setShowNewForm(false);
       toast({
-        title: "Equipamento adicionado",
-        description: "O equipamento foi cadastrado com sucesso!",
+        title: "Equipamento criado",
+        description: `${equipment.nome} foi criado com sucesso.`,
       });
     } catch (error) {
-      console.error("Erro ao criar equipamento:", error);
+      console.error('Error creating equipment:', error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível adicionar o equipamento. Verifique o console para mais informações.",
+        title: "Erro ao criar equipamento",
+        description: "Não foi possível criar o equipamento. Por favor, tente novamente.",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
-
-  const openEditDialog = (equipment: Equipment) => {
+  
+  const handleEditEquipment = (equipment: Equipment) => {
     setCurrentEquipment(equipment);
-    setIsEditDialogOpen(true);
+    setShowEditForm(true);
   };
-
-  const handleUpdateEquipment = async (updatedEquipment: Equipment) => {
+  
+  const handleUpdateEquipment = async (equipment: any) => {
+    if (!currentEquipment) return;
+    
     try {
-      console.log("Tentando atualizar equipamento com os dados:", updatedEquipment);
-      
-      // Extrair efeito field before sending to API since it's not in the database
-      const { efeito, ...equipmentToUpdate } = updatedEquipment;
-      
-      // Simulando a atualização
-      // Update the equipment in the local state
-      setEquipments(currentEquipments => 
-        currentEquipments.map(item => 
-          item.id === updatedEquipment.id ? { ...updatedEquipment } : item
-        )
-      );
-      
-      setIsEditDialogOpen(false);
-      setCurrentEquipment(null);
-      
+      setIsProcessing(true);
+      const updatedEquipment = await updateEquipment(currentEquipment.id, equipment);
+      setEquipments(prev => prev.map(eq => eq.id === updatedEquipment.id ? updatedEquipment : eq));
+      setShowEditForm(false);
       toast({
         title: "Equipamento atualizado",
-        description: "O equipamento foi atualizado com sucesso!",
+        description: `${updatedEquipment.nome} foi atualizado com sucesso.`,
       });
     } catch (error) {
-      console.error("Erro ao atualizar equipamento:", error);
+      console.error('Error updating equipment:', error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível atualizar o equipamento. Verifique o console para mais informações.",
+        title: "Erro ao atualizar equipamento",
+        description: "Não foi possível atualizar o equipamento. Por favor, tente novamente.",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
-
-  const handleDeleteEquipment = async (id: string) => {
+  
+  const handleDeleteClick = (id: string) => {
+    setDeletingId(id);
+    setShowDeleteDialog(true);
+  };
+  
+  const handleDeleteConfirm = async () => {
+    if (!deletingId) return;
+    
     try {
-      // Simulando exclusão
-      // Update local state directly to avoid reloading all equipment
-      setEquipments(currentEquipments => currentEquipments.filter(item => item.id !== id));
+      setIsProcessing(true);
+      await deleteEquipment(deletingId);
+      setEquipments(prev => prev.filter(eq => eq.id !== deletingId));
       toast({
-        title: "Equipamento removido",
-        description: "O equipamento foi removido com sucesso!",
+        title: "Equipamento excluído",
+        description: "O equipamento foi excluído com sucesso.",
       });
     } catch (error) {
-      console.error("Erro ao excluir equipamento:", error);
+      console.error('Error deleting equipment:', error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível excluir o equipamento.",
+        title: "Erro ao excluir equipamento",
+        description: "Não foi possível excluir o equipamento. Por favor, tente novamente.",
       });
+    } finally {
+      setIsProcessing(false);
+      setShowDeleteDialog(false);
+      setDeletingId(null);
     }
   };
-
-  const filteredEquipments = activeTab === "all" 
-    ? equipments 
-    : activeTab === "active" 
-      ? equipments.filter(e => e.ativo) 
-      : equipments.filter(e => !e.ativo);
-
+  
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
+  
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Gerenciamento de Equipamentos</CardTitle>
-          <CardDescription>
-            Cadastre e gerencie os equipamentos disponíveis para roteiros
-          </CardDescription>
+    <div className="space-y-4">
+      <div className="flex justify-between mb-4">
+        <div className="relative w-full max-w-sm">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar equipamentos..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <Button onClick={() => setIsNewDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+        
+        <Button onClick={() => setShowNewForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
           Novo Equipamento
         </Button>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-          <TabsList>
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="active">Ativos</TabsTrigger>
-            <TabsTrigger value="inactive">Inativos</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      </div>
+      
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid grid-cols-3 max-w-[400px]">
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="active">Ativos</TabsTrigger>
+          <TabsTrigger value="inactive">Inativos</TabsTrigger>
+        </TabsList>
         
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : (
+        <TabsContent value="all">
           <EquipmentList
             equipments={filteredEquipments}
-            onEdit={openEditDialog}
-            onDelete={handleDeleteEquipment}
+            onEdit={handleEditEquipment}
+            onDelete={handleDeleteClick}
+            loading={loading}
           />
-        )}
-      </CardContent>
-
-      {/* New Equipment Dialog */}
-      <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        </TabsContent>
+        
+        <TabsContent value="active">
+          <EquipmentList
+            equipments={filteredEquipments.filter(eq => eq.ativo)}
+            onEdit={handleEditEquipment}
+            onDelete={handleDeleteClick}
+            loading={loading}
+          />
+        </TabsContent>
+        
+        <TabsContent value="inactive">
+          <EquipmentList
+            equipments={filteredEquipments.filter(eq => !eq.ativo)}
+            onEdit={handleEditEquipment}
+            onDelete={handleDeleteClick}
+            loading={loading}
+          />
+        </TabsContent>
+      </Tabs>
+      
+      {/* Add Equipment Dialog */}
+      <Dialog open={showNewForm} onOpenChange={setShowNewForm}>
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>Novo Equipamento</DialogTitle>
+            <DialogTitle>Adicionar Novo Equipamento</DialogTitle>
             <DialogDescription>
-              Cadastre um novo equipamento para uso nos roteiros
+              Preencha os campos abaixo para adicionar um novo equipamento.
             </DialogDescription>
           </DialogHeader>
           
-          <EquipmentForm
-            onSave={handleCreateEquipment}
-            onCancel={() => setIsNewDialogOpen(false)}
+          <EquipmentForm 
+            onSubmit={handleCreateEquipment} 
+            onCancel={() => setShowNewForm(false)}
+            isProcessing={isProcessing}
           />
         </DialogContent>
       </Dialog>
-
+      
       {/* Edit Equipment Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>Editar Equipamento</DialogTitle>
             <DialogDescription>
-              Atualize os dados do equipamento
+              Edite os detalhes do equipamento.
             </DialogDescription>
           </DialogHeader>
           
           {currentEquipment && (
-            <EquipmentForm
+            <EquipmentForm 
               equipment={currentEquipment}
-              onSave={handleUpdateEquipment}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setCurrentEquipment(null);
-              }}
+              onSubmit={handleUpdateEquipment}
+              onCancel={() => setShowEditForm(false)}
+              isProcessing={isProcessing}
             />
           )}
         </DialogContent>
       </Dialog>
-    </Card>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 

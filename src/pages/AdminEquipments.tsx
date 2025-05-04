@@ -1,109 +1,108 @@
 
-import React, { useState, useRef } from "react";
-import Layout from "@/components/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import EquipmentManager from "@/components/admin/EquipmentManager";
-import { Equipment } from "@/types/equipment";
-import { Card, CardContent } from "@/components/ui/card";
-import { Upload, FileText } from "lucide-react";
-import { importEquipments } from "@/utils/api-equipment";
+import React, { useEffect, useState } from 'react';
+import Layout from '@/components/Layout';
+import EquipmentManager from '@/components/admin/EquipmentManager';
+import { Button } from '@/components/ui/button';
+import { getEquipments, importEquipments } from '@/utils/api-equipment';
+import { Equipment } from '@/types/equipment';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const AdminEquipments: React.FC = () => {
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const { toast } = useToast();
-  const [importingFile, setImportingFile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelection = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      try {
+        const data = await getEquipments();
+        setEquipment(data);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar equipamentos",
+          description: "Não foi possível carregar a lista de equipamentos.",
+        });
+        console.error('Error fetching equipment:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    fetchEquipment();
+  }, [toast]);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    setImporting(true);
     try {
-      setImportingFile(true);
-      toast({
-        title: "Importando equipamentos",
-        description: "Aguarde enquanto processamos o arquivo...",
-      });
+      const imported = await importEquipments(file);
       
-      const result = await importEquipments(file);
-      
-      toast({
-        title: "Importação concluída",
-        description: `${result.imported} equipamentos foram importados com sucesso.`,
-      });
+      // Updated to check if imported is an array with imported property
+      if (Array.isArray(imported)) {
+        setEquipment(prev => [...prev, ...imported]);
+        
+        toast({
+          title: "Importação concluída",
+          description: `Foram importados ${imported.length} equipamentos.`,
+        });
+      }
     } catch (error) {
-      console.error("Erro ao importar equipamentos:", error);
+      console.error('Error importing equipment:', error);
       toast({
         variant: "destructive",
         title: "Erro na importação",
         description: "Não foi possível importar os equipamentos.",
       });
     } finally {
-      setImportingFile(false);
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setImporting(false);
     }
   };
 
-  return (
-    <Layout title="Gerenciamento de Equipamentos">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Gerenciamento de Equipamentos</h1>
-        <p className="text-muted-foreground mt-1">
-          Cadastre e gerencie os equipamentos disponíveis para criação de roteiros
-        </p>
-      </div>
+  if (loading) {
+    return (
+      <Layout title="Administração de Equipamentos">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
-      <Tabs defaultValue="list">
-        <TabsList className="mb-6">
-          <TabsTrigger value="list">Lista de Equipamentos</TabsTrigger>
-          <TabsTrigger value="import">Importação em Massa</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="list" className="space-y-6">
-          <EquipmentManager />
-        </TabsContent>
-        
-        <TabsContent value="import" className="space-y-6">
-          <Card>
-            <CardContent className="p-6 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg mt-6">
-              <div className="text-center space-y-4">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto" />
-                <h3 className="text-lg font-medium">Importe Equipamentos em Massa</h3>
-                <p className="text-muted-foreground text-sm max-w-md">
-                  Faça upload de um arquivo JSON ou CSV contendo a lista de equipamentos que você deseja importar.
-                </p>
-                <div className="flex justify-center mt-2">
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
-                    accept=".json,.csv" 
-                    className="hidden" 
-                  />
-                  <Button 
-                    onClick={handleFileSelection} 
-                    disabled={importingFile} 
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="h-5 w-5" />
-                    {importingFile ? "Importando..." : "Selecionar Arquivo"}
-                  </Button>
+  return (
+    <Layout title="Administração de Equipamentos">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Gerenciar Equipamentos</h1>
+          
+          <div className="flex gap-2 items-center">
+            <div>
+              <Label htmlFor="import-file" className="cursor-pointer">
+                <div className="flex items-center gap-1 text-sm px-3 py-1 border rounded-md bg-background hover:bg-accent">
+                  <Upload className="h-4 w-4" />
+                  {importing ? 'Importando...' : 'Importar'}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                <Input 
+                  id="import-file" 
+                  type="file" 
+                  className="hidden" 
+                  accept=".csv,.xlsx,.json"
+                  onChange={handleImport}
+                  disabled={importing}
+                />
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        <EquipmentManager />
+      </div>
     </Layout>
   );
 };

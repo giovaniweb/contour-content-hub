@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,15 @@ import VideoObjectiveSelector from './VideoObjectiveSelector';
 import VimeoImporter from './VimeoImporter';
 import { MarketingObjectiveType } from '@/utils/api';
 
-const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }) => {
+// Add a prop interface for VideoForm
+interface VideoFormProps {
+  onSuccess?: (result: any) => void;
+  onCancel?: () => void;
+  videoData?: any;
+  equipmentId?: string | null;
+}
+
+const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = null, equipmentId = null }) => {
   // Form state
   const [title, setTitle] = useState('');
   const [shortDescription, setShortDescription] = useState('');
@@ -218,7 +226,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
 
   return (
     <div>
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="upload">Importar Vídeo</TabsTrigger>
           <TabsTrigger value="form">Formulário Manual</TabsTrigger>
@@ -226,8 +234,8 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
         
         <TabsContent value="upload">
           <VimeoImporter 
-            onComplete={handleVimeoImport} 
-            equipmentId={equipment}
+            onCompleteImport={handleVimeoImport} 
+            selectedEquipmentId={equipment}
           />
           
           <div className="mt-4">

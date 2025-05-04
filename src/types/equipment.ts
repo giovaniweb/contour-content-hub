@@ -21,7 +21,7 @@ export interface Equipment {
   garantia?: string;
   parametros?: string;
   protocolos?: string;
-  indicacoes: string[];
+  indicacoes: string[] | string;
   contraindicacoes?: string[];
   caracteristicas?: string[];
   beneficios_lista?: string[];

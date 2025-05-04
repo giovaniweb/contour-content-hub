@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,13 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEquipments } from "@/hooks/useEquipments";
+import { Equipment } from '@/types/equipment';
+
+// Prop interface
+interface VimeoImporterProps {
+  onCompleteImport: (importedData: any) => void;
+  selectedEquipmentId?: string;
+}
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -39,7 +47,7 @@ const formSchema = z.object({
   isFavorite: z.boolean().default(false),
 });
 
-const VimeoImporter: React.FC = () => {
+const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selectedEquipmentId }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { equipments, loading: equipmentsLoading } = useEquipments();
@@ -58,12 +66,18 @@ const VimeoImporter: React.FC = () => {
       title: "",
       description: "",
       vimeoUrl: "",
-      equipment: "",
+      equipment: selectedEquipmentId || "",
       bodyArea: "",
       purpose: "",
       isFavorite: false,
     },
   });
+
+  useEffect(() => {
+    if (selectedEquipmentId) {
+      form.setValue("equipment", selectedEquipmentId);
+    }
+  }, [selectedEquipmentId, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -74,21 +88,15 @@ const VimeoImporter: React.FC = () => {
         throw new Error("Não foi possível extrair o ID do vídeo do Vimeo.");
       }
 
-      // Fetch video details from Vimeo API (replace with your actual API call)
-      // const vimeoResponse = await fetch(`https://api.vimeo.com/videos/${videoId}`, {
-      //   headers: {
-      //     'Authorization': `Bearer YOUR_VIMEO_API_TOKEN`
-      //   }
-      // });
-      // const vimeoData = await vimeoResponse.json();
-
       // Simulate Vimeo API response
       const vimeoData = {
         name: values.title,
         description: values.description,
         link: values.vimeoUrl,
-        pictures: [{ sizes: [{ link: 'https://i.vimeocdn.com/video/0000000_300x200.jpg' }] }],
-        duration: 180,
+        pictures: { 
+          sizes: [{ link: 'https://i.vimeocdn.com/video/0000000_300x200.jpg' }]
+        },
+        duration: "180",
       };
 
       // Check if the video already exists for the selected equipment and body area
@@ -129,26 +137,23 @@ const VimeoImporter: React.FC = () => {
         throw new Error("Equipamento não encontrado.");
       }
 
-      // Upload video data to Supabase
-      const { error } = await supabase
-        .from('videos')
-        .insert({
-          titulo: vimeoData.name,
-          descricao_curta: vimeoData.description,
-          url_video: vimeoData.link,
-          preview_url: vimeoData.pictures[0].sizes[0].link,
-          duracao: vimeoData.duration,
-          equipamentos: [values.equipment],
-          area_corpo: values.bodyArea,
-          finalidade: [values.purpose],
-          tipo_video: 'video_pronto',
-          data_upload: new Date().toISOString(),
-        });
+      // Prepare imported data
+      const importedData = {
+        titulo: vimeoData.name,
+        descricao_curta: vimeoData.description,
+        url_video: vimeoData.link,
+        preview_url: vimeoData.pictures.sizes[0].link,
+        duracao: vimeoData.duration,
+        equipamentos: [values.equipment],
+        area_corpo: values.bodyArea,
+        finalidade: [values.purpose],
+        tipo_video: 'video_pronto',
+        data_upload: new Date().toISOString(),
+      };
 
-      if (error) {
-        throw new Error(`Erro ao inserir vídeo no Supabase: ${error.message}`);
-      }
-
+      // Call the onCompleteImport callback
+      onCompleteImport(importedData);
+      
       toast({
         title: "Vídeo importado com sucesso!",
         description: `O vídeo "${values.title}" foi importado e associado ao equipamento "${equipment.nome}".`,
@@ -290,20 +295,6 @@ const VimeoImporter: React.FC = () => {
             </FormItem>
           )}
         />
-        {/* Check if the video already exists for the selected equipment and body area */}
-        {equipments.map((equipment) => (
-          bodyAreas.map((bodyArea) => (
-            purposes.map((purpose) => (
-              <div key={`${equipment.id}-${bodyArea.value}-${purpose.value}`}>
-                {Array.isArray(equipment.areas_corpo) && equipment.areas_corpo.includes(bodyArea.value) ? (
-                  <></>
-                ) : (
-                  <></>
-                )}
-              </div>
-            ))
-          ))
-        ))}
         <FormField
           control={form.control}
           name="isFavorite"

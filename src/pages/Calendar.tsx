@@ -1,25 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, getMonth, getYear } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarSuggestion, CalendarPreferences, getCalendarSuggestions, updateCalendarCompletion, clearPlanning, approvePlanning, setCalendarPreferences } from "@/utils/api";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import CalendarDay from "@/components/CalendarDay";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2, Calendar as CalendarIcon, Check, X, ChevronLeft, ChevronRight, Settings, RefreshCw, Save, PlusCircle, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import CalendarDay from "@/components/CalendarDay";
 import { useEquipments } from "@/hooks/useEquipments";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { getCalendarSuggestions, updateCalendarCompletion, clearPlanning, approvePlanning, setCalendarPreferences, CalendarSuggestion, CalendarPreferences } from "@/utils/api";
-import { CalendarPlus, CheckCheck, Loader2, RefreshCcw, VideoIcon, Image as ImageIcon, History } from "lucide-react";
 
 const frequencyOptions = [
   { value: "daily", label: "Diário" },
@@ -44,34 +43,26 @@ const defaultPreferences: CalendarPreferences = {
   frequency: "weekly",
   topics: [],
   equipment: [],
-  formats: ["video", "image", "story"], 
-  purpose: ["demonstration", "education"],
-  autoGenerate: true
+  autoGenerate: true,
+  formats: ["video", "image", "story"],
 };
 
-const Calendar: React.FC = () => {
-  const { toast } = useToast();
-  const { equipments } = useEquipments();
+const CalendarPage: React.FC = () => {
+  // States
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [suggestions, setSuggestions] = useState<CalendarSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarSuggestion[]>([]);
-  const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
-  const [newEventDialogOpen, setNewEventDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("calendar");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [dayEvents, setDayEvents] = useState<CalendarSuggestion[]>([]);
   const [preferences, setPreferences] = useState<CalendarPreferences>(defaultPreferences);
-  const [selectedFormat, setSelectedFormat] = useState<"video" | "image" | "story">("video");
-  const [selectedEvent, setSelectedEvent] = useState<CalendarSuggestion | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
-  const [approving, setApproving] = useState(false);
+  const [newTopic, setNewTopic] = useState("");
   
-  const [newEvent, setNewEvent] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    title: '',
-    description: '',
-    format: selectedFormat,
-    completed: false,
-    equipment: ''
-  });
+  const { toast } = useToast();
+  const { equipments, loading: equipmentsLoading } = useEquipments();
 
   useEffect(() => {
     fetchCalendarEvents();
@@ -81,7 +72,7 @@ const Calendar: React.FC = () => {
     try {
       setLoading(true);
       const events = await getCalendarSuggestions();
-      setCalendarEvents(events);
+      setSuggestions(events);
     } catch (error) {
       console.error("Erro ao carregar eventos:", error);
       toast({
@@ -101,7 +92,7 @@ const Calendar: React.FC = () => {
   const handleEventCompletion = async (event: CalendarSuggestion, completed: boolean) => {
     try {
       await updateCalendarCompletion(event.date, completed);
-      setCalendarEvents(prevEvents =>
+      setSuggestions(prevEvents =>
         prevEvents.map(e =>
           e.id === event.id ? { ...e, completed } : e
         )
@@ -215,7 +206,7 @@ const Calendar: React.FC = () => {
       };
       
       // In a real implementation, this would call an API endpoint
-      setCalendarEvents(prev => [...prev, newSuggestion]);
+      setSuggestions(prev => [...prev, newSuggestion]);
       
       toast({
         title: "Evento adicionado",
@@ -260,7 +251,7 @@ const Calendar: React.FC = () => {
   };
 
   return (
-    <Layout title="Calendário de Conteúdo">
+    <Layout>
       <div className="space-y-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -286,7 +277,7 @@ const Calendar: React.FC = () => {
               <CalendarDay
                 key={day.toISOString()}
                 date={day}
-                events={calendarEvents.filter(event => isSameDay(new Date(event.date), day))}
+                events={suggestions.filter(event => isSameDay(new Date(event.date), day))}
                 onClick={() => handleDayClick(day)}
                 onEventCompletion={handleEventCompletion}
                 isCurrentMonth={
@@ -329,7 +320,7 @@ const Calendar: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <CheckCheck className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 mr-2" />
                     Aprovar Planejamento
                   </>
                 )}
@@ -554,4 +545,4 @@ const Calendar: React.FC = () => {
   );
 };
 
-export default Calendar;
+export default CalendarPage;

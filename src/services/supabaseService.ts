@@ -113,17 +113,11 @@ export const saveScriptFeedback = async (
 };
 
 // Função para obter itens de mídia com filtros
-export const getMediaItems = async (filters?: {
-  type?: string;
-  equipment?: string[];
-  bodyArea?: string[];
-  purpose?: string[];
-  query?: string;
-}): Promise<MediaItem[]> => {
+export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
   try {
     let query = supabase.from('videos').select('*');
     
-    // Aplicar filtros se fornecidos
+    // Apply filters if provided
     if (filters) {
       if (filters.type && filters.type !== 'all') {
         query = query.eq('tipo_video', filters.type);
@@ -134,17 +128,17 @@ export const getMediaItems = async (filters?: {
       }
       
       if (filters.equipment?.length && !filters.equipment.includes('all-equipment')) {
-        // Para arrays, usamos contains
+        // For arrays, use contains
         query = query.contains('equipamentos', filters.equipment);
       }
       
       if (filters.bodyArea?.length && !filters.bodyArea.includes('all-areas')) {
-        // Para área do corpo que não é array
+        // For area
         query = query.eq('area_corpo', filters.bodyArea[0]);
       }
       
       if (filters.purpose?.length && !filters.purpose.includes('all-purposes')) {
-        // Para finalidades que são array
+        // For purposes
         query = query.contains('finalidade', filters.purpose);
       }
     }
@@ -153,7 +147,7 @@ export const getMediaItems = async (filters?: {
     
     if (error) throw error;
     
-    // Buscar informações de favoritos para o usuário atual
+    // Get favorites for the current user
     const userId = (await supabase.auth.getUser()).data.user?.id;
     const { data: favoritos, error: favoritosError } = await supabase
       .from('favoritos')
@@ -161,44 +155,46 @@ export const getMediaItems = async (filters?: {
       .eq('usuario_id', userId);
       
     if (favoritosError) {
-      console.error('Erro ao buscar favoritos:', favoritosError);
+      console.error('Error fetching favorites:', favoritosError);
     }
     
-    // Buscar avaliações para os vídeos
+    // Get ratings for videos
     const { data: avaliacoes, error: avaliacoesError } = await supabase
       .from('avaliacoes')
       .select('video_id, nota')
       .eq('usuario_id', userId);
       
     if (avaliacoesError) {
-      console.error('Erro ao buscar avaliações:', avaliacoesError);
+      console.error('Error fetching ratings:', avaliacoesError);
     }
     
-    // Criar um mapa de favoritos para consulta rápida
+    // Create maps for quick lookup
     const favoritosMap = new Map();
     favoritos?.forEach(fav => favoritosMap.set(fav.video_id, true));
     
-    // Criar um mapa de avaliações para consulta rápida
     const avaliacoesMap = new Map();
     avaliacoes?.forEach(aval => avaliacoesMap.set(aval.video_id, aval.nota));
     
-    // Converter do formato do banco para o formato da UI
-    return (data || []).map(video => ({
+    // Convert database format to UI format
+    const formattedData: MediaItem[] = (data || []).map(video => ({
       id: video.id,
       title: video.titulo,
+      description: video.descricao,
       thumbnailUrl: video.preview_url || '/placeholder.svg',
       videoUrl: video.url_video,
       type: video.tipo_video as 'video_pronto' | 'take' | 'image',
-      equipment: video.equipamentos || [],
-      bodyArea: [video.area_corpo || 'Não especificado'],
-      purpose: video.finalidade || [],
-      duration: video.duracao,
-      rating: avaliacoesMap.get(video.id) || 0,
       isFavorite: favoritosMap.has(video.id),
+      rating: avaliacoesMap.get(video.id) || 0,
+      equipment: video.equipamentos || [],
+      purpose: video.finalidade || [],
+      bodyArea: video.area_corpo || 'Não especificado',
+      duration: video.duracao,
       shortDescription: video.descricao_curta || ''
     }));
+
+    return formattedData;
   } catch (error) {
-    console.error('Erro ao buscar vídeos:', error);
+    console.error('Error fetching videos:', error);
     throw error;
   }
 };
@@ -208,7 +204,7 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Verificar se já é favorito
+    // Verify if it's already a favorite
     const { data, error } = await supabase
       .from('favoritos')
       .select('id')
@@ -219,7 +215,7 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
     if (error) throw error;
     
     if (data) {
-      // Se já é favorito, remover
+      // If it's already a favorite, remove it
       const { error: deleteError } = await supabase
         .from('favoritos')
         .delete()
@@ -227,17 +223,17 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
         
       if (deleteError) throw deleteError;
       
-      // Atualizar contagem na tabela de vídeos
+      // Update count in videos table
       await supabase.rpc('decrement_favorites_count', {
         video_id: mediaId
       }).then(null, (err) => {
-        console.error('Erro ao decrementar contagem de favoritos:', err);
+        console.error('Error decrementing favorites count:', err);
         // Continue even if this fails
       });
       
-      return false; // Não é mais favorito
+      return false; // Not a favorite anymore
     } else {
-      // Se não é favorito, adicionar
+      // If not a favorite, add it
       const { error: insertError } = await supabase
         .from('favoritos')
         .insert({
@@ -247,18 +243,18 @@ export const toggleFavorite = async (mediaId: string): Promise<boolean> => {
         
       if (insertError) throw insertError;
       
-      // Atualizar contagem na tabela de vídeos
+      // Update count in videos table
       await supabase.rpc('increment_favorites_count', {
         video_id: mediaId
       }).then(null, (err) => {
-        console.error('Erro ao incrementar contagem de favoritos:', err);
+        console.error('Error incrementing favorites count:', err);
         // Continue even if this fails
       });
       
-      return true; // Agora é favorito
+      return true; // Now a favorite
     }
   } catch (error) {
-    console.error('Erro ao alternar favorito:', error);
+    console.error('Error toggling favorite:', error);
     throw error;
   }
 };
@@ -268,7 +264,7 @@ export const rateMedia = async (mediaId: string, rating: number): Promise<boolea
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Verificar se já existe avaliação
+    // Verify if there's already an evaluation
     const { data, error } = await supabase
       .from('avaliacoes')
       .select('id')
@@ -279,7 +275,7 @@ export const rateMedia = async (mediaId: string, rating: number): Promise<boolea
     if (error) throw error;
     
     if (data) {
-      // Se já existe avaliação, atualizar
+      // If there's already an evaluation, update it
       const { error: updateError } = await supabase
         .from('avaliacoes')
         .update({ nota: rating })
@@ -287,7 +283,7 @@ export const rateMedia = async (mediaId: string, rating: number): Promise<boolea
         
       if (updateError) throw updateError;
     } else {
-      // Se não existe avaliação, criar nova
+      // If not, create a new one
       const { error: insertError } = await supabase
         .from('avaliacoes')
         .insert({
@@ -301,7 +297,7 @@ export const rateMedia = async (mediaId: string, rating: number): Promise<boolea
     
     return true;
   } catch (error) {
-    console.error('Erro ao avaliar mídia:', error);
+    console.error('Error rating media:', error);
     throw error;
   }
 };
@@ -311,7 +307,7 @@ export const updateUserPreferences = async (observations: string): Promise<boole
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Atualizar perfil do usuário com as observações
+    // Update user profile with observations
     const { error } = await supabase
       .from('perfis')
       .update({
@@ -323,7 +319,7 @@ export const updateUserPreferences = async (observations: string): Promise<boole
     
     return true;
   } catch (error) {
-    console.error('Erro ao atualizar preferências:', error);
+    console.error('Error updating preferences:', error);
     throw error;
   }
 };
@@ -336,7 +332,7 @@ export const saveEmailAlertPreferences = async (
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Verificar se já existe registro de alerta
+    // Verify if there's already an alert record
     const { data, error } = await supabase
       .from('alertas_email')
       .select('id')
@@ -347,7 +343,7 @@ export const saveEmailAlertPreferences = async (
     if (error) throw error;
     
     if (data) {
-      // Se já existe, atualizar
+      // If there's already an alert, update it
       const { error: updateError } = await supabase
         .from('alertas_email')
         .update({
@@ -358,7 +354,7 @@ export const saveEmailAlertPreferences = async (
         
       if (updateError) throw updateError;
     } else {
-      // Se não existe, criar novo
+      // If not, create a new one
       const { error: insertError } = await supabase
         .from('alertas_email')
         .insert({
@@ -373,17 +369,17 @@ export const saveEmailAlertPreferences = async (
     
     return true;
   } catch (error) {
-    console.error('Erro ao salvar preferências de email:', error);
+    console.error('Error saving email alert preferences:', error);
     throw error;
   }
 };
 
 // Função para obter sugestões do calendário
-export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> => {
+export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Buscar preferências do usuário
+    // Get user profile
     const { data: userProfile, error: profileError } = await supabase
       .from('perfis')
       .select('equipamentos, observacoes_conteudo')
@@ -391,14 +387,13 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
       .single();
       
     if (profileError) {
-      console.error('Erro ao buscar perfil do usuário:', profileError);
-      // Continue even if this fails
+      console.error('Error fetching user profile:', profileError);
     }
     
     const userEquipments = userProfile?.equipamentos || [];
     const userObservations = userProfile?.observacoes_conteudo || '';
     
-    // Buscar agenda existente no banco
+    // Get existing calendar items
     const now = new Date();
     const month = now.getMonth();
     const year = now.getFullYear();
@@ -415,8 +410,9 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
     if (error) throw error;
     
     if (agendaItems && agendaItems.length > 0) {
-      // Converter do formato do banco para o formato da UI
+      // Convert database format to UI format
       return agendaItems.map(item => ({
+        id: item.id,
         date: item.data,
         title: item.titulo,
         description: item.descricao || '',
@@ -426,17 +422,17 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         purpose: item.objetivo,
         hook: item.gancho,
         caption: item.legenda,
-        evento_agenda_id: item.id
+        type: item.tipo
       }));
     } else {
-      // Se não existir agenda, gerar sugestões
+      // If no calendar items exist, generate suggestions
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const frequency = 2; // padrão, 2 conteúdos por semana
-      const interval = Math.floor(daysInMonth / (frequency * 4)); // distribuir ao longo de 4 semanas
+      const frequency = 2; // Default, 2 posts per week
+      const interval = Math.floor(daysInMonth / (frequency * 4)); // Distribute over 4 weeks
       
       const suggestions: CalendarSuggestion[] = [];
       
-      // Tópicos possíveis baseados nas preferências do usuário
+      // Possible topics based on user preferences
       const possibleTopics = [
         "Lipedema: diagnóstico e tratamento",
         "Flacidez facial: tratamentos não-invasivos",
@@ -450,10 +446,10 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         "Massagem modeladora: resultados reais"
       ];
       
-      // Tópicos específicos baseados nas observações do usuário
+      // Specific topics from user observations
       let userTopics: string[] = [];
       if (userObservations) {
-        // Extrair possíveis tópicos das observações do usuário
+        // Extract topics from user observations
         const keywords = ["lipedema", "flacidez", "gordura", "celulite", "rejuvenescimento", "pós-operatório", "drenagem"];
         keywords.forEach(keyword => {
           if (userObservations.toLowerCase().includes(keyword)) {
@@ -462,39 +458,39 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
         });
       }
       
-      // Combinar tópicos
+      // Combine topics
       const topics = userTopics.length > 0 ? [...userTopics, ...possibleTopics] : possibleTopics;
       
-      // Equipamento selecionado ou equipamentos do usuário
+      // Equipment selection
       const equipments = userEquipments.length > 0 ? 
           userEquipments : 
           ["Adélla", "Enygma", "Hipro", "Reverso", "Ultralift"];
       
-      // Tipos de conteúdo permitidos
+      // Available content formats
       const availableFormats: Array<"video" | "story" | "image"> = ["video", "story", "image"];
       
-      // Criar sugestões para cada dia selecionado
+      // Create suggestions for each selected day
       for (let i = 1; i <= frequency * 4; i++) {
         const day = i * interval;
         if (day <= daysInMonth) {
-          // Selecionar um formato aleatório
+          // Select random format
           const randomFormat = availableFormats[Math.floor(Math.random() * availableFormats.length)];
           
-          // Definir tipo de script com base no formato
+          // Define script type based on format
           const scriptType: ScriptType = randomFormat === "video" ? "videoScript" : 
                                         randomFormat === "story" ? "dailySales" : "bigIdea";
           
-          // Selecionar um tópico aleatório
+          // Select random topic
           const randomTopic = topics[Math.floor(Math.random() * topics.length)];
           
-          // Selecionar um equipamento aleatório
+          // Select random equipment
           const randomEquipment = equipments[Math.floor(Math.random() * equipments.length)];
           
-          // Definir o objetivo com base no tipo de script
+          // Define purpose based on script type
           const purpose = scriptType === "videoScript" ? "educate" : 
                         scriptType === "bigIdea" ? "engage" : "sell";
           
-          // Ganchos criativos baseados no tipo
+          // Creative hooks based on type
           const hooks = {
             videoScript: [
               "Você sabia que 80% das mulheres...",
@@ -516,11 +512,12 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
             ]
           };
           
-          // Selecionar um gancho aleatório
+          // Select random hook
           const randomHook = hooks[scriptType][Math.floor(Math.random() * hooks[scriptType].length)];
           
-          // Criar a sugestão
+          // Create suggestion
           suggestions.push({
+            id: `suggestion-${i}-${Date.now()}`,
             date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
             title: randomTopic,
             description: scriptType === "videoScript" 
@@ -533,7 +530,8 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
             purpose: purpose,
             format: randomFormat,
             hook: randomHook,
-            caption: scriptType === "dailySales" ? "Toque para mais informações! ↗️ #saude #beleza" : undefined
+            caption: scriptType === "dailySales" ? "Toque para mais informações! ↗️ #saude #beleza" : undefined,
+            type: scriptType
           });
         }
       }
@@ -541,20 +539,17 @@ export const getCalendarSuggestions = async (): Promise<CalendarSuggestion[]> =>
       return suggestions;
     }
   } catch (error) {
-    console.error('Erro ao obter sugestões de calendário:', error);
+    console.error('Error getting calendar suggestions:', error);
     throw error;
   }
 };
 
 // Função para atualizar conclusão do calendário
-export const updateCalendarCompletion = async (
-  date: string,
-  completed: boolean
-): Promise<void> => {
+export async function updateCalendarCompletion(date: string, completed: boolean): Promise<void> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Buscar o item da agenda
+    // Get the existing calendar item
     const { data, error } = await supabase
       .from('agenda')
       .select('id')
@@ -565,7 +560,7 @@ export const updateCalendarCompletion = async (
     if (error) throw error;
     
     if (data) {
-      // Atualizar status do item existente
+      // Update the status of the existing item
       const { error: updateError } = await supabase
         .from('agenda')
         .update({
@@ -575,7 +570,7 @@ export const updateCalendarCompletion = async (
         
       if (updateError) throw updateError;
     } else {
-      // Criar novo item com o status
+      // Create a new item with the status
       const { error: insertError } = await supabase
         .from('agenda')
         .insert({
@@ -590,24 +585,24 @@ export const updateCalendarCompletion = async (
       if (insertError) throw insertError;
     }
   } catch (error) {
-    console.error('Erro ao atualizar conclusão do calendário:', error);
+    console.error('Error updating calendar completion:', error);
     throw error;
   }
 };
 
 // Função para limpar o planejamento do calendário
-export const clearCalendarPlanning = async (): Promise<void> => {
+export async function clearCalendarPlanning(): Promise<void> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Definir intervalo de datas para o mês atual
+    // Define the date range for the current month
     const now = new Date();
     const month = now.getMonth();
     const year = now.getFullYear();
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0);
     
-    // Excluir todos os itens da agenda para o mês selecionado
+    // Delete all agenda items for the current month
     const { error } = await supabase
       .from('agenda')
       .delete()
@@ -617,24 +612,22 @@ export const clearCalendarPlanning = async (): Promise<void> => {
       
     if (error) throw error;
   } catch (error) {
-    console.error('Erro ao limpar planejamento do calendário:', error);
+    console.error('Error clearing calendar planning:', error);
     throw error;
   }
 };
 
 // Função para aprovar o planejamento do calendário
-export const approveCalendarPlanning = async (
-  suggestions: CalendarSuggestion[]
-): Promise<void> => {
+export async function approveCalendarPlanning(suggestions: CalendarSuggestion[]): Promise<void> {
   try {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     
-    // Criar ou atualizar itens da agenda com status "aprovado"
+    // Create or update calendar items with "approved" status
     const agendaItems = suggestions.map(suggestion => ({
       usuario_id: userId,
       data: suggestion.date,
       titulo: suggestion.title,
-      tipo: suggestion.type || 'videoScript', // Use o tipo fornecido ou padrão
+      tipo: suggestion.type || 'videoScript',
       descricao: suggestion.description,
       status: 'aprovado',
       equipamento: suggestion.equipment,
@@ -644,35 +637,33 @@ export const approveCalendarPlanning = async (
       legenda: suggestion.caption
     }));
     
-    // Remover itens existentes para o mês atual
+    // Remove existing items for the current month
     await clearCalendarPlanning();
     
-    // Inserir novos itens aprovados
+    // Insert new approved items
     const { error } = await supabase
       .from('agenda')
       .insert(agendaItems);
       
     if (error) throw error;
   } catch (error) {
-    console.error('Erro ao aprovar planejamento do calendário:', error);
+    console.error('Error approving calendar planning:', error);
     throw error;
   }
 };
 
 // Função para atualizar preferências do calendário
-export const updateCalendarPreferences = async (
-  preferences: CalendarPreferences
-): Promise<boolean> => {
+export async function updateCalendarPreferences(preferences: CalendarPreferences): Promise<boolean> {
   try {
-    // Esta função apenas armazena as preferências temporariamente
-    // Em uma aplicação real, você poderia armazenar isso no banco de dados
+    // This function only stores preferences temporarily
+    // In a real application, you could store this in the database
     
-    // No caso, não precisamos armazenar nada no banco já que usamos
-    // as preferências diretamente na chamada de getCalendarSuggestions
+    // In this case, we don't need to store anything in the database
+    // because we use the preferences directly in the getCalendarSuggestions function
     
     return true;
   } catch (error) {
-    console.error('Erro ao atualizar preferências do calendário:', error);
+    console.error('Error updating calendar preferences:', error);
     throw error;
   }
 };

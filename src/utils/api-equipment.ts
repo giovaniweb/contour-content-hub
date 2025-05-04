@@ -1,211 +1,241 @@
 
-import { Equipment, EquipmentCreationProps } from "@/types/equipment";
+import { supabase } from '@/integrations/supabase/client';
+import { Equipment, EquipmentCreationProps } from '@/types/equipment';
 
-// Function to get all equipment
-export async function getEquipments(): Promise<Equipment[]> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Array of simulated equipment
-  return [
-    {
-      id: "1",
-      nome: "Adella Laser",
-      efeito: "Rejuvenescimento facial",
-      beneficios: "Melhora da textura da pele e redução de linhas finas",
-      tecnologia: "Laser fracionado",
-      fabricante: "Adella Technology",
-      site: "https://adella-tech.com",
-      ativo: true,
-      categoria: "Laser",
-      modelo: "AL-2023",
-      pais_origem: "Alemanha",
-      reg_anvisa: "80123456789",
-      classificacao: "Classe III",
-      ano_lancamento: "2023",
-      garantia: "2 anos",
-      parametros: "Potência: 10-50W, Duração: 1-10ms",
-      protocolos: "Facial, Corporal",
-      indicacoes: ["Rugas", "Flacidez", "Manchas"],
-      contraindicacoes: ["Gestantes", "Pele sensibilizada"],
-      caracteristicas: ["Portátil", "Touch screen", "5 níveis de potência"],
-      beneficios_lista: ["Resultados rápidos", "Sem tempo de inatividade", "Indolor"],
-      areas_corpo: ["Face", "Pescoço", "Colo"],
-      image_url: "https://picsum.photos/seed/adella/400/300",
-      data_cadastro: "2023-05-10",
-      diferenciais: "Tecnologia patenteada de pulso triplo",
-      linguagem: "Técnico-comercial"
-    },
-    {
-      id: "2",
-      nome: "Hipro",
-      efeito: "Ultracavitação e radiofrequência",
-      beneficios: "Redução de gordura localizada e firmeza da pele",
-      tecnologia: "Ultrassom de alta potência",
-      fabricante: "MedTech Solutions",
-      site: "https://medtech-solutions.com",
-      ativo: true,
-      categoria: "Ultrassom",
-      modelo: "HP-2000",
-      pais_origem: "Coreia do Sul",
-      reg_anvisa: "80987654321",
-      classificacao: "Classe II",
-      ano_lancamento: "2022",
-      garantia: "18 meses",
-      parametros: "Frequência: 25-40kHz, Potência: 5-25W",
-      protocolos: "Gordura localizada, Celulite, Flacidez",
-      indicacoes: ["Gordura localizada", "Celulite", "Flacidez"],
-      contraindicacoes: ["Gestantes", "Marca-passo"],
-      caracteristicas: ["Tela LCD", "6 aplicadores", "Sistema de refrigeração"],
-      beneficios_lista: ["Resultados em poucas sessões", "Não invasivo", "Sem dor"],
-      areas_corpo: ["Abdômen", "Glúteos", "Coxas", "Braços"],
-      image_url: "https://picsum.photos/seed/hipro/400/300",
-      data_cadastro: "2022-11-15",
-      diferenciais: "Combinação de 3 tecnologias em um único aparelho",
-      linguagem: "Técnico-comercial"
+/**
+ * Get all equipment from the database
+ */
+export const getEquipments = async (): Promise<Equipment[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .select('*')
+      .order('nome');
+      
+    if (error) {
+      throw error;
     }
-  ];
-}
+    
+    return data.map((item: any) => ({
+      ...item,
+      // Convert string to array if needed for indicacoes
+      indicacoes: item.indicacoes || []
+    })) as Equipment[];
+    
+  } catch (error) {
+    console.error('Error fetching equipments:', error);
+    throw error;
+  }
+};
 
-// Function to get equipment by ID
-export async function getEquipmentById(id: string): Promise<Equipment | null> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 600));
-  
-  const allEquipments = await getEquipments();
-  return allEquipments.find(equip => equip.id === id) || null;
-}
-
-// Create equipment function
-export async function createEquipment(equipmentData: Omit<Equipment, "id">): Promise<Equipment> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Generate a new ID for the equipment
-  const newEquipment: Equipment = {
-    ...equipmentData,
-    id: Math.random().toString(36).substring(2, 11),
-    data_cadastro: new Date().toISOString()
-  };
-  
-  console.log("Equipment created:", newEquipment);
-  return newEquipment;
-}
-
-// Update equipment function
-export async function updateEquipment(equipment: Equipment): Promise<Equipment> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 700));
-  
-  console.log("Equipment updated:", equipment);
-  return equipment;
-}
-
-// Delete equipment function
-export async function deleteEquipment(id: string): Promise<boolean> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  console.log("Equipment deleted:", id);
-  return true;
-}
-
-// Import equipment function
-export async function importEquipments(equipmentsData: any[]): Promise<Equipment[]> {
-  // Simulating an API call with a wait time
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Process and convert imported data
-  const importedEquipments = equipmentsData.map((data, index) => ({
-    id: `imported-${Date.now()}-${index}`,
-    nome: data.name || data.nome || 'Equipamento sem nome',
-    efeito: data.effect || data.efeito || '',
-    beneficios: data.benefits || data.beneficios || '',
-    tecnologia: data.technology || data.tecnologia || '',
-    fabricante: data.manufacturer || data.fabricante || '',
-    site: data.website || data.site || '',
-    ativo: true,
-    categoria: data.category || data.categoria || '',
-    modelo: data.model || data.modelo || '',
-    pais_origem: data.country || data.pais_origem || '',
-    reg_anvisa: data.anvisa || data.reg_anvisa || '',
-    classificacao: data.classification || data.classificacao || '',
-    ano_lancamento: data.year || data.ano_lancamento || '',
-    garantia: data.warranty || data.garantia || '',
-    parametros: data.parameters || data.parametros || '',
-    protocolos: data.protocols || data.protocolos || '',
-    indicacoes: Array.isArray(data.indications || data.indicacoes) 
-      ? data.indications || data.indicacoes 
-      : [data.indications || data.indicacoes || ''],
-    contraindicacoes: Array.isArray(data.contraindications || data.contraindicacoes) 
-      ? data.contraindications || data.contraindicacoes 
-      : [data.contraindications || data.contraindicacoes || ''],
-    caracteristicas: Array.isArray(data.features || data.caracteristicas) 
-      ? data.features || data.caracteristicas 
-      : [data.features || data.caracteristicas || ''],
-    beneficios_lista: Array.isArray(data.benefits_list || data.beneficios_lista) 
-      ? data.benefits_list || data.beneficios_lista 
-      : [data.benefits_list || data.beneficios_lista || ''],
-    areas_corpo: Array.isArray(data.body_areas || data.areas_corpo) 
-      ? data.body_areas || data.areas_corpo 
-      : [data.body_areas || data.areas_corpo || ''],
-    image_url: data.image || data.image_url || '',
-    data_cadastro: new Date().toISOString(),
-    diferenciais: data.differentials || data.diferenciais || '',
-    linguagem: data.language || data.linguagem || 'Técnico-comercial'
-  } as Equipment));
-  
-  console.log("Equipments imported:", importedEquipments.length);
-  return importedEquipments;
-}
-
-// Additional helper functions
-export async function fetchEquipmentFiles(equipmentId: string): Promise<any[]> {
-  // Simulating an API call
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Return simulated files for the equipment
-  return [
-    {
-      id: '1',
-      fileName: 'Manual de operação.pdf',
-      fileSize: '2.5MB',
-      fileType: 'application/pdf',
-      downloadUrl: '#',
-      uploadDate: '2023-06-15'
-    },
-    {
-      id: '2',
-      fileName: 'Catálogo de especificações.pdf',
-      fileSize: '1.8MB',
-      fileType: 'application/pdf',
-      downloadUrl: '#',
-      uploadDate: '2023-06-10'
+/**
+ * Get a single equipment by ID
+ */
+export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') { // Not found error code
+        return null;
+      }
+      throw error;
     }
-  ];
-}
-
-export async function fetchEquipmentVideos(equipmentId: string): Promise<any[]> {
-  // Simulating an API call
-  await new Promise(resolve => setTimeout(resolve, 700));
-  
-  // Return simulated videos for the equipment
-  return [
-    {
-      id: '1',
-      title: 'Como utilizar - Tutorial',
-      thumbnailUrl: 'https://picsum.photos/seed/video1/300/200',
-      duration: '5:30',
-      videoUrl: '#',
-      uploadDate: '2023-05-20'
-    },
-    {
-      id: '2',
-      title: 'Resultados clínicos',
-      thumbnailUrl: 'https://picsum.photos/seed/video2/300/200',
-      duration: '3:45',
-      videoUrl: '#',
-      uploadDate: '2023-05-25'
+    
+    if (!data) {
+      return null;
     }
-  ];
-}
+
+    // Convert string to array if needed
+    return {
+      ...data,
+      indicacoes: data.indicacoes || []
+    } as Equipment;
+    
+  } catch (error) {
+    console.error(`Error fetching equipment with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new equipment
+ */
+export const createEquipment = async (equipment: EquipmentCreationProps): Promise<Equipment> => {
+  try {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .insert([equipment])
+      .select();
+      
+    if (error) {
+      throw error;
+    }
+    
+    if (!data || data.length === 0) {
+      throw new Error('No data returned from equipment creation');
+    }
+    
+    return data[0] as Equipment;
+    
+  } catch (error) {
+    console.error('Error creating equipment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing equipment
+ */
+export const updateEquipment = async (id: string, equipment: Partial<Equipment>): Promise<Equipment> => {
+  try {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .update(equipment)
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      throw error;
+    }
+    
+    if (!data || data.length === 0) {
+      throw new Error(`Equipment with ID ${id} not found`);
+    }
+    
+    return data[0] as Equipment;
+    
+  } catch (error) {
+    console.error(`Error updating equipment with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an equipment by ID
+ */
+export const deleteEquipment = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('equipamentos')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      throw error;
+    }
+    
+  } catch (error) {
+    console.error(`Error deleting equipment with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Import equipment from a file
+ */
+export const importEquipments = async (file: File): Promise<Equipment[]> => {
+  try {
+    // Simulate file upload and processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Return mock data
+    const importedEquipments: Equipment[] = [
+      {
+        id: `imported-${Date.now()}-1`,
+        nome: 'Equipamento Importado 1',
+        tecnologia: 'Tecnologia importada',
+        beneficios: 'Benefícios importados',
+        indicacoes: ['Indicação importada 1', 'Indicação importada 2'],
+        diferenciais: 'Diferenciais importados',
+        linguagem: 'pt-BR',
+        ativo: true
+      },
+      {
+        id: `imported-${Date.now()}-2`,
+        nome: 'Equipamento Importado 2',
+        tecnologia: 'Tecnologia importada 2',
+        beneficios: 'Benefícios importados 2',
+        indicacoes: ['Indicação importada 3', 'Indicação importada 4'],
+        diferenciais: 'Diferenciais importados 2',
+        linguagem: 'pt-BR',
+        ativo: true
+      }
+    ];
+    
+    return {
+      ...importedEquipments,
+      imported: true
+    } as any;
+    
+  } catch (error) {
+    console.error('Error importing equipments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get equipment files
+ */
+export const fetchEquipmentFiles = async (equipmentId: string): Promise<any[]> => {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return mock data
+    return [
+      {
+        id: 'file-1',
+        name: 'Manual do Equipamento.pdf',
+        type: 'pdf',
+        size: '1.2 MB',
+        url: '#',
+      },
+      {
+        id: 'file-2',
+        name: 'Especificações Técnicas.pdf',
+        type: 'pdf',
+        size: '890 KB',
+        url: '#',
+      },
+      {
+        id: 'file-3',
+        name: 'Treinamento.mp4',
+        type: 'video',
+        size: '24 MB',
+        url: '#',
+      }
+    ];
+    
+  } catch (error) {
+    console.error(`Error fetching files for equipment ${equipmentId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Get equipment videos
+ */
+export const fetchEquipmentVideos = async (equipmentId: string): Promise<any[]> => {
+  try {
+    // Use supabase to get videos related to this equipment
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .contains('equipamentos', [equipmentId]);
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data || [];
+    
+  } catch (error) {
+    console.error(`Error fetching videos for equipment ${equipmentId}:`, error);
+    return []; // Return empty array on error
+  }
+};

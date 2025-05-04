@@ -1,122 +1,85 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { Equipment } from '@/types/equipment';
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Eye } from 'lucide-react';
 
 interface EquipmentListProps {
   equipments: Equipment[];
   onEdit: (equipment: Equipment) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
+  loading?: boolean;
 }
 
-const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onEdit, onDelete }) => {
-  const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
-
-  const handleDelete = () => {
-    if (equipmentToDelete) {
-      onDelete(equipmentToDelete.id);
-      setEquipmentToDelete(null);
-    }
-  };
+const EquipmentList: React.FC<EquipmentListProps> = ({ 
+  equipments, 
+  onEdit, 
+  onDelete,
+  loading = false 
+}) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (equipments.length === 0) {
     return (
-      <div className="text-center py-10">
-        <p className="text-muted-foreground">Nenhum equipamento encontrado.</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          Adicione novos equipamentos clicando no botão "Novo Equipamento" acima.
+      <div className="text-center py-10 bg-muted/30 rounded-md">
+        <Search className="h-10 w-10 mx-auto text-muted-foreground" />
+        <p className="mt-2 text-lg font-medium">Nenhum equipamento encontrado</p>
+        <p className="text-sm text-muted-foreground">
+          Tente ajustar os critérios de busca ou adicione um novo equipamento.
         </p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Nome</TableHead>
+          <TableHead>Tecnologia</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Ações</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {equipments.map((equipment) => (
-          <Card key={equipment.id} className={`border-l-4 ${equipment.ativo ? 'border-l-green-500' : 'border-l-gray-300'}`}>
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-medium">{equipment.nome}</h3>
-                  {equipment.efeito && (
-                    <p className="text-xs italic text-muted-foreground mt-1">
-                      "{equipment.efeito}"
-                    </p>
-                  )}
-                </div>
-                <Badge variant={equipment.ativo ? "success" : "secondary"}>
-                  {equipment.ativo ? 'Ativo' : 'Inativo'}
-                </Badge>
-              </div>
-              
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {equipment.tecnologia}
-              </p>
-              
-              <div className="flex justify-between items-center mt-4">
-                <div className="space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => onEdit(equipment)}
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => setEquipmentToDelete(equipment)}
-                  >
-                    <Trash className="h-4 w-4 mr-1" />
-                    Excluir
-                  </Button>
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  asChild
-                >
-                  <Link to={`/admin/equipment/${equipment.id}`}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    Visualizar
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <TableRow key={equipment.id} className="hover:bg-muted/50">
+            <TableCell className="font-medium">{equipment.nome}</TableCell>
+            <TableCell>{equipment.tecnologia}</TableCell>
+            <TableCell>
+              {equipment.ativo ? (
+                <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">Ativo</Badge>
+              ) : (
+                <Badge variant="outline" className="bg-rose-100 text-rose-800 hover:bg-rose-100">Inativo</Badge>
+              )}
+            </TableCell>
+            <TableCell className="flex items-center gap-2">
+              <Button size="icon" variant="ghost" onClick={() => onEdit(equipment)}>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Editar</span>
+              </Button>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                onClick={() => onDelete(equipment.id)}
+                className="hover:bg-rose-100 hover:text-rose-700"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Excluir</span>
+              </Button>
+            </TableCell>
+          </TableRow>
         ))}
-      </div>
-      
-      <AlertDialog open={!!equipmentToDelete} onOpenChange={() => setEquipmentToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o equipamento
-              <strong> {equipmentToDelete?.nome}</strong>.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      </TableBody>
+    </Table>
   );
 };
 

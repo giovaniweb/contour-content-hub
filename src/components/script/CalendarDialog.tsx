@@ -1,144 +1,130 @@
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CalendarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSchedule: (date: Date | undefined, timeSlot: string) => Promise<void>;
+  onSchedule: (date: Date, timeSlot: string) => Promise<void>;
   scriptId: string;
 }
 
-const CalendarDialog: React.FC<CalendarDialogProps> = ({
-  open,
-  onOpenChange,
+export function CalendarDialog({ 
+  open, 
+  onOpenChange, 
   onSchedule,
   scriptId
-}) => {
-  const [date, setDate] = useState<Date>();
-  const [timeSlot, setTimeSlot] = useState("morning");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+}: CalendarDialogProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("morning");
+  const [isScheduling, setIsScheduling] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = async () => {
-    if (!date) return;
-    
+  const handleSchedule = async () => {
+    if (!selectedDate) {
+      toast({
+        variant: "destructive",
+        title: "Selecione uma data",
+        description: "Por favor, selecione uma data para agendar o conteúdo",
+      });
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
-      await onSchedule(date, timeSlot);
-      // Reset form state after successful scheduling
-      setDate(undefined);
-      setTimeSlot("morning");
-      onOpenChange(false);
+      setIsScheduling(true);
+      
+      await onSchedule(selectedDate, selectedTimeSlot);
+      
     } catch (error) {
-      console.error("Erro ao agendar:", error);
+      console.error("Erro ao agendar conteúdo:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao agendar",
+        description: "Ocorreu um erro ao tentar agendar o conteúdo",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsScheduling(false);
     }
-  };
-
-  const handleDialogChange = (open: boolean) => {
-    if (!open && !isSubmitting) {
-      // Reset state when dialog is closed
-      setDate(undefined);
-      setTimeSlot("morning");
-    }
-    onOpenChange(open);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Agendar Publicação</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5 text-blue-500" />
+            Agendar Conteúdo no Calendário
+          </DialogTitle>
           <DialogDescription>
-            Selecione uma data e período para agendar seu conteúdo.
+            Escolha uma data e horário para publicar seu conteúdo
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Selecione a data</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione a data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+        
+        <div className="py-4">
+          <div className="flex justify-center mb-6">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="rounded-md border pointer-events-auto"
+              locale={ptBR}
+              initialFocus
+            />
           </div>
-
+          
           <div className="space-y-2">
-            <Label htmlFor="time-slot">Período preferencial</Label>
+            <Label htmlFor="timeSlot">Período do dia</Label>
             <Select
-              value={timeSlot}
-              onValueChange={setTimeSlot}
-              disabled={isSubmitting}
+              value={selectedTimeSlot}
+              onValueChange={setSelectedTimeSlot}
             >
-              <SelectTrigger id="time-slot" className="w-full">
-                <SelectValue placeholder="Selecione um período" />
+              <SelectTrigger id="timeSlot">
+                <SelectValue placeholder="Selecione o período" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Período do dia</SelectLabel>
-                  <SelectItem value="morning">Manhã (08:00 - 11:00)</SelectItem>
-                  <SelectItem value="noon">Meio-dia (11:00 - 14:00)</SelectItem>
-                  <SelectItem value="afternoon">Tarde (14:00 - 17:00)</SelectItem>
-                  <SelectItem value="evening">Noite (17:00 - 20:00)</SelectItem>
-                </SelectGroup>
+                <SelectItem value="morning">Manhã</SelectItem>
+                <SelectItem value="noon">Meio-dia</SelectItem>
+                <SelectItem value="afternoon">Tarde</SelectItem>
+                <SelectItem value="evening">Noite</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          {selectedDate && (
+            <div className="bg-muted/30 p-3 rounded-md text-center mt-4">
+              <Clock className="h-5 w-5 text-primary mx-auto mb-2" />
+              <p className="text-sm font-medium">
+                O conteúdo será agendado para<br />
+                {format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          )}
         </div>
-        <DialogFooter>
+        
+        <DialogFooter className="sm:justify-between">
           <Button 
             variant="ghost" 
-            onClick={() => handleDialogChange(false)}
-            disabled={isSubmitting}
+            onClick={() => onOpenChange(false)}
           >
             Cancelar
           </Button>
-          <Button 
-            onClick={handleSubmit}
-            disabled={!date || isSubmitting}
+          <Button
+            onClick={handleSchedule}
+            disabled={!selectedDate || isScheduling}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Agendando...
-              </>
-            ) : (
-              "Agendar Publicação"
-            )}
+            {isScheduling ? "Agendando..." : "Agendar Publicação"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 export default CalendarDialog;

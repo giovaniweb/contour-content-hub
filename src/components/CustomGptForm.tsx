@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useEquipments } from "@/hooks/useEquipments";
 import { CustomGptType, ConteudoEstrategia, CustomGptRequest, generateCustomContent, CustomGptResult } from "@/utils/custom-gpt";
+import { ScriptResponse } from "@/utils/api";
 
 const formSchema = z.object({
   topic: z.string().min(2, {
@@ -41,10 +43,18 @@ const formSchema = z.object({
 });
 
 interface CustomGptFormProps {
-  onResults: (results: CustomGptResult[]) => void;
+  onResults?: (results: CustomGptResult[]) => void;
+  onScriptGenerated?: (script: ScriptResponse) => void;
+  initialData?: any;
+  mode?: string;
 }
 
-const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
+const CustomGptForm: React.FC<CustomGptFormProps> = ({ 
+  onResults, 
+  onScriptGenerated, 
+  initialData, 
+  mode = 'simple' 
+}) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { equipments, loading: equipmentsLoading } = useEquipments();
@@ -67,7 +77,26 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
   });
 
   useEffect(() => {
-    onResults(results);
+    if (initialData) {
+      form.reset({
+        topic: initialData.topic || "",
+        tone: initialData.tom || "",
+        additionalInfo: initialData.additionalInfo || "",
+        marketingObjective: initialData.marketingObjective || "",
+        bodyArea: initialData.bodyArea || "",
+        purposes: initialData.purposes || [],
+      });
+      
+      if (initialData.equipamento) {
+        setSelectedEquipment(initialData.equipamento);
+      }
+    }
+  }, [initialData, form]);
+
+  useEffect(() => {
+    if (onResults && results.length > 0) {
+      onResults(results);
+    }
   }, [results, onResults]);
 
   const getTypeName = (type: CustomGptType) => {
@@ -83,7 +112,7 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
     }
   };
 
-  const resetForm = () => {
+  const resetFormFields = () => {
     form.reset();
     setSelectedEquipment(undefined);
   };
@@ -104,7 +133,7 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
         estrategiaConteudo: form.getValues().marketingObjective as ConteudoEstrategia,
         topic: form.getValues().topic,
         bodyArea: form.getValues().bodyArea,
-        purposes: form.getValues().purposes,
+        purposes: form.getValues().purposes || [],
         additionalInfo: form.getValues().additionalInfo,
         marketingObjective: form.getValues().marketingObjective
       };
@@ -115,18 +144,38 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
       // Simula um ID gerado para a resposta
       const responseId = `gen-${Date.now()}`;
       
-      // Adiciona o resultado à lista de resultados
-      setResults(prev => [
-        {
+      // Create script response object if needed
+      if (onScriptGenerated) {
+        const scriptResponse: ScriptResponse = {
           id: responseId,
-          content: content
-        },
-        ...prev
-      ]);
+          title: request.topic || 'Conteúdo gerado',
+          content: content,
+          type: selectedType === 'roteiro' ? 'videoScript' : 
+                selectedType === 'bigIdea' ? 'bigIdea' : 'dailySales',
+          createdAt: new Date().toISOString(),
+          suggestedVideos: [],
+          captionTips: [],
+          equipment: selectedEquipment,
+          marketingObjective: request.marketingObjective as any,
+        };
+        
+        onScriptGenerated(scriptResponse);
+      }
+      
+      // Adiciona o resultado à lista de resultados
+      if (onResults) {
+        setResults(prev => [
+          {
+            id: responseId,
+            content: content
+          },
+          ...prev
+        ]);
+      }
       
       // Reset do formulário
       if (form.getValues().resetAfterSubmit) {
-        resetForm();
+        resetFormFields();
       }
       
       toast({
@@ -290,22 +339,47 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({ onResults }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Finalidades</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                multiple
-              >
-                <FormControl>
+              <FormControl>
+                <Select
+                  onValueChange={(value) => {
+                    // Ensure we're setting an array of strings
+                    const currentValues = Array.isArray(field.value) ? field.value : [];
+                    if (!currentValues.includes(value)) {
+                      field.onChange([...currentValues, value]);
+                    }
+                  }}
+                  value=""
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione as finalidades" />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="rugas">Rugas</SelectItem>
-                  <SelectItem value="flacidez">Flacidez</SelectItem>
-                  <SelectItem value="manchas">Manchas</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectContent>
+                    <SelectItem value="rugas">Rugas</SelectItem>
+                    <SelectItem value="flacidez">Flacidez</SelectItem>
+                    <SelectItem value="manchas">Manchas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              {Array.isArray(field.value) && field.value.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {field.value.map((item) => (
+                    <div key={item} className="bg-muted px-2 py-1 rounded-md text-sm flex items-center">
+                      {item}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1"
+                        onClick={() => {
+                          field.onChange(field.value.filter(i => i !== item));
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}

@@ -1,277 +1,220 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Video as VideoIcon, Camera, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { generateCustomContent } from "@/utils/custom-gpt";
-import { Equipment } from "@/types/equipment";
-import { ScriptResponse } from "@/utils/api";
-import ScriptCard from "@/components/ScriptCard";
 
-interface TrendingTopic {
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, Star, TrendingUp, Filter, Zap } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScriptResponse } from '@/utils/api';
+import { cn } from '@/lib/utils';
+
+interface Topic {
   id: string;
   title: string;
+  score: number;
+  content?: string;
+  tags: string[];
   category: string;
-  type: "video" | "art";
-  views?: number;
+  equipment?: string;
 }
+
+// For trending topics
+const SAMPLE_TOPICS: Topic[] = [
+  { 
+    id: '1', 
+    title: 'Tratamento com Hipro para lipedema', 
+    score: 98, 
+    tags: ['tendência', 'hipro', 'lipedema'],
+    category: 'tratamento',
+    equipment: 'Hipro'
+  },
+  { 
+    id: '2', 
+    title: 'Adella Laser para rugas faciais', 
+    score: 95,
+    tags: ['tendência', 'adella', 'rugas'],
+    category: 'rejuvenescimento',
+    equipment: 'Adella'
+  },
+  { 
+    id: '3', 
+    title: 'Benefícios da ultracavitação com Adella', 
+    score: 91,
+    tags: ['tendência', 'adella', 'ultracavitação'],
+    category: 'gordura localizada',
+    equipment: 'Adella'
+  },
+  { 
+    id: '4', 
+    title: 'Antes e depois com ultracavitação', 
+    score: 88,
+    tags: ['tendência', 'resultados', 'ultracavitação'],
+    category: 'resultados',
+    equipment: 'Koios'
+  },
+  { 
+    id: '5', 
+    title: 'Comparativo entre Hipro e Ultralift', 
+    score: 85,
+    tags: ['tendência', 'comparativo', 'hipro', 'ultralift'],
+    category: 'equipamentos',
+    equipment: 'Hipro'
+  }
+];
 
 const TrendingTopics: React.FC = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [generatingScript, setGeneratingScript] = useState<string | null>(null);
-  const [generatedScript, setGeneratedScript] = useState<ScriptResponse | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   
-  // Exemplo de tópicos em alta relacionados a vídeos e artes - em uma implementação real, estes viriam de uma API
-  const trendingTopics: TrendingTopic[] = [
-    { 
-      id: "1", 
-      title: "Técnicas de filmagem para procedimentos estéticos", 
-      category: "Videografia", 
-      type: "video",
-      views: 1452
-    },
-    { 
-      id: "2", 
-      title: "Iluminação profissional para vídeos médicos", 
-      category: "Produção", 
-      type: "video",
-      views: 987
-    },
-    { 
-      id: "3", 
-      title: "Design gráfico para miniaturas de vídeos", 
-      category: "Arte Digital", 
-      type: "art",
-      views: 764
-    },
-    { 
-      id: "4", 
-      title: "Edição de vídeos para antes e depois", 
-      category: "Edição", 
-      type: "video",
-      views: 1203
-    },
-    { 
-      id: "5", 
-      title: "Fotografias artísticas para redes sociais", 
-      category: "Fotografia", 
-      type: "art",
-      views: 892
-    },
-  ];
-
-  const getTopicIcon = (type: string) => {
-    switch (type) {
-      case "video":
-        return <VideoIcon className="h-4 w-4 mr-1.5 text-blue-500" />;
-      case "art":
-        return <Camera className="h-4 w-4 mr-1.5 text-purple-500" />;
-      default:
-        return <Sparkles className="h-4 w-4 mr-1.5 text-amber-500" />;
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        // In a real app, this would be an API call
+        // For now, using sample data
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setTopics(SAMPLE_TOPICS);
+      } catch (error) {
+        console.error('Failed to fetch trending topics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTopics();
+  }, []);
+  
+  const categories = ['all', ...Array.from(new Set(topics.map(topic => topic.category)))];
+  
+  const filteredTopics = activeCategory === 'all' ? 
+    topics : 
+    topics.filter(topic => topic.category === activeCategory);
+  
+  const handleGenerate = (topicId: string) => {
+    const topic = topics.find(t => t.id === topicId);
+    if (!topic) return;
+    
+    navigate(`/custom-gpt?topic=${encodeURIComponent(topic.title)}&equipment=${encodeURIComponent(topic.equipment || '')}`);
+  };
+  
+  const getAutoTitle = (topic: Topic): string => {
+    if (topic.category === 'tratamento') {
+      return `Como funciona o tratamento com ${topic.equipment || 'equipamento'}`;
+    } else if (topic.category === 'resultados') {
+      return `Resultados reais com ${topic.equipment || 'tecnologia'}`;
+    } else if (topic.category === 'rejuvenescimento') {
+      return `${topic.equipment || 'Tecnologia'} para rejuvenescimento: como funciona?`;
+    } else {
+      return topic.title;
     }
   };
-
-  const handleCreateClick = async (topic: TrendingTopic) => {
-    try {
-      // Mostrar qual tópico está sendo processado
-      setGeneratingScript(topic.id);
-      
-      toast({
-        title: "Analisando tópico",
-        description: "Estamos preparando o roteiro baseado no tema selecionado...",
-      });
-
-      // Use the analyze-topic function to extract information from the topic
-      const { data: analysisData, error } = await supabase.functions.invoke('analyze-topic', {
-        body: { topic: topic.title }
-      });
-      
-      if (error) {
-        console.error("Error analyzing topic:", error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao analisar tópico",
-          description: "Não foi possível processar o tema selecionado. Por favor, tente novamente.",
-        });
-        setGeneratingScript(null);
-        return;
-      }
-      
-      console.log("Topic analysis result:", analysisData);
-      
-      // Se o usuário desejar ir para a página de geração para personalizar, ainda mantemos essa opção
-      const directGeneration = true; // Poderia ser um parâmetro controlável pelo usuário
-      
-      if (!directGeneration) {
-        // Navigate to custom-gpt instead of determining based on topic type
-        const targetPage = "custom-gpt";
-        
-        // Build query parameters based on the analysis
-        const params = new URLSearchParams();
-        if (analysisData.topic) params.append('topic', analysisData.topic);
-        if (analysisData.equipment) params.append('equipment', analysisData.equipment);
-        if (analysisData.bodyArea) params.append('bodyArea', analysisData.bodyArea);
-        if (analysisData.purpose) params.append('purpose', analysisData.purpose);
-        if (analysisData.marketingObjective) params.append('objective', analysisData.marketingObjective);
-        if (analysisData.additionalInfo) params.append('additionalInfo', analysisData.additionalInfo);
-        
-        // Add mode parameter to default to advanced tab
-        params.append('mode', 'advanced');
-        
-        // Navigate to the custom-gpt page with query parameters
-        navigate(`/${targetPage}?${params.toString()}`);
-        setGeneratingScript(null);
-        return;
-      }
-      
-      // Buscar dados do equipamento para uso na geração do roteiro
-      let equipmentData: Equipment | null = null;
-      if (analysisData.equipment) {
-        // Fix: Added data_cadastro property required by the Equipment interface
-        equipmentData = {
-          id: "1",
-          nome: analysisData.equipment || "Equipamento Genérico",
-          tecnologia: "Tecnologia avançada",
-          indicacoes: ["Diversos tratamentos estéticos"], // Convertendo para array
-          beneficios: "Resultados rápidos e duradouros",
-          diferenciais: "Tecnologia exclusiva",
-          linguagem: "Técnica",
-          ativo: true,
-          data_cadastro: new Date().toISOString() // Add the required property
-        };
-      }
-      
-      // Gerar o roteiro diretamente com os dados analisados
-      const customGptRequest = {
-        tipo: "roteiro" as const,
-        equipamento: analysisData.equipment || "Equipamento Genérico",
-        topic: analysisData.topic || topic.title,
-        bodyArea: analysisData.bodyArea,
-        purposes: analysisData.purpose ? [analysisData.purpose] : undefined,
-        marketingObjective: analysisData.marketingObjective,
-        additionalInfo: analysisData.additionalInfo,
-        equipamentoData: equipmentData // Fixed: corrected the variable name
-      };
-      
-      const generatedContent = await generateCustomContent(customGptRequest);
-      
-      console.log("Conteúdo gerado:", generatedContent);
-      
-      // Convert to the format ScriptResponse for display in ScriptCard
-      const scriptResponse: ScriptResponse = {
-        id: new Date().getTime().toString(),
-        title: analysisData.topic || topic.title,
-        content: generatedContent.content,
-        type: "videoScript",
-        createdAt: new Date().toISOString(),
-        suggestedVideos: [], // Garantir que é um array conforme tipo esperado
-        captionTips: []     // Garantir que é um array conforme tipo esperado
-        // Remover equipment se não estiver definido no tipo ScriptResponse
-      };
-      
-      setGeneratedScript(scriptResponse);
-      toast({
-        title: "Roteiro gerado com sucesso!",
-        description: "Confira o roteiro personalizado baseado no tema selecionado.",
-      });
-      
-    } catch (error) {
-      console.error("Error handling topic click:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
-      });
-    } finally {
-      setGeneratingScript(null);
-    }
+  
+  // Function to create a script from a topic
+  const createScriptFromTopic = async (topic: Topic): Promise<ScriptResponse> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For now, return a simulated response
+    const scriptResponse: ScriptResponse = {
+      id: `script-${Date.now()}`,
+      title: topic.title,
+      content: topic.content || `Roteiro gerado para o tópico: ${topic.title}`,
+      type: 'videoScript',
+      createdAt: new Date().toISOString(),
+      suggestedVideos: [],
+      captionTips: [],
+      equipment: topic.equipment,
+    };
+    
+    return scriptResponse;
   };
-
-  const handleApproveScript = async () => {
-    toast({
-      title: "Roteiro aprovado",
-      description: "O roteiro foi salvo em sua biblioteca.",
-    });
-    setGeneratedScript(null);
-  };
-
-  const handleRejectScript = async () => {
-    toast({
-      title: "Roteiro descartado",
-      description: "Você pode selecionar outro tópico ou personalizar seu próprio conteúdo.",
-    });
-    setGeneratedScript(null);
-  };
-
-  if (generatedScript) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Roteiro Gerado</h3>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setGeneratedScript(null)}
-          >
-            Voltar aos Tópicos
-          </Button>
-        </div>
-        
-        <ScriptCard 
-          script={generatedScript}
-          onApprove={handleApproveScript}
-          onReject={() => handleRejectScript()}
-        />
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-3">
-      {trendingTopics.map((topic) => (
-        <div 
-          key={topic.id}
-          className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 group hover:bg-gray-50 rounded-md px-2 transition-all"
-        >
-          <div className="flex-1">
-            <div className="flex items-center">
-              {getTopicIcon(topic.type)}
-              <p className="font-medium text-gray-800">{topic.title}</p>
-            </div>
-            <div className="flex items-center mt-1.5 gap-2">
-              <Badge variant="outline" className="text-xs">
-                {topic.category}
-              </Badge>
-              {topic.views && (
-                <span className="text-xs text-gray-500">
-                  {topic.views.toLocaleString()} visualizações
-                </span>
-              )}
-            </div>
+    <Card className="w-full">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <TrendingUp className="w-4 h-4 mr-2 text-primary" />
+            <CardTitle className="text-lg">Tópicos em Alta</CardTitle>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => handleCreateClick(topic)}
-            disabled={generatingScript !== null}
-          >
-            {generatingScript === topic.id ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" /> Gerando...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3 w-3 mr-1" /> Criar
-              </>
-            )}
-          </Button>
+          {!loading && (
+            <div className="flex gap-1 overflow-x-auto pb-1 max-w-[70%]">
+              {categories.map(category => (
+                <Badge
+                  key={category}
+                  variant={activeCategory === category ? "default" : "outline"}
+                  className={cn(
+                    "capitalize cursor-pointer",
+                    activeCategory === category ? 'bg-primary' : 'hover:bg-secondary'
+                  )}
+                  onClick={() => setActiveCategory(category)}
+                >
+                  {category === 'all' ? 'Todos' : category}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
+        <CardDescription>
+          Tópicos em tendência para sua clínica baseados em dados de mercado
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredTopics.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground">
+            Nenhum tópico encontrado para esta categoria.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredTopics.map((topic) => (
+              <div 
+                key={topic.id}
+                className="p-3 border rounded-lg flex justify-between items-center hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center">
+                    <span className="truncate">{topic.title}</span>
+                    {topic.score >= 95 && (
+                      <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-200">
+                        <Star className="h-3 w-3 mr-1 fill-amber-500 text-amber-500" />
+                        Alta relevância
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {topic.tags.map((tag, i) => (
+                      <Badge variant="secondary" key={i} className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 ml-4">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-primary font-medium">
+                    {topic.score}
+                  </div>
+                  <Button 
+                    size="sm"
+                    onClick={() => handleGenerate(topic.id)}
+                    className="whitespace-nowrap"
+                  >
+                    <Zap className="h-4 w-4 mr-1" />
+                    Gerar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

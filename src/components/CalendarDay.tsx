@@ -1,140 +1,76 @@
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarSuggestion, updateCalendarCompletion } from "@/utils/api";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Calendar, Video, Image, Instagram, FileText, Clock, AlertCircle 
-} from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Check, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { CalendarSuggestion } from '@/utils/api';
 
-interface CalendarDayProps {
-  event: CalendarSuggestion;
-  onRefresh?: () => void;
+export interface CalendarDayProps {
+  key: string;
+  date: Date;
+  events: CalendarSuggestion[];
+  onClick: () => void;
+  onEventCompletion: (event: CalendarSuggestion, completed: boolean) => Promise<void>;
+  isCurrentMonth: boolean;
 }
 
-const CalendarDay: React.FC<CalendarDayProps> = ({ event, onRefresh }) => {
-  const { toast } = useToast();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(event.completed || false);
+const CalendarDay: React.FC<CalendarDayProps> = ({ 
+  date, 
+  events, 
+  onClick, 
+  onEventCompletion, 
+  isCurrentMonth 
+}) => {
+  const dayNumber = date.getDate();
   
-  const handleToggleCompletion = async (completed: boolean) => {
-    try {
-      setIsUpdating(true);
-      await updateCalendarCompletion(event.date, completed);
-      setIsCompleted(completed);
-      
-      toast({
-        title: completed ? "Marcado como concluído" : "Marcado como pendente",
-        description: `O evento "${event.title}" foi atualizado`,
-      });
-      
-      if (onRefresh) {
-        onRefresh();
-      }
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível atualizar o status do evento",
-      });
-      // Revert state if there was an error
-      setIsCompleted(!completed);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-  
-  const formatIcon = () => {
-    switch (event.format) {
-      case "video":
-        return <Video className="h-5 w-5 text-blue-500" />;
-      case "image":
-        return <Image className="h-5 w-5 text-green-500" />;
-      case "story":
-        return <Instagram className="h-5 w-5 text-pink-500" />;
-      default:
-        return <FileText className="h-5 w-5 text-gray-500" />;
-    }
+  const handleToggleCompletion = async (event: CalendarSuggestion, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await onEventCompletion(event, !event.completed);
   };
   
   return (
-    <Card className={`${isCompleted ? 'bg-gray-50' : ''}`}>
-      <CardHeader className="pb-2 flex flex-row justify-between items-start">
-        <div className="flex items-start gap-3">
-          <div className="mt-1">
-            {formatIcon()}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className={`font-medium ${isCompleted ? 'text-gray-500 line-through' : ''}`}>
-                {event.title}
-              </h3>
-            </div>
-            <div className="text-sm text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-              {event.equipment && (
-                <Badge variant="outline" className="ml-2 text-xs">
-                  {event.equipment}
-                </Badge>
-              )}
-              {event.format && (
-                <Badge variant="outline" className="ml-0.5 text-xs">
-                  {event.format === 'video' ? 'Vídeo' : event.format === 'image' ? 'Imagem' : 'Story'}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center">
-          <Checkbox
-            checked={isCompleted}
-            disabled={isUpdating}
-            className={`h-5 w-5 ${isCompleted ? 'text-green-500' : ''}`}
-            onCheckedChange={(checked) => handleToggleCompletion(checked as boolean)}
-          />
-        </div>
-      </CardHeader>
+    <Card 
+      className={cn(
+        "min-h-[100px] p-2 hover:bg-accent/50 cursor-pointer flex flex-col",
+        isCurrentMonth ? "bg-card" : "bg-muted/50",
+      )}
+      onClick={onClick}
+    >
+      <div className="text-sm font-medium self-end mb-1">
+        {dayNumber}
+      </div>
       
-      <CardContent>
-        <p className="text-sm leading-relaxed mb-2">{event.description}</p>
-        
-        {event.hook && (
-          <div className="bg-blue-50 p-2 rounded-md text-sm mb-2">
-            <div className="font-medium flex items-center text-blue-700 mb-0.5">
-              <AlertCircle className="h-3.5 w-3.5 mr-1" />
-              Gancho sugerido
-            </div>
-            <p className="text-blue-600">{event.hook}</p>
-          </div>
-        )}
-        
-        {event.caption && (
-          <div className="bg-gray-50 p-2 rounded-md text-sm mt-3">
-            <div className="font-medium flex items-center text-gray-700 mb-0.5">
-              <FileText className="h-3.5 w-3.5 mr-1" />
-              Legenda sugerida
-            </div>
-            <p className="text-gray-600">{event.caption}</p>
-          </div>
-        )}
-        
-        <div className="flex items-center justify-end mt-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs flex items-center gap-1"
+      <div className="flex-1 flex flex-col gap-1 mt-1 overflow-y-auto">
+        {events.map((event) => (
+          <div 
+            key={event.id} 
+            className={cn(
+              "text-xs p-1 rounded flex items-center gap-1 group",
+              event.completed ? "bg-primary/20 text-primary" : "bg-secondary/20",
+              event.format === "video" && "border-l-2 border-blue-500",
+              event.format === "story" && "border-l-2 border-purple-500",
+              event.format === "image" && "border-l-2 border-green-500"
+            )}
           >
-            <Clock className="h-3 w-3" />
-            Reagendar
-          </Button>
-        </div>
-      </CardContent>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-4 w-4 p-0 opacity-70 hover:opacity-100"
+              onClick={(e) => handleToggleCompletion(event, e)}
+            >
+              {event.completed ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Clock className="h-3 w-3" />
+              )}
+            </Button>
+            <span className="truncate flex-1">
+              {event.title}
+            </span>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 };

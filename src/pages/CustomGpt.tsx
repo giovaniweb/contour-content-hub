@@ -3,14 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import CustomGptForm from '@/components/CustomGptForm';
-import { Sparkles, Wand, BrainCircuit, Calendar } from 'lucide-react';
+import { Sparkles, Wand, BrainCircuit } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ScriptCard from '@/components/ScriptCard';
-import { ScriptResponse, generatePDF, linkScriptToCalendar } from '@/utils/api';
+import { ScriptResponse } from '@/utils/api';
 import CalendarDialog from '@/components/script/CalendarDialog';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from "@/components/ui/label";
 
 const CustomGpt: React.FC = () => {
   const location = useLocation();
@@ -99,16 +100,10 @@ const CustomGpt: React.FC = () => {
     }
   };
   
-  const handleScheduleScript = async (date: Date | undefined, timeSlot: string) => {
+  const handleScheduleScript = async (date: Date, timeSlot: string) => {
     if (!generatedScript || !date) return;
     
     try {
-      // Create a calendar event ID (in a real app this would come from the database)
-      const eventId = `event-${Date.now()}`;
-      
-      // Link script to calendar
-      await linkScriptToCalendar(generatedScript.id, eventId);
-      
       // Format date for display
       const formattedDate = date.toLocaleDateString('pt-BR');
       const periodMap: Record<string, string> = {
@@ -136,8 +131,8 @@ const CustomGpt: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-6">
+    <Layout title="Media Library">
+      <div className="space-y-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <Sparkles className="h-8 w-8 mr-2 text-blue-500" />
@@ -197,12 +192,12 @@ const CustomGpt: React.FC = () => {
             />
             
             <div className="flex justify-end gap-2 mt-4">
-              <button
+              <Button
                 onClick={() => setGeneratedScript(null)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
+                variant="outline"
               >
                 Gerar Novo Conteúdo
-              </button>
+              </Button>
             </div>
           </div>
         )}
