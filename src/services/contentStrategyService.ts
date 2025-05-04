@@ -52,22 +52,22 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
 
     if (error) throw error;
 
-    // Transform data to match our interface
+    // Transform data to match our interface with type assertions
     return (data || []).map(item => ({
       id: item.id,
       linha: item.linha,
       equipamento_id: item.equipamento_id,
       equipamento_nome: item.equipamento?.nome || null,
-      categoria: item.categoria,
-      formato: item.formato,
+      categoria: item.categoria as ContentStrategyItem['categoria'],
+      formato: item.formato as ContentStrategyItem['formato'],
       responsavel_id: item.responsavel_id,
       responsavel_nome: item.responsavel?.nome || null,
       previsao: item.previsao,
       conteudo: item.conteudo,
-      objetivo: item.objetivo,
-      prioridade: item.prioridade,
-      status: item.status,
-      distribuicao: item.distribuicao || 'Instagram', // Default if not defined
+      objetivo: item.objetivo as ContentStrategyItem['objetivo'],
+      prioridade: item.prioridade as ContentStrategyItem['prioridade'],
+      status: item.status as ContentStrategyItem['status'],
+      distribuicao: item.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram', // Default if not defined
       impedimento: item.impedimento,
       created_at: item.created_at,
       updated_at: item.updated_at,
@@ -127,16 +127,16 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       linha: data.linha,
       equipamento_id: data.equipamento_id,
       equipamento_nome: data.equipamento?.nome || null,
-      categoria: data.categoria,
-      formato: data.formato,
+      categoria: data.categoria as ContentStrategyItem['categoria'],
+      formato: data.formato as ContentStrategyItem['formato'],
       responsavel_id: data.responsavel_id,
       responsavel_nome: data.responsavel?.nome || null,
       previsao: data.previsao,
       conteudo: data.conteudo,
-      objetivo: data.objetivo,
-      prioridade: data.prioridade,
-      status: data.status,
-      distribuicao: data.distribuicao || 'Instagram',
+      objetivo: data.objetivo as ContentStrategyItem['objetivo'],
+      prioridade: data.prioridade as ContentStrategyItem['prioridade'],
+      status: data.status as ContentStrategyItem['status'],
+      distribuicao: data.distribuicao as ContentStrategyItem['distribuicao'] || 'Instagram',
       impedimento: data.impedimento,
       created_at: data.created_at,
       updated_at: data.updated_at,
