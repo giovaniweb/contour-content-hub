@@ -20,6 +20,7 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
   const [currentTab, setCurrentTab] = useState("overview");
   
   useEffect(() => {
+    // Garantir que temos dados válidos antes de gerar a estratégia
     if (diagnosticData && profitData) {
       generateStrategy();
     }
@@ -30,94 +31,119 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
     
     // Simulate strategy generation
     setTimeout(() => {
-      // Using defensive programming with default values to avoid null/undefined errors
-      const mainServices = diagnosticData?.main_services || 'Tratamentos estéticos';
-      const clinicName = diagnosticData?.clinic_name || 'sua clínica';
-      const mostProfitable = diagnosticData?.most_profitable || 'procedimentos estéticos';
-      const hasWebsite = ((diagnosticData?.website || '').toLowerCase().includes('sim'));
-      const usesSocialMedia = ((diagnosticData?.social_media || '').toLowerCase() === 'sim');
-      const contentComfort = ((diagnosticData?.content_comfort || '').toLowerCase() === 'sim');
-      
-      const strategyData = {
-        summary: `Estratégia personalizada para aumentar a visibilidade e lucratividade da ${clinicName} em 90 dias`,
-        overview: `
-          Com base no diagnóstico realizado, desenvolvemos uma estratégia completa de crescimento
-          para a ${clinicName}, focando nos principais procedimentos (${mainServices})
-          e no desafio principal identificado: ${getMainChallenge(diagnosticData?.main_challenge || '')}.
-          
-          Esta estratégia foi desenvolvida para atingir um crescimento de ${profitData?.growthRate || 30}% 
-          em faturamento nos próximos 3 meses, alcançando aproximadamente 
-          R$ ${Math.round((profitData?.potentialRevenue || 0) / 100) * 100} mensais.
-        `,
-        pillars: [
-          {
-            title: "Presença Digital Otimizada",
-            description: hasWebsite 
-              ? "Aprimoramento do site existente para maior conversão"
-              : "Criação de landing page ou site simples para captação",
-            actions: hasWebsite 
-              ? ["Otimizar SEO local", "Adicionar formulários de captação", "Melhorar velocidade de carregamento"] 
-              : ["Criar landing page com oferta principal", "Configurar captação de leads", "Integrar com WhatsApp"]
-          },
-          {
-            title: "Estratégia de Conteúdo",
-            description: usesSocialMedia 
-              ? "Otimização da estratégia atual de redes sociais" 
-              : "Implementação de presença básica em redes sociais",
-            actions: usesSocialMedia 
-              ? (contentComfort 
-                 ? ["Calendário de conteúdo estruturado", "Foco em conteúdos educativos", "Histórias de resultados"] 
-                 : ["Templates prontos para postagens", "Roteiro para vídeos curtos", "Banco de legendas"])
-              : ["Criar perfil profissional no Instagram", "Configurar Google Meu Negócio", "Primeiras postagens estratégicas"]
-          },
-          {
-            title: "Sistema de Vendas",
-            description: `Aumento do ticket médio e taxa de conversão para ${mostProfitable}`,
-            actions: ["Script de atendimento consultivo", "Criação de pacotes promocionais", "Programa de indicação de clientes"]
+      try {
+        // Atribuir valores padrão para todas as propriedades usadas
+        const mainServices = diagnosticData?.main_services || 'Tratamentos estéticos';
+        const clinicName = diagnosticData?.clinic_name || 'sua clínica';
+        const mostProfitable = diagnosticData?.most_profitable || 'procedimentos estéticos';
+        
+        // Garantir que todas as propriedades são strings antes de chamar toLowerCase()
+        const websiteValue = String(diagnosticData?.website || '');
+        const socialMediaValue = String(diagnosticData?.social_media || '');
+        const contentComfortValue = String(diagnosticData?.content_comfort || '');
+        
+        // Depois verificar as condições com segurança
+        const hasWebsite = websiteValue.toLowerCase().includes('sim');
+        const usesSocialMedia = socialMediaValue.toLowerCase() === 'sim';
+        const contentComfort = contentComfortValue.toLowerCase() === 'sim';
+        
+        // Usar valores seguros para cálculos numéricos
+        const growthRate = profitData?.growthRate || 30;
+        const potentialRevenue = profitData?.potentialRevenue || 10000;
+        const roundedRevenue = Math.round((potentialRevenue || 0) / 100) * 100;
+        
+        const strategyData = {
+          summary: `Estratégia personalizada para aumentar a visibilidade e lucratividade da ${clinicName} em 90 dias`,
+          overview: `
+            Com base no diagnóstico realizado, desenvolvemos uma estratégia completa de crescimento
+            para a ${clinicName}, focando nos principais procedimentos (${mainServices})
+            e no desafio principal identificado: ${getMainChallenge(diagnosticData?.main_challenge || '')}.
+            
+            Esta estratégia foi desenvolvida para atingir um crescimento de ${growthRate}% 
+            em faturamento nos próximos 3 meses, alcançando aproximadamente 
+            R$ ${roundedRevenue} mensais.
+          `,
+          pillars: [
+            {
+              title: "Presença Digital Otimizada",
+              description: hasWebsite 
+                ? "Aprimoramento do site existente para maior conversão"
+                : "Criação de landing page ou site simples para captação",
+              actions: hasWebsite 
+                ? ["Otimizar SEO local", "Adicionar formulários de captação", "Melhorar velocidade de carregamento"] 
+                : ["Criar landing page com oferta principal", "Configurar captação de leads", "Integrar com WhatsApp"]
+            },
+            {
+              title: "Estratégia de Conteúdo",
+              description: usesSocialMedia 
+                ? "Otimização da estratégia atual de redes sociais" 
+                : "Implementação de presença básica em redes sociais",
+              actions: usesSocialMedia 
+                ? (contentComfort 
+                   ? ["Calendário de conteúdo estruturado", "Foco em conteúdos educativos", "Histórias de resultados"] 
+                   : ["Templates prontos para postagens", "Roteiro para vídeos curtos", "Banco de legendas"])
+                : ["Criar perfil profissional no Instagram", "Configurar Google Meu Negócio", "Primeiras postagens estratégicas"]
+            },
+            {
+              title: "Sistema de Vendas",
+              description: `Aumento do ticket médio e taxa de conversão para ${mostProfitable}`,
+              actions: ["Script de atendimento consultivo", "Criação de pacotes promocionais", "Programa de indicação de clientes"]
+            }
+          ],
+          implementation: {
+            firstMonth: [
+              "Configuração inicial da presença digital",
+              "Criação de materiais promocionais",
+              "Definição do calendário de conteúdo",
+              "Treinamento de atendimento consultivo"
+            ],
+            secondMonth: [
+              "Otimização baseada em resultados iniciais",
+              "Campanha promocional para serviços premium",
+              "Intensificação da produção de conteúdo",
+              "Implementação do programa de fidelidade"
+            ],
+            thirdMonth: [
+              "Análise de métricas e ajustes",
+              "Campanha para indicações de clientes",
+              "Expansão da oferta de serviços",
+              "Planejamento para o próximo trimestre"
+            ]
           }
-        ],
-        implementation: {
-          firstMonth: [
-            "Configuração inicial da presença digital",
-            "Criação de materiais promocionais",
-            "Definição do calendário de conteúdo",
-            "Treinamento de atendimento consultivo"
-          ],
-          secondMonth: [
-            "Otimização baseada em resultados iniciais",
-            "Campanha promocional para serviços premium",
-            "Intensificação da produção de conteúdo",
-            "Implementação do programa de fidelidade"
-          ],
-          thirdMonth: [
-            "Análise de métricas e ajustes",
-            "Campanha para indicações de clientes",
-            "Expansão da oferta de serviços",
-            "Planejamento para o próximo trimestre"
-          ]
-        }
-      };
+        };
+        
+        setStrategy(strategyData);
+        
+        toast({
+          title: "Estratégia criada com sucesso!",
+          description: "Sua estratégia personalizada está pronta para análise.",
+        });
+      } catch (error) {
+        console.error("Erro ao gerar estratégia:", error);
+        toast({
+          title: "Erro ao criar estratégia",
+          description: "Ocorreu um problema ao processar os dados. Por favor, tente novamente.",
+          variant: "destructive"
+        });
+      }
       
-      setStrategy(strategyData);
       setLoading(false);
-      
-      toast({
-        title: "Estratégia criada com sucesso!",
-        description: "Sua estratégia personalizada está pronta para análise.",
-      });
     }, 2000);
   };
   
   const getMainChallenge = (challenge: string) => {
     if (!challenge) return "captação de clientes";
     
-    if (challenge.toLowerCase().includes('atrair')) 
+    // Converter para string segura antes de usar toLowerCase
+    const safeChallenge = String(challenge).toLowerCase();
+    
+    if (safeChallenge.includes('atrair')) 
       return "captação de clientes";
-    if (challenge.toLowerCase().includes('convert')) 
+    if (safeChallenge.includes('convert')) 
       return "conversão de leads em clientes";
-    if (challenge.toLowerCase().includes('conteúdo')) 
+    if (safeChallenge.includes('conteúdo')) 
       return "criação de conteúdo relevante";
-    if (challenge.toLowerCase().includes('fideliz')) 
+    if (safeChallenge.includes('fideliz')) 
       return "fidelização de clientes";
     
     return "captação de clientes";
@@ -200,7 +226,7 @@ const GrowthStrategy: React.FC<GrowthStrategyProps> = ({ diagnosticData, profitD
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <h3 className="font-medium mb-2">Objetivos Principais</h3>
                   <ul className="text-sm space-y-2 list-disc pl-5">
-                    <li>Aumentar o faturamento mensal para R$ {Math.round((profitData?.potentialRevenue || 0) / 100) * 100}</li>
+                    <li>Aumentar o faturamento mensal para R$ {Math.round(((profitData?.potentialRevenue || 0) / 100)) * 100}</li>
                     <li>Melhorar a captação e retenção de clientes</li>
                     <li>Otimizar a presença digital da clínica</li>
                     <li>Implementar sistema de vendas consultivas</li>
