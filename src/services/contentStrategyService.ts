@@ -1,8 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ContentStrategyItem, ContentStrategyFilter, ContentCategory, ContentFormat, ContentObjective, ContentPriority, ContentStatus, ContentDistribution } from "@/types/content-strategy";
+import { ContentStrategyItem, ContentStrategyFilter } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
+import { transformToContentStrategyItem, prepareContentStrategyData } from "@/utils/validation/contentStrategy";
 
+/**
+ * Busca itens de estratégia de conteúdo com filtros opcionais
+ */
 export async function fetchContentStrategyItems(filters: ContentStrategyFilter = {}): Promise<ContentStrategyItem[]> {
   try {
     let query = supabase
@@ -13,7 +17,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         responsavel:perfis!responsavel_id(nome)
       `);
 
-    // Apply filters
+    // Aplicação dos filtros
     if (filters.equipamento_id) {
       query = query.eq('equipamento_id', filters.equipamento_id);
     }
@@ -44,38 +48,15 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
         .lte('previsao', filters.dateRange.to.toISOString());
     }
 
-    // Order by priority and previsao
+    // Ordenação
     query = query.order('prioridade', { ascending: false }).order('previsao', { ascending: true });
 
     const { data, error } = await query;
 
     if (error) throw error;
 
-    // Transform data to match our interface with proper type assertions
-    return (data || []).map(item => {
-      const estrategiaItem: ContentStrategyItem = {
-        id: item.id,
-        linha: item.linha,
-        equipamento_id: item.equipamento_id,
-        equipamento_nome: item.equipamento?.nome || null,
-        categoria: item.categoria as ContentCategory,
-        formato: item.formato as ContentFormat,
-        responsavel_id: item.responsavel_id,
-        responsavel_nome: item.responsavel?.nome || null,
-        previsao: item.previsao,
-        conteudo: item.conteudo,
-        objetivo: item.objetivo as ContentObjective,
-        prioridade: item.prioridade as ContentPriority,
-        status: item.status as ContentStatus,
-        distribuicao: 'distribuicao' in item ? item.distribuicao as ContentDistribution : 'Instagram',
-        impedimento: item.impedimento,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        created_by: item.created_by
-      };
-
-      return estrategiaItem;
-    });
+    // Transformação dos dados com nossa função auxiliar
+    return (data || []).map(item => transformToContentStrategyItem(item));
   } catch (error) {
     console.error("Error fetching content strategy items:", error);
     toast({
@@ -87,30 +68,19 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
   }
 }
 
+/**
+ * Cria um novo item de estratégia de conteúdo
+ */
 export async function createContentStrategyItem(item: Partial<ContentStrategyItem>): Promise<ContentStrategyItem | null> {
   try {
-    // Process equipamento_id - convert empty string to null
-    const equipamento_id = item.equipamento_id === '_none' || !item.equipamento_id ? null : item.equipamento_id;
-    
-    // Process responsavel_id - convert empty string to null
-    const responsavel_id = item.responsavel_id === '_none' || !item.responsavel_id ? null : item.responsavel_id;
+    const dataToInsert = {
+      ...prepareContentStrategyData(item),
+      created_by: (await supabase.auth.getUser()).data.user?.id || null
+    };
     
     const { data, error } = await supabase
       .from('content_strategy_items')
-      .insert({
-        equipamento_id: equipamento_id,
-        categoria: item.categoria,
-        formato: item.formato,
-        responsavel_id: responsavel_id,
-        previsao: item.previsao || null,
-        conteudo: item.conteudo || null,
-        objetivo: item.objetivo,
-        prioridade: item.prioridade || 'Média',
-        status: item.status || 'Planejado',
-        distribuicao: item.distribuicao || 'Instagram',
-        impedimento: item.impedimento || null,
-        created_by: (await supabase.auth.getUser()).data.user?.id || null
-      })
+      .insert(dataToInsert)
       .select(`
         *,
         equipamento:equipamentos(nome),
@@ -125,29 +95,8 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
       description: "Item de estratégia de conteúdo criado com sucesso."
     });
 
-    // Create properly typed ContentStrategyItem from response
-    const strategyItem: ContentStrategyItem = {
-      id: data.id,
-      linha: data.linha,
-      equipamento_id: data.equipamento_id,
-      equipamento_nome: data.equipamento?.nome || null,
-      categoria: data.categoria as ContentCategory,
-      formato: data.formato as ContentFormat,
-      responsavel_id: data.responsavel_id,
-      responsavel_nome: data.responsavel?.nome || null,
-      previsao: data.previsao,
-      conteudo: data.conteudo,
-      objetivo: data.objetivo as ContentObjective,
-      prioridade: data.prioridade as ContentPriority,
-      status: data.status as ContentStatus,
-      distribuicao: 'distribuicao' in data ? data.distribuicao as ContentDistribution : 'Instagram',
-      impedimento: data.impedimento,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      created_by: data.created_by
-    };
-
-    return strategyItem;
+    // Transformação dos dados com nossa função auxiliar
+    return transformToContentStrategyItem(data);
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     toast({
@@ -159,17 +108,20 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
   }
 }
 
+/**
+ * Atualiza um item de estratégia de conteúdo existente
+ */
 export async function updateContentStrategyItem(id: string, updates: Partial<ContentStrategyItem>): Promise<boolean> {
   try {
-    // Remove derived fields that are not in the database
+    // Remove campos derivados que não estão no banco de dados
     const { equipamento_nome, responsavel_nome, ...updateData } = updates;
 
-    // Process equipamento_id - convert empty string to null
+    // Processa equipamento_id - converte string vazia para null
     if (updateData.equipamento_id === '_none' || updateData.equipamento_id === '') {
       updateData.equipamento_id = null;
     }
     
-    // Process responsavel_id - convert empty string to null
+    // Processa responsavel_id - converte string vazia para null
     if (updateData.responsavel_id === '_none' || updateData.responsavel_id === '') {
       updateData.responsavel_id = null;
     }
@@ -193,97 +145,6 @@ export async function updateContentStrategyItem(id: string, updates: Partial<Con
       variant: "destructive",
       title: "Erro ao atualizar item",
       description: "Não foi possível atualizar o item de estratégia de conteúdo."
-    });
-    return false;
-  }
-}
-
-export async function deleteContentStrategyItem(id: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('content_strategy_items')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    toast({
-      title: "Item removido",
-      description: "Item de estratégia de conteúdo removido com sucesso."
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Error deleting content strategy item:", error);
-    toast({
-      variant: "destructive",
-      title: "Erro ao remover item",
-      description: "Não foi possível remover o item de estratégia de conteúdo."
-    });
-    return false;
-  }
-}
-
-export async function generateContentWithAI(item: Partial<ContentStrategyItem>): Promise<string | null> {
-  try {
-    // Call the edge function to generate content with AI
-    const { data, error } = await supabase.functions.invoke('generate-content-description', {
-      body: JSON.stringify({
-        linha: item.linha,
-        equipamento: item.equipamento_nome,
-        categoria: item.categoria,
-        formato: item.formato,
-        objetivo: item.objetivo,
-        impedimento: item.impedimento,
-        prioridade: item.prioridade
-      })
-    });
-
-    if (error) throw error;
-
-    return data.content || null;
-  } catch (error) {
-    console.error("Error generating content with AI:", error);
-    toast({
-      variant: "destructive",
-      title: "Erro ao gerar conteúdo",
-      description: "Não foi possível gerar conteúdo com IA."
-    });
-    return null;
-  }
-}
-
-export async function scheduleContentInCalendar(item: ContentStrategyItem): Promise<boolean> {
-  try {
-    // Add entry to agenda table
-    const { error } = await supabase
-      .from('agenda')
-      .insert({
-        titulo: `Content: ${item.linha || item.categoria}`,
-        data: item.previsao,
-        tipo: "content_strategy",
-        usuario_id: (await supabase.auth.getUser()).data.user?.id,
-        descricao: item.conteudo,
-        equipamento: item.equipamento_nome,
-        objetivo: item.objetivo,
-        formato: item.formato.toLowerCase(),
-        status: "pendente"
-      });
-
-    if (error) throw error;
-
-    toast({
-      title: "Conteúdo agendado",
-      description: "Conteúdo adicionado à agenda com sucesso."
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Error scheduling content in calendar:", error);
-    toast({
-      variant: "destructive",
-      title: "Erro ao agendar conteúdo",
-      description: "Não foi possível adicionar o conteúdo à agenda."
     });
     return false;
   }
