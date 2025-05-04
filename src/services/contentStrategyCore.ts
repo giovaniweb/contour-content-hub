@@ -78,7 +78,7 @@ export async function fetchContentStrategyItems(filters: ContentStrategyFilter =
  */
 export async function createContentStrategyItem(item: Partial<ContentStrategyItem>): Promise<ContentStrategyItem | null> {
   try {
-    // Preparamos os dados para inserção
+    // Preparamos os dados para inserção com os campos obrigatórios
     const dataToInsert = prepareContentStrategyData(item);
     
     // Adicionamos o usuário que criou
@@ -86,6 +86,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     const userId = userData.data.user?.id || null;
     
     // Combinamos os dados preparados com o usuário atual
+    // Garantimos que todos os campos obrigatórios estão presentes
     const insertData = {
       ...dataToInsert,
       created_by: userId
@@ -109,7 +110,7 @@ export async function createContentStrategyItem(item: Partial<ContentStrategyIte
     });
 
     // Transformação dos dados com nossa função auxiliar
-    return transformToContentStrategyItem(data);
+    return data ? transformToContentStrategyItem(data) : null;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     toast({

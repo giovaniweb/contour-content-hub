@@ -4,23 +4,18 @@ import { ContentStrategyItem } from "@/types/content-strategy";
 import { toast } from "@/hooks/use-toast";
 
 /**
- * Gera conteúdo usando IA com base nos dados do item
+ * Gera conteúdo para um item de estratégia usando IA
  */
 export async function generateContentWithAI(item: Partial<ContentStrategyItem>): Promise<string | null> {
   try {
-    // Chama a edge function para gerar conteúdo com IA
+    // Chama a função Edge Function para gerar conteúdo
     const { data, error } = await supabase.functions.invoke('generate-content-description', {
-      body: JSON.stringify({
-        equipamento: item.equipamento_nome,
-        categoria: item.categoria,
-        formato: item.formato,
-        objetivo: item.objetivo
-      })
+      body: { item }
     });
 
     if (error) throw error;
 
-    return data.content || null;
+    return data?.content || null;
   } catch (error) {
     console.error("Error generating content with AI:", error);
     toast({
@@ -33,30 +28,41 @@ export async function generateContentWithAI(item: Partial<ContentStrategyItem>):
 }
 
 /**
- * Agenda conteúdo no calendário
+ * Agenda um conteúdo no calendário
  */
 export async function scheduleContentInCalendar(item: ContentStrategyItem): Promise<boolean> {
   try {
-    // Adiciona entrada à tabela de agenda
-    const { error } = await supabase
+    // Verifica se temos uma data de previsão
+    if (!item.previsao) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao agendar",
+        description: "É necessário definir uma data de previsão para agendar o conteúdo."
+      });
+      return false;
+    }
+
+    // Cria um evento na agenda
+    const { data, error } = await supabase
       .from('agenda')
       .insert({
-        titulo: `Content: ${item.categoria}`,
+        titulo: `Conteúdo: ${item.categoria} - ${item.formato}`,
+        descricao: item.conteudo || 'Conteúdo a ser definido',
         data: item.previsao,
-        tipo: "content_strategy",
-        usuario_id: (await supabase.auth.getUser()).data.user?.id,
-        descricao: item.conteudo,
+        tipo: 'conteudo',
         equipamento: item.equipamento_nome,
         objetivo: item.objetivo,
-        formato: item.formato.toLowerCase(),
-        status: "pendente"
-      });
+        formato: item.formato,
+        status: 'pendente'
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
     toast({
       title: "Conteúdo agendado",
-      description: "Conteúdo adicionado à agenda com sucesso."
+      description: "O conteúdo foi agendado com sucesso no calendário."
     });
 
     return true;
@@ -64,8 +70,8 @@ export async function scheduleContentInCalendar(item: ContentStrategyItem): Prom
     console.error("Error scheduling content in calendar:", error);
     toast({
       variant: "destructive",
-      title: "Erro ao agendar conteúdo",
-      description: "Não foi possível adicionar o conteúdo à agenda."
+      title: "Erro ao agendar",
+      description: "Não foi possível agendar o conteúdo no calendário."
     });
     return false;
   }
