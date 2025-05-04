@@ -115,7 +115,7 @@ export const Navbar: React.FC = () => {
         {/* Logo e título */}
         <div className="flex items-center">
           <Link 
-            to={isAuthenticated ? "/" : "/"} 
+            to={isAuthenticated ? "/dashboard" : "/"} 
             className="flex items-center" 
             aria-label="Ir para página inicial Fluida"
           >
@@ -206,7 +206,7 @@ export const Navbar: React.FC = () => {
                     >
                       <ListTodo className="h-4 w-4 mr-2" aria-hidden="true" />
                       <span>Estratégia de Conteúdo</span>
-                      <span className="ml-1 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
+                      <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
                     </NavigationMenuLink>
                   </NavLink>
                 </NavigationMenuItem>
