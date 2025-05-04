@@ -17,15 +17,17 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
   onSuccess,
   articleData
 }) => {
-  // Generate a unique key whenever the dialog opens to force a fresh instance of the form
-  const [dialogKey, setDialogKey] = useState(Date.now());
+  // Generate a unique key whenever the dialog opens or articleData changes
+  // This forces a complete remount of the form component
+  const [dialogKey, setDialogKey] = useState(() => Date.now());
   
-  // Regenerate key when dialog opens - this forces the form to be completely recreated
+  // Regenerate key when dialog opens or articleData changes - this forces the form to be completely recreated
   useEffect(() => {
     if (isOpen) {
+      console.log("Diálogo aberto ou dados do artigo mudaram, forçando recriação do formulário");
       setDialogKey(Date.now());
     }
-  }, [isOpen]);
+  }, [isOpen, articleData]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -43,7 +45,7 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
         </DialogHeader>
         
         <ScientificArticleForm
-          key={dialogKey} // Force new instance on each open
+          key={dialogKey} // Force new instance on each open with unique key
           isOpen={isOpen}
           articleData={articleData}
           onSuccess={(data) => {

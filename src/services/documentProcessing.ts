@@ -24,7 +24,8 @@ export const processFileContent = async (fileContent: string): Promise<Processin
       // Simular um pequeno atraso para testes de UI
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Retornar dados de teste para desenvolvimento
+      // Retornar dados de teste para desenvolvimento que são CLARAMENTE de teste
+      // para não confundir com dados reais
       return {
         title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
         conclusion: "The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",

@@ -18,18 +18,26 @@ interface UseExtractedDataProps {
 }
 
 export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDataProps = {}) => {
-  const [suggestedTitle, setSuggestedTitle] = useState<string>(initialData?.title || '');
-  const [suggestedDescription, setSuggestedDescription] = useState<string>(initialData?.description || '');
-  const [extractedKeywords, setExtractedKeywords] = useState<string[]>(initialData?.keywords || []);
-  const [extractedResearchers, setExtractedResearchers] = useState<string[]>(initialData?.researchers || []);
+  const [suggestedTitle, setSuggestedTitle] = useState<string>('');
+  const [suggestedDescription, setSuggestedDescription] = useState<string>('');
+  const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
+  const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
   
   // Update extracted data when initialData changes
   useEffect(() => {
     if (initialData) {
+      console.log("Inicializando dados extraídos a partir do initialData:", initialData);
       setSuggestedTitle(initialData.title || '');
       setSuggestedDescription(initialData.description || '');
       setExtractedKeywords(initialData.keywords || []);
       setExtractedResearchers(initialData.researchers || []);
+    } else {
+      // Se não houver initialData, garantir que os estados estejam vazios
+      console.log("Resetando dados extraídos pois não há initialData");
+      setSuggestedTitle('');
+      setSuggestedDescription('');
+      setExtractedKeywords([]);
+      setExtractedResearchers([]);
     }
   }, [initialData]);
   
@@ -47,7 +55,7 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
   
   // Handle new extracted data from document processing
   const handleExtractedData = useCallback((data: ExtractedData) => {
-    console.log("Setting extracted data:", data);
+    console.log("Definindo novos dados extraídos:", data);
     
     if (data.title) {
       setSuggestedTitle(data.title);
@@ -68,7 +76,7 @@ export const useExtractedData = ({ initialData, onDataChanged }: UseExtractedDat
   
   // Reset all extracted data
   const resetExtractedData = useCallback(() => {
-    console.log("Resetting extracted data");
+    console.log("Resetando todos os dados extraídos");
     setSuggestedTitle('');
     setSuggestedDescription('');
     setExtractedKeywords([]);
