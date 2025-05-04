@@ -89,7 +89,22 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
       console.log("Lendo arquivo e extraindo conteúdo...");
       
-      // Read file as base64
+      // Upload file to storage first to ensure we have the URL
+      setProcessingProgress("Enviando arquivo para armazenamento...");
+      console.log("Enviando arquivo para armazenamento...");
+      
+      let publicUrl;
+      try {
+        publicUrl = await uploadFileToStorage(file);
+        console.log("Upload concluído com sucesso. URL:", publicUrl);
+        setFileUrl(publicUrl);
+      } catch (storageError: any) {
+        console.error("Erro durante o upload para o storage:", storageError);
+        // We'll continue even with upload error, but record it
+        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
+      }
+      
+      // Read file as base64 for processing
       const fileReader = new FileReader();
       const fileContentPromise = new Promise<string>((resolve, reject) => {
         fileReader.onload = (e) => {
@@ -141,25 +156,18 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       
       onExtractedData(newExtractedData);
       
-      // Upload file to storage
-      setProcessingProgress("Enviando arquivo para armazenamento...");
-      console.log("Enviando arquivo para armazenamento...");
-      
-      try {
-        const publicUrl = await uploadFileToStorage(file);
-        console.log("Upload concluído com sucesso. URL:", publicUrl);
-        setFileUrl(publicUrl);
-      } catch (storageError: any) {
-        console.error("Erro durante o upload para o storage:", storageError);
-        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
-        onError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
-      }
-      
       setProcessingProgress(null);
       
-      toast.success("Documento processado", {
-        description: "Informações extraídas com sucesso do documento."
-      });
+      // Show relevant toast message
+      if (uploadError) {
+        toast.warning("Documento processado parcialmente", {
+          description: "Informações extraídas com sucesso, mas o upload do arquivo falhou."
+        });
+      } else {
+        toast.success("Documento processado", {
+          description: "Informações extraídas com sucesso do documento."
+        });
+      }
       
       return true;
     } catch (error: any) {
@@ -188,7 +196,7 @@ export const useUploadHandler = ({ onExtractedData, onError, onReset }: UseUploa
       setIsProcessing(false);
       setProcessingProgress(null);
     }
-  }, [file, onExtractedData, onError, onReset]);
+  }, [file, onExtractedData, onError, onReset, setUploadError]);
   
   // Clear file and reset upload state
   const handleClearFile = useCallback(() => {

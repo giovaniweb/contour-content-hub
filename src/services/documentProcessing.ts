@@ -119,29 +119,55 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
     
     console.log(`Fazendo upload do arquivo para o caminho: documents/${fileNameToUse}`);
     
-    const { error, data } = await supabase
-      .storage
-      .from('documents')
-      .upload(fileNameToUse, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
-      
-    if (error) {
-      console.error("Erro no upload para storage:", error);
-      throw error;
+    // Adicionar retry lógica para lidar com problemas de conexão
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        console.log(`Tentativa de upload ${attempts} de ${maxAttempts}`);
+        
+        const { error, data } = await supabase
+          .storage
+          .from('documents')
+          .upload(fileNameToUse, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (error) {
+          console.error(`Erro na tentativa ${attempts}:`, error);
+          
+          if (attempts < maxAttempts) {
+            // Esperar antes de tentar novamente (backoff exponencial)
+            const waitTime = Math.pow(2, attempts) * 1000;
+            console.log(`Aguardando ${waitTime}ms antes de tentar novamente`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          throw error;
+        }
+        
+        console.log("Upload concluído com sucesso, obtendo URL pública");
+        
+        const { data: urlData } = supabase
+          .storage
+          .from('documents')
+          .getPublicUrl(fileNameToUse);
+          
+        console.log("URL pública:", urlData.publicUrl);
+        
+        return urlData.publicUrl;
+      } catch (err) {
+        if (attempts >= maxAttempts) {
+          throw err;
+        }
+      }
     }
     
-    console.log("Upload concluído com sucesso, obtendo URL pública");
-    
-    const { data: urlData } = supabase
-      .storage
-      .from('documents')
-      .getPublicUrl(fileNameToUse);
-      
-    console.log("URL pública:", urlData.publicUrl);
-    
-    return urlData.publicUrl;
+    throw new Error('Número máximo de tentativas de upload excedido');
   } catch (error) {
     console.error("Erro ao fazer upload do arquivo:", error);
     throw error;
