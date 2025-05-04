@@ -48,6 +48,7 @@ export interface MediaItem {
   duration?: string;
   rating?: number;
   isFavorite?: boolean;
+  shortDescription?: string; // Added to fix UI errors
 }
 
 // Calendar types
@@ -79,7 +80,7 @@ export {
   updateScript,
   generateScriptPDF as generatePDF,
   linkScriptToCalendar
-} from './utils/api-scripts';
+} from '@/utils/api-scripts';
 
 export {
   toggleFavorite,
@@ -92,9 +93,9 @@ export {
   clearCalendarPlanning as clearPlanning,
   approveCalendarPlanning as approvePlanning,
   updateCalendarPreferences as setCalendarPreferences
-} from './services/supabaseService';
+} from '@/services/supabaseService';
 
-export type { ScriptHistoryItem } from './utils/api-scripts';
+export type { ScriptHistoryItem } from '@/utils/api-scripts';
 
 // Re-export validation types and functions
-export { validateScript } from './utils/validation/api';
+export { validateScript } from '@/utils/validation/api';

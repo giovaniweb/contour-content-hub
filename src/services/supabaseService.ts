@@ -1,4 +1,3 @@
-
 import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 import { ScriptType, ScriptRequest, ScriptResponse, MediaItem, CalendarSuggestion, CalendarPreferences } from '@/utils/api';
 
@@ -195,7 +194,8 @@ export const getMediaItems = async (filters?: {
       purpose: video.finalidade || [],
       duration: video.duracao,
       rating: avaliacoesMap.get(video.id) || 0,
-      isFavorite: favoritosMap.has(video.id)
+      isFavorite: favoritosMap.has(video.id),
+      shortDescription: video.descricao_curta || ''
     }));
   } catch (error) {
     console.error('Erro ao buscar vídeos:', error);

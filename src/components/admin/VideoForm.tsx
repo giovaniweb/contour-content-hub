@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +106,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
             .single();
             
           if (data) {
-            // If the equipment has indicacoes property, use it for purposes
+            // If the equipment has properties, use them
             if (data.indicacoes) {
               setPurposes(Array.isArray(data.indicacoes) ? data.indicacoes : []);
             }
@@ -350,7 +349,7 @@ const VideoForm = ({ onSuccess, onCancel, videoData = null, equipmentId = null }
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Finalidade</Label>
+                  <Label>Objetivo de Marketing</Label>
                   <VideoObjectiveSelector
                     value={marketingObjective}
                     onValueChange={setMarketingObjective}

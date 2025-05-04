@@ -1,87 +1,90 @@
 
 import React from 'react';
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { MarketingObjectiveType } from '@/utils/api';
 import { Eye, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
-import { MarketingObjectiveType } from "@/utils/api";
-
-interface ObjectiveOption {
-  id: MarketingObjectiveType;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
 
 interface VideoObjectiveSelectorProps {
-  value: MarketingObjectiveType | undefined;
+  value: MarketingObjectiveType;
   onValueChange: (value: MarketingObjectiveType) => void;
-  className?: string;
 }
 
-const objectiveOptions: ObjectiveOption[] = [
-  {
-    id: "atrair_atencao",
-    icon: <Eye className="h-6 w-6" />,
-    title: "Atrair Atenção",
-    description: "Roteiros para chamar atenção de quem ainda não conhece o tratamento. Ótimo para reels de impacto."
-  },
-  {
-    id: "criar_conexao",
-    icon: <MessageSquare className="h-6 w-6" />,
-    title: "Criar Conexão", 
-    description: "Roteiros com storytelling, bastidores e humanização. Ideal para criar empatia com o público."
-  },
-  {
-    id: "fazer_comprar",
-    icon: <ShoppingCart className="h-6 w-6" />,
-    title: "Fazer Comprar",
-    description: "Roteiros focados em conversão direta, apresentando benefícios e resultados do tratamento."
-  },
-  {
-    id: "reativar_interesse",
-    icon: <RefreshCcw className="h-6 w-6" />,
-    title: "Reativar Interesse",
-    description: "Para lembrar quem já viu o conteúdo antes, reforçar autoridade e trazer de volta ao funil."
-  },
-  {
-    id: "fechar_agora",
-    icon: <Phone className="h-6 w-6" />,
-    title: "Fechar Agora",
-    description: "Vídeos urgentes com chamada para ação rápida. Ideal para promoções e últimas vagas."
-  }
-];
-
-const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({ value, onValueChange, className = "" }) => {
+const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({
+  value,
+  onValueChange
+}) => {
   return (
-    <div className={`space-y-3 ${className}`}>
-      <Label className="text-base font-medium">Qual o objetivo desse vídeo?</Label>
-      <p className="text-sm text-muted-foreground mb-2">Escolha o que você quer que o vídeo faça por você.</p>
-      <RadioGroup 
-        value={value} 
-        onValueChange={(val) => onValueChange(val as MarketingObjectiveType)}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3"
+    <RadioGroup
+      value={value}
+      onValueChange={(val) => onValueChange(val as MarketingObjectiveType)}
+      className="grid grid-cols-1 md:grid-cols-5 gap-3"
+    >
+      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
+           onClick={() => onValueChange("atrair_atencao")}
       >
-        {objectiveOptions.map((option) => (
-          <div key={option.id} className="relative">
-            <RadioGroupItem
-              value={option.id}
-              id={`objective-${option.id}`}
-              className="peer sr-only"
-            />
-            <Label
-              htmlFor={`objective-${option.id}`}
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary h-full cursor-pointer"
-            >
-              <div className="mb-2 rounded-full p-3 bg-muted/20">
-                {option.icon}
-              </div>
-              <div className="font-semibold mb-1">{option.title}</div>
-              <p className="text-xs text-center text-muted-foreground">{option.description}</p>
-            </Label>
-          </div>
-        ))}
-      </RadioGroup>
-    </div>
+        <RadioGroupItem value="atrair_atencao" id="atrair_atencao" className="sr-only" />
+        <Eye className="h-6 w-6" />
+        <Label htmlFor="atrair_atencao" className="text-center text-sm font-medium cursor-pointer">
+          Atrair Atenção
+        </Label>
+        <span className="text-xs text-muted-foreground text-center">
+          Despertar interesse do público
+        </span>
+      </div>
+      
+      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
+           onClick={() => onValueChange("criar_conexao")}
+      >
+        <RadioGroupItem value="criar_conexao" id="criar_conexao" className="sr-only" />
+        <MessageSquare className="h-6 w-6" />
+        <Label htmlFor="criar_conexao" className="text-center text-sm font-medium cursor-pointer">
+          Criar Conexão
+        </Label>
+        <span className="text-xs text-muted-foreground text-center">
+          Estabelecer relacionamento
+        </span>
+      </div>
+      
+      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
+           onClick={() => onValueChange("fazer_comprar")}
+      >
+        <RadioGroupItem value="fazer_comprar" id="fazer_comprar" className="sr-only" />
+        <ShoppingCart className="h-6 w-6" />
+        <Label htmlFor="fazer_comprar" className="text-center text-sm font-medium cursor-pointer">
+          Fazer Comprar
+        </Label>
+        <span className="text-xs text-muted-foreground text-center">
+          Converter em cliente
+        </span>
+      </div>
+      
+      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
+           onClick={() => onValueChange("reativar_interesse")}
+      >
+        <RadioGroupItem value="reativar_interesse" id="reativar_interesse" className="sr-only" />
+        <RefreshCcw className="h-6 w-6" />
+        <Label htmlFor="reativar_interesse" className="text-center text-sm font-medium cursor-pointer">
+          Reativar Interesse
+        </Label>
+        <span className="text-xs text-muted-foreground text-center">
+          Reconquistar leads frios
+        </span>
+      </div>
+      
+      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
+           onClick={() => onValueChange("fechar_agora")}
+      >
+        <RadioGroupItem value="fechar_agora" id="fechar_agora" className="sr-only" />
+        <Phone className="h-6 w-6" />
+        <Label htmlFor="fechar_agora" className="text-center text-sm font-medium cursor-pointer">
+          Fechar Agora
+        </Label>
+        <span className="text-xs text-muted-foreground text-center">
+          Conversão imediata
+        </span>
+      </div>
+    </RadioGroup>
   );
 };
 
