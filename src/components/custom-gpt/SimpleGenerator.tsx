@@ -85,7 +85,12 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleQuickGenerate("roteiro")}
+          onClick={() => {
+            console.log("Botão 'Gerar Roteiro' clicado");
+            if (handleQuickGenerate) {
+              handleQuickGenerate("roteiro");
+            }
+          }}
           disabled={isSubmitting || !selectedEquipment}
         >
           <FileText className="h-6 w-6" />
@@ -95,7 +100,12 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleQuickGenerate("bigIdea")}
+          onClick={() => {
+            console.log("Botão 'Gerar Big Idea' clicado");
+            if (handleQuickGenerate) {
+              handleQuickGenerate("bigIdea");
+            }
+          }}
           disabled={isSubmitting || !selectedEquipment}
         >
           <Sparkles className="h-6 w-6" />
@@ -105,7 +115,12 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleQuickGenerate("stories")}
+          onClick={() => {
+            console.log("Botão 'Gerar Stories' clicado");
+            if (handleQuickGenerate) {
+              handleQuickGenerate("stories");
+            }
+          }}
           disabled={isSubmitting || !selectedEquipment}
         >
           <MessageSquare className="h-6 w-6" />

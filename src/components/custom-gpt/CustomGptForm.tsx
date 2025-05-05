@@ -5,11 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useEquipments } from "@/hooks/useEquipments";
 import { Form } from "@/components/ui/form";
-import { CustomGptType, CustomGptRequest, CustomGptResult } from "@/utils/custom-gpt";
+import { CustomGptType, CustomGptRequest } from "@/utils/custom-gpt";
 import { MarketingObjectiveType, ScriptResponse } from '@/types/script';
 import { customGptFormSchema, defaultFormValues } from './schema';
 import { CustomGptFormProps } from './types';
-import { getTypeName, generateContent, findEquipmentName } from './utils';
+import { getTypeName, generateContent, findEquipmentName, CustomGptResult } from './utils';
 import SimpleGenerator from './SimpleGenerator';
 import AdvancedGenerator from './AdvancedGenerator';
 import ResultDisplay from './ResultDisplay';
@@ -116,6 +116,9 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
 
   // Função simplificada para gerar conteúdo rápido
   const handleQuickGenerate = async (type: CustomGptType) => {
+    console.log("handleQuickGenerate chamado com tipo:", type);
+    console.log("Equipamento selecionado:", selectedEquipment);
+    
     if (!selectedEquipment) {
       toast({
         variant: "destructive",
