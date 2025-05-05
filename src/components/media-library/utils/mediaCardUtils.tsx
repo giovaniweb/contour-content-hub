@@ -1,18 +1,19 @@
 
 import { cn } from "@/lib/utils";
 import { Video as VideoIcon, Camera, Film } from "lucide-react";
+import React from "react";
 
 // Get the icon based on media type
-export const getMediaTypeIcon = (type: string) => {
+export const getMediaTypeIcon = (type: string): React.ReactNode => {
   switch (type) {
     case "video_pronto":
-      return <VideoIcon className="h-4 w-4" />;
+      return React.createElement(VideoIcon, { className: "h-4 w-4" });
     case "take":
-      return <Film className="h-4 w-4" />;
+      return React.createElement(Film, { className: "h-4 w-4" });
     case "image":
-      return <Camera className="h-4 w-4" />;
+      return React.createElement(Camera, { className: "h-4 w-4" });
     default:
-      return <VideoIcon className="h-4 w-4" />;
+      return React.createElement(VideoIcon, { className: "h-4 w-4" });
   }
 };
 
