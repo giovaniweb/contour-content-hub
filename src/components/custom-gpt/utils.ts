@@ -76,7 +76,8 @@ export const generateContent = async (
       
       // Also call onResults if provided
       if (onResults) {
-        onResults([newResult, ...setResults]);
+        // Fix: Don't try to iterate over setResults, just pass the new array
+        onResults([newResult]);
       }
     }
     
