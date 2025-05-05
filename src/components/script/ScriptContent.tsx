@@ -8,7 +8,13 @@ import {
   ShoppingCart, 
   Repeat, 
   CheckCircle2,
-  File
+  File,
+  Eye,
+  AlertTriangle,
+  ArrowRight,
+  Star,
+  Video,
+  Mic
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,10 +37,10 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ content }) => {
     // Format the Disney structure sections with better styling
     if (hasDisneyStructure) {
       processedContent = processedContent
-        .replace(/\bIdentificação\b/g, '<span class="py-1 px-3 rounded-md bg-blue-100 text-blue-800 font-medium inline-block my-1">Identificação</span>')
-        .replace(/\bConflito\b/g, '<span class="py-1 px-3 rounded-md bg-orange-100 text-orange-800 font-medium inline-block my-1">Conflito</span>')
-        .replace(/\bVirada\b/g, '<span class="py-1 px-3 rounded-md bg-green-100 text-green-800 font-medium inline-block my-1">Virada</span>')
-        .replace(/\bFinal Marcante\b/g, '<span class="py-1 px-3 rounded-md bg-purple-100 text-purple-800 font-medium inline-block my-1">Final Marcante</span>');
+        .replace(/\b🟦 ?Identificação\b/g, '<div class="flex items-center gap-2 py-2 px-3 rounded-md bg-blue-100 text-blue-800 font-medium my-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Identificação</div>')
+        .replace(/\b🟧 ?Conflito\b/g, '<div class="flex items-center gap-2 py-2 px-3 rounded-md bg-orange-100 text-orange-800 font-medium my-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Conflito</div>')
+        .replace(/\b🟩 ?Virada\b/g, '<div class="flex items-center gap-2 py-2 px-3 rounded-md bg-green-100 text-green-800 font-medium my-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>Virada</div>')
+        .replace(/\b🟪 ?Final ?Marcante\b/g, '<div class="flex items-center gap-2 py-2 px-3 rounded-md bg-purple-100 text-purple-800 font-medium my-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Final Marcante</div>');
     }
 
     // Format marketing objectives with icons and badges
@@ -45,86 +51,133 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ content }) => {
       .replace(/🔁 Reativar Interesse/g, '<div class="flex items-center gap-1.5 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>Reativar Interesse</div>')
       .replace(/✅ Fechar Agora/g, '<div class="flex items-center gap-1.5 bg-purple-50 text-purple-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Fechar Agora</div>');
 
+    // Format content types and additional metadata
+    processedContent = processedContent
+      .replace(/🎥 Tipo de Conteúdo: ([^\n]+)/g, '<div class="flex items-center gap-1.5 bg-indigo-50 text-indigo-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-video"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>$1</div>')
+      .replace(/🎯 Objetivo: ([^\n]+)/g, '<div class="flex items-center gap-1.5 bg-amber-50 text-amber-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-target"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>$1</div>')
+      .replace(/✍️ Tom de linguagem: ([^\n]+)/g, '<div class="flex items-center gap-1.5 bg-teal-50 text-teal-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>$1</div>')
+      .replace(/✅ Ideal para: ([^\n]+)/g, '<div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-md font-medium inline-flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>$1</div>');
+    
     // Split content into sections for better organization
     const sections = processedContent.split('\n\n');
     let result = '';
+    
+    // Create a metadata section at the top if metadata is present
+    const metadataItems = [];
+    
+    if (processedContent.includes('Tipo de Conteúdo:')) {
+      metadataItems.push('type');
+    }
+    
+    if (processedContent.includes('Objetivo:')) {
+      metadataItems.push('objective');
+    }
+    
+    if (processedContent.includes('Tom de linguagem:')) {
+      metadataItems.push('tone');
+    }
+    
+    if (processedContent.includes('Ideal para:')) {
+      metadataItems.push('audience');
+    }
+    
+    // Create a structured result with improved formatting
+    let hasAddedMetadataSection = false;
+    let hasAddedTitleSection = false;
     
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i].trim();
       
       if (!section) continue;
       
-      // Format title sections
-      if (section.startsWith('# ') || section.startsWith('## ') || section.match(/^Roteiro:/i)) {
-        result += `<div class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">${section.replace(/^#+ /, '')}</div>`;
+      // Handle title section (usually the first line with the roteiro/script title)
+      if (section.includes('Roteiro') && !hasAddedTitleSection) {
+        // Extract equipment/topic name
+        const titleMatch = section.match(/Roteiro[^:]*(?::|sobre)\s*([^\n]+)/i);
+        const title = titleMatch ? titleMatch[1].trim() : "Roteiro";
+        
+        result += `<div class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">${title}</div>`;
+        hasAddedTitleSection = true;
       }
-      // Format subtitle or Disney structure overview
-      else if (section.includes('Roteiro com estrutura Disney')) {
-        result += `<div class="mb-4 p-3 bg-slate-50 rounded-md border border-slate-100">
-          <div class="text-sm font-semibold mb-1.5 text-slate-600">Estrutura narrativa:</div>
-          <div class="flex flex-wrap gap-2">
-            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">Identificação</span>
-            <span class="text-gray-400">→</span>
-            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-sm">Conflito</span>
-            <span class="text-gray-400">→</span>
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm">Virada</span>
-            <span class="text-gray-400">→</span>
-            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm">Final Marcante</span>
-          </div>
-        </div>`;
-      }
-      // Format script metadata sections
-      else if (section.includes('Tipo de Conteúdo:') || section.includes('Objetivo:')) {
+      // Handle metadata section (contains multiple metadata items)
+      else if ((section.includes('Tipo de Conteúdo:') || 
+                section.includes('Objetivo:') || 
+                section.includes('Tom de linguagem:') || 
+                section.includes('Ideal para:')) && 
+                !hasAddedMetadataSection) {
+        
         // Split multiple metadata entries if they exist
         const metadataEntries = section.split('\n');
-        result += `<div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-2">`;
+        result += `<div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">`;
         
         for (const entry of metadataEntries) {
-          if (entry.includes(':')) {
-            const [label, value] = entry.split(':');
-            if (value) {
-              result += `<div class="bg-gray-50 p-2.5 rounded-md border border-gray-100">
-                <span class="font-medium text-gray-700">${label}:</span> 
-                <span class="ml-1 bg-yellow-50 px-2 py-0.5 rounded-md text-yellow-800">${value.trim()}</span>
-              </div>`;
-            }
+          if (entry.includes(':') || 
+              entry.includes('Tipo de Conteúdo') || 
+              entry.includes('Objetivo') || 
+              entry.includes('Tom de linguagem') || 
+              entry.includes('Ideal para')) {
+            result += `<div>${entry}</div>`;
           }
         }
+        
         result += `</div>`;
+        hasAddedMetadataSection = true;
       }
-      // Format the Disney structure script parts
-      else if (
-        (section.includes('"Você já se olhou') && section.includes('Identificação')) ||
-        (section.includes('"Flacidez') && section.includes('Conflito')) ||
-        (section.includes('"Conheça o') && section.includes('Virada')) ||
-        (section.includes('"Redefina seu') && section.includes('Final Marcante'))
-      ) {
-        // This is likely a Disney structure section, format as cards
-        result += `<div class="mb-3 p-3.5 bg-white border border-gray-200 rounded-md shadow-sm">
-          ${section}
-        </div>`;
-      }
-      // Additional metadata like tone, target audience
-      else if (section.includes('Ideal para:') || section.includes('Tom de linguagem:')) {
-        result += `<div class="mt-4 mb-3 p-3 bg-slate-50 rounded-md border border-slate-100">
-          <h3 class="font-medium mb-2 flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Detalhes Adicionais
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-            ${section.split('\n').map(line => `<div class="p-2 bg-white rounded border">${line}</div>`).join('')}
+      // Handle Disney structure header if present
+      else if (section.includes('Roteiro com estrutura Disney') && hasDisneyStructure) {
+        result += `<div class="mb-5 p-4 bg-slate-50 rounded-lg border border-slate-100">
+          <div class="text-sm font-semibold mb-2 text-slate-600">Estrutura narrativa:</div>
+          <div class="flex flex-wrap gap-3">
+            <div class="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Identificação
+            </div>
+            <span class="text-gray-400">→</span>
+            <div class="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              Conflito
+            </div>
+            <span class="text-gray-400">→</span>
+            <div class="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              Virada
+            </div>
+            <span class="text-gray-400">→</span>
+            <div class="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Final
+            </div>
           </div>
         </div>`;
       }
-      // Regular paragraph with important content
-      else if (section.length > 30) {
-        result += `<div class="mb-4 p-3 bg-white border border-gray-100 rounded-md">
-          ${section}
+      // Format Disney structure script parts with special card-like style
+      else if (hasDisneyStructure && 
+              (section.includes('Identificação') || 
+               section.includes('Conflito') || 
+               section.includes('Virada') || 
+               section.includes('Final Marcante'))) {
+        
+        // Replace quotes with styled quotes
+        let formattedSection = section;
+        formattedSection = formattedSection.replace(/"([^"]+)"/g, '<div class="pl-3 border-l-4 border-gray-300 italic text-gray-700 my-2 py-1">$1</div>');
+        
+        result += `<div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          ${formattedSection}
+        </div>`;
+      } 
+      // Handle additional instructions or comments sections
+      else if (section.includes('Sugestão de melhorias') || 
+               section.includes('Prompt para Lovable') ||
+               section.includes('Prompt:')) {
+        result += `<div class="mt-6 pt-4 border-t border-gray-200">
+          <div class="text-sm text-gray-500 italic">
+            ${section}
+          </div>
         </div>`;
       }
-      // Short informational paragraph
+      // Regular content paragraph
       else {
-        result += `<div class="mb-3">${section}</div>`;
+        result += `<div class="mb-4">${section}</div>`;
       }
     }
     
@@ -139,7 +192,7 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ content }) => {
     const objectiveMatch = content.match(/(🟡 Atrair Atenção|🟢 Criar Conexão|🔴 Fazer Comprar|🔁 Reativar Interesse|✅ Fechar Agora)/);
     const objective = objectiveMatch ? objectiveMatch[1] : "";
     
-    const contentTypeMatch = content.match(/Tipo de Conteúdo:\s*([^\n]+)/i);
+    const contentTypeMatch = content.match(/🎥 Tipo de Conteúdo:\s*([^\n]+)/i);
     const contentType = contentTypeMatch ? contentTypeMatch[1].trim() : "";
     
     return { title, objective, contentType };
@@ -168,17 +221,18 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ content }) => {
 
   return (
     <TabsContent value="conteudo" className="mt-0 p-0">
-      <div className="bg-white rounded-md p-4 shadow-sm">
+      <div className="bg-white rounded-lg p-6 shadow-sm">
         {/* Script header with title and metadata */}
-        <div className="mb-5">
-          {/* Title with badge */}
-          <div className="flex flex-wrap gap-2 mb-2">
+        <div className="mb-6">
+          {/* Content type and objective badges */}
+          <div className="flex flex-wrap gap-2 mb-3">
             <div className={cn(
-              "px-2.5 py-1 rounded-md text-sm font-medium",
+              "px-2.5 py-1 rounded-md text-sm font-medium flex items-center gap-1.5",
               contentType?.includes("Vídeo") ? "bg-blue-100 text-blue-800" : 
               contentType?.includes("Stories") ? "bg-amber-100 text-amber-800" : 
               "bg-purple-100 text-purple-800"
             )}>
+              <Video className="h-4 w-4" />
               {contentType || "Roteiro para Vídeo"}
             </div>
             
@@ -191,18 +245,27 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ content }) => {
           </div>
           
           {/* Script title */}
-          <h2 className="text-xl font-bold text-gray-800 mb-1">{title}</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">{title}</h2>
           
-          {/* Disney structure indicator */}
+          {/* Disney structure indicator if present */}
           {hasDisneyStructure && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-xs">Identificação</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mt-2">
+              <span className="font-medium">Estrutura:</span>
+              <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-xs">
+                <Eye className="h-3 w-3" /> Identificação
+              </div>
               <span className="text-gray-400">→</span>
-              <span className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded text-xs">Conflito</span>
+              <div className="flex items-center gap-1 bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded text-xs">
+                <AlertTriangle className="h-3 w-3" /> Conflito
+              </div>
               <span className="text-gray-400">→</span>
-              <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-xs">Virada</span>
+              <div className="flex items-center gap-1 bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-xs">
+                <ArrowRight className="h-3 w-3" /> Virada
+              </div>
               <span className="text-gray-400">→</span>
-              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">Final</span>
+              <div className="flex items-center gap-1 bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">
+                <Star className="h-3 w-3" /> Final
+              </div>
             </div>
           )}
         </div>
