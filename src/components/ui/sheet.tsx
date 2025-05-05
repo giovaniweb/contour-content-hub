@@ -1,26 +1,27 @@
 
+// Fix Sheet component with proper TypeScript types for DialogPortal
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { ScriptResponse } from "@/types/script"
-import { Button } from "@/components/ui/button"
 
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger
 
-const SheetClose = SheetPrimitive.Close
-
+// Fix the DialogPortal implementation to not include a className prop
 const SheetPortal = ({
-  className,
+  children,
   ...props
 }: SheetPrimitive.DialogPortalProps) => (
-  <SheetPrimitive.Portal className={cn(className)} {...props} />
+  <SheetPrimitive.Portal {...props}>
+    <div className="fixed inset-0 z-50 flex">
+      {children}
+    </div>
+  </SheetPrimitive.Portal>
 )
-SheetPortal.displayName = SheetPrimitive.Portal.displayName
 
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
@@ -47,7 +48,7 @@ const sheetVariants = cva(
           "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
         left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
         right:
-          "inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+          "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
       },
     },
     defaultVariants: {
@@ -133,178 +134,11 @@ const SheetDescription = React.forwardRef<
 ))
 SheetDescription.displayName = SheetPrimitive.Description.displayName
 
-// Componente ScriptValidation que será exportado
-interface ScriptValidationProps {
-  script: ScriptResponse;
-  onValidationComplete: () => void;
-}
-
-interface ValidationResult {
-  blocos?: Array<{
-    tipo: string;
-    nota: number;
-    texto: string;
-    sugestao: string;
-  }>;
-  nota_geral?: number;
-  total?: number;
-  sugestoes?: string;
-  sugestoes_gerais?: string[];
-}
-
-const ScriptValidation: React.FC<ScriptValidationProps> = ({ script, onValidationComplete }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [validationResult, setValidationResult] = React.useState<ValidationResult | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const validateScript = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log("Validando script:", script.id);
-        
-        // Simular uma chamada à API de validação
-        const response = await new Promise<ValidationResult>((resolve) => {
-          setTimeout(() => {
-            resolve({
-              blocos: [
-                {
-                  tipo: "gancho",
-                  nota: 7.5,
-                  texto: script.content.substring(0, 100),
-                  sugestao: "Considere adicionar uma estatística ou pergunta retórica para aumentar o impacto inicial."
-                },
-                {
-                  tipo: "desenvolvimento",
-                  nota: 8.0,
-                  texto: script.content.substring(100, 200),
-                  sugestao: "Está bom, mas poderia detalhar mais os benefícios específicos."
-                },
-                {
-                  tipo: "cta",
-                  nota: 6.5,
-                  texto: script.content.substring(script.content.length - 100),
-                  sugestao: "Adicione uma sensação de urgência ou exclusividade no CTA."
-                }
-              ],
-              nota_geral: 7.3,
-              total: 7.3,
-              sugestoes: "Melhor o gancho inicial e fortaleça o CTA final.",
-              sugestoes_gerais: [
-                "Melhor o gancho inicial com uma estatística ou pergunta retórica.",
-                "Detalhe mais os benefícios específicos do tratamento.",
-                "Adicione uma sensação de urgência ou exclusividade no CTA."
-              ]
-            });
-          }, 1500);
-        });
-        
-        setValidationResult(response);
-        onValidationComplete();
-      } catch (err) {
-        console.error("Erro ao validar script:", err);
-        setError("Ocorreu um erro ao validar o script. Por favor tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    validateScript();
-  }, [script, onValidationComplete]);
-
-  if (loading) {
-    return (
-      <div className="p-4 space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-          <p>Validando seu roteiro...</p>
-        </div>
-        <div className="space-y-2">
-          <div className="h-2 bg-muted rounded animate-pulse"></div>
-          <div className="h-2 bg-muted rounded animate-pulse w-3/4"></div>
-          <div className="h-2 bg-muted rounded animate-pulse w-1/2"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <p className="text-destructive">{error}</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mt-2"
-          onClick={() => window.location.reload()}
-        >
-          Tentar novamente
-        </Button>
-      </div>
-    );
-  }
-
-  if (!validationResult) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium">Pontuação geral</h3>
-        <div className="flex items-center space-x-1">
-          <span className="text-lg font-semibold">
-            {validationResult.nota_geral?.toFixed(1) || "0.0"}
-          </span>
-          <span className="text-muted-foreground">/10</span>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        {validationResult.blocos?.map((bloco, index) => (
-          <div key={index} className="border rounded-md p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium capitalize">{bloco.tipo}</h4>
-              <div className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-medium">
-                {bloco.nota.toFixed(1)}
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">{bloco.texto}...</p>
-            <div className="bg-muted p-2 rounded-md text-sm">
-              <p className="font-medium">Sugestão:</p>
-              <p>{bloco.sugestao}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {validationResult.sugestoes_gerais && validationResult.sugestoes_gerais.length > 0 && (
-        <div className="border-t pt-4 mt-4">
-          <h3 className="font-medium mb-2">Sugestões para melhorar</h3>
-          <ul className="space-y-2">
-            {validationResult.sugestoes_gerais.map((sugestao, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <div className="mt-1 min-w-4 h-1 w-1 rounded-full bg-primary"></div>
-                <p className="text-sm">{sugestao}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export { ScriptValidation };
-
 export {
   Sheet,
   SheetPortal,
   SheetOverlay,
   SheetTrigger,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetFooter,

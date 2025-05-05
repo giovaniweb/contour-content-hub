@@ -19,6 +19,38 @@ export interface CustomGptFormProps {
   mode?: 'simple' | 'advanced';
 }
 
+export interface AdvancedGeneratorProps {
+  form: any;
+  isSubmitting: boolean;
+  selectedType: CustomGptType;
+  setSelectedType: (type: CustomGptType) => void;
+  selectedEquipment: string | undefined;
+  setSelectedEquipment: (equipment: string | undefined) => void;
+  selectedObjective: MarketingObjectiveType | undefined;
+  setSelectedObjective: (objective: MarketingObjectiveType | undefined) => void;
+  equipments: any[];
+  equipmentsLoading: boolean;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+}
+
+export interface SimpleGeneratorProps {
+  selectedType: CustomGptType;
+  setSelectedType: (type: CustomGptType) => void;
+  selectedEquipment: string | undefined;
+  setSelectedEquipment: (equipment: string | undefined) => void;
+  selectedObjective: MarketingObjectiveType | undefined;
+  setSelectedObjective: (objective: MarketingObjectiveType | undefined) => void;
+  equipments: any[];
+  equipmentsLoading: boolean;
+  handleQuickGenerate: (type: CustomGptType) => Promise<void>;
+  isSubmitting: boolean;
+}
+
+export interface AdvancedOptionsProps {
+  form: any;
+  showAdvancedFields: boolean;
+}
+
 export const customGptFormSchema = z.object({
   topic: z.string().optional(),
   tone: z.string().optional(),

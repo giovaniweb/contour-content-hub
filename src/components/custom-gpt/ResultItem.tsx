@@ -27,11 +27,19 @@ const ResultItem: React.FC<ResultItemProps> = ({ result, onDelete }) => {
   };
 
   const prepareScriptData = (): ScriptResponse => {
+    // Map CustomGptType to ScriptResponse type
+    const scriptType = (() => {
+      if (result.type === 'roteiro') return 'videoScript';
+      if (result.type === 'bigIdea') return 'bigIdea';
+      if (result.type === 'stories') return 'dailySales';
+      return 'videoScript'; // Default fallback
+    })();
+
     return {
       id: result.id,
       title: result.title || 'Conteúdo gerado',
       content: result.content,
-      type: result.type || 'videoScript',
+      type: scriptType, // Fixed type mapping
       createdAt: new Date().toISOString(),
       suggestedVideos: [],
       captionTips: [],
