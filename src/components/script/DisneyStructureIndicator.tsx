@@ -1,33 +1,52 @@
 
-import React from "react";
-import { Eye, AlertTriangle, ArrowRight, Star } from "lucide-react";
+import React from 'react';
+import { Eye, AlertTriangle, ArrowRight, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DisneyStructureIndicatorProps {
   hasDisneyStructure: boolean;
+  compact?: boolean;
 }
 
 const DisneyStructureIndicator: React.FC<DisneyStructureIndicatorProps> = ({ 
-  hasDisneyStructure 
+  hasDisneyStructure,
+  compact = false
 }) => {
-  if (!hasDisneyStructure) return null;
+  if (!hasDisneyStructure) {
+    return null;
+  }
   
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mt-2">
-      <span className="font-medium">Estrutura:</span>
-      <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-xs">
-        <Eye className="h-3 w-3" /> Identificação
+    <div className={cn(
+      "mb-5 rounded-lg", 
+      compact ? "p-2 bg-slate-50" : "p-4 bg-slate-50 border border-slate-100"
+    )}>
+      <div className={cn(
+        "text-sm font-semibold mb-2 text-slate-600",
+        compact && "text-xs"
+      )}>
+        Estrutura narrativa:
       </div>
-      <span className="text-gray-400">→</span>
-      <div className="flex items-center gap-1 bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded text-xs">
-        <AlertTriangle className="h-3 w-3" /> Conflito
-      </div>
-      <span className="text-gray-400">→</span>
-      <div className="flex items-center gap-1 bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-xs">
-        <ArrowRight className="h-3 w-3" /> Virada
-      </div>
-      <span className="text-gray-400">→</span>
-      <div className="flex items-center gap-1 bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs">
-        <Star className="h-3 w-3" /> Final
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
+          <Eye className="h-4 w-4" />
+          <span>Identificação</span>
+        </div>
+        <span className="text-gray-400">→</span>
+        <div className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-sm">
+          <AlertTriangle className="h-4 w-4" />
+          <span>Conflito</span>
+        </div>
+        <span className="text-gray-400">→</span>
+        <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm">
+          <ArrowRight className="h-4 w-4" />
+          <span>Virada</span>
+        </div>
+        <span className="text-gray-400">→</span>
+        <div className="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm">
+          <Star className="h-4 w-4" />
+          <span>Final</span>
+        </div>
       </div>
     </div>
   );
