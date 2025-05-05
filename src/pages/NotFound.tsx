@@ -24,12 +24,21 @@ const NotFound = () => {
         <p className="text-gray-500 mb-8">
           A página que você está procurando não existe ou foi movida.
         </p>
-        <Button asChild size="lg" className="gap-2">
-          <Link to={isAuthenticated ? "/dashboard" : "/"}>
-            <Home className="h-5 w-5" />
-            <span>Voltar para o início</span>
-          </Link>
-        </Button>
+        <div className="flex gap-4 justify-center">
+          <Button asChild size="lg" className="gap-2">
+            <Link to={isAuthenticated ? "/dashboard" : "/"}>
+              <Home className="h-5 w-5" />
+              <span>Página Inicial</span>
+            </Link>
+          </Button>
+          {isAuthenticated && (
+            <Button asChild size="lg" variant="outline" className="gap-2">
+              <Link to="/media">
+                <span>Biblioteca de Mídia</span>
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

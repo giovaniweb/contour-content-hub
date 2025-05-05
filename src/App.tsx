@@ -25,8 +25,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Páginas públicas */}
+        {/* Página inicial (pública) */}
         <Route path="/" element={<Index />} />
+        
+        {/* Redirecionamento para a página inicial quando acessar /login */}
+        <Route path="/login" element={<Navigate to="/" replace />} />
         
         {/* Páginas autenticadas */}
         <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />

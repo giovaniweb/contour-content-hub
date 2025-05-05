@@ -107,7 +107,7 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <Layout title="Media Library">
+    <Layout title="Biblioteca de Mídia">
       <TooltipProvider>
         <div className="space-y-8">
           {/* Feature Banner at the top */}

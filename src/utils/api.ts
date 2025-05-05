@@ -164,14 +164,26 @@ export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
 }
 
 export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
-  // Simulating search for media items
+  // Try to fetch from Supabase first
+  try {
+    const { getMediaItems } = await import('../services/supabaseService');
+    const items = await getMediaItems(filters);
+    if (items && items.length > 0) {
+      return items;
+    }
+    // If no items were found in Supabase, continue to fallback data
+  } catch (error) {
+    console.error("Failed to fetch from Supabase, using fallback data:", error);
+  }
+  
+  // Fallback: Simulating search for media items
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
     {
       id: '1',
       title: 'Adella Laser Demonstration',
-      description: 'Video demonstrating the use of Adella Laser equipment',
+      description: 'Video demonstrating the use of Adella Laser equipment for facial rejuvenation treatments.',
       type: 'video_pronto',
       thumbnailUrl: 'https://picsum.photos/seed/adella/300/200',
       videoUrl: 'https://example.com/videos/adella-demo',
@@ -185,7 +197,7 @@ export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
     {
       id: '2',
       title: 'Before and After - Hipro',
-      description: 'Impressive results with Hipro equipment',
+      description: 'Impressive results with Hipro equipment for body contouring and cellulite reduction.',
       type: 'image',
       thumbnailUrl: 'https://picsum.photos/seed/hipro/300/200',
       isFavorite: false,
@@ -193,6 +205,60 @@ export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
       equipment: ['Hipro'],
       purpose: ['Before and after', 'Results'],
       bodyArea: 'Abdomen'
+    },
+    {
+      id: '3',
+      title: 'Como usar Ultralift',
+      description: 'Tutorial detalhado sobre como utilizar o equipamento Ultralift para tratamentos de lifting facial.',
+      type: 'video_pronto',
+      thumbnailUrl: 'https://picsum.photos/seed/ultralift/300/200',
+      videoUrl: 'https://example.com/videos/ultralift-tutorial',
+      isFavorite: false,
+      rating: 4,
+      equipment: ['Ultralift'],
+      purpose: ['Tutorial', 'Treinamento'],
+      bodyArea: 'Face',
+      duration: '5:12'
+    },
+    {
+      id: '4',
+      title: 'Procedimento Enygma',
+      description: 'Take demonstrando procedimento completo com equipamento Enygma para tratamento de flacidez.',
+      type: 'take',
+      thumbnailUrl: 'https://picsum.photos/seed/enygma/300/200',
+      videoUrl: 'https://example.com/videos/enygma-procedure',
+      isFavorite: true,
+      rating: 4.8,
+      equipment: ['Enygma'],
+      purpose: ['Procedimento', 'Demonstração'],
+      bodyArea: 'Pernas',
+      duration: '8:30'
+    },
+    {
+      id: '5',
+      title: 'Resultados Reverso',
+      description: 'Galeria de imagens mostrando resultados impressionantes com equipamento Reverso.',
+      type: 'image',
+      thumbnailUrl: 'https://picsum.photos/seed/reverso/300/200',
+      isFavorite: false,
+      rating: 4.2,
+      equipment: ['Reverso'],
+      purpose: ['Resultados', 'Antes e depois'],
+      bodyArea: 'Braços'
+    },
+    {
+      id: '6',
+      title: 'Como tratar Lipedema',
+      description: 'Vídeo educativo sobre tratamentos para lipedema utilizando diversos equipamentos.',
+      type: 'video_pronto',
+      thumbnailUrl: 'https://picsum.photos/seed/lipedema/300/200',
+      videoUrl: 'https://example.com/videos/lipedema-treatment',
+      isFavorite: true,
+      rating: 5,
+      equipment: ['Adella Laser', 'Hipro'],
+      purpose: ['Educativo', 'Informativo'],
+      bodyArea: 'Pernas',
+      duration: '10:15'
     }
   ];
 }

@@ -15,12 +15,12 @@ const convertRoteiro = (roteiro: any): ScriptResponse => {
 };
 
 // Função para gerar um roteiro usando a Edge Function
-export const generateScript = async (request: ScriptRequest): Promise<ScriptResponse> => {
+export const generateScript = async (ScriptRequest: ScriptRequest): Promise<ScriptResponse> => {
   try {
     const { data: user } = await supabase.auth.getUser();
     const token = await supabase.auth.getSession().then(res => res.data.session?.access_token || '');
 
-    console.log('Iniciando geração de roteiro com os parâmetros:', request);
+    console.log('Iniciando geração de roteiro com os parâmetros:', ScriptRequest);
 
     // Use the SUPABASE_BASE_URL exported from the client
     if (!SUPABASE_BASE_URL) {
@@ -39,7 +39,7 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          request
+          request: ScriptRequest
         })
       });
       
@@ -145,7 +145,10 @@ export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
     
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching videos:', error);
+      return []; // Return empty array instead of throwing error
+    }
     
     // Get favorites for the current user
     const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -192,10 +195,11 @@ export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
       shortDescription: video.descricao_curta || ''
     }));
 
+    console.log('Media items fetched:', formattedData.length);
     return formattedData;
   } catch (error) {
     console.error('Error fetching videos:', error);
-    throw error;
+    return []; // Return empty array on error
   }
 };
 
@@ -653,7 +657,7 @@ export async function approveCalendarPlanning(suggestions: CalendarSuggestion[])
 };
 
 // Função para atualizar preferências do calendário
-export async function updateCalendarPreferences(preferences: CalendarPreferences): Promise<boolean> {
+export async function updateCalendarPreferences(preferences: CalendarPreferences): Promise<boolean> => {
   try {
     // This function only stores preferences temporarily
     // In a real application, you could store this in the database
