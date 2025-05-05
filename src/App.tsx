@@ -19,6 +19,7 @@ import PrivateRoute from './components/PrivateRoute';
 import EquipmentsPage from './pages/EquipmentsPage';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminIntegrations from './pages/AdminIntegrations';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/admin/equipments" element={<AdminRoute element={<AdminEquipments />} />} />
         <Route path="/admin/equipment/:id" element={<AdminRoute element={<EquipmentDetailsPage />} />} />
         <Route path="/admin/dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
+        <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
         <Route path="/equipments" element={<PrivateRoute element={<EquipmentsPage />} />} />
         <Route path="/equipments/:id" element={<PrivateRoute element={<EquipmentDetails />} />} />
         

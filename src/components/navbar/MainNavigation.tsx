@@ -9,7 +9,7 @@ import {
   NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { NavLink } from "./NavLink";
-import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays, Package, Settings, LayoutDashboard } from "lucide-react";
+import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays, Package, Settings, LayoutDashboard, Link } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
 interface MainNavigationProps {
@@ -110,6 +110,12 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
                   icon={<Package className="h-4 w-4 mr-2" aria-hidden="true" />}
                   label="Gerenciar Equipamentos"
                   isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
+                />
+                <NavLink 
+                  to="/admin/integrations"
+                  icon={<Link className="h-4 w-4 mr-2" aria-hidden="true" />}
+                  label="Integrações"
+                  isActive={location.pathname === "/admin/integrations"}
                 />
               </div>
             </NavigationMenuContent>

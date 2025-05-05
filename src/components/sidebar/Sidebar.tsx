@@ -31,7 +31,8 @@ import {
   CheckCircle,
   ListTodo,
   LayoutDashboard,
-  Film
+  Film,
+  Link
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -167,6 +168,15 @@ export const AppSidebar = ({
                   <NavLink to="/admin/equipments" className="flex items-center">
                     <Settings className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Equipamentos</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem active={location.pathname === '/admin/integrations'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/integrations' ? "active" : "default"}>
+                  <NavLink to="/admin/integrations" className="flex items-center">
+                    <Link className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Integrações</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

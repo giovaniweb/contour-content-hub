@@ -7,6 +7,7 @@ import MediaFilters from "@/components/media-library/MediaFilters";
 import MediaTypeTabs from "@/components/media-library/MediaTypeTabs";
 import MediaGallery from "@/components/media-library/MediaGallery";
 import FeatureBanner from "@/components/media-library/FeatureBanner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const MediaLibrary: React.FC = () => {
   const { toast } = useToast();
@@ -107,42 +108,44 @@ const MediaLibrary: React.FC = () => {
 
   return (
     <Layout title="Media Library">
-      <div className="space-y-8">
-        {/* Feature Banner at the top */}
-        <FeatureBanner />
-        
-        {/* Filters */}
-        <MediaFilters 
-          search={search}
-          setSearch={setSearch}
-          selectedEquipment={selectedEquipment}
-          setSelectedEquipment={setSelectedEquipment}
-          selectedBodyArea={selectedBodyArea}
-          setSelectedBodyArea={setSelectedBodyArea}
-          selectedPurpose={selectedPurpose}
-          setSelectedPurpose={setSelectedPurpose}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          handleReset={handleReset}
-        />
-        
-        {/* Media type tabs and gallery */}
-        <div className="mt-2">
-          <MediaTypeTabs 
-            mediaType={mediaType} 
-            setMediaType={setMediaType} 
+      <TooltipProvider>
+        <div className="space-y-8">
+          {/* Feature Banner at the top */}
+          <FeatureBanner />
+          
+          {/* Filters */}
+          <MediaFilters 
+            search={search}
+            setSearch={setSearch}
+            selectedEquipment={selectedEquipment}
+            setSelectedEquipment={setSelectedEquipment}
+            selectedBodyArea={selectedBodyArea}
+            setSelectedBodyArea={setSelectedBodyArea}
+            selectedPurpose={selectedPurpose}
+            setSelectedPurpose={setSelectedPurpose}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            handleReset={handleReset}
           />
           
-          <MediaGallery 
-            mediaType={mediaType}
-            filteredItems={filteredItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            handleReset={handleReset}
-            handleMediaUpdate={handleMediaUpdate}
-          />
+          {/* Media type tabs and gallery */}
+          <div className="mt-2">
+            <MediaTypeTabs 
+              mediaType={mediaType} 
+              setMediaType={setMediaType} 
+            />
+            
+            <MediaGallery 
+              mediaType={mediaType}
+              filteredItems={filteredItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+              handleReset={handleReset}
+              handleMediaUpdate={handleMediaUpdate}
+            />
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     </Layout>
   );
 };
