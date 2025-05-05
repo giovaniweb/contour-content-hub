@@ -9,7 +9,7 @@ import { ValidationResult } from '@/utils/validation/types';
 import ScriptFormattedBlock from './ScriptFormattedBlock';
 import DisneyStructureIndicator from './DisneyStructureIndicator';
 import { Sparkles, FileText, RefreshCw, CheckCircle, Target, HeartHandshake, Pencil } from 'lucide-react';
-import { getToneRangeByScore } from './utils/toneAdaptationUtils';
+import { getToneRangeByScore, getProgressBar } from './utils/toneAdaptationUtils';
 
 interface ScriptToneAdapterProps {
   validationResult: ValidationResult;
@@ -141,6 +141,19 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
     b.tipo.toLowerCase().includes('final')
   ) || false;
 
+  // Progress Bar Renderer
+  const renderScoreBar = (score: number) => {
+    const percent = (score / 10) * 100;
+    return (
+      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mt-1 mb-2">
+        <div 
+          className={`h-full ${score < 6 ? 'bg-red-500' : score < 7.5 ? 'bg-amber-500' : score < 9 ? 'bg-green-500' : 'bg-blue-500'}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    );
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -185,7 +198,8 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
       </CardHeader>
       
       <CardContent>
-        <div className="mb-4 p-4 bg-muted rounded-lg">
+        {/* Overall Score Summary Card */}
+        <div className="mb-6 p-4 bg-muted rounded-lg">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="font-medium">Tom recomendado:</h3>
@@ -216,17 +230,29 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
             </div>
           </div>
           
-          <div className="mt-3 text-right">
-            <span className="text-sm text-muted-foreground">Pontuação total</span>
-            <p className="text-2xl font-bold">{overallScore.toFixed(1)}/10</p>
+          <div className="mt-3">
+            <div className="flex justify-between mb-1">
+              <span className="text-sm text-muted-foreground">Pontuação total</span>
+              <span className="text-sm font-medium">{overallScore.toFixed(1)}/10</span>
+            </div>
+            {renderScoreBar(overallScore)}
+            <div className="mt-1 font-mono text-xs text-slate-500">
+              {getProgressBar(overallScore, 10)}
+            </div>
           </div>
         </div>
         
+        {/* Disney Structure Indicator */}
         {hasDisneyStructure && (
-          <DisneyStructureIndicator hasDisneyStructure={true} />
+          <DisneyStructureIndicator hasDisneyStructure={true} compact={true} />
         )}
         
-        <div className="space-y-4">
+        {/* Script Blocks */}
+        <div className="space-y-6 mt-4">
+          <h3 className="font-medium text-lg mb-2">
+            {Object.keys(adaptedContent).length > 0 ? 'Roteiro Adaptado' : 'Blocos do Roteiro'}
+          </h3>
+          
           {validationResult.blocos?.map((bloco, index) => (
             <ScriptFormattedBlock
               key={`${bloco.tipo}-${index}`}
@@ -241,6 +267,7 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
           ))}
         </div>
         
+        {/* AI Suggestions */}
         {Object.keys(adaptedContent).length > 0 && (
           <div className="mt-6 pt-4 border-t">
             <h3 className="font-medium flex items-center gap-2 mb-3">

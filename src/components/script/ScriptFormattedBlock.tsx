@@ -4,6 +4,7 @@ import ScriptBlockScore from './ScriptBlockScore';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { getProgressBar } from './utils/toneAdaptationUtils';
 
 interface ScriptFormattedBlockProps {
   blockType: string;
@@ -28,12 +29,42 @@ const ScriptFormattedBlock: React.FC<ScriptFormattedBlockProps> = ({
   
   const hasAdaptedText = !!adaptedText;
   
+  // Generate progress bar
+  const renderProgressBar = (score: number) => {
+    const percent = (score / 10) * 100;
+    return (
+      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mt-1 mb-2">
+        <div 
+          className={`h-full ${score < 6 ? 'bg-red-500' : score < 7.5 ? 'bg-amber-500' : score < 9 ? 'bg-green-500' : 'bg-blue-500'}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    );
+  };
+  
+  // Get color based on score
+  const getScoreColor = (score: number) => {
+    if (score < 6) return "text-red-500";
+    if (score < 7.5) return "text-amber-500";
+    if (score < 9) return "text-green-500";
+    return "text-blue-500";
+  };
+  
   return (
     <div className="mb-6 border rounded-lg overflow-hidden">
-      <ScriptBlockScore 
-        blockType={blockType} 
-        score={score} 
-      />
+      <div className="p-3 bg-slate-50 border-b">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-medium text-md">{blockType}</h3>
+          <span className={`font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}/10</span>
+        </div>
+        
+        {/* Score Visualization */}
+        {renderProgressBar(score)}
+        
+        <div className="mt-1 font-mono text-xs text-slate-500">
+          {getProgressBar(score, 10)}
+        </div>
+      </div>
       
       <div className="p-4">
         {showComparison && hasAdaptedText && (
