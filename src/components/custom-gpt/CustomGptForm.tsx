@@ -5,6 +5,8 @@ import { CustomGptFormProps } from './types';
 import { useCustomGptForm } from './hooks/useCustomGptForm';
 import SimpleGenerator from './SimpleGenerator';
 import AdvancedGenerator from './AdvancedGenerator';
+import AdvancedOptions from './AdvancedOptions';
+import ResultDisplay from './ResultDisplay';
 
 const CustomGptForm: React.FC<CustomGptFormProps> = ({ 
   onResults, 
@@ -32,10 +34,12 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
   } = useCustomGptForm(onResults, onScriptGenerated, initialData, mode);
 
   return (
-    <div>
+    <div className="space-y-6">
       {mode === 'simple' ? (
         <>
           <SimpleGenerator
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
             selectedEquipment={selectedEquipment}
             setSelectedEquipment={setSelectedEquipment}
             selectedObjective={selectedObjective}
@@ -53,16 +57,9 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
           {showAdvancedFields && (
             <Form {...form}>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <AdvancedGenerator
-                  form={form}
-                  selectedType={selectedType}
-                  setSelectedType={setSelectedType}
-                  selectedEquipment={selectedEquipment}
-                  setSelectedEquipment={setSelectedEquipment}
-                  equipments={equipments}
-                  equipmentsLoading={equipmentsLoading}
-                  handleSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
+                <AdvancedOptions 
+                  form={form} 
+                  showAdvancedFields={showAdvancedFields} 
                 />
               </form>
             </Form>
@@ -77,6 +74,8 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
               setSelectedType={setSelectedType}
               selectedEquipment={selectedEquipment}
               setSelectedEquipment={setSelectedEquipment}
+              selectedObjective={selectedObjective}
+              setSelectedObjective={setSelectedObjective}
               equipments={equipments}
               equipmentsLoading={equipmentsLoading}
               handleSubmit={handleSubmit}
@@ -84,6 +83,15 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
             />
           </form>
         </Form>
+      )}
+      
+      {results.length > 0 && (
+        <div className="mt-8 pt-6 border-t">
+          <ResultDisplay 
+            results={results} 
+            setResults={setResults} 
+          />
+        </div>
       )}
     </div>
   );

@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, FileText, Sparkles, MessageSquare } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 import { SimpleGeneratorProps } from './types';
-import ResultDisplay from './ResultDisplay';
+import { FileText, Sparkles, MessageSquare, ChevronDown } from "lucide-react";
+import { CustomGptType } from '@/utils/custom-gpt';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
   selectedEquipment,
@@ -17,73 +17,66 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
   equipmentsLoading,
   handleQuickGenerate,
   isSubmitting,
-  results,
-  setResults,
   showAdvancedFields,
   setShowAdvancedFields
 }) => {
-  const { toast } = useToast();
-
-  const handleButtonClick = (type: string) => {
-    console.log(`Botão 'Gerar ${type}' clicado`);
-    if (!selectedEquipment) {
-      toast({
-        variant: "destructive",
-        title: "Equipamento necessário",
-        description: "Por favor selecione um equipamento para gerar conteúdo."
-      });
-      return;
-    }
-    
-    if (handleQuickGenerate) {
-      handleQuickGenerate(type as "roteiro" | "bigIdea" | "stories");
-    } else {
-      console.error("handleQuickGenerate function is not defined");
-    }
-  };
+  
+  const renderTypeButton = (type: CustomGptType, label: string, icon: React.ReactNode, description: string) => (
+    <Card 
+      className={`cursor-pointer transition-all hover:shadow-md ${
+        isSubmitting ? 'opacity-50 pointer-events-none' : 'hover:border-primary'
+      }`}
+      onClick={() => !isSubmitting && selectedEquipment && handleQuickGenerate(type)}
+    >
+      <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+        {icon}
+        <h3 className="font-medium text-lg my-2">{label}</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          {description}
+        </p>
+        <Button 
+          disabled={isSubmitting || !selectedEquipment} 
+          variant="outline" 
+          className="w-full"
+        >
+          <Sparkles className="mr-2 h-4 w-4" />
+          Gerar {label}
+        </Button>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <Label htmlFor="equipment">Equipamento</Label>
+          <h3 className="text-lg font-semibold mb-4">Equipamento</h3>
           <Select 
             value={selectedEquipment} 
             onValueChange={setSelectedEquipment}
-            disabled={isSubmitting}
+            disabled={equipmentsLoading}
           >
-            <SelectTrigger id="equipment" className="w-full">
-              <SelectValue placeholder="Selecione o equipamento" />
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent>
-              {equipmentsLoading ? (
-                <SelectItem value="loading" disabled>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Carregando...
+              {equipments.map((eq) => (
+                <SelectItem key={eq.id} value={eq.id}>
+                  {eq.nome}
                 </SelectItem>
-              ) : (
-                equipments.map((equipment) => (
-                  <SelectItem key={equipment.id} value={equipment.id}>
-                    {equipment.nome}
-                  </SelectItem>
-                ))
-              )}
+              ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-1">
-            Selecione o equipamento para o qual deseja gerar conteúdo
-          </p>
         </div>
-
+        
         <div>
-          <Label htmlFor="objective">Objetivo de Marketing</Label>
+          <h3 className="text-lg font-semibold mb-4">Objetivo de Marketing</h3>
           <Select 
             value={selectedObjective} 
-            onValueChange={(value) => setSelectedObjective(value as any)}
-            disabled={isSubmitting}
+            onValueChange={setSelectedObjective}
           >
-            <SelectTrigger id="objective">
-              <SelectValue placeholder="Selecione o objetivo" />
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um objetivo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
@@ -93,56 +86,50 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
               <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-1">
-            Selecione o objetivo de marketing para o seu conteúdo
-          </p>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Button 
-          variant="outline" 
-          className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleButtonClick("roteiro")}
-          disabled={isSubmitting || !selectedEquipment}
-        >
-          <FileText className="h-6 w-6" />
-          <span className="font-semibold">Gerar Roteiro</span>
-        </Button>
-
-        <Button 
-          variant="outline" 
-          className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleButtonClick("bigIdea")}
-          disabled={isSubmitting || !selectedEquipment}
-        >
-          <Sparkles className="h-6 w-6" />
-          <span className="font-semibold">Gerar Big Idea</span>
-        </Button>
-
-        <Button 
-          variant="outline" 
-          className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => handleButtonClick("stories")}
-          disabled={isSubmitting || !selectedEquipment}
-        >
-          <MessageSquare className="h-6 w-6" />
-          <span className="font-semibold">Gerar Stories</span>
-        </Button>
-      </div>
-
-      {results.length > 0 && <ResultDisplay results={results} setResults={setResults} />}
       
-      <div className="border-t pt-4">
-        <Button 
-          variant="link" 
-          size="sm" 
-          className="px-0 text-xs"
-          onClick={() => setShowAdvancedFields(!showAdvancedFields)}
-        >
-          {showAdvancedFields ? "Ocultar opções avançadas" : "Mostrar opções avançadas"}
-        </Button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        {renderTypeButton(
+          'roteiro',
+          'Roteiro para Vídeo',
+          <FileText className="h-12 w-12 mx-auto mb-4 text-primary" />,
+          'Crie roteiros estruturados para vídeos educativos e persuasivos'
+        )}
+        
+        {renderTypeButton(
+          'bigIdea',
+          'Big Idea',
+          <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />,
+          'Desenvolva conceitos criativos poderosos para suas campanhas'
+        )}
+        
+        {renderTypeButton(
+          'stories',
+          'Stories',
+          <MessageSquare className="h-12 w-12 mx-auto mb-4 text-primary" />,
+          'Crie conteúdo atraente para stories com instruções de gravação'
+        )}
       </div>
+      
+      <Collapsible>
+        <div className="flex justify-center mt-6">
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowAdvancedFields && setShowAdvancedFields(!showAdvancedFields)}
+              className="flex items-center"
+            >
+              {showAdvancedFields ? "Ocultar Opções Avançadas" : "Mostrar Opções Avançadas"}
+              <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${showAdvancedFields ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        
+        <CollapsibleContent className="mt-6">
+          {/* AdvancedOptions component will be rendered here by the parent component */}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };

@@ -1,127 +1,129 @@
 
 import React from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AdvancedOptionsProps } from './types';
 
-const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({ form }) => {
+const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({ form, showAdvancedFields }) => {
+  if (!showAdvancedFields) return null;
+  
   return (
-    <>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Opções Avançadas</h3>
+      
       <FormField
         control={form.control}
-        name="marketingObjective"
+        name="topic"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Objetivo de Marketing</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o objetivo" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>
-                <SelectItem value="🟢 Criar Conexão">🟢 Criar Conexão</SelectItem>
-                <SelectItem value="🔴 Fazer Comprar">🔴 Fazer Comprar</SelectItem>
-                <SelectItem value="🔁 Reativar Interesse">🔁 Reativar Interesse</SelectItem>
-                <SelectItem value="✅ Fechar Agora">✅ Fechar Agora</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="bodyArea"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Área do Corpo</FormLabel>
+            <FormLabel>Tópico Específico</FormLabel>
             <FormControl>
-              <Input placeholder="Ex: Rosto, corpo" {...field} />
+              <Input placeholder="Ex: Redução de celulite" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="purposes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Finalidades</FormLabel>
-            <FormControl>
-              <Select
-                onValueChange={(value) => {
-                  const currentValues = Array.isArray(field.value) ? field.value : [];
-                  if (!currentValues.includes(value)) {
-                    field.onChange([...currentValues, value]);
-                  }
-                }}
-                value=""
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="tone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tom de Voz</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione as finalidades" />
-                </SelectTrigger>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um tom" />
+                  </SelectTrigger>
+                </FormControl>
                 <SelectContent>
-                  <SelectItem value="rugas">Rugas</SelectItem>
-                  <SelectItem value="flacidez">Flacidez</SelectItem>
-                  <SelectItem value="manchas">Manchas</SelectItem>
+                  <SelectItem value="informativo">Informativo e Educativo</SelectItem>
+                  <SelectItem value="persuasivo">Persuasivo e Convincente</SelectItem>
+                  <SelectItem value="emocional">Emocional e Empático</SelectItem>
+                  <SelectItem value="direto">Direto e Objetivo</SelectItem>
+                  <SelectItem value="autoridade">Autoridade e Especialista</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="bodyArea"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Área Corporal (opcional)</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma área" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="rosto">Rosto</SelectItem>
+                  <SelectItem value="abdomen">Abdômen</SelectItem>
+                  <SelectItem value="gluteos">Glúteos</SelectItem>
+                  <SelectItem value="pernas">Pernas</SelectItem>
+                  <SelectItem value="bracos">Braços</SelectItem>
+                  <SelectItem value="costas">Costas</SelectItem>
+                  <SelectItem value="corpo_todo">Corpo Todo</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="additionalInfo"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Informações Adicionais</FormLabel>
+            <FormControl>
+              <Textarea 
+                placeholder="Inclua aqui qualquer informação adicional importante para a geração do conteúdo..." 
+                className="min-h-24"
+                {...field} 
+              />
             </FormControl>
-            {Array.isArray(field.value) && field.value.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {field.value.map((item) => (
-                  <div key={item} className="bg-muted px-2 py-1 rounded-md text-sm flex items-center">
-                    {item}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 ml-1"
-                      onClick={() => {
-                        field.onChange(field.value.filter(i => i !== item));
-                      }}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
             <FormMessage />
           </FormItem>
         )}
       />
-
+      
       <FormField
         control={form.control}
         name="resetAfterSubmit"
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <FormLabel className="text-base">Limpar após gerar</FormLabel>
-              <p className="text-sm text-muted-foreground">
-                Limpa os campos após o conteúdo ser gerado
-              </p>
-            </div>
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
             <FormControl>
-              <Switch
+              <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
               />
             </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>Limpar formulário após envio</FormLabel>
+            </div>
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 };
 

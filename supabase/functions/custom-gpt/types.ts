@@ -26,6 +26,15 @@ export interface CustomGptRequest {
   marketingObjective?: string;
 }
 
+export interface ValidationResult {
+  hookScore: number;
+  clarityScore: number;
+  ctaScore: number;
+  emotionalScore: number;
+  totalScore: number;
+  suggestions: string[];
+}
+
 export interface OpenAIResponse {
   choices: {
     message: {

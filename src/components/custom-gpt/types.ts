@@ -10,6 +10,15 @@ export interface CustomGptResult {
   type?: CustomGptType;
   equipment?: string;
   marketingObjective?: MarketingObjectiveType;
+  validationScore?: number;
+  validationMetrics?: {
+    hookScore?: number;
+    clarityScore?: number;
+    ctaScore?: number;
+    emotionalScore?: number;
+  };
+  improvedContent?: string;
+  improvementSuggestions?: string[];
 }
 
 export interface CustomGptFormProps {
@@ -44,6 +53,10 @@ export interface SimpleGeneratorProps {
   equipmentsLoading: boolean;
   handleQuickGenerate: (type: CustomGptType) => Promise<void>;
   isSubmitting: boolean;
+  results?: CustomGptResult[];
+  setResults?: React.Dispatch<React.SetStateAction<CustomGptResult[]>>;
+  showAdvancedFields?: boolean;
+  setShowAdvancedFields?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface AdvancedOptionsProps {
