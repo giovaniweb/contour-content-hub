@@ -1,6 +1,6 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
   DialogContent, 
@@ -10,13 +10,17 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Download, FileText, ThumbsUp, Clock } from "lucide-react";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ScriptHistoryItem, generatePDF, linkScriptToCalendar, updateScript } from "@/utils/api";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import ScriptStatusBadge from "@/components/script/ScriptStatusBadge";
+import ScriptMetadata from "@/components/script/ScriptMetadata";
+import ScriptViewerActions from "@/components/script/ScriptViewerActions";
+import DateSelector from "@/components/script/DateSelector";
+import ScriptValidationScores from "@/components/script/ScriptValidationScores";
 
 interface ScriptViewerProps {
   script: ScriptHistoryItem;
@@ -30,6 +34,23 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
   const [isApproving, setIsApproving] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [schedulingDialogOpen, setSchedulingDialogOpen] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+
+  // Generate mock validation scores for demonstration
+  // In a real implementation, these should come from the API
+  const validationScores = {
+    hookScore: 7.8,
+    clarityScore: 8.2,
+    ctaScore: 6.9,
+    emotionalScore: 7.5,
+    totalScore: 7.6
+  };
+
+  const improvementSuggestions = [
+    "Fortaleça o gancho inicial com uma estatística ou pergunta que desperte curiosidade.",
+    "Adicione mais detalhes sobre os resultados específicos que o cliente pode esperar.",
+    "Inclua um chamado à ação mais claro e urgente no final do roteiro."
+  ];
 
   const handleGeneratePDF = async () => {
     if (script.pdf_url) {
@@ -147,32 +168,6 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
     return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: ptBR });
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'videoScript':
-        return "Roteiro para Vídeo";
-      case 'bigIdea':
-        return "Campanha Criativa";
-      case 'dailySales':
-        return "Vendas Diárias";
-      default:
-        return type;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'gerado':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-600">Gerado</Badge>;
-      case 'aprovado':
-        return <Badge variant="outline" className="bg-green-50 text-green-600">Aprovado</Badge>;
-      case 'editado':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-600">Editado</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const isScheduled = !!script.evento_agenda_id;
 
   return (
@@ -182,20 +177,11 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
           <div>
             <CardTitle className="text-xl mb-1">{script.title}</CardTitle>
             <div className="flex items-center flex-wrap gap-2 mt-1">
-              <Badge variant="secondary">{getTypeLabel(script.type)}</Badge>
-              {getStatusBadge(script.status)}
-              {isScheduled && (
-                <Badge variant="outline" className="bg-purple-50 text-purple-600">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Agendado
-                </Badge>
-              )}
-              {script.pdf_url && (
-                <Badge variant="outline" className="bg-red-50 text-red-600">
-                  <FileText className="h-3 w-3 mr-1" />
-                  PDF
-                </Badge>
-              )}
+              <ScriptStatusBadge 
+                status={script.status} 
+                isPDF={!!script.pdf_url} 
+                isScheduled={isScheduled} 
+              />
             </div>
           </div>
           
@@ -210,105 +196,71 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
           <div dangerouslySetInnerHTML={{ __html: script.contentHtml }} />
         </div>
 
-        {script.marketingObjective && (
-          <div className="bg-blue-50 p-3 rounded-md mb-4">
-            <h4 className="font-medium text-sm text-blue-800 mb-1">Objetivo de marketing</h4>
-            <p className="text-sm text-blue-600">
-              {script.marketingObjective === "atrair_atencao" ? "Atrair atenção" :
-               script.marketingObjective === "criar_conexao" ? "Criar conexão" :
-               script.marketingObjective === "fazer_comprar" ? "Incentivar compra" :
-               script.marketingObjective === "reativar_interesse" ? "Reativar interesse" :
-               script.marketingObjective === "fechar_agora" ? "Fechar agora" :
-               script.marketingObjective}
-            </p>
-          </div>
-        )}
+        <ScriptMetadata 
+          type={script.type}
+          marketingObjective={script.marketingObjective}
+          observation={script.observation}
+        />
 
-        {script.observation && (
-          <div className="bg-amber-50 p-3 rounded-md">
-            <h4 className="font-medium text-sm text-amber-800 mb-1">Observações</h4>
-            <p className="text-sm text-amber-600">{script.observation}</p>
+        {showValidation && (
+          <div className="mt-6 pt-6 border-t">
+            <h3 className="text-lg font-medium mb-4">Validação do Roteiro</h3>
+            <ScriptValidationScores 
+              scores={validationScores}
+              suggestions={improvementSuggestions}
+            />
           </div>
         )}
       </CardContent>
       
       <CardFooter className="pt-2 flex flex-wrap gap-2 justify-between">
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
-          >
-            <Download className="h-4 w-4 mr-1" />
-            {script.pdf_url ? "Abrir PDF" : "Gerar PDF"}
-          </Button>
-          
-          <Dialog open={schedulingDialogOpen} onOpenChange={setSchedulingDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={isScheduled}>
-                <Calendar className="h-4 w-4 mr-1" />
-                {isScheduled ? "Já agendado" : "Agendar"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Agendar Roteiro</DialogTitle>
-                <DialogDescription>
-                  Selecione uma data para programar este roteiro na sua agenda criativa
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="py-4">
-                <div className="flex justify-center mb-6">
-                  <CalendarComponent
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md border pointer-events-auto"
-                    locale={ptBR}
-                    initialFocus
-                  />
-                </div>
-                
-                {selectedDate && (
-                  <div className="bg-muted/30 p-3 rounded-md text-center">
-                    <Clock className="h-5 w-5 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-medium">
-                      O roteiro será agendado para<br />
-                      {format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setSchedulingDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleSchedule}
-                  disabled={isScheduling || !selectedDate}
-                >
-                  Confirmar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
-          {script.status !== 'aprovado' && (
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={handleApproveScript}
-              disabled={isApproving}
-            >
-              <ThumbsUp className="h-4 w-4 mr-1" />
-              Aprovar
-            </Button>
-          )}
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setShowValidation(!showValidation)}
+        >
+          {showValidation ? "Ocultar Validação" : "Mostrar Validação"}
+        </Button>
+
+        <ScriptViewerActions 
+          isPDF={!!script.pdf_url}
+          isScheduled={isScheduled}
+          isApproved={script.status === 'aprovado'}
+          onGeneratePDF={handleGeneratePDF}
+          onOpenCalendar={() => setSchedulingDialogOpen(true)}
+          onApproveScript={handleApproveScript}
+          isGeneratingPDF={isGeneratingPDF}
+          isApproving={isApproving}
+        />
       </CardFooter>
+      
+      <Dialog open={schedulingDialogOpen} onOpenChange={setSchedulingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendar Roteiro</DialogTitle>
+            <DialogDescription>
+              Selecione uma data para programar este roteiro na sua agenda criativa
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DateSelector 
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+          />
+          
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSchedulingDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSchedule}
+              disabled={isScheduling || !selectedDate}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

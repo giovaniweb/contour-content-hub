@@ -1,4 +1,6 @@
 
+import { ValidationResult } from "@/utils/validation/types";
+
 export type MarketingObjectiveType = 
   | '🟡 Atrair Atenção'
   | '🟢 Criar Conexão'
@@ -11,11 +13,20 @@ export interface ScriptResponse {
   id: string;
   title: string;
   content: string;
-  type: 'videoScript' | 'bigIdea' | 'dailySales';
+  type: 'videoScript' | 'bigIdea' | 'dailySales' | 'reelsScript';
   createdAt: string;
   suggestedVideos: any[];
   captionTips: any[];
   equipment?: string;
   marketingObjective?: MarketingObjectiveType;
-  pdf_url?: string; // Adding for compatibility with ScriptCard
+  pdf_url?: string;
+  validationScore?: number;
+  validationMetrics?: {
+    hookScore?: number;
+    clarityScore?: number;
+    ctaScore?: number;
+    emotionalScore?: number;
+  };
+  validationResult?: ValidationResult;
+  improvementSuggestions?: string[];
 }
