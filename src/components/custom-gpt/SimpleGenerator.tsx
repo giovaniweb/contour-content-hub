@@ -24,6 +24,24 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
 }) => {
   const { toast } = useToast();
 
+  const handleButtonClick = (type: string) => {
+    console.log(`Botão 'Gerar ${type}' clicado`);
+    if (!selectedEquipment) {
+      toast({
+        variant: "destructive",
+        title: "Equipamento necessário",
+        description: "Por favor selecione um equipamento para gerar conteúdo."
+      });
+      return;
+    }
+    
+    if (handleQuickGenerate) {
+      handleQuickGenerate(type as "roteiro" | "bigIdea" | "stories");
+    } else {
+      console.error("handleQuickGenerate function is not defined");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4">
@@ -85,12 +103,7 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => {
-            console.log("Botão 'Gerar Roteiro' clicado");
-            if (handleQuickGenerate) {
-              handleQuickGenerate("roteiro");
-            }
-          }}
+          onClick={() => handleButtonClick("roteiro")}
           disabled={isSubmitting || !selectedEquipment}
         >
           <FileText className="h-6 w-6" />
@@ -100,12 +113,7 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => {
-            console.log("Botão 'Gerar Big Idea' clicado");
-            if (handleQuickGenerate) {
-              handleQuickGenerate("bigIdea");
-            }
-          }}
+          onClick={() => handleButtonClick("bigIdea")}
           disabled={isSubmitting || !selectedEquipment}
         >
           <Sparkles className="h-6 w-6" />
@@ -115,12 +123,7 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <Button 
           variant="outline" 
           className="py-8 flex flex-col items-center justify-center gap-2 h-auto"
-          onClick={() => {
-            console.log("Botão 'Gerar Stories' clicado");
-            if (handleQuickGenerate) {
-              handleQuickGenerate("stories");
-            }
-          }}
+          onClick={() => handleButtonClick("stories")}
           disabled={isSubmitting || !selectedEquipment}
         >
           <MessageSquare className="h-6 w-6" />

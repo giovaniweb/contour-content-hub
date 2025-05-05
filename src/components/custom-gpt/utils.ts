@@ -40,6 +40,8 @@ export const generateContent = async (
     // Faz a chamada para o custom GPT
     const content = await generateCustomContent(request);
     
+    console.log("Content generated successfully:", content.substring(0, 100) + "...");
+    
     // Simula um ID gerado para a resposta
     const responseId = `gen-${Date.now()}`;
     
@@ -58,18 +60,24 @@ export const generateContent = async (
         marketingObjective: request.marketingObjective,
       };
       
+      console.log("Script response object created:", scriptResponse.id);
       onScriptGenerated(scriptResponse);
     }
     
     // Adiciona o resultado à lista de resultados
-    if (onResults && setResults) {
-      setResults(prev => [
-        {
-          id: responseId,
-          content: content
-        },
-        ...prev
-      ]);
+    if (setResults) {
+      const newResult = {
+        id: responseId,
+        content: content
+      };
+      console.log("Adding new result:", newResult.id);
+      
+      setResults(prev => [newResult, ...prev]);
+      
+      // Also call onResults if provided
+      if (onResults) {
+        onResults([newResult, ...setResults]);
+      }
     }
     
     // Notifica o usuário

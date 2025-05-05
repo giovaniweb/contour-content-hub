@@ -111,6 +111,11 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
       }
     } catch (error) {
       console.error('Erro ao gerar conteúdo:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar conteúdo",
+        description: "Ocorreu um erro inesperado. Por favor tente novamente."
+      });
     }
   };
 
@@ -130,28 +135,38 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
 
     setSelectedType(type);
     
-    // Cria a requisição simplificada para a API
-    const request: CustomGptRequest = {
-      tipo: type,
-      equipamento: selectedEquipment,
-      quantidade: 1,
-      estrategiaConteudo: selectedObjective as MarketingObjectiveType,
-      topic: `${getTypeName(type)} sobre ${findEquipmentName(selectedEquipment, equipments)}`,
-      marketingObjective: selectedObjective as MarketingObjectiveType
-    };
-    
-    console.log("Quick generate request:", request);
-    console.log("Selected equipment:", selectedEquipment);
-    console.log("Equipment name:", findEquipmentName(selectedEquipment, equipments));
-    
-    await generateContent(
-      request,
-      setIsSubmitting,
-      toast,
-      onScriptGenerated,
-      onResults,
-      setResults
-    );
+    try {
+      const equipmentName = findEquipmentName(selectedEquipment, equipments);
+      console.log("Equipment name:", equipmentName);
+      
+      // Cria a requisição simplificada para a API
+      const request: CustomGptRequest = {
+        tipo: type,
+        equipamento: selectedEquipment,
+        quantidade: 1,
+        estrategiaConteudo: selectedObjective as MarketingObjectiveType,
+        topic: `${getTypeName(type)} sobre ${equipmentName}`,
+        marketingObjective: selectedObjective as MarketingObjectiveType
+      };
+      
+      console.log("Quick generate request:", request);
+      
+      await generateContent(
+        request,
+        setIsSubmitting,
+        toast,
+        onScriptGenerated,
+        onResults,
+        setResults
+      );
+    } catch (error) {
+      console.error('Erro ao gerar conteúdo rápido:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar conteúdo",
+        description: "Ocorreu um erro ao tentar gerar o conteúdo. Por favor tente novamente."
+      });
+    }
   };
 
   return (
