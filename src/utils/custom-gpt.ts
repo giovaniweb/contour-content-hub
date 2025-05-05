@@ -4,6 +4,7 @@
 
 import { MarketingObjectiveType } from '@/types/script';
 import { Equipment } from '@/hooks/useEquipments';
+import { supabase, SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 
 export type CustomGptType = 'roteiro' | 'bigIdea' | 'stories';
 
@@ -35,11 +36,28 @@ export async function generateCustomContent(request: CustomGptRequest): Promise<
   // Verificar se estamos em ambiente de produção com Supabase disponível
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     try {
-      // Usar a função edge do Supabase
-      const response = await fetch('/api/custom-gpt', {
+      console.log("Chamando Supabase Edge Function para geração de conteúdo");
+      
+      // Get authentication token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      
+      if (!token) {
+        console.error('Usuário não autenticado');
+        throw new Error('Usuário não autenticado');
+      }
+      
+      if (!SUPABASE_BASE_URL) {
+        console.error('SUPABASE_BASE_URL não definido');
+        throw new Error('SUPABASE_BASE_URL não definido');
+      }
+      
+      // Chamar a Edge Function do Supabase diretamente
+      const response = await fetch(`${SUPABASE_BASE_URL}/functions/v1/custom-gpt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(request),
       });
@@ -49,6 +67,7 @@ export async function generateCustomContent(request: CustomGptRequest): Promise<
       }
 
       const data = await response.json();
+      console.log("Resposta da Edge Function recebida com sucesso");
       return data.content;
     } catch (error) {
       console.error('Erro ao chamar a API de conteúdo personalizado:', error);
