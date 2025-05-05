@@ -15,32 +15,83 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     // Verificar cache
     const cachedValidation = validationCache.get(script.id);
     if (cachedValidation) {
+      console.log('Usando validação em cache para:', script.id);
       return cachedValidation;
     }
     
-    // Chamar função edge para validar roteiro
-    const { data, error } = await supabase.functions.invoke('validate-script', {
-      body: {
-        content: script.content,
-        type: script.type,
-        title: script.title,
-        scriptId: script.id
+    // Chamar função edge para validar roteiro com timeout
+    console.log('Iniciando validação de roteiro:', script.id || 'novo roteiro');
+
+    // Adicionar um timeout à chamada para evitar que fique presa
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-script', {
+        body: {
+          content: script.content,
+          type: script.type,
+          title: script.title,
+          scriptId: script.id
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (error) {
+        console.error('Erro na resposta da validação:', error);
+        throw new Error(`Erro ao validar roteiro: ${error.message}`);
       }
-    });
-    
-    if (error) {
-      throw new Error(`Erro ao validar roteiro: ${error.message}`);
-    }
-    
-    // Salvar validação para futura referência
-    if (data) {
+      
+      if (!data) {
+        console.error('Resposta vazia na validação');
+        throw new Error('Resposta vazia na validação do roteiro');
+      }
+      
+      // Salvar validação para futura referência
       await saveValidation(script.id, data);
       validationCache.set(script.id, data);
+      
+      console.log('Validação concluída com sucesso:', data.total || data.nota_geral);
+      return data;
+    } catch (fetchError) {
+      clearTimeout(timeout);
+      
+      if (fetchError.name === 'AbortError') {
+        console.error('Timeout na validação do roteiro');
+        throw new Error('A validação excedeu o tempo limite. Tente um texto mais curto ou tente novamente mais tarde.');
+      }
+      
+      console.error('Erro na chamada de validação:', fetchError);
+      throw fetchError;
     }
-    
-    return data;
   } catch (error) {
     console.error('Erro ao validar roteiro:', error);
+    
+    // Tentar fornecer uma resposta de fallback em caso de erro crítico
+    if (script.content && script.content.length > 0) {
+      try {
+        console.log('Tentando criar resultado de validação de fallback');
+        // Criar um resultado de validação básico com base no conteúdo
+        const fallbackResult: ValidationResult = {
+          blocos: [],
+          nota_geral: 5,
+          gancho: 5,
+          clareza: 5,
+          cta: 5,
+          emocao: 5,
+          total: 5,
+          sugestoes: "Não foi possível analisar seu roteiro em detalhes. Tente novamente mais tarde.",
+          sugestoes_gerais: ["Verifique a clareza do texto", "Certifique-se de incluir um bom gancho inicial", "Trabalhe em um CTA mais forte"]
+        };
+        
+        return fallbackResult;
+      } catch (fallbackError) {
+        console.error('Erro ao criar validação de fallback:', fallbackError);
+      }
+    }
+    
     throw error;
   }
 };

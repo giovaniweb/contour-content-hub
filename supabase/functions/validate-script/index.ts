@@ -57,7 +57,36 @@ serve(async (req) => {
       ? content.substring(0, MAX_CONTENT_LENGTH) + "\n[Conteúdo truncado para otimização]" 
       : content;
     
-    // Determinar parâmetros específicos de avaliação com base no tipo de conteúdo - simplificados
+    // Determinar o modelo com base no tamanho do conteúdo - usar modelo mais leve para textos menores
+    const contentLength = truncatedContent.length;
+    let modelToUse = "gpt-4o-mini";
+    
+    if (contentLength > 2000) {
+      console.log(`Conteúdo grande (${contentLength} caracteres), usando modelo completo`);
+      modelToUse = "gpt-4o";
+    } else {
+      console.log(`Conteúdo pequeno (${contentLength} caracteres), usando modelo leve`);
+    }
+    
+    // Para textos muito pequenos, retornar uma resposta mais rápida
+    if (contentLength < 20) {
+      console.log("Conteúdo muito curto para análise completa, retornando resposta simplificada");
+      return new Response(JSON.stringify({
+        blocos: [],
+        nota_geral: 5.0,
+        sugestoes_gerais: ["O texto é muito curto para uma análise detalhada. Recomendamos expandir o conteúdo."],
+        gancho: 5.0,
+        clareza: 5.0,
+        cta: 5.0,
+        emocao: 5.0,
+        total: 5.0,
+        sugestoes: "O texto é muito curto para uma análise completa. Por favor, desenvolva mais o seu roteiro para obter uma avaliação adequada."
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Determinar parâmetros específicos de avaliação com base no tipo de conteúdo
     let avaliacaoEspecifica = "";
     if (type === 'videoScript') {
       avaliacaoEspecifica = `Para roteiros de vídeo, considere a introdução, ritmo e instruções visuais.`;
@@ -67,63 +96,53 @@ serve(async (req) => {
       avaliacaoEspecifica = `Para conteúdo de vendas, considere urgência, benefícios e CTA.`;
     }
 
-    // Criar prompt simplificado para análise mais rápida
+    // Criar prompt para análise rápida
     const systemPrompt = `
-      Você é um avaliador especialista em marketing digital.
-      Avalie o roteiro fornecido de forma concisa e objetiva, dividindo-o em blocos principais.
+      Você é um avaliador especialista em marketing digital e copywriting.
+      Avalie o roteiro fornecido de forma concisa e objetiva.
       IMPORTANTE: Responda APENAS em formato JSON válido conforme especificado abaixo.
       
-      Para cada bloco, identifique:
-      1. O texto do bloco
-      2. Pontuação de 0 a 10
-      3. Sugestão de melhoria se necessário
-      4. Se deve ser substituído
-      
-      Formato JSON esperado simplificado:
+      Formato JSON esperado:
       {
         "blocos": [
           {
             "tipo": "gancho/conflito/virada/cta",
-            "nota": 7.5,
+            "nota": número de 0 a 10,
             "texto": "Trecho do roteiro",
-            "sugestao": "Sugestão de melhoria",
-            "substituir": true/false
+            "sugestao": "Sugestão de melhoria"
           }
         ],
-        "nota_geral": 7.3,
+        "nota_geral": número de 0 a 10,
         "sugestoes_gerais": ["Sugestão 1", "Sugestão 2"],
-        "gancho": 7.2,
-        "clareza": 7.5,
-        "cta": 6.0,
-        "emocao": 8.0,
-        "total": 7.3,
-        "sugestoes": "Sugestões resumidas"
+        "gancho": número de 0 a 10,
+        "clareza": número de 0 a 10,
+        "cta": número de 0 a 10,
+        "emocao": número de 0 a 10,
+        "total": número de 0 a 10,
+        "sugestoes": "Resumo das sugestões"
       }
       
       ${avaliacaoEspecifica}
       
-      Seja breve e direto. Limite a no máximo 4 blocos e 3 sugestões gerais para melhor performance.
+      Seja breve e direto. Para melhor performance, limite a no máximo 3 blocos e 3 sugestões gerais.
     `;
 
     const userPrompt = `
-      ID: ${scriptId}
-      Título: ${title}
-      Tipo: ${type}
+      ID: ${scriptId || 'novo-roteiro'}
+      Título: ${title || 'Sem título'}
+      Tipo: ${type || 'roteiro'}
       
       Conteúdo:
       ${truncatedContent}
       
-      Avalie este roteiro segundo os critérios estabelecidos.
+      Avalie este roteiro segundo os critérios estabelecidos. Seja rápido e conciso.
     `;
 
-    console.log("Enviando requisição para OpenAI");
-    
-    // Usar modelo mais leve e rápido quando possível
-    const modelToUse = truncatedContent.length < 2000 ? "gpt-4o-mini" : "gpt-4o";
+    console.log(`Enviando requisição para OpenAI usando modelo ${modelToUse}`);
     
     // Call OpenAI API com timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos de timeout
     
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -138,9 +157,9 @@ serve(async (req) => {
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
           ],
-          temperature: 0.2, // Temperatura mais baixa para respostas mais rápidas e consistentes
+          temperature: 0.1, // Temperatura mais baixa para respostas mais rápidas e consistentes
           response_format: { type: "json_object" }, // Forçar formato JSON na resposta
-          max_tokens: 2000 // Limitar resposta para ser mais rápida
+          max_tokens: 1200 // Limitar resposta para ser mais rápida
         }),
         signal: controller.signal
       });
@@ -175,10 +194,10 @@ serve(async (req) => {
         const content = data.choices[0].message.content;
         console.log("Processando resposta e convertendo para JSON");
         
-        // Parse diretamente sem extrair de blocos de código (formato já é JSON)
+        // Parse diretamente (formato já é JSON)
         const validationData = JSON.parse(content);
         
-        // Verificação de segurança nos dados - simplificada
+        // Verificação de segurança nos dados
         const safeValidation = {
           blocos: Array.isArray(validationData.blocos) ? validationData.blocos.slice(0, 6) : [], // Limitar a 6 blocos
           nota_geral: parseFloat(validationData.nota_geral) || 0,
@@ -186,7 +205,7 @@ serve(async (req) => {
             ? validationData.sugestoes_gerais.slice(0, 3) // Limitar a 3 sugestões
             : ["Nenhuma sugestão fornecida."],
             
-          // Campos antigos para compatibilidade
+          // Campos para compatibilidade
           gancho: parseFloat(validationData.gancho) || 0,
           clareza: parseFloat(validationData.clareza) || 0,
           cta: parseFloat(validationData.cta) || 0,
@@ -204,22 +223,14 @@ serve(async (req) => {
       } catch (jsonError) {
         console.error("Erro ao processar resposta:", jsonError);
         
-        // Resposta de fallback mais leve
+        // Resposta de fallback
         const fallbackData = {
           blocos: [
             {
-              tipo: "gancho",
+              tipo: "análise",
               nota: 5.0,
-              texto: truncatedContent.substring(0, 100),
-              sugestao: "Recomendamos revisar o gancho inicial.",
-              substituir: false
-            },
-            {
-              tipo: "cta",
-              nota: 5.0,
-              texto: truncatedContent.substring(truncatedContent.length - 100),
-              sugestao: "Fortaleça o CTA.",
-              substituir: false
+              texto: truncatedContent.substring(0, 100) + "...",
+              sugestao: "Não foi possível analisar em detalhes. Recomendamos revisar o texto."
             }
           ],
           nota_geral: 5.0,
@@ -243,22 +254,55 @@ serve(async (req) => {
       if (fetchError.name === 'AbortError') {
         console.error("Timeout na chamada à API OpenAI");
         return new Response(
-          JSON.stringify({ error: "Timeout na validação. Tente novamente com um texto mais curto." }), 
-          { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ 
+            error: "Timeout na validação. Tente novamente com um texto mais curto.",
+            blocos: [],
+            nota_geral: 5.0,
+            sugestoes_gerais: ["A análise foi interrompida por exceder o tempo limite. Tente um texto mais curto."],
+            gancho: 5.0,
+            clareza: 5.0,
+            cta: 5.0,
+            emocao: 5.0,
+            total: 5.0,
+            sugestoes: "A análise foi interrompida por exceder o tempo limite. Tente um texto mais curto."
+          }), 
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
       console.error("Erro na chamada à API OpenAI:", fetchError);
       return new Response(
-        JSON.stringify({ error: `Erro ao conectar com API OpenAI: ${fetchError.message}` }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: `Erro ao conectar com API OpenAI: ${fetchError.message}`,
+          blocos: [],
+          nota_geral: 5.0,
+          sugestoes_gerais: ["Ocorreu um erro durante a análise. Tente novamente mais tarde."],
+          gancho: 5.0,
+          clareza: 5.0,
+          cta: 5.0,
+          emocao: 5.0,
+          total: 5.0,
+          sugestoes: "Ocorreu um erro durante a análise. Tente novamente mais tarde."
+        }), 
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
   } catch (error) {
     console.error('Erro na função validate-script:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      blocos: [],
+      nota_geral: 5.0,
+      sugestoes_gerais: ["Ocorreu um erro durante a análise. Tente novamente mais tarde."],
+      gancho: 5.0,
+      clareza: 5.0,
+      cta: 5.0,
+      emocao: 5.0,
+      total: 5.0,
+      sugestoes: "Ocorreu um erro durante a análise. Tente novamente mais tarde."
+    }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

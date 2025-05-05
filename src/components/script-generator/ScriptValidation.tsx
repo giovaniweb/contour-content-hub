@@ -12,21 +12,24 @@ import { ValidationResult } from "@/utils/validation/types";
 interface ScriptValidationProps {
   script: ScriptResponse;
   onValidationComplete?: (validation: ValidationResult) => void;
+  onValidationError?: (error: string) => void;
   hideTitle?: boolean;
 }
 
 const ScriptValidation: React.FC<ScriptValidationProps> = ({ 
   script, 
   onValidationComplete,
+  onValidationError,
   hideTitle = false 
 }) => {
   const [isValidating, setIsValidating] = useState(false);
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [validationAttempts, setValidationAttempts] = useState(0);
 
-  // Automatically start validation if script is provided
+  // Automaticamente iniciar validação se script for fornecido
   useEffect(() => {
-    if (script?.content && !result && !isValidating) {
+    if (script?.content && !result && !isValidating && validationAttempts === 0) {
       handleValidateScript();
     }
   }, [script]);
@@ -35,8 +38,13 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({
     try {
       setIsValidating(true);
       setError(null);
+      setValidationAttempts(prev => prev + 1);
       
       const validationResult = await validateScript(script);
+      
+      if (!validationResult) {
+        throw new Error("Resposta de validação vazia");
+      }
       
       setResult(validationResult);
       
@@ -45,7 +53,12 @@ const ScriptValidation: React.FC<ScriptValidationProps> = ({
       }
     } catch (err) {
       console.error("Error validating script:", err);
-      setError("Não foi possível validar o roteiro. Tente novamente mais tarde.");
+      const errorMessage = err instanceof Error ? err.message : "Não foi possível validar o roteiro. Tente novamente mais tarde.";
+      setError(errorMessage);
+      
+      if (onValidationError) {
+        onValidationError(errorMessage);
+      }
     } finally {
       setIsValidating(false);
     }
