@@ -56,24 +56,21 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           <TabsTrigger value="sugestoes" disabled={script.suggestedVideos.length === 0}>
             Sugestões de Vídeos
           </TabsTrigger>
-          <TabsTrigger value="legenda" disabled={script.captionTips.length === 0}>
-            Dicas de Legenda
+          <TabsTrigger value="validacao">
+            Validação IA
           </TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+        <ScrollArea className="h-[400px] w-full rounded-md border p-0">
           <ScriptContent content={script.content} />
           <ScriptSuggestedVideos videos={script.suggestedVideos} />
-          <ScriptCaptionTips tips={script.captionTips} />
           
-          {activeTab === "validacao" && (
-            <TabsContent value="validacao" className="mt-0 p-0">
-              <ScriptValidationScores 
-                scores={mockValidationScores} 
-                suggestions={mockSuggestions} 
-              />
-            </TabsContent>
-          )}
+          <TabsContent value="validacao" className="mt-0 p-0">
+            <ScriptValidationScores 
+              scores={mockValidationScores} 
+              suggestions={mockSuggestions} 
+            />
+          </TabsContent>
         </ScrollArea>
       </Tabs>
       
@@ -113,7 +110,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
                 </TabsTrigger>
               </TabsList>
               
-              <div className="p-4 border rounded-md">
+              <div className="p-0 border rounded-md">
                 <ScriptContent content={script.content} />
                 <ScriptSuggestedVideos videos={script.suggestedVideos} />
                 <TabsContent value="validacao" className="mt-0 p-0">
