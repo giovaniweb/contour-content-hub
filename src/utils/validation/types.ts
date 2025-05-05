@@ -13,7 +13,7 @@ export interface ValidationResult {
   sugestoes_gerais?: string[];
   blocos?: ValidationBlock[];
   status?: 'success' | 'error' | 'loading';
-  timestamp?: string; // Added for cache entries
+  timestamp?: string; // Can be string for general ValidationResult
 }
 
 /**
@@ -30,8 +30,18 @@ export interface ValidationBlock {
 /**
  * Entrada de cache para validações
  */
-export interface CacheEntry extends ValidationResult {
-  timestamp: number;
+export interface CacheEntry {
+  gancho?: number;
+  clareza?: number;
+  cta?: number;
+  emocao?: number;
+  nota_geral?: number;
+  total?: number;
+  sugestoes?: string;
+  sugestoes_gerais?: string[];
+  blocos?: ValidationBlock[];
+  status?: 'success' | 'error' | 'loading';
+  timestamp: number; // Required numeric timestamp for cache entries
 }
 
 /**
