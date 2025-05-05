@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -5,9 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useEquipments } from "@/hooks/useEquipments";
 import { CustomGptType, CustomGptRequest } from "@/utils/custom-gpt";
 import { MarketingObjectiveType, ScriptResponse } from '@/types/script';
-import { customGptFormSchema, defaultFormValues } from '../schema';
-import { generateContent, findEquipmentName } from '../utils';
-import { CustomGptResult } from '../types';
+import { customGptFormSchema, CustomGptResult } from '../types';
+import { generateContent, findEquipmentName, getTypeName } from '../utils';
 
 export const useCustomGptForm = (
   onResults?: (results: CustomGptResult[]) => void,
@@ -20,13 +20,22 @@ export const useCustomGptForm = (
   const { equipments, loading: equipmentsLoading } = useEquipments();
   const [selectedType, setSelectedType] = useState<CustomGptType>("roteiro");
   const [selectedEquipment, setSelectedEquipment] = useState<string | undefined>(undefined);
-  const [selectedObjective, setSelectedObjective] = useState<MarketingObjectiveType | undefined>("🟡 Atrair Atenção");
+  const [selectedObjective, setSelectedObjective] = useState<MarketingObjectiveType | undefined>("🟢 Criar Conexão");
   const [results, setResults] = useState<CustomGptResult[]>([]);
   const [showAdvancedFields, setShowAdvancedFields] = useState(mode === 'advanced');
 
   const form = useForm({
     resolver: zodResolver(customGptFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: {
+      topic: "",
+      tone: "",
+      quantity: "1",
+      additionalInfo: "",
+      marketingObjective: "🟢 Criar Conexão",
+      bodyArea: "",
+      purposes: [],
+      resetAfterSubmit: false
+    },
   });
 
   useEffect(() => {
@@ -35,7 +44,7 @@ export const useCustomGptForm = (
         topic: initialData.topic || "",
         tone: initialData.tom || "",
         additionalInfo: initialData.additionalInfo || "",
-        marketingObjective: initialData.marketingObjective || "🟡 Atrair Atenção",
+        marketingObjective: initialData.marketingObjective || "🟢 Criar Conexão",
         bodyArea: initialData.bodyArea || "",
         purposes: initialData.purposes || [],
       });
@@ -57,7 +66,16 @@ export const useCustomGptForm = (
   }, [mode]);
 
   const resetFormFields = () => {
-    form.reset(defaultFormValues);
+    form.reset({
+      topic: "",
+      tone: "",
+      quantity: "1",
+      additionalInfo: "",
+      marketingObjective: "🟢 Criar Conexão",
+      bodyArea: "",
+      purposes: [],
+      resetAfterSubmit: false
+    });
     setSelectedEquipment(undefined);
   };
 
@@ -74,10 +92,23 @@ export const useCustomGptForm = (
     }
 
     try {
-      // Cria a requisição para a API
+      // Encontrar o equipamento selecionado para obter seus dados completos
+      const selectedEquipmentData = equipments.find(eq => eq.id === selectedEquipment);
+      
+      if (!selectedEquipmentData) {
+        toast({
+          variant: "destructive",
+          title: "Equipamento não encontrado",
+          description: "O equipamento selecionado não foi encontrado."
+        });
+        return;
+      }
+
+      // Cria a requisição para a API com dados completos do equipamento
       const request: CustomGptRequest = {
         tipo: selectedType,
-        equipamento: selectedEquipment || '',
+        equipamento: selectedEquipment,
+        equipamentoData: selectedEquipmentData,
         quantidade: parseInt(form.getValues().quantity || "1") || 1,
         tom: form.getValues().tone,
         estrategiaConteudo: selectedObjective as MarketingObjectiveType,
@@ -129,13 +160,26 @@ export const useCustomGptForm = (
     setSelectedType(type);
     
     try {
+      // Encontrar o equipamento selecionado para obter seus dados completos
+      const selectedEquipmentData = equipments.find(eq => eq.id === selectedEquipment);
+      
+      if (!selectedEquipmentData) {
+        toast({
+          variant: "destructive",
+          title: "Equipamento não encontrado",
+          description: "O equipamento selecionado não foi encontrado."
+        });
+        return;
+      }
+      
       const equipmentName = findEquipmentName(selectedEquipment, equipments);
       console.log("Equipment name:", equipmentName);
       
-      // Cria a requisição simplificada para a API
+      // Cria a requisição simplificada para a API com dados completos do equipamento
       const request: CustomGptRequest = {
         tipo: type,
         equipamento: selectedEquipment,
+        equipamentoData: selectedEquipmentData,
         quantidade: 1,
         estrategiaConteudo: selectedObjective as MarketingObjectiveType,
         topic: `${getTypeName(type)} sobre ${equipmentName}`,
@@ -159,19 +203,6 @@ export const useCustomGptForm = (
         title: "Erro ao gerar conteúdo",
         description: "Ocorreu um erro ao tentar gerar o conteúdo. Por favor tente novamente."
       });
-    }
-  };
-
-  const getTypeName = (type: CustomGptType): string => {
-    switch (type) {
-      case "roteiro":
-        return "Roteiro";
-      case "bigIdea":
-        return "Big Idea";
-      case "stories":
-        return "Stories";
-      default:
-        return "Conteúdo";
     }
   };
 

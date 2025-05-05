@@ -40,11 +40,14 @@ export const generateContent = async (
     // Simula um ID gerado para a resposta
     const responseId = `gen-${Date.now()}`;
     
+    // Criar um título com base no tipo e no equipamento
+    const title = request.topic || `${getTypeName(request.tipo)} sobre ${request.equipamento}`;
+    
     // Create script response object if needed
     if (onScriptGenerated) {
       const scriptResponse: ScriptResponse = {
         id: responseId,
-        title: request.topic || 'Conteúdo gerado',
+        title: title,
         content: content,
         type: request.tipo === 'roteiro' ? 'videoScript' : 
               request.tipo === 'bigIdea' ? 'bigIdea' : 'dailySales',
@@ -59,20 +62,25 @@ export const generateContent = async (
       onScriptGenerated(scriptResponse);
     }
     
-    // Adiciona o resultado à lista de resultados
+    // Adiciona o resultado à lista de resultados com as novas propriedades
+    const newResult: CustomGptResult = {
+      id: responseId,
+      content: content,
+      title: title,
+      type: request.tipo,
+      equipment: request.equipamento,
+      marketingObjective: request.marketingObjective
+    };
+    
+    console.log("Adding new result:", newResult.id);
+    
     if (setResults) {
-      const newResult = {
-        id: responseId,
-        content: content
-      };
-      console.log("Adding new result:", newResult.id);
-      
       setResults(prev => [newResult, ...prev]);
-      
-      // Also call onResults if provided
-      if (onResults) {
-        onResults([newResult]);
-      }
+    }
+    
+    // Chama onResults se fornecido
+    if (onResults) {
+      onResults([newResult]);
     }
     
     // Notifica o usuário
