@@ -273,7 +273,7 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
                   </div>
                 </div>
                 
-                <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2">
+                <div className="space-y-5">
                   {scriptBlocks.map((block, index) => (
                     <div key={index} className="border rounded-lg overflow-hidden shadow-sm">
                       <div className="p-3 bg-slate-50 border-b">
@@ -330,7 +330,7 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
                 </div>
               </div>
             ) : (
-              <div className="h-[300px] overflow-y-auto p-6">
+              <div className="p-6">
                 <div 
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: formatContent(result.content) }}
