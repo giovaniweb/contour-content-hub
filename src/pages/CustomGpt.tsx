@@ -46,10 +46,42 @@ const CustomGpt: React.FC = () => {
           
           <TabsContent value="simple">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Gerador de Conteúdo</h2>
+              <h2 className="text-2xl font-semibold mb-4">Gerador Rápido</h2>
               <p className="text-muted-foreground mb-6">
-                Gere roteiros, big ideas e stories personalizados para seus equipamentos
+                Gere roteiros, big ideas e stories personalizados para seus equipamentos com apenas um clique
               </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary">
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-primary" />
+                    <h3 className="font-medium text-lg mb-2">Roteiro para Vídeo</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-4">
+                      Crie roteiros estruturados para vídeos educativos e persuasivos
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary">
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                    <h3 className="font-medium text-lg mb-2">Big Idea</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-4">
+                      Desenvolva conceitos criativos poderosos para suas campanhas
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary">
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-primary" />
+                    <h3 className="font-medium text-lg mb-2">Stories</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-4">
+                      Crie conteúdo atraente para stories com instruções de gravação
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
               
               <CustomGptForm mode="simple" />
             </Card>

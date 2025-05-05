@@ -7,13 +7,13 @@ import React from "react";
 export const getMediaTypeIcon = (type: string): React.ReactNode => {
   switch (type) {
     case "video_pronto":
-      return React.createElement(VideoIcon, { className: "h-4 w-4" });
+      return <VideoIcon className="h-4 w-4" />;
     case "take":
-      return React.createElement(Film, { className: "h-4 w-4" });
+      return <Film className="h-4 w-4" />;
     case "image":
-      return React.createElement(Camera, { className: "h-4 w-4" });
+      return <Camera className="h-4 w-4" />;
     default:
-      return React.createElement(VideoIcon, { className: "h-4 w-4" });
+      return <VideoIcon className="h-4 w-4" />;
   }
 };
 
