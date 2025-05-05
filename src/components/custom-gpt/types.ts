@@ -1,6 +1,13 @@
 
 import { ScriptResponse, MarketingObjectiveType } from "@/types/script";
-import { CustomGptType, CustomGptResult } from "@/utils/custom-gpt";
+import { CustomGptType } from "@/utils/custom-gpt";
+import { UseFormReturn } from 'react-hook-form';
+
+// Custom type for the results of content generation
+export interface CustomGptResult {
+  id: string;
+  content: string;
+}
 
 export interface CustomGptFormProps {
   onResults?: (results: CustomGptResult[]) => void;
@@ -25,7 +32,7 @@ export interface SimpleGeneratorProps {
 }
 
 export interface AdvancedGeneratorProps {
-  form: any;
+  form: UseFormReturn<any>;
   selectedType: CustomGptType;
   setSelectedType: (value: CustomGptType) => void;
   selectedEquipment: string | undefined;
@@ -42,5 +49,5 @@ export interface ResultDisplayProps {
 }
 
 export interface AdvancedOptionsProps {
-  form: any;
+  form: UseFormReturn<any>;
 }

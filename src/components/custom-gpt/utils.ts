@@ -1,15 +1,10 @@
 
-import { CustomGptType, CustomGptRequest, generateCustomContent, CustomGptResult as ApiCustomGptResult } from "@/utils/custom-gpt";
+import { CustomGptType, CustomGptRequest, generateCustomContent } from "@/utils/custom-gpt";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingObjectiveType } from "@/types/script";
 import { ScriptResponse } from "@/types/script";
 import { Equipment } from "@/hooks/useEquipments";
-
-// Interface para os resultados de conteúdo personalizado
-export interface CustomGptResult {
-  id: string;
-  content: string;
-}
+import { CustomGptResult } from './types';
 
 export const getTypeName = (type: CustomGptType): string => {
   switch (type) {
@@ -76,7 +71,7 @@ export const generateContent = async (
       
       // Also call onResults if provided
       if (onResults) {
-        // Fix: Don't try to iterate over setResults, just pass the new array
+        // Pass the new result directly to onResults
         onResults([newResult]);
       }
     }

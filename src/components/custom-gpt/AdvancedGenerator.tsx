@@ -122,7 +122,7 @@ const AdvancedGenerator: React.FC<AdvancedGeneratorProps> = ({
 
       <AdvancedOptions form={form} />
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button onClick={handleSubmit} disabled={isSubmitting}>
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
