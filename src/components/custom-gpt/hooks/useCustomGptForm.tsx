@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +6,8 @@ import { useEquipments } from "@/hooks/useEquipments";
 import { CustomGptType, CustomGptRequest } from "@/utils/custom-gpt";
 import { MarketingObjectiveType, ScriptResponse } from '@/types/script';
 import { customGptFormSchema, defaultFormValues } from '../schema';
-import { generateContent, findEquipmentName, CustomGptResult } from '../utils';
+import { generateContent, findEquipmentName } from '../utils';
+import { CustomGptResult } from '../types';
 
 export const useCustomGptForm = (
   onResults?: (results: CustomGptResult[]) => void,

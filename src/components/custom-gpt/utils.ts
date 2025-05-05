@@ -71,7 +71,6 @@ export const generateContent = async (
       
       // Also call onResults if provided
       if (onResults) {
-        // Pass the new result directly to onResults
         onResults([newResult]);
       }
     }
