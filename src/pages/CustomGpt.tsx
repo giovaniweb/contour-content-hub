@@ -3,8 +3,8 @@ import React from 'react';
 import Layout from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import CustomGptForm from "@/components/CustomGptForm";
 import { FileText, Sparkles, MessageSquare } from "lucide-react";
+import CustomGptForm from "@/components/custom-gpt/CustomGptForm";
 
 const CustomGpt: React.FC = () => {
   return (
