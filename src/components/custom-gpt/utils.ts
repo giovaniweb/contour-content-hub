@@ -1,3 +1,4 @@
+
 import { CustomGptType, CustomGptRequest, CustomGptResult, generateCustomContent } from "@/utils/custom-gpt";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingObjectiveType } from "@/types/script";
@@ -27,6 +28,8 @@ export const generateContent = async (
 ) => {
   try {
     setIsSubmitting(true);
+    
+    console.log("Generating content with request:", request);
     
     // Faz a chamada para o custom GPT
     const content = await generateCustomContent(request);

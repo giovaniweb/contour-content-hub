@@ -14,7 +14,6 @@ export interface Equipment {
   linguagem?: string;
   ativo?: boolean;
   image_url?: string;
-  efeito?: string;
 }
 
 export const useEquipments = () => {
@@ -34,7 +33,7 @@ export const useEquipments = () => {
         // Use any to break the type inference chain
         const query = supabase
           .from('equipamentos')
-          .select('id, nome, tecnologia, beneficios, indicacoes, diferenciais, linguagem, ativo, image_url, efeito')
+          .select('id, nome, tecnologia, beneficios, indicacoes, diferenciais, linguagem, ativo, image_url')
           .eq('ativo', true)
           .order('nome') as any;
           

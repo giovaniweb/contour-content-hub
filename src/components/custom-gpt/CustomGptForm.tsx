@@ -135,6 +135,10 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
       marketingObjective: selectedObjective as MarketingObjectiveType
     };
     
+    console.log("Quick generate request:", request);
+    console.log("Selected equipment:", selectedEquipment);
+    console.log("Equipment name:", findEquipmentName(selectedEquipment, equipments));
+    
     await generateContent(
       request,
       setIsSubmitting,
