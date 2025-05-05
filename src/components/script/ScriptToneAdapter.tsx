@@ -10,6 +10,7 @@ import ScriptFormattedBlock from './ScriptFormattedBlock';
 import DisneyStructureIndicator from './DisneyStructureIndicator';
 import { Sparkles, FileText, RefreshCw, CheckCircle, Target, HeartHandshake, Pencil } from 'lucide-react';
 import { getToneRangeByScore, getProgressBar } from './utils/toneAdaptationUtils';
+import { Progress } from "@/components/ui/progress";
 
 interface ScriptToneAdapterProps {
   validationResult: ValidationResult;
@@ -84,7 +85,7 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
     );
     
     if (hookBlock && hookBlock.nota < 8) {
-      suggestions.push('**Gancho:** use uma estatística real ou frase mais emocional ("Você merece se sentir confiante na própria pele").');
+      suggestions.push("**Gancho:** use uma estatística real ou frase mais emocional (\"Você merece se sentir confiante na própria pele\").");
     }
     
     const conflictBlock = validationResult.blocos?.find(b => 
@@ -92,7 +93,7 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
     );
     
     if (conflictBlock && conflictBlock.nota < 8) {
-      suggestions.push('**Conflito:** traga uma frase de alguém real ("Já tentei de tudo e nada funcionava para meu tom de pele").');
+      suggestions.push("**Conflito:** traga uma frase de alguém real (\"Já tentei de tudo e nada funcionava para meu tom de pele\").");
     }
     
     const transformationBlock = validationResult.blocos?.find(b => 
@@ -100,7 +101,7 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
     );
     
     if (transformationBlock && transformationBlock.nota < 8.5) {
-      suggestions.push('**Virada:** adicione "aprovado por dermatologistas" ou mencione dados científicos simples.');
+      suggestions.push("**Virada:** adicione \"aprovado por dermatologistas\" ou mencione dados científicos simples.");
     }
     
     const ctaBlock = validationResult.blocos?.find(b => 
@@ -108,7 +109,7 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
     );
     
     if (ctaBlock && ctaBlock.nota < 8) {
-      suggestions.push('**CTA:** traga benefício extra (ex: "garanta sua sessão com bônus") ou urgência ("vagas limitadas para maio").');
+      suggestions.push("**CTA:** traga benefício extra (ex: \"garanta sua sessão com bônus\") ou urgência (\"vagas limitadas para maio\").");
     }
     
     // Add general suggestions if we don't have enough

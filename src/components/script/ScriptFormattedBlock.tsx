@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { getProgressBar } from './utils/toneAdaptationUtils';
+import { Progress } from "@/components/ui/progress";
 
 interface ScriptFormattedBlockProps {
   blockType: string;
@@ -29,19 +30,6 @@ const ScriptFormattedBlock: React.FC<ScriptFormattedBlockProps> = ({
   
   const hasAdaptedText = !!adaptedText;
   
-  // Generate progress bar
-  const renderProgressBar = (score: number) => {
-    const percent = (score / 10) * 100;
-    return (
-      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mt-1 mb-2">
-        <div 
-          className={`h-full ${score < 6 ? 'bg-red-500' : score < 7.5 ? 'bg-amber-500' : score < 9 ? 'bg-green-500' : 'bg-blue-500'}`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-    );
-  };
-  
   // Get color based on score
   const getScoreColor = (score: number) => {
     if (score < 6) return "text-red-500";
@@ -49,9 +37,28 @@ const ScriptFormattedBlock: React.FC<ScriptFormattedBlockProps> = ({
     if (score < 9) return "text-green-500";
     return "text-blue-500";
   };
+
+  // Generate progress bar
+  const renderProgressBar = (score: number) => {
+    const percent = (score / 10) * 100;
+    return (
+      <div className="w-full mb-2">
+        <Progress 
+          value={percent}
+          className={cn(
+            "h-2 w-full",
+            score < 6 ? "bg-red-100" : 
+            score < 7.5 ? "bg-amber-100" : 
+            score < 9 ? "bg-green-100" : 
+            "bg-blue-100"
+          )}
+        />
+      </div>
+    );
+  };
   
   return (
-    <div className="mb-6 border rounded-lg overflow-hidden">
+    <div className="mb-6 border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="p-3 bg-slate-50 border-b">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-medium text-md">{blockType}</h3>
