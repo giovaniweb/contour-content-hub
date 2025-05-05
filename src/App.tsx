@@ -16,6 +16,8 @@ import ScriptValidationPage from './pages/ScriptValidationPage';
 import MediaLibrary from './pages/MediaLibrary';
 import TechnicalDocuments from './pages/TechnicalDocuments';
 import PrivateRoute from './components/PrivateRoute';
+import EquipmentsPage from './pages/EquipmentsPage';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   return (
@@ -28,8 +30,9 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
         
         {/* Rotas de equipamentos */}
-        <Route path="/admin/equipments" element={<PrivateRoute element={<AdminEquipments />} />} />
-        <Route path="/admin/equipment/:id" element={<PrivateRoute element={<EquipmentDetailsPage />} />} />
+        <Route path="/admin/equipments" element={<AdminRoute element={<AdminEquipments />} />} />
+        <Route path="/admin/equipment/:id" element={<AdminRoute element={<EquipmentDetailsPage />} />} />
+        <Route path="/equipments" element={<PrivateRoute element={<EquipmentsPage />} />} />
         <Route path="/equipments/:id" element={<PrivateRoute element={<EquipmentDetails />} />} />
         
         {/* Estratégia de conteúdo */}

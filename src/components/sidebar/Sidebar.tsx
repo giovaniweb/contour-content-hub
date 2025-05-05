@@ -132,14 +132,25 @@ export const AppSidebar = ({
             </SidebarMenuButton>
           </SidebarMenuItem>
           
-          <SidebarMenuItem active={location.pathname.includes('/admin/equipments')}>
-            <SidebarMenuButton asChild variant={location.pathname.includes('/admin/equipments') ? "active" : "default"}>
-              <NavLink to="/admin/equipments" className="flex items-center">
+          <SidebarMenuItem active={location.pathname.startsWith('/equipments')}>
+            <SidebarMenuButton asChild variant={location.pathname.startsWith('/equipments') ? "active" : "default"}>
+              <NavLink to="/equipments" className="flex items-center">
                 <Package className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                 {open && <span>Equipamentos</span>}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          
+          {hasAdminAccess && (
+            <SidebarMenuItem active={location.pathname.startsWith('/admin/equipments')}>
+              <SidebarMenuButton asChild variant={location.pathname.startsWith('/admin/equipments') ? "active" : "default"}>
+                <NavLink to="/admin/equipments" className="flex items-center">
+                  <Settings className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                  {open && <span>Admin</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           
           {hasSellerAccess && (
             <SidebarMenuItem active={location.pathname.includes('/seller')}>
@@ -147,17 +158,6 @@ export const AppSidebar = ({
                 <NavLink to="/seller/dashboard" className="flex items-center">
                   <Users className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                   {open && <span>Vendas</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          
-          {hasAdminAccess && (
-            <SidebarMenuItem active={location.pathname === '/admin'}>
-              <SidebarMenuButton asChild variant={location.pathname === '/admin' ? "active" : "default"}>
-                <NavLink to="/admin" className="flex items-center">
-                  <Settings className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
-                  {open && <span>Admin</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -171,4 +171,3 @@ export const AppSidebar = ({
     </SidebarContainer>
   );
 };
-

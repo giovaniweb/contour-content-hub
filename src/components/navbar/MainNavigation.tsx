@@ -7,7 +7,8 @@ import {
   NavigationMenuItem,
 } from "@/components/ui/navigation-menu";
 import { NavLink } from "./NavLink";
-import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays } from "lucide-react";
+import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays, Package } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface MainNavigationProps {
   isAuthenticated: boolean;
@@ -15,6 +16,7 @@ interface MainNavigationProps {
 
 export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated }) => {
   const location = useLocation();
+  const { isAdmin } = usePermissions();
 
   if (!isAuthenticated) return null;
 
@@ -72,12 +74,22 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavLink 
-            to="/admin/equipments"
-            icon={<CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />}
+            to="/equipments"
+            icon={<Package className="h-4 w-4 mr-2" aria-hidden="true" />}
             label="Equipamentos"
-            isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
+            isActive={location.pathname.startsWith("/equipments")}
           />
         </NavigationMenuItem>
+        {isAdmin() && (
+          <NavigationMenuItem>
+            <NavLink 
+              to="/admin/equipments"
+              icon={<CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />}
+              label="Admin Equipamentos"
+              isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
+            />
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );
