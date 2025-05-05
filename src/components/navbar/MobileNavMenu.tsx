@@ -1,180 +1,96 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { 
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle
-} from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { 
-  X, Film, Home, FileText, CheckCircle, BookOpen, ListTodo, CalendarDays, Package, 
-  LayoutDashboard, Settings, Users 
-} from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Laptop,
+  Database,
+  FileText,
+  Cog,
+  VideoIcon,
+  BrainCircuit
+} from "lucide-react";
 
 interface MobileNavMenuProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen: (open: boolean) => void;
   isAuthenticated: boolean;
 }
 
-export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ 
-  isOpen, 
-  setIsOpen, 
-  isAuthenticated
+export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
+  isOpen,
+  setIsOpen,
+  isAuthenticated,
 }) => {
-  const { isAdmin, isSeller } = usePermissions();
-  
+  const { isAdmin } = usePermissions();
+
+  if (!isAuthenticated) return null;
+
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerContent className="text-left">
-        <DrawerHeader className="border-b pb-3">
-          <DrawerTitle className="flex items-center">
-            <Film className="h-5 w-5 text-contourline-mediumBlue mr-2" aria-hidden="true" />
-            Menu Fluida
-          </DrawerTitle>
-          <DrawerDescription>Navegue pelo aplicativo</DrawerDescription>
-        </DrawerHeader>
-        
-        <div className="space-y-1 px-2 py-4">
-          {isAuthenticated ? (
-            <>
-              {/* Menu Cliente */}
-              <div className="pb-2 mb-2">
-                <h3 className="text-xs uppercase text-gray-500 font-bold px-2 mb-1">Menu Principal</h3>
-                <Link 
-                  to="/dashboard" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><Home className="h-5 w-5" /></span>
-                  Inicio
-                </Link>
-                <Link 
-                  to="/custom-gpt" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><FileText className="h-5 w-5" /></span>
-                  Roteiros Fluida
-                </Link>
-                <Link 
-                  to="/validate-script" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><CheckCircle className="h-5 w-5" /></span>
-                  Validador de Roteiros
-                </Link>
-                <Link 
-                  to="/documents" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><BookOpen className="h-5 w-5" /></span>
-                  Artigos Científicos
-                </Link>
-                <Link 
-                  to="/media" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><Film className="h-5 w-5" /></span>
-                  Mídia
-                </Link>
-                <Link 
-                  to="/content-strategy" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><ListTodo className="h-5 w-5" /></span>
-                  Estratégia de Conteúdo
-                  <span className="ml-1.5 px-1.5 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-800 rounded-full">Novo</span>
-                </Link>
-                <Link 
-                  to="/equipments" 
-                  className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="mr-3 text-contourline-mediumBlue"><Package className="h-5 w-5" /></span>
-                  Equipamentos
-                </Link>
-              </div>
-              
-              {/* Menu Admin */}
-              {isAdmin() && (
-                <div className="pt-2 border-t border-gray-200">
-                  <h3 className="text-xs uppercase text-gray-500 font-bold px-2 mb-1">Administração</h3>
-                  <Link 
-                    to="/admin/dashboard" 
-                    className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span className="mr-3 text-contourline-mediumBlue"><LayoutDashboard className="h-5 w-5" /></span>
-                    Painel Administrativo
-                  </Link>
-                  <Link 
-                    to="/admin/equipments" 
-                    className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span className="mr-3 text-contourline-mediumBlue"><Settings className="h-5 w-5" /></span>
-                    Gerenciar Equipamentos
-                  </Link>
-                </div>
-              )}
-              
-              {/* Menu Vendedor */}
-              {isSeller() && (
-                <div className="pt-2 border-t border-gray-200">
-                  <h3 className="text-xs uppercase text-gray-500 font-bold px-2 mb-1">Vendas</h3>
-                  <Link 
-                    to="/seller/dashboard" 
-                    className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span className="mr-3 text-contourline-mediumBlue"><Users className="h-5 w-5" /></span>
-                    Dashboard de Vendas
-                  </Link>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <Link 
-                to="/" 
-                className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="mr-3 text-contourline-mediumBlue"><Home className="h-5 w-5" /></span>
-                Início
-              </Link>
-              <Link 
-                to="/register" 
-                className="group flex w-full items-center rounded-md border px-3 py-3 text-base outline-none transition-colors hover:bg-secondary hover:text-accent-foreground"
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="mr-3 text-contourline-mediumBlue"><FileText className="h-5 w-5" /></span>
-                Criar conta
-              </Link>
-            </>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetContent side="left" className="w-[80%] sm:w-[350px] p-0">
+        <SheetHeader className="p-4 border-b">
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <div className="flex flex-col p-4 space-y-2">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Laptop className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Link>
+          <Link
+            to="/equipments"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Database className="h-5 w-5" />
+            <span>Equipamentos</span>
+          </Link>
+          <Link
+            to="/custom-gpt"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <FileText className="h-5 w-5" />
+            <span>Roteiros</span>
+          </Link>
+          <Link
+            to="/media"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <VideoIcon className="h-5 w-5" />
+            <span>Mídias</span>
+          </Link>
+          <Link
+            to="/marketing-consultant"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <BrainCircuit className="h-5 w-5" />
+            <span>Consultor de Marketing</span>
+          </Link>
+          {isAdmin() && (
+            <Link
+              to="/admin/dashboard"
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <Cog className="h-5 w-5" />
+              <span>Admin</span>
+            </Link>
           )}
         </div>
-        
-        <DrawerFooter className="pt-2 border-t">
-          <DrawerClose asChild>
-            <Button variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
-              <X className="h-4 w-4 mr-2" aria-hidden="true" />
-              Fechar
-            </Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 };

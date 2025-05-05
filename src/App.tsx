@@ -20,6 +20,7 @@ import EquipmentsPage from './pages/EquipmentsPage';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminIntegrations from './pages/AdminIntegrations';
+import MarketingConsultant from './pages/MarketingConsultant';
 
 function App() {
   return (
@@ -55,6 +56,9 @@ function App() {
         
         {/* Dashboard de vendedor */}
         <Route path="/seller/dashboard" element={<PrivateRoute element={<SellerDashboard />} />} />
+        
+        {/* Marketing Consultant */}
+        <Route path="/marketing-consultant" element={<PrivateRoute element={<MarketingConsultant />} />} />
         
         {/* Rota para página não encontrada */}
         <Route path="*" element={<NotFound />} />
