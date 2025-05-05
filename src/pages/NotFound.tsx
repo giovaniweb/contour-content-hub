@@ -3,9 +3,11 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const NotFound = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     console.error(
@@ -23,7 +25,7 @@ const NotFound = () => {
           A página que você está procurando não existe ou foi movida.
         </p>
         <Button asChild size="lg" className="gap-2">
-          <Link to="/">
+          <Link to={isAuthenticated ? "/dashboard" : "/"}>
             <Home className="h-5 w-5" />
             <span>Voltar para o início</span>
           </Link>

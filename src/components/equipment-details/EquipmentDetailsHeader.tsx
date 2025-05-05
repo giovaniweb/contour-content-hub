@@ -18,7 +18,7 @@ export const EquipmentDetailsHeader: React.FC<EquipmentDetailsHeaderProps> = ({ 
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => navigate('/equipments')}
+          onClick={() => navigate('/dashboard')}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar

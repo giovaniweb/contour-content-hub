@@ -75,7 +75,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             to="/admin/equipments"
             icon={<CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />}
             label="Equipamentos"
-            isActive={location.pathname.includes("/admin/equipments")}
+            isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
           />
         </NavigationMenuItem>
       </NavigationMenuList>

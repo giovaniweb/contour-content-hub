@@ -15,6 +15,7 @@ import CustomGpt from './pages/CustomGpt';
 import ScriptValidationPage from './pages/ScriptValidationPage';
 import MediaLibrary from './pages/MediaLibrary';
 import TechnicalDocuments from './pages/TechnicalDocuments';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -24,26 +25,26 @@ function App() {
         <Route path="/" element={<Index />} />
         
         {/* Páginas autenticadas */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
         
         {/* Rotas de equipamentos */}
-        <Route path="/admin/equipments" element={<AdminEquipments />} />
-        <Route path="/equipment-details/:id" element={<EquipmentDetailsPage />} />
-        <Route path="/equipments/:id" element={<EquipmentDetails />} />
+        <Route path="/admin/equipments" element={<PrivateRoute element={<AdminEquipments />} />} />
+        <Route path="/admin/equipment/:id" element={<PrivateRoute element={<EquipmentDetailsPage />} />} />
+        <Route path="/equipments/:id" element={<PrivateRoute element={<EquipmentDetails />} />} />
         
         {/* Estratégia de conteúdo */}
-        <Route path="/content-strategy" element={<ContentStrategy />} />
+        <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
         
         {/* Custom GPT e funcionalidades relacionadas */}
-        <Route path="/custom-gpt" element={<CustomGpt />} />
-        <Route path="/validate-script" element={<ScriptValidationPage />} />
+        <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGpt />} />} />
+        <Route path="/validate-script" element={<PrivateRoute element={<ScriptValidationPage />} />} />
         
         {/* Media e documentos */}
-        <Route path="/media" element={<MediaLibrary />} />
-        <Route path="/documents" element={<TechnicalDocuments />} />
+        <Route path="/media" element={<PrivateRoute element={<MediaLibrary />} />} />
+        <Route path="/documents" element={<PrivateRoute element={<TechnicalDocuments />} />} />
         
         {/* Dashboard de vendedor */}
-        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/dashboard" element={<PrivateRoute element={<SellerDashboard />} />} />
         
         {/* Rota para página não encontrada */}
         <Route path="*" element={<NotFound />} />
