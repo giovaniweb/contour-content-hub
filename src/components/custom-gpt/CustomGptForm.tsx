@@ -94,6 +94,8 @@ const CustomGptForm: React.FC<CustomGptFormProps> = ({
         marketingObjective: selectedObjective as MarketingObjectiveType
       };
       
+      console.log("Form submit request:", request);
+      
       const result = await generateContent(
         request,
         setIsSubmitting,

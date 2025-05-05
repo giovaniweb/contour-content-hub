@@ -18,7 +18,7 @@ export interface Equipment {
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

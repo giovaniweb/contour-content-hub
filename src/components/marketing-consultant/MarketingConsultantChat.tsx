@@ -187,6 +187,8 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   // Função para preencher o input com sugestões
   const handleSetSuggestion = (text: string) => {
     setInput(text);
+    // Auto-focus the input after setting suggestion
+    document.querySelector('input')?.focus();
   };
 
   // Respostas sugeridas para facilitar a interação
@@ -306,7 +308,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
             variant="outline" 
             size="sm" 
             className="ml-2" 
-            onClick={() => setInput('O que é o Fluida Te Entende?')}
+            onClick={() => handleSetSuggestion('O que é o Fluida Te Entende?')}
           >
             <Sparkles className="h-4 w-4 mr-1 text-amber-500" />
             Fluida Te Entende

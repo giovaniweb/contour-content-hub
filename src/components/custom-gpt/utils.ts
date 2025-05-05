@@ -1,9 +1,15 @@
 
-import { CustomGptType, CustomGptRequest, CustomGptResult, generateCustomContent } from "@/utils/custom-gpt";
+import { CustomGptType, CustomGptRequest, generateCustomContent } from "@/utils/custom-gpt";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingObjectiveType } from "@/types/script";
 import { ScriptResponse } from "@/types/script";
 import { Equipment } from "@/hooks/useEquipments";
+
+// Interface para os resultados de conteúdo personalizado
+export interface CustomGptResult {
+  id: string;
+  content: string;
+}
 
 export const getTypeName = (type: CustomGptType): string => {
   switch (type) {
@@ -87,5 +93,6 @@ export const generateContent = async (
 };
 
 export const findEquipmentName = (equipmentId: string, equipments: Equipment[]): string => {
-  return equipments.find(eq => eq.id === equipmentId)?.nome || 'equipamento';
+  const equipment = equipments.find(eq => eq.id === equipmentId);
+  return equipment ? equipment.nome : 'equipamento';
 };
