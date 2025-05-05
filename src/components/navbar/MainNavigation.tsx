@@ -5,9 +5,11 @@ import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { NavLink } from "./NavLink";
-import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays, Package } from "lucide-react";
+import { Home, FileText, CheckCircle, BookOpen, Film, ListTodo, CalendarDays, Package, Settings, LayoutDashboard } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
 interface MainNavigationProps {
@@ -23,6 +25,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
   return (
     <NavigationMenu>
       <NavigationMenuList>
+        {/* Menu do Cliente */}
         <NavigationMenuItem>
           <NavLink 
             to="/dashboard"
@@ -31,6 +34,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isActive={location.pathname === "/dashboard"}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/custom-gpt"
@@ -39,6 +43,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isActive={location.pathname === "/custom-gpt"}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/validate-script"
@@ -47,6 +52,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isActive={location.pathname === "/validate-script"}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/documents"
@@ -55,6 +61,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isActive={location.pathname === "/documents"}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/media"
@@ -63,6 +70,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isActive={location.pathname === "/media"}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/content-strategy"
@@ -72,22 +80,39 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
             isNew={true}
           />
         </NavigationMenuItem>
+        
         <NavigationMenuItem>
           <NavLink 
             to="/equipments"
             icon={<Package className="h-4 w-4 mr-2" aria-hidden="true" />}
             label="Equipamentos"
-            isActive={location.pathname.startsWith("/equipments")}
+            isActive={location.pathname.startsWith("/equipments") && !location.pathname.startsWith("/admin")}
           />
         </NavigationMenuItem>
+        
+        {/* Menu do Admin */}
         {isAdmin() && (
           <NavigationMenuItem>
-            <NavLink 
-              to="/admin/equipments"
-              icon={<CalendarDays className="h-4 w-4 mr-2" aria-hidden="true" />}
-              label="Admin Equipamentos"
-              isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
-            />
+            <NavigationMenuTrigger className="h-9 px-4 py-2 text-sm">
+              <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
+              Admin
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-[220px] p-2">
+                <NavLink 
+                  to="/admin/dashboard"
+                  icon={<LayoutDashboard className="h-4 w-4 mr-2" aria-hidden="true" />}
+                  label="Painel Administrativo"
+                  isActive={location.pathname === "/admin/dashboard"}
+                />
+                <NavLink 
+                  to="/admin/equipments"
+                  icon={<Package className="h-4 w-4 mr-2" aria-hidden="true" />}
+                  label="Gerenciar Equipamentos"
+                  isActive={location.pathname.startsWith("/admin/equipments") || location.pathname.startsWith("/admin/equipment/")}
+                />
+              </div>
+            </NavigationMenuContent>
           </NavigationMenuItem>
         )}
       </NavigationMenuList>
