@@ -657,7 +657,7 @@ export async function approveCalendarPlanning(suggestions: CalendarSuggestion[])
 };
 
 // Função para atualizar preferências do calendário
-export async function updateCalendarPreferences(preferences: CalendarPreferences): Promise<boolean> => {
+export async function updateCalendarPreferences(preferences: CalendarPreferences): Promise<boolean> {
   try {
     // This function only stores preferences temporarily
     // In a real application, you could store this in the database
