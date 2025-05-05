@@ -1,5 +1,4 @@
-
-import { CustomGptType, CustomGptRequest, generateCustomContent } from "@/utils/custom-gpt";
+import { CustomGptType, CustomGptRequest, CustomGptResult, generateCustomContent } from "@/utils/custom-gpt";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingObjectiveType } from "@/types/script";
 import { ScriptResponse } from "@/types/script";

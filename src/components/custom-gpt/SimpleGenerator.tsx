@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, FileText, Sparkles, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { SimpleGeneratorProps } from './types';
+import ResultDisplay from './ResultDisplay'; // Added this import
 
 const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
   selectedEquipment,
