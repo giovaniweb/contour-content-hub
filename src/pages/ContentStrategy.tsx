@@ -60,7 +60,7 @@ const ContentStrategy: React.FC = () => {
         <ContentStrategySheet
           equipments={equipments}
           users={users}
-          onSave={handleCreateItem}
+          onSubmit={handleCreateItem}
           open={isSheetOpen}
           onOpenChange={setIsSheetOpen}
         />

@@ -3,14 +3,16 @@ import React from "react";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import ContentStrategyForm from "@/components/content-strategy/ContentStrategyForm";
-import { ContentStrategy } from "@/types/content-strategy";
+import { ContentStrategyItem } from "@/types/content-strategy";
 
 interface ContentStrategySheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: ContentStrategy) => void;
-  initialData?: ContentStrategy;
+  onSubmit: (values: ContentStrategyItem) => void;
+  initialData?: ContentStrategyItem;
   isSubmitting?: boolean;
+  equipments: { id: string; nome: string }[];
+  users: { id: string; nome: string }[];
 }
 
 const ContentStrategySheet: React.FC<ContentStrategySheetProps> = ({
@@ -19,6 +21,8 @@ const ContentStrategySheet: React.FC<ContentStrategySheetProps> = ({
   onSubmit,
   initialData,
   isSubmitting = false,
+  equipments,
+  users
 }) => {
   const handleClose = () => {
     onOpenChange(false);
@@ -38,10 +42,11 @@ const ContentStrategySheet: React.FC<ContentStrategySheetProps> = ({
 
         <div className="py-4">
           <ContentStrategyForm
-            onSubmit={onSubmit}
-            initialData={initialData}
-            isSubmitting={isSubmitting}
-            onCancel={handleClose}
+            item={initialData}
+            equipamentos={equipments}
+            responsaveis={users}
+            onClose={handleClose}
+            onSave={onSubmit}
           />
         </div>
 

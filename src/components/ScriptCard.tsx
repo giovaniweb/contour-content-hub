@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScriptResponse } from "@/types/script";
@@ -67,10 +67,12 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           <ScriptCaptionTips tips={script.captionTips} />
           
           {activeTab === "validacao" && (
-            <ScriptValidationScores 
-              scores={mockValidationScores} 
-              suggestions={mockSuggestions} 
-            />
+            <TabsContent value="validacao" className="mt-0 p-0">
+              <ScriptValidationScores 
+                scores={mockValidationScores} 
+                suggestions={mockSuggestions} 
+              />
+            </TabsContent>
           )}
         </ScrollArea>
       </Tabs>
