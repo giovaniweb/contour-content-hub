@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { CustomGptResult } from './types';
 import { 
@@ -69,6 +71,7 @@ const MarketingObjectiveIcon = ({ objective }: { objective?: string }) => {
 
 const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
   const [activeTab, setActiveTab] = useState('content');
+  const [viewMode, setViewMode] = useState<'original' | 'adapted'>('adapted');
   
   // Generate random metrics for demonstration
   // In a real implementation, these should come from the API
@@ -77,6 +80,68 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
   const ctaScore = parseFloat((Math.random() * 2 + 6).toFixed(1));
   const emotionalScore = parseFloat((Math.random() * 2 + 6.5).toFixed(1));
   const totalScore = parseFloat(((hookScore + clarityScore + ctaScore + emotionalScore) / 4).toFixed(1));
+  
+  // Generate adapted text samples based on original content
+  const generateAdaptedBlocks = () => {
+    const originalContent = result.content;
+    
+    // Separate content into Disney structure blocks (if present)
+    const blocks = [];
+    
+    // Extract identification block
+    const identificationMatch = originalContent.match(/\(Identificação\)([\s\S]*?)(?=\(Conflito\)|$)/);
+    if (identificationMatch) {
+      blocks.push({
+        type: "Identificação",
+        originalText: identificationMatch[1].trim(),
+        adaptedText: "Você já se perguntou por que alguns tratamentos estéticos simplesmente não funcionam para você? Não está sozinho nessa busca.",
+        score: hookScore,
+        toneNote: "Tom ajustado: mais próximo e empático, com pergunta direta"
+      });
+    }
+    
+    // Extract conflict block
+    const conflictMatch = originalContent.match(/\(Conflito\)([\s\S]*?)(?=\(Virada\)|$)/);
+    if (conflictMatch) {
+      blocks.push({
+        type: "Conflito",
+        originalText: conflictMatch[1].trim(),
+        adaptedText: "Muitos procedimentos prometem resultados, mas poucos consideram a sua pele única. A frustração de investir tempo e dinheiro sem ver resultados é real.",
+        score: clarityScore,
+        toneNote: "Tom ajustado: foco na frustração específica e validação emocional"
+      });
+    }
+    
+    // Extract transformation block
+    const transformationMatch = originalContent.match(/\(Virada\)([\s\S]*?)(?=\(Final marcante\)|$)/);
+    if (transformationMatch) {
+      blocks.push({
+        type: "Virada",
+        originalText: transformationMatch[1].trim(),
+        adaptedText: transformationMatch[1].trim(), // Keep original if score is high
+        score: emotionalScore,
+        toneNote: "Tom mantido: já possui boa clareza técnica e promessa de valor"
+      });
+    }
+    
+    // Extract final block
+    const finalMatch = originalContent.match(/\(Final marcante\)([\s\S]*?)$/);
+    if (finalMatch) {
+      blocks.push({
+        type: "Final Marcante",
+        originalText: finalMatch[1].trim(),
+        adaptedText: "Agende sua avaliação hoje mesmo e aproveite nossa promoção exclusiva de lançamento. Vagas limitadas para este mês!",
+        score: ctaScore,
+        toneNote: "Tom ajustado: adicionada urgência e exclusividade para aumentar conversão"
+      });
+    }
+    
+    // If no Disney structure is found, return empty array
+    return blocks;
+  };
+  
+  const scriptBlocks = generateAdaptedBlocks();
+  const hasDisneyStructure = scriptBlocks.length > 0;
   
   // Format the content for better display
   const formatContent = (content: string) => {
@@ -163,7 +228,11 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
             </CardTitle>
             
             <CardDescription>
-              Roteiro com estrutura Disney: Identificação → Conflito → Virada → Final Marcante
+              {hasDisneyStructure ? (
+                "Roteiro com estrutura Disney: Identificação → Conflito → Virada → Final Marcante"
+              ) : (
+                "Conteúdo personalizado para seu equipamento"
+              )}
             </CardDescription>
           </div>
         </div>
@@ -178,11 +247,96 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
         </div>
         
         <TabsContent value="content" className="p-0 mt-0">
-          <CardContent className="h-[300px] overflow-y-auto p-6">
-            <div 
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: formatContent(result.content) }}
-            />
+          <CardContent className="p-0">
+            {hasDisneyStructure ? (
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b">
+                  <span className="text-sm font-medium">Visualização:</span>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="view-toggle-content" className={cn(
+                      "text-sm",
+                      viewMode === 'original' ? "font-medium" : "text-muted-foreground"
+                    )}>
+                      Original
+                    </Label>
+                    <Switch 
+                      id="view-toggle-content"
+                      checked={viewMode === 'adapted'}
+                      onCheckedChange={(checked) => setViewMode(checked ? 'adapted' : 'original')}
+                    />
+                    <Label htmlFor="view-toggle-content" className={cn(
+                      "text-sm",
+                      viewMode === 'adapted' ? "font-medium" : "text-muted-foreground"
+                    )}>
+                      Adaptado
+                    </Label>
+                  </div>
+                </div>
+                
+                <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2">
+                  {scriptBlocks.map((block, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden shadow-sm">
+                      <div className="p-3 bg-slate-50 border-b">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-medium text-md">{block.type}</h3>
+                          <span className={`font-bold ${block.score < 6 ? 'text-red-500' : block.score < 7.5 ? 'text-amber-500' : block.score < 9 ? 'text-green-500' : 'text-blue-500'}`}>
+                            {block.score.toFixed(1)}/10
+                          </span>
+                        </div>
+                        
+                        <Progress 
+                          value={(block.score / 10) * 100}
+                          className={cn(
+                            "h-2 w-full",
+                            block.score < 6 ? "bg-red-100" : 
+                            block.score < 7.5 ? "bg-amber-100" : 
+                            block.score < 9 ? "bg-green-100" : 
+                            "bg-blue-100"
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="p-4">
+                        {viewMode === 'original' && (
+                          <div className="mb-3">
+                            <div className="text-sm text-muted-foreground mb-1">
+                              Texto original:
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-md">
+                              {block.originalText}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {viewMode === 'adapted' && (
+                          <div>
+                            <div className="text-sm text-muted-foreground mb-1">
+                              Texto adaptado:
+                            </div>
+                            <div className="p-3 bg-green-50 border-l-4 border-green-500 rounded-md font-medium">
+                              {block.adaptedText}
+                            </div>
+                            
+                            {block.toneNote && (
+                              <div className="mt-2 text-sm italic text-muted-foreground">
+                                {block.toneNote}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="h-[300px] overflow-y-auto p-6">
+                <div 
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: formatContent(result.content) }}
+                />
+              </div>
+            )}
           </CardContent>
         </TabsContent>
         
