@@ -1,7 +1,6 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 import { NavLink } from "./NavLink";
 import { usePermissions } from "@/hooks/use-permissions";
 import { 
@@ -27,18 +26,18 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
   // Define navigation links based on authentication and roles
   return (
     <div className="flex items-center space-x-1">
-      <NavLink href="/dashboard" icon={<LayoutGrid size={16} />} label="Dashboard" />
-      <NavLink href="/equipments" icon={<Database size={16} />} label="Equipamentos" />
-      <NavLink href="/content-strategy" icon={<Presentation size={16} />} label="Conteúdo" />
-      <NavLink href="/custom-gpt" icon={<FileText size={16} />} label="Roteiros" />
-      <NavLink href="/media" icon={<VideoIcon size={16} />} label="Mídias" />
+      <NavLink to="/dashboard" icon={<LayoutGrid size={16} />} label="Dashboard" />
+      <NavLink to="/equipments" icon={<Database size={16} />} label="Equipamentos" />
+      <NavLink to="/content-strategy" icon={<Presentation size={16} />} label="Conteúdo" />
+      <NavLink to="/custom-gpt" icon={<FileText size={16} />} label="Roteiros" />
+      <NavLink to="/media" icon={<VideoIcon size={16} />} label="Mídias" />
       <NavLink 
-        href="/marketing-consultant" 
+        to="/marketing-consultant" 
         icon={<BrainCircuit size={16} />} 
         label="Consultor" 
       />
       {isAdmin() && (
-        <NavLink href="/admin/dashboard" icon={<Cog size={16} />} label="Admin" />
+        <NavLink to="/admin/dashboard" icon={<Cog size={16} />} label="Admin" />
       )}
     </div>
   );

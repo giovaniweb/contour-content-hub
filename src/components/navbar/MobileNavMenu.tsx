@@ -14,7 +14,8 @@ import {
   FileText,
   Cog,
   VideoIcon,
-  BrainCircuit
+  BrainCircuit,
+  Presentation
 } from "lucide-react";
 
 interface MobileNavMenuProps {
@@ -54,6 +55,14 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
           >
             <Database className="h-5 w-5" />
             <span>Equipamentos</span>
+          </Link>
+          <Link
+            to="/content-strategy"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Presentation className="h-5 w-5" />
+            <span>Conteúdo</span>
           </Link>
           <Link
             to="/custom-gpt"
