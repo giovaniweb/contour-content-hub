@@ -6,15 +6,12 @@ import { supabase, EquipmentCreationProps, Equipment, convertStringToArray } fro
  */
 export const createEquipment = async (equipment: EquipmentCreationProps): Promise<Equipment> => {
   try {
-    // Remove efeito field from the equipment object before saving to database
-    const { efeito, ...equipmentData } = equipment;
-    
     // Process indicacoes to ensure it's a string for database storage
     const processedEquipment = {
-      ...equipmentData,
-      indicacoes: Array.isArray(equipmentData.indicacoes) 
-        ? equipmentData.indicacoes.join(';') 
-        : equipmentData.indicacoes
+      ...equipment,
+      indicacoes: Array.isArray(equipment.indicacoes) 
+        ? equipment.indicacoes.join(';') 
+        : equipment.indicacoes
     };
     
     // Ensure we're passing a single object, not an array of objects

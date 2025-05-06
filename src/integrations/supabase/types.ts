@@ -329,6 +329,7 @@ export type Database = {
           beneficios: string
           data_cadastro: string | null
           diferenciais: string
+          efeito: string | null
           id: string
           image_url: string | null
           indicacoes: string
@@ -341,6 +342,7 @@ export type Database = {
           beneficios: string
           data_cadastro?: string | null
           diferenciais: string
+          efeito?: string | null
           id?: string
           image_url?: string | null
           indicacoes: string
@@ -353,6 +355,7 @@ export type Database = {
           beneficios?: string
           data_cadastro?: string | null
           diferenciais?: string
+          efeito?: string | null
           id?: string
           image_url?: string | null
           indicacoes?: string

@@ -1,3 +1,4 @@
+
 export interface Equipment {
   id: string;
   nome: string;
@@ -9,6 +10,7 @@ export interface Equipment {
   ativo: boolean;
   image_url?: string;
   data_cadastro?: string;
+  efeito?: string;
 }
 
 export interface EquipmentCreationProps {
