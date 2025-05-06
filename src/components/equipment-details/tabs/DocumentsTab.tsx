@@ -48,21 +48,21 @@ export const DocumentsTab: React.FC = () => {
     fetchDocuments();
   }, [id, uiToast]);
 
-  const handleDownload = (document: TechnicalDocument) => {
+  const handleDownload = (doc: TechnicalDocument) => {
     try {
-      const fileUrl = document.link_dropbox || document.arquivo_url;
+      const fileUrl = doc.link_dropbox || doc.arquivo_url;
       if (!fileUrl) {
         toast.error("Link de download não disponível");
         return;
       }
       
       // Create an anchor element and set the href to the file URL
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = fileUrl;
-      link.download = document.titulo || 'document';
-      document.body.appendChild(link);
+      link.download = doc.titulo || 'document';
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       
       toast.success("Download iniciado", {
         description: "O arquivo está sendo baixado."
@@ -74,8 +74,8 @@ export const DocumentsTab: React.FC = () => {
       });
       
       // Fallback to opening in a new tab
-      if (document.link_dropbox) {
-        window.open(document.link_dropbox, '_blank');
+      if (doc.link_dropbox) {
+        window.open(doc.link_dropbox, '_blank');
       }
     }
   };
@@ -171,4 +171,3 @@ export const DocumentsTab: React.FC = () => {
     </div>
   );
 };
-
