@@ -27,15 +27,28 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     const timeout = setTimeout(() => controller.abort(), 20000);
 
     try {
-      const { data, error } = await supabase.functions.invoke('validate-script', {
+      // Since the Supabase client doesn't support AbortController signal,
+      // we'll use a Promise.race approach instead
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('A validação excedeu o tempo limite. Tente um texto mais curto ou tente novamente mais tarde.'));
+        }, 19000); // Slightly shorter than the AbortController timeout
+      });
+      
+      const validationPromise = supabase.functions.invoke('validate-script', {
         body: {
           content: script.content,
           type: script.type,
           title: script.title,
           scriptId: script.id
-        },
-        signal: controller.signal
+        }
       });
+      
+      // Race between the validation call and the timeout
+      const { data, error } = await Promise.race([
+        validationPromise,
+        timeoutPromise
+      ]) as any;
       
       clearTimeout(timeout);
       
@@ -58,7 +71,7 @@ export const validateScript = async (script: ScriptResponse): Promise<Validation
     } catch (fetchError) {
       clearTimeout(timeout);
       
-      if (fetchError.name === 'AbortError') {
+      if (fetchError.name === 'AbortError' || fetchError.message.includes('tempo limite')) {
         console.error('Timeout na validação do roteiro');
         throw new Error('A validação excedeu o tempo limite. Tente um texto mais curto ou tente novamente mais tarde.');
       }
