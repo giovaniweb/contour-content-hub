@@ -14,10 +14,14 @@ export const createEquipment = async (equipment: EquipmentCreationProps): Promis
         : equipment.indicacoes
     };
     
+    // Remove any temporary ID that might be causing UUID validation errors
+    // Don't send an ID field at all - let the database generate it
+    const { id, ...equipmentWithoutId } = processedEquipment as any;
+    
     // Ensure we're passing a single object, not an array of objects
     const { data, error } = await supabase
       .from('equipamentos')
-      .insert(processedEquipment)
+      .insert(equipmentWithoutId)
       .select();
       
     if (error) {
