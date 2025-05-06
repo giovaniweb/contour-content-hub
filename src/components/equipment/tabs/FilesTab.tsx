@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Upload } from "lucide-react";
+import { FileText, Upload, Download } from "lucide-react";
 
 interface FilesTabProps {
   files: any[];
@@ -11,6 +11,10 @@ interface FilesTabProps {
 }
 
 export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
+  const handleDownload = (fileUrl: string) => {
+    window.open(fileUrl, '_blank');
+  };
+
   if (files.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -49,11 +53,19 @@ export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
             <p className="text-sm text-muted-foreground mt-1 truncate">
               {file.tipo || "Documento"}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 flex space-x-2">
               <Button size="sm" variant="outline" asChild>
                 <a href={file.arquivo_url} target="_blank" rel="noreferrer">
                   Ver arquivo
                 </a>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => handleDownload(file.arquivo_url)}
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Download
               </Button>
             </div>
           </CardContent>

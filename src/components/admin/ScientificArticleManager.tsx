@@ -59,7 +59,7 @@ const ScientificArticleManager: React.FC = () => {
     fetchTopics();
   }, []);
 
-  // Fetch articles
+  // Fetch articles - Fixed function
   const fetchArticles = async () => {
     try {
       setIsLoading(true);
@@ -97,12 +97,16 @@ const ScientificArticleManager: React.FC = () => {
     }
   };
 
+  // Add this useEffect hook to make sure articles are fetched when the component mounts
+  // and when search or filter changes
   useEffect(() => {
     fetchArticles();
   }, [searchQuery, filterEquipment]);
 
+  // Make sure the handler for article added refreshes the list
   const handleArticleAdded = (articleData: any) => {
     fetchArticles();
+    setIsDialogOpen(false);
   };
 
   const handleDeleteArticle = async (id: string) => {
