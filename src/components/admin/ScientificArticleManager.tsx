@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,10 +60,12 @@ const ScientificArticleManager: React.FC = () => {
     fetchTopics();
   }, []);
 
-  // Fetch articles - Fixed function
+  // Fetch articles - Fixed function with better error logging
   const fetchArticles = async () => {
     try {
       setIsLoading(true);
+      console.log("Fetching scientific articles...");
+      
       let query = supabase
         .from('documentos_tecnicos')
         .select(`
@@ -85,7 +88,10 @@ const ScientificArticleManager: React.FC = () => {
 
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
       
       console.log("Fetched articles:", data);
       setArticles(data || []);
@@ -105,8 +111,10 @@ const ScientificArticleManager: React.FC = () => {
 
   // Make sure the handler for article added refreshes the list
   const handleArticleAdded = (articleData: any) => {
+    console.log("Article added or updated:", articleData);
     fetchArticles();
     setIsDialogOpen(false);
+    toast.success("Artigo salvo com sucesso!");
   };
 
   const handleDeleteArticle = async (id: string) => {

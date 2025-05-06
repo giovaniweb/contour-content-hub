@@ -34,20 +34,29 @@ export const useEquipmentDetails = (id?: string) => {
         setEquipment(equipmentData);
         
         // Fetch related files
-        const { data: filesData } = await supabase
+        const { data: filesData, error: filesError } = await supabase
           .from('documentos_tecnicos')
           .select('*')
           .eq('equipamento_id', id)
           .eq('status', 'ativo');
         
+        if (filesError) {
+          console.error('Error fetching files:', filesError);
+        }
+        
+        console.log('Files for equipment:', filesData);
         setRelatedFiles(filesData || []);
         
         // Fetch related videos
-        const { data: videosData } = await supabase
+        const { data: videosData, error: videosError } = await supabase
           .from('videos')
           .select('*')
           .contains('equipamentos', [equipmentData.nome]);
           
+        if (videosError) {
+          console.error('Error fetching videos:', videosError);
+        }
+        
         setRelatedVideos(videosData || []);
       } catch (err) {
         console.error('Error fetching equipment details:', err);

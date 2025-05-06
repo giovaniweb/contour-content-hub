@@ -1,4 +1,3 @@
-
 export interface Equipment {
   id: string;
   nome: string;
@@ -9,7 +8,6 @@ export interface Equipment {
   linguagem: string;
   ativo: boolean;
   image_url?: string;
-  efeito?: string;
   data_cadastro?: string;
 }
 

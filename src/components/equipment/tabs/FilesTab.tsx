@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, Download } from "lucide-react";
+import { toast } from "sonner";
 
 interface FilesTabProps {
   files: any[];
@@ -11,8 +12,28 @@ interface FilesTabProps {
 }
 
 export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
-  const handleDownload = (fileUrl: string) => {
-    window.open(fileUrl, '_blank');
+  const handleDownload = (fileUrl: string, fileName: string) => {
+    try {
+      // Create an anchor element and set the href to the file URL
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Download iniciado", {
+        description: "O arquivo está sendo baixado."
+      });
+    } catch (error) {
+      console.error("Erro ao fazer download:", error);
+      toast.error("Erro ao baixar arquivo", {
+        description: "Não foi possível iniciar o download."
+      });
+      
+      // Fallback to opening in a new tab
+      window.open(fileUrl, '_blank');
+    }
   };
 
   if (files.length === 0) {
@@ -33,6 +54,8 @@ export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
     );
   }
 
+  console.log("Rendering files:", files);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {files.map((file) => (
@@ -41,7 +64,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
             {file.preview_url ? (
               <img 
                 src={file.preview_url} 
-                alt={file.nome} 
+                alt={file.titulo || file.nome} 
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -49,20 +72,28 @@ export const FilesTab: React.FC<FilesTabProps> = ({ files, equipmentName }) => {
             )}
           </div>
           <CardContent className="p-4">
-            <h4 className="font-medium truncate">{file.nome}</h4>
+            <h4 className="font-medium truncate">{file.titulo || file.nome}</h4>
             <p className="text-sm text-muted-foreground mt-1 truncate">
-              {file.tipo || "Documento"}
+              {file.tipo ? (
+                file.tipo === 'artigo_cientifico' 
+                  ? 'Artigo Científico' 
+                  : file.tipo === 'ficha_tecnica' 
+                  ? 'Ficha Técnica' 
+                  : file.tipo === 'protocolo'
+                  ? 'Protocolo'
+                  : file.tipo
+              ) : "Documento"}
             </p>
             <div className="mt-2 flex space-x-2">
               <Button size="sm" variant="outline" asChild>
-                <a href={file.arquivo_url} target="_blank" rel="noreferrer">
+                <a href={file.link_dropbox || file.arquivo_url} target="_blank" rel="noreferrer">
                   Ver arquivo
                 </a>
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
-                onClick={() => handleDownload(file.arquivo_url)}
+                onClick={() => handleDownload(file.link_dropbox || file.arquivo_url, file.titulo || file.nome)}
               >
                 <Download className="h-4 w-4 mr-1" />
                 Download

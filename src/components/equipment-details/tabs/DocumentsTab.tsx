@@ -7,12 +7,13 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TechnicalDocument } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const DocumentsTab: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [documents, setDocuments] = useState<TechnicalDocument[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -30,10 +31,11 @@ export const DocumentsTab: React.FC = () => {
           throw error;
         }
         
+        console.log('Documents fetched:', data);
         setDocuments(data as TechnicalDocument[]);
       } catch (error) {
         console.error('Error fetching documents:', error);
-        toast({
+        uiToast({
           variant: "destructive",
           title: "Erro ao carregar documentos",
           description: "Não foi possível carregar os documentos associados a este equipamento."
@@ -44,11 +46,37 @@ export const DocumentsTab: React.FC = () => {
     };
     
     fetchDocuments();
-  }, [id, toast]);
+  }, [id, uiToast]);
 
   const handleDownload = (document: TechnicalDocument) => {
-    if (document.link_dropbox) {
-      window.open(document.link_dropbox, '_blank');
+    try {
+      const fileUrl = document.link_dropbox || document.arquivo_url;
+      if (!fileUrl) {
+        toast.error("Link de download não disponível");
+        return;
+      }
+      
+      // Create an anchor element and set the href to the file URL
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = document.titulo || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Download iniciado", {
+        description: "O arquivo está sendo baixado."
+      });
+    } catch (error) {
+      console.error("Erro ao fazer download:", error);
+      toast.error("Erro ao baixar arquivo", {
+        description: "Não foi possível iniciar o download."
+      });
+      
+      // Fallback to opening in a new tab
+      if (document.link_dropbox) {
+        window.open(document.link_dropbox, '_blank');
+      }
     }
   };
 
@@ -123,6 +151,18 @@ export const DocumentsTab: React.FC = () => {
                   <Download className="h-4 w-4 mr-1" />
                   Download
                 </Button>
+                {document.link_dropbox && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild
+                  >
+                    <a href={document.link_dropbox} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Abrir
+                    </a>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
