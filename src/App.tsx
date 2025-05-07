@@ -14,7 +14,6 @@ import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminContent from './pages/AdminContent';
 import AdminEquipments from './pages/AdminEquipments';
-import AdminVimeoSettings from './pages/AdminVimeoSettings';
 import AdminIntegrations from './pages/AdminIntegrations';
 import VideoBatchImport from './pages/VideoBatchImport';
 
@@ -40,10 +39,6 @@ import DocumentDetail from './pages/DocumentDetail';
 // Video storage related pages
 import VideoStorage from './pages/VideoStorage';
 import VideoSwipe from './pages/VideoSwipe';
-import VimeoSettings from './pages/VimeoSettings';
-
-// Auth callbacks
-import VimeoCallback from './pages/auth/VimeoCallback';
 
 // Sellers pages
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -90,8 +85,6 @@ function App() {
               <Route path="/documents/:id" element={<DocumentDetail />} />
               <Route path="/videos" element={<VideoStorage />} />
               <Route path="/video-swipe" element={<VideoSwipe />} />
-              <Route path="/vimeo-settings" element={<VimeoSettings />} />
-              <Route path="/vimeo-callback" element={<VimeoCallback />} />
             </Route>
             
             {/* Admin routes */}
@@ -100,7 +93,6 @@ function App() {
               <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/equipment" element={<AdminEquipments />} />
               <Route path="/admin/videos" element={<VideoBatchImport />} />
-              <Route path="/admin/vimeo" element={<AdminVimeoSettings />} />
               <Route path="/admin/integrations" element={<AdminIntegrations />} />
             </Route>
             
