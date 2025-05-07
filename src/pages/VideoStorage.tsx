@@ -12,12 +12,23 @@ import {
 } from "@/components/ui/dialog";
 import { usePermissions } from '@/hooks/use-permissions';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const VideoStorage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const equipmentId = searchParams.get('equipment');
+
+  // Open upload dialog automatically if equipment parameter is present in URL
+  useEffect(() => {
+    if (equipmentId && isAdmin()) {
+      setShowUploadDialog(true);
+    }
+  }, [equipmentId, isAdmin]);
 
   const handleUploadClick = () => {
     if (isAdmin()) {
@@ -29,6 +40,17 @@ const VideoStorage: React.FC = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleUploadComplete = (videoId: string) => {
+    setShowUploadDialog(false);
+    // Muda para a aba "Meus Vídeos" após o upload
+    setActiveTab('mine');
+    
+    toast({
+      title: "Upload concluído com sucesso",
+      description: "Seu vídeo foi enviado e está sendo processado.",
+    });
   };
 
   return (
@@ -103,12 +125,9 @@ const VideoStorage: React.FC = () => {
         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogContent className="sm:max-w-lg">
             <VideoUploader
-              onUploadComplete={() => {
-                setShowUploadDialog(false);
-                // Muda para a aba "Meus Vídeos" após o upload
-                setActiveTab('mine');
-              }}
+              onUploadComplete={handleUploadComplete}
               onCancel={() => setShowUploadDialog(false)}
+              equipmentId={equipmentId || undefined}
             />
           </DialogContent>
         </Dialog>

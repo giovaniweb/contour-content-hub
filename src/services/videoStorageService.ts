@@ -14,7 +14,7 @@ export async function uploadVideo(
   tags: string[],
   onProgress?: (progress: number) => void,
   isPublic: boolean = false
-): Promise<{ success: boolean; videoId?: string; error?: string }> {
+): Promise<{ success: boolean; videoId?: string; error?: string; metadata?: any }> {
   try {
     if (file.size > MAX_FILE_SIZE) {
       return { success: false, error: `O arquivo excede o tamanho máximo permitido (100MB)` };
@@ -24,6 +24,9 @@ export async function uploadVideo(
       return { success: false, error: 'Formato de arquivo não suportado. Use MP4, MOV, AVI ou MKV.' };
     }
 
+    // Extract equipment tag if present (assuming equipment names are in the tags)
+    const equipmentTag = tags.length > 0 ? tags[tags.length - 1] : null;
+    
     // 1. Criar entrada no banco para o vídeo com status 'uploading'
     const { data: videoData, error: dbError } = await supabase
       .from('videos_storage')
@@ -34,7 +37,10 @@ export async function uploadVideo(
         status: 'uploading' as VideoStatus,
         size: file.size,
         tags,
-        public: isPublic
+        public: isPublic,
+        metadata: {
+          original_filename: file.name
+        }
       })
       .select()
       .single();
@@ -84,7 +90,38 @@ export async function uploadVideo(
       })
       .eq('id', videoData.id);
 
-    return { success: true, videoId: videoData.id };
+    // 5. Se o vídeo está associado a um equipamento, também registre na tabela videos
+    if (videoData.metadata?.equipment_id) {
+      try {
+        // Buscar detalhes do equipamento
+        const { data: equipmentData } = await supabase
+          .from('equipamentos')
+          .select('nome')
+          .eq('id', videoData.metadata.equipment_id)
+          .single();
+          
+        if (equipmentData) {
+          await supabase.from('videos').insert({
+            id: videoData.id,
+            titulo: title,
+            descricao: description,
+            url_video: supabase.storage.from('videos').getPublicUrl(fileName).data.publicUrl,
+            equipamentos: [equipmentData.nome],
+            tags: tags,
+            equipment_id: videoData.metadata.equipment_id
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao criar registro na tabela videos:', error);
+        // Não falhar o upload se esta etapa falhar
+      }
+    }
+
+    return { 
+      success: true, 
+      videoId: videoData.id,
+      metadata: videoData.metadata 
+    };
     
   } catch (error) {
     console.error('Erro no processo de upload:', error);

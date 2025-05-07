@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +20,16 @@ import { AlertCircle, Check, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/hooks/use-permissions';
 import { Navigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VideoUploaderProps {
   onUploadComplete?: (videoId: string) => void;
   onCancel?: () => void;
+  equipmentId?: string;
 }
 
-const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCancel }) => {
+const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCancel, equipmentId }) => {
   const { toast } = useToast();
   const { isAdmin } = usePermissions();
   const [title, setTitle] = useState('');
@@ -38,6 +42,36 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [equipment, setEquipment] = useState<string>(equipmentId || '');
+  const [equipmentOptions, setEquipmentOptions] = useState<{ id: string; nome: string }[]>([]);
+
+  // Fetch equipment options
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('equipamentos')
+          .select('id, nome')
+          .order('nome');
+        
+        if (error) {
+          console.error('Error fetching equipments:', error);
+          return;
+        }
+        
+        setEquipmentOptions(data || []);
+        
+        // If we have an equipmentId from props, set it
+        if (equipmentId) {
+          setEquipment(equipmentId);
+        }
+      } catch (err) {
+        console.error('Error fetching equipment options:', err);
+      }
+    };
+    
+    fetchEquipments();
+  }, [equipmentId]);
 
   // Verificação para impedir que usuários não-admin acessem este componente
   useEffect(() => {
@@ -53,6 +87,23 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
       }
     }
   }, [isAdmin, toast, onCancel]);
+
+  // Extract title from filename when a file is selected
+  useEffect(() => {
+    if (file && !title) {
+      // Remove file extension and replace underscores/hyphens with spaces
+      const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
+      const formattedName = nameWithoutExtension
+        .replace(/_/g, ' ')
+        .replace(/-/g, ' ')
+        // Capitalize first letter of each word
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+      
+      setTitle(formattedName);
+    }
+  }, [file, title]);
 
   // Se não for admin, não renderiza o componente
   if (!isAdmin()) {
@@ -151,11 +202,20 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
       message: 'Iniciando upload...'
     });
 
+    // Add equipment to tags if selected
+    let videoTags = [...tags];
+    if (equipment) {
+      const selectedEquipment = equipmentOptions.find(eq => eq.id === equipment);
+      if (selectedEquipment && !videoTags.includes(selectedEquipment.nome)) {
+        videoTags.push(selectedEquipment.nome);
+      }
+    }
+
     const result = await uploadVideo(
       file, 
       title, 
       description, 
-      tags,
+      videoTags,
       (progress) => {
         setUploadProgress(prev => ({
           ...prev!,
@@ -174,6 +234,23 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
         message: 'Upload completo. Processando vídeo...',
         id: result.videoId
       }));
+      
+      // If we have an equipment ID, link the video to it
+      if (equipment) {
+        try {
+          // Update the videos_storage record to include equipment info
+          await supabase.from('videos_storage')
+            .update({ 
+              metadata: { 
+                ...result.metadata,
+                equipment_id: equipment 
+              } 
+            })
+            .eq('id', result.videoId);
+        } catch (error) {
+          console.error('Error linking video to equipment:', error);
+        }
+      }
       
       toast({
         title: "Upload completo",
@@ -272,6 +349,24 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
 
             <div className="space-y-4">
               <div>
+                <Label htmlFor="equipment">Equipamento</Label>
+                <Select value={equipment} onValueChange={setEquipment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um equipamento relacionado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum equipamento</SelectItem>
+                    {equipmentOptions.map(eq => (
+                      <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Associe este vídeo a um equipamento específico
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="title">Título</Label>
                 <Input
                   id="title"
@@ -279,6 +374,11 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Digite o título do vídeo"
                 />
+                {file && !title && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O título será gerado automaticamente com base no nome do arquivo
+                  </p>
+                )}
               </div>
               
               <div>
@@ -327,6 +427,12 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
                       </Badge>
                     ))}
                   </div>
+                )}
+                
+                {equipment && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    O nome do equipamento selecionado será adicionado automaticamente como tag
+                  </p>
                 )}
               </div>
               
