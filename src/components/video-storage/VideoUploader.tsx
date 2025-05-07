@@ -42,7 +42,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [equipment, setEquipment] = useState<string>(equipmentId || '');
+  const [equipment, setEquipment] = useState<string>(equipmentId || 'none');
   const [equipmentOptions, setEquipmentOptions] = useState<{ id: string; nome: string }[]>([]);
 
   // Fetch equipment options
@@ -204,8 +204,10 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
 
     // Add equipment to tags if selected
     let videoTags = [...tags];
-    if (equipment) {
-      const selectedEquipment = equipmentOptions.find(eq => eq.id === equipment);
+    let equipmentId = equipment === 'none' ? null : equipment;
+    
+    if (equipmentId) {
+      const selectedEquipment = equipmentOptions.find(eq => eq.id === equipmentId);
       if (selectedEquipment && !videoTags.includes(selectedEquipment.nome)) {
         videoTags.push(selectedEquipment.nome);
       }
@@ -236,14 +238,14 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
       }));
       
       // If we have an equipment ID, link the video to it
-      if (equipment) {
+      if (equipmentId) {
         try {
           // Update the videos_storage record to include equipment info
           await supabase.from('videos_storage')
             .update({ 
               metadata: { 
                 ...result.metadata,
-                equipment_id: equipment 
+                equipment_id: equipmentId 
               } 
             })
             .eq('id', result.videoId);
@@ -355,7 +357,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
                     <SelectValue placeholder="Selecione um equipamento relacionado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum equipamento</SelectItem>
+                    <SelectItem value="none">Nenhum equipamento</SelectItem>
                     {equipmentOptions.map(eq => (
                       <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
                     ))}
@@ -429,7 +431,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
                   </div>
                 )}
                 
-                {equipment && (
+                {equipment !== 'none' && (
                   <p className="text-xs text-muted-foreground mt-2">
                     O nome do equipamento selecionado será adicionado automaticamente como tag
                   </p>
