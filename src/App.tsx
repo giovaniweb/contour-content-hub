@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -95,6 +96,7 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> {/* Adicionando rota específica para /admin/dashboard */}
                 <Route path="/admin/equipments" element={<AdminRoute><AdminEquipments /></AdminRoute>} />
                 <Route path="/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
                 <Route path="/admin/integrations" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
