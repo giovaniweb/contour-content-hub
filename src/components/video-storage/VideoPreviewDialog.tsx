@@ -1,177 +1,129 @@
 
-import React, { useState } from 'react';
-import { StoredVideo } from '@/types/video-storage';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Download, Calendar, Folder, Tag } from 'lucide-react';
-import { generateDownloadUrl } from '@/services/videoStorageService';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import VideoStatusBadge from './VideoStatusBadge';
+import { Button } from "@/components/ui/button";
+import { Download, Share2, ThumbsUp } from "lucide-react";
+import VideoStatusBadge from "./VideoStatusBadge";
+import { StoredVideo } from '@/types/video-storage';
+import { useToast } from '@/hooks/use-toast';
+import { generateDownloadUrl } from '@/services/videoStorageService';
 
 interface VideoPreviewDialogProps {
-  video: StoredVideo;
-  onClose: () => void;
+  video: StoredVideo | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const VideoPreviewDialog: React.FC<VideoPreviewDialogProps> = ({ video, onClose }) => {
+const VideoPreviewDialog: React.FC<VideoPreviewDialogProps> = ({ 
+  video, 
+  open, 
+  onOpenChange 
+}) => {
   const { toast } = useToast();
-  const [isDownloading, setIsDownloading] = useState(false);
+  
+  if (!video) return null;
 
-  const formattedSize = video.size < 1024 * 1024
-    ? `${(video.size / 1024).toFixed(1)} KB`
-    : `${(video.size / (1024 * 1024)).toFixed(1)} MB`;
-
-  const handleDownload = async (quality: 'sd' | 'hd' | 'original' = 'original') => {
-    setIsDownloading(true);
+  const handleDownload = async () => {
     try {
-      const result = await generateDownloadUrl(video.id, quality);
+      const { url, filename, error } = await generateDownloadUrl(video.id);
       
-      if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao baixar",
-          description: result.error
-        });
-        return;
+      if (error || !url) {
+        throw new Error(error || "Não foi possível gerar o link de download.");
       }
       
-      if (result.url) {
-        const a = document.createElement('a');
-        a.href = result.url;
-        a.download = result.filename || `${video.title.replace(/\s+/g, '_')}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        toast({
-          title: "Download iniciado",
-          description: "O download do vídeo foi iniciado."
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao gerar URL de download:', error);
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `${video.title}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download do vídeo foi iniciado."
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro ao baixar",
-        description: "Não foi possível gerar o link de download."
+        title: "Erro ao baixar vídeo",
+        description: error.message || "Ocorreu um erro ao gerar o link de download."
       });
-    } finally {
-      setIsDownloading(false);
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: video.title,
+        text: video.description || 'Confira este vídeo',
+        // In a real application, you would generate a public shareable link here
+      }).catch(error => {
+        console.error('Error sharing video:', error);
+      });
+    } else {
+      toast({
+        variant: "default",
+        title: "Compartilhamento não suportado",
+        description: "Seu navegador não suporta a funcionalidade de compartilhamento."
+      });
     }
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl lg:max-w-3xl">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>{video.title}</DialogTitle>
-            <VideoStatusBadge status={video.status} />
-          </div>
-          {video.description && (
-            <DialogDescription>
-              {video.description}
-            </DialogDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden">
+        <div className="bg-black aspect-video max-h-[70vh] overflow-hidden">
+          {video.status === 'ready' && video.file_urls?.original ? (
+            <video
+              src={video.file_urls.original}
+              className="w-full h-full object-contain"
+              controls
+              autoPlay
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <VideoStatusBadge status={video.status} className="text-lg" />
+            </div>
           )}
-        </DialogHeader>
+        </div>
         
-        <div className="space-y-6">
-          <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
-            {video.status === 'ready' && video.file_urls?.original ? (
-              <video 
-                src={video.file_urls.original} 
-                controls 
-                poster={video.thumbnail_url} 
-                className="h-full w-full"
-                controlsList="nodownload"
-              />
-            ) : video.thumbnail_url ? (
-              <img 
-                src={video.thumbnail_url} 
-                alt={video.title} 
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-muted">
-                <p className="text-muted-foreground">
-                  {video.status === 'processing' ? 'Vídeo em processamento...' : 
-                   video.status === 'uploading' ? 'Upload em andamento...' : 
-                   video.status === 'error' ? 'Erro no processamento' :
-                   'Pré-visualização não disponível'}
-                </p>
-              </div>
-            )}
-          </div>
+        <div className="p-4 space-y-4">
+          <DialogHeader>
+            <DialogTitle>{video.title}</DialogTitle>
+          </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Adicionado em: {format(new Date(video.created_at), 'PPP', { locale: ptBR })}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Folder className="h-4 w-4" />
-                <span>Tamanho: {formattedSize}</span>
-              </div>
-            </div>
-            
-            {video.tags && video.tags.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-start gap-2 text-muted-foreground">
-                  <Tag className="h-4 w-4 mt-0.5" />
-                  <div className="flex flex-wrap gap-1">
-                    {video.tags.map(tag => (
-                      <Badge key={tag} variant="outline">{tag}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {video.status === 'ready' && (
-            <div className="flex flex-wrap gap-2 justify-end">
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload('sd')}
-                disabled={isDownloading || !video.file_urls?.sd}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                SD
-              </Button>
-              
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload('hd')}
-                disabled={isDownloading || !video.file_urls?.hd}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                HD
-              </Button>
-              
-              <Button 
-                variant="default"
-                size="sm"
-                onClick={() => handleDownload('original')}
-                disabled={isDownloading}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download Original
-              </Button>
-            </div>
+          {video.description && (
+            <p className="text-muted-foreground">{video.description}</p>
           )}
+          
+          <div className="flex flex-wrap gap-2">
+            {video.tags?.map((tag, index) => (
+              <span 
+                key={index} 
+                className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleDownload} disabled={video.status !== 'ready'}>
+              <Download className="h-4 w-4 mr-2" /> Baixar
+            </Button>
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-2" /> Compartilhar
+            </Button>
+            <Button variant="ghost">
+              <ThumbsUp className="h-4 w-4 mr-2" /> Curtir
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

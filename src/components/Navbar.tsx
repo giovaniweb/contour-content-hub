@@ -44,6 +44,11 @@ const Navbar = () => {
             <Video className="h-5 w-5" />
             <span>Biblioteca de Vídeos</span>
           </Link>
+          
+          <Link to="/video-swipe" className="nav-item">
+            <Video className="h-5 w-5" />
+            <span>Descobrir Vídeos</span>
+          </Link>
         </div>
 
         {user ? (

@@ -1,6 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,67 +6,43 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 215 32% 18%; /* Cor de texto principal - azul escuro */
+    --foreground: 222 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 32% 18%;
-
+    --card-foreground: 222 84% 4.9%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 215 32% 18%;
-
-    /* Azul Médio como cor primária */
-    --primary: 208 78% 41%; 
-    --primary-foreground: 0 0% 100%;
-
-    /* Azul Escuro como cor secundária */
-    --secondary: 215 55% 18%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 20% 96%;
+    --popover-foreground: 222 84% 4.9%;
+    
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
+    
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
-
-    /* Azul Claro como cor de destaque */
-    --accent: 213 51% 72%;
-    --accent-foreground: 215 32% 18%;
-
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11.2%;
+    
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 208 78% 41%;
+    --ring: 221 83% 53%;
+    
+    --radius: 0.5rem;
 
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 215 55% 18%; /* Azul Escuro */
-    --foreground: 0 0% 98%;
-
-    --card: 215 55% 18%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 215 55% 18%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 208 78% 41%; /* Azul Médio */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 213 51% 72%; /* Azul Claro */
-    --secondary-foreground: 215 32% 18%;
-
-    --muted: 215 32% 25%;
-    --muted-foreground: 215 20% 70%;
-
-    --accent: 215 32% 25%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 215 32% 25%;
-    --input: 215 32% 25%;
-    --ring: 208 78% 41%;
+    --sidebar-background: 222 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224.3 76.3% 48%;
   }
 }
 
@@ -76,103 +50,21 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-medium;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Custom styles */
-.reelline-card {
-  @apply rounded-2xl shadow-md border border-gray-50 overflow-hidden transition-all duration-300;
-}
-
-.reelline-card:hover {
-  @apply shadow-lg transform scale-[1.01];
-}
-
-.slide-up {
-  animation: slideUp 0.5s ease forwards;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@layer components {
+  .navigation-items {
+    @apply flex items-center gap-2 mx-6;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .nav-item {
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent;
   }
-}
-
-/* Glass morphism effect */
-.glass-card {
-  @apply bg-white/80 backdrop-blur-md border border-white/30;
-}
-
-/* Mobile-first horizontal scrolling containers */
-.horizontal-scroll {
-  @apply flex overflow-x-auto snap-x snap-mandatory py-4 gap-4 hide-scrollbar;
-}
-
-.horizontal-scroll > * {
-  @apply snap-start shrink-0;
-}
-
-/* Hide scrollbar but maintain functionality */
-.hide-scrollbar {
-  scrollbar-width: none; /* For Firefox */
-  -ms-overflow-style: none; /* For Internet Explorer and Edge */
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
-}
-
-/* AI indicator */
-.ai-generated {
-  @apply relative;
-}
-
-.ai-generated::before {
-  content: "";
-  @apply absolute -top-1 -right-1 w-5 h-5 bg-contourline-mediumBlue rounded-full flex items-center justify-center;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='16' height='16'%3E%3Cpath d='M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm-1-11h2v6h-2V8zm0 8h2v2h-2v-2z'/%3E%3C/svg%3E");
-  background-size: 14px;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-/* Novas classes para gradientes da Contourline */
-.bg-contourline-gradient {
-  @apply bg-gradient-to-r from-contourline-darkBlue via-contourline-mediumBlue to-contourline-lightBlue;
-}
-
-.bg-contourline-gradient-reverse {
-  @apply bg-gradient-to-r from-contourline-lightBlue via-contourline-mediumBlue to-contourline-darkBlue;
-}
-
-.text-contourline-gradient {
-  @apply bg-gradient-to-r from-contourline-darkBlue to-contourline-mediumBlue bg-clip-text text-transparent;
-}
-
-/* Loading animações personalizadas */
-.loading-creative {
-  @apply relative text-center py-8 px-4;
-}
-
-.loading-creative::after {
-  content: "Tô tirando do forno...";
-  @apply block mt-4 text-contourline-mediumBlue animate-pulse;
-}
-
-/* Card moderno com bordas mais sutis */
-.modern-card {
-  @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all;
+  
+  .nav-item.active {
+    @apply bg-accent text-foreground;
+  }
 }
