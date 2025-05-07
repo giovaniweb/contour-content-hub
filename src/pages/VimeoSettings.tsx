@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { 
+  Eye, 
+  EyeOff, 
+  Save, 
+  RefreshCw, 
+  CheckCircle2, 
+  AlertCircle, 
+  Info,
+  ExternalLink,
+  HelpCircle
+} from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,16 +39,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Define schema para o formulário
 const vimeoSchema = z.object({
-  access_token: z.string().min(5, "Token de acesso é obrigatório"),
+  access_token: z.string().min(60, "Token de acesso deve ter pelo menos 60 caracteres"),
   folder_id: z.string().optional(),
 });
 
 type VimeoFormValues = z.infer<typeof vimeoSchema>;
+
+const VIMEO_DEVELOPER_URL = "https://developer.vimeo.com/apps";
+const VIMEO_SCOPES = ["public", "private", "upload", "edit", "interact"];
 
 const VimeoSettings: React.FC = () => {
   const { toast } = useToast();
@@ -52,6 +68,7 @@ const VimeoSettings: React.FC = () => {
   const [helpMessage, setHelpMessage] = useState<string | null>(null);
   const [missingScopes, setMissingScopes] = useState<string[] | null>(null);
   const [requiredScopes, setRequiredScopes] = useState<string[] | null>(null);
+  const [scopesDialogOpen, setScopesDialogOpen] = useState(false);
 
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -88,8 +105,31 @@ const VimeoSettings: React.FC = () => {
     loadVimeoSettings();
   }, [form]);
 
+  // Validar token localmente
+  const validateTokenLocally = (token: string): boolean => {
+    if (!token || token.length < 60) {
+      toast({
+        variant: "destructive",
+        title: "Token inválido",
+        description: "O token parece incompleto ou inválido. Verifique se você gerou um token válido no Vimeo."
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // Abrir o painel de desenvolvedor do Vimeo em uma nova aba
+  const openVimeoDeveloperPanel = () => {
+    window.open(VIMEO_DEVELOPER_URL, "_blank", "noopener,noreferrer");
+  };
+
   // Testar conexão
   const testConnection = async (values: VimeoFormValues) => {
+    // Validar token localmente antes de fazer a chamada
+    if (!validateTokenLocally(values.access_token)) {
+      return;
+    }
+
     try {
       setIsTesting(true);
       setConnectionStatus('idle');
@@ -144,6 +184,11 @@ const VimeoSettings: React.FC = () => {
 
   // Salvar configurações
   const onSubmit = async (values: VimeoFormValues) => {
+    // Validar token localmente antes de salvar
+    if (!validateTokenLocally(values.access_token)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -184,7 +229,18 @@ const VimeoSettings: React.FC = () => {
 
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Integração com Vimeo</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              <span>Integração com Vimeo</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openVimeoDeveloperPanel}
+                className="flex items-center gap-1"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Painel Vimeo
+              </Button>
+            </CardTitle>
             <CardDescription>
               Configure as credenciais para acesso à API do Vimeo
             </CardDescription>
@@ -199,7 +255,21 @@ const VimeoSettings: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex justify-between items-center">
-                        <span>Token de Acesso</span>
+                        <div className="flex items-center gap-2">
+                          <span>Token de Acesso</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button" onClick={() => setScopesDialogOpen(true)}>
+                                  <HelpCircle className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Saiba mais sobre escopos do Vimeo</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <Button
                           type="button"
                           variant="ghost"
@@ -222,15 +292,18 @@ const VimeoSettings: React.FC = () => {
                           disabled={isLoading}
                         />
                       </FormControl>
-                      <FormDescription>
-                        Token de acesso à API do Vimeo. 
+                      <FormDescription className="flex items-center justify-between">
+                        <span>
+                          Token de acesso à API do Vimeo com os escopos necessários.
+                        </span>
                         <a 
-                          href="https://developer.vimeo.com/apps" 
+                          href={VIMEO_DEVELOPER_URL}
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 ml-1 hover:underline"
+                          className="text-blue-600 ml-1 hover:underline flex items-center gap-1"
                         >
-                          Obter token
+                          <span>Obter token</span>
+                          <ExternalLink className="h-3 w-3" />
                         </a>
                       </FormDescription>
                       <FormMessage />
@@ -317,17 +390,21 @@ const VimeoSettings: React.FC = () => {
                             </div>
                           )}
                           
-                          <p className="mt-2 text-xs">
-                            Verifique se você gerou o token com todos os escopos necessários em{" "}
-                            <a 
-                              href="https://developer.vimeo.com/apps" 
-                              target="_blank"
-                              rel="noopener noreferrer" 
-                              className="underline"
+                          <div className="mt-3 flex justify-between items-center">
+                            <p className="text-xs">
+                              Verifique se você gerou o token com todos os escopos necessários
+                            </p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={openVimeoDeveloperPanel}
+                              className="text-xs h-7"
                             >
-                              developer.vimeo.com/apps
-                            </a>
-                          </p>
+                              Abrir Painel Vimeo
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </AlertDescription>
@@ -361,6 +438,7 @@ const VimeoSettings: React.FC = () => {
           </Form>
         </Card>
 
+        {/* Modal de detalhes do erro */}
         <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -381,6 +459,67 @@ const VimeoSettings: React.FC = () => {
               <Info className="h-4 w-4 mr-2 text-blue-500" />
               <p>Verifique se o token tem as permissões corretas e está válido.</p>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal explicativo sobre escopos */}
+        <Dialog open={scopesDialogOpen} onOpenChange={setScopesDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Escopos do Token Vimeo</DialogTitle>
+              <DialogDescription>
+                Escopos são permissões que o seu token precisa ter para acessar recursos do Vimeo
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Por que os escopos são importantes?</AlertTitle>
+                <AlertDescription>
+                  Para que a integração funcione corretamente, seu token precisa ter todas as permissões necessárias.
+                </AlertDescription>
+              </Alert>
+              
+              <div>
+                <h3 className="font-medium mb-2">Escopos necessários:</h3>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  {VIMEO_SCOPES.map(scope => (
+                    <li key={scope} className="flex items-start">
+                      <Badge className="mr-2 bg-blue-100 text-blue-800">{scope}</Badge>
+                      <span>
+                        {scope === 'public' && 'Acesso para listar vídeos públicos'}
+                        {scope === 'private' && 'Acesso a vídeos privados'}
+                        {scope === 'upload' && 'Permissão para upload de vídeos'}
+                        {scope === 'edit' && 'Edição de metadados dos vídeos'}
+                        {scope === 'interact' && 'Interação com recursos da conta'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-md">
+                <h3 className="font-medium mb-2">Como configurar os escopos:</h3>
+                <ol className="list-decimal list-inside space-y-1 pl-2">
+                  <li>Acesse <a href={VIMEO_DEVELOPER_URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">developer.vimeo.com/apps</a></li>
+                  <li>Selecione seu aplicativo ou crie um novo</li>
+                  <li>Na seção 'Authentication', marque todos os escopos listados acima</li>
+                  <li>Gere um novo token de acesso pessoal</li>
+                  <li>Copie e cole o token no formulário</li>
+                </ol>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button onClick={openVimeoDeveloperPanel} className="mr-auto">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Abrir Painel Vimeo
+              </Button>
+              <Button onClick={() => setScopesDialogOpen(false)}>
+                Entendi
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
