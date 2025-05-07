@@ -66,8 +66,11 @@ export const testVimeoConnection = async (token: string): Promise<{
   message?: string;
   error?: string;
   help?: string;
+  instructions?: string;
   details?: any;
   user?: any;
+  missing_scopes?: string[];
+  required_scopes?: string[];
 }> => {
   try {
     console.log(`Testando conexão com token: ${token.substring(0, 5)}...`);
