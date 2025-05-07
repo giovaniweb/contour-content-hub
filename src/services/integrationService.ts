@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
@@ -67,32 +68,21 @@ export const testVimeoConnection = async (token: string): Promise<{
   error?: string;
 }> => {
   try {
-    // Correção: usar getSession() em vez de session()
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-    
-    // Correção: usar window.location.origin para buscar a URL base correta
-    // Isso assegura que estamos chamando a Edge Function no mesmo domínio onde a aplicação está rodando
-    const response = await fetch(`${window.location.origin}/functions/v1/vimeo-test-connection`, {
+    // Usar supabase.functions.invoke para chamar a Edge Function diretamente
+    const { data, error } = await supabase.functions.invoke('vimeo-test-connection', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({ token })
+      body: { token }
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro na resposta da Edge Function:', errorText);
+    if (error) {
+      console.error('Erro ao chamar Edge Function:', error);
       return {
         success: false,
-        error: `Erro na resposta: ${response.status} ${response.statusText}`
+        error: `Erro na chamada da função: ${error.message || error}`
       };
     }
     
-    const result = await response.json();
-    return result;
+    return data;
   } catch (error: any) {
     console.error('Erro ao testar conexão com Vimeo:', error);
     return {
@@ -105,15 +95,17 @@ export const testVimeoConnection = async (token: string): Promise<{
 // Importar videos do Vimeo
 export const importVimeoVideos = async (folderPath?: string, page = 1, limit = 20) => {
   try {
-    const response = await fetch(`${window.location.origin}/functions/v1/vimeo-batch-import`, {
+    // Usar supabase.functions.invoke para chamar a Edge Function diretamente
+    const { data, error } = await supabase.functions.invoke('vimeo-batch-import', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ folderPath, page, limit })
+      body: { folderPath, page, limit }
     });
     
-    return await response.json();
+    if (error) {
+      throw error;
+    }
+    
+    return data;
   } catch (error) {
     console.error('Erro ao importar vídeos do Vimeo:', error);
     throw error;
