@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,8 @@ import {
   HelpCircle,
   Copy,
   Link as LinkIcon,
-  Loader
+  Loader,
+  Terminal
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
@@ -339,6 +339,23 @@ const VimeoSettings: React.FC = () => {
                 <p>
                   <strong>Configuração do servidor incompleta:</strong> As variáveis de ambiente necessárias 
                   podem não estar configuradas corretamente no servidor.
+                  <div className="mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText("bash scripts/setup-vimeo.sh");
+                        toast({
+                          title: "Comando copiado",
+                          description: "Execute no seu terminal para configurar o Vimeo"
+                        });
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Terminal className="h-4 w-4" />
+                      Copiar comando de configuração
+                    </Button>
+                  </div>
                 </p>
               )}
             </AlertDescription>
@@ -593,7 +610,7 @@ const VimeoSettings: React.FC = () => {
                                   <p className="font-medium">Todos os escopos necessários:</p>
                                   <div className="flex flex-wrap gap-1 mt-1">
                                     {requiredScopes.map(scope => (
-                                      <Badge key={scope} className="bg-blue-100 text-blue-800 border-blue-300">
+                                      <Badge key={scope} className="bg-blue-100 text-blue-800">
                                         {scope}
                                       </Badge>
                                     ))}
@@ -898,6 +915,31 @@ const VimeoSettings: React.FC = () => {
                   </a>
                 </div>
               </div>
+            </div>
+            
+            {/* Botão para copiar o comando do script */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+              <h3 className="font-medium mb-2 flex items-center text-blue-800">
+                <Terminal className="h-4 w-4 mr-2" />
+                Configuração via Script
+              </h3>
+              <p className="text-sm text-blue-700 mb-3">
+                Execute o script de configuração automatizada em seu terminal para configurar rapidamente o Vimeo.
+              </p>
+              <Button 
+                variant="outline" 
+                className="bg-white border-blue-300 hover:bg-blue-50"
+                onClick={() => {
+                  navigator.clipboard.writeText("bash scripts/setup-vimeo.sh");
+                  toast({
+                    title: "Comando copiado",
+                    description: "Execute no seu terminal para configurar o Vimeo"
+                  });
+                }}
+              >
+                <Terminal className="mr-2 h-4 w-4" />
+                Copiar comando: bash scripts/setup-vimeo.sh
+              </Button>
             </div>
             
             {/* Troubleshooting Guide */}
