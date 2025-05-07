@@ -1,6 +1,7 @@
 
 export type VideoStatus = 'uploading' | 'processing' | 'ready' | 'error';
 export type VideoQuality = 'sd' | 'hd' | 'original';
+export type VideoQueueStatus = 'pending' | 'uploading' | 'completed' | 'error';
 
 export interface StoredVideo {
   id: string;
@@ -43,6 +44,18 @@ export interface VideoUploadProgress {
   status: VideoStatus;
   message?: string;
   id?: string;
+  error?: string;
+}
+
+export interface VideoQueueItem {
+  file: File;
+  title: string;
+  description: string;
+  tags: string[];
+  equipmentId: string;
+  status: VideoQueueStatus;
+  progress?: number;
+  videoId?: string;
   error?: string;
 }
 

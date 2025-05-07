@@ -3,21 +3,23 @@ import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import VideoList from '@/components/video-storage/VideoList';
 import VideoUploader from '@/components/video-storage/VideoUploader';
+import BatchVideoUploader from '@/components/video-storage/BatchVideoUploader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Upload, Video } from 'lucide-react';
+import { Pencil, Plus, Upload, Video } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
 import { usePermissions } from '@/hooks/use-permissions';
 import { useToast } from '@/hooks/use-toast';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const VideoStorage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'single' | 'batch'>('single');
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -27,12 +29,27 @@ const VideoStorage: React.FC = () => {
   useEffect(() => {
     if (equipmentId && isAdmin()) {
       setShowUploadDialog(true);
+      setUploadMode('single'); // Default to single mode when coming from equipment page
     }
   }, [equipmentId, isAdmin]);
 
   const handleUploadClick = () => {
     if (isAdmin()) {
       setShowUploadDialog(true);
+      setUploadMode('single');
+    } else {
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem fazer upload de vídeos.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleBatchUploadClick = () => {
+    if (isAdmin()) {
+      setShowUploadDialog(true);
+      setUploadMode('batch');
     } else {
       toast({
         title: "Acesso restrito",
@@ -42,14 +59,16 @@ const VideoStorage: React.FC = () => {
     }
   };
 
-  const handleUploadComplete = (videoId: string) => {
+  const handleUploadComplete = (videoId?: string) => {
     setShowUploadDialog(false);
     // Muda para a aba "Meus Vídeos" após o upload
     setActiveTab('mine');
     
     toast({
       title: "Upload concluído com sucesso",
-      description: "Seu vídeo foi enviado e está sendo processado.",
+      description: uploadMode === 'batch' 
+        ? "Os vídeos foram enviados e estão sendo processados." 
+        : "Seu vídeo foi enviado e está sendo processado.",
     });
   };
 
@@ -67,14 +86,36 @@ const VideoStorage: React.FC = () => {
             </p>
           </div>
           
-          {/* Botão de upload agora verifica se o usuário é admin */}
-          <Button 
-            onClick={handleUploadClick}
-            className="flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Enviar Vídeo
-          </Button>
+          {isAdmin() && (
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={handleUploadClick}
+                className="flex items-center gap-2"
+                variant="default"
+              >
+                <Upload className="h-4 w-4" />
+                Enviar Vídeo
+              </Button>
+              
+              <Button 
+                onClick={handleBatchUploadClick}
+                className="flex items-center gap-2"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" />
+                Upload em Lote
+              </Button>
+              
+              <Button 
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => navigate('/videos/batch-manage')}
+              >
+                <Pencil className="h-4 w-4" />
+                Gerenciar em Lote
+              </Button>
+            </div>
+          )}
         </div>
         
         <Tabs
@@ -123,12 +164,19 @@ const VideoStorage: React.FC = () => {
       {/* Dialog de upload só é mostrado para administradores */}
       {isAdmin() && (
         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-          <DialogContent className="sm:max-w-lg">
-            <VideoUploader
-              onUploadComplete={handleUploadComplete}
-              onCancel={() => setShowUploadDialog(false)}
-              equipmentId={equipmentId || undefined}
-            />
+          <DialogContent className={uploadMode === 'batch' ? "sm:max-w-3xl" : "sm:max-w-lg"}>
+            {uploadMode === 'single' ? (
+              <VideoUploader
+                onUploadComplete={handleUploadComplete}
+                onCancel={() => setShowUploadDialog(false)}
+                equipmentId={equipmentId || undefined}
+              />
+            ) : (
+              <BatchVideoUploader
+                onUploadComplete={handleUploadComplete}
+                onCancel={() => setShowUploadDialog(false)}
+              />
+            )}
           </DialogContent>
         </Dialog>
       )}

@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -41,6 +40,7 @@ import DocumentDetail from './pages/DocumentDetail';
 // Video storage related pages
 import VideoStorage from './pages/VideoStorage';
 import VideoSwipe from './pages/VideoSwipe';
+import VideoBatchManage from './pages/VideoBatchManage';
 
 // Sellers pages
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -87,6 +87,7 @@ function App() {
               <Route path="/documents" element={<TechnicalDocuments />} />
               <Route path="/documents/:id" element={<DocumentDetail />} />
               <Route path="/videos" element={<VideoStorage />} />
+              <Route path="/videos/batch-manage" element={<VideoBatchManage />} />
               <Route path="/video-swipe" element={<VideoSwipe />} />
             </Route>
             
