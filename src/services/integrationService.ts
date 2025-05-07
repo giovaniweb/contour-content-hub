@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
+import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 
 // Salvar configuração do Vimeo
 export const saveVimeoConfig = async (config: VimeoConfig): Promise<void> => {
@@ -70,8 +71,9 @@ export const testVimeoConnection = async (token: string): Promise<{
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData.session?.access_token;
     
-    // Certificar-se de que estamos usando a URL correta para a Edge Function
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vimeo-test-connection`, {
+    // Correção: usar window.location.origin para buscar a URL base correta
+    // Isso assegura que estamos chamando a Edge Function no mesmo domínio onde a aplicação está rodando
+    const response = await fetch(`${window.location.origin}/functions/v1/vimeo-test-connection`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
