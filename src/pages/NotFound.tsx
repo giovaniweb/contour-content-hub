@@ -33,7 +33,7 @@ const NotFound = () => {
           </Button>
           {isAuthenticated && (
             <Button asChild size="lg" variant="outline" className="gap-2">
-              <Link to="/media">
+              <Link to="/media-library">
                 <span>Biblioteca de Mídia</span>
               </Link>
             </Button>

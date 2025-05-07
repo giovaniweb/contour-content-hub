@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -96,6 +96,7 @@ function App() {
               <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/equipment" element={<AdminEquipments />} />
               <Route path="/admin/videos" element={<VideoBatchImport />} />
+              <Route path="/admin/videos/batch-import" element={<VideoBatchImport />} />
               <Route path="/admin/integrations" element={<AdminIntegrations />} />
             </Route>
             

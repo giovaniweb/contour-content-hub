@@ -31,6 +31,11 @@ const Index: React.FC = () => {
       await login(email, password);
     } catch (error) {
       console.error("Erro ao fazer login:", error);
+      toast({
+        title: "Erro de login",
+        description: "Usuário ou senha incorretos",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
