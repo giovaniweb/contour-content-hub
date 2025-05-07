@@ -2,19 +2,16 @@
 import React, { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface AdminRouteProps {
   children: ReactNode;
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdmin } = usePermissions();
   
-  // Função auxiliar para verificar se é admin
-  const checkIsAdmin = () => {
-    return user?.role === 'admin';
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -23,7 +20,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  return isAuthenticated && checkIsAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
+  return isAuthenticated && isAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 
 export default AdminRoute;
