@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +47,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VimeoAccountManager from "@/components/vimeo/VimeoAccountManager";
 import VimeoConnectButton from "@/components/vimeo/VimeoConnectButton";
+import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 
 // Define schema para o formulário com validação mais rigorosa para o token
 const vimeoSchema = z.object({
@@ -85,6 +85,9 @@ const VimeoSettings: React.FC = () => {
   const [exampleDialogOpen, setExampleDialogOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("oauth");
+  const [isApiAvailable, setIsApiAvailable] = useState<boolean | null>(null);
+  const [isServerConfigured, setIsServerConfigured] = useState<boolean | null>(null);
+  const [checkingConnection, setCheckingConnection] = useState(false);
   
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -275,6 +278,28 @@ const VimeoSettings: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Configurações do Vimeo</h1>
         
+        {/* Connection Status Banner */}
+        {(isApiAvailable === false || isServerConfigured === false) && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Problemas de Conexão Detectados</AlertTitle>
+            <AlertDescription>
+              {isApiAvailable === false && (
+                <p className="mb-1">
+                  <strong>API do Vimeo inacessível:</strong> Não foi possível conectar à API do Vimeo. 
+                  Verifique sua conexão com a internet ou se o serviço está disponível.
+                </p>
+              )}
+              {isServerConfigured === false && (
+                <p>
+                  <strong>Configuração do servidor incompleta:</strong> As variáveis de ambiente necessárias 
+                  podem não estar configuradas corretamente no servidor.
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="oauth">Autenticação OAuth</TabsTrigger>
@@ -303,7 +328,43 @@ const VimeoSettings: React.FC = () => {
                   </AlertDescription>
                 </Alert>
                 
-                <VimeoAccountManager />
+                {checkingConnection ? (
+                  <div className="py-8 flex flex-col items-center justify-center">
+                    <Loader className="h-8 w-8 animate-spin mb-4 text-blue-500" />
+                    <p>Verificando conexão com o Vimeo...</p>
+                  </div>
+                ) : isApiAvailable === false ? (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Não foi possível conectar ao Vimeo</AlertTitle>
+                    <AlertDescription>
+                      <p>Não conseguimos estabelecer conexão com a API do Vimeo.</p>
+                      <p className="text-sm mt-2">
+                        Isso pode ocorrer devido a problemas de rede, proxy, firewall ou indisponibilidade temporária 
+                        do serviço do Vimeo.
+                      </p>
+                      <div className="mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => window.location.reload()}
+                          className="mr-2"
+                        >
+                          <RefreshCw className="mr-2 h-4 w-4" /> Atualizar página
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => window.open("https://status.vimeo.com", "_blank")}
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" /> Status do Vimeo
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <VimeoAccountManager />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -703,6 +764,54 @@ const VimeoSettings: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Server Configuration Info */}
+        <div className="mt-8 pt-8 border-t">
+          <h2 className="text-lg font-medium mb-4">Configurações do Servidor</h2>
+          
+          <div className="rounded-md bg-slate-50 p-4 border">
+            <div className="mb-4">
+              <h3 className="font-medium mb-1">Status das Configurações</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-sm">API do Vimeo:</span>
+                  <Badge className={isApiAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                    {checkingConnection ? "Verificando..." : isApiAvailable ? "Acessível" : "Inacessível"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-sm">Função Edge:</span>
+                  <Badge className={isServerConfigured ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                    {isServerConfigured === null ? "Verificando..." : isServerConfigured ? "Configurada" : "Não configurada"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-1">Variáveis de Ambiente Necessárias</h3>
+              <div className="text-sm text-gray-600">
+                <p className="mb-2">As seguintes variáveis devem ser configuradas nas funções Edge do Supabase:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                  <li>VIMEO_CLIENT_ID</li>
+                  <li>VIMEO_CLIENT_SECRET</li>
+                  <li>VIMEO_REDIRECT_URI</li>
+                </ul>
+                <div className="mt-3 flex items-center">
+                  <a 
+                    href={`${SUPABASE_BASE_URL}/project/functions`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                  >
+                    Configurar Variáveis no Supabase
+                    <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </Layout>
   );

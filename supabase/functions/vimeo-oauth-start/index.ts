@@ -58,23 +58,35 @@ serve(async (req) => {
     // Add userId to state if provided
     const finalState = userId ? `${state}__${userId}` : state;
 
-    const authUrl = `${VIMEO_AUTH_URL}?` +
-      `response_type=code&` +
-      `client_id=${encodeURIComponent(VIMEO_CLIENT_ID)}&` +
-      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-      `state=${encodeURIComponent(finalState)}&` +
-      `scope=${encodeURIComponent(scopes)}`;
+    try {
+      const authUrl = `${VIMEO_AUTH_URL}?` +
+        `response_type=code&` +
+        `client_id=${encodeURIComponent(VIMEO_CLIENT_ID)}&` +
+        `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+        `state=${encodeURIComponent(finalState)}&` +
+        `scope=${encodeURIComponent(scopes)}`;
 
-    console.log(`URL de autorização gerada: ${authUrl.substring(0, 100)}...`);
+      console.log(`URL de autorização gerada: ${authUrl}`);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        auth_url: authUrl,
-        state: finalState,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          auth_url: authUrl,
+          state: finalState,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    } catch (urlError) {
+      console.error("Erro ao gerar URL de autorização:", urlError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Erro ao construir URL de autorização",
+          details: urlError.message
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Erro ao gerar URL de autorização:", error);
     

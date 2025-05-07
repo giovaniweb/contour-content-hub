@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/context/AuthContext';
-import { Loader, LogOut, Link } from "lucide-react";
+import { Loader, LogOut, Link, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface VimeoConnectButtonProps {
   onSuccess?: () => void;
@@ -20,6 +21,12 @@ export default function VimeoConnectButton({
   const { toast } = useToast();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+
+  // Reset connection error when component remounts
+  useEffect(() => {
+    setConnectionError(null);
+  }, []);
 
   const handleConnect = async () => {
     if (!user) {
@@ -32,6 +39,8 @@ export default function VimeoConnectButton({
     }
 
     setIsLoading(true);
+    setConnectionError(null);
+    
     try {
       // Call our edge function to start the OAuth process
       const { data, error } = await supabase.functions.invoke('vimeo-oauth-start', {
@@ -47,13 +56,18 @@ export default function VimeoConnectButton({
           errorMessage = "Função não encontrada. Verifique se a função foi implantada corretamente.";
         } else if (error.message?.includes("não encontrado nas variáveis")) {
           errorMessage = "Configuração do Vimeo incompleta. API_KEY não configurada no servidor.";
+        } else if (error.message?.includes("fetch failed") || error.message?.includes("ECONNREFUSED")) {
+          errorMessage = "Não foi possível se conectar à API do Vimeo. Verifique sua conexão de internet ou se o serviço está disponível.";
         }
         
+        setConnectionError(errorMessage);
         throw new Error(errorMessage);
       }
 
       if (!data || !data.auth_url) {
-        throw new Error('URL de autorização não retornada pelo servidor.');
+        const errorMessage = 'URL de autorização não retornada pelo servidor.';
+        setConnectionError(errorMessage);
+        throw new Error(errorMessage);
       }
 
       console.log("URL de autorização gerada:", data.auth_url);
@@ -73,23 +87,37 @@ export default function VimeoConnectButton({
   };
 
   return (
-    <Button
-      onClick={handleConnect}
-      disabled={isLoading}
-      variant={variant}
-      className={className}
-    >
-      {isLoading ? (
-        <>
-          <Loader className="mr-2 h-4 w-4 animate-spin" />
-          Conectando...
-        </>
-      ) : (
-        <>
-          <Link className="mr-2 h-4 w-4" />
-          Conectar com Vimeo
-        </>
+    <div className="space-y-3">
+      {connectionError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {connectionError}
+            <p className="text-xs mt-1">
+              Verifique se o Vimeo está disponível ou se as credenciais de API foram configuradas corretamente.
+            </p>
+          </AlertDescription>
+        </Alert>
       )}
-    </Button>
+      
+      <Button
+        onClick={handleConnect}
+        disabled={isLoading}
+        variant={variant}
+        className={className}
+      >
+        {isLoading ? (
+          <>
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+            Conectando...
+          </>
+        ) : (
+          <>
+            <Link className="mr-2 h-4 w-4" />
+            Conectar com Vimeo
+          </>
+        )}
+      </Button>
+    </div>
   );
 }

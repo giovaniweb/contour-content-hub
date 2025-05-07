@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader, CheckCircle, LogOut, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader, CheckCircle, LogOut, AlertCircle, RefreshCw, WifiOff } from "lucide-react";
 import VimeoConnectButton from './VimeoConnectButton';
 
 interface VimeoToken {
@@ -27,6 +27,7 @@ export default function VimeoAccountManager() {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [vimeoAccount, setVimeoAccount] = useState<VimeoToken | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -36,6 +37,7 @@ export default function VimeoAccountManager() {
 
   const loadVimeoAccount = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const { data, error } = await supabase
         .from('user_vimeo_tokens')
@@ -44,12 +46,14 @@ export default function VimeoAccountManager() {
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+        console.error("Erro ao buscar token do Vimeo:", error);
         throw error;
       }
 
       setVimeoAccount(data || null);
     } catch (error) {
       console.error("Erro ao carregar conta Vimeo:", error);
+      setLoadError("Não foi possível carregar os dados da conta Vimeo.");
       toast({
         title: "Erro ao carregar conta",
         description: "Não foi possível carregar os dados da sua conta Vimeo",
@@ -121,6 +125,45 @@ export default function VimeoAccountManager() {
         <Loader className="h-6 w-6 animate-spin mr-2" />
         <span>Carregando conta Vimeo...</span>
       </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-red-600 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            Erro ao carregar dados
+          </CardTitle>
+          <CardDescription>
+            Não foi possível carregar informações da conta Vimeo
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <WifiOff className="h-4 w-4" />
+            <AlertTitle>Problema de conexão</AlertTitle>
+            <AlertDescription>
+              <p>{loadError}</p>
+              <p className="text-xs mt-1">
+                Verifique sua conexão com a internet ou se o Vimeo está disponível.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={loadVimeoAccount} 
+            variant="outline"
+            className="mr-2"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Tentar novamente
+          </Button>
+          <VimeoConnectButton onSuccess={loadVimeoAccount} />
+        </CardFooter>
+      </Card>
     );
   }
 
