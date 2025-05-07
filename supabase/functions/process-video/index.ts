@@ -39,16 +39,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // In a real implementation, we would:
-    // 1. Download the video from storage
-    // 2. Use FFmpeg to generate thumbnails and different quality versions
-    // 3. Upload the processed files back to storage
-    // 4. Update the video record in the database
+    // Em uma implementação real, aqui teríamos:
+    // 1. Download do vídeo do storage
+    // 2. Uso do FFmpeg para gerar thumbnails e versões em diferentes qualidades
+    // 3. Upload dos arquivos processados de volta para o storage
+    // 4. Atualização do registro no banco de dados
 
-    // For now, let's simulate this with a simple update after a small delay
+    // Por enquanto, vamos simular com um pequeno delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Update video status and add a placeholder thumbnail
+    // Atualizar status do vídeo e adicionar um thumbnail de placeholder
     await supabaseAdmin
       .from('videos_storage')
       .update({ 

@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -39,6 +38,7 @@ import VimeoSettings from './pages/VimeoSettings';
 import VimeoCallback from './pages/auth/VimeoCallback';
 import Settings from './pages/Settings';
 import SystemIntelligence from './pages/SystemIntelligence';
+import VideoStorage from './pages/VideoStorage';
 
 // Seller Pages
 import SellerDashboard from './pages/seller/SellerDashboard';

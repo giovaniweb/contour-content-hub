@@ -25,15 +25,19 @@ export async function uploadVideo(
     }
 
     // 1. Criar entrada no banco para o vídeo com status 'uploading'
-    const { data: videoData, error: dbError } = await supabase.from('videos_storage').insert({
-      title,
-      description,
-      owner_id: (await supabase.auth.getUser()).data.user?.id,
-      status: 'uploading' as VideoStatus,
-      size: file.size,
-      tags,
-      public: isPublic
-    }).select().single();
+    const { data: videoData, error: dbError } = await supabase
+      .from('videos_storage')
+      .insert({
+        title,
+        description,
+        owner_id: (await supabase.auth.getUser()).data.user?.id,
+        status: 'uploading' as VideoStatus,
+        size: file.size,
+        tags,
+        public: isPublic
+      })
+      .select()
+      .single();
 
     if (dbError || !videoData) {
       console.error('Erro ao criar registro do vídeo:', dbError);
@@ -48,17 +52,14 @@ export async function uploadVideo(
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
-        onUploadProgress: (progress) => {
-          const percent = (progress.loaded / progress.total) * 100;
-          if (onProgress) onProgress(percent);
-        },
       });
 
     if (uploadError) {
       console.error('Erro no upload:', uploadError);
       
       // Atualizar status para erro em caso de falha
-      await supabase.from('videos_storage')
+      await supabase
+        .from('videos_storage')
         .update({ status: 'error' as VideoStatus })
         .eq('id', videoData.id);
       
@@ -75,7 +76,8 @@ export async function uploadVideo(
     }
 
     // 4. Atualizar status para 'processing'
-    await supabase.from('videos_storage')
+    await supabase
+      .from('videos_storage')
       .update({ 
         status: 'processing' as VideoStatus,
         file_urls: { original: supabase.storage.from('videos').getPublicUrl(fileName).data.publicUrl }
@@ -146,7 +148,7 @@ export async function getVideos(
     }
 
     return { 
-      videos: data as StoredVideo[], 
+      videos: data as unknown as StoredVideo[], 
       total: count || 0 
     };
     
@@ -189,7 +191,7 @@ export async function getVideoById(videoId: string): Promise<{ video?: StoredVid
       return { error: 'Vídeo não encontrado.' };
     }
 
-    return { video: data as StoredVideo };
+    return { video: data as unknown as StoredVideo };
     
   } catch (error) {
     console.error('Erro ao carregar detalhes do vídeo:', error);
@@ -229,10 +231,7 @@ export async function generateDownloadUrl(
     const { data: signedUrlData, error: signUrlError } = await supabase.storage
       .from('videos')
       .createSignedUrl(path, 60, {
-        download: video.title,
-        transform: {
-          quality: quality === 'sd' ? '480' : (quality === 'hd' ? '720' : undefined)
-        }
+        download: video.title
       });
 
     if (signUrlError) {
