@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
@@ -66,6 +65,7 @@ export const testVimeoConnection = async (token: string): Promise<{
   success: boolean;
   message?: string;
   error?: string;
+  help?: string;
   details?: any;
   user?: any;
 }> => {

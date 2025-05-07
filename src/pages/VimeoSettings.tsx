@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +48,7 @@ const VimeoSettings: React.FC = () => {
   const [connectionMessage, setConnectionMessage] = useState("");
   const [errorDetails, setErrorDetails] = useState<any>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [helpMessage, setHelpMessage] = useState<string | null>(null);
 
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -92,6 +92,7 @@ const VimeoSettings: React.FC = () => {
       setConnectionStatus('idle');
       setConnectionMessage("");
       setErrorDetails(null);
+      setHelpMessage(null);
 
       console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "...");
       
@@ -104,6 +105,12 @@ const VimeoSettings: React.FC = () => {
       } else {
         setConnectionStatus('error');
         setConnectionMessage(result.error || "Erro ao conectar com Vimeo");
+        
+        // Verificar se temos uma mensagem de ajuda específica
+        if (result.help) {
+          setHelpMessage(result.help);
+        }
+        
         if (result.details) {
           setErrorDetails(result.details);
         }
@@ -262,6 +269,24 @@ const VimeoSettings: React.FC = () => {
                     </AlertTitle>
                     <AlertDescription className="text-red-700">
                       {connectionMessage}
+                      
+                      {helpMessage && (
+                        <div className="mt-2 p-2 bg-red-100 rounded-md">
+                          <p className="font-medium">Dica:</p>
+                          <p>{helpMessage}</p>
+                          <p className="mt-1 text-xs">
+                            Verifique se você gerou o token com todos os escopos necessários em{" "}
+                            <a 
+                              href="https://developer.vimeo.com/apps" 
+                              target="_blank"
+                              rel="noopener noreferrer" 
+                              className="underline"
+                            >
+                              developer.vimeo.com/apps
+                            </a>
+                          </p>
+                        </div>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}

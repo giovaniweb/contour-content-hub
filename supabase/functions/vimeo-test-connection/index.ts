@@ -27,13 +27,12 @@ serve(async (req) => {
     if (!token) {
       console.error("Token não fornecido no request");
       
-      // Retorna erro com status 200 para o cliente (para evitar erro de Edge Function)
       return new Response(JSON.stringify({ 
         success: false, 
         error: "Token de acesso é necessário" 
       }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 // Mudamos para 200 para que o cliente receba a resposta sem erro
+        status: 200
       });
     }
     
@@ -65,15 +64,29 @@ serve(async (req) => {
           status: 200
         });
       } else {
-        // Token é inválido - retorna detalhes específicos do erro do Vimeo
-        // mas usando código 200 para que o cliente receba a resposta
+        // Tratamento específico para o erro 8003
+        if (vimeoData.error_code === 8003 || 
+            (vimeoData.developer_message && vimeoData.developer_message.includes("app didn't receive the user's credentials"))) {
+          
+          return new Response(JSON.stringify({
+            success: false,
+            error: "Erro de autenticação com o Vimeo. Verifique se seu token tem todos os escopos necessários.",
+            help: "Seu token deve incluir os escopos: public, private, upload, edit e interact.",
+            details: vimeoData
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+        
+        // Token é inválido - outros casos
         return new Response(JSON.stringify({
           success: false,
           error: vimeoData.error || "Token de acesso inválido",
           details: vimeoData
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 // Usar 200 mesmo quando há erro do Vimeo
+          status: 200
         });
       }
     } catch (vimeoError) {
@@ -85,7 +98,7 @@ serve(async (req) => {
         details: { message: vimeoError.message }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 // Usar 200 para que o cliente receba a resposta
+        status: 200
       });
     }
   } catch (error) {
@@ -97,7 +110,7 @@ serve(async (req) => {
       error: error.message || 'Erro ao testar conexão com Vimeo',
       stack: error.stack
     }), {
-      status: 200, // Sempre usar 200 para evitar o erro de Edge Function
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
