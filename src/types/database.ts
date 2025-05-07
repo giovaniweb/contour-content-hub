@@ -1,6 +1,4 @@
-
 export interface VimeoConfig {
-  access_token: string;
   folder_id?: string;
 }
 

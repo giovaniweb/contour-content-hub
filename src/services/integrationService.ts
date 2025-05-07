@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 
-// Salvar configuração do Vimeo
+// Salvar configuração do Vimeo (apenas pasta padrão agora)
 export const saveVimeoConfig = async (config: VimeoConfig): Promise<void> => {
   const timestamp = new Date().toISOString();
   
@@ -40,7 +40,7 @@ export const saveVimeoConfig = async (config: VimeoConfig): Promise<void> => {
   }
 };
 
-// Obter configuração do Vimeo
+// Obter configuração do Vimeo (apenas pasta padrão agora)
 export const getVimeoConfig = async (): Promise<VimeoConfig | null> => {
   try {
     const { data, error } = await supabase
