@@ -35,7 +35,8 @@ import {
   Link,
   FileVideo,
   Database,
-  Code
+  Code,
+  Upload
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -114,11 +115,11 @@ export const AppSidebar = ({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            <SidebarMenuItem active={location.pathname === '/media'}>
-              <SidebarMenuButton asChild variant={location.pathname === '/media' ? "active" : "default"}>
-                <NavLink to="/media" className="flex items-center">
+            <SidebarMenuItem active={location.pathname === '/videos'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/videos' ? "active" : "default"}>
+                <NavLink to="/videos" className="flex items-center">
                   <Video className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
-                  {open && <span>Mídia</span>}
+                  {open && <span>Vídeos</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -187,8 +188,8 @@ export const AppSidebar = ({
               <SidebarMenuItem active={location.pathname === '/admin/videos/batch-import'}>
                 <SidebarMenuButton asChild variant={location.pathname === '/admin/videos/batch-import' ? "active" : "default"}>
                   <NavLink to="/admin/videos/batch-import" className="flex items-center">
-                    <FileVideo className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
-                    {open && <span>Importar Vídeos</span>}
+                    <Upload className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Upload de Vídeos</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -198,15 +199,6 @@ export const AppSidebar = ({
                   <NavLink to="/admin/integrations" className="flex items-center">
                     <Link className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Integrações</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              <SidebarMenuItem active={location.pathname === '/admin/vimeo-settings'}>
-                <SidebarMenuButton asChild variant={location.pathname === '/admin/vimeo-settings' ? "active" : "default"}>
-                  <NavLink to="/admin/vimeo-settings" className="flex items-center">
-                    <Video className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
-                    {open && <span>Config. Vimeo</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
