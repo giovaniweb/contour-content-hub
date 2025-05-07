@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +15,14 @@ interface ScriptChatAssistantProps {
   script: ScriptResponse | null;
   validationResult: ValidationResult | null;
   onScriptUpdate: (newContent: string) => void;
+  customPrompt?: string | null;
 }
 
 const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({ 
   script, 
   validationResult,
-  onScriptUpdate
+  onScriptUpdate,
+  customPrompt
 }) => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -27,12 +30,12 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
   const [isImprovementLoading, setIsImprovementLoading] = useState(false);
   const [improvedContent, setImprovedContent] = useState<string | null>(null);
   const [showImprovedScript, setShowImprovedScript] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [localCustomPrompt, setLocalCustomPrompt] = useState<string | null>(customPrompt || null);
   const { toast } = useToast();
   
   // Função para lidar com a seleção de um prompt personalizado
   const handlePromptSelect = useCallback((prompt: string) => {
-    setCustomPrompt(prompt);
+    setLocalCustomPrompt(prompt);
   }, []);
 
   // Função para enviar mensagem para o assistente de chat
@@ -43,7 +46,8 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
       setIsLoading(true);
       
       // Adicionar mensagem do usuário ao histórico
-      const newMessages = [...messages, { role: 'user', content: inputMessage }];
+      const newUserMessage = { role: 'user' as const, content: inputMessage };
+      const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
       setInputMessage('');
       
@@ -68,7 +72,7 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
       
       // Adicionar resposta do assistente ao histórico
       if (data && 'content' in data) {
-        setMessages([...newMessages, { role: 'assistant', content: data.content }]);
+        setMessages([...newMessages, { role: 'assistant' as const, content: data.content }]);
       } else {
         console.error("Resposta inválida da função chat-assistant:", data);
         toast({
@@ -102,7 +106,7 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
         body: { 
           content: script.content,
           validationResult,
-          prompt: customPrompt || undefined
+          prompt: localCustomPrompt || undefined
         }
       });
       
@@ -216,7 +220,7 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Clique no botão abaixo para obter sugestões de melhoria para o seu roteiro.
+              {localCustomPrompt ? "Usando prompt personalizado" : "Clique no botão abaixo para obter sugestões de melhoria para o seu roteiro."}
             </p>
             <PromptManagerDialog onPromptSelect={handlePromptSelect} />
           </div>

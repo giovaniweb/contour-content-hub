@@ -229,9 +229,17 @@ const ScriptValidationPage: React.FC = () => {
           {/* Coluna Direita: Assistente IA */}
           <div>
             <ScriptChatAssistant 
-              content={scriptContent}
+              script={{ 
+                id: id || 'temp-script', 
+                content: scriptContent,
+                title: scriptTitle,
+                type: 'videoScript' as ScriptType,
+                createdAt: new Date().toISOString(),
+                suggestedVideos: [],
+                captionTips: []
+              }}
               validationResult={validationResult}
-              onImprovedScript={handleImprovedScript}
+              onScriptUpdate={handleImprovedScript}
               customPrompt={customPrompt}
             />
           </div>
