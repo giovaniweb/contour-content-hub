@@ -13,7 +13,6 @@ serve(async (req) => {
   }
   
   try {
-    // Log de entrada para depuração
     console.log("Iniciando teste de conexão Vimeo");
     
     // Parse do request body
@@ -39,7 +38,7 @@ serve(async (req) => {
     console.log("Chamando API do Vimeo com token válido");
     
     try {
-      // Fazer uma chamada para a API do Vimeo para verificar se o token é válido
+      // Verificar quais escopos o token possui
       const vimeoResponse = await fetch('https://api.vimeo.com/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -49,14 +48,46 @@ serve(async (req) => {
       
       const vimeoData = await vimeoResponse.json();
       
-      // Log da resposta da API do Vimeo para depuração
       console.log(`Resposta da API do Vimeo - Status: ${vimeoResponse.status}`);
       console.log("Dados da resposta:", JSON.stringify(vimeoData));
       
       if (vimeoResponse.ok) {
-        // Token é válido
+        // Token é válido, verificar escopos
+        if (vimeoData.scopes && Array.isArray(vimeoData.scopes)) {
+          const requiredScopes = ['public', 'private', 'upload', 'edit', 'interact'];
+          const missingScopes = requiredScopes.filter(scope => !vimeoData.scopes.includes(scope));
+          
+          if (missingScopes.length > 0) {
+            // Token é válido, mas faltam escopos
+            return new Response(JSON.stringify({
+              success: false,
+              error: "Seu token não possui todos os escopos necessários",
+              help: `Faltam os seguintes escopos: ${missingScopes.join(', ')}. Por favor, gere um novo token com todos os escopos necessários.`,
+              required_scopes: requiredScopes,
+              current_scopes: vimeoData.scopes,
+              missing_scopes: missingScopes,
+              details: vimeoData
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200
+            });
+          }
+          
+          // Token é válido e possui todos os escopos necessários
+          return new Response(JSON.stringify({
+            success: true,
+            message: `Conexão estabelecida como ${vimeoData.name || 'usuário do Vimeo'}`,
+            user: vimeoData
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+        
+        // Não foi possível verificar os escopos
         return new Response(JSON.stringify({
           success: true,
+          warning: "Não foi possível verificar os escopos do token, mas a conexão foi estabelecida",
           message: `Conexão estabelecida como ${vimeoData.name || 'usuário do Vimeo'}`,
           user: vimeoData
         }), {
@@ -70,8 +101,15 @@ serve(async (req) => {
           
           return new Response(JSON.stringify({
             success: false,
-            error: "Erro de autenticação com o Vimeo. Verifique se seu token tem todos os escopos necessários.",
+            error: "Erro de autenticação com o Vimeo",
             help: "Seu token deve incluir os escopos: public, private, upload, edit e interact.",
+            instructions: `
+              1. Acesse https://developer.vimeo.com/apps
+              2. Selecione seu aplicativo ou crie um novo
+              3. Na seção 'Authentication', marque todos os escopos necessários
+              4. Gere um novo token de acesso pessoal
+              5. Copie e use o novo token aqui
+            `,
             details: vimeoData
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },

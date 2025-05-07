@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 // Define schema para o formulário
 const vimeoSchema = z.object({
@@ -49,6 +50,8 @@ const VimeoSettings: React.FC = () => {
   const [errorDetails, setErrorDetails] = useState<any>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [helpMessage, setHelpMessage] = useState<string | null>(null);
+  const [missingScopes, setMissingScopes] = useState<string[] | null>(null);
+  const [requiredScopes, setRequiredScopes] = useState<string[] | null>(null);
 
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -93,6 +96,8 @@ const VimeoSettings: React.FC = () => {
       setConnectionMessage("");
       setErrorDetails(null);
       setHelpMessage(null);
+      setMissingScopes(null);
+      setRequiredScopes(null);
 
       console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "...");
       
@@ -109,6 +114,19 @@ const VimeoSettings: React.FC = () => {
         // Verificar se temos uma mensagem de ajuda específica
         if (result.help) {
           setHelpMessage(result.help);
+        }
+        
+        // Verificar se temos informações sobre escopos
+        if (result.missing_scopes && Array.isArray(result.missing_scopes)) {
+          setMissingScopes(result.missing_scopes);
+        }
+        
+        if (result.required_scopes && Array.isArray(result.required_scopes)) {
+          setRequiredScopes(result.required_scopes);
+        }
+        
+        if (result.instructions) {
+          setHelpMessage((prev) => prev ? `${prev}\n\n${result.instructions}` : result.instructions);
         }
         
         if (result.details) {
@@ -273,8 +291,33 @@ const VimeoSettings: React.FC = () => {
                       {helpMessage && (
                         <div className="mt-2 p-2 bg-red-100 rounded-md">
                           <p className="font-medium">Dica:</p>
-                          <p>{helpMessage}</p>
-                          <p className="mt-1 text-xs">
+                          <p className="whitespace-pre-line">{helpMessage}</p>
+                          
+                          {missingScopes && missingScopes.length > 0 && (
+                            <div className="mt-2">
+                              <p className="font-medium">Escopos necessários ausentes:</p>
+                              <ul className="list-disc list-inside">
+                                {missingScopes.map(scope => (
+                                  <li key={scope}>{scope}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {requiredScopes && requiredScopes.length > 0 && (
+                            <div className="mt-2">
+                              <p className="font-medium">Todos os escopos necessários:</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {requiredScopes.map(scope => (
+                                  <Badge key={scope} className="bg-blue-100 text-blue-800 border-blue-300">
+                                    {scope}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <p className="mt-2 text-xs">
                             Verifique se você gerou o token com todos os escopos necessários em{" "}
                             <a 
                               href="https://developer.vimeo.com/apps" 
