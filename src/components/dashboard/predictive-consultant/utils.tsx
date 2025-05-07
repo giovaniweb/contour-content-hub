@@ -40,3 +40,9 @@ export const getTypeLabel = (type: SuggestionType) => {
       return 'Geral';
   }
 };
+
+// Helper function to check if the user is authenticated (can be used anywhere)
+export const isUserAuthenticated = (user: any) => {
+  return !!user;
+};
+
