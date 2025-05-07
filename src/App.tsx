@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -9,6 +10,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import Index from './pages/Index';
 
 // Admin pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -57,7 +59,8 @@ function App() {
         <AuthProvider>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
