@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Loader2, Grid2x2, LayoutList, Filter } from "lucide-react";
+import { Search, Plus, Loader2, Grid2x2, LayoutList, Filter, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import VideoForm from "./VideoForm";
@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Link } from "react-router-dom";
 
 const VideoContentManager: React.FC = () => {
   const { toast } = useToast();
@@ -150,33 +151,44 @@ const VideoContentManager: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button 
             onClick={() => setIsDialogOpen(true)}
             variant="default"
-            size="lg"
             className="flex gap-2"
           >
             <Plus className="h-5 w-5" /> Novo Vídeo
           </Button>
           
-          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-            <ToggleGroupItem value="grid" aria-label="Ver em grid">
-              <Grid2x2 className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="Ver em lista">
-              <LayoutList className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-          
           <Button 
             variant="outline" 
-            size="icon"
-            onClick={() => setShowFilters(!showFilters)}
-            className={showFilters ? "bg-muted" : ""}
+            asChild
+            className="flex gap-2"
           >
-            <Filter className="h-4 w-4" />
+            <Link to="/admin/videos/batch-import">
+              <Download className="h-5 w-5" /> Importação em Lote
+            </Link>
           </Button>
+          
+          <div className="flex items-center gap-2">
+            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
+              <ToggleGroupItem value="grid" aria-label="Ver em grid">
+                <Grid2x2 className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" aria-label="Ver em lista">
+                <LayoutList className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-muted" : ""}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <div className="relative w-full sm:w-auto">
@@ -232,9 +244,16 @@ const VideoContentManager: React.FC = () => {
       ) : videos.length === 0 ? (
         <div className="bg-muted py-12 rounded-lg flex flex-col items-center justify-center">
           <p className="text-muted-foreground mb-4">Nenhum vídeo encontrado</p>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Adicionar Vídeo
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Adicionar Vídeo
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/videos/batch-import">
+                <Download className="h-4 w-4 mr-2" /> Importar do Vimeo
+              </Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <VideoList 

@@ -1,69 +1,105 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import NotFound from './pages/NotFound';
-import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
-import Dashboard from './pages/Dashboard';
-import AdminEquipments from './pages/AdminEquipments';
-import HomePage from './pages/HomePage';
-import Layout from './components/Layout';
-import EquipmentDetails from './pages/EquipmentDetails';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
+
+// Auth & Navigation
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute';
+
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Index from './pages/Index';
-import SellerDashboard from './pages/seller/SellerDashboard';
-import ContentStrategy from './pages/ContentStrategy';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminEquipments from './pages/AdminEquipments';
+import AdminContent from './pages/AdminContent';
 import CustomGpt from './pages/CustomGpt';
-import ScriptValidationPage from './pages/ScriptValidationPage';
 import MediaLibrary from './pages/MediaLibrary';
 import TechnicalDocuments from './pages/TechnicalDocuments';
-import PrivateRoute from './components/PrivateRoute';
-import EquipmentsPage from './pages/EquipmentsPage';
-import AdminRoute from './components/AdminRoute';
-import AdminDashboard from './pages/AdminDashboard';
+import DocumentDetail from './pages/DocumentDetail';
+import ScriptGenerator from './pages/ScriptGenerator';
+import ScriptHistory from './pages/ScriptHistory';
+import Calendar from './pages/Calendar';
+import ContentStrategy from './pages/ContentStrategy';
 import AdminIntegrations from './pages/AdminIntegrations';
 import MarketingConsultant from './pages/MarketingConsultant';
+import SystemDiagnostics from './pages/SystemDiagnostics';
+import ScriptValidationPage from './pages/ScriptValidationPage';
+import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
+import EquipmentsPage from './pages/EquipmentsPage';
+import VideoBatchImport from './pages/VideoBatchImport';
+
+// Seller Pages
+import SellerDashboard from './pages/seller/SellerDashboard';
+import ClientList from './pages/seller/ClientList';
+import ClientDetail from './pages/seller/ClientDetail';
+
+// Not Found
+import NotFound from './pages/NotFound';
+
+// Theme Provider
+import { ThemeProvider } from './components/theme-provider';
+import { Toaster } from './components/ui/toaster';
+import { Toaster as SonnerToaster } from 'sonner';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Página inicial (pública) */}
-        <Route path="/" element={<Index />} />
-        
-        {/* Redirecionamento para a página inicial quando acessar /login */}
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        
-        {/* Páginas autenticadas */}
-        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
-        
-        {/* Rotas de equipamentos */}
-        <Route path="/admin/equipments" element={<AdminRoute element={<AdminEquipments />} />} />
-        <Route path="/admin/equipment/:id" element={<AdminRoute element={<EquipmentDetailsPage />} />} />
-        <Route path="/admin/dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
-        <Route path="/admin/integrations" element={<AdminRoute element={<AdminIntegrations />} />} />
-        <Route path="/equipments" element={<PrivateRoute element={<EquipmentsPage />} />} />
-        <Route path="/equipments/:id" element={<PrivateRoute element={<EquipmentDetails />} />} />
-        
-        {/* Estratégia de conteúdo */}
-        <Route path="/content-strategy" element={<PrivateRoute element={<ContentStrategy />} />} />
-        
-        {/* Custom GPT e funcionalidades relacionadas */}
-        <Route path="/custom-gpt" element={<PrivateRoute element={<CustomGpt />} />} />
-        <Route path="/validate-script" element={<PrivateRoute element={<ScriptValidationPage />} />} />
-        
-        {/* Media e documentos */}
-        <Route path="/media" element={<PrivateRoute element={<MediaLibrary />} />} />
-        <Route path="/documents" element={<PrivateRoute element={<TechnicalDocuments />} />} />
-        
-        {/* Dashboard de vendedor */}
-        <Route path="/seller/dashboard" element={<PrivateRoute element={<SellerDashboard />} />} />
-        
-        {/* Marketing Consultant */}
-        <Route path="/marketing-consultant" element={<PrivateRoute element={<MarketingConsultant />} />} />
-        
-        {/* Rota para página não encontrada */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <LanguageProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+
+              {/* Private Routes */}
+              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/media" element={<PrivateRoute><MediaLibrary /></PrivateRoute>} />
+              <Route path="/documents" element={<PrivateRoute><TechnicalDocuments /></PrivateRoute>} />
+              <Route path="/documents/:id" element={<PrivateRoute><DocumentDetail /></PrivateRoute>} />
+              <Route path="/script-generator" element={<PrivateRoute><ScriptGenerator /></PrivateRoute>} />
+              <Route path="/script-history" element={<PrivateRoute><ScriptHistory /></PrivateRoute>} />
+              <Route path="/script-validation/:id" element={<PrivateRoute><ScriptValidationPage /></PrivateRoute>} />
+              <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
+              <Route path="/content-strategy" element={<PrivateRoute><ContentStrategy /></PrivateRoute>} />
+              <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />
+              <Route path="/custom-gpt" element={<PrivateRoute><CustomGpt /></PrivateRoute>} />
+              <Route path="/equipments" element={<PrivateRoute><EquipmentsPage /></PrivateRoute>} />
+              <Route path="/equipment/:id/*" element={<PrivateRoute><EquipmentDetailsPage /></PrivateRoute>} />
+
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/equipments" element={<AdminRoute><AdminEquipments /></AdminRoute>} />
+              <Route path="/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
+              <Route path="/admin/integrations" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
+              <Route path="/admin/system" element={<AdminRoute><SystemDiagnostics /></AdminRoute>} />
+              <Route path="/admin/videos/batch-import" element={<AdminRoute><VideoBatchImport /></AdminRoute>} />
+
+              {/* Seller Routes */}
+              <Route path="/seller" element={<AdminRoute><SellerDashboard /></AdminRoute>} />
+              <Route path="/seller/clients" element={<AdminRoute><ClientList /></AdminRoute>} />
+              <Route path="/seller/clients/:id" element={<AdminRoute><ClientDetail /></AdminRoute>} />
+
+              {/* Not Found */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          <Toaster />
+          <SonnerToaster position="top-right" expand={false} richColors />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

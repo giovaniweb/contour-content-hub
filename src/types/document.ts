@@ -1,5 +1,5 @@
 
-export type DocumentType = 'artigo_cientifico' | 'ficha_tecnica' | 'protocolo' | 'outro';
+export type DocumentType = 'artigo_cientifico' | 'ficha_tecnica' | 'protocolo' | 'video' | 'outro';
 export type DocumentStatus = 'ativo' | 'inativo' | 'processando';
 
 export interface TechnicalDocument {
@@ -21,6 +21,8 @@ export interface TechnicalDocument {
   keywords?: string[];
   researchers?: string[];
   vetor_embeddings?: any;
+  duracao?: string;
+  video_url?: string;
 }
 
 export interface GetDocumentsParams {
@@ -39,6 +41,7 @@ export interface DocumentUploadForm {
   equipamento_id?: string;
   file?: File;
   idioma_original: string;
+  video_url?: string;
 }
 
 export interface DocumentAction {
