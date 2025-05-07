@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,7 +67,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
       
       if (filteredFiles.length !== fileList.length) {
         toast({
-          variant: "warning",
+          variant: "default",
           title: "Alguns arquivos ignorados",
           description: "Apenas arquivos de vídeo foram adicionados à fila."
         });

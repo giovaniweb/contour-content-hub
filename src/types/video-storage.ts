@@ -25,6 +25,7 @@ export interface StoredVideo {
     format?: string;
     codec?: string;
     fps?: number;
+    equipment_id?: string; // Add equipment_id to metadata
   };
 }
 
@@ -71,4 +72,16 @@ export interface VideoFilterOptions {
 export interface VideoSortOptions {
   field: 'title' | 'size' | 'created_at' | 'updated_at';
   direction: 'asc' | 'desc';
+}
+
+// Define the VideoMetadata interface for proper typing
+export interface VideoMetadata {
+  equipment_id?: string;
+  original_filename?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  codec?: string;
+  fps?: number;
+  [key: string]: any; // Allow for additional properties
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +18,7 @@ import {
   RefreshCw,
   ArrowLeft,
 } from 'lucide-react';
-import { StoredVideo } from '@/types/video-storage';
+import { StoredVideo, VideoMetadata } from '@/types/video-storage';
 import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorageService';
 import { usePermissions } from '@/hooks/use-permissions';
 import { useNavigate } from 'react-router-dom';
@@ -76,8 +75,11 @@ const VideoBatchManage: React.FC = () => {
       const editableVideos: EditableVideo[] = await Promise.all(response.videos.map(async (video) => {
         // Extract equipment ID from metadata
         let equipmentId = 'none';
-        if (video.metadata && (video.metadata as any).equipment_id) {
-          equipmentId = (video.metadata as any).equipment_id;
+        if (video.metadata) {
+          const metadata = video.metadata as VideoMetadata;
+          if (metadata.equipment_id) {
+            equipmentId = metadata.equipment_id;
+          }
         }
         
         return {
@@ -317,7 +319,7 @@ const VideoBatchManage: React.FC = () => {
         });
       } else {
         toast({
-          variant: "warning",
+          variant: "default",
           title: "Processo concluído com avisos",
           description: `${successCount} vídeos excluídos, ${failCount} falhas.`
         });
@@ -417,7 +419,7 @@ const VideoBatchManage: React.FC = () => {
         });
       } else {
         toast({
-          variant: "warning",
+          variant: "default",
           title: "Processo concluído com avisos",
           description: `${successCount} vídeos atualizados, ${failCount} falhas.`
         });

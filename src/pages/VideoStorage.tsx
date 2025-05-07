@@ -23,6 +23,7 @@ const VideoStorage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate(); // Added useNavigate hook
   const equipmentId = searchParams.get('equipment');
 
   // Open upload dialog automatically if equipment parameter is present in URL

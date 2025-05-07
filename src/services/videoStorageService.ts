@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { StoredVideo, VideoFilterOptions, VideoQuality, VideoQueueItem, VideoSortOptions, VideoStatus } from '@/types/video-storage';
+import { StoredVideo, VideoFilterOptions, VideoMetadata, VideoQuality, VideoQueueItem, VideoSortOptions, VideoStatus } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
 
 // Tamanho máximo de arquivo (100MB)
@@ -64,17 +64,19 @@ export async function uploadVideo(
     // 2. Upload do arquivo para o Storage
     const fileName = `${videoData.id}/original_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
+    // Fixed upload options to use the proper type
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('videos')
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
-        onUploadProgress: (event) => {
+        // Supabase client handles progress events internally
+        onUploadProgress: (progress) => {
           if (onProgress) {
-            const progress = (event.loaded / event.total) * 100;
-            onProgress(progress);
+            const percentage = (progress.loaded / progress.total) * 100;
+            onProgress(percentage);
           }
-        },
+        }
       });
 
     if (uploadError) {
