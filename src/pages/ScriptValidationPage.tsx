@@ -1,340 +1,214 @@
 
-import React, { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
-import ScriptEditor from "@/components/script-generator/ScriptEditor";
-import ScriptValidationComponent from "@/components/script-generator/ScriptValidation";
-import ScriptChatAssistant from "@/components/script/ScriptChatAssistant";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, FileText, RefreshCw, AlertTriangle, MessageSquareText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import AnnotatedText, { TextAnnotation } from "@/components/script/AnnotatedText";
-import { mapValidationToAnnotations } from "@/utils/validation/annotations";
-import { ValidationResult } from "@/utils/validation/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ScriptToneAdapter from "@/components/script/ScriptToneAdapter";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import Layout from '@/components/Layout';
+import ScriptValidation from '@/components/script-generator/ScriptValidation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { PlusCircle, FileText, RefreshCw, ArrowLeft } from 'lucide-react';
+import { ScriptResponse } from '@/utils/api';
+import { validateScript, getValidation } from '@/utils/validation/api';
+import { useToast } from '@/hooks/use-toast';
+import ScriptChatAssistant from '@/components/script/ScriptChatAssistant';
+import { ValidationResult } from '@/utils/validation/types';
 
 const ScriptValidationPage: React.FC = () => {
-  const { toast } = useToast();
-  const [content, setContent] = useState<string>("");
-  const [isValidating, setIsValidating] = useState(false);
+  const { id } = useParams<{ id: string }>();
+  const [script, setScript] = useState<ScriptResponse | null>(null);
+  const [scriptContent, setScriptContent] = useState('');
+  const [scriptTitle, setScriptTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("results");
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [timeoutId, setTimeoutId] = useState<number | null>(null);
-  const [showSplitView, setShowSplitView] = useState(false);
-  const [beforeAfterComparison, setBeforeAfterComparison] = useState<{
-    before: string;
-    after: string;
-    beforeScore?: number;
-    afterScore?: number;
-  } | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Função para limpar timeout e estado de validação
-  const clearValidationState = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
-    setIsValidating(false);
-  };
-
-  // Limpar timeout ao desmontar o componente
+  // Fetch script if ID provided
   useEffect(() => {
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [timeoutId]);
+    if (id) {
+      fetchScript(id);
+    }
+  }, [id]);
 
-  const handleValidationComplete = (validation: ValidationResult) => {
-    clearValidationState();
-    setValidationResult(validation);
-    setValidationError(null);
-    
-    const annotations = mapValidationToAnnotations(validation);
-    setTextAnnotations(annotations);
-
-    toast({
-      title: "Validação concluída",
-      description: "O roteiro foi analisado pela IA"
-    });
-  };
-
-  const handleValidationError = (error: string) => {
-    clearValidationState();
-    setValidationError(error);
-    setValidationResult(null);
-    setTextAnnotations([]);
-
-    toast({
-      variant: "destructive",
-      title: "Erro na validação",
-      description: error || "Não foi possível validar o roteiro. Tente novamente."
-    });
-  };
-
-  const handleValidate = () => {
-    if (!content.trim()) {
+  const fetchScript = async (scriptId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Primeiro tente buscar a validação existente
+      const existingValidation = await getValidation(scriptId);
+      
+      if (existingValidation) {
+        setValidationResult(existingValidation);
+      }
+      
+      // Buscar roteiro da API
+      const response = await fetch(`/api/scripts/${scriptId}`);
+      
+      if (!response.ok) {
+        throw new Error('Não foi possível carregar o roteiro');
+      }
+      
+      const data = await response.json();
+      setScript(data);
+      setScriptContent(data.content || '');
+      setScriptTitle(data.title || '');
+    } catch (error) {
+      console.error('Erro ao carregar roteiro:', error);
       toast({
-        variant: "destructive",
-        title: "Conteúdo vazio",
-        description: "Por favor, insira algum texto para validar."
+        title: 'Erro',
+        description: 'Não foi possível carregar o roteiro',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleValidateScript = async () => {
+    if (!scriptContent.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, insira o conteúdo do roteiro",
+        variant: "destructive"
       });
       return;
     }
 
-    setIsValidating(true);
-    setValidationResult(null);
-    setTextAnnotations([]);
-    setValidationError(null);
-    
-    // Configurar timeout para validação (após 30 segundos)
-    const id = window.setTimeout(() => {
-      handleValidationError("A validação excedeu o tempo limite. Tente um texto mais curto ou tente novamente mais tarde.");
-    }, 30000);
-    
-    setTimeoutId(id);
+    try {
+      setIsLoading(true);
+      
+      // Criar objeto de roteiro temporário
+      const tempScript = {
+        id: id || 'temp-' + Date.now(),
+        content: scriptContent,
+        title: scriptTitle || 'Roteiro sem título',
+        type: 'videoScript'
+      };
+      
+      // Validar o roteiro
+      const result = await validateScript(tempScript);
+      
+      setValidationResult(result);
+      setShowChat(true);
+      
+      toast({
+        title: "Roteiro validado",
+        description: "O conteúdo foi analisado com sucesso!"
+      });
+    } catch (error) {
+      console.error('Erro na validação:', error);
+      toast({
+        title: "Erro na validação",
+        description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleImprovedScript = (improvedText: string) => {
-    if (!improvedText) return;
-    
-    // Store original content and score for comparison
-    const originalScript = {
-      before: content,
-      after: improvedText,
-      beforeScore: validationResult?.total || 0,
-      // Simulate an improved score
-      afterScore: Math.min(10, (validationResult?.total || 0) + 2.5)
-    };
-    
-    setBeforeAfterComparison(originalScript);
-    
-    // Replace content with improved version
-    setContent(improvedText);
-    
-    // Show toast notification
+  const handleImprovedScript = (improvedContent: string) => {
+    setScriptContent(improvedContent);
     toast({
-      title: "Roteiro aprimorado!",
-      description: "A versão melhorada foi aplicada ao editor."
+      title: "Roteiro atualizado",
+      description: "O roteiro foi aprimorado pelo assistente IA"
     });
-    
-    // Automatically switch to split view
-    setShowSplitView(true);
   };
 
   return (
     <Layout>
-      <div className="container mx-auto py-6">
-        <div className="flex flex-col gap-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Validador de Roteiros</h1>
-            <p className="text-muted-foreground">
-              Use nossa IA para validar e melhorar seu roteiro de vídeo.
-            </p>
+      <div className="container max-w-7xl py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">
+              {id ? "Validação de Roteiro" : "Novo Roteiro para Validação"}
+            </h1>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Editor de roteiro - Coluna Esquerda */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Editor de roteiro */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Editor de Roteiro
-                  </CardTitle>
-                  <CardDescription>
-                    Escreva ou cole seu roteiro aqui para análise
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {beforeAfterComparison && showSplitView ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="mb-2 flex justify-between items-center">
-                          <h3 className="text-sm font-medium">Versão Original</h3>
-                          <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                            Score: {beforeAfterComparison.beforeScore?.toFixed(1)}
-                          </span>
-                        </div>
-                        <div className="border rounded-md p-3 bg-gray-50 h-[300px] overflow-auto">
-                          <div className="whitespace-pre-wrap text-sm">
-                            {beforeAfterComparison.before}
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="mb-2 flex justify-between items-center">
-                          <h3 className="text-sm font-medium">Versão Aprimorada</h3>
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                            Score: {beforeAfterComparison.afterScore?.toFixed(1)}
-                          </span>
-                        </div>
-                        <div className="border border-green-200 rounded-md p-3 bg-green-50 h-[300px] overflow-auto">
-                          <div className="whitespace-pre-wrap text-sm">
-                            {beforeAfterComparison.after}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <ScriptEditor 
-                      content={content}
-                      onChange={setContent}
-                      readOnly={false}
-                    />
-                  )}
-                  
-                  {beforeAfterComparison && (
-                    <div className="mt-4 flex justify-end">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setShowSplitView(!showSplitView)}
-                      >
-                        {showSplitView ? "Mostrar Editor" : "Mostrar Comparação"}
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex justify-end">
-                    <Button 
-                      onClick={handleValidate}
-                      disabled={!content.trim() || isValidating}
-                    >
-                      {isValidating ? <RefreshCw className="h-5 w-5 mr-2 animate-spin" /> : <CheckCircle className="h-5 w-5 mr-2" />}
-                      Validar Roteiro
-                    </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Coluna Esquerda: Editor e Validação */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-500" />
+                    {id ? "Editar Roteiro" : "Novo Roteiro"}
                   </div>
-                </CardContent>
-              </Card>
-              
-              {/* Resultados da Validação quando disponível */}
-              {!isValidating && validationResult && (
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="results">Resultados da Validação</TabsTrigger>
-                    <TabsTrigger value="tone">Adaptação de Tom</TabsTrigger>
-                  </TabsList>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Input
+                      placeholder="Título do Roteiro"
+                      value={scriptTitle}
+                      onChange={(e) => setScriptTitle(e.target.value)}
+                      className="mb-3"
+                    />
+                    <Textarea
+                      placeholder="Cole ou digite o conteúdo do roteiro aqui..."
+                      value={scriptContent}
+                      onChange={(e) => setScriptContent(e.target.value)}
+                      className="min-h-[200px]"
+                    />
+                  </div>
                   
-                  <TabsContent value="results">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5" />
-                          Resultados da Validação
-                        </CardTitle>
-                        <CardDescription>
-                          Nossa IA analisa e sugere melhorias
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {textAnnotations.length > 0 && (
-                          <div className="border rounded-md p-4 bg-gray-50 mb-6">
-                            <AnnotatedText 
-                              content={content} 
-                              annotations={textAnnotations} 
-                            />
-                          </div>
-                        )}
-                        
-                        <ScriptValidationComponent
-                          script={{
-                            id: "temp", 
-                            content, 
-                            title: "Roteiro temporário", 
-                            type: "videoScript", 
-                            createdAt: new Date().toISOString(),
-                            suggestedVideos: [], 
-                            captionTips: []
-                          }}
-                          onValidationComplete={handleValidationComplete}
-                          onValidationError={handleValidationError}
-                          hideTitle={true}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  <TabsContent value="tone">
-                    {validationResult && (
-                      <ScriptToneAdapter 
-                        validationResult={validationResult}
-                        content={content}
-                      />
+                  <Button 
+                    onClick={handleValidateScript} 
+                    disabled={isLoading || !scriptContent.trim()}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Validando...
+                      </>
+                    ) : (
+                      <>
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Validar Roteiro
+                      </>
                     )}
-                  </TabsContent>
-                </Tabs>
-              )}
-              
-              {isValidating && (
-                <Card>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center py-16 gap-4">
-                      <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
-                      <p className="text-muted-foreground">Analisando seu roteiro...</p>
-                      <p className="text-xs text-muted-foreground max-w-md text-center">
-                        Isso pode levar alguns segundos dependendo do tamanho do roteiro.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {!isValidating && validationError && (
-                <Card>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center py-16 gap-4">
-                      <AlertTriangle className="h-8 w-8 text-amber-500" />
-                      <p className="font-medium text-amber-700">{validationError}</p>
-                      <Button 
-                        variant="outline" 
-                        onClick={handleValidate}
-                        className="mt-2"
-                      >
-                        Tentar novamente
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {!isValidating && !validationResult && !validationError && (
-                <Card>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                      <p className="text-muted-foreground">
-                        Escreva seu roteiro e clique em "Validar Roteiro" para receber feedback da IA.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Coluna Direita - Chat Assistente */}
-            <div className="lg:col-span-1">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquareText className="h-5 w-5" />
-                    Assistente de Roteiros
-                  </CardTitle>
-                  <CardDescription>
-                    Converse com a IA para melhorar seu roteiro
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 h-[600px]">
-                  <ScriptChatAssistant 
-                    content={content} 
-                    validationResult={validationResult}
-                    onImprovedScript={handleImprovedScript} 
-                  />
-                </CardContent>
-              </Card>
-            </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Componente de Validação se houver resultado */}
+            {validationResult && (
+              <ScriptValidation 
+                script={{ 
+                  id: id || 'temp-script', 
+                  content: scriptContent,
+                  title: scriptTitle,
+                  type: 'videoScript',
+                  createdAt: new Date().toISOString(),
+                  suggestedVideos: [],
+                  captionTips: []
+                }} 
+                onValidationComplete={setValidationResult}
+              />
+            )}
+          </div>
+          
+          {/* Coluna Direita: Assistente IA */}
+          <div>
+            <ScriptChatAssistant 
+              content={scriptContent}
+              validationResult={validationResult}
+              onImprovedScript={handleImprovedScript}
+            />
           </div>
         </div>
       </div>

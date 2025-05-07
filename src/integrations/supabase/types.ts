@@ -669,6 +669,38 @@ export type Database = {
           },
         ]
       }
+      script_validations: {
+        Row: {
+          created_at: string
+          id: string
+          score: number
+          script_id: string
+          validation_data: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          score?: number
+          script_id: string
+          validation_data: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          score?: number
+          script_id?: string
+          validation_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_script_validations_scripts"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           active: boolean

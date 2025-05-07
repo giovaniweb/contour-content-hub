@@ -46,10 +46,11 @@ export async function validateScript(script: Pick<ScriptResponse, 'id' | 'conten
  */
 export async function getValidation(scriptId: string): Promise<ValidationResult | null> {
   try {
+    // Usando roteiro_validacoes em vez de script_validations
     const { data, error } = await supabase
-      .from('script_validations')
+      .from('roteiro_validacoes')
       .select('*')
-      .eq('script_id', scriptId)
+      .eq('roteiro_id', scriptId)
       .single();
     
     if (error) {
@@ -78,17 +79,20 @@ export async function saveValidation(
     // Calcular pontuação total
     const totalScore = validation.total || validation.nota_geral || 0;
     
-    // Preparar dados para inserção
+    // Preparar dados para inserção na tabela roteiro_validacoes existente
     const validationData = {
-      script_id: scriptId,
-      validation_data: validation,
-      score: totalScore,
-      created_at: new Date().toISOString()
+      roteiro_id: scriptId,
+      pontuacao_total: totalScore,
+      pontuacao_gancho: validation.gancho || 0,
+      pontuacao_clareza: validation.clareza || 0,
+      pontuacao_cta: validation.cta || 0,
+      pontuacao_emocao: validation.emocao || 0,
+      sugestoes: validation.sugestoes || Array.isArray(validation.sugestoes_gerais) ? validation.sugestoes_gerais.join('\n') : ''
     };
     
-    // Inserir na tabela
+    // Inserir na tabela roteiro_validacoes
     const { error } = await supabase
-      .from('script_validations')
+      .from('roteiro_validacoes')
       .upsert(validationData);
     
     if (error) {

@@ -77,10 +77,8 @@ function App() {
                 <Route path="/script-generator" element={<PrivateRoute><ScriptGenerator /></PrivateRoute>} />
                 <Route path="/script-history" element={<PrivateRoute><ScriptHistory /></PrivateRoute>} />
                 
-                {/* Add the route without id parameter for direct access */}
+                {/* Corrigindo as rotas de validação de roteiro */}
                 <Route path="/script-validation" element={<PrivateRoute><ScriptValidationPage /></PrivateRoute>} />
-                
-                {/* Keep the route with id parameter for specific script validation */}
                 <Route path="/script-validation/:id" element={<PrivateRoute><ScriptValidationPage /></PrivateRoute>} />
                 
                 <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
