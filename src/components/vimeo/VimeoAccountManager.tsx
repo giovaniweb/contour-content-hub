@@ -214,7 +214,7 @@ export default function VimeoAccountManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert variant="warning" className="bg-amber-50 border-amber-200">
+          <Alert variant="destructive" className="bg-amber-50 border-amber-200">
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertTitle className="text-amber-800">Atenção: Configuração necessária</AlertTitle>
             <AlertDescription className="text-amber-700">
