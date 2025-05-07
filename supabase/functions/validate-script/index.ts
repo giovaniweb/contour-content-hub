@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -32,7 +31,8 @@ serve(async (req) => {
         title: requestData.title,
         type: requestData.type,
         scriptId: requestData.scriptId,
-        contentLength: requestData.content?.length || 0
+        contentLength: requestData.content?.length || 0,
+        hasCustomPrompt: !!requestData.additionalContext
       }));
     } catch (parseError) {
       console.error("Erro ao processar JSON da requisição:", parseError);
@@ -42,7 +42,7 @@ serve(async (req) => {
       );
     }
     
-    const { content, type, title, scriptId } = requestData;
+    const { content, type, title, scriptId, additionalContext } = requestData;
     
     if (!content) {
       return new Response(
@@ -96,8 +96,8 @@ serve(async (req) => {
       avaliacaoEspecifica = `Para conteúdo de vendas, considere urgência, benefícios e CTA.`;
     }
 
-    // Criar prompt para análise rápida
-    const systemPrompt = `
+    // Criar prompt para análise - usar prompt personalizado se fornecido
+    const systemPrompt = additionalContext || `
       Você é um avaliador especialista em marketing digital e copywriting.
       Avalie o roteiro fornecido de forma concisa e objetiva.
       IMPORTANTE: Responda APENAS em formato JSON válido conforme especificado abaixo.
@@ -140,9 +140,9 @@ serve(async (req) => {
 
     console.log(`Enviando requisição para OpenAI usando modelo ${modelToUse}`);
     
-    // Call OpenAI API com timeout
+    // Call OpenAI API with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos de timeout
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 seconds of timeout
     
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -157,9 +157,9 @@ serve(async (req) => {
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
           ],
-          temperature: 0.1, // Temperatura mais baixa para respostas mais rápidas e consistentes
-          response_format: { type: "json_object" }, // Forçar formato JSON na resposta
-          max_tokens: 1200 // Limitar resposta para ser mais rápida
+          temperature: 0.1, // Temperature more low for faster and consistent responses
+          response_format: { type: "json_object" }, // Force JSON format in response
+          max_tokens: 1200 // Limit response to be faster
         }),
         signal: controller.signal
       });
@@ -194,18 +194,18 @@ serve(async (req) => {
         const content = data.choices[0].message.content;
         console.log("Processando resposta e convertendo para JSON");
         
-        // Parse diretamente (formato já é JSON)
+        // Parse directly (format is already JSON)
         const validationData = JSON.parse(content);
         
-        // Verificação de segurança nos dados
+        // Security verification of data
         const safeValidation = {
-          blocos: Array.isArray(validationData.blocos) ? validationData.blocos.slice(0, 6) : [], // Limitar a 6 blocos
+          blocos: Array.isArray(validationData.blocos) ? validationData.blocos.slice(0, 6) : [], // Limit to 6 blocks
           nota_geral: parseFloat(validationData.nota_geral) || 0,
           sugestoes_gerais: Array.isArray(validationData.sugestoes_gerais) 
-            ? validationData.sugestoes_gerais.slice(0, 3) // Limitar a 3 sugestões
+            ? validationData.sugestoes_gerais.slice(0, 3) // Limit to 3 suggestions
             : ["Nenhuma sugestão fornecida."],
             
-          // Campos para compatibilidade
+          // Fields for compatibility
           gancho: parseFloat(validationData.gancho) || 0,
           clareza: parseFloat(validationData.clareza) || 0,
           cta: parseFloat(validationData.cta) || 0,
@@ -223,7 +223,7 @@ serve(async (req) => {
       } catch (jsonError) {
         console.error("Erro ao processar resposta:", jsonError);
         
-        // Resposta de fallback
+        // Fallback response
         const fallbackData = {
           blocos: [
             {
@@ -250,7 +250,7 @@ serve(async (req) => {
     } catch (fetchError) {
       clearTimeout(timeoutId);
       
-      // Se for um erro de timeout, retornar uma resposta de erro específica
+      // If it's a timeout error, return a specific error response
       if (fetchError.name === 'AbortError') {
         console.error("Timeout na chamada à API OpenAI");
         return new Response(

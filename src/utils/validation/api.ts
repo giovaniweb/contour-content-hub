@@ -3,21 +3,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidationResult } from "./types";
 import { ScriptResponse } from "../api";
 
+interface ValidationOptions {
+  customPrompt?: string;
+}
+
 /**
  * Valida um roteiro usando IA 
  */
-export async function validateScript(script: Pick<ScriptResponse, 'id' | 'content' | 'title' | 'type'>): Promise<ValidationResult> {
+export async function validateScript(
+  script: Pick<ScriptResponse, 'id' | 'content' | 'title' | 'type'>, 
+  options?: ValidationOptions
+): Promise<ValidationResult> {
   try {
-    // Add metadata about Disney enchantment approach for improved validation
-    const disneyEnchantmentPrompt = `
-      Além da validação padrão, use o método de encantamento Disney para avaliar o roteiro:
-      - Gancho (Hook): O início captura atenção rapidamente?
-      - Conflito: Apresenta claramente um problema ou desafio?
-      - Virada: Oferece uma solução ou transformação convincente?
-      - CTA (Call to Action): Finaliza com um chamado à ação claro e persuasivo?
-      
-      O modelo Disney é comprovadamente eficaz para engajamento em vídeos curtos.
-    `;
+    // Use o prompt personalizado se fornecido, caso contrário use o prompt padrão do método Disney
+    let promptContext = options?.customPrompt;
+    
+    if (!promptContext) {
+      promptContext = `
+        Além da validação padrão, use o método de encantamento Disney para avaliar o roteiro:
+        - Gancho (Hook): O início captura atenção rapidamente?
+        - Conflito: Apresenta claramente um problema ou desafio?
+        - Virada: Oferece uma solução ou transformação convincente?
+        - CTA (Call to Action): Finaliza com um chamado à ação claro e persuasivo?
+        
+        O modelo Disney é comprovadamente eficaz para engajamento em vídeos curtos.
+      `;
+    }
 
     // Call Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('validate-script', {
@@ -26,7 +37,7 @@ export async function validateScript(script: Pick<ScriptResponse, 'id' | 'conten
         type: script.type || 'videoScript',
         title: script.title,
         scriptId: script.id,
-        additionalContext: disneyEnchantmentPrompt // Add Disney method context
+        additionalContext: promptContext // Add custom or default prompt here
       }
     });
 

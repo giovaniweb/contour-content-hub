@@ -13,6 +13,7 @@ import { validateScript, getValidation } from '@/utils/validation/api';
 import { useToast } from '@/hooks/use-toast';
 import ScriptChatAssistant from '@/components/script/ScriptChatAssistant';
 import { ValidationResult } from '@/utils/validation/types';
+import PromptManagerDialog from '@/components/script/PromptManagerDialog';
 
 const ScriptValidationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const ScriptValidationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -87,8 +89,9 @@ const ScriptValidationPage: React.FC = () => {
         type: 'videoScript' as ScriptType
       };
       
-      // Validar o roteiro
-      const result = await validateScript(tempScript);
+      // Validar o roteiro com prompt personalizado, se disponível
+      const options = customPrompt ? { customPrompt } : undefined;
+      const result = await validateScript(tempScript, options);
       
       setValidationResult(result);
       setShowChat(true);
@@ -117,6 +120,14 @@ const ScriptValidationPage: React.FC = () => {
     });
   };
 
+  const handlePromptSelect = (prompt: string) => {
+    setCustomPrompt(prompt);
+    toast({
+      title: "Prompt selecionado",
+      description: "O prompt personalizado será usado na próxima validação"
+    });
+  };
+
   return (
     <Layout>
       <div className="container max-w-7xl py-6">
@@ -132,6 +143,14 @@ const ScriptValidationPage: React.FC = () => {
             <h1 className="text-2xl font-bold">
               {id ? "Validação de Roteiro" : "Novo Roteiro para Validação"}
             </h1>
+          </div>
+          
+          {/* Adicionamos o gerenciador de prompts aqui */}
+          <div className="flex items-center gap-2">
+            <PromptManagerDialog
+              scriptType="videoScript"
+              onPromptSelect={handlePromptSelect}
+            />
           </div>
         </div>
         
@@ -164,23 +183,28 @@ const ScriptValidationPage: React.FC = () => {
                     />
                   </div>
                   
-                  <Button 
-                    onClick={handleValidateScript} 
-                    disabled={isLoading || !scriptContent.trim()}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Validando...
-                      </>
-                    ) : (
-                      <>
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Validar Roteiro
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      {customPrompt && <span>Usando prompt personalizado</span>}
+                    </div>
+                    
+                    <Button 
+                      onClick={handleValidateScript} 
+                      disabled={isLoading || !scriptContent.trim()}
+                    >
+                      {isLoading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Validando...
+                        </>
+                      ) : (
+                        <>
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Validar Roteiro
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -208,6 +232,7 @@ const ScriptValidationPage: React.FC = () => {
               content={scriptContent}
               validationResult={validationResult}
               onImprovedScript={handleImprovedScript}
+              customPrompt={customPrompt}
             />
           </div>
         </div>

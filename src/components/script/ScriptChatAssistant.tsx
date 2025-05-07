@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
+import { Sparkles, Send, RefreshCw, ArrowUp, ArrowDown, Code } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { ValidationResult } from "@/utils/validation/types";
+import { supabase } from '@/integrations/supabase/client';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Message {
   id: string;
@@ -21,12 +23,14 @@ interface ScriptChatAssistantProps {
   content: string;
   validationResult: ValidationResult | null;
   onImprovedScript?: (script: string) => void;
+  customPrompt?: string | null;
 }
 
 const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({ 
   content,
   validationResult,
-  onImprovedScript
+  onImprovedScript,
+  customPrompt
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -34,8 +38,41 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
   const [isImproving, setIsImproving] = useState(false);
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
   const [beforeAfterView, setBeforeAfterView] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // Buscar o prompt ativo para o assistente quando o componente monta
+  useEffect(() => {
+    const fetchActivePrompt = async () => {
+      if (customPrompt) {
+        setCurrentPrompt(customPrompt);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('gpt_config')
+          .select('*')
+          .eq('tipo', 'assistenteRoteiro')
+          .eq('ativo', true)
+          .single();
+          
+        if (error && error.code !== 'PGRST116') {
+          console.error('Erro ao buscar prompt:', error);
+          return;
+        }
+        
+        if (data) {
+          setCurrentPrompt(data.prompt);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar prompt ativo:', error);
+      }
+    };
+    
+    fetchActivePrompt();
+  }, [customPrompt]);
   
   // Generate a welcome message when component mounts
   useEffect(() => {
@@ -57,7 +94,7 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
   }, [messages]);
 
   // Handle sending message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
     // Add user message
@@ -72,36 +109,90 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
     setInputValue("");
     setIsLoading(true);
     
-    // Simulate API call to get response
-    setTimeout(() => {
-      // Example responses based on user input
-      let responseContent = "";
-      const userInput = inputValue.toLowerCase();
+    try {
+      // Verificar se temos chave de API para OpenAI
+      const { data: { OPENAI_API_KEY } } = await supabase.functions.invoke('get-secrets', {
+        body: { keys: ['OPENAI_API_KEY'] }
+      });
       
-      if (userInput.includes("melhorar") || userInput.includes("aprimorar")) {
-        responseContent = "Para melhorar seu roteiro, considere aplicar a estrutura Disney: começe com um gancho forte, apresente um conflito claro, crie uma virada envolvente e termine com um chamado à ação irresistível. Seu roteiro atual poderia ter um gancho mais impactante logo nos primeiros segundos.";
-      } else if (userInput.includes("analisar") || userInput.includes("análise")) {
-        const scores = validationResult ? 
-          `Gancho: ${validationResult.gancho}/10\nClareza: ${validationResult.clareza}/10\nCTA: ${validationResult.cta}/10\nConexão Emocional: ${validationResult.emocao}/10` :
-          "Ainda não temos uma validação completa para este roteiro.";
+      if (OPENAI_API_KEY) {
+        // Se temos API key, usamos o modelo de verdade
+        const assistantPrompt = currentPrompt || 
+          "Você é um assistente de roteiros especializado no método Disney de storytelling. " +
+          "Ajude o usuário a melhorar seus roteiros com foco em quatro elementos: " +
+          "Gancho (hook forte para atrair atenção), Conflito (apresentação do problema), " +
+          "Virada (solução transformadora) e CTA (chamada para ação convincente).";
         
-        responseContent = `Aqui está uma análise do seu roteiro:\n\n${scores}\n\nSeu roteiro tem pontos fortes na estrutura, mas poderia melhorar a conexão emocional com o público-alvo.`;
-      } else if (userInput.includes("dica") || userInput.includes("conselho")) {
-        responseContent = "Uma dica valiosa: sempre pense no problema real do seu público antes de falar da solução. Use linguagem simples e direta, e crie uma narrativa que resolva uma dor específica. No método Disney, chamamos isso de 'conflito' e é essencial para criar identificação.";
+        const response = await supabase.functions.invoke('chat-assistant', {
+          body: {
+            messages: [
+              { role: "system", content: assistantPrompt },
+              ...messages.map(msg => ({
+                role: msg.sender === "user" ? "user" : "assistant",
+                content: msg.content
+              })),
+              { role: "user", content: inputValue }
+            ],
+            scriptContent: content,
+            validationResult: validationResult || undefined
+          }
+        });
+        
+        const assistantMessage: Message = {
+          id: Date.now().toString(),
+          content: response.content || "Desculpe, não consegui processar sua mensagem. Tente novamente.",
+          sender: "assistant",
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
       } else {
-        responseContent = "Entendi sua pergunta. Para criar roteiros mais impactantes, foque em contar uma história que resolva um problema real do seu público. Use a estrutura Disney: gancho (capte atenção), conflito (apresente o problema), virada (mostre a solução) e CTA (chamada para ação clara).";
+        // Simulação local para quando não temos API key
+        setTimeout(() => {
+          // Example responses based on user input
+          let responseContent = "";
+          const userInput = inputValue.toLowerCase();
+          
+          if (userInput.includes("melhorar") || userInput.includes("aprimorar")) {
+            responseContent = "Para melhorar seu roteiro, considere aplicar a estrutura Disney: começe com um gancho forte, apresente um conflito claro, crie uma virada envolvente e termine com um chamado à ação irresistível. Seu roteiro atual poderia ter um gancho mais impactante logo nos primeiros segundos.";
+          } else if (userInput.includes("analisar") || userInput.includes("análise")) {
+            const scores = validationResult ? 
+              `Gancho: ${validationResult.gancho}/10\nClareza: ${validationResult.clareza}/10\nCTA: ${validationResult.cta}/10\nConexão Emocional: ${validationResult.emocao}/10` :
+              "Ainda não temos uma validação completa para este roteiro.";
+            
+            responseContent = `Aqui está uma análise do seu roteiro:\n\n${scores}\n\nSeu roteiro tem pontos fortes na estrutura, mas poderia melhorar a conexão emocional com o público-alvo.`;
+          } else if (userInput.includes("dica") || userInput.includes("conselho")) {
+            responseContent = "Uma dica valiosa: sempre pense no problema real do seu público antes de falar da solução. Use linguagem simples e direta, e crie uma narrativa que resolva uma dor específica. No método Disney, chamamos isso de 'conflito' e é essencial para criar identificação.";
+          } else {
+            responseContent = "Entendi sua pergunta. Para criar roteiros mais impactantes, foque em contar uma história que resolva um problema real do seu público. Use a estrutura Disney: gancho (capte atenção), conflito (apresente o problema), virada (mostre a solução) e CTA (chamada para ação clara).";
+          }
+          
+          const assistantMessage: Message = {
+            id: Date.now().toString(),
+            content: responseContent,
+            sender: "assistant",
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsLoading(false);
+        }, 1500);
       }
+    } catch (error) {
+      console.error('Erro ao processar mensagem:', error);
       
-      const assistantMessage: Message = {
+      // Adicionar mensagem de erro
+      const errorMessage: Message = {
         id: Date.now().toString(),
-        content: responseContent,
+        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.",
         sender: "assistant",
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   // Handle key press in textarea
@@ -113,38 +204,101 @@ const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({
   };
 
   // Handle improve script button
-  const handleImproveScript = () => {
+  const handleImproveScript = async () => {
+    if (!content) return;
+    
     setIsImproving(true);
     
-    // Simulate API call to improve script
-    setTimeout(() => {
-      const improvedText = content + "\n\n[Versão aprimorada]\n\nVocê já imaginou acordar todo dia sentindo-se confiante na sua própria pele? ✨\n\nMuitas pessoas tentam diversos tratamentos estéticos, mas acabam decepcionadas com resultados temporários e procedimentos dolorosos.\n\nO Crystal 3D Plus revoluciona esse cenário com sua tecnologia tripla de depilação definitiva que não só elimina os pelos, mas também estimula o colágeno da sua pele, deixando-a mais firme e jovem.\n\nNão perca mais tempo com métodos que não funcionam! Agende agora sua avaliação gratuita e ganhe 20% de desconto na primeira sessão. Vagas limitadas para maio!";
-      
-      setImprovedScript(improvedText);
-      setIsImproving(false);
-      
-      if (onImprovedScript) {
-        onImprovedScript(improvedText);
-      }
-      
-      toast({
-        title: "Roteiro aprimorado!",
-        description: "O assistente IA criou uma versão otimizada do seu roteiro."
+    try {
+      // Verificar se temos chave de API para OpenAI
+      const { data: { OPENAI_API_KEY } } = await supabase.functions.invoke('get-secrets', {
+        body: { keys: ['OPENAI_API_KEY'] }
       });
-    }, 3000);
+      
+      if (OPENAI_API_KEY) {
+        const response = await supabase.functions.invoke('improve-script', {
+          body: {
+            content,
+            validationResult,
+            prompt: currentPrompt
+          }
+        });
+        
+        if (response.improved) {
+          setImprovedScript(response.improved);
+          
+          if (onImprovedScript) {
+            onImprovedScript(response.improved);
+          }
+          
+          toast({
+            title: "Roteiro aprimorado!",
+            description: "O assistente IA criou uma versão otimizada do seu roteiro."
+          });
+        } else {
+          throw new Error("Não foi possível melhorar o roteiro");
+        }
+      } else {
+        // Simulação local
+        setTimeout(() => {
+          const improvedText = content + "\n\n[Versão aprimorada]\n\nVocê já imaginou acordar todo dia sentindo-se confiante na sua própria pele? ✨\n\nMuitas pessoas tentam diversos tratamentos estéticos, mas acabam decepcionadas com resultados temporários e procedimentos dolorosos.\n\nO Crystal 3D Plus revoluciona esse cenário com sua tecnologia tripla de depilação definitiva que não só elimina os pelos, mas também estimula o colágeno da sua pele, deixando-a mais firme e jovem.\n\nNão perca mais tempo com métodos que não funcionam! Agende agora sua avaliação gratuita e ganhe 20% de desconto na primeira sessão. Vagas limitadas para maio!";
+          
+          setImprovedScript(improvedText);
+          
+          if (onImprovedScript) {
+            onImprovedScript(improvedText);
+          }
+          
+          toast({
+            title: "Roteiro aprimorado!",
+            description: "O assistente IA criou uma versão otimizada do seu roteiro."
+          });
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Erro ao melhorar roteiro:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível melhorar o roteiro. Tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsImproving(false);
+    }
   };
 
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="py-3 px-4">
-        <CardTitle className="flex items-center text-lg gap-2">
-          <Sparkles className="h-5 w-5 text-blue-500" />
-          Assistente de Roteiros
-          <Badge variant="secondary" className="ml-2">Disney Method</Badge>
+        <CardTitle className="flex items-center justify-between text-lg">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-500" />
+            Assistente de Roteiros
+            <Badge variant="secondary">Disney Method</Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       
       <CardContent className="flex-1 p-0 flex flex-col">
+        {/* Mostrar o prompt atual em um accordion */}
+        {currentPrompt && (
+          <Accordion type="single" collapsible className="px-4 pt-2">
+            <AccordionItem value="prompt">
+              <AccordionTrigger className="text-sm py-2">
+                <div className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Ver prompt atual
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-md">
+                  <pre className="text-xs whitespace-pre-wrap">{currentPrompt}</pre>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+      
         {/* Messages history */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
