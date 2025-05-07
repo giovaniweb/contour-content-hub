@@ -22,3 +22,12 @@ export interface GptConfig {
   ativo: boolean;
   data_configuracao: string;
 }
+
+export interface DropboxConfig {
+  id?: string;
+  token: string;
+  pasta_padrao: string;
+  link_base?: string;
+}
+
+export type IntegrationStatus = 'integrated' | 'not_configured' | 'error';
