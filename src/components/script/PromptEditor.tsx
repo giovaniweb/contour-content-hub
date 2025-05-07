@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SaveIcon, RefreshCw, Code } from 'lucide-react';
+import { SaveIcon, RefreshCw, Code, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,16 +15,19 @@ interface PromptTemplate {
   tipo: string;
   modelo: string;
   prompt: string;
+  ativo?: boolean;
 }
 
 interface PromptEditorProps {
   scriptType?: string;
   onPromptSelect?: (prompt: string) => void;
+  readOnly?: boolean;
 }
 
 const PromptEditor: React.FC<PromptEditorProps> = ({ 
   scriptType = 'videoScript',
-  onPromptSelect 
+  onPromptSelect,
+  readOnly = false
 }) => {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -251,13 +254,15 @@ Formato esperado:
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium">Templates de Prompt</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleNewTemplate}
-          >
-            Novo Template
-          </Button>
+          {!readOnly && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleNewTemplate}
+            >
+              Novo Template
+            </Button>
+          )}
         </div>
         
         {templates.length > 0 ? (
@@ -282,7 +287,7 @@ Formato esperado:
               </SelectContent>
             </Select>
             
-            {selectedTemplateId && (
+            {selectedTemplateId && !readOnly && (
               <div className="mt-2 flex justify-end">
                 <Button
                   variant="secondary"
@@ -300,7 +305,7 @@ Formato esperado:
             <Card>
               <CardContent className="p-4">
                 <p className="text-center text-muted-foreground">
-                  Nenhum template encontrado. Crie um novo template.
+                  Nenhum template encontrado. {!readOnly && 'Crie um novo template.'}
                 </p>
               </CardContent>
             </Card>
@@ -312,7 +317,7 @@ Formato esperado:
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Code className="h-5 w-5" />
-            {selectedTemplateId ? 'Editar Template' : 'Novo Template'}
+            {readOnly ? 'Visualizar Template' : (selectedTemplateId ? 'Editar Template' : 'Novo Template')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -322,6 +327,8 @@ Formato esperado:
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               placeholder="Ex: Avaliação Método Disney"
+              readOnly={readOnly}
+              disabled={readOnly}
             />
           </div>
           
@@ -330,8 +337,9 @@ Formato esperado:
             <Select 
               value={modelName} 
               onValueChange={setModelName}
+              disabled={readOnly}
             >
-              <SelectTrigger>
+              <SelectTrigger disabled={readOnly}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -348,27 +356,31 @@ Formato esperado:
               onChange={(e) => setPromptContent(e.target.value)} 
               className="min-h-[300px] font-mono text-sm"
               placeholder="Insira o prompt para a IA..."
+              readOnly={readOnly}
+              disabled={readOnly}
             />
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button 
-            onClick={handleSaveTemplate} 
-            disabled={isSaving || !name.trim()}
-          >
-            {isSaving ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <SaveIcon className="h-4 w-4 mr-2" />
-                Salvar Template
-              </>
-            )}
-          </Button>
-        </CardFooter>
+        {!readOnly && (
+          <CardFooter className="flex justify-end">
+            <Button 
+              onClick={handleSaveTemplate} 
+              disabled={isSaving || !name.trim()}
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <SaveIcon className="h-4 w-4 mr-2" />
+                  Salvar Template
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

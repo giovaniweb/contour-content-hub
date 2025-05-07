@@ -1,421 +1,263 @@
-
-import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send, RefreshCw, ArrowUp, ArrowDown, Code } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { ValidationResult } from "@/utils/validation/types";
+import React, { useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Send, RefreshCw, MessageSquare, Lightbulb, CheckCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import PromptManagerDialog from './PromptManagerDialog';
+import { ScriptResponse } from '@/utils/api';
+import { ValidationResult } from '@/utils/validation/types';
 import { supabase } from '@/integrations/supabase/client';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-interface Message {
-  id: string;
-  content: string;
-  sender: "user" | "assistant";
-  timestamp: Date;
-}
 
 interface ScriptChatAssistantProps {
-  content: string;
+  script: ScriptResponse | null;
   validationResult: ValidationResult | null;
-  onImprovedScript?: (script: string) => void;
-  customPrompt?: string | null;
+  onScriptUpdate: (newContent: string) => void;
 }
 
 const ScriptChatAssistant: React.FC<ScriptChatAssistantProps> = ({ 
-  content,
+  script, 
   validationResult,
-  onImprovedScript,
-  customPrompt
+  onScriptUpdate
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isImproving, setIsImproving] = useState(false);
-  const [improvedScript, setImprovedScript] = useState<string | null>(null);
-  const [beforeAfterView, setBeforeAfterView] = useState(false);
-  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isImprovementLoading, setIsImprovementLoading] = useState(false);
+  const [improvedContent, setImprovedContent] = useState<string | null>(null);
+  const [showImprovedScript, setShowImprovedScript] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string>('');
   const { toast } = useToast();
   
-  // Buscar o prompt ativo para o assistente quando o componente monta
-  useEffect(() => {
-    const fetchActivePrompt = async () => {
-      if (customPrompt) {
-        setCurrentPrompt(customPrompt);
+  // Função para lidar com a seleção de um prompt personalizado
+  const handlePromptSelect = useCallback((prompt: string) => {
+    setCustomPrompt(prompt);
+  }, []);
+
+  // Função para enviar mensagem para o assistente de chat
+  const sendChatMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Adicionar mensagem do usuário ao histórico
+      const newMessages = [...messages, { role: 'user', content: inputMessage }];
+      setMessages(newMessages);
+      setInputMessage('');
+      
+      // Chamar a função Supabase
+      const { data, error } = await supabase.functions.invoke('chat-assistant', {
+        body: { 
+          messages: newMessages,
+          scriptContent: script?.content,
+          validationResult
+        }
+      });
+      
+      if (error) {
+        console.error("Erro na função chat-assistant:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível processar sua mensagem",
+          variant: "destructive"
+        });
         return;
       }
       
-      try {
-        const { data, error } = await supabase
-          .from('gpt_config')
-          .select('*')
-          .eq('tipo', 'assistenteRoteiro')
-          .eq('ativo', true)
-          .single();
-          
-        if (error && error.code !== 'PGRST116') {
-          console.error('Erro ao buscar prompt:', error);
-          return;
-        }
-        
-        if (data) {
-          setCurrentPrompt(data.prompt);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar prompt ativo:', error);
-      }
-    };
-    
-    fetchActivePrompt();
-  }, [customPrompt]);
-  
-  // Generate a welcome message when component mounts
-  useEffect(() => {
-    const welcomeMessage = {
-      id: "welcome",
-      content: "Olá! Sou seu assistente de roteiros. Posso te ajudar a melhorar seu roteiro usando o método de encantamento Disney, analisar seus pontos fortes e fracos, ou responder perguntas sobre como criar roteiros mais envolventes.",
-      sender: "assistant" as const,
-      timestamp: new Date()
-    };
-    
-    setMessages([welcomeMessage]);
-  }, []);
-  
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
-  // Handle sending message
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-    
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: "user",
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
-    setIsLoading(true);
-    
-    try {
-      // Verificar se temos chave de API para OpenAI
-      const { data: { OPENAI_API_KEY } } = await supabase.functions.invoke('get-secrets', {
-        body: { keys: ['OPENAI_API_KEY'] }
-      });
-      
-      if (OPENAI_API_KEY) {
-        // Se temos API key, usamos o modelo de verdade
-        const assistantPrompt = currentPrompt || 
-          "Você é um assistente de roteiros especializado no método Disney de storytelling. " +
-          "Ajude o usuário a melhorar seus roteiros com foco em quatro elementos: " +
-          "Gancho (hook forte para atrair atenção), Conflito (apresentação do problema), " +
-          "Virada (solução transformadora) e CTA (chamada para ação convincente).";
-        
-        const response = await supabase.functions.invoke('chat-assistant', {
-          body: {
-            messages: [
-              { role: "system", content: assistantPrompt },
-              ...messages.map(msg => ({
-                role: msg.sender === "user" ? "user" : "assistant",
-                content: msg.content
-              })),
-              { role: "user", content: inputValue }
-            ],
-            scriptContent: content,
-            validationResult: validationResult || undefined
-          }
-        });
-        
-        const assistantMessage: Message = {
-          id: Date.now().toString(),
-          content: response.content || "Desculpe, não consegui processar sua mensagem. Tente novamente.",
-          sender: "assistant",
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
+      // Adicionar resposta do assistente ao histórico
+      if (data && 'content' in data) {
+        setMessages([...newMessages, { role: 'assistant', content: data.content }]);
       } else {
-        // Simulação local para quando não temos API key
-        setTimeout(() => {
-          // Example responses based on user input
-          let responseContent = "";
-          const userInput = inputValue.toLowerCase();
-          
-          if (userInput.includes("melhorar") || userInput.includes("aprimorar")) {
-            responseContent = "Para melhorar seu roteiro, considere aplicar a estrutura Disney: começe com um gancho forte, apresente um conflito claro, crie uma virada envolvente e termine com um chamado à ação irresistível. Seu roteiro atual poderia ter um gancho mais impactante logo nos primeiros segundos.";
-          } else if (userInput.includes("analisar") || userInput.includes("análise")) {
-            const scores = validationResult ? 
-              `Gancho: ${validationResult.gancho}/10\nClareza: ${validationResult.clareza}/10\nCTA: ${validationResult.cta}/10\nConexão Emocional: ${validationResult.emocao}/10` :
-              "Ainda não temos uma validação completa para este roteiro.";
-            
-            responseContent = `Aqui está uma análise do seu roteiro:\n\n${scores}\n\nSeu roteiro tem pontos fortes na estrutura, mas poderia melhorar a conexão emocional com o público-alvo.`;
-          } else if (userInput.includes("dica") || userInput.includes("conselho")) {
-            responseContent = "Uma dica valiosa: sempre pense no problema real do seu público antes de falar da solução. Use linguagem simples e direta, e crie uma narrativa que resolva uma dor específica. No método Disney, chamamos isso de 'conflito' e é essencial para criar identificação.";
-          } else {
-            responseContent = "Entendi sua pergunta. Para criar roteiros mais impactantes, foque em contar uma história que resolva um problema real do seu público. Use a estrutura Disney: gancho (capte atenção), conflito (apresente o problema), virada (mostre a solução) e CTA (chamada para ação clara).";
-          }
-          
-          const assistantMessage: Message = {
-            id: Date.now().toString(),
-            content: responseContent,
-            sender: "assistant",
-            timestamp: new Date()
-          };
-          
-          setMessages(prev => [...prev, assistantMessage]);
-          setIsLoading(false);
-        }, 1500);
+        console.error("Resposta inválida da função chat-assistant:", data);
+        toast({
+          title: "Erro",
+          description: "Resposta inválida do assistente",
+          variant: "destructive"
+        });
       }
+      
     } catch (error) {
-      console.error('Erro ao processar mensagem:', error);
-      
-      // Adicionar mensagem de erro
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.",
-        sender: "assistant",
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
+      console.error("Erro ao enviar mensagem:", error);
+      toast({
+        title: "Erro",
+        description: "Algo deu errado ao processar sua mensagem",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle key press in textarea
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  // Handle improve script button
-  const handleImproveScript = async () => {
-    if (!content) return;
-    
-    setIsImproving(true);
+  // Função para melhorar o roteiro
+  const improveScript = async () => {
+    if (!script || isImprovementLoading) return;
     
     try {
-      // Verificar se temos chave de API para OpenAI
-      const { data: { OPENAI_API_KEY } } = await supabase.functions.invoke('get-secrets', {
-        body: { keys: ['OPENAI_API_KEY'] }
+      setIsImprovementLoading(true);
+      
+      // Chamar a função Supabase para melhorar o roteiro
+      const { data, error } = await supabase.functions.invoke('improve-script', {
+        body: { 
+          content: script.content,
+          validationResult,
+          prompt: customPrompt || undefined
+        }
       });
       
-      if (OPENAI_API_KEY) {
-        const response = await supabase.functions.invoke('improve-script', {
-          body: {
-            content,
-            validationResult,
-            prompt: currentPrompt
-          }
+      if (error) {
+        console.error("Erro na função improve-script:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível melhorar o roteiro",
+          variant: "destructive"
         });
-        
-        if (response.improved) {
-          setImprovedScript(response.improved);
-          
-          if (onImprovedScript) {
-            onImprovedScript(response.improved);
-          }
-          
-          toast({
-            title: "Roteiro aprimorado!",
-            description: "O assistente IA criou uma versão otimizada do seu roteiro."
-          });
-        } else {
-          throw new Error("Não foi possível melhorar o roteiro");
-        }
-      } else {
-        // Simulação local
-        setTimeout(() => {
-          const improvedText = content + "\n\n[Versão aprimorada]\n\nVocê já imaginou acordar todo dia sentindo-se confiante na sua própria pele? ✨\n\nMuitas pessoas tentam diversos tratamentos estéticos, mas acabam decepcionadas com resultados temporários e procedimentos dolorosos.\n\nO Crystal 3D Plus revoluciona esse cenário com sua tecnologia tripla de depilação definitiva que não só elimina os pelos, mas também estimula o colágeno da sua pele, deixando-a mais firme e jovem.\n\nNão perca mais tempo com métodos que não funcionam! Agende agora sua avaliação gratuita e ganhe 20% de desconto na primeira sessão. Vagas limitadas para maio!";
-          
-          setImprovedScript(improvedText);
-          
-          if (onImprovedScript) {
-            onImprovedScript(improvedText);
-          }
-          
-          toast({
-            title: "Roteiro aprimorado!",
-            description: "O assistente IA criou uma versão otimizada do seu roteiro."
-          });
-        }, 3000);
+        return;
       }
+      
+      // Mostrar o roteiro melhorado
+      if (data && 'improved' in data) {
+        setImprovedContent(data.improved);
+        setShowImprovedScript(true);
+        
+        // Aviso sobre aplicar as melhorias
+        toast({
+          title: "Roteiro melhorado!",
+          description: "Avalie as melhorias sugeridas e clique em 'Aplicar Melhorias' se desejar usar este conteúdo.",
+        });
+      } else {
+        console.error("Resposta inválida da função improve-script:", data);
+        toast({
+          title: "Erro",
+          description: "Não foi possível processar as melhorias",
+          variant: "destructive"
+        });
+      }
+      
     } catch (error) {
-      console.error('Erro ao melhorar roteiro:', error);
+      console.error("Erro ao melhorar roteiro:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível melhorar o roteiro. Tente novamente mais tarde.",
+        description: "Algo deu errado ao processar as melhorias",
         variant: "destructive"
       });
     } finally {
-      setIsImproving(false);
+      setIsImprovementLoading(false);
+    }
+  };
+
+  // Função para aplicar as melhorias ao roteiro
+  const applyImprovedScript = () => {
+    if (improvedContent && script) {
+      onScriptUpdate(improvedContent);
+      setShowImprovedScript(false);
+      
+      toast({
+        title: "Melhorias aplicadas",
+        description: "O roteiro foi atualizado com as melhorias sugeridas.",
+      });
     }
   };
 
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader className="py-3 px-4">
-        <CardTitle className="flex items-center justify-between text-lg">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-500" />
-            Assistente de Roteiros
-            <Badge variant="secondary">Disney Method</Badge>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="flex-1 p-0 flex flex-col">
-        {/* Mostrar o prompt atual em um accordion */}
-        {currentPrompt && (
-          <Accordion type="single" collapsible className="px-4 pt-2">
-            <AccordionItem value="prompt">
-              <AccordionTrigger className="text-sm py-2">
-                <div className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  Ver prompt atual
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-md">
-                  <pre className="text-xs whitespace-pre-wrap">{currentPrompt}</pre>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        )}
-      
-        {/* Messages history */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div 
-                key={message.id} 
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex items-start gap-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <Avatar className={`h-8 w-8 ${message.sender === 'user' ? 'bg-blue-600' : 'bg-green-600'}`}>
-                    <span className="text-xs text-white">
-                      {message.sender === 'user' ? 'Eu' : 'IA'}
-                    </span>
-                  </Avatar>
-                  <div className={`p-3 rounded-lg ${
-                    message.sender === 'user' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 dark:bg-gray-800'
-                  }`}>
-                    <div className="whitespace-pre-line text-sm">
-                      {message.content}
-                    </div>
-                    <div className="text-xs mt-1 opacity-70">
-                      {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </div>
-                  </div>
-                </div>
+    <div className="space-y-4">
+      {/* Chat Assistant */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Assistente de Roteiro
+          </CardTitle>
+          <CardDescription>
+            Use o assistente para obter sugestões e feedback sobre seu roteiro.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            {messages.map((message, index) => (
+              <div key={index} className={`p-3 rounded-md ${message.role === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                <p className="text-sm">{message.content}</p>
               </div>
             ))}
-            
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-start gap-2 max-w-[80%]">
-                  <Avatar className="h-8 w-8 bg-green-600">
-                    <span className="text-xs text-white">IA</span>
-                  </Avatar>
-                  <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Pensando...</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
-        
-        {/* Input area */}
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <Textarea
-              placeholder="Pergunte algo sobre seu roteiro ou peça sugestões..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="min-h-[80px] resize-none"
+          <div className="flex items-center space-x-2">
+            <Input
+              type="text"
+              placeholder="Escreva sua mensagem..."
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') sendChatMessage(); }}
+              disabled={isLoading}
             />
-            <Button 
-              className="self-end"
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isLoading}
-            >
-              <Send className="h-5 w-5" />
-              <span className="sr-only">Enviar</span>
+            <Button onClick={sendChatMessage} disabled={isLoading}>
+              {isLoading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Enviar
             </Button>
           </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="border-t p-4 flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          {validationResult && `Score atual: ${validationResult.total.toFixed(1)}/10`}
-        </div>
-        
-        <div className="flex gap-2">
-          {improvedScript && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setBeforeAfterView(!beforeAfterView)}
-            >
-              {beforeAfterView ? (
-                <>
-                  <ArrowDown className="h-4 w-4 mr-2" />
-                  Versão Única
-                </>
-              ) : (
-                <>
-                  <ArrowUp className="h-4 w-4 mr-2" />
-                  Antes/Depois
-                </>
-              )}
-            </Button>
-          )}
-          
-          <Button 
-            onClick={handleImproveScript}
-            disabled={isImproving || !content}
-            size="sm"
-          >
-            {isImproving ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Aprimorando...
-              </>
+        </CardContent>
+      </Card>
+
+      {/* Melhoria do Roteiro */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5" />
+            Melhorar Roteiro
+          </CardTitle>
+          <CardDescription>
+            Obtenha sugestões de melhoria para o seu roteiro atual.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Clique no botão abaixo para obter sugestões de melhoria para o seu roteiro.
+            </p>
+            <PromptManagerDialog onPromptSelect={handlePromptSelect} />
+          </div>
+          <Button onClick={improveScript} disabled={isImprovementLoading} variant="secondary">
+            {isImprovementLoading ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Melhorar Roteiro
-              </>
+              <Lightbulb className="h-4 w-4 mr-2" />
             )}
+            Melhorar Roteiro
           </Button>
-        </div>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Roteiro Melhorado */}
+      {showImprovedScript && improvedContent && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              Roteiro Melhorado
+            </CardTitle>
+            <CardDescription>
+              Aqui está uma versão melhorada do seu roteiro.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={improvedContent}
+              readOnly
+              className="min-h-[150px] text-sm"
+            />
+          </CardContent>
+          <CardContent>
+            <Button onClick={applyImprovedScript}>
+              Aplicar Melhorias
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
