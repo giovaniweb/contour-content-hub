@@ -45,6 +45,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import LoadingState from "@/components/dashboard/predictive-consultant/LoadingState";
 
 const SystemDiagnostics: React.FC = () => {
   const { toast } = useToast();
@@ -58,7 +59,7 @@ const SystemDiagnostics: React.FC = () => {
   const [isRepairing, setIsRepairing] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<SystemIssue | null>(null);
   
-  // Mock de dados para demonstração
+  // Mock data for demonstration
   const mockIssues: SystemIssue[] = [
     {
       id: "1",
@@ -165,21 +166,7 @@ const SystemDiagnostics: React.FC = () => {
     }
   ];
 
-  // Carregar dados iniciais
-  useEffect(() => {
-    loadSystemData();
-  }, []);
-
-  // Verificar permissões - apenas admins podem acessar
-  if (!hasPermission("editAllContent")) {
-    toast({
-      variant: "destructive",
-      title: "Acesso Negado",
-      description: "Você não possui permissões para acessar esta página",
-    });
-    return <Navigate to="/dashboard" replace />;
-  }
-
+  // Define loadSystemData function before it's used in useEffect
   const loadSystemData = async () => {
     setIsLoading(true);
     try {
@@ -198,6 +185,21 @@ const SystemDiagnostics: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadSystemData();
+  }, []);
+
+  // Verificar permissões - apenas admins podem acessar
+  if (!hasPermission("editAllContent")) {
+    toast({
+      variant: "destructive",
+      title: "Acesso Negado",
+      description: "Você não possui permissões para acessar esta página",
+    });
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const runSystemCheck = async () => {
     setIsRunningCheck(true);
@@ -248,7 +250,7 @@ const SystemDiagnostics: React.FC = () => {
     });
   };
 
-  // Nova função para analisar problema com IA
+  // Função para analisar problema com IA
   const analyzeIssue = async (issue: SystemIssue) => {
     setIsAnalyzing(issue.id);
     try {
@@ -268,11 +270,11 @@ const SystemDiagnostics: React.FC = () => {
     }
   };
 
-  // Nova função para executar reparo automático
+  // Função para executar reparo automático
   const repairIssue = async (issue: SystemIssue) => {
     if (!issue.repairAnalysis?.autoReparo) {
       toast({
-        variant: "destructive", // Changed from "warning" to "destructive"
+        variant: "destructive",
         title: "Reparo manual necessário",
         description: "Este problema requer intervenção manual para ser corrigido."
       });
@@ -363,6 +365,16 @@ const SystemDiagnostics: React.FC = () => {
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <Layout title="Diagnóstico do Sistema" fullWidth>
+        <div className="grid place-items-center h-[80vh]">
+          <LoadingState />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Diagnóstico do Sistema" fullWidth>
@@ -756,25 +768,25 @@ const SystemDiagnostics: React.FC = () => {
               <h3 className="font-medium mb-2">Verificações Automatizadas</h3>
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <Checkbox id="check1" checked />
+                  <Checkbox id="check1" checked={true} />
                   <label htmlFor="check1" className="ml-2 text-sm">
                     Verificação de segurança (Última: há 2 horas)
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <Checkbox id="check2" checked />
+                  <Checkbox id="check2" checked={true} />
                   <label htmlFor="check2" className="ml-2 text-sm">
                     Backup de dados (Último: há 1 dia)
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <Checkbox id="check3" checked />
+                  <Checkbox id="check3" checked={true} />
                   <label htmlFor="check3" className="ml-2 text-sm">
                     Teste de APIs (Último: há 1 hora)
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <Checkbox id="check4" checked />
+                  <Checkbox id="check4" checked={true} />
                   <label htmlFor="check4" className="ml-2 text-sm">
                     Diagnóstico de IA (Último: há 10 minutos)
                   </label>
