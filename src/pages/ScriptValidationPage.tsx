@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, FileText, RefreshCw, ArrowLeft } from 'lucide-react';
-import { ScriptResponse } from '@/utils/api';
+import { ScriptResponse, ScriptType } from '@/utils/api';
 import { validateScript, getValidation } from '@/utils/validation/api';
 import { useToast } from '@/hooks/use-toast';
 import ScriptChatAssistant from '@/components/script/ScriptChatAssistant';
@@ -84,7 +84,7 @@ const ScriptValidationPage: React.FC = () => {
         id: id || 'temp-' + Date.now(),
         content: scriptContent,
         title: scriptTitle || 'Roteiro sem título',
-        type: 'videoScript'
+        type: 'videoScript' as ScriptType
       };
       
       // Validar o roteiro
@@ -192,7 +192,7 @@ const ScriptValidationPage: React.FC = () => {
                   id: id || 'temp-script', 
                   content: scriptContent,
                   title: scriptTitle,
-                  type: 'videoScript',
+                  type: 'videoScript' as ScriptType,
                   createdAt: new Date().toISOString(),
                   suggestedVideos: [],
                   captionTips: []
