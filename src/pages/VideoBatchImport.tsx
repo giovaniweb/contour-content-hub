@@ -77,7 +77,7 @@ const VideoBatchImport: React.FC = () => {
     const checkVimeoConfig = async () => {
       try {
         const config = await getVimeoConfig();
-        setIsConfigured(!!config?.access_token);
+        setIsConfigured(!!config?.folder_id);
       } catch (error) {
         console.error("Erro ao verificar configuração do Vimeo:", error);
       }

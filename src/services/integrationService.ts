@@ -61,7 +61,7 @@ export const getVimeoConfig = async (): Promise<VimeoConfig | null> => {
 };
 
 // Testar conexão com Vimeo
-export const testVimeoConnection = async (token: string): Promise<{
+export const testVimeoConnection = async (folderId: string): Promise<{
   success: boolean;
   message?: string;
   error?: string;
@@ -73,12 +73,12 @@ export const testVimeoConnection = async (token: string): Promise<{
   required_scopes?: string[];
 }> => {
   try {
-    console.log(`Testando conexão com token: ${token.substring(0, 5)}...`);
+    console.log(`Testando conexão com folder_id: ${folderId}`);
     
     // Usar supabase.functions.invoke para chamar a Edge Function diretamente
     const { data, error } = await supabase.functions.invoke('vimeo-test-connection', {
       method: 'POST',
-      body: { token }
+      body: { folder_id: folderId }
     });
     
     if (error) {

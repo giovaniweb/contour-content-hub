@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -211,8 +212,8 @@ const AdminIntegrations: React.FC = () => {
       }
 
       // Testar configuração Vimeo
-      if (vimeoConfig?.access_token) {
-        const result = await testVimeoConnection(vimeoConfig.access_token);
+      if (vimeoConfig?.folder_id) {
+        const result = await testVimeoConnection(vimeoConfig.folder_id);
         
         newStatuses.vimeo = {
           status: result.success ? 'integrated' : 'error',

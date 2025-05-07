@@ -1,3 +1,4 @@
+
 export interface VimeoConfig {
   folder_id?: string;
 }
