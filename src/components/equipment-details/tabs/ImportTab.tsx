@@ -24,7 +24,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({ id, onCompleteImport }) =>
               Você pode fazer upload de vídeos diretamente para este equipamento.
             </p>
             <Button asChild>
-              <Link to="/admin/videos/batch-import">
+              <Link to="/videos">
                 <Upload className="mr-2 h-4 w-4" />
                 Ir para o módulo de upload
               </Link>

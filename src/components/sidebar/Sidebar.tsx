@@ -185,9 +185,9 @@ export const AppSidebar = ({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={location.pathname === '/admin/videos/batch-import'}>
-                <SidebarMenuButton asChild variant={location.pathname === '/admin/videos/batch-import' ? "active" : "default"}>
-                  <NavLink to="/admin/videos/batch-import" className="flex items-center">
+              <SidebarMenuItem active={location.pathname === '/videos'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/videos' ? "active" : "default"}>
+                  <NavLink to="/videos" className="flex items-center">
                     <Upload className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Upload de Vídeos</span>}
                   </NavLink>
