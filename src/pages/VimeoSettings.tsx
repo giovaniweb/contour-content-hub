@@ -27,7 +27,8 @@ import {
   Info,
   ExternalLink,
   HelpCircle,
-  Copy
+  Copy,
+  Link as LinkIcon
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
@@ -44,6 +45,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import VimeoAccountManager from "@/components/vimeo/VimeoAccountManager";
+import VimeoConnectButton from "@/components/vimeo/VimeoConnectButton";
 
 // Define schema para o formulário com validação mais rigorosa para o token
 const vimeoSchema = z.object({
@@ -80,6 +84,7 @@ const VimeoSettings: React.FC = () => {
   const [scopesDialogOpen, setScopesDialogOpen] = useState(false);
   const [exampleDialogOpen, setExampleDialogOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState("oauth");
   
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -147,9 +152,9 @@ const VimeoSettings: React.FC = () => {
     // Verificação adicional para detectar tokens truncados
     if (token.length < 30) {
       toast({
-        variant: "warning",
         title: "Token pode estar incompleto",
-        description: "O token parece curto demais. Tokens do Vimeo geralmente são mais longos. Verifique se você copiou o token inteiro."
+        description: "O token parece curto demais. Tokens do Vimeo geralmente são mais longos. Verifique se você copiou o token inteiro.",
+        variant: "destructive"
       });
     }
     
@@ -269,253 +274,289 @@ const VimeoSettings: React.FC = () => {
     <Layout title="Configurações do Vimeo">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Configurações do Vimeo</h1>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span>Integração com Vimeo</span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openVimeoTokenPage}
-                  className="flex items-center gap-1"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Criar Token
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openVimeoDeveloperPanel}
-                  className="flex items-center gap-1"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Painel Vimeo
-                </Button>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Configure as credenciais para acesso à API do Vimeo
-            </CardDescription>
-          </CardHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+        
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="oauth">Autenticação OAuth</TabsTrigger>
+            <TabsTrigger value="token">Token de Acesso Manual</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="oauth" className="pt-4">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Conexão OAuth com Vimeo</CardTitle>
+                <CardDescription>
+                  Conecte uma ou mais contas Vimeo usando o fluxo de autenticação OAuth2
+                </CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="access_token"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span>Token de Acesso</span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button" onClick={() => setScopesDialogOpen(true)}>
-                                  <HelpCircle className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Saiba mais sobre escopos do Vimeo</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowToken(!showToken)}
-                          className="h-6 px-2 text-xs"
-                        >
-                          {showToken ? (
-                            <><EyeOff className="h-3 w-3 mr-1" /> Ocultar</>
-                          ) : (
-                            <><Eye className="h-3 w-3 mr-1" /> Mostrar</>
-                          )}
-                        </Button>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showToken ? "text" : "password"}
-                            placeholder="Token de acesso do Vimeo"
-                            {...field}
-                            disabled={isLoading}
-                            className="pr-24"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2 text-xs text-blue-600"
-                            onClick={showTokenExample}
-                          >
-                            Ver exemplo
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormDescription className="flex items-center justify-between">
-                        <span>
-                          Token de acesso à API do Vimeo com os escopos necessários.
-                        </span>
-                        <a 
-                          href={VIMEO_TOKEN_URL}
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 ml-1 hover:underline flex items-center gap-1"
-                        >
-                          <span>Obter token</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="folder_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID da Pasta (opcional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="ID da pasta no Vimeo"
-                          {...field}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        ID da pasta específica para importar vídeos. Deixe em branco para buscar todos os vídeos.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {connectionStatus === 'success' && (
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-800">Conexão estabelecida</AlertTitle>
-                    <AlertDescription className="text-green-700">
-                      {connectionMessage}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {connectionStatus === 'error' && (
-                  <Alert className="bg-red-50 border-red-200">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <AlertTitle className="text-red-800 flex justify-between items-center">
-                      <span>Erro de conexão</span>
-                      {errorDetails && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={showErrorDetails}
-                          className="text-xs flex items-center text-red-700 h-6"
-                        >
-                          <Info className="h-3 w-3 mr-1" /> Detalhes
-                        </Button>
-                      )}
-                    </AlertTitle>
-                    <AlertDescription className="text-red-700">
-                      {connectionMessage}
-                      
-                      {helpMessage && (
-                        <div className="mt-2 p-2 bg-red-100 rounded-md">
-                          <p className="font-medium">Dica:</p>
-                          <p className="whitespace-pre-line">{helpMessage}</p>
-                          
-                          {missingScopes && missingScopes.length > 0 && (
-                            <div className="mt-2">
-                              <p className="font-medium">Escopos necessários ausentes:</p>
-                              <ul className="list-disc list-inside">
-                                {missingScopes.map(scope => (
-                                  <li key={scope}>{scope}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {requiredScopes && requiredScopes.length > 0 && (
-                            <div className="mt-2">
-                              <p className="font-medium">Todos os escopos necessários:</p>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {requiredScopes.map(scope => (
-                                  <Badge key={scope} className="bg-blue-100 text-blue-800 border-blue-300">
-                                    {scope}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="mt-3 flex justify-between items-center">
-                            <p className="text-xs">
-                              Verifique se você gerou o token com todos os escopos necessários
-                            </p>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={openVimeoTokenPage}
-                              className="text-xs h-7"
-                            >
-                              Criar novo token
-                              <ExternalLink className="h-3 w-3 ml-1" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <Alert className="bg-blue-50 border-blue-200">
                   <Info className="h-4 w-4 text-blue-600" />
-                  <AlertTitle className="text-blue-800">Verificação de token</AlertTitle>
+                  <AlertTitle className="text-blue-800">Autenticação recomendada</AlertTitle>
                   <AlertDescription className="text-blue-700">
-                    <p>Certifique-se que seu token:</p>
+                    <p>A autenticação OAuth2 é mais segura e permite:</p>
                     <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>Foi copiado <strong>integralmente</strong> (tokens são longos)</li>
-                      <li>Foi gerado com <strong>todos os escopos</strong> necessários</li>
-                      <li>Está ativo e não expirou</li>
+                      <li>Conexão de múltiplas contas Vimeo</li>
+                      <li>Tokens que se renovam automaticamente</li>
+                      <li>Maior segurança (sem armazenar tokens manualmente)</li>
                     </ul>
                   </AlertDescription>
                 </Alert>
+                
+                <VimeoAccountManager />
               </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="token" className="pt-4">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Token de Acesso Manual</span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openVimeoTokenPage}
+                      className="flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Criar Token
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openVimeoDeveloperPanel}
+                      className="flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Painel Vimeo
+                    </Button>
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  Configure as credenciais para acesso à API do Vimeo
+                </CardDescription>
+              </CardHeader>
 
-              <CardFooter className="flex justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => testConnection(form.getValues())}
-                  disabled={isLoading || isTesting || !form.getValues().access_token}
-                >
-                  {isTesting ? (
-                    <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Testando conexão</>
-                  ) : (
-                    <><RefreshCw className="h-4 w-4 mr-2" /> Testar conexão</>
-                  )}
-                </Button>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="access_token"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <span>Token de Acesso</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button" onClick={() => setScopesDialogOpen(true)}>
+                                      <HelpCircle className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Saiba mais sobre escopos do Vimeo</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowToken(!showToken)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              {showToken ? (
+                                <><EyeOff className="h-3 w-3 mr-1" /> Ocultar</>
+                              ) : (
+                                <><Eye className="h-3 w-3 mr-1" /> Mostrar</>
+                              )}
+                            </Button>
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showToken ? "text" : "password"}
+                                placeholder="Token de acesso do Vimeo"
+                                {...field}
+                                disabled={isLoading}
+                                className="pr-24"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2 text-xs text-blue-600"
+                                onClick={showTokenExample}
+                              >
+                                Ver exemplo
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormDescription className="flex items-center justify-between">
+                            <span>
+                              Token de acesso à API do Vimeo com os escopos necessários.
+                            </span>
+                            <a 
+                              href={VIMEO_TOKEN_URL}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 ml-1 hover:underline flex items-center gap-1"
+                            >
+                              <span>Obter token</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Salvando...</>
-                  ) : (
-                    <><Save className="h-4 w-4 mr-2" /> Salvar</>
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
+                    <FormField
+                      control={form.control}
+                      name="folder_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID da Pasta (opcional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="ID da pasta no Vimeo"
+                              {...field}
+                              disabled={isLoading}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            ID da pasta específica para importar vídeos. Deixe em branco para buscar todos os vídeos.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {connectionStatus === 'success' && (
+                      <Alert className="bg-green-50 border-green-200">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertTitle className="text-green-800">Conexão estabelecida</AlertTitle>
+                        <AlertDescription className="text-green-700">
+                          {connectionMessage}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {connectionStatus === 'error' && (
+                      <Alert className="bg-red-50 border-red-200">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <AlertTitle className="text-red-800 flex justify-between items-center">
+                          <span>Erro de conexão</span>
+                          {errorDetails && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={showErrorDetails}
+                              className="text-xs flex items-center text-red-700 h-6"
+                            >
+                              <Info className="h-3 w-3 mr-1" /> Detalhes
+                            </Button>
+                          )}
+                        </AlertTitle>
+                        <AlertDescription className="text-red-700">
+                          {connectionMessage}
+                          
+                          {helpMessage && (
+                            <div className="mt-2 p-2 bg-red-100 rounded-md">
+                              <p className="font-medium">Dica:</p>
+                              <p className="whitespace-pre-line">{helpMessage}</p>
+                              
+                              {missingScopes && missingScopes.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="font-medium">Escopos necessários ausentes:</p>
+                                  <ul className="list-disc list-inside">
+                                    {missingScopes.map(scope => (
+                                      <li key={scope}>{scope}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {requiredScopes && requiredScopes.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="font-medium">Todos os escopos necessários:</p>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {requiredScopes.map(scope => (
+                                      <Badge key={scope} className="bg-blue-100 text-blue-800 border-blue-300">
+                                        {scope}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="mt-3 flex justify-between items-center">
+                                <p className="text-xs">
+                                  Verifique se você gerou o token com todos os escopos necessários
+                                </p>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={openVimeoTokenPage}
+                                  className="text-xs h-7"
+                                >
+                                  Criar novo token
+                                  <ExternalLink className="h-3 w-3 ml-1" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <Alert className="bg-blue-50 border-blue-200">
+                      <Info className="h-4 w-4 text-blue-600" />
+                      <AlertTitle className="text-blue-800">Verificação de token</AlertTitle>
+                      <AlertDescription className="text-blue-700">
+                        <p>Certifique-se que seu token:</p>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                          <li>Foi copiado <strong>integralmente</strong> (tokens são longos)</li>
+                          <li>Foi gerado com <strong>todos os escopos</strong> necessários</li>
+                          <li>Está ativo e não expirou</li>
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  </CardContent>
+
+                  <CardFooter className="flex justify-between">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => testConnection(form.getValues())}
+                      disabled={isLoading || isTesting || !form.getValues().access_token}
+                    >
+                      {isTesting ? (
+                        <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Testando conexão</>
+                      ) : (
+                        <><RefreshCw className="h-4 w-4 mr-2" /> Testar conexão</>
+                      )}
+                    </Button>
+
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? (
+                        <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Salvando...</>
+                      ) : (
+                        <><Save className="h-4 w-4 mr-2" /> Salvar</>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Form>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Modal de detalhes do erro */}
         <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>

@@ -36,6 +36,7 @@ import EquipmentDetails from './pages/EquipmentDetails';
 import EquipmentsPage from './pages/EquipmentsPage';
 import VideoBatchImport from './pages/VideoBatchImport';
 import VimeoSettings from './pages/VimeoSettings';
+import VimeoCallback from './pages/auth/VimeoCallback';
 import Settings from './pages/Settings';
 import SystemIntelligence from './pages/SystemIntelligence';
 
@@ -67,6 +68,9 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+
+                {/* Authentication Callback Routes */}
+                <Route path="/auth/vimeo/callback" element={<VimeoCallback />} />
 
                 {/* Private Routes */}
                 <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
