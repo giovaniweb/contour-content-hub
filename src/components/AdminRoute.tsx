@@ -1,14 +1,10 @@
 
-import React, { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
 
-interface AdminRouteProps {
-  children: ReactNode;
-}
-
-const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+const AdminRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const { isAdmin } = usePermissions();
   
@@ -20,7 +16,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  return isAuthenticated && isAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
+  return isAuthenticated && isAdmin() ? <Outlet /> : <Navigate to="/dashboard" replace />;
 };
 
 export default AdminRoute;

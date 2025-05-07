@@ -9,7 +9,7 @@ export interface StoredVideo {
   owner_id: string;
   status: VideoStatus;
   size: number;
-  duration?: number;
+  duration?: string; // Changed from number to string to match database
   created_at: string;
   updated_at: string;
   tags: string[];

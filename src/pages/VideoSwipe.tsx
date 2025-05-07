@@ -27,7 +27,7 @@ const VideoSwipe: React.FC = () => {
     try {
       setLoading(true);
       
-      const { data: videos, error } = await supabase
+      const { data: fetchedVideos, error } = await supabase
         .from('videos_storage')
         .select('*')
         .eq('status', 'ready')
@@ -37,7 +37,9 @@ const VideoSwipe: React.FC = () => {
         throw error;
       }
 
-      setVideos(videos as StoredVideo[]);
+      // Explicitly convert the fetched videos to the StoredVideo type
+      const typedVideos: StoredVideo[] = fetchedVideos as StoredVideo[];
+      setVideos(typedVideos);
     } catch (error: any) {
       toast({
         variant: "destructive",
