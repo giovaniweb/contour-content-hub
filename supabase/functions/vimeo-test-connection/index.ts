@@ -26,50 +26,66 @@ serve(async (req) => {
     
     if (!token) {
       console.error("Token não fornecido no request");
+      
+      // Retorna erro com status 200 para o cliente (para evitar erro de Edge Function)
       return new Response(JSON.stringify({ 
         success: false, 
         error: "Token de acesso é necessário" 
       }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
+        status: 200 // Mudamos para 200 para que o cliente receba a resposta sem erro
       });
     }
     
     console.log("Chamando API do Vimeo com token válido");
     
-    // Fazer uma chamada para a API do Vimeo para verificar se o token é válido
-    const vimeoResponse = await fetch('https://api.vimeo.com/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    const vimeoData = await vimeoResponse.json();
-    
-    // Log da resposta da API do Vimeo para depuração
-    console.log(`Resposta da API do Vimeo - Status: ${vimeoResponse.status}`);
-    console.log("Dados da resposta:", JSON.stringify(vimeoData));
-    
-    if (vimeoResponse.ok) {
-      // Token é válido
-      return new Response(JSON.stringify({
-        success: true,
-        message: `Conexão estabelecida como ${vimeoData.name || 'usuário do Vimeo'}`,
-        user: vimeoData
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    try {
+      // Fazer uma chamada para a API do Vimeo para verificar se o token é válido
+      const vimeoResponse = await fetch('https://api.vimeo.com/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-    } else {
-      // Token é inválido - retorna detalhes específicos do erro do Vimeo
+      
+      const vimeoData = await vimeoResponse.json();
+      
+      // Log da resposta da API do Vimeo para depuração
+      console.log(`Resposta da API do Vimeo - Status: ${vimeoResponse.status}`);
+      console.log("Dados da resposta:", JSON.stringify(vimeoData));
+      
+      if (vimeoResponse.ok) {
+        // Token é válido
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Conexão estabelecida como ${vimeoData.name || 'usuário do Vimeo'}`,
+          user: vimeoData
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      } else {
+        // Token é inválido - retorna detalhes específicos do erro do Vimeo
+        // mas usando código 200 para que o cliente receba a resposta
+        return new Response(JSON.stringify({
+          success: false,
+          error: vimeoData.error || "Token de acesso inválido",
+          details: vimeoData
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 // Usar 200 mesmo quando há erro do Vimeo
+        });
+      }
+    } catch (vimeoError) {
+      // Erro ao se comunicar com a API do Vimeo
+      console.error("Erro ao chamar API do Vimeo:", vimeoError);
       return new Response(JSON.stringify({
         success: false,
-        error: vimeoData.error || "Token de acesso inválido",
-        details: vimeoData,
-        status: vimeoResponse.status
+        error: "Falha na comunicação com a API do Vimeo",
+        details: { message: vimeoError.message }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401
+        status: 200 // Usar 200 para que o cliente receba a resposta
       });
     }
   } catch (error) {
@@ -81,7 +97,7 @@ serve(async (req) => {
       error: error.message || 'Erro ao testar conexão com Vimeo',
       stack: error.stack
     }), {
-      status: 500,
+      status: 200, // Sempre usar 200 para evitar o erro de Edge Function
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

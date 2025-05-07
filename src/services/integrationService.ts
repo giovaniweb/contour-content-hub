@@ -67,6 +67,7 @@ export const testVimeoConnection = async (token: string): Promise<{
   message?: string;
   error?: string;
   details?: any;
+  user?: any;
 }> => {
   try {
     console.log(`Testando conexão com token: ${token.substring(0, 5)}...`);
@@ -86,6 +87,8 @@ export const testVimeoConnection = async (token: string): Promise<{
     }
     
     console.log("Resultado do teste de conexão:", data);
+    
+    // A resposta agora deve sempre ter sucesso ou falha determinado pelo campo 'success'
     return data;
   } catch (error: any) {
     console.error('Erro ao testar conexão com Vimeo:', error);
