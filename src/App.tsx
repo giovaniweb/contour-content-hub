@@ -34,6 +34,8 @@ import ScriptValidationPage from './pages/ScriptValidationPage';
 import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
 import EquipmentsPage from './pages/EquipmentsPage';
 import VideoBatchImport from './pages/VideoBatchImport';
+import VimeoSettings from './pages/VimeoSettings';
+import Settings from './pages/Settings';
 
 // Seller Pages
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -65,6 +67,7 @@ function App() {
               {/* Private Routes */}
               <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
               <Route path="/media" element={<PrivateRoute><MediaLibrary /></PrivateRoute>} />
               <Route path="/documents" element={<PrivateRoute><TechnicalDocuments /></PrivateRoute>} />
               <Route path="/documents/:id" element={<PrivateRoute><DocumentDetail /></PrivateRoute>} />
@@ -83,6 +86,7 @@ function App() {
               <Route path="/admin/equipments" element={<AdminRoute><AdminEquipments /></AdminRoute>} />
               <Route path="/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
               <Route path="/admin/integrations" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
+              <Route path="/admin/vimeo-settings" element={<AdminRoute><VimeoSettings /></AdminRoute>} />
               <Route path="/admin/system" element={<AdminRoute><SystemDiagnostics /></AdminRoute>} />
               <Route path="/admin/videos/batch-import" element={<AdminRoute><VideoBatchImport /></AdminRoute>} />
 

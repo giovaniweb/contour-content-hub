@@ -2,15 +2,13 @@
 import React, { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/use-permissions";
 
 interface AdminRouteProps {
-  element: ReactNode;
+  children: ReactNode;
 }
 
-const AdminRoute: React.FC<AdminRouteProps> = ({ element }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { isAdmin } = usePermissions();
+const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+  const { isAdmin, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -20,17 +18,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ element }) => {
     );
   }
 
-  // Verificar se o usuário está autenticado e se é admin
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Se autenticado mas não é admin, redirecionar para o dashboard
-  if (!isAdmin()) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{element}</>;
+  return isAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 
 export default AdminRoute;

@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,48 +15,86 @@ serve(async (req) => {
   
   try {
     const { folderPath, limit = 20, page = 1 } = await req.json();
+
+    // Create a Supabase client to fetch Vimeo configuration
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     
-    if (!folderPath) {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Get Vimeo configuration from database
+    const { data: vimeoConfig, error: configError } = await supabase
+      .from('integracao_configs')
+      .select('config')
+      .eq('tipo', 'vimeo')
+      .single();
+      
+    if (configError || !vimeoConfig?.config?.access_token) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: "Caminho da pasta do Vimeo é necessário" 
+        error: "Configuração do Vimeo não encontrada. Por favor, configure o token de acesso." 
       }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
-
-    // Para uma demonstração inicial, vamos simular a resposta da API Vimeo
-    // Em um ambiente de produção, você substituiria isso por uma chamada real à API Vimeo
-    // usando um token de acesso OAuth
     
-    // Simulando uma lista de vídeos
-    const simulatedVideos = [];
-    const totalItems = 35; // Simulação de 35 vídeos no total
-    const startIndex = (page - 1) * limit;
-    const endIndex = Math.min(startIndex + limit, totalItems);
+    const vimeoToken = vimeoConfig.config.access_token;
     
-    for (let i = startIndex; i < endIndex; i++) {
-      simulatedVideos.push({
-        id: `${1000001 + i}`,
-        title: `Vídeo de demonstração ${i + 1}`,
-        description: `Descrição do vídeo de demonstração ${i + 1}`,
-        thumbnail_url: `https://i.vimeocdn.com/video/${900000 + i}_640x360.jpg`,
-        duration: Math.floor(Math.random() * 600) + 60, // Duração entre 60 e 660 segundos
-        upload_date: new Date(Date.now() - Math.random() * 10000000000).toISOString().split('T')[0],
-        video_url: `https://vimeo.com/${1000001 + i}`
-      });
+    // Determine folder path - if specified in request, use it, otherwise use from config
+    const folderPathToUse = folderPath || vimeoConfig.config.folder_id || null;
+    
+    // Base API URL for Vimeo
+    let apiUrl = 'https://api.vimeo.com/me/videos';
+    
+    // If a folder path is specified, use the folders endpoint
+    if (folderPathToUse) {
+      apiUrl = `https://api.vimeo.com/me/folders/${folderPathToUse}/videos`;
     }
+    
+    // Add pagination params
+    apiUrl += `?per_page=${limit}&page=${page}`;
+    
+    // Fetch videos from Vimeo API
+    const vimeoResponse = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${vimeoToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!vimeoResponse.ok) {
+      const errorData = await vimeoResponse.text();
+      console.error(`Vimeo API error: ${vimeoResponse.status}`, errorData);
+      throw new Error(`Falha ao buscar vídeos do Vimeo: ${vimeoResponse.status}`);
+    }
+    
+    const vimeoData = await vimeoResponse.json();
+    
+    // Map Vimeo response to our format
+    const videos = vimeoData.data.map((video: any) => ({
+      id: video.uri.split('/').pop(),
+      title: video.name,
+      description: video.description,
+      thumbnail_url: video.pictures?.sizes?.[3]?.link || null,
+      duration: video.duration,
+      upload_date: video.created_time.split('T')[0],
+      video_url: video.link
+    }));
     
     const responseData = {
       success: true,
       data: {
-        videos: simulatedVideos,
+        videos,
         pagination: {
-          total: totalItems,
-          page: page,
-          per_page: limit,
-          total_pages: Math.ceil(totalItems / limit)
+          total: vimeoData.total,
+          page: vimeoData.page,
+          per_page: vimeoData.per_page,
+          total_pages: Math.ceil(vimeoData.total / vimeoData.per_page)
         }
       }
     };
@@ -64,50 +103,6 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
     
-    // Na implementação real, você faria algo como:
-    /*
-    const vimeoToken = Deno.env.get("VIMEO_ACCESS_TOKEN");
-    if (!vimeoToken) {
-      throw new Error("Vimeo token não configurado");
-    }
-    
-    const vimeoUrl = `https://api.vimeo.com/users/user_id/folders/${folderPath}/videos?per_page=${limit}&page=${page}`;
-    const response = await fetch(vimeoUrl, {
-      headers: {
-        'Authorization': `Bearer ${vimeoToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erro na API do Vimeo: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      data: {
-        videos: data.data.map(video => ({
-          id: video.uri.split('/').pop(),
-          title: video.name,
-          description: video.description,
-          thumbnail_url: video.pictures.sizes[3].link,
-          duration: video.duration,
-          upload_date: video.created_time.split('T')[0],
-          video_url: video.link
-        })),
-        pagination: {
-          total: data.total,
-          page: data.page,
-          per_page: data.per_page,
-          total_pages: Math.ceil(data.total / data.per_page)
-        }
-      }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-    */
   } catch (error) {
     console.error("Error in vimeo-batch-import function:", error);
     

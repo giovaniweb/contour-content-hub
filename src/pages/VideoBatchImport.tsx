@@ -1,17 +1,33 @@
 
-import React, { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pagination } from "@/components/ui/pagination";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { Loader2, Filter, Search, VideoIcon, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useEquipments } from "@/hooks/useEquipments";
+import React, { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Pagination } from '@/components/ui/pagination';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEquipments } from '@/hooks/useEquipments';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Equipment } from '@/types/equipment';
+import { 
+  Download, 
+  Search, 
+  RefreshCw, 
+  Settings, 
+  CheckCircle2, 
+  FileVideo, 
+  FolderInput,
+  ArrowRight,
+  Loader2
+} from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface VimeoVideo {
   id: string;
@@ -23,410 +39,514 @@ interface VimeoVideo {
   video_url: string;
 }
 
-interface PaginationData {
-  total: number;
-  page: number;
-  per_page: number;
-  total_pages: number;
+interface VimeoBatchResponse {
+  success: boolean;
+  data?: {
+    videos: VimeoVideo[];
+    pagination: {
+      total: number;
+      page: number;
+      per_page: number;
+      total_pages: number;
+    };
+  };
+  error?: string;
 }
 
 const VideoBatchImport: React.FC = () => {
-  // Estado para os vídeos e seleção
-  const [videos, setVideos] = useState<VimeoVideo[]>([]);
-  const [selectedVideos, setSelectedVideos] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { equipments } = useEquipments();
   const [isLoading, setIsLoading] = useState(false);
-  const [pagination, setPagination] = useState<PaginationData>({
-    total: 0,
-    page: 1,
-    per_page: 10,
-    total_pages: 0
-  });
-  
-  // Campos para filtros
-  const [folderPath, setFolderPath] = useState<string>("demo");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>("todos");
-  
-  // Estado para o equipamento selecionado
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>("");
-  const { equipments, loading: loadingEquipments } = useEquipments();
+  const [folderPath, setFolderPath] = useState('');
+  const [videos, setVideos] = useState<VimeoVideo[]>([]);
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVideos, setTotalVideos] = useState(0);
+  const [importing, setImporting] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [showFilterForm, setShowFilterForm] = useState(false);
+  const [importSuccess, setImportSuccess] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
 
-  // Carregar vídeos do Vimeo
-  const fetchVimeoVideos = async (page: number = 1) => {
+  // Verificar se a integração com o Vimeo está configurada
+  useEffect(() => {
+    const checkVimeoConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('integracao_configs')
+          .select('*')
+          .eq('tipo', 'vimeo')
+          .maybeSingle();
+          
+        if (error) throw error;
+        setIsConfigured(!!data?.config?.access_token);
+      } catch (error) {
+        console.error("Erro ao verificar configuração do Vimeo:", error);
+      }
+    };
+    
+    checkVimeoConfig();
+  }, []);
+
+  // Atualizar o equipamento selecionado
+  useEffect(() => {
+    if (selectedEquipmentId && equipments.length > 0) {
+      const equipment = equipments.find(eq => eq.id === selectedEquipmentId);
+      setSelectedEquipment(equipment || null);
+    } else {
+      setSelectedEquipment(null);
+    }
+  }, [selectedEquipmentId, equipments]);
+
+  const fetchVideos = async (page = 1) => {
     try {
       setIsLoading(true);
+      setVideos([]);
       
-      // Chamar a edge function para buscar vídeos
-      const { data, error } = await supabase.functions.invoke('vimeo-batch-import', {
-        body: {
-          folderPath: folderPath,
-          limit: pagination.per_page,
-          page: page
-        }
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/vimeo-batch-import`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          folderPath: folderPath || undefined,
+          page,
+          limit: 12
+        })
       });
-
-      if (error) throw error;
       
-      if (data.success) {
-        setVideos(data.data.videos);
-        setPagination(data.data.pagination);
+      const result: VimeoBatchResponse = await response.json();
+      
+      if (result.success && result.data) {
+        setVideos(result.data.videos);
+        setTotalPages(result.data.pagination.total_pages);
+        setTotalVideos(result.data.pagination.total);
+        setCurrentPage(result.data.pagination.page);
       } else {
-        throw new Error(data.error || "Erro ao buscar vídeos");
+        throw new Error(result.error || 'Falha ao buscar vídeos');
       }
     } catch (error) {
       console.error("Erro ao buscar vídeos:", error);
-      toast.error("Não foi possível carregar os vídeos", {
-        description: error.message
+      toast({
+        variant: "destructive",
+        title: "Erro ao buscar vídeos",
+        description: error instanceof Error ? error.message : 'Não foi possível carregar os vídeos do Vimeo'
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Buscar vídeos ao montar o componente
-  useEffect(() => {
-    fetchVimeoVideos();
-  }, []);
-
-  // Filtrar vídeos com base nos critérios
-  const filteredVideos = videos.filter(video => {
-    // Filtrar por busca
-    const matchesSearch = searchTerm.trim() === "" || 
-      video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filtrar por tipo
-    let matchesTab = true;
-    if (activeTab === "selecionados") {
-      matchesTab = !!selectedVideos[video.id];
-    } else if (activeTab === "nao_selecionados") {
-      matchesTab = !selectedVideos[video.id];
-    }
-    
-    return matchesSearch && matchesTab;
-  });
-
-  // Funções para seleção de vídeos
-  const handleSelectAll = () => {
-    const allSelected = filteredVideos.every(video => selectedVideos[video.id]);
-    
-    const updatedSelection = { ...selectedVideos };
-    filteredVideos.forEach(video => {
-      updatedSelection[video.id] = !allSelected;
+  const handleSelectVideo = (videoId: string) => {
+    setSelectedVideos(prev => {
+      if (prev.includes(videoId)) {
+        return prev.filter(id => id !== videoId);
+      } else {
+        return [...prev, videoId];
+      }
     });
-    
-    setSelectedVideos(updatedSelection);
   };
 
-  const toggleVideoSelection = (videoId: string) => {
-    setSelectedVideos(prev => ({
-      ...prev,
-      [videoId]: !prev[videoId]
-    }));
+  const handleSelectAll = () => {
+    if (selectedVideos.length === videos.length) {
+      setSelectedVideos([]);
+    } else {
+      setSelectedVideos(videos.map(video => video.id));
+    }
   };
 
-  // Importar vídeos selecionados
-  const importSelectedVideos = async () => {
-    const selectedVideoIds = Object.entries(selectedVideos)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([id]) => id);
-      
-    if (selectedVideoIds.length === 0) {
-      toast.warning("Selecione pelo menos um vídeo para importar");
-      return;
-    }
-    
-    if (!selectedEquipmentId) {
-      toast.warning("Selecione um equipamento para associar aos vídeos");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      // Buscar informações detalhadas apenas dos vídeos selecionados
-      const selectedVids = videos.filter(v => selectedVideos[v.id]);
-      
-      // Importar cada vídeo selecionado
-      let successCount = 0;
-      let errorCount = 0;
-      
-      for (const video of selectedVids) {
-        try {
-          // Preparar dados para inserção
-          const videoData = {
-            titulo: video.title,
-            descricao_curta: video.description?.substring(0, 150) || '',
-            descricao_detalhada: video.description || '',
-            url_video: video.video_url,
-            preview_url: video.thumbnail_url,
-            duracao: formatDuration(video.duration),
-            equipamentos: [selectedEquipmentId],
-            tipo_video: 'video_pronto',
-            data_upload: new Date().toISOString(),
-            tags: extractTags(video.title + ' ' + video.description)
-          };
-          
-          // Inserir no banco de dados
-          const { error } = await supabase
-            .from('videos')
-            .insert(videoData);
-            
-          if (error) throw error;
-          
-          successCount++;
-        } catch (err) {
-          console.error(`Erro ao importar vídeo ${video.id}:`, err);
-          errorCount++;
-        }
-      }
-      
-      if (successCount > 0) {
-        toast.success(`${successCount} vídeos importados com sucesso!`);
-      }
-      
-      if (errorCount > 0) {
-        toast.error(`Falha ao importar ${errorCount} vídeos`);
-      }
-      
-      // Limpar seleções após importação
-      setSelectedVideos({});
-      
-    } catch (error) {
-      console.error("Erro durante a importação:", error);
-      toast.error("Erro ao importar vídeos", {
-        description: error.message
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchVideos(page);
   };
-  
-  // Função para formatar duração em minutos:segundos
+
   const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+    const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
-  
-  // Função para extrair tags do título e descrição
-  const extractTags = (text: string): string[] => {
-    // Exemplo simples - extrair palavras relevantes
-    const words = text.toLowerCase().split(/\s+/);
-    const relevantWords = words.filter(w => 
-      w.length > 3 && !['para', 'como', 'este', 'essa', 'isso', 'aqui', 'onde', 'quando'].includes(w)
-    );
-    
-    // Pegar até 5 tags relevantes
-    return [...new Set(relevantWords)].slice(0, 5);
+
+  const handleImportVideos = async () => {
+    if (!selectedEquipmentId) {
+      toast({
+        variant: "destructive",
+        title: "Equipamento não selecionado",
+        description: "Selecione um equipamento para associar aos vídeos"
+      });
+      return;
+    }
+
+    if (selectedVideos.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Nenhum vídeo selecionado",
+        description: "Selecione pelo menos um vídeo para importar"
+      });
+      return;
+    }
+
+    try {
+      setImporting(true);
+      
+      // Filtrar apenas os vídeos selecionados
+      const videosToImport = videos.filter(video => selectedVideos.includes(video.id));
+      
+      // Criar registros para cada vídeo
+      const importPromises = videosToImport.map(async (video) => {
+        const videoData = {
+          titulo: video.title,
+          descricao_curta: video.description,
+          url_video: video.video_url,
+          preview_url: video.thumbnail_url,
+          duracao: formatDuration(video.duration),
+          equipamentos: [selectedEquipmentId],
+          tipo_video: 'video_pronto',
+          data_upload: new Date().toISOString(),
+          vimeo_id: video.id
+        };
+        
+        const { data, error } = await supabase
+          .from('videos')
+          .insert([videoData]);
+          
+        if (error) throw error;
+        return data;
+      });
+      
+      await Promise.all(importPromises);
+      
+      setImportSuccess(true);
+      toast({
+        title: "Vídeos importados com sucesso",
+        description: `${selectedVideos.length} vídeos foram importados para ${selectedEquipment?.nome}`
+      });
+      
+      // Limpar seleção
+      setSelectedVideos([]);
+    } catch (error) {
+      console.error("Erro ao importar vídeos:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao importar vídeos",
+        description: "Não foi possível importar os vídeos selecionados"
+      });
+    } finally {
+      setImporting(false);
+    }
   };
 
-  // Funções para paginação
-  const goToPage = (page: number) => {
-    if (page < 1 || page > pagination.total_pages) return;
-    fetchVimeoVideos(page);
-  };
+  const filteredVideos = videos.filter(video => {
+    if (!searchQuery) return true;
+    return (
+      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      video.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+  // Se a importação foi bem-sucedida, mostrar tela de sucesso
+  if (importSuccess) {
+    return (
+      <Layout>
+        <div className="container py-8 max-w-5xl mx-auto">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle className="text-2xl">Importação concluída com sucesso!</CardTitle>
+              <CardDescription>
+                {selectedVideos.length} vídeos foram importados e associados ao equipamento {selectedEquipment?.nome}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-muted-foreground mb-6">
+                Os vídeos estão agora disponíveis na biblioteca de conteúdo e na página do equipamento.
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-center gap-4">
+              <Button asChild variant="outline">
+                <Link to={`/equipment/${selectedEquipmentId}`}>
+                  Ver página do equipamento
+                </Link>
+              </Button>
+              <Button onClick={() => {
+                setImportSuccess(false);
+                setSelectedVideos([]);
+                fetchVideos(1);
+              }}>
+                Importar mais vídeos
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Se não estiver configurado, mostrar mensagem de configuração
+  if (!isConfigured) {
+    return (
+      <Layout>
+        <div className="container py-8 max-w-5xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Configuração do Vimeo Necessária</CardTitle>
+              <CardDescription>
+                Você precisa configurar a integração com o Vimeo antes de importar vídeos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <Settings className="h-4 w-4" />
+                <AlertTitle>Configuração necessária</AlertTitle>
+                <AlertDescription>
+                  Para importar vídeos do Vimeo, você precisa configurar um token de acesso da API.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+            <CardFooter>
+              <Button asChild>
+                <Link to="/admin/vimeo-settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurar integração com Vimeo
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <Layout title="Importação de Vídeos em Lote">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+    <Layout>
+      <div className="container py-8 max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vídeos do Vimeo</h1>
+            <h1 className="text-3xl font-bold">Importação de Vídeos do Vimeo</h1>
             <p className="text-muted-foreground">
-              Selecione vídeos para importar para a biblioteca de conteúdo
+              Importe vídeos diretamente da sua conta Vimeo para o sistema.
             </p>
           </div>
-          
-          <div className="flex gap-2">
-            <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecione Equipamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingEquipments ? (
-                  <SelectItem value="loading" disabled>Carregando...</SelectItem>
-                ) : (
-                  equipments.map(equip => (
-                    <SelectItem key={equip.id} value={equip.id}>
-                      {equip.nome}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            
-            <Button 
-              onClick={importSelectedVideos} 
-              disabled={!selectedEquipmentId || Object.values(selectedVideos).filter(Boolean).length === 0 || isLoading}
-            >
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Importar Selecionados ({Object.values(selectedVideos).filter(Boolean).length})
-            </Button>
-          </div>
+          <Button asChild variant="outline">
+            <Link to="/admin/vimeo-settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Configurações do Vimeo
+            </Link>
+          </Button>
         </div>
-        
-        {/* Filtros e busca */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar vídeos..."
-              className="pl-9 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={folderPath} onValueChange={(val) => {
-              setFolderPath(val);
-              fetchVimeoVideos(1);
-            }}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Pasta" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="demo">Demo</SelectItem>
-                <SelectItem value="clinica">Clínica</SelectItem>
-                <SelectItem value="procedimentos">Procedimentos</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => fetchVimeoVideos(pagination.page)}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-        
-        {/* Tabs para filtros */}
-        <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="todos">Todos os Vídeos</TabsTrigger>
-            <TabsTrigger value="selecionados">Selecionados</TabsTrigger>
-            <TabsTrigger value="nao_selecionados">Não Selecionados</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={activeTab} className="m-0">
-            {/* Cabeçalho com seleção */}
-            <div className="flex justify-between items-center mb-4 p-2 border-b">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  checked={filteredVideos.length > 0 && filteredVideos.every(video => selectedVideos[video.id])}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span>Selecionar Todos ({filteredVideos.length})</span>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="folder-path">ID da Pasta no Vimeo (opcional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="folder-path"
+                    placeholder="Ex: 12345678"
+                    value={folderPath}
+                    onChange={(e) => setFolderPath(e.target.value)}
+                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <FolderInput className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>ID da pasta no Vimeo. Deixe em branco para listar todos os vídeos.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
               
-              <div className="text-sm text-muted-foreground">
-                {Object.values(selectedVideos).filter(Boolean).length} vídeos selecionados
+              <div className="space-y-2">
+                <Label htmlFor="equipment">Equipamento</Label>
+                <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
+                  <SelectTrigger id="equipment">
+                    <SelectValue placeholder="Selecione um equipamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipments.map((equipment) => (
+                      <SelectItem key={equipment.id} value={equipment.id}>
+                        {equipment.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             
-            {/* Grid de vídeos */}
-            {isLoading && videos.length === 0 ? (
-              <div className="py-12 flex justify-center items-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="mt-4 flex justify-between items-center">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar vídeos..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            ) : filteredVideos.length === 0 ? (
-              <div className="text-center py-12">
-                <VideoIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">Nenhum vídeo encontrado</h3>
-                <p className="text-muted-foreground">
-                  Ajuste os critérios de busca ou escolha outra pasta.
-                </p>
+              
+              <Button 
+                onClick={() => fetchVideos(1)}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Carregando...</>
+                ) : (
+                  <><RefreshCw className="mr-2 h-4 w-4" /> Buscar Vídeos</>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+              <p className="mt-4 text-muted-foreground">Buscando vídeos no Vimeo...</p>
+            </div>
+          </div>
+        ) : videos.length > 0 ? (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center">
+                <Checkbox 
+                  id="select-all" 
+                  checked={selectedVideos.length === videos.length && videos.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+                <label htmlFor="select-all" className="ml-2 text-sm">
+                  Selecionar todos
+                </label>
+                {selectedVideos.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {selectedVideos.length} selecionados
+                  </Badge>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredVideos.map((video) => (
-                  <Card key={video.id} className={`overflow-hidden ${selectedVideos[video.id] ? 'ring-2 ring-primary' : ''}`}>
-                    <div className="relative">
-                      <div className="aspect-video overflow-hidden bg-muted">
-                        {video.thumbnail_url ? (
-                          <img 
-                            src={video.thumbnail_url} 
-                            alt={video.title} 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <VideoIcon className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
+              <span className="text-sm text-muted-foreground">
+                {totalVideos} vídeos encontrados
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {filteredVideos.map((video) => (
+                <div key={video.id} className={`border rounded-lg overflow-hidden ${selectedVideos.includes(video.id) ? 'ring-2 ring-primary' : ''}`}>
+                  <div className="relative aspect-video bg-muted">
+                    {video.thumbnail_url ? (
+                      <img 
+                        src={video.thumbnail_url} 
+                        alt={video.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FileVideo className="h-12 w-12 text-muted-foreground" />
                       </div>
-                      
-                      <div className="absolute top-2 right-2">
-                        <Button 
-                          variant={selectedVideos[video.id] ? "default" : "secondary"} 
-                          size="icon" 
-                          className="h-8 w-8 rounded-full"
-                          onClick={() => toggleVideoSelection(video.id)}
-                        >
-                          {selectedVideos[video.id] ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Plus className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
+                    )}
+                    <div className="absolute top-2 left-2">
+                      <Checkbox 
+                        checked={selectedVideos.includes(video.id)}
+                        onCheckedChange={() => handleSelectVideo(video.id)}
+                        className="h-5 w-5 bg-white/90 border-0"
+                      />
                     </div>
-                    
-                    <CardContent className="p-3">
-                      <h3 className="font-medium line-clamp-1">{video.title}</h3>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDuration(video.duration)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {video.upload_date}
-                        </span>
+                    {video.duration && (
+                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {formatDuration(video.duration)}
                       </div>
-                      {video.description && (
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                          {video.description}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-            
-            {/* Paginação */}
-            {pagination.total_pages > 1 && (
-              <div className="flex justify-center mt-6">
-                <Pagination>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => goToPage(pagination.page - 1)}
-                    disabled={pagination.page === 1 || isLoading}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="flex items-center mx-2">
-                    <span>
-                      Página {pagination.page} de {pagination.total_pages}
-                    </span>
+                    )}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => goToPage(pagination.page + 1)}
-                    disabled={pagination.page === pagination.total_pages || isLoading}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </Pagination>
+                  <div className="p-3">
+                    <h3 className="font-medium truncate" title={video.title}>{video.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 h-10" title={video.description}>
+                      {video.description || "Sem descrição"}
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {video.upload_date}
+                      </span>
+                      <a 
+                        href={video.video_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        Ver no Vimeo
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+
+            <Card className="mt-6">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">
+                      {selectedVideos.length} vídeos selecionados para importação
+                    </h3>
+                    {selectedEquipment && (
+                      <p className="text-sm text-muted-foreground">
+                        Equipamento: {selectedEquipment.nome}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <Button 
+                    onClick={handleImportVideos}
+                    disabled={importing || selectedVideos.length === 0 || !selectedEquipmentId}
+                    className="flex items-center gap-2"
+                  >
+                    {importing ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Importando...</>
+                    ) : (
+                      <><ArrowRight className="h-4 w-4" /> Importar vídeos</>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card className="text-center py-12">
+            <CardContent>
+              <FileVideo className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="text-xl font-medium mt-4">Nenhum vídeo encontrado</h3>
+              <p className="text-muted-foreground mt-2 mb-6">
+                Clique em "Buscar Vídeos" para iniciar a importação dos vídeos do Vimeo.
+              </p>
+              <Button onClick={() => fetchVideos(1)} disabled={isLoading}>
+                <RefreshCw className="mr-2 h-4 w-4" /> Buscar Vídeos
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );

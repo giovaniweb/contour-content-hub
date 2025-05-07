@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff, Info } from "lucide-react";
+import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff, Info, Video } from "lucide-react";
 import { GptConfig, DropboxConfig, IntegrationStatus } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -420,7 +419,7 @@ const AdminIntegrations: React.FC = () => {
         )}
         
         <Tabs defaultValue="gpt" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6">
+          <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="gpt" className="flex items-center gap-2">
               <BrainCircuit className="h-4 w-4" />
               GPT (OpenAI)
@@ -428,6 +427,10 @@ const AdminIntegrations: React.FC = () => {
             <TabsTrigger value="dropbox" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
               Dropbox
+            </TabsTrigger>
+            <TabsTrigger value="vimeo" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Vimeo
             </TabsTrigger>
           </TabsList>
           
@@ -699,6 +702,34 @@ const AdminIntegrations: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          {/* Vimeo Configuration Tab */}
+          <TabsContent value="vimeo">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-contourline-mediumBlue" />
+                  Configuração Vimeo
+                </CardTitle>
+                <CardDescription>
+                  Configure a integração com o Vimeo para importação de vídeos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4">
+                  A integração com o Vimeo permite importar vídeos diretamente da sua conta para a plataforma.
+                </p>
+                <div className="flex justify-center">
+                  <Button asChild>
+                    <Link to="/admin/vimeo-settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configurar Vimeo
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
         
         {/* Integration Status */}
@@ -747,6 +778,15 @@ const AdminIntegrations: React.FC = () => {
                   <span>Dropbox</span>
                 </div>
                 {getStatusBadge(statuses.dropbox)}
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Video className="h-4 w-4 text-contourline-mediumBlue" />
+                  <span>Vimeo</span>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
+                  <AlertTriangle className="h-3 w-3 mr-1" /> Configurar
+                </Badge>
               </div>
             </div>
           </CardContent>
