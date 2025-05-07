@@ -17,7 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
   const { user } = useUser();
-  const { signOut } = useAuth(); // Get signOut from AuthContext instead of useUser
+  const { logout } = useAuth(); // Use logout instead of signOut
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -71,7 +71,7 @@ const Navbar = () => {
                 <span>Perfil</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>
+              <DropdownMenuItem onClick={logout}>
                 <Power className="mr-2 h-4 w-4" />
                 <span>Sair</span>
               </DropdownMenuItem>
