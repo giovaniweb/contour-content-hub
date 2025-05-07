@@ -1,6 +1,6 @@
 
 import React from "react";
-import { FileText, BrainCircuit, Calendar, Shield, Sparkles, FileVideo, Code } from "lucide-react";
+import { FileText, BrainCircuit, Calendar, Shield, Sparkles, FileVideo, Code, CheckCircle } from "lucide-react";
 
 export interface ActionItem {
   label: string;
@@ -18,6 +18,12 @@ export const getQuickActions = (): ActionItem[] => {
       color: "bg-blue-100 text-blue-700"
     },
     {
+      label: "Validar roteiro",
+      icon: <CheckCircle className="h-5 w-5" />,
+      path: "/script-validation",
+      color: "bg-green-100 text-green-700"
+    },
+    {
       label: "Consultor de Marketing",
       icon: <BrainCircuit className="h-5 w-5" />,
       path: "/marketing-consultant",
@@ -29,21 +35,15 @@ export const getQuickActions = (): ActionItem[] => {
       path: "/calendar",
       color: "bg-purple-100 text-purple-700"
     },
-    {
-      label: "Diagnóstico do Sistema",
-      icon: <Shield className="h-5 w-5" />,
-      path: "/system-diagnostics",
-      color: "bg-green-100 text-green-700"
-    }
   ];
 };
 
 export const getAdditionalActions = (): ActionItem[] => {
   return [
     {
-      label: "Validar roteiro",
-      icon: <Sparkles className="h-5 w-5" />,
-      path: "/script-validation",
+      label: "Diagnóstico do Sistema",
+      icon: <Shield className="h-5 w-5" />,
+      path: "/system-diagnostics",
       color: "bg-violet-100 text-violet-700"
     },
     {

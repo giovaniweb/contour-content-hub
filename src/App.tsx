@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -77,7 +76,13 @@ function App() {
                 <Route path="/documents/:id" element={<PrivateRoute><DocumentDetail /></PrivateRoute>} />
                 <Route path="/script-generator" element={<PrivateRoute><ScriptGenerator /></PrivateRoute>} />
                 <Route path="/script-history" element={<PrivateRoute><ScriptHistory /></PrivateRoute>} />
+                
+                {/* Add the route without id parameter for direct access */}
+                <Route path="/script-validation" element={<PrivateRoute><ScriptValidationPage /></PrivateRoute>} />
+                
+                {/* Keep the route with id parameter for specific script validation */}
                 <Route path="/script-validation/:id" element={<PrivateRoute><ScriptValidationPage /></PrivateRoute>} />
+                
                 <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
                 <Route path="/content-strategy" element={<PrivateRoute><ContentStrategy /></PrivateRoute>} />
                 <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />

@@ -105,9 +105,9 @@ export const AppSidebar = ({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            <SidebarMenuItem active={location.pathname === '/validate-script'}>
-              <SidebarMenuButton asChild variant={location.pathname === '/validate-script' ? "active" : "default"}>
-                <NavLink to="/validate-script" className="flex items-center">
+            <SidebarMenuItem active={location.pathname === '/script-validation'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/script-validation' ? "active" : "default"}>
+                <NavLink to="/script-validation" className="flex items-center">
                   <CheckCircle className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                   {open && <span>Validador</span>}
                 </NavLink>
