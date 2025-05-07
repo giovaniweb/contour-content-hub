@@ -67,13 +67,24 @@ export const testVimeoConnection = async (token: string): Promise<{
   error?: string;
 }> => {
   try {
-    const response = await fetch(`${window.location.origin}/functions/v1/vimeo-test-connection`, {
+    // Certifique-se de que estamos usando a URL correta para a Edge Function
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vimeo-test-connection`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.auth.session()?.access_token}`
       },
       body: JSON.stringify({ token })
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Erro na resposta da Edge Function:', errorText);
+      return {
+        success: false,
+        error: `Erro na resposta: ${response.status} ${response.statusText}`
+      };
+    }
     
     const result = await response.json();
     return result;

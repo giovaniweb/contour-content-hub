@@ -17,7 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
@@ -84,7 +83,10 @@ const VimeoSettings: React.FC = () => {
       setConnectionStatus('idle');
       setConnectionMessage("");
 
+      console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "...");
+      
       const result = await testVimeoConnection(values.access_token);
+      console.log("Resultado do teste de conexão:", result);
 
       if (result.success) {
         setConnectionStatus('success');
