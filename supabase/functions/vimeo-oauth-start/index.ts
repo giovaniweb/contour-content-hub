@@ -24,10 +24,13 @@ serve(async (req) => {
   try {
     console.log("Iniciando fluxo OAuth do Vimeo");
 
-    // Get state from query parameters if available
+    // Get request body
+    const requestData = await req.json().catch(() => ({}));
+    const userId = requestData.user_id || "";
+    
+    // Get URL parameters if needed
     const url = new URL(req.url);
-    const state = url.searchParams.get("state") || "";
-    const userId = url.searchParams.get("user_id");
+    const stateParam = url.searchParams.get("state") || "";
 
     if (!VIMEO_CLIENT_ID) {
       console.error("VIMEO_CLIENT_ID não encontrado nas variáveis de ambiente");
@@ -42,10 +45,10 @@ serve(async (req) => {
 
     // Generate the OAuth authorization URL
     const scopes = REQUIRED_SCOPES.join(" ");
-    const stateParam = state ? state : generateRandomString(16);
+    const state = stateParam || generateRandomString(16);
     
     // Add userId to state if provided
-    const finalState = userId ? `${stateParam}__${userId}` : stateParam;
+    const finalState = userId ? `${state}__${userId}` : state;
 
     const authUrl = `${VIMEO_AUTH_URL}?` +
       `response_type=code&` +

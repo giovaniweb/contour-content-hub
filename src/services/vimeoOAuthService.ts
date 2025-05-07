@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 
@@ -21,8 +20,7 @@ export interface VimeoToken {
 export const startVimeoOAuth = async (userId?: string) => {
   try {
     const { data, error } = await supabase.functions.invoke('vimeo-oauth-start', {
-      method: 'GET',
-      query: userId ? { user_id: userId } : undefined
+      body: userId ? { user_id: userId } : {}
     });
     
     if (error) {
@@ -42,7 +40,6 @@ export const startVimeoOAuth = async (userId?: string) => {
 export const processVimeoOAuthCallback = async (code: string, state?: string) => {
   try {
     const { data, error } = await supabase.functions.invoke('vimeo-oauth-callback', {
-      method: 'POST',
       body: { code, state }
     });
     

@@ -35,8 +35,7 @@ export default function VimeoConnectButton({
     try {
       // Call our edge function to start the OAuth process
       const { data, error } = await supabase.functions.invoke('vimeo-oauth-start', {
-        method: 'GET',
-        query: { user_id: user.id }
+        body: { user_id: user.id }
       });
 
       if (error) {
