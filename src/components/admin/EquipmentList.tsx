@@ -10,18 +10,47 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Equipment } from '@/types/equipment';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface EquipmentListProps {
   equipments: Equipment[];
   onEdit: (equipment: Equipment) => void;
   onDelete: (id: string) => void;
+  loading?: boolean;
 }
 
 const EquipmentList: React.FC<EquipmentListProps> = ({
   equipments,
   onEdit,
-  onDelete
+  onDelete,
+  loading = false
 }) => {
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div 
+            key={`skeleton-${i}`} 
+            className="flex items-center justify-between p-4 bg-card rounded-md border shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-12 h-12 rounded-md" />
+              <div>
+                <Skeleton className="h-5 w-40 mb-2" />
+                <Skeleton className="h-4 w-60" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {equipments.map((equipment) => (
@@ -45,8 +74,8 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             <div>
               <h3 className="font-medium">{equipment.nome}</h3>
               <p className="text-sm text-muted-foreground truncate max-w-md">
-                {equipment.tecnologia.substring(0, 100)}
-                {equipment.tecnologia.length > 100 ? '...' : ''}
+                {equipment.tecnologia && equipment.tecnologia.substring(0, 100)}
+                {equipment.tecnologia && equipment.tecnologia.length > 100 ? '...' : ''}
               </p>
             </div>
           </div>
@@ -63,7 +92,6 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               size="sm" 
               asChild
             >
-              {/* Updating link to use /equipments/:id format instead of /equipment/:id */}
               <Link to={`/equipments/${equipment.id}`}>
                 <Eye className="h-4 w-4 mr-1" />
                 Ver
@@ -94,7 +122,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
         </div>
       ))}
       
-      {equipments.length === 0 && (
+      {equipments.length === 0 && !loading && (
         <div className="text-center py-8 border rounded-md bg-muted/20">
           <p className="text-muted-foreground">Nenhum equipamento encontrado.</p>
         </div>
