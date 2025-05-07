@@ -2,849 +2,953 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { z } from "zod";
+import Layout from '@/components/Layout';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff, Info, Video } from "lucide-react";
-import { GptConfig, VimeoConfig, DropboxConfig, IntegrationStatus } from "@/types/database";
-import { useToast } from "@/components/ui/use-toast";
-import { usePermissions } from "@/hooks/use-permissions";
-import { Navigate, Link } from "react-router-dom";
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  saveGptConfig, 
-  updateGptConfig, 
-  getGptConfigs, 
-  testGptConnection,
-  saveDropboxConfig,
-  getDropboxConfig,
-  getVimeoConfig,
-  testDropboxConnection,
-  testVimeoConnection
-} from "@/services/integrationService";
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Settings } from "lucide-react";
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  Settings, 
+  FileText, 
+  RefreshCw, 
+  ArrowRight, 
+  Loader2,
+  Terminal,
+  FolderOpen,
+  Video
+} from "lucide-react";
+import { GptConfig, DropboxConfig, VimeoConfig, IntegrationStatus } from '@/types/database';
+import { getGptConfigs, testGptConnection, saveGptConfig, updateGptConfig } from '@/services/integrationService';
+import { getDropboxConfig, saveDropboxConfig, testDropboxConnection } from '@/services/integrationService';
+import { getVimeoConfig, testVimeoConnection, saveVimeoConfig } from '@/services/integrationService';
+import { usePermissions } from '@/hooks/use-permissions';
+import { Navigate } from 'react-router-dom';
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 
-// GPT Model Schema
-const gptSchema = z.object({
-  nome_roteiro: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
-  nome_big_idea: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
-  nome_story: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
-  modelo: z.string().min(1, { message: "Selecione um modelo" }),
-  chave_api: z.string().min(1, { message: "A chave API é necessária" }),
-  ativo: z.boolean().default(true),
-  prompt: z.string().optional()
+const gptConfigSchema = z.object({
+  nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  chave_api: z.string().min(1, "Chave API é obrigatória"),
+  modelo: z.string().min(1, "Modelo é obrigatório"),
+  prompt: z.string().optional(),
+  tipo: z.string().default("openai"),
+  ativo: z.boolean().default(true)
 });
 
-// Dropbox Schema
-const dropboxSchema = z.object({
-  token: z.string().min(1, { message: "O token de acesso é necessário" }),
-  pasta_padrao: z.string().min(1, { message: "A pasta padrão é necessária" }),
-  link_base: z.string().optional(),
+const dropboxConfigSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório"),
+  pasta_padrao: z.string().min(1, "Pasta padrão é obrigatória")
 });
 
-type IntegrationStatusInfo = {
+const vimeoConfigSchema = z.object({
+  folder_id: z.string().min(1, "ID da pasta é obrigatório")
+});
+
+// Tipo para status de integração
+type IntegrationStatusData = {
   status: IntegrationStatus;
   message?: string;
-  error?: string;
+  details?: any;
 };
 
+// Estado das integrações
 type IntegrationStatuses = {
-  gpt_roteiro: IntegrationStatusInfo;
-  gpt_big_idea: IntegrationStatusInfo;
-  gpt_story: IntegrationStatusInfo;
-  dropbox: IntegrationStatusInfo;
-  vimeo: IntegrationStatusInfo;
+  gpt?: IntegrationStatusData;
+  dropbox?: IntegrationStatusData;
+  vimeo?: IntegrationStatusData;
 };
 
 const AdminIntegrations: React.FC = () => {
-  const { toast } = useToast();
   const { isAdmin } = usePermissions();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isTesting, setIsTesting] = useState<boolean>(false);
-  const [showApiKey, setShowApiKey] = useState<boolean>(false);
-  const [showDropboxToken, setShowDropboxToken] = useState<boolean>(false);
-  const [errorDialogOpen, setErrorDialogOpen] = useState<boolean>(false);
-  const [currentError, setCurrentError] = useState<string>("");
-  const [statuses, setStatuses] = useState<IntegrationStatuses>({
-    gpt_roteiro: { status: 'not_configured' },
-    gpt_big_idea: { status: 'not_configured' },
-    gpt_story: { status: 'not_configured' },
-    dropbox: { status: 'not_configured' },
-    vimeo: { status: 'not_configured' }
-  });
+  const { toast } = useToast();
   
-  // Armazena as configurações existentes
+  const [isLoadingConfigs, setIsLoadingConfigs] = useState(true);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [gptConfigs, setGptConfigs] = useState<GptConfig[]>([]);
   const [dropboxConfig, setDropboxConfig] = useState<DropboxConfig | null>(null);
   const [vimeoConfig, setVimeoConfig] = useState<VimeoConfig | null>(null);
   
-  // If not admin, redirect to dashboard
-  if (!isAdmin()) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // GPT Form
-  const gptForm = useForm<z.infer<typeof gptSchema>>({
-    resolver: zodResolver(gptSchema),
+  const [currentGptConfig, setCurrentGptConfig] = useState<GptConfig | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  
+  const [integrationStatuses, setIntegrationStatuses] = useState<IntegrationStatuses>({});
+  
+  // Forms
+  const gptForm = useForm({
+    resolver: zodResolver(gptConfigSchema),
     defaultValues: {
-      nome_roteiro: "GPT_Roteiro_Reel",
-      nome_big_idea: "GPT_BigIdea_Reel",
-      nome_story: "GPT_StoriesV_Reel",
-      modelo: "",
-      chave_api: "",
-      ativo: true,
-    },
+      nome: '',
+      chave_api: '',
+      modelo: 'gpt-3.5-turbo',
+      prompt: '',
+      tipo: 'openai',
+      ativo: true
+    }
   });
-
-  // Dropbox Form
-  const dropboxForm = useForm<z.infer<typeof dropboxSchema>>({
-    resolver: zodResolver(dropboxSchema),
+  
+  const dropboxForm = useForm({
+    resolver: zodResolver(dropboxConfigSchema),
     defaultValues: {
-      token: "",
-      pasta_padrao: "/videos",
-      link_base: "",
-    },
+      token: '',
+      pasta_padrao: '/Fluida'
+    }
   });
-
-  // Carrega as configurações salvas
+  
+  const vimeoForm = useForm({
+    resolver: zodResolver(vimeoConfigSchema),
+    defaultValues: {
+      folder_id: ''
+    }
+  });
+  
+  // Carrega as configurações iniciais
   useEffect(() => {
-    const loadConfigs = async () => {
-      setIsLoading(true);
-      try {
-        // Carregar configurações do GPT
-        const gptData = await getGptConfigs();
-        setGptConfigs(gptData);
-        
-        // Se existem configs do GPT, preencher o formulário
-        if (gptData.length > 0) {
-          // Encontrar configs por tipo
-          const roteiroConfig = gptData.find(c => c.tipo === 'roteiro');
-          const bigIdeaConfig = gptData.find(c => c.tipo === 'big_idea');
-          const storyConfig = gptData.find(c => c.tipo === 'story');
-          
-          gptForm.setValue('nome_roteiro', roteiroConfig?.nome || "GPT_Roteiro_Reel");
-          gptForm.setValue('nome_big_idea', bigIdeaConfig?.nome || "GPT_BigIdea_Reel");
-          gptForm.setValue('nome_story', storyConfig?.nome || "GPT_StoriesV_Reel");
-          gptForm.setValue('modelo', roteiroConfig?.modelo || "");
-          // Now the chave_api field is available in the database
-          gptForm.setValue('chave_api', roteiroConfig?.chave_api || "");
-          gptForm.setValue('ativo', roteiroConfig?.ativo !== undefined ? roteiroConfig.ativo : true);
-        }
-        
-        // Carregar configuração do Dropbox
-        const dropboxData = await getDropboxConfig();
-        setDropboxConfig(dropboxData);
-        
-        // Se existe config do Dropbox, preencher o formulário
-        if (dropboxData) {
-          dropboxForm.setValue('token', dropboxData.token);
-          dropboxForm.setValue('pasta_padrao', dropboxData.pasta_padrao);
-          dropboxForm.setValue('link_base', dropboxData.link_base || "");
-        }
-
-        // Carregar configuração do Vimeo
-        const vimeoData = await getVimeoConfig();
-        setVimeoConfig(vimeoData);
-        
-        // Testar conexões existentes
-        await testAllConnections();
-      } catch (error) {
-        console.error("Erro ao carregar configurações:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as configurações salvas",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadConfigs();
+    loadConfigurations();
   }, []);
-
-  const testAllConnections = async () => {
-    setIsTesting(true);
+  
+  // Atualiza o formulário quando a configuração atual do GPT muda
+  useEffect(() => {
+    if (currentGptConfig) {
+      gptForm.reset({
+        nome: currentGptConfig.nome,
+        chave_api: currentGptConfig.chave_api,
+        modelo: currentGptConfig.modelo,
+        prompt: currentGptConfig.prompt || '',
+        tipo: currentGptConfig.tipo,
+        ativo: currentGptConfig.ativo
+      });
+    } else if (isAdding) {
+      gptForm.reset({
+        nome: '',
+        chave_api: '',
+        modelo: 'gpt-3.5-turbo',
+        prompt: '',
+        tipo: 'openai',
+        ativo: true
+      });
+    }
+  }, [currentGptConfig, isAdding]);
+  
+  // Atualiza o formulário quando a configuração do Dropbox muda
+  useEffect(() => {
+    if (dropboxConfig) {
+      dropboxForm.reset({
+        token: dropboxConfig.token,
+        pasta_padrao: dropboxConfig.pasta_padrao
+      });
+    }
+  }, [dropboxConfig]);
+  
+  // Atualiza o formulário quando a configuração do Vimeo muda
+  useEffect(() => {
+    if (vimeoConfig) {
+      vimeoForm.reset({
+        folder_id: vimeoConfig.folder_id || ''
+      });
+    }
+  }, [vimeoConfig]);
+  
+  // Função para carregar todas as configurações
+  const loadConfigurations = async () => {
+    setIsLoadingConfigs(true);
+    
     try {
-      const newStatuses = { ...statuses };
+      // Carregar configurações do GPT
+      const gptData = await getGptConfigs();
+      setGptConfigs(gptData);
       
-      // Testar configurações GPT
-      const apiKey = gptForm.getValues('chave_api');
-      if (apiKey) {
-        const result = await testGptConnection(apiKey);
-        
-        // Atualiza status de todas as integrações GPT com o mesmo resultado
-        // já que todas usam a mesma chave API
-        newStatuses.gpt_roteiro = {
-          status: result.success ? 'integrated' : 'error',
-          message: result.message,
-          error: result.error
-        };
-        
-        newStatuses.gpt_big_idea = { ...newStatuses.gpt_roteiro };
-        newStatuses.gpt_story = { ...newStatuses.gpt_roteiro };
+      // Definir configuração atual como o primeiro item
+      if (gptData.length > 0) {
+        setCurrentGptConfig(gptData[0]);
       }
       
-      // Testar configuração Dropbox
-      const dropboxToken = dropboxForm.getValues('token');
-      if (dropboxToken) {
-        const result = await testDropboxConnection(dropboxToken);
+      // Carregar configuração do Dropbox
+      const dropboxData = await getDropboxConfig();
+      setDropboxConfig(dropboxData);
+      
+      // Carregar configuração do Vimeo
+      const vimeoData = await getVimeoConfig();
+      setVimeoConfig(vimeoData);
+      
+      // Verificar status das integrações
+      checkIntegrationStatus();
+    } catch (error) {
+      console.error("Erro ao carregar configurações:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar configurações",
+        description: "Não foi possível carregar as configurações das integrações"
+      });
+    } finally {
+      setIsLoadingConfigs(false);
+    }
+  };
+  
+  // Verifica o status das integrações
+  const checkIntegrationStatus = async () => {
+    try {
+      const newStatuses: IntegrationStatuses = {};
+      
+      // Verificar GPT
+      const gptConfig = gptConfigs.find(config => config.ativo);
+      if (gptConfig) {
+        const result = await testGptConnection(gptConfig.chave_api);
+        
+        newStatuses.gpt = {
+          status: result.success ? 'integrated' : 'error',
+          message: result.message || result.error
+        };
+      } else {
+        newStatuses.gpt = {
+          status: 'not_configured',
+          message: "Nenhuma configuração ativa"
+        };
+      }
+      
+      // Verificar Dropbox
+      if (dropboxConfig?.token) {
+        const result = await testDropboxConnection(dropboxConfig.token);
         
         newStatuses.dropbox = {
           status: result.success ? 'integrated' : 'error',
-          message: result.message,
-          error: result.error
+          message: result.message || result.error
+        };
+      } else {
+        newStatuses.dropbox = {
+          status: 'not_configured',
+          message: "Token não configurado"
         };
       }
-
+      
       // Testar configuração Vimeo
       if (vimeoConfig?.folder_id) {
         const result = await testVimeoConnection(vimeoConfig.folder_id);
         
         newStatuses.vimeo = {
           status: result.success ? 'integrated' : 'error',
-          message: result.message,
-          error: result.error
+          message: result.message || result.error,
+          details: result
+        };
+      } else {
+        newStatuses.vimeo = {
+          status: 'not_configured',
+          message: "Configuração do Vimeo incompleta"
         };
       }
       
-      setStatuses(newStatuses);
+      setIntegrationStatuses(newStatuses);
     } catch (error) {
-      console.error("Erro ao testar conexões:", error);
+      console.error("Erro ao verificar status das integrações:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível testar as conexões",
         variant: "destructive",
+        title: "Erro ao verificar integrações",
+        description: "Não foi possível verificar o status das integrações"
       });
-    } finally {
-      setIsTesting(false);
     }
   };
-
-  const onGptSubmit = async (values: z.infer<typeof gptSchema>) => {
+  
+  // Handler para mudar a configuração atual do GPT
+  const handleGptConfigChange = (configId: string) => {
+    const config = gptConfigs.find(c => c.id === configId);
+    if (config) {
+      setCurrentGptConfig(config);
+      setIsAdding(false);
+    }
+  };
+  
+  // Handler para adicionar nova configuração do GPT
+  const handleAddGptConfig = () => {
+    setCurrentGptConfig(null);
+    setIsAdding(true);
+  };
+  
+  // Salvar configuração do GPT
+  const handleSaveGptConfig = async (data: any) => {
+    setIsSaving(true);
+    
     try {
-      setIsLoading(true);
-      
-      // Criar configuração para Roteiro
-      const configRoteiro: Omit<GptConfig, 'id' | 'data_configuracao'> = {
-        nome: values.nome_roteiro,
-        tipo: 'roteiro',
-        modelo: values.modelo,
-        chave_api: values.chave_api,
-        ativo: values.ativo,
-        prompt: '' // Campo obrigatório adicionado
-      };
-
-      // Criar configuração para Big Idea
-      const configBigIdea: Omit<GptConfig, 'id' | 'data_configuracao'> = {
-        nome: values.nome_big_idea,
-        tipo: 'big_idea',
-        modelo: values.modelo,
-        chave_api: values.chave_api,
-        ativo: values.ativo,
-        prompt: '' // Campo obrigatório adicionado
-      };
-
-      // Criar configuração para Story
-      const configStory: Omit<GptConfig, 'id' | 'data_configuracao'> = {
-        nome: values.nome_story,
-        tipo: 'story',
-        modelo: values.modelo,
-        chave_api: values.chave_api,
-        ativo: values.ativo,
-        prompt: '' // Campo obrigatório adicionado
-      };
-
-      // Verificar se já existem configurações para atualizar
-      const roteiroConfig = gptConfigs.find(c => c.tipo === 'roteiro');
-      const bigIdeaConfig = gptConfigs.find(c => c.tipo === 'big_idea');
-      const storyConfig = gptConfigs.find(c => c.tipo === 'story');
-
-      // Salvar as configurações
-      if (roteiroConfig) {
-        await updateGptConfig(roteiroConfig.id, configRoteiro);
-      } else {
-        await saveGptConfig(configRoteiro);
+      if (isAdding) {
+        // Adicionar nova configuração
+        const newConfig = await saveGptConfig(data);
+        setGptConfigs([...gptConfigs, newConfig]);
+        setCurrentGptConfig(newConfig);
+        setIsAdding(false);
+        
+        toast({
+          title: "Configuração salva",
+          description: "Nova configuração GPT foi adicionada com sucesso"
+        });
+      } else if (currentGptConfig) {
+        // Atualizar configuração existente
+        await updateGptConfig(currentGptConfig.id, data);
+        
+        // Atualizar lista de configurações
+        const updatedConfigs = gptConfigs.map(config => 
+          config.id === currentGptConfig.id ? { ...config, ...data } : config
+        );
+        
+        setGptConfigs(updatedConfigs);
+        setCurrentGptConfig({ ...currentGptConfig, ...data });
+        
+        toast({
+          title: "Configuração atualizada",
+          description: "Configuração GPT foi atualizada com sucesso"
+        });
       }
       
-      if (bigIdeaConfig) {
-        await updateGptConfig(bigIdeaConfig.id, configBigIdea);
-      } else {
-        await saveGptConfig(configBigIdea);
-      }
-      
-      if (storyConfig) {
-        await updateGptConfig(storyConfig.id, configStory);
-      } else {
-        await saveGptConfig(configStory);
-      }
-      
-      // Recarregar as configurações
-      const updatedConfigs = await getGptConfigs();
-      setGptConfigs(updatedConfigs);
-      
-      // Testar a conexão com a nova configuração
-      await testAllConnections();
-      
-      toast({
-        title: "Configurações GPT salvas",
-        description: "Modelos de GPT configurados com sucesso",
-      });
-    } catch (error: any) {
+      // Verificar status da integração
+      setTimeout(checkIntegrationStatus, 1000);
+    } catch (error) {
       console.error("Erro ao salvar configuração GPT:", error);
-      
-      // Exibe o erro detalhado em um diálogo
-      if (error?.message) {
-        setCurrentError(JSON.stringify(error, null, 2));
-        setErrorDialogOpen(true);
-      }
-      
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar as configurações. Verifique o log de erros.",
         variant: "destructive",
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a configuração GPT"
       });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
-
-  const onDropboxSubmit = async (values: z.infer<typeof dropboxSchema>) => {
+  
+  // Testar conexão com GPT
+  const handleTestGptConnection = async () => {
+    setIsTestingConnection(true);
+    
     try {
-      setIsLoading(true);
+      const apiKey = gptForm.getValues('chave_api');
       
-      // Ensure token and pasta_padrao are provided (even though the schema already validates this)
-      const configToSave: Omit<DropboxConfig, "id" | "data_configuracao"> = {
-        token: values.token,
-        pasta_padrao: values.pasta_padrao,
-        link_base: values.link_base
-      };
-      
-      // Salvar configuração do Dropbox
-      await saveDropboxConfig(configToSave);
-      
-      // Recarregar a configuração
-      const updatedConfig = await getDropboxConfig();
-      setDropboxConfig(updatedConfig);
-      
-      // Testar a conexão
-      await testAllConnections();
-      
-      toast({
-        title: "Configuração Dropbox salva",
-        description: "Integração com Dropbox configurada com sucesso",
-      });
-    } catch (error: any) {
-      console.error("Erro ao salvar configuração Dropbox:", error);
-      
-      // Exibe o erro detalhado em um diálogo
-      if (error?.message) {
-        setCurrentError(JSON.stringify(error, null, 2));
-        setErrorDialogOpen(true);
+      if (!apiKey) {
+        toast({
+          variant: "destructive",
+          title: "Chave API obrigatória",
+          description: "Digite a chave API antes de testar a conexão"
+        });
+        return;
       }
       
+      const result = await testGptConnection(apiKey);
+      
+      if (result.success) {
+        toast({
+          title: "Conexão bem-sucedida",
+          description: "A conexão com a API OpenAI foi estabelecida com sucesso"
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Falha na conexão",
+          description: result.error || "Não foi possível conectar à API OpenAI"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao testar conexão GPT:", error);
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar a configuração",
         variant: "destructive",
+        title: "Erro ao testar conexão",
+        description: "Ocorreu um erro ao testar a conexão com a API OpenAI"
       });
     } finally {
-      setIsLoading(false);
+      setIsTestingConnection(false);
+    }
+  };
+  
+  // Salvar configuração do Dropbox
+  const handleSaveDropboxConfig = async (data: any) => {
+    setIsSaving(true);
+    
+    try {
+      await saveDropboxConfig(data);
+      setDropboxConfig(data);
+      
+      toast({
+        title: "Configuração salva",
+        description: "Configuração do Dropbox foi salva com sucesso"
+      });
+      
+      // Verificar status da integração
+      setTimeout(checkIntegrationStatus, 1000);
+    } catch (error) {
+      console.error("Erro ao salvar configuração Dropbox:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a configuração do Dropbox"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Testar conexão com Dropbox
+  const handleTestDropboxConnection = async () => {
+    setIsTestingConnection(true);
+    
+    try {
+      const token = dropboxForm.getValues('token');
+      
+      if (!token) {
+        toast({
+          variant: "destructive",
+          title: "Token obrigatório",
+          description: "Digite o token antes de testar a conexão"
+        });
+        return;
+      }
+      
+      const result = await testDropboxConnection(token);
+      
+      if (result.success) {
+        toast({
+          title: "Conexão bem-sucedida",
+          description: "A conexão com o Dropbox foi estabelecida com sucesso"
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Falha na conexão",
+          description: result.error || "Não foi possível conectar ao Dropbox"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao testar conexão Dropbox:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao testar conexão",
+        description: "Ocorreu um erro ao testar a conexão com o Dropbox"
+      });
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+  
+  // Salvar configuração do Vimeo
+  const handleSaveVimeoConfig = async (data: any) => {
+    setIsSaving(true);
+    
+    try {
+      await saveVimeoConfig(data);
+      setVimeoConfig(data);
+      
+      toast({
+        title: "Configuração salva",
+        description: "Configuração do Vimeo foi salva com sucesso"
+      });
+      
+      // Verificar status da integração
+      setTimeout(checkIntegrationStatus, 1000);
+    } catch (error) {
+      console.error("Erro ao salvar configuração Vimeo:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a configuração do Vimeo"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Ícones para cada status
-  const getStatusIcon = (status: IntegrationStatus) => {
-    switch (status) {
+  // Se não for admin, redirecionar para o dashboard
+  if (!isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Renderiza o status da integração
+  const renderIntegrationStatus = (status?: IntegrationStatusData) => {
+    if (!status) {
+      return (
+        <div className="flex items-center">
+          <AlertCircle className="mr-2 h-4 w-4 text-gray-400" />
+          <span className="text-sm">Não verificado</span>
+        </div>
+      );
+    }
+    
+    switch (status.status) {
       case 'integrated':
-        return <Check className="h-4 w-4 text-emerald-600" />;
-      case 'not_configured':
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case 'error':
-        return <X className="h-4 w-4 text-red-600" />;
-      default:
-        return null;
-    }
-  };
-
-  // Badge para cada status
-  const getStatusBadge = (statusInfo: IntegrationStatusInfo) => {
-    switch (statusInfo.status) {
-      case 'integrated':
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-                <Check className="h-3 w-3 mr-1" /> Integrado
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{statusInfo.message || "Integração funcionando corretamente"}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      case 'not_configured':
-        return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
-            <AlertTriangle className="h-3 w-3 mr-1" /> Não configurado
-          </Badge>
+          <div className="flex items-center">
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+            <span className="text-sm text-green-600">Integrado</span>
+          </div>
         );
       case 'error':
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="outline" className="bg-red-50 text-red-700 hover:bg-red-50">
-                <X className="h-3 w-3 mr-1" /> Erro de autenticação
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{statusInfo.error || "Erro ao conectar com o serviço"}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex items-center">
+            <XCircle className="mr-2 h-4 w-4 text-red-500" />
+            <span className="text-sm text-red-600">Erro</span>
+          </div>
+        );
+      case 'not_configured':
+        return (
+          <div className="flex items-center">
+            <AlertCircle className="mr-2 h-4 w-4 text-amber-500" />
+            <span className="text-sm text-amber-600">Não configurado</span>
+          </div>
         );
       default:
-        return null;
+        return (
+          <div className="flex items-center">
+            <AlertCircle className="mr-2 h-4 w-4 text-gray-400" />
+            <span className="text-sm">Desconhecido</span>
+          </div>
+        );
     }
   };
-
+  
   return (
     <Layout>
-      <TooltipProvider>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6 text-contourline-darkBlue">Painel de Integrações</h1>
-          
-          {/* Alerta para integrações com erro */}
-          {Object.values(statuses).some(s => s.status === 'error') && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              <div>
-                <p className="font-medium">Atenção: Há integrações com erro</p>
-                <p className="text-sm">Verifique o status das integrações e corrija as configurações necessárias.</p>
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <header className="mb-6">
+          <h1 className="text-3xl font-bold">Configurações de Integração</h1>
+          <p className="text-muted-foreground mt-1">
+            Configure integrações com serviços externos
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Card de Status da OpenAI */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Terminal className="mr-2 h-5 w-5" />
+                  <CardTitle className="text-lg">OpenAI</CardTitle>
+                </div>
+                {renderIntegrationStatus(integrationStatuses.gpt)}
               </div>
-            </div>
-          )}
-          
-          {isLoading && (
-            <div className="mb-6">
-              <p className="text-sm text-contourline-mediumBlue mb-2">Carregando configurações...</p>
-              <Progress value={30} className="h-2" />
-            </div>
-          )}
-          
-          <Tabs defaultValue="gpt" className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6">
-              <TabsTrigger value="gpt" className="flex items-center gap-2">
-                <BrainCircuit className="h-4 w-4" />
-                GPT (OpenAI)
-              </TabsTrigger>
-              <TabsTrigger value="dropbox" className="flex items-center gap-2">
-                <FolderOpen className="h-4 w-4" />
-                Dropbox
-              </TabsTrigger>
-              <TabsTrigger value="vimeo" className="flex items-center gap-2">
-                <Video className="h-4 w-4" />
-                Vimeo
-              </TabsTrigger>
-            </TabsList>
-            
-            {/* GPT Configuration Tab */}
-            <TabsContent value="gpt">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BrainCircuit className="h-5 w-5 text-contourline-mediumBlue" />
-                    Configuração GPT
-                  </CardTitle>
-                  <CardDescription>
-                    Configure os modelos GPT para geração de conteúdo na plataforma
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...gptForm}>
-                    <form onSubmit={gptForm.handleSubmit(onGptSubmit)} className="space-y-6">
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Nomes dos modelos por finalidade</h3>
-                        
-                        <FormField
-                          control={gptForm.control}
-                          name="nome_roteiro"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome do modelo para Roteiro</FormLabel>
-                              <FormControl>
-                                <Input placeholder="GPT_Roteiro_Reel" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Nome para o modelo de geração de roteiros
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={gptForm.control}
-                          name="nome_big_idea"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome do modelo para Big Idea</FormLabel>
-                              <FormControl>
-                                <Input placeholder="GPT_BigIdea_Reel" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Nome para o modelo de geração de Big Ideas
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={gptForm.control}
-                          name="nome_story"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome do modelo para Stories</FormLabel>
-                              <FormControl>
-                                <Input placeholder="GPT_StoriesV_Reel" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Nome para o modelo de geração de Stories
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="space-y-4 pt-4 border-t">
-                        <h3 className="text-lg font-medium">Configurações compartilhadas</h3>
-                        
-                        <FormField
-                          control={gptForm.control}
-                          name="modelo"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Modelo GPT</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o modelo" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                                  <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormDescription>
-                                Modelo da OpenAI a ser utilizado para todas as finalidades
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={gptForm.control}
-                          name="chave_api"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="flex justify-between items-center">
-                                <span>Chave da API</span>
-                                <Button 
-                                  type="button" 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => setShowApiKey(!showApiKey)}
-                                  className="h-6 px-2 text-xs"
-                                >
-                                  {showApiKey ? (
-                                    <><EyeOff className="h-3 w-3 mr-1" /> Ocultar</>
-                                  ) : (
-                                    <><Eye className="h-3 w-3 mr-1" /> Mostrar</>
-                                  )}
-                                </Button>
-                              </FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type={showApiKey ? "text" : "password"} 
-                                  placeholder="sk-..." 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Chave secreta da API OpenAI compartilhada para todos os modelos
-                                <a 
-                                  href="https://platform.openai.com/account/api-keys" 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-contourline-mediumBlue ml-1 hover:underline"
-                                >
-                                  Obter chave API
-                                </a>
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button 
-                          type="submit" 
-                          className="flex items-center gap-2"
-                          disabled={isLoading || isTesting}
-                        >
-                          <Save className="h-4 w-4" />
-                          Salvar Configuração GPT
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Dropbox Configuration Tab */}
-            <TabsContent value="dropbox">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FolderOpen className="h-5 w-5 text-contourline-mediumBlue" />
-                    Configuração Dropbox
-                  </CardTitle>
-                  <CardDescription>
-                    Configure a integração com o Dropbox para acesso aos vídeos e arquivos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...dropboxForm}>
-                    <form onSubmit={dropboxForm.handleSubmit(onDropboxSubmit)} className="space-y-6">
-                      <FormField
-                        control={dropboxForm.control}
-                        name="token"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex justify-between items-center">
-                              <span>Token de acesso</span>
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => setShowDropboxToken(!showDropboxToken)}
-                                className="h-6 px-2 text-xs"
-                              >
-                                {showDropboxToken ? (
-                                  <><EyeOff className="h-3 w-3 mr-1" /> Ocultar</>
-                                ) : (
-                                  <><Eye className="h-3 w-3 mr-1" /> Mostrar</>
-                                )}
-                              </Button>
-                            </FormLabel>
-                            <FormControl>
-                              <Input 
-                                type={showDropboxToken ? "text" : "password"} 
-                                placeholder="Token de acesso do Dropbox" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Token de acesso da API do Dropbox
-                              <a 
-                                href="https://www.dropbox.com/developers/apps" 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-contourline-mediumBlue ml-1 hover:underline"
-                              >
-                                Obter token
-                              </a>
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={dropboxForm.control}
-                        name="pasta_padrao"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pasta padrão de leitura</FormLabel>
-                            <FormControl>
-                              <Input placeholder="/videos" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Caminho da pasta no Dropbox de onde os arquivos serão lidos
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={dropboxForm.control}
-                        name="link_base"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Link base para exibição (opcional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="https://dropbox.com/s/" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              URL base para links de compartilhamento
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="pt-4">
-                        <Button 
-                          type="submit" 
-                          className="flex items-center gap-2"
-                          disabled={isLoading || isTesting}
-                        >
-                          <Save className="h-4 w-4" />
-                          Salvar Configuração Dropbox
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Vimeo Configuration Tab */}
-            <TabsContent value="vimeo">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="h-5 w-5 text-contourline-mediumBlue" />
-                    Configuração Vimeo
-                  </CardTitle>
-                  <CardDescription>
-                    Configure a integração com o Vimeo para importação de vídeos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4">
-                    A integração com o Vimeo permite importar vídeos diretamente da sua conta para a plataforma.
-                  </p>
-                  <div className="flex justify-center">
-                    <Button asChild>
-                      <Link to="/admin/vimeo-settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Configurar Vimeo
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-          
-          {/* Integration Status */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Status das Integrações</span>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => testAllConnections()} 
-                  disabled={isLoading || isTesting}
-                  className="flex items-center gap-1"
-                >
-                  <RefreshCw className={`h-3 w-3 ${isTesting ? 'animate-spin' : ''}`} />
-                  Revalidar
-                </Button>
-              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <BrainCircuit className="h-4 w-4 text-contourline-mediumBlue" />
-                    <span>OpenAI (Roteiro)</span>
+            <CardContent className="pt-2">
+              <div className="text-sm">
+                {isLoadingConfigs ? (
+                  <div className="flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Carregando configuração...</span>
                   </div>
-                  {getStatusBadge(statuses.gpt_roteiro)}
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <BrainCircuit className="h-4 w-4 text-contourline-mediumBlue" />
-                    <span>OpenAI (Big Idea)</span>
+                ) : (
+                  <div>
+                    <p className="text-muted-foreground">
+                      {gptConfigs.length === 0
+                        ? "Nenhuma configuração encontrada"
+                        : `${gptConfigs.length} ${gptConfigs.length === 1 ? 'configuração' : 'configurações'} definidas`}
+                    </p>
+                    <p className="mt-2">
+                      {integrationStatuses.gpt?.status === 'integrated' 
+                        ? "Pronto para uso nos roteiros" 
+                        : integrationStatuses.gpt?.message || "Status desconhecido"}
+                    </p>
                   </div>
-                  {getStatusBadge(statuses.gpt_big_idea)}
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <BrainCircuit className="h-4 w-4 text-contourline-mediumBlue" />
-                    <span>OpenAI (Stories)</span>
-                  </div>
-                  {getStatusBadge(statuses.gpt_story)}
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4 text-contourline-mediumBlue" />
-                    <span>Dropbox</span>
-                  </div>
-                  {getStatusBadge(statuses.dropbox)}
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Video className="h-4 w-4 text-contourline-mediumBlue" />
-                    <span>Vimeo</span>
-                  </div>
-                  {vimeoConfig?.access_token ? 
-                    getStatusBadge(statuses.vimeo) : 
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
-                      <AlertTriangle className="h-3 w-3 mr-1" /> Configurar
-                    </Badge>
-                  }
-                </div>
+                )}
               </div>
             </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full" 
+                onClick={() => document.getElementById('gpt-config')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Configurar
+              </Button>
+            </CardFooter>
           </Card>
-          
-          {/* Error Dialog */}
-          <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                  Detalhes do Erro
-                </DialogTitle>
-                <DialogDescription>
-                  Informações detalhadas sobre o erro encontrado
-                </DialogDescription>
-              </DialogHeader>
-              <div className="bg-gray-50 p-3 rounded-md overflow-auto max-h-80">
-                <pre className="text-xs whitespace-pre-wrap break-words text-red-700">{currentError}</pre>
+
+          {/* Card de Status do Dropbox */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <FolderOpen className="mr-2 h-5 w-5" />
+                  <CardTitle className="text-lg">Dropbox</CardTitle>
+                </div>
+                {renderIntegrationStatus(integrationStatuses.dropbox)}
               </div>
-              <div className="flex items-center justify-start text-sm text-gray-600">
-                <Info className="h-4 w-4 mr-2" />
-                <p>Este erro pode estar relacionado a permissões no banco de dados ou autenticação.</p>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="text-sm">
+                {isLoadingConfigs ? (
+                  <div className="flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Carregando configuração...</span>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-muted-foreground">
+                      {dropboxConfig 
+                        ? `Pasta configurada: ${dropboxConfig.pasta_padrao}` 
+                        : "Nenhuma configuração encontrada"}
+                    </p>
+                    <p className="mt-2">
+                      {integrationStatuses.dropbox?.status === 'integrated' 
+                        ? "Pronto para uso com arquivos" 
+                        : integrationStatuses.dropbox?.message || "Status desconhecido"}
+                    </p>
+                  </div>
+                )}
               </div>
-            </DialogContent>
-          </Dialog>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full" 
+                onClick={() => document.getElementById('dropbox-config')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Configurar
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Card de Status do Vimeo */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Video className="mr-2 h-5 w-5" />
+                  <CardTitle className="text-lg">Vimeo</CardTitle>
+                </div>
+                {renderIntegrationStatus(integrationStatuses.vimeo)}
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="text-sm">
+                {isLoadingConfigs ? (
+                  <div className="flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Carregando configuração...</span>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-muted-foreground">
+                      {vimeoConfig?.folder_id
+                        ? `Pasta configurada: ${vimeoConfig.folder_id}` 
+                        : "Nenhuma pasta configurada"}
+                    </p>
+                    <p className="mt-2">
+                      {integrationStatuses.vimeo?.status === 'integrated' 
+                        ? "Pronto para importar vídeos" 
+                        : integrationStatuses.vimeo?.message || "Status desconhecido"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full" 
+                onClick={() => document.getElementById('vimeo-config')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Configurar
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-      </TooltipProvider>
+
+        <Button 
+          variant="outline" 
+          onClick={checkIntegrationStatus} 
+          className="mb-8"
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isTestingConnection ? 'animate-spin' : ''}`} />
+          Verificar status das integrações
+        </Button>
+
+        {/* Configuração do GPT */}
+        <div id="gpt-config" className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Configuração OpenAI GPT</h2>
+            <Button onClick={handleAddGptConfig} variant="outline" size="sm">
+              Adicionar nova configuração
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="pt-6">
+              {gptConfigs.length > 0 && !isAdding && (
+                <div className="mb-4">
+                  <Label>Selecione a configuração</Label>
+                  <Select 
+                    value={currentGptConfig?.id} 
+                    onValueChange={handleGptConfigChange}
+                  >
+                    <SelectTrigger className="w-full md:w-[300px]">
+                      <SelectValue placeholder="Selecione uma configuração" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gptConfigs.map(config => (
+                        <SelectItem key={config.id} value={config.id}>
+                          {config.nome} {config.ativo ? '(Ativa)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <form onSubmit={gptForm.handleSubmit(handleSaveGptConfig)}>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="gpt-nome">Nome da configuração</Label>
+                    <Input 
+                      id="gpt-nome"
+                      {...gptForm.register('nome')}
+                      placeholder="Ex: GPT-3.5 Turbo"
+                      className="mt-1"
+                    />
+                    {gptForm.formState.errors.nome && (
+                      <p className="text-sm text-red-500 mt-1">{gptForm.formState.errors.nome.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gpt-chave-api">Chave API OpenAI</Label>
+                    <Input 
+                      id="gpt-chave-api"
+                      {...gptForm.register('chave_api')}
+                      placeholder="sk-..."
+                      className="mt-1"
+                      type="password"
+                    />
+                    {gptForm.formState.errors.chave_api && (
+                      <p className="text-sm text-red-500 mt-1">{gptForm.formState.errors.chave_api.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gpt-modelo">Modelo</Label>
+                    <Select 
+                      value={gptForm.watch('modelo')} 
+                      onValueChange={val => gptForm.setValue('modelo', val)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione o modelo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="gpt-4">GPT-4</SelectItem>
+                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {gptForm.formState.errors.modelo && (
+                      <p className="text-sm text-red-500 mt-1">{gptForm.formState.errors.modelo.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gpt-prompt">Prompt padrão (opcional)</Label>
+                    <Textarea 
+                      id="gpt-prompt"
+                      {...gptForm.register('prompt')}
+                      placeholder="Instruções padrão para o modelo"
+                      className="mt-1 min-h-[100px]"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleTestGptConnection}
+                      disabled={isTestingConnection || isSaving}
+                    >
+                      {isTestingConnection ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Testar conexão
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      type="submit"
+                      disabled={isSaving || isTestingConnection}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>Salvar configuração</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuração do Dropbox */}
+        <div id="dropbox-config" className="mb-12">
+          <h2 className="text-2xl font-bold mb-4">Configuração Dropbox</h2>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={dropboxForm.handleSubmit(handleSaveDropboxConfig)}>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="dropbox-token">Token de acesso</Label>
+                    <Input 
+                      id="dropbox-token"
+                      {...dropboxForm.register('token')}
+                      placeholder="sl...."
+                      className="mt-1"
+                      type="password"
+                    />
+                    {dropboxForm.formState.errors.token && (
+                      <p className="text-sm text-red-500 mt-1">{dropboxForm.formState.errors.token.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="dropbox-pasta">Pasta padrão</Label>
+                    <Input 
+                      id="dropbox-pasta"
+                      {...dropboxForm.register('pasta_padrao')}
+                      placeholder="/Fluida"
+                      className="mt-1"
+                    />
+                    {dropboxForm.formState.errors.pasta_padrao && (
+                      <p className="text-sm text-red-500 mt-1">{dropboxForm.formState.errors.pasta_padrao.message}</p>
+                    )}
+                  </div>
+                  
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Como obter o token do Dropbox</AlertTitle>
+                    <AlertDescription>
+                      <ol className="list-decimal list-inside space-y-1 text-sm">
+                        <li>Acesse a <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">página de desenvolvedores do Dropbox</a></li>
+                        <li>Clique em "Create app"</li>
+                        <li>Escolha "Scoped access" e "Full Dropbox"</li>
+                        <li>Dê um nome ao seu app e clique em "Create app"</li>
+                        <li>Na aba "Permissions", adicione as permissões de arquivo necessárias</li>
+                        <li>Na aba "Settings", em "OAuth 2", gere o token de acesso</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="flex justify-between">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleTestDropboxConnection}
+                      disabled={isTestingConnection || isSaving}
+                    >
+                      {isTestingConnection ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Testar conexão
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      type="submit"
+                      disabled={isSaving || isTestingConnection}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>Salvar configuração</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Configuração do Vimeo */}
+        <div id="vimeo-config" className="mb-12">
+          <h2 className="text-2xl font-bold mb-4">Configuração Vimeo</h2>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Informação importante</AlertTitle>
+                  <AlertDescription>
+                    <p className="mb-2">Para conexão com o Vimeo, recomendamos usar a autenticação OAuth, que é mais segura e oferece mais recursos.</p>
+                    <Button asChild variant="outline" size="sm">
+                      <a href="/admin/vimeo-settings">
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                        Ir para configuração OAuth do Vimeo
+                      </a>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            
+              <form onSubmit={vimeoForm.handleSubmit(handleSaveVimeoConfig)}>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="vimeo-folder">ID da Pasta Vimeo (opcional)</Label>
+                    <Input 
+                      id="vimeo-folder"
+                      {...vimeoForm.register('folder_id')}
+                      placeholder="12345678"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ID da pasta para importação de vídeos. Deixe em branco para listar todos os vídeos.
+                    </p>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <Button 
+                      type="submit"
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>Salvar configuração</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
     </Layout>
   );
 };
