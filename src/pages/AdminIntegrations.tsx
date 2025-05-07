@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,6 +45,7 @@ const gptSchema = z.object({
   modelo: z.string().min(1, { message: "Selecione um modelo" }),
   chave_api: z.string().min(1, { message: "A chave API é necessária" }),
   ativo: z.boolean().default(true),
+  prompt: z.string().optional()
 });
 
 // Dropbox Schema
@@ -244,7 +244,8 @@ const AdminIntegrations: React.FC = () => {
         tipo: 'roteiro',
         modelo: values.modelo,
         chave_api: values.chave_api,
-        ativo: values.ativo
+        ativo: values.ativo,
+        prompt: '' // Campo obrigatório adicionado
       };
 
       // Criar configuração para Big Idea
@@ -253,7 +254,8 @@ const AdminIntegrations: React.FC = () => {
         tipo: 'big_idea',
         modelo: values.modelo,
         chave_api: values.chave_api,
-        ativo: values.ativo
+        ativo: values.ativo,
+        prompt: '' // Campo obrigatório adicionado
       };
 
       // Criar configuração para Story
@@ -262,7 +264,8 @@ const AdminIntegrations: React.FC = () => {
         tipo: 'story',
         modelo: values.modelo,
         chave_api: values.chave_api,
-        ativo: values.ativo
+        ativo: values.ativo,
+        prompt: '' // Campo obrigatório adicionado
       };
 
       // Verificar se já existem configurações para atualizar
