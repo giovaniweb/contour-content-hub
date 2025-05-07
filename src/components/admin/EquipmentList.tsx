@@ -1,85 +1,105 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Search, Loader2 } from "lucide-react";
+import { Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { Equipment } from '@/types/equipment';
 
-export interface EquipmentListProps {
+interface EquipmentListProps {
   equipments: Equipment[];
   onEdit: (equipment: Equipment) => void;
-  onDelete: (id: string) => Promise<void>;
-  loading?: boolean;
+  onDelete: (id: string) => void;
 }
 
-const EquipmentList: React.FC<EquipmentListProps> = ({ 
-  equipments, 
-  onEdit, 
-  onDelete,
-  loading = false 
+const EquipmentList: React.FC<EquipmentListProps> = ({
+  equipments,
+  onEdit,
+  onDelete
 }) => {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (equipments.length === 0) {
-    return (
-      <div className="text-center py-10 bg-muted/30 rounded-md">
-        <Search className="h-10 w-10 mx-auto text-muted-foreground" />
-        <p className="mt-2 text-lg font-medium">Nenhum equipamento encontrado</p>
-        <p className="text-sm text-muted-foreground">
-          Tente ajustar os critérios de busca ou adicione um novo equipamento.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nome</TableHead>
-          <TableHead>Tecnologia</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Ações</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {equipments.map((equipment) => (
-          <TableRow key={equipment.id} className="hover:bg-muted/50">
-            <TableCell className="font-medium">{equipment.nome}</TableCell>
-            <TableCell>{equipment.tecnologia}</TableCell>
-            <TableCell>
-              {equipment.ativo ? (
-                <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">Ativo</Badge>
-              ) : (
-                <Badge variant="outline" className="bg-rose-100 text-rose-800 hover:bg-rose-100">Inativo</Badge>
-              )}
-            </TableCell>
-            <TableCell className="flex items-center gap-2">
-              <Button size="icon" variant="ghost" onClick={() => onEdit(equipment)}>
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Editar</span>
-              </Button>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                onClick={() => onDelete(equipment.id)}
-                className="hover:bg-rose-100 hover:text-rose-700"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Excluir</span>
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="space-y-4">
+      {equipments.map((equipment) => (
+        <div 
+          key={equipment.id}
+          className="flex items-center justify-between p-4 bg-card rounded-md border shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            {equipment.image_url ? (
+              <img 
+                src={equipment.image_url} 
+                alt={equipment.nome} 
+                className="w-12 h-12 object-cover rounded-md"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+                Sem imagem
+              </div>
+            )}
+            
+            <div>
+              <h3 className="font-medium">{equipment.nome}</h3>
+              <p className="text-sm text-muted-foreground truncate max-w-md">
+                {equipment.tecnologia.substring(0, 100)}
+                {equipment.tecnologia.length > 100 ? '...' : ''}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {equipment.ativo ? (
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Ativo</span>
+            ) : (
+              <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Inativo</span>
+            )}
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+            >
+              {/* Updating link to use /equipments/:id format instead of /equipment/:id */}
+              <Link to={`/equipments/${equipment.id}`}>
+                <Eye className="h-4 w-4 mr-1" />
+                Ver
+              </Link>
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(equipment)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onDelete(equipment.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      ))}
+      
+      {equipments.length === 0 && (
+        <div className="text-center py-8 border rounded-md bg-muted/20">
+          <p className="text-muted-foreground">Nenhum equipamento encontrado.</p>
+        </div>
+      )}
+    </div>
   );
 };
 

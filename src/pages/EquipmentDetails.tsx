@@ -16,9 +16,13 @@ import { EquipmentDetailsLoading } from '@/components/equipment-details/Equipmen
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 
 const EquipmentDetails: React.FC = () => {
+  // Get the equipment ID from the URL parameters
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const { equipment, loading, error, activeTab, setActiveTab } = useEquipmentDetailsState(id);
+
+  console.log("EquipmentDetails rendering with ID:", id);
+  console.log("Equipment data:", equipment);
 
   const handleImportComplete = (importedData: any) => {
     toast({

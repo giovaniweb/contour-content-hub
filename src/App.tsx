@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -32,6 +31,7 @@ import MarketingConsultant from './pages/MarketingConsultant';
 import SystemDiagnostics from './pages/SystemDiagnostics';
 import ScriptValidationPage from './pages/ScriptValidationPage';
 import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
+import EquipmentDetails from './pages/EquipmentDetails';
 import EquipmentsPage from './pages/EquipmentsPage';
 import VideoBatchImport from './pages/VideoBatchImport';
 import VimeoSettings from './pages/VimeoSettings';
@@ -79,7 +79,12 @@ function App() {
               <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />
               <Route path="/custom-gpt" element={<PrivateRoute><CustomGpt /></PrivateRoute>} />
               <Route path="/equipments" element={<PrivateRoute><EquipmentsPage /></PrivateRoute>} />
-              <Route path="/equipment/:id/*" element={<PrivateRoute><EquipmentDetailsPage /></PrivateRoute>} />
+              
+              {/* Fixed Route: Changed from /equipment/:id/* to /equipments/:id (to match current URL pattern) */}
+              <Route path="/equipments/:id" element={<PrivateRoute><EquipmentDetails /></PrivateRoute>} />
+              
+              {/* Keeping both routes for backward compatibility */}
+              <Route path="/equipment/:id" element={<PrivateRoute><EquipmentDetailsPage /></PrivateRoute>} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
