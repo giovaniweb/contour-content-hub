@@ -1,72 +1,102 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Suggestion } from './types';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
-export function usePredictiveConsultant() {
+// Define suggestion types directly here to avoid circular dependencies
+type SuggestionType = 'script' | 'content' | 'marketing' | 'video' | 'equipment';
+
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  type: SuggestionType;
+  path?: string;
+  action?: string;
+  isNew?: boolean;
+  score?: number;
+  createdAt: string;
+}
+
+export const usePredictiveConsultant = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
-  
-  // Fetch suggestions
-  useEffect(() => {
-    // Simulate loading data
-    setTimeout(() => {
-      const mockSuggestions: Suggestion[] = [
-        {
-          id: '1',
-          title: 'Associação de equipamentos',
-          message: 'Vejo que você tem usado o Hipro para papada. Já pensou em associar com o Unyque Pro para resultados de firmeza mais visíveis?',
-          type: 'equipment',
-          actionText: 'Ver roteiro para Instagram',
-          actionPath: '/custom-gpt?preset=hipro_unyque',
-          isNew: true
-        },
-        {
-          id: '2',
-          title: 'Crescimento notável!',
-          message: 'Você está crescendo muito com o Hipro! E me permita dizer: depois que começou com a Fluida, seu marketing ficou afiado. Como consultor, indico considerar o Ultralift como próximo passo.',
-          type: 'strategy',
-          actionText: 'Conhecer o Ultralift',
-          actionPath: '/admin/content?tab=equipment&id=ultralift',
-          isNew: true
-        },
-        {
-          id: '3',
-          title: 'Retome suas postagens',
-          message: 'Lembra que você me contou que queria ver sua clínica com mais movimento? Notei que você está há alguns dias sem postar. Posso te ajudar a voltar com uma campanha de volta à ativa com o que você já tem?',
-          type: 'motivation',
-          actionText: 'Criar campanha de reativação',
-          actionPath: '/marketing-consultant',
-          isNew: false
-        }
-      ];
-      
-      setSuggestions(mockSuggestions);
-      setLoading(false);
-    }, 1500);
-  }, []);
+  const { toast } = useToast();
 
+  useEffect(() => {
+    // Simulação de carregamento de sugestões
+    const fetchSuggestions = () => {
+      setTimeout(() => {
+        const mockSuggestions: Suggestion[] = [
+          {
+            id: '1',
+            title: 'Criar roteiro sobre Equipamento XYZ',
+            description: 'Baseado nos seus roteiros recentes, este equipamento está alinhado com sua estratégia de conteúdo.',
+            type: 'script',
+            path: '/script-generator',
+            action: 'Criar Roteiro',
+            isNew: true,
+            score: 87,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            title: 'Valide seu último roteiro',
+            description: 'Você criou um roteiro recentemente mas não o validou. Recomendamos validá-lo para garantir qualidade.',
+            type: 'script',
+            path: '/script-validation',
+            action: 'Validar Roteiro',
+            score: 92,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: '3',
+            title: 'Estratégia de Conteúdo para Q3',
+            description: 'Com base no seu histórico, é hora de planejar o próximo trimestre.',
+            type: 'content',
+            path: '/content-strategy',
+            action: 'Planejar Estratégia',
+            score: 85,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: '4',
+            title: 'Novo lançamento de produto',
+            description: 'Planeje um lançamento para seu novo produto usando o consultor de marketing.',
+            type: 'marketing',
+            path: '/marketing-consultant',
+            action: 'Iniciar Planejamento',
+            isNew: true,
+            score: 95,
+            createdAt: new Date().toISOString()
+          },
+        ];
+        
+        setSuggestions(mockSuggestions);
+        setLoading(false);
+      }, 1500);
+    };
+    
+    fetchSuggestions();
+  }, []);
+  
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
-    
-    // Mark as read (in a real implementation, this would update the database)
-    setSuggestions(prev => 
-      prev.map(s => s.id === suggestion.id ? {...s, isNew: false} : s)
-    );
   };
-
+  
   const handleActionClick = (suggestion: Suggestion) => {
-    toast({
-      title: "Ação iniciada",
-      description: `Redirecionando para ${suggestion.actionText}...`,
-    });
-    navigate(suggestion.actionPath);
+    if (suggestion.path) {
+      navigate(suggestion.path);
+    } else {
+      toast({
+        title: "Ação indisponível",
+        description: "Esta funcionalidade ainda não está disponível.",
+      });
+    }
   };
-
+  
   return {
     suggestions,
     loading,
@@ -74,4 +104,4 @@ export function usePredictiveConsultant() {
     handleSuggestionClick,
     handleActionClick
   };
-}
+};

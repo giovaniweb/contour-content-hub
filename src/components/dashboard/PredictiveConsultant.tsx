@@ -4,13 +4,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, ArrowRight } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from 'react-router-dom';
 import { usePredictiveConsultant } from './predictive-consultant/usePredictiveConsultant';
 import { getIconForType, getTypeLabel } from './predictive-consultant/utils';
 import LoadingState from './predictive-consultant/LoadingState';
 import SuggestionList from './predictive-consultant/SuggestionList';
 import SuggestionDetail from './predictive-consultant/SuggestionDetail';
-import { useNavigate } from 'react-router-dom';
 
 const PredictiveConsultant: React.FC = () => {
   const { 

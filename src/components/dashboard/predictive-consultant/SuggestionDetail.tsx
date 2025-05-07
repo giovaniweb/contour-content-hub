@@ -1,65 +1,94 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowRight } from "lucide-react";
-import { Suggestion } from './types';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight } from 'lucide-react';
+
+// Define local type for suggestion type
+type SuggestionType = 'script' | 'content' | 'marketing' | 'video' | 'equipment';
+
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  type: SuggestionType;
+  path?: string;
+  action?: string;
+  isNew?: boolean;
+  score?: number;
+  createdAt: string;
+}
 
 interface SuggestionDetailProps {
   suggestion: Suggestion | null;
   onActionClick: (suggestion: Suggestion) => void;
-  getTypeLabel: (type: string) => string;
+  getTypeLabel: (type: SuggestionType) => string;
 }
 
-const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
-  suggestion,
-  onActionClick,
-  getTypeLabel
+const SuggestionDetail: React.FC<SuggestionDetailProps> = ({ 
+  suggestion, 
+  onActionClick, 
+  getTypeLabel 
 }) => {
   if (!suggestion) {
     return (
-      <div className="hidden md:flex flex-1 items-center justify-center p-4 text-center">
-        <div className="max-w-xs">
-          <p className="text-muted-foreground text-sm">
-            Selecione uma sugestão para ver os detalhes e ações recomendadas
-          </p>
-        </div>
+      <div className="flex-1 flex items-center justify-center p-6 text-center text-gray-500">
+        <p>Selecione uma sugestão para ver mais detalhes</p>
       </div>
     );
   }
 
+  const formattedDate = new Date(suggestion.createdAt).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+
   return (
-    <div className="flex-1 p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Badge className={`
-          ${suggestion.type === 'equipment' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-            suggestion.type === 'content' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
-            suggestion.type === 'strategy' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-            'bg-purple-100 text-purple-800 hover:bg-purple-200'}
-        `}>
+    <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex justify-between items-start mb-2">
+        <Badge variant="outline" className="bg-primary/10">
           {getTypeLabel(suggestion.type)}
         </Badge>
-        <h3 className="font-medium">{suggestion.title}</h3>
+        {suggestion.isNew && (
+          <Badge className="bg-red-100 text-red-800">
+            Nova
+          </Badge>
+        )}
       </div>
+
+      <h3 className="font-medium text-lg mb-2">{suggestion.title}</h3>
       
-      <div className="flex gap-3 mb-4">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png" />
-          <AvatarFallback>AI</AvatarFallback>
-        </Avatar>
-        <div className="bg-muted p-3 rounded-lg text-sm">
-          {suggestion.message}
+      <p className="text-gray-600 text-sm mb-4">
+        {suggestion.description}
+      </p>
+      
+      {suggestion.score !== undefined && (
+        <div className="mb-4">
+          <span className="text-xs text-gray-500">Relevância:</span>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+            <div 
+              className="bg-primary h-1.5 rounded-full" 
+              style={{ width: `${suggestion.score}%` }}
+            ></div>
+          </div>
         </div>
-      </div>
+      )}
       
-      <Button 
-        onClick={() => onActionClick(suggestion)}
-        className="w-full"
-      >
-        {suggestion.actionText}
-        <ArrowRight className="ml-2 h-4 w-4" />
-      </Button>
+      <div className="flex items-center justify-between mt-auto pt-2">
+        <span className="text-xs text-gray-500">{formattedDate}</span>
+        
+        {suggestion.action && (
+          <Button 
+            size="sm" 
+            onClick={() => onActionClick(suggestion)}
+            className="gap-1"
+          >
+            {suggestion.action}
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

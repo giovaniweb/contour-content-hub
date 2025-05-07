@@ -1,12 +1,27 @@
 
 import React from 'react';
-import { Suggestion } from './types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Define local type for suggestion type
+type SuggestionType = 'script' | 'content' | 'marketing' | 'video' | 'equipment';
+
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  type: SuggestionType;
+  path?: string;
+  action?: string;
+  isNew?: boolean;
+  score?: number;
+  createdAt: string;
+}
 
 interface SuggestionListProps {
   suggestions: Suggestion[];
   selectedSuggestion: Suggestion | null;
   onSuggestionClick: (suggestion: Suggestion) => void;
-  getIconForType: (type: string) => JSX.Element;
+  getIconForType: (type: SuggestionType) => JSX.Element;
 }
 
 const SuggestionList: React.FC<SuggestionListProps> = ({
@@ -16,37 +31,32 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
   getIconForType
 }) => {
   return (
-    <div className="h-full overflow-auto">
-      {suggestions.map((suggestion) => (
-        <div
-          key={suggestion.id}
-          onClick={() => onSuggestionClick(suggestion)}
-          className={`p-3 border-b cursor-pointer flex items-center gap-3 hover:bg-muted/50 transition-colors ${
-            selectedSuggestion?.id === suggestion.id ? 'bg-muted/50' : ''
-          }`}
-        >
-          <div className={`p-2 rounded-full ${
-            suggestion.type === 'equipment' ? 'bg-yellow-100' :
-            suggestion.type === 'content' ? 'bg-blue-100' :
-            suggestion.type === 'strategy' ? 'bg-green-100' :
-            'bg-purple-100'
-          }`}>
-            {getIconForType(suggestion.type)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-medium text-sm truncate">{suggestion.title}</p>
+    <ScrollArea className="h-full">
+      <div className="divide-y">
+        {suggestions.map((suggestion) => (
+          <div
+            key={suggestion.id}
+            className={`p-3 cursor-pointer transition-colors hover:bg-gray-50
+              ${selectedSuggestion?.id === suggestion.id ? 'bg-primary/5 border-l-2 border-primary' : ''}
+            `}
+            onClick={() => onSuggestionClick(suggestion)}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              {getIconForType(suggestion.type)}
+              <span className="font-medium text-sm truncate">
+                {suggestion.title}
+              </span>
               {suggestion.isNew && (
                 <span className="h-2 w-2 rounded-full bg-red-500"></span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate">
-              {suggestion.message.substring(0, 50)}...
+            <p className="text-xs text-gray-500 line-clamp-2">
+              {suggestion.description}
             </p>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 

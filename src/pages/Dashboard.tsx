@@ -12,7 +12,9 @@ import DashboardSection from "@/components/dashboard/DashboardSection";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import TrendingTopics from "@/components/dashboard/TrendingTopics";
 import PopularContent from "@/components/dashboard/PopularContent";
-import PredictiveConsultant from "@/components/dashboard/PredictiveConsultant";
+
+// Importing PredictiveConsultant with lazy loading to avoid circular dependencies
+const PredictiveConsultant = React.lazy(() => import("@/components/dashboard/PredictiveConsultant"));
 
 // Dados das ações
 import { getQuickActions, getAdditionalActions } from "@/components/dashboard/ActionCardsData";
@@ -51,7 +53,9 @@ const Dashboard: React.FC = () => {
           actionLabel="Ver todas"
           actionPath="/marketing-consultant"
         >
-          <PredictiveConsultant />
+          <React.Suspense fallback={<div className="p-4 text-center">Carregando sugestões...</div>}>
+            <PredictiveConsultant />
+          </React.Suspense>
         </DashboardSection>
         
         {/* Conteúdo em Alta */}
