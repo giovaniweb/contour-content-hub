@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -91,6 +92,9 @@ function App() {
                 <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />
                 <Route path="/custom-gpt" element={<PrivateRoute><CustomGpt /></PrivateRoute>} />
                 <Route path="/equipments" element={<PrivateRoute><EquipmentsPage /></PrivateRoute>} />
+                
+                {/* Nova rota para biblioteca de vídeos */}
+                <Route path="/videos" element={<PrivateRoute><VideoStorage /></PrivateRoute>} />
                 
                 {/* Fixed Route: Changed from /equipment/:id/* to /equipments/:id (to match current URL pattern) */}
                 <Route path="/equipments/:id" element={<PrivateRoute><EquipmentDetails /></PrivateRoute>} />

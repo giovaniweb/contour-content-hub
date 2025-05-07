@@ -15,7 +15,7 @@ interface VideoListProps {
   onlyMine?: boolean;
   initialFilters?: VideoFilterOptions;
   onSelectVideo?: (video: StoredVideo) => void;
-  emptyStateMessage?: string;
+  emptyStateMessage?: string | React.ReactNode; // Alterado para permitir ReactNode
 }
 
 const VideoList: React.FC<VideoListProps> = ({ 
@@ -130,7 +130,11 @@ const VideoList: React.FC<VideoListProps> = ({
         </Alert>
       ) : videos.length === 0 ? (
         <div className="text-center py-8 border rounded-lg bg-muted/50">
-          <p className="text-muted-foreground">{emptyStateMessage}</p>
+          {typeof emptyStateMessage === 'string' ? (
+            <p className="text-muted-foreground">{emptyStateMessage}</p>
+          ) : (
+            emptyStateMessage
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

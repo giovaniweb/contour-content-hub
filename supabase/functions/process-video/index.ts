@@ -39,28 +39,44 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log(`Processing video ${videoId} with file name ${fileName}`);
+
     // Em uma implementação real, aqui teríamos:
     // 1. Download do vídeo do storage
     // 2. Uso do FFmpeg para gerar thumbnails e versões em diferentes qualidades
     // 3. Upload dos arquivos processados de volta para o storage
     // 4. Atualização do registro no banco de dados
 
-    // Por enquanto, vamos simular com um pequeno delay
+    // Simulação do processamento com um delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Atualizar status do vídeo e adicionar um thumbnail de placeholder
-    await supabaseAdmin
+    // Obter URLs assinados para o video
+    const { data: originalUrlData } = await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24);
+    
+    if (!originalUrlData?.signedUrl) {
+      throw new Error("Falha ao gerar URL assinado para o vídeo original");
+    }
+    
+    // Atualizar status do vídeo e adicionar um thumbnail e URLs assinados
+    const { error: updateError } = await supabaseAdmin
       .from('videos_storage')
       .update({ 
         status: 'ready',
         thumbnail_url: 'https://placehold.co/640x360/333/FFF?text=Video+Thumbnail',
         file_urls: {
-          original: (await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24)).data?.signedUrl,
-          hd: (await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24)).data?.signedUrl,
-          sd: (await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24)).data?.signedUrl,
+          original: originalUrlData.signedUrl,
+          hd: originalUrlData.signedUrl, // Em produção, essas seriam URLs diferentes para versões transcodificadas
+          sd: originalUrlData.signedUrl,
         }
       })
       .eq('id', videoId);
+      
+    if (updateError) {
+      console.error('Erro ao atualizar registro do vídeo:', updateError);
+      throw updateError;
+    }
+
+    console.log(`Video ${videoId} processed successfully`);
 
     return new Response(
       JSON.stringify({
