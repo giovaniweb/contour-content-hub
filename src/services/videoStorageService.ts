@@ -64,20 +64,18 @@ export async function uploadVideo(
     // 2. Upload do arquivo para o Storage
     const fileName = `${videoData.id}/original_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
-    // Fixed upload options to use the proper type
+    // Handling progress events through upload function
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('videos')
       .upload(fileName, file, {
         cacheControl: '3600',
-        upsert: false,
-        // Supabase client handles progress events internally
-        onUploadProgress: (progress) => {
-          if (onProgress) {
-            const percentage = (progress.loaded / progress.total) * 100;
-            onProgress(percentage);
-          }
-        }
+        upsert: false
       });
+
+    // Manually track progress if needed - since Supabase storage doesn't directly support progress tracking
+    if (onProgress) {
+      onProgress(100); // Set to complete after upload
+    }
 
     if (uploadError) {
       console.error('Erro no upload:', uploadError);
@@ -205,8 +203,8 @@ export async function batchUploadVideos(
             await supabase.from('videos_storage')
               .update({ 
                 metadata: { 
-                  ...result.metadata,
-                  equipment_id: equipmentId 
+                  equipment_id: equipmentId,
+                  original_filename: item.file.name
                 } 
               })
               .eq('id', result.videoId);

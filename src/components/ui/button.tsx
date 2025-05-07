@@ -20,6 +20,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-contourline-lightBlue/10 hover:text-contourline-darkBlue text-contourline-darkBlue",
         link: "text-contourline-mediumBlue underline-offset-4 hover:underline",
         action: "bg-white shadow-md border border-gray-100 text-contourline-darkBlue hover:bg-contourline-lightBlue/10 hover:border-contourline-lightBlue/30",
+        warning: "bg-amber-500 text-white hover:bg-amber-600",
       },
       size: {
         default: "h-10 px-4 py-2",

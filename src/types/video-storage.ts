@@ -3,6 +3,17 @@ export type VideoStatus = 'uploading' | 'processing' | 'ready' | 'error';
 export type VideoQuality = 'sd' | 'hd' | 'original';
 export type VideoQueueStatus = 'pending' | 'uploading' | 'completed' | 'error';
 
+export interface VideoMetadata {
+  equipment_id?: string;
+  original_filename?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  codec?: string;
+  fps?: number;
+  [key: string]: any; // Allow for additional properties
+}
+
 export interface StoredVideo {
   id: string;
   title: string;
@@ -19,14 +30,7 @@ export interface StoredVideo {
     [key in VideoQuality]?: string;
   };
   public: boolean;
-  metadata?: {
-    width?: number;
-    height?: number;
-    format?: string;
-    codec?: string;
-    fps?: number;
-    equipment_id?: string; // Add equipment_id to metadata
-  };
+  metadata?: VideoMetadata;
 }
 
 export interface VideoDownloadLog {
@@ -72,16 +76,4 @@ export interface VideoFilterOptions {
 export interface VideoSortOptions {
   field: 'title' | 'size' | 'created_at' | 'updated_at';
   direction: 'asc' | 'desc';
-}
-
-// Define the VideoMetadata interface for proper typing
-export interface VideoMetadata {
-  equipment_id?: string;
-  original_filename?: string;
-  width?: number;
-  height?: number;
-  format?: string;
-  codec?: string;
-  fps?: number;
-  [key: string]: any; // Allow for additional properties
 }
