@@ -17,12 +17,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { saveVimeoConfig, getVimeoConfig, testVimeoConnection } from "@/services/integrationService";
 import { VimeoConfig } from "@/types/database";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Define schema para o formulário
 const vimeoSchema = z.object({
@@ -40,6 +47,8 @@ const VimeoSettings: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showToken, setShowToken] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [errorDetails, setErrorDetails] = useState<any>(null);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
   // Formulário
   const form = useForm<VimeoFormValues>({
@@ -82,6 +91,7 @@ const VimeoSettings: React.FC = () => {
       setIsTesting(true);
       setConnectionStatus('idle');
       setConnectionMessage("");
+      setErrorDetails(null);
 
       console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "...");
       
@@ -94,6 +104,9 @@ const VimeoSettings: React.FC = () => {
       } else {
         setConnectionStatus('error');
         setConnectionMessage(result.error || "Erro ao conectar com Vimeo");
+        if (result.details) {
+          setErrorDetails(result.details);
+        }
       }
     } catch (error) {
       console.error("Erro ao testar conexão:", error);
@@ -133,6 +146,10 @@ const VimeoSettings: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showErrorDetails = () => {
+    setErrorDialogOpen(true);
   };
 
   return (
@@ -230,7 +247,19 @@ const VimeoSettings: React.FC = () => {
                 {connectionStatus === 'error' && (
                   <Alert className="bg-red-50 border-red-200">
                     <AlertCircle className="h-4 w-4 text-red-600" />
-                    <AlertTitle className="text-red-800">Erro de conexão</AlertTitle>
+                    <AlertTitle className="text-red-800 flex justify-between items-center">
+                      <span>Erro de conexão</span>
+                      {errorDetails && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={showErrorDetails}
+                          className="text-xs flex items-center text-red-700 h-6"
+                        >
+                          <Info className="h-3 w-3 mr-1" /> Detalhes
+                        </Button>
+                      )}
+                    </AlertTitle>
                     <AlertDescription className="text-red-700">
                       {connectionMessage}
                     </AlertDescription>
@@ -263,6 +292,29 @@ const VimeoSettings: React.FC = () => {
             </form>
           </Form>
         </Card>
+
+        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                Detalhes do erro Vimeo
+              </DialogTitle>
+              <DialogDescription>
+                Informações técnicas sobre o erro de conexão com o Vimeo
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-gray-50 p-4 rounded-md overflow-auto max-h-80">
+              <pre className="text-xs whitespace-pre-wrap">
+                {errorDetails ? JSON.stringify(errorDetails, null, 2) : 'Nenhum detalhe disponível'}
+              </pre>
+            </div>
+            <div className="flex items-center text-xs text-gray-500">
+              <Info className="h-4 w-4 mr-2 text-blue-500" />
+              <p>Verifique se o token tem as permissões corretas e está válido.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

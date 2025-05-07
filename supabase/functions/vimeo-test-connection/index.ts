@@ -13,9 +13,19 @@ serve(async (req) => {
   }
   
   try {
-    const { token } = await req.json();
+    // Log de entrada para depuração
+    console.log("Iniciando teste de conexão Vimeo");
+    
+    // Parse do request body
+    const requestData = await req.json().catch(e => {
+      console.error("Erro ao parsear o request body:", e);
+      throw new Error("Formato de request inválido");
+    });
+    
+    const { token } = requestData;
     
     if (!token) {
+      console.error("Token não fornecido no request");
       return new Response(JSON.stringify({ 
         success: false, 
         error: "Token de acesso é necessário" 
@@ -24,6 +34,8 @@ serve(async (req) => {
         status: 400
       });
     }
+    
+    console.log("Chamando API do Vimeo com token válido");
     
     // Fazer uma chamada para a API do Vimeo para verificar se o token é válido
     const vimeoResponse = await fetch('https://api.vimeo.com/me', {
@@ -35,6 +47,10 @@ serve(async (req) => {
     
     const vimeoData = await vimeoResponse.json();
     
+    // Log da resposta da API do Vimeo para depuração
+    console.log(`Resposta da API do Vimeo - Status: ${vimeoResponse.status}`);
+    console.log("Dados da resposta:", JSON.stringify(vimeoData));
+    
     if (vimeoResponse.ok) {
       // Token é válido
       return new Response(JSON.stringify({
@@ -45,22 +61,25 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     } else {
-      // Token é inválido
+      // Token é inválido - retorna detalhes específicos do erro do Vimeo
       return new Response(JSON.stringify({
         success: false,
         error: vimeoData.error || "Token de acesso inválido",
-        details: vimeoData
+        details: vimeoData,
+        status: vimeoResponse.status
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401
       });
     }
   } catch (error) {
-    console.error("Error in vimeo-test-connection function:", error);
+    // Capturar e logar qualquer erro não tratado
+    console.error("Erro não tratado na função vimeo-test-connection:", error);
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message || 'Erro ao testar conexão com Vimeo'
+      error: error.message || 'Erro ao testar conexão com Vimeo',
+      stack: error.stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
