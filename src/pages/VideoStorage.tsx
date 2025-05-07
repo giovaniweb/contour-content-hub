@@ -10,10 +10,26 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { usePermissions } from '@/hooks/use-permissions';
+import { useToast } from '@/hooks/use-toast';
 
 const VideoStorage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const { isAdmin } = usePermissions();
+  const { toast } = useToast();
+
+  const handleUploadClick = () => {
+    if (isAdmin()) {
+      setShowUploadDialog(true);
+    } else {
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem fazer upload de vídeos.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <Layout>
@@ -29,8 +45,9 @@ const VideoStorage: React.FC = () => {
             </p>
           </div>
           
+          {/* Botão de upload agora verifica se o usuário é admin */}
           <Button 
-            onClick={() => setShowUploadDialog(true)}
+            onClick={handleUploadClick}
             className="flex items-center gap-2"
           >
             <Upload className="h-4 w-4" />
@@ -52,7 +69,7 @@ const VideoStorage: React.FC = () => {
           
           <TabsContent value="all" className="space-y-4">
             <VideoList
-              emptyStateMessage="Nenhum vídeo disponível. Seja o primeiro a enviar um vídeo!"
+              emptyStateMessage="Nenhum vídeo disponível. Entre em contato com um administrador para adicionar vídeos."
             />
           </TabsContent>
           
@@ -61,13 +78,19 @@ const VideoStorage: React.FC = () => {
               onlyMine
               emptyStateMessage={
                 <div className="text-center space-y-3 py-8">
-                  <p className="text-muted-foreground">Você ainda não enviou nenhum vídeo</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowUploadDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Enviar seu primeiro vídeo
-                  </Button>
+                  <p className="text-muted-foreground">
+                    {isAdmin() 
+                      ? "Você ainda não enviou nenhum vídeo" 
+                      : "Você não possui vídeos. Apenas administradores podem fazer upload de vídeos."}
+                  </p>
+                  {isAdmin() && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handleUploadClick}
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Enviar seu primeiro vídeo
+                    </Button>
+                  )}
                 </div>
               }
             />
@@ -75,18 +98,21 @@ const VideoStorage: React.FC = () => {
         </Tabs>
       </div>
       
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <VideoUploader
-            onUploadComplete={() => {
-              setShowUploadDialog(false);
-              // Muda para a aba "Meus Vídeos" após o upload
-              setActiveTab('mine');
-            }}
-            onCancel={() => setShowUploadDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Dialog de upload só é mostrado para administradores */}
+      {isAdmin() && (
+        <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <VideoUploader
+              onUploadComplete={() => {
+                setShowUploadDialog(false);
+                // Muda para a aba "Meus Vídeos" após o upload
+                setActiveTab('mine');
+              }}
+              onCancel={() => setShowUploadDialog(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 };

@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +17,8 @@ import { Progress } from '@/components/ui/progress';
 import { VideoUploadProgress } from '@/types/video-storage';
 import { AlertCircle, Check, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { usePermissions } from '@/hooks/use-permissions';
+import { Navigate } from 'react-router-dom';
 
 interface VideoUploaderProps {
   onUploadComplete?: (videoId: string) => void;
@@ -26,6 +27,7 @@ interface VideoUploaderProps {
 
 const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCancel }) => {
   const { toast } = useToast();
+  const { isAdmin } = usePermissions();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -36,6 +38,26 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Verificação para impedir que usuários não-admin acessem este componente
+  useEffect(() => {
+    if (!isAdmin()) {
+      toast({
+        variant: "destructive",
+        title: "Acesso restrito",
+        description: "Você não tem permissão para fazer upload de vídeos."
+      });
+      
+      if (onCancel) {
+        onCancel();
+      }
+    }
+  }, [isAdmin, toast, onCancel]);
+
+  // Se não for admin, não renderiza o componente
+  if (!isAdmin()) {
+    return null;
+  }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -94,6 +116,15 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   };
 
   const handleUpload = async () => {
+    if (!isAdmin()) {
+      toast({
+        variant: "destructive",
+        title: "Acesso restrito",
+        description: "Apenas administradores podem fazer upload de vídeos."
+      });
+      return;
+    }
+
     if (!file) {
       toast({
         variant: "destructive",
@@ -187,8 +218,8 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Upload de Vídeo</CardTitle>
-        <CardDescription>Envie um novo vídeo para sua biblioteca</CardDescription>
+        <CardTitle>Upload de Vídeo (Administrador)</CardTitle>
+        <CardDescription>Envie um novo vídeo para a biblioteca de vídeos</CardDescription>
       </CardHeader>
       <CardContent>
         {!uploadProgress ? (

@@ -23,6 +23,46 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
+    // Verificar autenticação
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Autenticação necessária');
+    }
+
+    // Extrair token JWT
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verificar o usuário
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    // Verificar se o usuário é administrador
+    const { data: perfil, error: perfilError } = await supabaseAdmin
+      .from('perfis')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+      
+    if (perfilError) {
+      throw new Error('Erro ao verificar permissões');
+    }
+    
+    // Apenas administradores podem processar vídeos
+    if (perfil?.role !== 'admin') {
+      return new Response(
+        JSON.stringify({
+          error: 'Permissão negada. Apenas administradores podem processar vídeos.',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      );
+    }
+
     // Get request body
     const requestData: ProcessVideoRequest = await req.json();
     const { videoId, fileName } = requestData;
