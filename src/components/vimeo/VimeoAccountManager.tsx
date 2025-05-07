@@ -26,14 +26,41 @@ export default function VimeoAccountManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [vimeoAccount, setVimeoAccount] = useState<VimeoToken | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isApiAvailable, setIsApiAvailable] = useState<boolean | null>(null);
+  const [isServerConfigured, setIsServerConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (user) {
+      checkVimeoStatus();
       loadVimeoAccount();
     }
   }, [user]);
+
+  const checkVimeoStatus = async () => {
+    setIsCheckingStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('vimeo-status-check');
+      
+      if (error) {
+        console.error("Erro ao verificar status do Vimeo:", error);
+        setIsApiAvailable(false);
+        setIsServerConfigured(false);
+        return;
+      }
+      
+      setIsApiAvailable(data.api_available);
+      setIsServerConfigured(data.config_complete);
+    } catch (error) {
+      console.error("Erro ao verificar status do Vimeo:", error);
+      setIsApiAvailable(false);
+      setIsServerConfigured(false);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
 
   const loadVimeoAccount = async () => {
     setIsLoading(true);
@@ -119,7 +146,8 @@ export default function VimeoAccountManager() {
     }
   };
 
-  if (isLoading) {
+  // Shows loading state
+  if (isLoading || isCheckingStatus) {
     return (
       <div className="flex justify-center items-center p-8">
         <Loader className="h-6 w-6 animate-spin mr-2" />
@@ -128,6 +156,95 @@ export default function VimeoAccountManager() {
     );
   }
 
+  // Shows error state when API is unavailable
+  if (isApiAvailable === false) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-red-600 flex items-center gap-2">
+            <WifiOff className="h-5 w-5" />
+            API do Vimeo Inacessível
+          </CardTitle>
+          <CardDescription>
+            Não foi possível conectar à API do Vimeo
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Problema de conexão</AlertTitle>
+            <AlertDescription>
+              <p>A API do Vimeo está inacessível no momento. Isso pode ser devido a:</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Problemas temporários no serviço do Vimeo</li>
+                <li>Restrições de firewall ou rede</li>
+                <li>Bloqueio regional do serviço</li>
+              </ul>
+              <p className="text-xs mt-1">
+                Tente novamente mais tarde ou entre em contato com o administrador do sistema.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={checkVimeoStatus} 
+            variant="outline"
+            className="mr-2"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Verificar novamente
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Shows error state when server is not configured
+  if (isServerConfigured === false) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-amber-600 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            Configuração Incompleta
+          </CardTitle>
+          <CardDescription>
+            As variáveis de ambiente do Vimeo não estão configuradas no servidor
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="warning" className="bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Atenção: Configuração necessária</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              <p>O servidor não está configurado com as credenciais do Vimeo. As seguintes variáveis precisam ser configuradas:</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>VIMEO_CLIENT_ID</li>
+                <li>VIMEO_CLIENT_SECRET</li>
+                <li>VIMEO_REDIRECT_URI</li>
+              </ul>
+              <p className="text-xs mt-2">
+                Entre em contato com o administrador do sistema para configurar estas variáveis nas funções Edge do Supabase.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={checkVimeoStatus} 
+            variant="outline"
+            className="mr-2"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Verificar novamente
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Shows generic error state
   if (loadError) {
     return (
       <Card>
@@ -167,6 +284,7 @@ export default function VimeoAccountManager() {
     );
   }
 
+  // Shows "no account connected" state
   if (!vimeoAccount) {
     return (
       <Card>
@@ -202,6 +320,7 @@ export default function VimeoAccountManager() {
     minute: '2-digit'
   });
 
+  // Shows connected account state
   return (
     <Card>
       <CardHeader className="pb-3">

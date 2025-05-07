@@ -22,11 +22,40 @@ export default function VimeoConnectButton({
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [statusChecked, setStatusChecked] = useState(false);
+  const [isApiAvailable, setIsApiAvailable] = useState<boolean | null>(null);
+  const [isServerConfigured, setIsServerConfigured] = useState<boolean | null>(null);
+
+  // Check Vimeo API and server configuration on component mount
+  useEffect(() => {
+    checkVimeoStatus();
+  }, []);
 
   // Reset connection error when component remounts
   useEffect(() => {
     setConnectionError(null);
   }, []);
+
+  const checkVimeoStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('vimeo-status-check');
+      
+      if (error) {
+        console.error("Erro ao verificar status do Vimeo:", error);
+        setIsApiAvailable(false);
+        setIsServerConfigured(false);
+      } else {
+        setIsApiAvailable(data.api_available);
+        setIsServerConfigured(data.config_complete);
+      }
+    } catch (error) {
+      console.error("Erro ao verificar status do Vimeo:", error);
+      setIsApiAvailable(false);
+      setIsServerConfigured(false);
+    } finally {
+      setStatusChecked(true);
+    }
+  };
 
   const handleConnect = async () => {
     if (!user) {
@@ -42,7 +71,22 @@ export default function VimeoConnectButton({
     setConnectionError(null);
     
     try {
-      // Call our edge function to start the OAuth process
+      // Check Vimeo API status first
+      const { data: statusData, error: statusError } = await supabase.functions.invoke('vimeo-status-check');
+      
+      if (statusError) {
+        throw new Error("Não foi possível verificar o status do Vimeo");
+      }
+      
+      if (!statusData.api_available) {
+        throw new Error("A API do Vimeo está inacessível no momento. Tente novamente mais tarde.");
+      }
+      
+      if (!statusData.config_complete) {
+        throw new Error("A configuração do servidor Vimeo está incompleta. Entre em contato com o administrador do sistema.");
+      }
+      
+      // If Vimeo API is available and server is configured, proceed with OAuth
       const { data, error } = await supabase.functions.invoke('vimeo-oauth-start', {
         body: { user_id: user.id }
       });
@@ -86,15 +130,34 @@ export default function VimeoConnectButton({
     }
   };
 
+  // Show different error states
+  const getErrorMessage = () => {
+    if (!statusChecked) return null;
+    
+    if (!isApiAvailable) {
+      return "A API do Vimeo está inacessível no momento. Isso pode ser devido a problemas de rede ou restrições de firewall.";
+    }
+    
+    if (!isServerConfigured) {
+      return "As variáveis de ambiente do Vimeo não estão configuradas corretamente no servidor.";
+    }
+    
+    return connectionError;
+  };
+
+  const errorMessage = getErrorMessage();
+
   return (
     <div className="space-y-3">
-      {connectionError && (
+      {errorMessage && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {connectionError}
+            {errorMessage}
             <p className="text-xs mt-1">
-              Verifique se o Vimeo está disponível ou se as credenciais de API foram configuradas corretamente.
+              {!isServerConfigured 
+                ? "Peça ao administrador para verificar as variáveis de ambiente no Supabase." 
+                : "Verifique se o Vimeo está disponível ou se há algum problema de rede."}
             </p>
           </AlertDescription>
         </Alert>
@@ -102,7 +165,7 @@ export default function VimeoConnectButton({
       
       <Button
         onClick={handleConnect}
-        disabled={isLoading}
+        disabled={isLoading || (!isApiAvailable || !isServerConfigured)}
         variant={variant}
         className={className}
       >

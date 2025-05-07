@@ -50,6 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VimeoAccountManager from "@/components/vimeo/VimeoAccountManager";
 import VimeoConnectButton from "@/components/vimeo/VimeoConnectButton";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define schema para o formulário com validação mais rigorosa para o token
 const vimeoSchema = z.object({
@@ -100,12 +101,11 @@ const VimeoSettings: React.FC = () => {
     },
   });
 
-  // Se não for admin, redirecionar para o dashboard
+  // If not admin, redirect to dashboard
   if (!isAdmin()) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Carregar configurações existentes
   useEffect(() => {
     const loadVimeoSettings = async () => {
       try {
@@ -116,6 +116,9 @@ const VimeoSettings: React.FC = () => {
           form.setValue('access_token', config.access_token || "");
           form.setValue('folder_id', config.folder_id || "");
         }
+        
+        // Check Vimeo API and server status automatically
+        checkVimeoStatus();
       } catch (error) {
         console.error("Erro:", error);
       } finally {
@@ -125,6 +128,46 @@ const VimeoSettings: React.FC = () => {
 
     loadVimeoSettings();
   }, [form]);
+
+  // Function to check Vimeo API availability and server configuration
+  const checkVimeoStatus = async () => {
+    setCheckingConnection(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('vimeo-status-check');
+      
+      if (error) {
+        console.error("Erro ao verificar status do Vimeo:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro de verificação",
+          description: "Não foi possível verificar o status da API do Vimeo"
+        });
+        setIsApiAvailable(false);
+        setIsServerConfigured(false);
+        return;
+      }
+      
+      setIsApiAvailable(data.api_available);
+      setIsServerConfigured(data.config_complete);
+      
+      console.log("Status do Vimeo:", data);
+      
+      // Show toast with results
+      if (!data.api_available || !data.config_complete) {
+        toast({
+          variant: "destructive",
+          title: "Problemas de integração detectados",
+          description: "Verifique o painel de status para mais informações"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao verificar status do Vimeo:", error);
+      setIsApiAvailable(false);
+      setIsServerConfigured(false);
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
 
   // Mostrar o exemplo de token
   const showTokenExample = () => {
@@ -769,7 +812,22 @@ const VimeoSettings: React.FC = () => {
 
         {/* Server Configuration Info */}
         <div className="mt-8 pt-8 border-t">
-          <h2 className="text-lg font-medium mb-4">Configurações do Servidor</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium">Status da Integração</h2>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={checkVimeoStatus} 
+              disabled={checkingConnection}
+              className="flex items-center gap-2"
+            >
+              {checkingConnection ? (
+                <><Loader className="h-4 w-4 animate-spin" /> Verificando...</>
+              ) : (
+                <><RefreshCw className="h-4 w-4" /> Verificar Novamente</>
+              )}
+            </Button>
+          </div>
           
           <div className="rounded-md bg-slate-50 p-4 border">
             <div className="mb-4">
@@ -777,15 +835,29 @@ const VimeoSettings: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex justify-between items-center border-b pb-2">
                   <span className="text-sm">API do Vimeo:</span>
-                  <Badge className={isApiAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                    {checkingConnection ? "Verificando..." : isApiAvailable ? "Acessível" : "Inacessível"}
-                  </Badge>
+                  {checkingConnection ? (
+                    <Badge className="bg-yellow-100 text-yellow-800">
+                      <Loader className="h-3 w-3 animate-spin mr-1" />
+                      Verificando...
+                    </Badge>
+                  ) : (
+                    <Badge className={isApiAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      {isApiAvailable ? "✓ Acessível" : "✗ Inacessível"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="text-sm">Função Edge:</span>
-                  <Badge className={isServerConfigured ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                    {isServerConfigured === null ? "Verificando..." : isServerConfigured ? "Configurada" : "Não configurada"}
-                  </Badge>
+                  <span className="text-sm">Configuração do Servidor:</span>
+                  {checkingConnection ? (
+                    <Badge className="bg-yellow-100 text-yellow-800">
+                      <Loader className="h-3 w-3 animate-spin mr-1" />
+                      Verificando...
+                    </Badge>
+                  ) : (
+                    <Badge className={isServerConfigured ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      {isServerConfigured ? "✓ Configurado" : "✗ Incompleto"}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -795,23 +867,71 @@ const VimeoSettings: React.FC = () => {
               <div className="text-sm text-gray-600">
                 <p className="mb-2">As seguintes variáveis devem ser configuradas nas funções Edge do Supabase:</p>
                 <ul className="list-disc list-inside space-y-1 pl-4">
-                  <li>VIMEO_CLIENT_ID</li>
-                  <li>VIMEO_CLIENT_SECRET</li>
-                  <li>VIMEO_REDIRECT_URI</li>
+                  <li className={isServerConfigured ? "text-green-700" : ""}>
+                    VIMEO_CLIENT_ID {isServerConfigured ? "✓" : ""}
+                  </li>
+                  <li className={isServerConfigured ? "text-green-700" : ""}>
+                    VIMEO_CLIENT_SECRET {isServerConfigured ? "✓" : ""}
+                  </li>
+                  <li className={isServerConfigured ? "text-green-700" : ""}>
+                    VIMEO_REDIRECT_URI {isServerConfigured ? "✓" : ""}
+                  </li>
                 </ul>
-                <div className="mt-3 flex items-center">
+                <div className="mt-3 flex flex-col gap-2">
                   <a 
                     href={`${SUPABASE_BASE_URL}/project/functions`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 flex items-center"
                   >
-                    Configurar Variáveis no Supabase
+                    Configurar Funções no Supabase
+                    <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                  <a 
+                    href={`${SUPABASE_BASE_URL}/project/settings/functions`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                  >
+                    Configurar Variáveis de Ambiente
                     <ExternalLink className="ml-1 h-3 w-3" />
                   </a>
                 </div>
               </div>
             </div>
+            
+            {/* Troubleshooting Guide */}
+            {!isApiAvailable || !isServerConfigured ? (
+              <Alert className="mt-4 bg-yellow-50 border-yellow-200">
+                <Info className="h-4 w-4 text-yellow-600" />
+                <AlertTitle className="text-yellow-800">Guia de Troubleshooting</AlertTitle>
+                <AlertDescription className="text-yellow-700">
+                  {!isServerConfigured && (
+                    <div className="mb-2">
+                      <p className="font-medium">1. Configure as variáveis de ambiente no Supabase:</p>
+                      <pre className="bg-slate-100 p-2 rounded text-xs mt-1 overflow-auto">
+                        supabase functions secrets set VIMEO_CLIENT_ID=xxx<br/>
+                        supabase functions secrets set VIMEO_CLIENT_SECRET=yyy<br/>
+                        supabase functions secrets set VIMEO_REDIRECT_URI=https://fluida.online/auth/vimeo/callback
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {!isApiAvailable && (
+                    <div>
+                      <p className="font-medium">2. Teste a conexão local ao Vimeo:</p>
+                      <pre className="bg-slate-100 p-2 rounded text-xs mt-1 overflow-auto">
+                        curl -I https://api.vimeo.com
+                      </pre>
+                      <p className="text-xs mt-1">
+                        Se retornar 200, o problema está no Supabase.<br/>
+                        Se recusar a conexão, pode ser sua rede ou um bloqueio regional temporário.
+                      </p>
+                    </div>
+                  )}
+                </AlertDescription>
+              </Alert>
+            ) : null}
           </div>
         </div>
       </div>
