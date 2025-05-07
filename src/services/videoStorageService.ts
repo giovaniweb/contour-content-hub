@@ -7,6 +7,18 @@ import { useToast } from '@/hooks/use-toast';
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
 
+// Define the metadata type to fix TypeScript errors
+interface VideoMetadata {
+  equipment_id?: string;
+  original_filename?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  codec?: string;
+  fps?: number;
+  [key: string]: any; // Allow for additional properties
+}
+
 export async function uploadVideo(
   file: File,
   title: string,
@@ -14,7 +26,7 @@ export async function uploadVideo(
   tags: string[],
   onProgress?: (progress: number) => void,
   isPublic: boolean = false
-): Promise<{ success: boolean; videoId?: string; error?: string; metadata?: any }> {
+): Promise<{ success: boolean; videoId?: string; error?: string; metadata?: VideoMetadata }> {
   try {
     if (file.size > MAX_FILE_SIZE) {
       return { success: false, error: `O arquivo excede o tamanho máximo permitido (100MB)` };
@@ -91,13 +103,14 @@ export async function uploadVideo(
       .eq('id', videoData.id);
 
     // 5. Se o vídeo está associado a um equipamento, também registre na tabela videos
-    if (videoData.metadata?.equipment_id) {
+    const metadata = videoData.metadata as VideoMetadata | null;
+    if (metadata?.equipment_id) {
       try {
         // Buscar detalhes do equipamento
         const { data: equipmentData } = await supabase
           .from('equipamentos')
           .select('nome')
-          .eq('id', videoData.metadata.equipment_id)
+          .eq('id', metadata.equipment_id)
           .single();
           
         if (equipmentData) {
@@ -108,7 +121,7 @@ export async function uploadVideo(
             url_video: supabase.storage.from('videos').getPublicUrl(fileName).data.publicUrl,
             equipamentos: [equipmentData.nome],
             tags: tags,
-            equipment_id: videoData.metadata.equipment_id
+            equipment_id: metadata.equipment_id
           });
         }
       } catch (error) {
@@ -120,7 +133,7 @@ export async function uploadVideo(
     return { 
       success: true, 
       videoId: videoData.id,
-      metadata: videoData.metadata 
+      metadata: videoData.metadata as VideoMetadata
     };
     
   } catch (error) {
