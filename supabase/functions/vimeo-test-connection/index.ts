@@ -35,7 +35,21 @@ serve(async (req) => {
       });
     }
     
-    console.log("Chamando API do Vimeo com token válido");
+    // Validação básica do formato do token
+    if (token.length < 20) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Formato de token inválido", 
+        help: "O token fornecido parece estar incompleto. Tokens do Vimeo são geralmente longos (64+ caracteres).",
+        instructions: "Certifique-se de copiar o token inteiro do painel do Vimeo."
+      }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      });
+    }
+    
+    console.log("Chamando API do Vimeo com token");
+    console.log(`Token length: ${token.length}, primeiros/últimos caracteres: ${token.substring(0, 5)}...${token.substring(token.length - 5)}`);
     
     try {
       // Verificar quais escopos o token possui
@@ -54,7 +68,7 @@ serve(async (req) => {
       if (vimeoResponse.ok) {
         // Token é válido, verificar escopos
         if (vimeoData.scopes && Array.isArray(vimeoData.scopes)) {
-          const requiredScopes = ['public', 'private', 'upload', 'edit', 'interact'];
+          const requiredScopes = ['public', 'private', 'upload', 'edit', 'interact', 'video_files'];
           const missingScopes = requiredScopes.filter(scope => !vimeoData.scopes.includes(scope));
           
           if (missingScopes.length > 0) {
@@ -95,6 +109,25 @@ serve(async (req) => {
           status: 200
         });
       } else {
+        // Verificar se é um erro comum como token truncado
+        if (token.length < 32 || (vimeoData.error && vimeoData.error.includes("invalid"))) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: "Token inválido ou incompleto",
+            help: "O token fornecido parece estar truncado ou é inválido. Tokens do Vimeo são mais longos.",
+            instructions: `
+              1. Acesse o painel do Vimeo Developer
+              2. Gere um novo token de acesso pessoal com todos os escopos
+              3. Copie o token completo (não apenas uma parte dele)
+              4. Cole o token completo no formulário
+            `,
+            details: vimeoData
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+        
         // Tratamento específico para o erro 8003
         if (vimeoData.error_code === 8003 || 
             (vimeoData.developer_message && vimeoData.developer_message.includes("app didn't receive the user's credentials"))) {
@@ -102,7 +135,7 @@ serve(async (req) => {
           return new Response(JSON.stringify({
             success: false,
             error: "Erro de autenticação com o Vimeo",
-            help: "Seu token deve incluir os escopos: public, private, upload, edit e interact.",
+            help: "Seu token deve incluir os escopos: public, private, upload, edit, interact e video_files.",
             instructions: `
               1. Acesse https://developer.vimeo.com/apps
               2. Selecione seu aplicativo ou crie um novo

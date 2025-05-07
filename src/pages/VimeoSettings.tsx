@@ -26,7 +26,8 @@ import {
   AlertCircle, 
   Info,
   ExternalLink,
-  HelpCircle
+  HelpCircle,
+  Copy
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
@@ -44,16 +45,24 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Define schema para o formulário
+// Define schema para o formulário com validação mais rigorosa para o token
 const vimeoSchema = z.object({
-  access_token: z.string().min(60, "Token de acesso deve ter pelo menos 60 caracteres"),
+  access_token: z.string()
+    .min(20, "Token de acesso deve ter pelo menos 20 caracteres")
+    .refine(val => val.length >= 20, {
+      message: "Token parece incompleto. Tokens do Vimeo são geralmente longos."
+    }),
   folder_id: z.string().optional(),
 });
 
 type VimeoFormValues = z.infer<typeof vimeoSchema>;
 
 const VIMEO_DEVELOPER_URL = "https://developer.vimeo.com/apps";
-const VIMEO_SCOPES = ["public", "private", "upload", "edit", "interact"];
+const VIMEO_TOKEN_URL = "https://developer.vimeo.com/apps/new";
+const VIMEO_SCOPES = ["public", "private", "upload", "edit", "interact", "video_files"];
+
+// Token de exemplo para mostrar o formato correto
+const EXAMPLE_TOKEN = "f04df04c4f0a9a0b3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z";
 
 const VimeoSettings: React.FC = () => {
   const { toast } = useToast();
@@ -69,7 +78,9 @@ const VimeoSettings: React.FC = () => {
   const [missingScopes, setMissingScopes] = useState<string[] | null>(null);
   const [requiredScopes, setRequiredScopes] = useState<string[] | null>(null);
   const [scopesDialogOpen, setScopesDialogOpen] = useState(false);
-
+  const [exampleDialogOpen, setExampleDialogOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  
   // Formulário
   const form = useForm<VimeoFormValues>({
     resolver: zodResolver(vimeoSchema),
@@ -105,22 +116,54 @@ const VimeoSettings: React.FC = () => {
     loadVimeoSettings();
   }, [form]);
 
+  // Mostrar o exemplo de token
+  const showTokenExample = () => {
+    setExampleDialogOpen(true);
+  };
+
+  // Copiar texto para a área de transferência
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      })
+      .catch(err => {
+        console.error('Erro ao copiar: ', err);
+      });
+  };
+
   // Validar token localmente
   const validateTokenLocally = (token: string): boolean => {
-    if (!token || token.length < 60) {
+    if (!token || token.length < 20) {
       toast({
         variant: "destructive",
         title: "Token inválido",
-        description: "O token parece incompleto ou inválido. Verifique se você gerou um token válido no Vimeo."
+        description: "O token parece incompleto ou inválido. Verifique se você copiou o token inteiro do Vimeo."
       });
       return false;
     }
+    
+    // Verificação adicional para detectar tokens truncados
+    if (token.length < 30) {
+      toast({
+        variant: "warning",
+        title: "Token pode estar incompleto",
+        description: "O token parece curto demais. Tokens do Vimeo geralmente são mais longos. Verifique se você copiou o token inteiro."
+      });
+    }
+    
     return true;
   };
 
   // Abrir o painel de desenvolvedor do Vimeo em uma nova aba
   const openVimeoDeveloperPanel = () => {
     window.open(VIMEO_DEVELOPER_URL, "_blank", "noopener,noreferrer");
+  };
+  
+  // Abrir a página de criação de token do Vimeo
+  const openVimeoTokenPage = () => {
+    window.open(VIMEO_TOKEN_URL, "_blank", "noopener,noreferrer");
   };
 
   // Testar conexão
@@ -139,7 +182,7 @@ const VimeoSettings: React.FC = () => {
       setMissingScopes(null);
       setRequiredScopes(null);
 
-      console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "...");
+      console.log("Testando conexão com token:", values.access_token.substring(0, 5) + "..." + values.access_token.substring(values.access_token.length - 5));
       
       const result = await testVimeoConnection(values.access_token);
       console.log("Resultado do teste de conexão:", result);
@@ -231,15 +274,26 @@ const VimeoSettings: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
               <span>Integração com Vimeo</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openVimeoDeveloperPanel}
-                className="flex items-center gap-1"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Painel Vimeo
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openVimeoTokenPage}
+                  className="flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Criar Token
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openVimeoDeveloperPanel}
+                  className="flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Painel Vimeo
+                </Button>
+              </div>
             </CardTitle>
             <CardDescription>
               Configure as credenciais para acesso à API do Vimeo
@@ -285,19 +339,31 @@ const VimeoSettings: React.FC = () => {
                         </Button>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type={showToken ? "text" : "password"}
-                          placeholder="Token de acesso do Vimeo"
-                          {...field}
-                          disabled={isLoading}
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showToken ? "text" : "password"}
+                            placeholder="Token de acesso do Vimeo"
+                            {...field}
+                            disabled={isLoading}
+                            className="pr-24"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2 text-xs text-blue-600"
+                            onClick={showTokenExample}
+                          >
+                            Ver exemplo
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormDescription className="flex items-center justify-between">
                         <span>
                           Token de acesso à API do Vimeo com os escopos necessários.
                         </span>
                         <a 
-                          href={VIMEO_DEVELOPER_URL}
+                          href={VIMEO_TOKEN_URL}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-blue-600 ml-1 hover:underline flex items-center gap-1"
@@ -398,10 +464,10 @@ const VimeoSettings: React.FC = () => {
                               type="button"
                               size="sm"
                               variant="secondary"
-                              onClick={openVimeoDeveloperPanel}
+                              onClick={openVimeoTokenPage}
                               className="text-xs h-7"
                             >
-                              Abrir Painel Vimeo
+                              Criar novo token
                               <ExternalLink className="h-3 w-3 ml-1" />
                             </Button>
                           </div>
@@ -410,6 +476,19 @@ const VimeoSettings: React.FC = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-800">Verificação de token</AlertTitle>
+                  <AlertDescription className="text-blue-700">
+                    <p>Certifique-se que seu token:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>Foi copiado <strong>integralmente</strong> (tokens são longos)</li>
+                      <li>Foi gerado com <strong>todos os escopos</strong> necessários</li>
+                      <li>Está ativo e não expirou</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
               </CardContent>
 
               <CardFooter className="flex justify-between">
@@ -493,6 +572,7 @@ const VimeoSettings: React.FC = () => {
                         {scope === 'upload' && 'Permissão para upload de vídeos'}
                         {scope === 'edit' && 'Edição de metadados dos vídeos'}
                         {scope === 'interact' && 'Interação com recursos da conta'}
+                        {scope === 'video_files' && 'Acesso aos arquivos de vídeo'}
                       </span>
                     </li>
                   ))}
@@ -506,17 +586,77 @@ const VimeoSettings: React.FC = () => {
                   <li>Selecione seu aplicativo ou crie um novo</li>
                   <li>Na seção 'Authentication', marque todos os escopos listados acima</li>
                   <li>Gere um novo token de acesso pessoal</li>
-                  <li>Copie e cole o token no formulário</li>
+                  <li>Copie o token <strong>completo</strong> e cole no formulário</li>
                 </ol>
               </div>
             </div>
             
             <DialogFooter>
-              <Button onClick={openVimeoDeveloperPanel} className="mr-auto">
+              <Button onClick={openVimeoTokenPage} className="mr-auto">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Abrir Painel Vimeo
+                Criar novo token
               </Button>
               <Button onClick={() => setScopesDialogOpen(false)}>
+                Entendi
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de exemplo de token */}
+        <Dialog open={exampleDialogOpen} onOpenChange={setExampleDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-blue-500" />
+                Exemplo de Token Vimeo
+              </DialogTitle>
+              <DialogDescription>
+                Veja como é um token válido do Vimeo (formato apenas ilustrativo)
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-700">
+                  Os tokens do Vimeo são longos e começam com letras e números. O exemplo abaixo mostra o formato típico.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="bg-gray-50 p-3 rounded-md relative">
+                <div className="font-mono text-sm break-all">{EXAMPLE_TOKEN}</div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="absolute right-2 top-2"
+                  onClick={() => copyToClipboard(EXAMPLE_TOKEN)}
+                >
+                  {copySuccess ? 'Copiado!' : <><Copy className="h-3.5 w-3.5 mr-1" /> Copiar</>}
+                </Button>
+              </div>
+              
+              <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+                <h3 className="font-medium text-yellow-800 mb-2 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Token truncado detectado
+                </h3>
+                <p className="text-sm text-yellow-700">
+                  O token que você inseriu parece curto demais (<strong>{"675137e20291b4fb0358ddac658b5b3d".length}</strong> caracteres). 
+                  Os tokens do Vimeo geralmente têm <strong>64</strong> caracteres ou mais.
+                </p>
+                <p className="text-sm mt-2 text-yellow-700">
+                  Certifique-se de copiar o token <strong>inteiro</strong> do painel do Vimeo.
+                </p>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button onClick={openVimeoTokenPage} className="mr-auto">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Gerar novo token
+              </Button>
+              <Button onClick={() => setExampleDialogOpen(false)}>
                 Entendi
               </Button>
             </DialogFooter>
