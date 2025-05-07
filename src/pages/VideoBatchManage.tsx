@@ -382,12 +382,33 @@ const VideoBatchManage: React.FC = () => {
               .single();
               
             if (existingVideo) {
+              // For existing videos in the videos table, update the equipment_id
               await supabase.from('videos')
                 .update({
                   equipment_id: batchEquipmentId,
                   equipamentos: [selectedEquipment.nome]
                 })
                 .eq('id', videoId);
+            } else {
+              // Create a new entry in the videos table with equipment_id
+              // First, get video details from videos_storage
+              const { data: videoData } = await supabase
+                .from('videos_storage')
+                .select('title, description, file_urls')
+                .eq('id', videoId)
+                .single();
+                
+              if (videoData) {
+                await supabase.from('videos')
+                  .insert({
+                    id: videoId,
+                    titulo: videoData.title,
+                    descricao: videoData.description || '',
+                    url_video: videoData.file_urls?.original || '',
+                    equipamentos: [selectedEquipment.nome],
+                    equipment_id: batchEquipmentId
+                  });
+              }
             }
           }
           

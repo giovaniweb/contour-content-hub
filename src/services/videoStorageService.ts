@@ -6,18 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
 
-// Define the metadata type to fix TypeScript errors
-interface VideoMetadata {
-  equipment_id?: string;
-  original_filename?: string;
-  width?: number;
-  height?: number;
-  format?: string;
-  codec?: string;
-  fps?: number;
-  [key: string]: any; // Allow for additional properties
-}
-
+// Function to upload a video
 export async function uploadVideo(
   file: File,
   title: string,
