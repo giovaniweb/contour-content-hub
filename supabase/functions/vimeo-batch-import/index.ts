@@ -27,13 +27,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Get Vimeo configuration from database
-    const { data: vimeoConfig, error: configError } = await supabase
+    const { data: vimeoConfigData, error: configError } = await supabase
       .from('integracao_configs')
       .select('config')
       .eq('tipo', 'vimeo')
-      .single();
+      .maybeSingle();
       
-    if (configError || !vimeoConfig?.config?.access_token) {
+    if (configError || !vimeoConfigData?.config?.access_token) {
       return new Response(JSON.stringify({ 
         success: false, 
         error: "Configuração do Vimeo não encontrada. Por favor, configure o token de acesso." 
@@ -43,10 +43,10 @@ serve(async (req) => {
       });
     }
     
-    const vimeoToken = vimeoConfig.config.access_token;
+    const vimeoToken = vimeoConfigData.config.access_token;
     
     // Determine folder path - if specified in request, use it, otherwise use from config
-    const folderPathToUse = folderPath || vimeoConfig.config.folder_id || null;
+    const folderPathToUse = folderPath || vimeoConfigData.config.folder_id || null;
     
     // Base API URL for Vimeo
     let apiUrl = 'https://api.vimeo.com/me/videos';

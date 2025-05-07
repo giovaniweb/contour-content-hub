@@ -8,7 +8,12 @@ interface AdminRouteProps {
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const { isAdmin, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  
+  // Função auxiliar para verificar se é admin
+  const checkIsAdmin = () => {
+    return user?.role === 'admin';
+  };
 
   if (isLoading) {
     return (
@@ -18,7 +23,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  return isAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
+  return isAuthenticated && checkIsAdmin() ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 
 export default AdminRoute;

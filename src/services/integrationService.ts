@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { GptConfig } from "@/types/database";
-import { DropboxConfig } from "@/types/database";
+import { GptConfig, VimeoConfig, DropboxConfig, IntegrationConfig } from "@/types/database";
 
 /**
  * Serviço para gerenciar as integrações do sistema com APIs e serviços externos
@@ -88,6 +88,83 @@ export const testGptConnection = async (apiKey: string): Promise<{
       success: false, 
       error: error instanceof Error ? error.message : 'Erro desconhecido na conexão com OpenAI' 
     };
+  }
+};
+
+// Vimeo
+export const saveVimeoConfig = async (config: VimeoConfig): Promise<VimeoConfig> => {
+  try {
+    const integrationData = {
+      tipo: 'vimeo' as const,
+      config,
+      atualizado_em: new Date().toISOString()
+    };
+    
+    // Verificar se já existe configuração
+    const { data: existingConfig, error: checkError } = await supabase
+      .from('integracao_configs')
+      .select('*')
+      .eq('tipo', 'vimeo')
+      .maybeSingle();
+    
+    if (checkError) throw checkError;
+    
+    let result;
+    
+    if (existingConfig) {
+      // Atualizar configuração existente
+      const { data, error } = await supabase
+        .from('integracao_configs')
+        .update(integrationData)
+        .eq('id', existingConfig.id)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      result = data;
+    } else {
+      // Criar nova configuração
+      const { data, error } = await supabase
+        .from('integracao_configs')
+        .insert([{
+          ...integrationData,
+          criado_em: new Date().toISOString()
+        }])
+        .select()
+        .single();
+        
+      if (error) throw error;
+      result = data;
+    }
+    
+    return {
+      ...config,
+      id: result.id
+    };
+  } catch (error) {
+    console.error("Erro ao salvar configuração Vimeo:", error);
+    throw error;
+  }
+};
+
+export const getVimeoConfig = async (): Promise<VimeoConfig | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('integracao_configs')
+      .select('*')
+      .eq('tipo', 'vimeo')
+      .maybeSingle();
+      
+    if (error) throw error;
+    
+    if (data) {
+      return data.config as VimeoConfig;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Erro ao buscar configuração Vimeo:", error);
+    throw error;
   }
 };
 
@@ -265,6 +342,36 @@ export const testDropboxConnection = async (token: string): Promise<{
       error: error instanceof Error ? 
              `Erro de conexão: ${error.message}` : 
              'Erro desconhecido ao tentar conectar com o Dropbox'
+    };
+  }
+};
+
+// Função para testar a conexão com o Vimeo
+export const testVimeoConnection = async (token: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  user?: any;
+}> => {
+  try {
+    // Chamar a função edge do Supabase
+    const url = `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/vimeo-test-connection`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({ token })
+    });
+    
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Erro ao testar conexão com Vimeo:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido na conexão com Vimeo'
     };
   }
 };

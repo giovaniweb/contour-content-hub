@@ -22,6 +22,8 @@ import { Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle } from "lucide-
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { saveVimeoConfig, getVimeoConfig, testVimeoConnection } from "@/services/integrationService";
+import { VimeoConfig } from "@/types/database";
 
 // Define schema para o formulário
 const vimeoSchema = z.object({
@@ -59,20 +61,11 @@ const VimeoSettings: React.FC = () => {
     const loadVimeoSettings = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('integracao_configs')
-          .select('*')
-          .eq('tipo', 'vimeo')
-          .single();
+        const config = await getVimeoConfig();
 
-        if (error) {
-          console.error("Erro ao carregar configurações:", error);
-          return;
-        }
-
-        if (data) {
-          form.setValue('access_token', data.config?.access_token || "");
-          form.setValue('folder_id', data.config?.folder_id || "");
+        if (config) {
+          form.setValue('access_token', config.access_token || "");
+          form.setValue('folder_id', config.folder_id || "");
         }
       } catch (error) {
         console.error("Erro:", error);
@@ -91,17 +84,7 @@ const VimeoSettings: React.FC = () => {
       setConnectionStatus('idle');
       setConnectionMessage("");
 
-      // Chamar edge function para testar conexão
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/vimeo-test-connection`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ token: values.access_token }),
-      });
-
-      const result = await response.json();
+      const result = await testVimeoConnection(values.access_token);
 
       if (result.success) {
         setConnectionStatus('success');
@@ -124,46 +107,12 @@ const VimeoSettings: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Verificar se já existe configuração
-      const { data: existing, error: checkError } = await supabase
-        .from('integracao_configs')
-        .select('id')
-        .eq('tipo', 'vimeo')
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-
-      const config = {
+      const config: VimeoConfig = {
         access_token: values.access_token,
-        folder_id: values.folder_id || ''
+        folder_id: values.folder_id || undefined
       };
 
-      if (existing) {
-        // Atualizar configuração existente
-        const { error } = await supabase
-          .from('integracao_configs')
-          .update({
-            config,
-            atualizado_em: new Date().toISOString()
-          })
-          .eq('id', existing.id);
-
-        if (error) throw error;
-      } else {
-        // Criar nova configuração
-        const { error } = await supabase
-          .from('integracao_configs')
-          .insert([{
-            tipo: 'vimeo',
-            config,
-            criado_em: new Date().toISOString(),
-            atualizado_em: new Date().toISOString()
-          }]);
-
-        if (error) throw error;
-      }
+      await saveVimeoConfig(config);
 
       toast({
         title: "Configurações salvas",

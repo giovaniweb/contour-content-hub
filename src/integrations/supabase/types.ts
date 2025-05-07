@@ -434,6 +434,30 @@ export type Database = {
         }
         Relationships: []
       }
+      integracao_configs: {
+        Row: {
+          atualizado_em: string
+          config: Json
+          criado_em: string
+          id: string
+          tipo: string
+        }
+        Insert: {
+          atualizado_em?: string
+          config?: Json
+          criado_em?: string
+          id?: string
+          tipo: string
+        }
+        Update: {
+          atualizado_em?: string
+          config?: Json
+          criado_em?: string
+          id?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
       logs_uso: {
         Row: {
           acao: string | null
@@ -820,6 +844,7 @@ export type Database = {
           tipo_video: string | null
           titulo: string | null
           url_video: string | null
+          vimeo_id: string | null
         }
         Insert: {
           area_corpo?: string | null
@@ -840,6 +865,7 @@ export type Database = {
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
+          vimeo_id?: string | null
         }
         Update: {
           area_corpo?: string | null
@@ -860,6 +886,7 @@ export type Database = {
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
+          vimeo_id?: string | null
         }
         Relationships: []
       }

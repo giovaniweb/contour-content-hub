@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,10 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, FolderOpen, Save, RefreshCw, Check, AlertTriangle, X, Eye, EyeOff, Info, Video } from "lucide-react";
-import { GptConfig, DropboxConfig, IntegrationStatus } from "@/types/database";
+import { GptConfig, VimeoConfig, DropboxConfig, IntegrationStatus } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { 
   saveGptConfig, 
   updateGptConfig, 
@@ -22,7 +23,9 @@ import {
   testGptConnection,
   saveDropboxConfig,
   getDropboxConfig,
-  testDropboxConnection
+  getVimeoConfig,
+  testDropboxConnection,
+  testVimeoConnection
 } from "@/services/integrationService";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
@@ -33,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Settings } from "lucide-react";
 
 // GPT Model Schema
 const gptSchema = z.object({
@@ -62,6 +66,7 @@ type IntegrationStatuses = {
   gpt_big_idea: IntegrationStatusInfo;
   gpt_story: IntegrationStatusInfo;
   dropbox: IntegrationStatusInfo;
+  vimeo: IntegrationStatusInfo;
 };
 
 const AdminIntegrations: React.FC = () => {
@@ -77,12 +82,14 @@ const AdminIntegrations: React.FC = () => {
     gpt_roteiro: { status: 'not_configured' },
     gpt_big_idea: { status: 'not_configured' },
     gpt_story: { status: 'not_configured' },
-    dropbox: { status: 'not_configured' }
+    dropbox: { status: 'not_configured' },
+    vimeo: { status: 'not_configured' }
   });
   
   // Armazena as configurações existentes
   const [gptConfigs, setGptConfigs] = useState<GptConfig[]>([]);
   const [dropboxConfig, setDropboxConfig] = useState<DropboxConfig | null>(null);
+  const [vimeoConfig, setVimeoConfig] = useState<VimeoConfig | null>(null);
   
   // If not admin, redirect to dashboard
   if (!isAdmin()) {
@@ -147,6 +154,10 @@ const AdminIntegrations: React.FC = () => {
           dropboxForm.setValue('pasta_padrao', dropboxData.pasta_padrao);
           dropboxForm.setValue('link_base', dropboxData.link_base || "");
         }
+
+        // Carregar configuração do Vimeo
+        const vimeoData = await getVimeoConfig();
+        setVimeoConfig(vimeoData);
         
         // Testar conexões existentes
         await testAllConnections();
@@ -198,6 +209,17 @@ const AdminIntegrations: React.FC = () => {
           error: result.error
         };
       }
+
+      // Testar configuração Vimeo
+      if (vimeoConfig?.access_token) {
+        const result = await testVimeoConnection(vimeoConfig.access_token);
+        
+        newStatuses.vimeo = {
+          status: result.success ? 'integrated' : 'error',
+          message: result.message,
+          error: result.error
+        };
+      }
       
       setStatuses(newStatuses);
     } catch (error) {
@@ -217,27 +239,27 @@ const AdminIntegrations: React.FC = () => {
       setIsLoading(true);
       
       // Criar configuração para Roteiro
-      const configRoteiro = {
+      const configRoteiro: Omit<GptConfig, 'id' | 'data_configuracao'> = {
         nome: values.nome_roteiro,
-        tipo: "roteiro",
+        tipo: 'roteiro',
         modelo: values.modelo,
         chave_api: values.chave_api,
         ativo: values.ativo
       };
 
       // Criar configuração para Big Idea
-      const configBigIdea = {
+      const configBigIdea: Omit<GptConfig, 'id' | 'data_configuracao'> = {
         nome: values.nome_big_idea,
-        tipo: "big_idea",
+        tipo: 'big_idea',
         modelo: values.modelo,
         chave_api: values.chave_api,
         ativo: values.ativo
       };
 
       // Criar configuração para Story
-      const configStory = {
+      const configStory: Omit<GptConfig, 'id' | 'data_configuracao'> = {
         nome: values.nome_story,
-        tipo: "story",
+        tipo: 'story',
         modelo: values.modelo,
         chave_api: values.chave_api,
         ativo: values.ativo
@@ -784,9 +806,12 @@ const AdminIntegrations: React.FC = () => {
                   <Video className="h-4 w-4 text-contourline-mediumBlue" />
                   <span>Vimeo</span>
                 </div>
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
-                  <AlertTriangle className="h-3 w-3 mr-1" /> Configurar
-                </Badge>
+                {vimeoConfig?.access_token ? 
+                  getStatusBadge(statuses.vimeo) : 
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50">
+                    <AlertTriangle className="h-3 w-3 mr-1" /> Configurar
+                  </Badge>
+                }
               </div>
             </div>
           </CardContent>

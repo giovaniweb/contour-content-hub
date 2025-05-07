@@ -14,7 +14,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Equipment } from '@/types/equipment';
 import { 
   Download, 
   Search, 
@@ -28,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { getVimeoConfig } from '@/services/integrationService';
 
 interface VimeoVideo {
   id: string;
@@ -70,20 +70,14 @@ const VideoBatchImport: React.FC = () => {
   const [isConfigured, setIsConfigured] = useState(false);
   const [showFilterForm, setShowFilterForm] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
 
   // Verificar se a integração com o Vimeo está configurada
   useEffect(() => {
     const checkVimeoConfig = async () => {
       try {
-        const { data, error } = await supabase
-          .from('integracao_configs')
-          .select('*')
-          .eq('tipo', 'vimeo')
-          .maybeSingle();
-          
-        if (error) throw error;
-        setIsConfigured(!!data?.config?.access_token);
+        const config = await getVimeoConfig();
+        setIsConfigured(!!config?.access_token);
       } catch (error) {
         console.error("Erro ao verificar configuração do Vimeo:", error);
       }
@@ -244,7 +238,7 @@ const VideoBatchImport: React.FC = () => {
     if (!searchQuery) return true;
     return (
       video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.description.toLowerCase().includes(searchQuery.toLowerCase())
+      video.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
@@ -473,79 +467,42 @@ const VideoBatchImport: React.FC = () => {
                   </div>
                   <div className="p-3">
                     <h3 className="font-medium truncate" title={video.title}>{video.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 h-10" title={video.description}>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                       {video.description || "Sem descrição"}
                     </p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs text-muted-foreground">
-                        {video.upload_date}
-                      </span>
-                      <a 
-                        href={video.video_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        Ver no Vimeo
-                      </a>
-                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-6">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
-
-            <Card className="mt-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium">
-                      {selectedVideos.length} vídeos selecionados para importação
-                    </h3>
-                    {selectedEquipment && (
-                      <p className="text-sm text-muted-foreground">
-                        Equipamento: {selectedEquipment.nome}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <Button 
-                    onClick={handleImportVideos}
-                    disabled={importing || selectedVideos.length === 0 || !selectedEquipmentId}
-                    className="flex items-center gap-2"
-                  >
-                    {importing ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Importando...</>
-                    ) : (
-                      <><ArrowRight className="h-4 w-4" /> Importar vídeos</>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col sm:flex-row justify-between items-center border-t pt-4">
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={handlePageChange}
+              />
+              
+              <Button 
+                className="mt-4 sm:mt-0"
+                onClick={handleImportVideos} 
+                disabled={selectedVideos.length === 0 || !selectedEquipmentId || importing}
+              >
+                {importing ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Importando...</>
+                ) : (
+                  <><Download className="h-4 w-4 mr-2" /> Importar {selectedVideos.length} vídeos</>
+                )}
+              </Button>
+            </div>
           </>
         ) : (
-          <Card className="text-center py-12">
-            <CardContent>
-              <FileVideo className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="text-xl font-medium mt-4">Nenhum vídeo encontrado</h3>
-              <p className="text-muted-foreground mt-2 mb-6">
-                Clique em "Buscar Vídeos" para iniciar a importação dos vídeos do Vimeo.
-              </p>
-              <Button onClick={() => fetchVideos(1)} disabled={isLoading}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Buscar Vídeos
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="bg-muted py-12 rounded-lg flex flex-col items-center justify-center">
+            <FileVideo className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">Nenhum vídeo encontrado</p>
+            <Button onClick={() => fetchVideos(1)}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Buscar vídeos
+            </Button>
+          </div>
         )}
       </div>
     </Layout>
