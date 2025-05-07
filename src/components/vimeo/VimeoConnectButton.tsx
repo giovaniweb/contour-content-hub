@@ -39,13 +39,25 @@ export default function VimeoConnectButton({
       });
 
       if (error) {
-        throw new Error(error.message || 'Falha ao iniciar processo de autenticação.');
+        console.error("Erro na função Edge:", error);
+        let errorMessage = "Falha ao iniciar processo de autenticação.";
+        
+        // Tentar identificar a causa do erro para mensagens mais específicas
+        if (error.message?.includes("not found") || error.message?.includes("404")) {
+          errorMessage = "Função não encontrada. Verifique se a função foi implantada corretamente.";
+        } else if (error.message?.includes("não encontrado nas variáveis")) {
+          errorMessage = "Configuração do Vimeo incompleta. API_KEY não configurada no servidor.";
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      if (!data.auth_url) {
+      if (!data || !data.auth_url) {
         throw new Error('URL de autorização não retornada pelo servidor.');
       }
 
+      console.log("URL de autorização gerada:", data.auth_url);
+      
       // Redirect to Vimeo for authorization
       window.location.href = data.auth_url;
     } catch (error) {

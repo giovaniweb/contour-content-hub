@@ -32,6 +32,11 @@ serve(async (req) => {
     const url = new URL(req.url);
     const stateParam = url.searchParams.get("state") || "";
 
+    // Verificar as variáveis de ambiente disponíveis
+    console.log("Verificando variáveis de ambiente...");
+    console.log(`VIMEO_CLIENT_ID presente: ${Boolean(VIMEO_CLIENT_ID)}`);
+    console.log(`REDIRECT_URI configurado: ${REDIRECT_URI}`);
+
     if (!VIMEO_CLIENT_ID) {
       console.error("VIMEO_CLIENT_ID não encontrado nas variáveis de ambiente");
       return new Response(
@@ -39,7 +44,10 @@ serve(async (req) => {
           success: false,
           error: "Configuração do Vimeo incompleta. VIMEO_CLIENT_ID não configurado."
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 500 
+        }
       );
     }
 
