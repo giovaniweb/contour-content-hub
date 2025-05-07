@@ -32,7 +32,10 @@ import {
   ListTodo,
   LayoutDashboard,
   Film,
-  Link
+  Link,
+  FileVideo,
+  Database,
+  Code
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -172,11 +175,56 @@ export const AppSidebar = ({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
+              <SidebarMenuItem active={location.pathname === '/admin/content'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/content' ? "active" : "default"}>
+                  <NavLink to="/admin/content" className="flex items-center">
+                    <FileText className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Conteúdo</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem active={location.pathname === '/admin/videos/batch-import'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/videos/batch-import' ? "active" : "default"}>
+                  <NavLink to="/admin/videos/batch-import" className="flex items-center">
+                    <FileVideo className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Importar Vídeos</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
               <SidebarMenuItem active={location.pathname === '/admin/integrations'}>
                 <SidebarMenuButton asChild variant={location.pathname === '/admin/integrations' ? "active" : "default"}>
                   <NavLink to="/admin/integrations" className="flex items-center">
                     <Link className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Integrações</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem active={location.pathname === '/admin/vimeo-settings'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/vimeo-settings' ? "active" : "default"}>
+                  <NavLink to="/admin/vimeo-settings" className="flex items-center">
+                    <Video className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Config. Vimeo</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem active={location.pathname === '/admin/system-intelligence'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/system-intelligence' ? "active" : "default"}>
+                  <NavLink to="/admin/system-intelligence" className="flex items-center">
+                    <BrainCircuit className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>IA do Sistema</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem active={location.pathname === '/admin/system'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/system' ? "active" : "default"}>
+                  <NavLink to="/admin/system" className="flex items-center">
+                    <Code className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                    {open && <span>Diagnóstico</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

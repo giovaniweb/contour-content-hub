@@ -1,6 +1,6 @@
 
 import React from "react";
-import { FileText, BrainCircuit, Calendar, Shield, Sparkles } from "lucide-react";
+import { FileText, BrainCircuit, Calendar, Shield, Sparkles, FileVideo, Code } from "lucide-react";
 
 export interface ActionItem {
   label: string;
@@ -45,6 +45,18 @@ export const getAdditionalActions = (): ActionItem[] => {
       icon: <Sparkles className="h-5 w-5" />,
       path: "/script-validation",
       color: "bg-violet-100 text-violet-700"
+    },
+    {
+      label: "Importar vídeos",
+      icon: <FileVideo className="h-5 w-5" />,
+      path: "/admin/videos/batch-import",
+      color: "bg-indigo-100 text-indigo-700"
+    },
+    {
+      label: "Inteligência do Sistema",
+      icon: <Code className="h-5 w-5" />,
+      path: "/admin/system-intelligence",
+      color: "bg-rose-100 text-rose-700"
     }
   ];
 };

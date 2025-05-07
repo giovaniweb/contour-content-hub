@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
@@ -36,6 +37,7 @@ import EquipmentsPage from './pages/EquipmentsPage';
 import VideoBatchImport from './pages/VideoBatchImport';
 import VimeoSettings from './pages/VimeoSettings';
 import Settings from './pages/Settings';
+import SystemIntelligence from './pages/SystemIntelligence';
 
 // Seller Pages
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -96,6 +98,7 @@ function App() {
                 <Route path="/admin/vimeo-settings" element={<AdminRoute><VimeoSettings /></AdminRoute>} />
                 <Route path="/admin/system" element={<AdminRoute><SystemDiagnostics /></AdminRoute>} />
                 <Route path="/admin/videos/batch-import" element={<AdminRoute><VideoBatchImport /></AdminRoute>} />
+                <Route path="/admin/system-intelligence" element={<AdminRoute><SystemIntelligence /></AdminRoute>} />
 
                 {/* Seller Routes */}
                 <Route path="/seller" element={<AdminRoute><SellerDashboard /></AdminRoute>} />
