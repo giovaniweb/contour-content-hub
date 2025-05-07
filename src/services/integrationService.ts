@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
 
@@ -67,12 +66,16 @@ export const testVimeoConnection = async (token: string): Promise<{
   error?: string;
 }> => {
   try {
-    // Certifique-se de que estamos usando a URL correta para a Edge Function
+    // Correção: usar getSession() em vez de session()
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    
+    // Certificar-se de que estamos usando a URL correta para a Edge Function
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vimeo-test-connection`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.session()?.access_token}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({ token })
     });
