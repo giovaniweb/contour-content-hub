@@ -26,4 +26,8 @@ supabase functions deploy vimeo-status-check
 supabase functions deploy vimeo-direct-test
 supabase functions deploy vimeo-test-connection
 
+# Verificar se os secrets foram configurados corretamente
+echo "✅ Verificando a configuração..."
+supabase functions secrets list | grep -E 'VIMEO_(CLIENT_ID|CLIENT_SECRET|REDIRECT_URI)'
+
 echo "✅ Pronto! Agora volte ao painel e clique em 'Verificar novamente'."
