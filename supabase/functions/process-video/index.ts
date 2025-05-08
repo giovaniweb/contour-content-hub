@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Processing video ${videoId} with file name ${fileName}`);
+    console.log(`Iniciando processamento do vídeo ${videoId} com nome de arquivo ${fileName}`);
 
     // Em uma implementação real, aqui teríamos:
     // 1. Download do vídeo do storage
@@ -88,16 +88,56 @@ Deno.serve(async (req) => {
     // 4. Atualização do registro no banco de dados
 
     // Simulação do processamento com um delay
+    // Reduzido para 2 segundos para melhorar a experiência do usuário
     await new Promise(resolve => setTimeout(resolve, 2000));
 
+    // Registre o progresso do processamento
+    console.log(`[${videoId}] Processamento: Gerando thumbnails...`);
+    await Promise.all([
+      supabaseAdmin
+        .from('videos_storage')
+        .update({ 
+          status: 'processing' as VideoStatus,
+          metadata: { processing_progress: 'Gerando miniaturas...' }
+        })
+        .eq('id', videoId),
+      new Promise(resolve => setTimeout(resolve, 500))
+    ]);
+
     // Obter URLs assinados para o video
+    console.log(`[${videoId}] Processamento: Gerando URLs assinados...`);
     const { data: originalUrlData } = await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24);
     
     if (!originalUrlData?.signedUrl) {
       throw new Error("Falha ao gerar URL assinado para o vídeo original");
     }
+
+    // Simular processamento de qualidade HD
+    console.log(`[${videoId}] Processamento: Gerando versão HD...`);
+    await Promise.all([
+      supabaseAdmin
+        .from('videos_storage')
+        .update({ 
+          metadata: { processing_progress: 'Gerando versão HD...' }
+        })
+        .eq('id', videoId),
+      new Promise(resolve => setTimeout(resolve, 500))
+    ]);
+
+    // Simulação do processamento de qualidade SD
+    console.log(`[${videoId}] Processamento: Gerando versão SD...`);
+    await Promise.all([
+      supabaseAdmin
+        .from('videos_storage')
+        .update({ 
+          metadata: { processing_progress: 'Gerando versão SD...' }
+        })
+        .eq('id', videoId),
+      new Promise(resolve => setTimeout(resolve, 500))
+    ]);
     
     // Atualizar status do vídeo e adicionar um thumbnail e URLs assinados
+    console.log(`[${videoId}] Processamento: Finalizando...`);
     const { error: updateError } = await supabaseAdmin
       .from('videos_storage')
       .update({ 
@@ -107,6 +147,10 @@ Deno.serve(async (req) => {
           original: originalUrlData.signedUrl,
           hd: originalUrlData.signedUrl, // Em produção, essas seriam URLs diferentes para versões transcodificadas
           sd: originalUrlData.signedUrl,
+        },
+        metadata: { 
+          processing_progress: 'Concluído',
+          processing_completed_at: new Date().toISOString()
         }
       })
       .eq('id', videoId);
@@ -116,7 +160,7 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
-    console.log(`Video ${videoId} processed successfully`);
+    console.log(`Vídeo ${videoId} processado com sucesso`);
 
     return new Response(
       JSON.stringify({

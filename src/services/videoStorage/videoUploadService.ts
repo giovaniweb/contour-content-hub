@@ -43,7 +43,10 @@ export async function uploadVideo(
         tags,
         public: isPublic,
         metadata: {
-          original_filename: file.name
+          original_filename: file.name,
+          upload_started_at: new Date().toISOString(),
+          file_type: file.type,
+          processing_status: 'iniciando upload'
         }
       })
       .select()
@@ -57,38 +60,109 @@ export async function uploadVideo(
     // 2. Upload do arquivo para o Storage
     const fileName = `${videoData.id}/original_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
-    // Handling progress events through upload function
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('videos')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    // Atualizando status durante upload
+    await supabase
+      .from('videos_storage')
+      .update({ 
+        metadata: { 
+          ...videoData.metadata as object,
+          processing_status: 'enviando arquivo para storage' 
+        } 
+      })
+      .eq('id', videoData.id);
+    
+    // Implementar um mecanismo de acompanhamento de progresso mais preciso
+    let uploadProgress = 0;
+    const uploadStartTime = Date.now();
+    
+    // Simular atualizações regulares de progresso enquanto o upload estiver em andamento
+    const progressInterval = setInterval(() => {
+      if (uploadProgress < 90) {
+        uploadProgress += 10;
+        if (onProgress) {
+          onProgress(uploadProgress);
+        }
+      }
+    }, 1000);
 
-    // Manually track progress if needed - since Supabase storage doesn't directly support progress tracking
-    if (onProgress) {
-      onProgress(100); // Set to complete after upload
-    }
+    // Agora faz o upload real do arquivo
+    try {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (uploadError) {
-      console.error('Erro no upload:', uploadError);
-      
-      // Atualizar status para erro em caso de falha
+      clearInterval(progressInterval);
+
+      if (uploadError) {
+        console.error('Erro no upload:', uploadError);
+        
+        // Atualizar status para erro em caso de falha
+        await supabase
+          .from('videos_storage')
+          .update({ 
+            status: 'error' as VideoStatus,
+            metadata: { 
+              ...videoData.metadata as object,
+              error_message: uploadError.message,
+              processing_status: 'falha no upload' 
+            } 
+          })
+          .eq('id', videoData.id);
+        
+        return { success: false, error: 'Falha no upload do arquivo.' };
+      }
+
+      // Upload completo
+      if (onProgress) {
+        onProgress(100);
+      }
+
+      // Atualizar status sobre o upload
       await supabase
         .from('videos_storage')
-        .update({ status: 'error' as VideoStatus })
+        .update({ 
+          metadata: { 
+            ...videoData.metadata as object,
+            upload_completed_at: new Date().toISOString(),
+            upload_duration_ms: Date.now() - uploadStartTime,
+            processing_status: 'iniciando processamento' 
+          } 
+        })
         .eq('id', videoData.id);
-      
-      return { success: false, error: 'Falha no upload do arquivo.' };
+    }
+    catch (error) {
+      clearInterval(progressInterval);
+      throw error;
     }
 
     // 3. Iniciar processamento de video (thumbnail e codificação)
-    const { error: processingError } = await supabase.functions.invoke('process-video', {
-      body: { videoId: videoData.id, fileName }
-    });
+    try {
+      const { error: processingError } = await supabase.functions.invoke('process-video', {
+        body: { videoId: videoData.id, fileName }
+      });
 
-    if (processingError) {
-      console.error('Erro ao iniciar processamento:', processingError);
+      if (processingError) {
+        console.error('Erro ao iniciar processamento:', processingError);
+        throw processingError;
+      }
+    } catch (processError) {
+      console.error('Falha ao chamar função de processamento:', processError);
+      
+      // Se falhar a chamada da função, ainda permitir que o upload seja considerado bem-sucedido
+      // mas atualizar o status para indicar o problema
+      await supabase
+        .from('videos_storage')
+        .update({ 
+          metadata: { 
+            ...videoData.metadata as object,
+            processing_warning: 'Falha ao iniciar processamento automatizado',
+            processing_status: 'processamento não iniciado' 
+          } 
+        })
+        .eq('id', videoData.id);
     }
 
     // 4. Atualizar status para 'processing'

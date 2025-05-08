@@ -1,64 +1,53 @@
 
-import React, { useState, useRef } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Eye, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { StoredVideo } from '@/types/video-storage';
-import { Eye, Download, Trash, Clock } from 'lucide-react';
+import { deleteVideo } from '@/services/videoStorageService';
+import { useToast } from '@/hooks/use-toast';
 import VideoStatusBadge from './VideoStatusBadge';
 import { usePermissions } from '@/hooks/use-permissions';
-import { deleteVideo, generateDownloadUrl } from '@/services/videoStorageService';
-import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface VideoCardProps {
   video: StoredVideo;
-  onVideoDeleted?: (videoId: string) => void;
-  onPreviewClick?: (video: StoredVideo) => void;
+  onRefresh: () => void;
+  onDownload: () => void;
+  processingTimeout?: boolean;
+  timeSinceUpload: string;
 }
 
-const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted, onPreviewClick }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+const VideoCard: React.FC<VideoCardProps> = ({ 
+  video, 
+  onRefresh, 
+  onDownload, 
+  processingTimeout = false,
+  timeSinceUpload 
+}) => {
   const { toast } = useToast();
   const { isAdmin } = usePermissions();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const isProcessing = video.status === 'processing' || video.status === 'uploading';
   
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    if (videoRef.current && video.status === 'ready' && video.file_urls?.original) {
-      videoRef.current.play().catch(err => {
-        console.error("Error playing video on hover:", err);
-      });
-    }
-  };
-  
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-  };
-  
-  const handleDeleteClick = async () => {
-    if (!isAdmin()) {
-      toast({
-        variant: "destructive",
-        title: "Acesso restrito",
-        description: "Apenas administradores podem excluir vídeos."
-      });
-      return;
-    }
-    
+  const handleDelete = async () => {
     try {
       setIsDeleting(true);
+      const result = await deleteVideo(video.id);
       
-      const { success, error } = await deleteVideo(video.id);
-      
-      if (!success) {
-        throw new Error(error);
+      if (result.error) {
+        throw new Error(result.error);
       }
       
       toast({
@@ -66,152 +55,173 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted, onPreviewC
         description: "O vídeo foi excluído com sucesso."
       });
       
-      if (onVideoDeleted) {
-        onVideoDeleted(video.id);
-      }
-    } catch (error: any) {
+      onRefresh();
+    } catch (error) {
+      console.error('Error deleting video:', error);
       toast({
         variant: "destructive",
         title: "Erro ao excluir vídeo",
-        description: error.message || "Ocorreu um erro ao excluir o vídeo."
+        description: "Não foi possível excluir o vídeo."
       });
     } finally {
       setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
-  
-  const handleDownloadClick = async () => {
-    try {
-      setIsDownloading(true);
-      
-      const { url, filename, error } = await generateDownloadUrl(video.id);
-      
-      if (error || !url) {
-        throw new Error(error || "Não foi possível gerar o link de download.");
-      }
-      
-      // Create a temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename || `${video.title}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Download iniciado",
-        description: "O download do vídeo foi iniciado."
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao baixar vídeo",
-        description: error.message || "Ocorreu um erro ao gerar o link de download."
-      });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-  
-  const uploadDate = video.created_at 
-    ? formatDistanceToNow(new Date(video.created_at), { addSuffix: true, locale: ptBR })
-    : "Data desconhecida";
 
   return (
-    <Card 
-      className="overflow-hidden transition-all duration-200"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className="relative aspect-video overflow-hidden bg-gray-900">
-        {video.status === 'ready' && video.file_urls?.original ? (
-          <>
-            {video.thumbnail_url && !isHovered && (
-              <img 
-                src={video.thumbnail_url} 
-                alt={video.title} 
-                className="w-full h-full object-cover"
-              />
-            )}
-            
-            <video
-              ref={videoRef}
-              src={video.file_urls.original}
-              className={`w-full h-full object-cover ${!isHovered ? 'opacity-0 absolute' : 'opacity-100'}`}
-              muted
-              playsInline
-              loop
-            />
-          </>
+    <Card className="overflow-hidden flex flex-col h-full">
+      <div className="relative aspect-video">
+        {video.thumbnail_url ? (
+          <img 
+            src={video.thumbnail_url} 
+            alt={video.title} 
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-800 to-gray-900">
-            <VideoStatusBadge status={video.status} className="text-lg" />
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            {isProcessing ? (
+              <div className="text-center">
+                <div className="flex justify-center">
+                  {processingTimeout ? (
+                    <AlertTriangle className="h-8 w-8 text-amber-500" />
+                  ) : (
+                    <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
+                <p className="mt-2 text-sm font-medium">Processando</p>
+                {processingTimeout && (
+                  <p className="text-xs text-amber-500">Demorando mais que o normal</p>
+                )}
+              </div>
+            ) : (
+              <span className="text-muted-foreground">Sem miniatura</span>
+            )}
           </div>
         )}
         
-        {/* Status badge and duration */}
-        <div className="absolute top-2 left-2 right-2 flex justify-between">
-          <VideoStatusBadge status={video.status} />
-          {video.duration && (
-            <span className="bg-black/70 text-white text-xs px-2 py-1 rounded">
-              {video.duration}
-            </span>
-          )}
+        <div className="absolute top-2 right-2">
+          <VideoStatusBadge 
+            status={video.status} 
+            timeout={processingTimeout}
+          />
         </div>
       </div>
       
-      <CardHeader className="p-3 pb-0">
-        <h3 className="text-base font-medium line-clamp-1">{video.title}</h3>
-      </CardHeader>
-      
-      <CardContent className="p-3">
-        <div className="flex items-center text-sm text-muted-foreground">
-          <Clock className="h-3 w-3 mr-1" />
-          <span>{uploadDate}</span>
+      <CardContent className="flex-grow p-4">
+        <div className="mb-1 flex justify-between items-start">
+          <h3 className="font-medium line-clamp-2" title={video.title}>{video.title}</h3>
+        </div>
+        
+        <div className="text-xs text-muted-foreground mb-2">
+          {timeSinceUpload} 
+          {video.metadata?.equipment_id && (
+            <span className="ml-1">
+              • {video.metadata.equipment_id}
+            </span>
+          )}
         </div>
         
         {video.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+          <p className="text-sm text-muted-foreground line-clamp-2" title={video.description}>
             {video.description}
           </p>
         )}
+        
+        {video.tags && video.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {video.tags.slice(0, 3).map((tag, index) => (
+              <span 
+                key={index} 
+                className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                {tag}
+              </span>
+            ))}
+            {video.tags.length > 3 && (
+              <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                +{video.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
       </CardContent>
       
-      <CardFooter className="p-3 pt-0 flex justify-between">
-        <Button
-          variant="outline" 
-          size="sm"
-          className="text-xs h-8"
-          onClick={() => onPreviewClick && onPreviewClick(video)}
-          disabled={video.status !== 'ready'}
-        >
-          <Eye className="h-3 w-3 mr-1" /> Ver
-        </Button>
-        
-        <div className="flex gap-1">
-          <Button
-            variant="outline" 
-            size="sm"
-            className="text-xs h-8 px-2"
-            onClick={handleDownloadClick}
-            disabled={isDownloading || video.status !== 'ready'}
-          >
-            <Download className="h-3 w-3" />
-          </Button>
-          
-          {isAdmin() && (
-            <Button
-              variant="outline" 
-              size="sm"
-              className="text-xs h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-              onClick={handleDeleteClick}
-              disabled={isDeleting}
-            >
-              <Trash className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
+      <CardFooter className="p-4 pt-0 border-t mt-auto flex justify-between">
+        <TooltipProvider>
+          <div className="flex items-center space-x-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  disabled={isProcessing || video.status === 'error'}
+                  onClick={() => window.open(video.file_urls.original || video.file_urls.hd || video.file_urls.sd, '_blank')}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ver vídeo</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  disabled={isProcessing || video.status === 'error'}
+                  onClick={onDownload}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            {isAdmin() && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Excluir</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TooltipProvider>
       </CardFooter>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir vídeo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o vídeo "{video.title}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
