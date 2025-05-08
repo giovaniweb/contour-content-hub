@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, FileText, X } from "lucide-react";
+import { Upload, Loader2, FileText, X, User } from "lucide-react";
 import { useScientificArticleForm } from "@/components/admin/article-form/useScientificArticleForm";
 import { useEquipments } from "@/hooks/useEquipments";
 

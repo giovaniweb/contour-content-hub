@@ -67,8 +67,9 @@ const ScientificArticles: React.FC = () => {
         
       if (error) throw error;
       
-      setArticles(data || []);
-      setFilteredArticles(data || []);
+      // Add type assertion to fix the type incompatibility
+      setArticles((data || []) as TechnicalDocument[]);
+      setFilteredArticles((data || []) as TechnicalDocument[]);
     } catch (error) {
       console.error('Error fetching articles:', error);
       toast({
