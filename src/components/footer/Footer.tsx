@@ -8,3 +8,5 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
+
+export default Footer; // Add default export for backward compatibility
