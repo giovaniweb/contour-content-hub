@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertTriangle, Star } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Star, MessageSquare } from "lucide-react";
 
 interface IdeaEvaluationProps {
   result: {
