@@ -11,10 +11,13 @@ import {
   updateUserProfile 
 } from "@/services/authService";
 
+// Create context with a default undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading, isAuthenticated } = useAuthState();
+  // Make sure useAuthState is called inside this functional component
+  const authState = useAuthState();
+  const { user, isLoading, isAuthenticated } = authState;
   const { toast } = useToast();
   
   const login = async (email: string, password: string) => {
@@ -107,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // Update local state
-      const updatedUser = { ...user, ...data };
+      // Note: The local state will be updated by the auth listener
       
       toast({
         title: "Perfil atualizado",

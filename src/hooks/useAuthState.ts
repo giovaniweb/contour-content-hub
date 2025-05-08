@@ -13,14 +13,20 @@ export function useAuthState() {
   useEffect(() => {
     // Set up listener for authentication changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Fetch user profile when session changes
+          // Use setTimeout to avoid potential deadlock issues with Supabase auth
           setTimeout(async () => {
-            const userProfile = await fetchUserProfile(currentSession.user.id);
-            setUser(userProfile);
+            try {
+              const userProfile = await fetchUserProfile(currentSession.user.id);
+              setUser(userProfile);
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+              // Still update user state with basic info from session
+              setUser(currentSession.user as UserProfile);
+            }
           }, 0);
         } else {
           setUser(null);
@@ -32,15 +38,27 @@ export function useAuthState() {
 
     // Check initial session
     const initSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      if (initialSession?.user) {
-        const userProfile = await fetchUserProfile(initialSession.user.id);
-        setUser(userProfile);
-        setSession(initialSession);
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (initialSession?.user) {
+          setSession(initialSession);
+          
+          try {
+            const userProfile = await fetchUserProfile(initialSession.user.id);
+            setUser(userProfile);
+          } catch (error) {
+            console.error("Error fetching initial user profile:", error);
+            // Still update user state with basic info from session
+            setUser(initialSession.user as UserProfile);
+          }
+        }
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error checking initial session:", error);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     initSession();
