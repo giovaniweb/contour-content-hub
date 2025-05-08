@@ -1,184 +1,48 @@
-
 import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-} from "react-router-dom";
-import HomePage from "@/pages/HomePage";
-import VideoStorage from "@/pages/VideoStorage";
-import VideoSwipe from "@/pages/VideoSwipe";
-import VideoPlayer from "@/pages/VideoPlayer";
-import Media from "@/pages/Media";
-import NotFound from "@/pages/NotFound";
-import VideoBatchManage from "@/pages/VideoBatchManage";
-import TechnicalDocuments from "@/pages/TechnicalDocuments";
-import SystemDiagnostics from "@/pages/SystemDiagnostics";
-import AdminEquipments from "@/pages/AdminEquipments";
-import AdminVimeoSettings from "@/pages/AdminVimeoSettings";
-import AdminContent from "@/pages/AdminContent";
-import EquipmentDetails from "@/pages/EquipmentDetails";
-import Dashboard from "@/pages/Dashboard";
-import ContentStrategy from "@/pages/ContentStrategy";
-import { AuthProvider } from '@/context/AuthContext';
-import { Toaster } from "@/components/ui/sonner";
-import ScriptHistory from "@/pages/ScriptHistory";
-import ScriptGenerator from "@/pages/ScriptGenerator";
-import ScriptValidation from "@/pages/ScriptValidation";
-import Calendar from "@/pages/Calendar";
-import EquipmentsPage from "@/pages/EquipmentsPage";
-import AdminIntegrations from "@/pages/AdminIntegrations";
-import SystemIntelligence from "@/pages/SystemIntelligence";
-import CustomGpt from "@/pages/CustomGpt";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import AdminPanel from './pages/AdminPanel';
+import MediaManagement from './pages/MediaManagement';
+import UserManagement from './pages/UserManagement';
+import ScientificArticle from './pages/ScientificArticle';
+import ScriptList from './pages/ScriptList';
+import ScriptView from './pages/ScriptView';
+import ScriptGenerator from './pages/ScriptGenerator';
+import ContentStrategy from './pages/ContentStrategy';
+import ContentPlannerPage from "./pages/ContentPlannerPage";
 
 function App() {
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <HomePage />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/dashboard",
-      element: <Dashboard />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/video-storage",
-      element: <VideoStorage />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/videos",
-      element: <Navigate to="/video-storage" replace />,
-    },
-    {
-      path: "/videos/batch-manage",
-      element: <VideoBatchManage />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/video-swipe",
-      element: <VideoSwipe />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/video-player",
-      element: <VideoPlayer />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/media",
-      element: <Media />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/media-library",
-      element: <Navigate to="/media" replace />,
-    },
-    {
-      path: "/technical-documents",
-      element: <TechnicalDocuments />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/documents",
-      element: <Navigate to="/technical-documents" replace />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/login",
-      element: <Navigate to="/" replace />,
-    },
-    {
-      path: "/register",
-      element: <Navigate to="/" replace />,
-    },
-    {
-      path: "/script-history",
-      element: <ScriptHistory />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/generate-script",
-      element: <ScriptGenerator />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/script-validation",
-      element: <ScriptValidation />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/calendar",
-      element: <Calendar />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/equipments",
-      element: <EquipmentsPage />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/custom-gpt",
-      element: <CustomGpt />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/admin",
-      errorElement: <NotFound />,
-      children: [
-        {
-          path: "dashboard",
-          element: <Navigate to="/admin/system-diagnostics" replace />,
-        },
-        {
-          path: "system-diagnostics",
-          element: <SystemDiagnostics />,
-        },
-        {
-          path: "equipments",
-          element: <AdminEquipments />,
-        },
-        {
-          path: "vimeo-settings",
-          element: <AdminVimeoSettings />,
-        },
-        {
-          path: "content",
-          element: <AdminContent />,
-        },
-        {
-          path: "integrations",
-          element: <AdminIntegrations />,
-        },
-        {
-          path: "system-intelligence",
-          element: <SystemIntelligence />,
-        },
-      ]
-    },
-    {
-      path: "/equipments/:id",
-      element: <EquipmentDetails />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "/content-strategy",
-      element: <ContentStrategy />,
-      errorElement: <NotFound />,
-    },
-    {
-      path: "*",
-      element: <NotFound />,
-    }
-  ]);
-
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster />
-    </AuthProvider>
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+
+        {/* Private Routes */}
+        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/admin-panel" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
+        <Route path="/media-management" element={<PrivateRoute><MediaManagement /></PrivateRoute>} />
+        <Route path="/user-management" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
+        <Route path="/scientific-article" element={<PrivateRoute><ScientificArticle /></PrivateRoute>} />
+        <Route path="/script-list" element={<PrivateRoute><ScriptList /></PrivateRoute>} />
+        <Route path="/script-view/:id" element={<PrivateRoute><ScriptView /></PrivateRoute>} />
+        <Route path="/script-generator" element={<PrivateRoute><ScriptGenerator /></PrivateRoute>} />
+        <Route path="/content-strategy" element={<PrivateRoute><ContentStrategy /></PrivateRoute>} />
+        {/* Content Planner */}
+        <Route path="/content-planner" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
+      </Routes>
+    </Router>
   );
 }
 
