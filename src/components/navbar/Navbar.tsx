@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { MainNavigation } from "./MainNavigation";
 import { MobileNavMenu } from "./MobileNavMenu";
 import { AuthButtons } from "./AuthButtons";
+import NotificationsMenu from "../notifications/NotificationsMenu";
 
 export const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -82,6 +83,9 @@ export const Navbar: React.FC = () => {
 
         {/* Menu de perfil e botão para menu mobile */}
         <div className="flex items-center gap-2">
+          {/* Notification Bell - Step 4 */}
+          {isAuthenticated && <NotificationsMenu />}
+
           {/* Menu mobile (hambúrguer) */}
           <div className="md:hidden">
             <Button 

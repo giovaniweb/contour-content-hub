@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, FileText, Film, Settings, ListTodo, Video, Lightbulb, Rocket } from 'lucide-react';
+import HighlightBanner from '@/components/dashboard/HighlightBanner';
+import TrendingItems from '@/components/dashboard/TrendingItems';
+import RecommendationBlock from '@/components/dashboard/RecommendationBlock';
+import NotificationsDemo from '@/components/dashboard/NotificationsDemo';
 
 const HomePage: React.FC = () => {
   const [typingText, setTypingText] = React.useState("Create a video script...");
@@ -37,21 +41,14 @@ const HomePage: React.FC = () => {
           </div>
         </div>
         
-        {/* Banner destacado */}
-        <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-violet-500 to-purple-700 h-64">
-          <div className="absolute inset-0 flex items-center p-8">
-            <div className="max-w-lg">
-              <h2 className="text-3xl font-bold text-white mb-4">Crie conteúdo que engaja</h2>
-              <p className="text-white/90 mb-6">Utilize nossa plataforma inteligente para criar roteiros, validar ideias e planejar sua estratégia de conteúdo.</p>
-              <Button asChild variant="secondary" className="font-medium">
-                <Link to="/custom-gpt">Começar agora</Link>
-              </Button>
-            </div>
-          </div>
-          <div className="absolute right-8 bottom-0">
-            <Rocket className="h-32 w-32 text-white/20" />
-          </div>
-        </div>
+        {/* Featured Banner - Step 1 */}
+        <HighlightBanner />
+        
+        {/* Trending Content - Step 2 */}
+        <TrendingItems />
+        
+        {/* Recommendations - Step 3 */}
+        <RecommendationBlock />
 
         {/* Blocos de acesso rápido */}
         <div>
@@ -202,6 +199,9 @@ const HomePage: React.FC = () => {
           </Card>
         </div>
       </div>
+      
+      {/* Notifications Demo for Step 5 - for development purposes */}
+      <NotificationsDemo />
       
       {/* Fix: Using style tag properly without the 'jsx' property */}
       <style>
