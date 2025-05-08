@@ -4,7 +4,7 @@ export type VideoQuality = 'sd' | 'hd' | 'original';
 export type VideoQueueStatus = 'pending' | 'uploading' | 'completed' | 'error';
 
 export interface VideoMetadata {
-  equipment_id?: string;
+  equipment_id?: string; // Added this property
   original_filename?: string;
   width?: number;
   height?: number;

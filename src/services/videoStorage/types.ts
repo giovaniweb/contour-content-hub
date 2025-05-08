@@ -1,5 +1,5 @@
 // Re-export video types to keep them accessible
-export { 
+export type { 
   VideoStatus, 
   VideoQuality, 
   VideoQueueStatus,
