@@ -1,193 +1,171 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Layout from "@/components/Layout";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getMediaItems } from "@/utils/api";
+import MediaCard from "@/components/MediaCard";
+import { MediaItem } from "@/utils/api";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, ListFilter, LayoutGrid, List } from "lucide-react";
-import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
-import MediaGallery from "@/components/media-library/MediaGallery";
-import MediaTypeTabs from "@/components/media-library/MediaTypeTabs";
 import { useToast } from "@/hooks/use-toast";
-import { MediaItem, mockMediaItems } from "@/components/media-library/mockData";
 import DownloadIdeasModal from "@/components/media-library/DownloadIdeasModal";
+import { Search, SlidersHorizontal } from "lucide-react";
+import FeatureBanner from "@/components/media-library/FeatureBanner";
+import MediaCreationSection from "@/components/media-library/MediaCreationSection";
+import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
 
 const MediaLibrary: React.FC = () => {
-  // State
-  const [mediaType, setMediaType] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("all");
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [showIdeasModal, setShowIdeasModal] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredItems, setFilteredItems] = useState<MediaItem[]>(mockMediaItems);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [downloadItem, setDownloadItem] = useState<MediaItem | null>(null);
-  const [showIdeasModal, setShowIdeasModal] = useState<boolean>(false);
   const { toast } = useToast();
-  
-  // Filter media items when type or search changes
-  useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const filtered = mockMediaItems.filter(item => {
-        // Type filter
-        const matchesType = mediaType === "all" || item.type === mediaType;
-        
-        // Search filter
-        const matchesSearch = 
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.equipment.some(e => e.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          item.purpose.some(p => p.toLowerCase().includes(searchQuery.toLowerCase()));
-        
-        return matchesType && matchesSearch;
-      });
-      
-      setFilteredItems(filtered);
-      setIsLoading(false);
-    }, 500); // Simulate loading delay
-  }, [mediaType, searchQuery]);
-  
-  // Reset filters
-  const handleReset = () => {
-    setSearchQuery("");
-    setMediaType("all");
-  };
-  
-  // Handle media download
-  const handleDownload = (item: MediaItem) => {
-    setDownloadItem(item);
+
+  // Fetch media items when component mounts or filters change
+  React.useEffect(() => {
+    const fetchMedia = async () => {
+      setLoading(true);
+      try {
+        const items = await getMediaItems({
+          type: activeTab === "all" ? undefined : activeTab,
+          search: searchQuery || undefined,
+        });
+        setMediaItems(items);
+      } catch (error) {
+        console.error("Failed to fetch media items:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load media content. Please try again later.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedia();
+  }, [activeTab, searchQuery, toast]);
+
+  // Handle download and show ideas modal
+  const handleDownloadAndShowIdeas = (media: MediaItem) => {
+    setSelectedMedia(media);
     setShowIdeasModal(true);
-    
-    toast({
-      title: "Download started",
-      description: `${item.title} is being downloaded.`,
-    });
   };
-  
-  // Handle closing the ideas modal
-  const handleCloseIdeasModal = () => {
-    setShowIdeasModal(false);
-    setDownloadItem(null);
-  };
-  
-  // Handle media update
-  const handleMediaUpdate = () => {
-    // Refresh the media items
-    const updatedItems = [...filteredItems];
-    setFilteredItems(updatedItems);
-  };
-  
+
   return (
-    <Layout title="Media Library">
+    <Layout>
       <div className="container mx-auto py-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl mb-6">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-            Media Library
-          </h1>
-          <p className="text-muted-foreground text-lg mt-1">
-            Browse, download, and get AI-generated ideas for your content
-          </p>
-        </div>
-        
+        {/* Hero Section */}
+        <FeatureBanner />
+
         {/* Trending Sections */}
-        <div className="mb-8 space-y-8">
-          <MediaTrendingSection 
-            title="Trending Videos" 
-            type="video" 
-            items={mockMediaItems.filter(item => item.type === "video").slice(0, 4)}
-            onDownload={handleDownload}
-          />
-          
-          <MediaTrendingSection 
-            title="Trending Photos" 
-            type="image" 
-            items={mockMediaItems.filter(item => item.type === "arte").slice(0, 4)}
-            onDownload={handleDownload}
-          />
-          
-          <MediaTrendingSection 
-            title="Top Downloads" 
-            type="file" 
-            items={mockMediaItems.filter(item => ["documentacao", "artigo"].includes(item.type)).slice(0, 4)}
-            onDownload={handleDownload}
-          />
-        </div>
-        
-        {/* Filtering and Search */}
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-4">
-            <h2 className="text-2xl font-semibold">Browse All Media</h2>
-            <div className="flex gap-2">
+        <MediaTrendingSection />
+
+        {/* Media Creation Section */}
+        <MediaCreationSection />
+
+        {/* Media Library Main Content */}
+        <div className="mt-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Media Library</h2>
+              <p className="text-muted-foreground">Browse and download videos, images, and documents</p>
+            </div>
+            
+            <div className="flex items-center gap-2 mt-4 md:mt-0">
               <Button 
                 variant="outline" 
-                size="icon"
-                onClick={() => setViewMode("grid")}
-                className={viewMode === "grid" ? "bg-muted" : ""}
+                size="sm" 
+                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
               >
-                <LayoutGrid className="h-5 w-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setViewMode("list")}
-                className={viewMode === "list" ? "bg-muted" : ""}
-              >
-                <List className="h-5 w-5" />
+                {viewMode === "grid" ? "List View" : "Grid View"}
               </Button>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+
+          {/* Filters */}
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search media by title, equipment, purpose..."
+                  placeholder="Search media..." 
+                  className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
                 />
               </div>
+              
+              <div className="flex gap-4">
+                <Select defaultValue="recent">
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Most Recent</SelectItem>
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button variant="outline" size="icon">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                className="w-full md:w-auto" 
-                onClick={handleReset}
-              >
-                Reset
-              </Button>
-              <Button className="w-full md:w-auto flex items-center gap-2">
-                <ListFilter className="h-4 w-4" />
-                <span>Filters</span>
-              </Button>
-            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:w-fit">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="video_pronto">Videos</TabsTrigger>
+                <TabsTrigger value="image">Images</TabsTrigger>
+                <TabsTrigger value="take">Takes</TabsTrigger>
+                <TabsTrigger value="document">Documents</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Media Content Grid */}
+          <div className={viewMode === "grid" 
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" 
+            : "space-y-4"
+          }>
+            {loading ? (
+              // Skeleton loading
+              Array.from({ length: 8 }).map((_, index) => (
+                <Card key={index} className={`${viewMode === "list" ? "h-24" : "h-64"} animate-pulse bg-muted`}>
+                  <CardContent className="p-0 h-full"></CardContent>
+                </Card>
+              ))
+            ) : mediaItems.length > 0 ? (
+              mediaItems.map((item) => (
+                <div key={item.id} onClick={() => handleDownloadAndShowIdeas(item)}>
+                  <MediaCard 
+                    media={item} 
+                    viewMode={viewMode}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center">
+                <p className="text-muted-foreground">No media items found. Try adjusting your search.</p>
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Media Type Tabs */}
-        <MediaTypeTabs mediaType={mediaType} setMediaType={setMediaType} />
-        
-        {/* Media Gallery */}
-        <MediaGallery 
-          mediaType={mediaType}
-          filteredItems={filteredItems}
-          isLoading={isLoading}
-          viewMode={viewMode}
-          handleReset={handleReset}
-          handleMediaUpdate={handleMediaUpdate}
-          onDownload={handleDownload}
-        />
       </div>
-      
-      {/* Download Ideas Modal */}
-      {downloadItem && (
-        <DownloadIdeasModal
-          item={downloadItem}
-          open={showIdeasModal}
-          onOpenChange={setShowIdeasModal}
-          onClose={handleCloseIdeasModal}
-        />
-      )}
+
+      {/* Ideas Modal */}
+      <DownloadIdeasModal 
+        isOpen={showIdeasModal}
+        onClose={() => setShowIdeasModal(false)}
+        media={selectedMedia}
+      />
     </Layout>
   );
 };
