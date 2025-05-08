@@ -20,6 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user, isLoading, isAuthenticated } = authState;
   const { toast } = useToast();
   
+  console.log("AuthProvider state:", { 
+    isAuthenticated,
+    isLoading,
+    userExists: !!user,
+    userDetails: user ? { id: user.id, name: user.name, role: user.role } : null
+  });
+  
   const login = async (email: string, password: string) => {
     try {
       const { data, error } = await loginWithEmailAndPassword(email, password);
