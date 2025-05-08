@@ -8,6 +8,8 @@ import HomePage from "@/pages/HomePage";
 import VideoStorage from "@/pages/VideoStorage";
 import VideoSwipe from "@/pages/VideoSwipe";
 import VideoPlayer from "@/pages/VideoPlayer";
+import Media from "@/pages/Media";
+import NotFound from "@/pages/NotFound";
 import { AuthProvider } from '@/context/AuthContext';
 
 function App() {
@@ -28,6 +30,14 @@ function App() {
       path: "/video-player",
       element: <VideoPlayer />,
     },
+    {
+      path: "/media",
+      element: <Media />,
+    },
+    {
+      path: "*",
+      element: <NotFound />,
+    }
   ]);
 
   return (
