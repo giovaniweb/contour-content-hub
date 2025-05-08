@@ -143,7 +143,7 @@ export const useBatchVideoManage = () => {
               metadata: {
                 ...(video.metadata || {}),
                 equipment_id: null
-              }
+              } as VideoMetadata
             })
             .eq('id', videoId);
             
@@ -162,7 +162,7 @@ export const useBatchVideoManage = () => {
               metadata: {
                 ...(video.metadata || {}),
                 equipment_id: video.editEquipmentId
-              }
+              } as VideoMetadata
             })
             .eq('id', videoId);
             
@@ -349,7 +349,7 @@ export const useBatchVideoManage = () => {
               .update({
                 metadata: {
                   equipment_id: null
-                }
+                } as VideoMetadata
               })
               .eq('id', videoId);
               
@@ -366,7 +366,7 @@ export const useBatchVideoManage = () => {
               .update({
                 metadata: {
                   equipment_id: batchEquipmentId
-                }
+                } as VideoMetadata
               })
               .eq('id', videoId);
               
