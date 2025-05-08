@@ -2,24 +2,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { StoredVideo } from '@/types/video-storage';
+import { SwipeAnimationVariants } from '@/hooks/video-swipe/use-swipe-animations';
 
 interface VideoSwipeCardProps {
   video: StoredVideo;
   direction: 'left' | 'right' | null;
-  variants: {
-    enter: (direction: 'left' | 'right' | null) => {
-      x: number;
-      opacity: number;
-    };
-    center: {
-      x: number;
-      opacity: number;
-    };
-    exit: (direction: 'left' | 'right' | null) => {
-      x: number;
-      opacity: number;
-    };
-  };
+  variants: SwipeAnimationVariants;
 }
 
 const VideoSwipeCard: React.FC<VideoSwipeCardProps> = ({ video, direction, variants }) => {
