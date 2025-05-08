@@ -6,47 +6,72 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 84% 4.9%;
+    --foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 84% 4.9%;
-    
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 4.9%;
-    
-    /* Updated to Fluida blue */
-    --primary: 203 100% 49%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --primary: 214 100% 49%;
     --primary-foreground: 210 40% 98%;
-    
+
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11.2%;
-    
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
-    
-    /* Updated to be more aligned with Fluida accent */
-    --accent: 298 100% 49%;
-    --accent-foreground: 222 47% 11.2%;
-    
-    --destructive: 0 84% 60%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    /* Updated to use Fluida blue as ring color */
-    --ring: 203 100% 49%;
-    
+    --ring: 215 20.2% 65.1%;
+
     --radius: 0.5rem;
 
-    --sidebar-background: 222 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    /* Updated to use Fluida blue for sidebar primary */
-    --sidebar-primary: 203 100% 49%;
-    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 203 100% 49%;
+    --fluida-blue: 205 100% 49%;
+    --fluida-pink: 298 100% 49%;
+    --fluida-blueDark: 205 100% 29%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
   }
 }
 
@@ -56,44 +81,36 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-@layer components {
-  .navigation-items {
-    @apply flex items-center gap-2 mx-6;
-  }
-  
-  .nav-item {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent;
-  }
-  
-  .nav-item.active {
-    @apply bg-accent text-foreground;
-  }
+/* Fluida specific styling */
+.fluida-gradient-text {
+  @apply bg-gradient-to-r from-fluida-blue to-fluida-pink text-transparent bg-clip-text;
+}
 
-  /* New Fluida-specific utility classes */
-  .fluida-gradient-bg {
-    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
-  }
+.fluida-gradient-bg {
+  @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
+}
 
-  .fluida-gradient-text {
-    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink bg-clip-text text-transparent;
-  }
+.fluida-gradient-border {
+  position: relative;
+}
 
-  .fluida-button-primary {
-    @apply bg-fluida-blue text-white hover:bg-fluida-blueDark transition-colors;
-  }
-
-  .fluida-button-accent {
-    @apply bg-fluida-pink text-white hover:bg-fluida-pinkDark transition-colors;
-  }
-  
-  .fluida-card {
-    @apply border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all;
-  }
-  
-  .fluida-gradient-border {
-    @apply relative before:absolute before:-inset-[1px] before:rounded-[inherit] before:bg-gradient-to-r before:from-fluida-blue before:to-fluida-pink before:-z-10;
-  }
+.fluida-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0.375rem; /* same as rounded-md */
+  padding: 1px;
+  background: linear-gradient(to right, #0094fb, #f300fc);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }

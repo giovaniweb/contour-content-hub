@@ -17,7 +17,7 @@ import MediaLibrary from "./pages/MediaLibrary";
 import { ErrorBoundary } from './components/ErrorBoundary';
 import ScriptValidation from './pages/ScriptValidation';
 import CustomGpt from './pages/CustomGpt';
-import VideosPage from './pages/VideosPage';
+import VideosPage from "./pages/VideosPage";
 import VideoStorage from './pages/VideoStorage';
 import TechnicalDocuments from './pages/TechnicalDocuments';
 import ContentStrategy from './pages/ContentStrategy';
@@ -31,6 +31,7 @@ import AdminSystemIntelligence from './pages/AdminSystemIntelligence';
 import AdminSystemDiagnostics from './pages/AdminSystemDiagnostics';
 import AdminIntegrations from './pages/AdminIntegrations';
 import { SlideNotificationProvider } from './components/notifications/SlideNotificationProvider';
+import IdeaValidatorPage from './pages/IdeaValidatorPage';
 
 // Suspense fallback for lazy-loaded routes
 const SuspenseFallback = () => (
@@ -92,6 +93,11 @@ function App() {
               <Route path="/content-planner" element={
                 <PrivateRoute>
                   <ContentPlannerPage />
+                </PrivateRoute>
+              } />
+              <Route path="/idea-validator" element={
+                <PrivateRoute>
+                  <IdeaValidatorPage />
                 </PrivateRoute>
               } />
               <Route path="/equipments" element={

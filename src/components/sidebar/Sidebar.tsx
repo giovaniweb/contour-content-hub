@@ -20,7 +20,8 @@ import {
   FileText, 
   Youtube, 
   Settings, 
-  Menu 
+  Menu, 
+  Lightbulb 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -41,7 +42,12 @@ export default function Sidebar() {
     { 
       name: 'Planner', 
       path: '/content-planner', 
-      icon: Kanban,
+      icon: Kanban
+    },
+    { 
+      name: 'Validador de Ideias', 
+      path: '/idea-validator', 
+      icon: Lightbulb,
       highlight: true // Highlight this menu item as the new feature
     },
     { 

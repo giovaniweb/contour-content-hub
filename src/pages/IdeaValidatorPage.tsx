@@ -1,0 +1,16 @@
+
+import React from "react";
+import Layout from "@/components/Layout";
+import IdeaValidator from "@/components/idea-validator/IdeaValidator";
+
+const IdeaValidatorPage: React.FC = () => {
+  return (
+    <Layout title="Validador de Ideias">
+      <div className="container mx-auto py-6">
+        <IdeaValidator />
+      </div>
+    </Layout>
+  );
+};
+
+export default IdeaValidatorPage;
