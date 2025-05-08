@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Plus, Calendar, FileText, Instagram, TikTok, Youtube } from 'lucide-react';
+import { Check, Plus, Calendar, FileText, Instagram, Youtube } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { useSlideNotifications } from '@/components/notifications/SlideNotificationProvider';
 import { Badge } from '@/components/ui/badge';
@@ -133,9 +133,29 @@ interface DistributionPlatform {
   color: string;
 }
 
+// Custom TikTok icon component
+const TikTokIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  );
+};
+
 const distributionPlatforms: DistributionPlatform[] = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-  { id: 'tiktok', name: 'TikTok', icon: TikTok, color: 'text-black' },
+  { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-black' },
   { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' }
 ];
 
