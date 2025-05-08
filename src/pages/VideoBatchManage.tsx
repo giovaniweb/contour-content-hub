@@ -8,7 +8,7 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useBatchVideoManage } from '@/hooks/useBatchVideoManage';
 
-// Import our new component
+// Import our components
 import VideoSearch from '@/components/video-batch/VideoSearch';
 import BatchActionBar from '@/components/video-batch/BatchActionBar';
 import VideoList from '@/components/video-batch/VideoList';
@@ -24,6 +24,7 @@ const VideoBatchManage: React.FC = () => {
     searchQuery,
     setSearchQuery,
     selectedVideos,
+    setSelectedVideos,
     batchEquipmentId,
     setBatchEquipmentId,
     showBatchEditDialog,
@@ -38,7 +39,8 @@ const VideoBatchManage: React.FC = () => {
     handleDelete,
     handleBatchDelete,
     handleBatchEquipmentUpdate,
-    isAdmin
+    isAdmin,
+    equipments
   } = useBatchVideoManage();
 
   // Check for admin permissions
@@ -114,7 +116,7 @@ const VideoBatchManage: React.FC = () => {
             <VideoList 
               videos={videos}
               selectedVideos={selectedVideos}
-              equipments={[]} // This will be populated from the useBatchVideoManage hook
+              equipments={equipments}
               onSelect={handleSelect}
               onSelectAll={handleSelectAll}
               onEdit={handleEdit}
@@ -135,7 +137,7 @@ const VideoBatchManage: React.FC = () => {
         <BatchEditDialog 
           isOpen={showBatchEditDialog}
           onOpenChange={setShowBatchEditDialog}
-          equipmentOptions={[]} // This will be populated from the useBatchVideoManage hook
+          equipmentOptions={equipments}
           batchEquipmentId={batchEquipmentId}
           setBatchEquipmentId={setBatchEquipmentId}
           selectedCount={selectedVideos.length}

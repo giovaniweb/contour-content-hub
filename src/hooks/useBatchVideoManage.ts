@@ -119,7 +119,7 @@ export const useBatchVideoManage = () => {
     });
   };
   
-  const handleSave = async (videoId: string) => {
+  const handleSave = async (videoId: string): Promise<void> => {
     const video = videos.find(v => v.id === videoId);
     if (!video) return;
     
@@ -193,12 +193,13 @@ export const useBatchVideoManage = () => {
                 .single();
                 
               if (videoData) {
+                const fileUrls = videoData.file_urls as Record<string, string>;
                 await supabase.from('videos')
                   .insert({
                     id: videoId,
                     titulo: videoData.title,
                     descricao: videoData.description || '',
-                    url_video: videoData.file_urls?.original || '',
+                    url_video: fileUrls?.original || '',
                     equipamentos: [selectedEquipment.nome],
                     equipment_id: video.editEquipmentId
                   });
@@ -227,8 +228,6 @@ export const useBatchVideoManage = () => {
         title: "Vídeo atualizado",
         description: "As alterações foram salvas com sucesso."
       });
-
-      return true;
     } catch (error: any) {
       console.error('Error updating video:', error);
       toast({
@@ -236,7 +235,6 @@ export const useBatchVideoManage = () => {
         title: "Erro ao salvar alterações",
         description: error.message || "Não foi possível salvar as alterações."
       });
-      return false;
     }
   };
   
@@ -256,7 +254,7 @@ export const useBatchVideoManage = () => {
     }));
   };
   
-  const handleDelete = async (videoId: string) => {
+  const handleDelete = async (videoId: string): Promise<void> => {
     if (!confirm('Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.')) {
       return;
     }
@@ -275,19 +273,16 @@ export const useBatchVideoManage = () => {
         title: "Vídeo excluído",
         description: "O vídeo foi excluído permanentemente."
       });
-
-      return true;
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao excluir vídeo",
         description: error.message || "Não foi possível excluir o vídeo."
       });
-      return false;
     }
   };
   
-  const handleBatchDelete = async () => {
+  const handleBatchDelete = async (): Promise<void> => {
     if (selectedVideos.length === 0) return;
     
     if (!confirm(`Tem certeza que deseja excluir ${selectedVideos.length} vídeos selecionados? Esta ação não pode ser desfeita.`)) {
@@ -325,19 +320,16 @@ export const useBatchVideoManage = () => {
           description: `${successCount} vídeos excluídos, ${failCount} falhas.`
         });
       }
-
-      return { success: true, successCount, failCount };
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro na operação em lote",
         description: error.message || "Ocorreu um erro durante o processamento."
       });
-      return { success: false };
     }
   };
   
-  const handleBatchEquipmentUpdate = async () => {
+  const handleBatchEquipmentUpdate = async (): Promise<void> => {
     if (selectedVideos.length === 0 || !batchEquipmentId) return;
     
     try {
@@ -403,12 +395,13 @@ export const useBatchVideoManage = () => {
                 .single();
                 
               if (videoData) {
+                const fileUrls = videoData.file_urls as Record<string, string>;
                 await supabase.from('videos')
                   .insert({
                     id: videoId,
                     titulo: videoData.title,
                     descricao: videoData.description || '',
-                    url_video: videoData.file_urls.original || '',
+                    url_video: fileUrls?.original || '',
                     equipamentos: [selectedEquipment.nome],
                     equipment_id: batchEquipmentId
                   });
@@ -452,15 +445,12 @@ export const useBatchVideoManage = () => {
       
       // Reload videos to get fresh data
       loadVideos();
-
-      return { success: true, successCount, failCount };
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro na operação em lote",
         description: error.message || "Ocorreu um erro durante o processamento."
       });
-      return { success: false };
     }
   };
 
@@ -476,6 +466,7 @@ export const useBatchVideoManage = () => {
     searchQuery,
     setSearchQuery,
     selectedVideos,
+    setSelectedVideos,
     batchEquipmentId,
     setBatchEquipmentId,
     showBatchEditDialog,
@@ -490,6 +481,7 @@ export const useBatchVideoManage = () => {
     handleDelete,
     handleBatchDelete,
     handleBatchEquipmentUpdate,
-    isAdmin
+    isAdmin,
+    equipments
   };
 };
