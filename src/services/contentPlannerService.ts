@@ -1,5 +1,5 @@
 
-import { ContentPlannerItem, ContentPlannerStatus, ContentPlannerFilter } from '@/types/content-planner';
+import { ContentPlannerItem, ContentPlannerStatus, ContentPlannerFilter, ContentFormat, ContentDistribution } from '@/types/content-planner';
 import { toast } from 'sonner';
 
 // Fetch content planner items based on filter
@@ -14,7 +14,7 @@ export const fetchContentPlannerItems = async (
         id: '1',
         title: 'Como usar equipamento para melhores resultados',
         description: 'Vídeo tutorial sobre o equipamento',
-        status: 'idea',
+        status: 'idea' as ContentPlannerStatus,
         tags: ['tutorial', 'equipamento'],
         format: 'vídeo',
         objective: '🟡 Atrair Atenção',
@@ -33,7 +33,7 @@ export const fetchContentPlannerItems = async (
         id: '2',
         title: 'Benefícios do equipamento Y',
         description: 'Carrossel com infográficos dos benefícios',
-        status: 'script_generated',
+        status: 'script_generated' as ContentPlannerStatus,
         tags: ['benefícios', 'infográfico'],
         scriptId: 'script1',
         format: 'carrossel',
@@ -89,7 +89,7 @@ export const createContentPlannerItem = async (
       id: `item-${Date.now()}`,
       title: item.title || '',
       description: item.description || '',
-      status: item.status || 'idea',
+      status: (item.status as ContentPlannerStatus) || 'idea' as ContentPlannerStatus,
       tags: item.tags || [],
       format: item.format || 'vídeo',
       objective: item.objective || '🟡 Atrair Atenção',
@@ -126,7 +126,7 @@ export const updateContentPlannerItem = async (
       id,
       title: item.title || 'Untitled',
       description: item.description || '',
-      status: item.status || 'idea',
+      status: (item.status as ContentPlannerStatus) || 'idea' as ContentPlannerStatus,
       tags: item.tags || [],
       scriptId: item.scriptId,
       format: item.format || 'vídeo',
@@ -196,7 +196,7 @@ export const scheduleContentPlannerItem = async (
     // Mock implementation
     const updatedItem = {
       ...item,
-      status: 'scheduled',
+      status: 'scheduled' as ContentPlannerStatus,
       scheduledDate: date.toISOString().split('T')[0],
       calendarEventId: `cal-${Date.now()}`,
       updatedAt: new Date().toISOString()
@@ -226,7 +226,7 @@ export const generateContentSuggestions = async (
         id: `ai-${Date.now()}-${i}`,
         title: `Sugestão de conteúdo ${i + 1}`,
         description: 'Conteúdo gerado por IA',
-        status: 'idea',
+        status: 'idea' as ContentPlannerStatus,
         tags: ['IA', 'sugestão'],
         format: (format as any) || 'vídeo',
         objective: objective || '🟡 Atrair Atenção',
