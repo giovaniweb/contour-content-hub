@@ -9,19 +9,15 @@ import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
-// Create a client with retry configuration
+// Create a client with correct configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      // Move onError inside queries configuration
-      onError: (error) => {
-        console.error("Query error:", error);
-      }
     },
     mutations: {
-      // Add error handling for mutations as well
+      // Error handling for mutations
       onError: (error) => {
         console.error("Mutation error:", error);
       }
