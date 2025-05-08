@@ -32,6 +32,7 @@ import AdminSystemDiagnostics from './pages/AdminSystemDiagnostics';
 import AdminIntegrations from './pages/AdminIntegrations';
 import { SlideNotificationProvider } from './components/notifications/SlideNotificationProvider';
 import IdeaValidatorPage from './pages/IdeaValidatorPage';
+import ScientificArticles from './pages/ScientificArticles';
 
 // Suspense fallback for lazy-loaded routes
 const SuspenseFallback = () => (
@@ -148,6 +149,16 @@ function App() {
               <Route path="/calendar" element={
                 <PrivateRoute>
                   <Calendar />
+                </PrivateRoute>
+              } />
+              <Route path="/scientific-articles" element={
+                <PrivateRoute>
+                  <ScientificArticles />
+                </PrivateRoute>
+              } />
+              <Route path="/marketing-consultant" element={
+                <PrivateRoute>
+                  <ContentStrategy />
                 </PrivateRoute>
               } />
               
