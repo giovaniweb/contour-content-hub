@@ -14,6 +14,12 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import MediaLibrary from "./pages/MediaLibrary";
 import { ErrorBoundary } from './components/ErrorBoundary';
+import ScriptValidation from './pages/ScriptValidation';
+import CustomGpt from './pages/CustomGpt';
+import VideosPage from './pages/VideosPage';
+import TechnicalDocuments from './pages/TechnicalDocuments';
+import ContentStrategy from './pages/ContentStrategy';
+import Calendar from './pages/Calendar';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -57,6 +63,37 @@ function App() {
           <Route path="/media" element={
             <PrivateRoute>
               <MediaLibrary />
+            </PrivateRoute>
+          } />
+          {/* New routes to fix 404 errors */}
+          <Route path="/custom-gpt" element={
+            <PrivateRoute>
+              <CustomGpt />
+            </PrivateRoute>
+          } />
+          <Route path="/script-validation" element={
+            <PrivateRoute>
+              <ScriptValidation />
+            </PrivateRoute>
+          } />
+          <Route path="/videos" element={
+            <PrivateRoute>
+              <VideosPage />
+            </PrivateRoute>
+          } />
+          <Route path="/technical-documents" element={
+            <PrivateRoute>
+              <TechnicalDocuments />
+            </PrivateRoute>
+          } />
+          <Route path="/content-strategy" element={
+            <PrivateRoute>
+              <ContentStrategy />
+            </PrivateRoute>
+          } />
+          <Route path="/calendar" element={
+            <PrivateRoute>
+              <Calendar />
             </PrivateRoute>
           } />
           

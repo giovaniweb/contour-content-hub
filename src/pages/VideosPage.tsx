@@ -3,18 +3,18 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const Calendar: React.FC = () => {
-  console.log("Calendar - Rendering agenda page");
+const VideosPage: React.FC = () => {
+  console.log("VideosPage - Rendering videos page");
   
   return (
-    <Layout title="Agenda de Conteúdo">
+    <Layout>
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
-            <CardTitle>Agenda de Conteúdo</CardTitle>
+            <CardTitle>Biblioteca de Vídeos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Gerencie sua agenda de conteúdo e acompanhe suas publicações.</p>
+            <p>Bem-vindo à sua biblioteca de vídeos.</p>
           </CardContent>
         </Card>
       </div>
@@ -22,4 +22,4 @@ const Calendar: React.FC = () => {
   );
 };
 
-export default Calendar;
+export default VideosPage;
