@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMediaItems } from "@/utils/api";
 import MediaCard from "@/components/MediaCard";
-import { MediaItem } from "@/utils/api";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import FeatureBanner from "@/components/media-library/FeatureBanner";
 import MediaCreationSection from "@/components/media-library/MediaCreationSection";
 import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
+import { MediaItem } from "@/components/media-library/mockData";
 
 const MediaLibrary: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -31,11 +31,32 @@ const MediaLibrary: React.FC = () => {
     const fetchMedia = async () => {
       setLoading(true);
       try {
+        // Get media items and map them to the mockData MediaItem structure
         const items = await getMediaItems({
           type: activeTab === "all" ? undefined : activeTab,
           search: searchQuery || undefined,
         });
-        setMediaItems(items);
+        
+        // Convert the API MediaItem type to the mockData MediaItem type
+        const convertedItems = items.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          type: item.type,
+          thumbnailUrl: item.thumbnailUrl,
+          videoUrl: item.videoUrl,
+          isFavorite: item.isFavorite,
+          rating: item.rating,
+          equipment: item.equipment,
+          purpose: item.purpose,
+          duration: item.duration,
+          viewCount: 0, // Add default values for missing properties
+          downloadCount: 0,
+          url: item.videoUrl || '',
+          featured: false
+        }));
+        
+        setMediaItems(convertedItems);
       } catch (error) {
         console.error("Failed to fetch media items:", error);
         toast({
@@ -52,8 +73,8 @@ const MediaLibrary: React.FC = () => {
   }, [activeTab, searchQuery, toast]);
 
   // Handle download and show ideas modal
-  const handleDownloadAndShowIdeas = (media: MediaItem) => {
-    setSelectedMedia(media);
+  const handleDownloadAndShowIdeas = (item: MediaItem) => {
+    setSelectedMedia(item);
     setShowIdeasModal(true);
   };
 
@@ -190,7 +211,7 @@ const MediaLibrary: React.FC = () => {
       <DownloadIdeasModal 
         open={showIdeasModal}
         onClose={() => setShowIdeasModal(false)}
-        media={selectedMedia}
+        item={selectedMedia}
       />
     </Layout>
   );

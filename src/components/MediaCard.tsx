@@ -1,13 +1,14 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { MediaItem, toggleFavorite, rateMedia } from "@/utils/api";
+import { toggleFavorite, rateMedia } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import MediaCardThumbnail from "./media-library/MediaCardThumbnail";
 import MediaCardContent from "./media-library/MediaCardContent";
 import MediaCardListContent from "./media-library/MediaCardListContent";
 import MediaCardFooter from "./media-library/MediaCardFooter";
+import { MediaItem } from "./media-library/mockData";
 
 interface MediaCardProps {
   media: MediaItem;
@@ -101,7 +102,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
             
             <CardFooter className="p-4 pt-0 mt-auto">
               <MediaCardFooter 
-                videoUrl={media.videoUrl}
+                videoUrl={media.videoUrl || media.url}
                 viewMode="list"
                 onDownload={handleDownload}
               />
@@ -138,7 +139,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
         
         <CardFooter className="p-0">
           <MediaCardFooter 
-            videoUrl={media.videoUrl} 
+            videoUrl={media.videoUrl || media.url} 
             onDownload={handleDownload}
           />
         </CardFooter>

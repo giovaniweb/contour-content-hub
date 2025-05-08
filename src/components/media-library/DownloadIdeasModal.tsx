@@ -9,33 +9,43 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, ArrowRight, Check, X, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Lightbulb, ArrowRight, Check, ThumbsUp, ThumbsDown } from "lucide-react";
 import { MediaItem, generateIdeasFromMedia } from "./mockData";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 interface DownloadIdeasModalProps {
-  item: MediaItem;
+  item: MediaItem | null;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
   onClose: () => void;
 }
 
 const DownloadIdeasModal: React.FC<DownloadIdeasModalProps> = ({
   item,
   open,
-  onOpenChange,
   onClose,
 }) => {
-  const [ideas] = useState<string[]>(generateIdeasFromMedia(item));
+  const [ideas, setIdeas] = useState<string[]>([]);
   const [currentIdeaIndex, setCurrentIdeaIndex] = useState(0);
   const [approvedIdea, setApprovedIdea] = useState<string | null>(null);
   const [showThanks, setShowThanks] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
+  // Generate ideas when the item changes
+  React.useEffect(() => {
+    if (item) {
+      setIdeas(generateIdeasFromMedia(item));
+      setCurrentIdeaIndex(0);
+      setApprovedIdea(null);
+      setShowThanks(false);
+    }
+  }, [item]);
+  
   const handleSwipe = (approved: boolean) => {
+    if (!ideas.length) return;
+    
     if (approved) {
       setApprovedIdea(ideas[currentIdeaIndex]);
       setShowThanks(true);
@@ -58,8 +68,8 @@ const DownloadIdeasModal: React.FC<DownloadIdeasModalProps> = ({
     navigate("/custom-gpt", { 
       state: { 
         prefilledIdea: approvedIdea,
-        mediaTitle: item.title,
-        mediaType: item.type
+        mediaTitle: item?.title,
+        mediaType: item?.type
       } 
     });
     
@@ -71,8 +81,10 @@ const DownloadIdeasModal: React.FC<DownloadIdeasModalProps> = ({
     onClose();
   };
   
+  if (!item) return null;
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -90,34 +102,36 @@ const DownloadIdeasModal: React.FC<DownloadIdeasModalProps> = ({
         
         {!showThanks ? (
           <div className="py-4">
-            <Card className="border border-fluida-blue/10 p-6 my-2 bg-gradient-to-r from-blue-50 to-purple-50">
-              <p className="text-lg font-medium text-center mb-6">
-                {ideas[currentIdeaIndex]}
-              </p>
-              
-              <div className="flex justify-center gap-4 mt-4">
-                <Button 
-                  variant="outline" 
-                  className="rounded-full w-12 h-12 p-0"
-                  onClick={() => handleSwipe(false)}
-                >
-                  <ThumbsDown className="h-5 w-5 text-red-500" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="rounded-full w-12 h-12 p-0 border-green-500"
-                  onClick={() => handleSwipe(true)}
-                >
-                  <ThumbsUp className="h-5 w-5 text-green-500" />
-                </Button>
-              </div>
-              
-              <div className="flex justify-center mt-4">
-                <span className="text-xs text-muted-foreground">
-                  {currentIdeaIndex + 1} de {ideas.length}
-                </span>
-              </div>
-            </Card>
+            {ideas.length > 0 && (
+              <Card className="border border-fluida-blue/10 p-6 my-2 bg-gradient-to-r from-blue-50 to-purple-50">
+                <p className="text-lg font-medium text-center mb-6">
+                  {ideas[currentIdeaIndex]}
+                </p>
+                
+                <div className="flex justify-center gap-4 mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="rounded-full w-12 h-12 p-0"
+                    onClick={() => handleSwipe(false)}
+                  >
+                    <ThumbsDown className="h-5 w-5 text-red-500" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="rounded-full w-12 h-12 p-0 border-green-500"
+                    onClick={() => handleSwipe(true)}
+                  >
+                    <ThumbsUp className="h-5 w-5 text-green-500" />
+                  </Button>
+                </div>
+                
+                <div className="flex justify-center mt-4">
+                  <span className="text-xs text-muted-foreground">
+                    {currentIdeaIndex + 1} de {ideas.length}
+                  </span>
+                </div>
+              </Card>
+            )}
           </div>
         ) : (
           <div className="py-4">
