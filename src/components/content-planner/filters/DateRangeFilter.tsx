@@ -10,11 +10,12 @@ import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
 interface DateRangeFilterProps {
-  value: DateRange | { from: undefined; to: undefined };
-  onChange: (range: DateRange) => void;
+  value: DateRange | undefined;
+  onChange: (range: DateRange | undefined) => void;
 }
 
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChange }) => {
+  // Always ensure we have a safe value object with from/to properties
   const safeValue = value || { from: undefined, to: undefined };
   
   return (
