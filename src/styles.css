@@ -3,6 +3,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./components/ui/css/responsive.css";
+@import "./components/ui/css/effects.css";
 
 @layer base {
   :root {
@@ -27,10 +28,10 @@
     --destructive-foreground: 210 40% 98%;
     --ring: 215 20.2% 65.1%;
     --radius: 0.5rem;
-    --contourline-darkBlue: 221 48% 28%; /* #1f3c67 */
-    --contourline-mediumBlue: 217 42% 49%; /* #3762a5 */
-    --contourline-lightBlue: 214 97% 77%; /* #90baff */
-    --contourline-lightGray: 220 14% 96%; /* #f1f2f6 */
+    --contourline-darkBlue: 221 48% 28%;
+    --contourline-mediumBlue: 217 42% 49%;
+    --contourline-lightBlue: 214 97% 77%;
+    --contourline-lightGray: 220 14% 96%;
     --contourline-hover-overlay: 214 100% 97%;
   }
 
@@ -64,8 +65,9 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold;
@@ -80,91 +82,204 @@
     @apply text-xl mb-2;
   }
   
-  /* Melhorias de acessibilidade - focus visível */
+  /* Focus indicators for accessibility */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-contourline-mediumBlue rounded-md;
+    @apply outline-2 outline-offset-2 outline-fluida-blue rounded-md;
   }
   
-  /* Transições suaves para melhor feedback visual */
+  /* Smooth transitions for interactions */
   a, button, input, select, textarea {
     @apply transition-all duration-200;
   }
 }
 
-/* Custom styles */
-.horizontal-scroll {
-  @apply flex overflow-x-auto gap-4 pb-2 -mx-2 px-2;
-  scrollbar-width: thin;
+/* Custom component styles */
+@layer components {
+  /* Modern elevation system */
+  .elevation-1 {
+    @apply shadow-sm;
+  }
+  .elevation-2 {
+    @apply shadow;
+  }
+  .elevation-3 {
+    @apply shadow-md;
+  }
+  .elevation-4 {
+    @apply shadow-lg;
+  }
+  
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 dark:bg-gray-800/50 dark:border-gray-700/30;
+  }
+  
+  /* Content cards */
+  .content-card {
+    @apply rounded-xl border bg-white shadow-sm transition-all duration-200 hover:shadow dark:bg-gray-800;
+  }
+  
+  /* Modern divider */
+  .divider {
+    @apply my-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-gray-700;
+  }
+  
+  /* App-like buttons */
+  .app-button {
+    @apply relative flex items-center justify-center overflow-hidden rounded-full bg-fluida-blue px-4 py-2 text-white transition-all hover:bg-fluida-blueDark active:scale-95;
+  }
+  
+  /* Navigation tabs */
+  .nav-tab {
+    @apply flex flex-col items-center justify-center px-4 py-2 text-sm font-medium transition-colors;
+  }
+  
+  .nav-tab-active {
+    @apply text-fluida-blue;
+  }
+  
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-fluida-blue text-white shadow-lg transition-transform hover:scale-105 active:scale-95;
+  }
+  
+  /* Notification badge */
+  .badge {
+    @apply absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white;
+  }
+  
+  /* Avatar with status */
+  .avatar-with-status {
+    @apply relative;
+  }
+  
+  .status-indicator {
+    @apply absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500;
+  }
+  
+  /* Bottom sheet handle */
+  .bottom-sheet-handle {
+    @apply mx-auto mb-2 mt-1 h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-600;
+  }
+  
+  /* Interactive items */
+  .interactive-item {
+    @apply cursor-pointer rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800;
+  }
 }
 
-.horizontal-scroll::-webkit-scrollbar {
-  height: 6px;
+/* Custom utility classes */
+@layer utilities {
+  .horizontal-scroll {
+    @apply flex overflow-x-auto gap-4 pb-2 -mx-2 px-2 snap-x;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .horizontal-scroll > * {
+    scroll-snap-align: start;
+  }
+  
+  /* Mobile stacking helpers */
+  .mobile-stack {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  .mobile-full-width {
+    @apply w-full sm:w-auto;
+  }
+  
+  /* Improved hover effects */
+  .hover-card {
+    @apply transition-transform duration-200 hover:-translate-y-1 hover:shadow-md;
+  }
+  
+  /* Active states */
+  .active-scale {
+    @apply active:scale-95 transition-transform;
+  }
+  
+  /* Text truncate with configurable lines */
+  .line-clamp-1 {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+  
+  .line-clamp-2 {
+    @apply overflow-hidden text-ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .line-clamp-3 {
+    @apply overflow-hidden text-ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+  
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink bg-clip-text text-transparent;
+  }
 }
 
-.horizontal-scroll::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
-}
-
-.horizontal-scroll::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-/* Responsive Helper Classes */
-.mobile-stack {
-  @apply flex flex-col sm:flex-row;
-}
-
-.mobile-full-width {
-  @apply w-full sm:w-auto;
-}
-
-/* Melhorias nas interações */
-.interactive-item {
-  @apply relative hover:bg-contourline-hover-overlay transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-contourline-mediumBlue;
-}
-
+/* Menu item styling */
 .menu-item {
-  @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-contourline-hover-overlay hover:text-contourline-mediumBlue transition-colors;
+  @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-contourline-hover-overlay hover:text-fluida-blue transition-colors;
 }
 
 .menu-item-active {
-  @apply bg-contourline-mediumBlue text-white hover:bg-contourline-darkBlue hover:text-white;
+  @apply bg-fluida-blue text-white hover:bg-fluida-blueDark hover:text-white;
 }
 
-/* Sobreposições específicas para a aplicação */
-.reelline-card {
-  @apply shadow-sm border-gray-100;
+/* App-like interface improvements */
+.app-header {
+  @apply sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm;
 }
 
-/* Novas classes para gradientes da Contourline */
+.app-content {
+  @apply p-4 md:p-6;
+}
+
+.app-card {
+  @apply rounded-xl border bg-white transition-shadow duration-200 hover:shadow-md dark:bg-gray-800;
+}
+
+/* Gradient backgrounds */
 .bg-contourline-gradient {
   @apply bg-gradient-to-r from-contourline-darkBlue via-contourline-mediumBlue to-contourline-lightBlue;
 }
 
-.bg-contourline-gradient-reverse {
-  @apply bg-gradient-to-r from-contourline-lightBlue via-contourline-mediumBlue to-contourline-darkBlue;
+.bg-fluida-gradient {
+  @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
 }
 
-.text-contourline-gradient {
-  @apply bg-gradient-to-r from-contourline-darkBlue to-contourline-mediumBlue bg-clip-text text-transparent;
-}
-
-/* Loading animações personalizadas */
+/* Loading animations */
 .loading-creative {
   @apply relative text-center py-8 px-4;
 }
 
 .loading-creative::after {
   content: "Tô tirando do forno...";
-  @apply block mt-4 text-contourline-mediumBlue animate-pulse;
+  @apply block mt-4 text-fluida-blue animate-pulse;
 }
 
-/* Card moderno com bordas mais sutis */
-.modern-card {
-  @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all;
-}
-
-/* Animações mais suaves */
+/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -174,27 +289,27 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-/* Melhorias na transição de página */
 .page-transition {
   @apply animate-fade-in;
 }
 
-/* Estilos para elementos de navegação ativos */
+/* Active navigation styles */
 .nav-link-active {
-  @apply relative text-contourline-mediumBlue font-medium;
+  @apply relative text-fluida-blue font-medium;
 }
 
 .nav-link-active::after {
   content: "";
-  @apply absolute bottom-0 left-0 w-full h-0.5 bg-contourline-mediumBlue rounded-full;
+  @apply absolute bottom-0 left-0 w-full h-0.5 bg-fluida-blue rounded-full;
 }
 
-/* Melhorias de acessibilidade para skip links */
+/* Accessibility improvements */
 .skip-link {
-  @apply sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-white focus:text-contourline-mediumBlue focus:shadow-lg;
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-white focus:text-fluida-blue focus:shadow-lg;
 }
 
-/* Estilo de seleção de texto melhorado */
+/* Text selection */
 ::selection {
-  @apply bg-contourline-lightBlue/30 text-contourline-darkBlue;
+  @apply bg-fluida-blue/20 text-fluida-blue dark:bg-fluida-blue/30 dark:text-white;
 }
+

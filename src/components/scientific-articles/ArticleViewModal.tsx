@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +22,18 @@ import {
   User, 
   Bot,
   Loader2,
-  FileWarning
+  FileWarning,
+  ExpandIcon,
+  MinusIcon,
+  PlusIcon,
+  RefreshCw
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ArticleViewModalProps {
   article: TechnicalDocument;
@@ -50,8 +55,11 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
   const [answer, setAnswer] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Array<{type: 'question' | 'answer', content: string}>>([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const { processedUrl } = processPdfUrl(article.link_dropbox);
 
@@ -95,6 +103,18 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
 
   const resetZoom = () => {
     setPdfZoom(1);
+  };
+  
+  const toggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+  };
+  
+  const handlePdfLoad = () => {
+    setPdfLoading(false);
+  };
+  
+  const handlePdfError = () => {
+    setPdfLoading(false);
   };
 
   const scrollToBottom = () => {
@@ -157,7 +177,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => !newOpen && onClose()}>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden rounded-xl">
         <div className="flex flex-col h-[85vh]">
           {/* Header with title and close button */}
           <div className="flex justify-between items-center border-b p-4 bg-gradient-to-r from-fluida-blue/10 to-fluida-pink/10">
@@ -176,7 +196,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                   </div>
                 )}
                 {article.keywords && article.keywords.length > 0 && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     {article.keywords.slice(0, 3).map((keyword, idx) => (
                       <Badge key={idx} variant="secondary" className="text-xs font-normal">
                         {keyword}
@@ -191,7 +211,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                 )}
               </div>
             </div>
-            <Button variant="ghost" onClick={onClose} size="icon">
+            <Button variant="ghost" onClick={onClose} size="icon" className="rounded-full">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -204,7 +224,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                 {/* PDF Controls */}
                 <div className="flex items-center justify-between border-b p-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center border rounded-md px-1">
+                    <div className="flex items-center border rounded-md px-1 bg-background">
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -212,9 +232,9 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                         title="Zoom Out"
                         className="p-1 h-8"
                       >
-                        <ZoomOut className="h-4 w-4" />
+                        <MinusIcon className="h-3 w-3" />
                       </Button>
-                      <span className="text-xs px-2">{Math.round(pdfZoom * 100)}%</span>
+                      <span className="text-xs px-3 select-none">{Math.round(pdfZoom * 100)}%</span>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -222,7 +242,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                         title="Zoom In"
                         className="p-1 h-8"
                       >
-                        <ZoomIn className="h-4 w-4" />
+                        <PlusIcon className="h-3 w-3" />
                       </Button>
                     </div>
 
@@ -231,9 +251,20 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                       size="sm" 
                       onClick={resetZoom} 
                       title="Reset Zoom"
+                      className="h-8"
                     >
-                      <RotateCw className="h-4 w-4 mr-1" />
-                      Reset
+                      <RotateCw className="h-3 w-3 mr-1" />
+                      <span className="text-xs">Reset</span>
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleFullscreen}
+                      title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                      className="h-8"
+                    >
+                      <ExpandIcon className="h-3 w-3" />
                     </Button>
                   </div>
                   
@@ -242,22 +273,44 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                     size="sm" 
                     onClick={handleDownload} 
                     disabled={isDownloading}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 h-8"
                   >
-                    <Download className="h-4 w-4 mr-1" />
-                    {isDownloading ? "Baixando..." : "Download"}
+                    {isDownloading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Download className="h-3 w-3" />
+                    )}
+                    <span className="text-xs">{isDownloading ? "Baixando..." : "Download"}</span>
                   </Button>
                 </div>
 
-                {/* PDF Document */}
-                <div className="flex-1 overflow-auto bg-muted/30 p-4">
-                  <div style={{ transform: `scale(${pdfZoom})`, transformOrigin: 'top center', transition: 'transform 0.2s' }} className="min-h-full">
+                {/* PDF Document with loading state */}
+                <div className="flex-1 overflow-auto bg-muted/30 p-4 relative">
+                  {pdfLoading && processedUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-fluida-blue mb-2" />
+                        <p className="text-sm text-muted-foreground">Loading PDF...</p>
+                      </div>
+                    </div>
+                  )}
+                  <div 
+                    style={{ 
+                      transform: `scale(${pdfZoom})`, 
+                      transformOrigin: 'top center', 
+                      transition: 'transform 0.2s' 
+                    }} 
+                    className="min-h-full"
+                  >
                     {processedUrl ? (
                       <iframe
+                        ref={iframeRef}
                         src={processedUrl}
                         className="w-full h-[calc(100vh-14rem)] rounded-lg shadow-md bg-white"
                         title={article.titulo}
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+                        onLoad={handlePdfLoad}
+                        onError={handlePdfError}
                       />
                     ) : (
                       <div className="w-full h-[calc(100vh-14rem)] flex items-center justify-center bg-white rounded-lg">
@@ -279,7 +332,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
               </div>
             </ResizablePanel>
             
-            <ResizableHandle />
+            <ResizableHandle className="bg-border hover:bg-fluida-blue transition-colors w-1" />
             
             {/* Q&A Panel */}
             <ResizablePanel defaultSize={35} minSize={25} className="overflow-hidden">
@@ -292,49 +345,61 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                 </div>
                 
                 <ScrollArea className="flex-1 p-4">
-                  {conversationHistory.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                      <Bot className="h-12 w-12 text-muted-foreground mb-3" />
-                      <h3 className="font-medium text-lg">Ask a question</h3>
-                      <p className="text-muted-foreground text-sm mt-2">
-                        Ask me questions about the content of this scientific article. I'll answer based on the information available in this document only.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {conversationHistory.map((item, index) => (
-                        <div 
-                          key={index} 
-                          className={`flex ${item.type === 'question' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div 
-                            className={cn(
-                              "max-w-[80%] p-3 rounded-lg",
-                              item.type === 'question' 
-                                ? "bg-fluida-blue text-white" 
-                                : "bg-muted"
-                            )}
-                          >
-                            <div className="flex items-center mb-1">
-                              {item.type === 'question' ? (
-                                <>
-                                  <span className="text-xs font-semibold">You</span>
-                                  <User className="h-3 w-3 ml-1" />
-                                </>
-                              ) : (
-                                <>
-                                  <Bot className="h-3 w-3 mr-1" />
-                                  <span className="text-xs font-semibold">Article Assistant</span>
-                                </>
-                              )}
-                            </div>
-                            <p className="text-sm whitespace-pre-wrap">{item.content}</p>
-                          </div>
+                  <AnimatePresence>
+                    {conversationHistory.length === 0 ? (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center justify-center h-full text-center p-6"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-fluida-blue/10 flex items-center justify-center mb-3">
+                          <Bot className="h-8 w-8 text-fluida-blue" />
                         </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  )}
+                        <h3 className="font-medium text-lg">Ask a question</h3>
+                        <p className="text-muted-foreground text-sm mt-2">
+                          Ask me questions about the content of this scientific article. I'll answer based on the information available in this document only.
+                        </p>
+                      </motion.div>
+                    ) : (
+                      <div className="space-y-4">
+                        {conversationHistory.map((item, index) => (
+                          <motion.div 
+                            key={index} 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            className={`flex ${item.type === 'question' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div 
+                              className={cn(
+                                "max-w-[80%] p-3 rounded-2xl",
+                                item.type === 'question' 
+                                  ? "bg-fluida-blue text-white rounded-tr-none" 
+                                  : "bg-muted rounded-tl-none"
+                              )}
+                            >
+                              <div className="flex items-center mb-1">
+                                {item.type === 'question' ? (
+                                  <>
+                                    <span className="text-xs font-semibold">You</span>
+                                    <User className="h-3 w-3 ml-1" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Bot className="h-3 w-3 mr-1" />
+                                    <span className="text-xs font-semibold">Article Assistant</span>
+                                  </>
+                                )}
+                              </div>
+                              <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </ScrollArea>
                 
                 <div className="border-t p-3">
@@ -350,11 +415,12 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
                       disabled={asking}
+                      className="rounded-full pl-4"
                     />
                     <Button 
                       type="submit" 
                       disabled={!question.trim() || asking}
-                      className="bg-gradient-to-r from-fluida-blue to-fluida-pink hover:opacity-90 text-white"
+                      className="rounded-full aspect-square p-0 w-10 bg-gradient-to-r from-fluida-blue to-fluida-pink hover:opacity-90 text-white"
                     >
                       {asking ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

@@ -1,69 +1,86 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Play, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface HighlightBannerProps {
-  title?: string;
-  description?: string; 
-  ctaText?: string;
-  ctaLink?: string;
+  title: string;
+  description: string;
+  ctaText: string;
+  ctaLink: string;
   imageUrl?: string;
-  videoId?: string;
+  className?: string;
 }
 
-const HighlightBanner: React.FC<HighlightBannerProps> = ({ 
-  title = "Crie conteúdo que engaja",
-  description = "Utilize nossa plataforma inteligente para criar roteiros, validar ideias e planejar sua estratégia de conteúdo.",
-  ctaText = "Começar agora",
-  ctaLink = "/custom-gpt",
+const HighlightBanner: React.FC<HighlightBannerProps> = ({
+  title,
+  description,
+  ctaText,
+  ctaLink,
   imageUrl,
-  videoId
+  className
 }) => {
-  // Determine background style based on provided image or default Fluida gradient
-  const backgroundStyle = imageUrl 
-    ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : { background: 'linear-gradient(to right, #0094fb, #f300fc)' };
-  
   return (
-    <div 
-      className="relative rounded-xl overflow-hidden h-64 mb-8 group transition-all duration-300"
-      style={backgroundStyle}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.5 }}
+      className={cn(
+        "relative overflow-hidden rounded-xl bg-gradient-to-r from-fluida-blue to-fluida-pink p-6 md:p-8",
+        className
+      )}
     >
-      {/* Overlay to ensure text readability */}
-      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300"></div>
-      
-      <div className="absolute inset-0 flex items-center p-8">
-        <div className="max-w-lg z-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 group-hover:translate-y-[-2px] transition-transform">
-            {title}
-          </h2>
-          <p className="text-white/90 mb-6 group-hover:text-white transition-colors">
-            {description}
-          </p>
-          <div className="flex gap-3">
-            <Button asChild variant="accent" className="font-medium group-hover:shadow-lg transition-all">
-              <Link to={ctaLink}>{ctaText}</Link>
-            </Button>
-            
-            {videoId && (
-              <Button asChild variant="outline" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 hover:text-white">
-                <Link to={`/video-player?id=${videoId}`}>
-                  <Play className="mr-2 h-4 w-4" />
-                  Ver vídeo
-                </Link>
-              </Button>
-            )}
-          </div>
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="text-white"
+        >
+          <defs>
+            <pattern
+              id="dots"
+              x="0"
+              y="0"
+              width="10"
+              height="10"
+              patternUnits="userSpaceOnUse"
+            >
+              <circle cx="1" cy="1" r="1" fill="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-white/80 mb-6 max-w-md">{description}</p>
+          <Button
+            asChild
+            variant="glass"
+            className="font-medium hover:bg-white"
+          >
+            <Link to={ctaLink}>{ctaText}</Link>
+          </Button>
         </div>
+
+        {imageUrl && (
+          <div className="hidden md:block w-1/3 max-w-xs">
+            <img
+              src={imageUrl}
+              alt=""
+              className="w-full h-auto object-cover rounded-lg shadow-lg"
+            />
+          </div>
+        )}
       </div>
-      
-      {/* Decorative element */}
-      <div className="absolute right-8 bottom-0 opacity-20 group-hover:opacity-30 transition-opacity">
-        <ExternalLink className="h-32 w-32 text-white" />
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
