@@ -2,9 +2,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorage';
 import { EditableVideo } from './types';
-import { VideoMetadataSchema } from '@/types/video-storage';
+import { VideoMetadataSchema, VideoMetadata } from '@/types/video-storage';
 import { Equipment } from '@/hooks/useEquipments';
 import { transformToEditableVideos } from './transformUtils';
+import { Json } from '@/types/supabase';
 
 export const loadVideosData = async () => {
   const response = await getVideos();
@@ -49,8 +50,10 @@ export const updateEquipmentAssociation = async (
       equipment_id: null
     };
     
-    // Validate using Zod schema and get plain object
-    const metadata = VideoMetadataSchema.parse(metadataObj);
+    // Validate and convert to plain object
+    const validatedMetadata = VideoMetadataSchema.parse(metadataObj);
+    // Now it's a plain JS object we can send to Supabase
+    const metadata = validatedMetadata as Json;
     
     await supabase.from('videos_storage')
       .update({
@@ -61,7 +64,8 @@ export const updateEquipmentAssociation = async (
     // Also remove from videos table if applicable
     await supabase.from('videos')
       .update({
-        equipment_id: null
+        equipment_id: null,
+        equipamentos: []
       })
       .eq('id', video.id);
   } else {
@@ -73,8 +77,10 @@ export const updateEquipmentAssociation = async (
       equipment_id: equipmentId
     };
     
-    // Validate using Zod schema and get plain object
-    const metadata = VideoMetadataSchema.parse(metadataObj);
+    // Validate and convert to plain object
+    const validatedMetadata = VideoMetadataSchema.parse(metadataObj);
+    // Now it's a plain JS object we can send to Supabase
+    const metadata = validatedMetadata as Json;
     
     await supabase.from('videos_storage')
       .update({
@@ -150,13 +156,15 @@ export const batchUpdateEquipment = async (
     try {
       if (equipmentId === 'none') {
         // Remove equipment association
-        // Create object to validate
+        // Create plain object to validate
         const metadataObj = {
           equipment_id: null
         };
         
-        // Validate with schema and get plain object
-        const metadata = VideoMetadataSchema.parse(metadataObj);
+        // Validate with schema and convert to plain object
+        const validatedMetadata = VideoMetadataSchema.parse(metadataObj);
+        // Now it's a plain JS object we can send to Supabase
+        const metadata = validatedMetadata as Json;
         
         await supabase.from('videos_storage')
           .update({
@@ -177,8 +185,10 @@ export const batchUpdateEquipment = async (
           equipment_id: equipmentId
         };
         
-        // Validate with schema and get plain object
-        const metadata = VideoMetadataSchema.parse(metadataObj);
+        // Validate with schema and convert to plain object
+        const validatedMetadata = VideoMetadataSchema.parse(metadataObj);
+        // Now it's a plain JS object we can send to Supabase
+        const metadata = validatedMetadata as Json;
         
         await supabase.from('videos_storage')
           .update({
