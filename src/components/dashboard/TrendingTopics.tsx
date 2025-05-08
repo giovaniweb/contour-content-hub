@@ -1,22 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Star, TrendingUp, Filter, Zap } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { ScriptResponse } from '@/utils/api';
-import { cn } from '@/lib/utils';
-
-interface Topic {
-  id: string;
-  title: string;
-  score: number;
-  content?: string;
-  tags: string[];
-  category: string;
-  equipment?: string;
-}
+import { TrendingUp, Filter } from 'lucide-react';
+import { Topic } from './types';
+import CategoryFilter from './CategoryFilter';
+import TrendingTopicsList from './TrendingTopicsList';
+import LoadingIndicator from './LoadingIndicator';
 
 // For trending topics
 const SAMPLE_TOPICS: Topic[] = [
@@ -97,38 +87,6 @@ const TrendingTopics: React.FC = () => {
     
     navigate(`/custom-gpt?topic=${encodeURIComponent(topic.title)}&equipment=${encodeURIComponent(topic.equipment || '')}`);
   };
-  
-  const getAutoTitle = (topic: Topic): string => {
-    if (topic.category === 'tratamento') {
-      return `Como funciona o tratamento com ${topic.equipment || 'equipamento'}`;
-    } else if (topic.category === 'resultados') {
-      return `Resultados reais com ${topic.equipment || 'tecnologia'}`;
-    } else if (topic.category === 'rejuvenescimento') {
-      return `${topic.equipment || 'Tecnologia'} para rejuvenescimento: como funciona?`;
-    } else {
-      return topic.title;
-    }
-  };
-  
-  // Function to create a script from a topic
-  const createScriptFromTopic = async (topic: Topic): Promise<ScriptResponse> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For now, return a simulated response
-    const scriptResponse: ScriptResponse = {
-      id: `script-${Date.now()}`,
-      title: topic.title,
-      content: topic.content || `Roteiro gerado para o tópico: ${topic.title}`,
-      type: 'videoScript',
-      createdAt: new Date().toISOString(),
-      suggestedVideos: [],
-      captionTips: [],
-      equipment: topic.equipment,
-    };
-    
-    return scriptResponse;
-  };
 
   return (
     <Card className="w-full">
@@ -139,21 +97,11 @@ const TrendingTopics: React.FC = () => {
             <CardTitle className="text-lg">Tópicos em Alta</CardTitle>
           </div>
           {!loading && (
-            <div className="flex gap-1 overflow-x-auto pb-1 max-w-[70%]">
-              {categories.map(category => (
-                <Badge
-                  key={category}
-                  variant={activeCategory === category ? "default" : "outline"}
-                  className={cn(
-                    "capitalize cursor-pointer",
-                    activeCategory === category ? 'bg-primary' : 'hover:bg-secondary'
-                  )}
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category === 'all' ? 'Todos' : category}
-                </Badge>
-              ))}
-            </div>
+            <CategoryFilter 
+              categories={categories}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
           )}
         </div>
         <CardDescription>
@@ -163,55 +111,13 @@ const TrendingTopics: React.FC = () => {
       
       <CardContent>
         {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : filteredTopics.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
-            Nenhum tópico encontrado para esta categoria.
-          </div>
+          <LoadingIndicator />
         ) : (
-          <div className="space-y-3">
-            {filteredTopics.map((topic) => (
-              <div 
-                key={topic.id}
-                className="p-3 border rounded-lg flex justify-between items-center hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="font-medium mb-1 flex items-center">
-                    <span className="truncate">{topic.title}</span>
-                    {topic.score >= 95 && (
-                      <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-200">
-                        <Star className="h-3 w-3 mr-1 fill-amber-500 text-amber-500" />
-                        Alta relevância
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {topic.tags.map((tag, i) => (
-                      <Badge variant="secondary" key={i} className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 ml-4">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-primary font-medium">
-                    {topic.score}
-                  </div>
-                  <Button 
-                    size="sm"
-                    onClick={() => handleGenerate(topic.id)}
-                    className="whitespace-nowrap"
-                  >
-                    <Zap className="h-4 w-4 mr-1" />
-                    Gerar
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <TrendingTopicsList 
+            loading={loading}
+            topics={filteredTopics}
+            onGenerate={handleGenerate}
+          />
         )}
       </CardContent>
     </Card>
