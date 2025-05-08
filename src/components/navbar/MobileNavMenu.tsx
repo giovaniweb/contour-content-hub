@@ -27,7 +27,8 @@ import {
   Wrench,
   BarChart3,
   PuzzleIcon,
-  PenTool
+  PenTool,
+  Settings
 } from "lucide-react";
 
 interface MobileNavMenuProps {
