@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
-import { useContentPlanner } from "@/hooks/useContentPlanner";
+import { useContentPlanner } from "@/hooks/content-planner/useContentPlanner";
 import ContentPlannerColumn from "./ContentPlannerColumn";
 import ContentPlannerFilters from "./ContentPlannerFilters";
 import ContentPlannerDialog from "./ContentPlannerDialog";
