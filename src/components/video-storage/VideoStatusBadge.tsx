@@ -27,7 +27,7 @@ const VideoStatusBadge: React.FC<VideoStatusBadgeProps> = ({
     
     case 'processing':
       return (
-        <Badge variant={timeout ? "outline" : "secondary"} className={cn(timeout ? "border-yellow-300 bg-yellow-50 text-yellow-700" : "", className)}>
+        <Badge variant={timeout ? "destructive" : "secondary"} className={className}>
           {timeout ? (
             <AlertTriangle className="h-3 w-3 mr-1" />
           ) : (

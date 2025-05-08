@@ -84,6 +84,17 @@ Deno.serve(async (req) => {
     // Registrar tempo de início para calcular duração total
     const startTime = Date.now();
     
+    // Verificar se o vídeo existe
+    const { data: videoData, error: videoError } = await supabaseAdmin
+      .from('videos_storage')
+      .select('*')
+      .eq('id', videoId)
+      .single();
+      
+    if (videoError || !videoData) {
+      throw new Error(`Vídeo não encontrado: ${videoId}`);
+    }
+    
     // Atualizar o status inicial para processamento
     await supabaseAdmin
       .from('videos_storage')
@@ -97,13 +108,7 @@ Deno.serve(async (req) => {
       })
       .eq('id', videoId);
 
-    // Em uma implementação real, aqui teríamos:
-    // 1. Download do vídeo do storage
-    // 2. Uso do FFmpeg para gerar thumbnails e versões em diferentes qualidades
-    // 3. Upload dos arquivos processados de volta para o storage
-    // 4. Atualização do registro no banco de dados
-
-    // Simulação do processamento com um delay
+    // Simular processamento com um delay
     // Reduzido para 2 segundos para melhorar a experiência do usuário
     await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -126,11 +131,15 @@ Deno.serve(async (req) => {
 
     // Obter URLs assinados para o video
     console.log(`[${videoId}] Processamento: Gerando URLs assinados...`);
-    const { data: originalUrlData } = await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24);
+    const { data: originalUrlData, error: urlError } = await supabaseAdmin.storage.from('videos').createSignedUrl(fileName, 60 * 60 * 24);
     
-    if (!originalUrlData?.signedUrl) {
+    if (urlError || !originalUrlData?.signedUrl) {
+      console.error("Erro ao gerar URL assinado:", urlError);
       throw new Error("Falha ao gerar URL assinado para o vídeo original");
     }
+
+    // Obter URL público para o vídeo
+    const publicUrl = supabaseAdmin.storage.from('videos').getPublicUrl(fileName).data.publicUrl;
 
     // Simular processamento de qualidade HD - Fase 2
     console.log(`[${videoId}] Processamento: Gerando versão HD...`);
@@ -170,7 +179,7 @@ Deno.serve(async (req) => {
     const processingDuration = Date.now() - startTime;
     const durationSeconds = Math.round(processingDuration / 1000);
     
-    // Atualizar status do vídeo e adicionar um thumbnail e URLs assinados - Fase 4: Finalização
+    // CORREÇÃO: Atualizar vídeo para status 'ready' com todas as URLs necessárias
     console.log(`[${videoId}] Processamento: Finalizando...`);
     const { error: updateError } = await supabaseAdmin
       .from('videos_storage')
@@ -178,9 +187,9 @@ Deno.serve(async (req) => {
         status: 'ready',
         thumbnail_url: 'https://placehold.co/640x360/333/FFF?text=Video+Thumbnail',
         file_urls: {
-          original: originalUrlData.signedUrl,
-          hd: originalUrlData.signedUrl, // Em produção, essas seriam URLs diferentes para versões transcodificadas
-          sd: originalUrlData.signedUrl,
+          original: publicUrl, // Usar URL público em vez de URL assinado
+          hd: publicUrl,
+          sd: publicUrl,
         },
         metadata: { 
           processing_progress: 'Concluído',
@@ -197,6 +206,23 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
+    // Atualizar também a tabela videos se existir um registro correspondente
+    try {
+      const { error: videoUpdateError } = await supabaseAdmin
+        .from('videos')
+        .update({
+          url_video: publicUrl,
+          preview_url: 'https://placehold.co/640x360/333/FFF?text=Video+Thumbnail'
+        })
+        .eq('id', videoId);
+        
+      if (videoUpdateError) {
+        console.warn('Aviso: Não foi possível atualizar a tabela videos:', videoUpdateError);
+      }
+    } catch (err) {
+      console.warn('Tabela videos pode não existir ou não ter este registro:', err);
+    }
+
     console.log(`Vídeo ${videoId} processado com sucesso em ${durationSeconds} segundos`);
 
     return new Response(
@@ -204,6 +230,7 @@ Deno.serve(async (req) => {
         success: true,
         message: 'Video processing completed',
         videoId: videoId,
+        publicUrl: publicUrl,
         processingTime: `${durationSeconds} segundos`
       }),
       {

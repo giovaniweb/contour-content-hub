@@ -1,12 +1,25 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, CheckCircle, AlertCircle } from 'lucide-react';
-import { generateDownloadUrl } from '@/services/videoStorage/videoDownloadService';
-import { useToast } from '@/hooks/use-toast';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { generateDownloadUrl } from '@/services/videoStorageService';
 import { StoredVideo, VideoQuality } from '@/types/video-storage';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Download, FileVideo, AlertTriangle, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface VideoDownloadDialogProps {
   video: StoredVideo;
@@ -19,111 +32,116 @@ const VideoDownloadDialog: React.FC<VideoDownloadDialogProps> = ({
   isOpen, 
   onOpenChange 
 }) => {
+  const [quality, setQuality] = useState<VideoQuality>('original');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = React.useState<Record<VideoQuality, boolean>>({
-    original: false,
-    hd: false,
-    sd: false
-  });
-  const [downloadSuccess, setDownloadSuccess] = React.useState<Record<VideoQuality, boolean>>({
-    original: false,
-    hd: false,
-    sd: false
-  });
 
-  // Resetar estados quando o diálogo fechado
-  React.useEffect(() => {
-    if (!isOpen) {
-      setIsLoading({
-        original: false,
-        hd: false,
-        sd: false
-      });
-      setDownloadSuccess({
-        original: false,
-        hd: false,
-        sd: false
-      });
-    }
-  }, [isOpen]);
-
-  // Função para iniciar o download
-  const handleDownload = async (quality: VideoQuality) => {
-    // Evitar múltiplos cliques
-    if (isLoading[quality]) return;
-    
-    setIsLoading(prev => ({ ...prev, [quality]: true }));
-    setDownloadSuccess(prev => ({ ...prev, [quality]: false }));
-    
+  // Determinar quais qualidades estão disponíveis
+  const availableQualities: VideoQuality[] = [];
+  
+  if (video.file_urls?.original) availableQualities.push('original');
+  if (video.file_urls?.hd) availableQualities.push('hd');
+  if (video.file_urls?.sd) availableQualities.push('sd');
+  
+  // Se não houver qualidades disponíveis, usar a primeira URL disponível
+  const hasNoQualityOptions = availableQualities.length === 0;
+  
+  const handleDownload = async () => {
     try {
+      setIsDownloading(true);
+      
+      // Se não houver qualidades disponíveis, mas tiver alguma URL
+      if (hasNoQualityOptions) {
+        const url = video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd;
+        if (!url) {
+          throw new Error('Nenhuma URL de download disponível');
+        }
+        
+        // Criar um link temporário para download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${video.title}.mp4`; 
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setDownloadSuccess(true);
+        setTimeout(() => {
+          onOpenChange(false);
+          setDownloadSuccess(false);
+        }, 1500);
+        
+        return;
+      }
+      
+      // Gerar URL de download usando o serviço
       const result = await generateDownloadUrl(video.id, quality);
       
       if (result.error) {
         throw new Error(result.error);
       }
       
-      if (result.url) {
-        // Iniciar download via link
-        const link = document.createElement('a');
-        link.href = result.url;
-        link.download = result.filename || `${video.title}_${quality}.mp4`;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Feedback de sucesso
-        setDownloadSuccess(prev => ({ ...prev, [quality]: true }));
-        toast({
-          title: "Download iniciado",
-          description: `O download do vídeo em qualidade ${quality} começou.`,
-        });
+      if (!result.url) {
+        throw new Error('URL de download não gerada');
       }
+      
+      // Criar um link e clicar nele para iniciar o download
+      const link = document.createElement('a');
+      link.href = result.url;
+      link.download = result.filename || `${video.title}_${quality}.mp4`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setDownloadSuccess(true);
+      
+      // Fechar o diálogo após um breve delay
+      setTimeout(() => {
+        onOpenChange(false);
+        setDownloadSuccess(false);
+      }, 1500);
+      
     } catch (error) {
-      console.error('Error downloading video:', error);
+      console.error('Error generating download URL:', error);
       toast({
         variant: "destructive",
-        title: "Erro ao baixar vídeo",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado ao gerar o link de download."
+        title: "Erro ao fazer download",
+        description: error instanceof Error ? error.message : "Não foi possível fazer o download do vídeo"
       });
     } finally {
-      // Remover estado de loading após um pequeno delay para melhor feedback visual
-      setTimeout(() => {
-        setIsLoading(prev => ({ ...prev, [quality]: false }));
-      }, 500);
+      setIsDownloading(false);
     }
   };
   
-  // Verificar quais qualidades estão disponíveis
-  const hasOriginal = !!video.file_urls?.original;
-  const hasHd = !!video.file_urls?.hd;
-  const hasSd = !!video.file_urls?.sd;
-  
-  // Função para calcular o tamanho aproximado com base na qualidade
-  const getApproxSize = (quality: VideoQuality): string => {
-    if (!video.size) return "Tamanho desconhecido";
-    
-    const originalSize = video.size;
-    
-    // Estimativa aproximada baseada na qualidade
-    switch (quality) {
-      case 'original':
-        return formatFileSize(originalSize);
-      case 'hd':
-        return formatFileSize(originalSize * 0.7); // ~70% do tamanho original
-      case 'sd':
-        return formatFileSize(originalSize * 0.4); // ~40% do tamanho original
-      default:
-        return "Tamanho desconhecido";
+  // Lidar com download direto das URLs
+  const handleDirectDownload = (url: string) => {
+    try {
+      // Criar um link temporário para download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${video.title}.mp4`; 
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download do vídeo foi iniciado."
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error initiating direct download:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao iniciar download",
+        description: "Não foi possível iniciar o download do vídeo."
+      });
     }
-  };
-  
-  // Função para formatar o tamanho do arquivo
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   };
 
   return (
@@ -132,101 +150,154 @@ const VideoDownloadDialog: React.FC<VideoDownloadDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Download do vídeo</DialogTitle>
           <DialogDescription>
-            Escolha uma das opções de qualidade para baixar "{video.title}"
+            Selecione a qualidade desejada para download do vídeo "{video.title}".
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <Tabs defaultValue="quality" className="w-full">
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="quality">Opções de download</TabsTrigger>
-            </TabsList>
-            <TabsContent value="quality" className="space-y-4 pt-4">
-              {hasOriginal && (
-                <div className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <p className="font-medium">Qualidade Original</p>
-                    <p className="text-sm text-muted-foreground">{getApproxSize('original')}</p>
-                  </div>
-                  <Button 
-                    onClick={() => handleDownload('original')}
-                    disabled={isLoading.original}
-                    size="sm"
-                    className="min-w-[100px]"
+        {downloadSuccess ? (
+          <div className="py-6 flex flex-col items-center justify-center">
+            <div className="bg-green-100 rounded-full p-3 mb-2">
+              <Check className="h-6 w-6 text-green-600" />
+            </div>
+            <p className="text-center font-medium">Download iniciado com sucesso!</p>
+          </div>
+        ) : hasNoQualityOptions && !Object.values(video.file_urls || {}).some(Boolean) ? (
+          <div className="py-6 flex flex-col items-center justify-center">
+            <div className="bg-amber-100 rounded-full p-3 mb-2">
+              <AlertTriangle className="h-6 w-6 text-amber-600" />
+            </div>
+            <p className="text-center font-medium">Vídeo indisponível para download</p>
+            <p className="text-center text-sm text-muted-foreground mt-1">
+              Este vídeo ainda está sendo processado ou ocorreu um erro.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-4 py-2">
+              <FileVideo className="h-12 w-12 text-primary flex-shrink-0" />
+              <div>
+                <h3 className="font-medium">{video.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {video.description ? (
+                    <span className="line-clamp-1">{video.description}</span>
+                  ) : (
+                    <span>{(video.size / (1024 * 1024)).toFixed(1)} MB</span>
+                  )}
+                </p>
+              </div>
+            </div>
+            
+            {!hasNoQualityOptions && availableQualities.length > 0 ? (
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Qualidade:</Label>
+                  <Select
+                    value={quality}
+                    onValueChange={(value) => setQuality(value as VideoQuality)}
+                    disabled={isDownloading}
                   >
-                    {isLoading.original ? (
-                      <span className="flex items-center">Processando...</span>
-                    ) : downloadSuccess.original ? (
-                      <span className="flex items-center"><CheckCircle className="h-4 w-4 mr-1" /> Baixado</span>
-                    ) : (
-                      <span className="flex items-center"><Download className="h-4 w-4 mr-1" /> Baixar</span>
-                    )}
-                  </Button>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione uma qualidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableQualities.includes('original') && (
+                        <SelectItem value="original">Original</SelectItem>
+                      )}
+                      {availableQualities.includes('hd') && (
+                        <SelectItem value="hd">Alta (HD)</SelectItem>
+                      )}
+                      {availableQualities.includes('sd') && (
+                        <SelectItem value="sd">Padrão (SD)</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              
-              {hasHd && (
-                <div className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <p className="font-medium">Alta Qualidade (HD)</p>
-                    <p className="text-sm text-muted-foreground">{getApproxSize('hd')}</p>
+              </div>
+            ) : (
+              // Se não temos qualidades específicas mas temos URLs, mostrar links diretos
+              <div className="grid gap-4 py-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Download direto disponível:
+                  </p>
+                  <div className="flex justify-center gap-2 mt-2">
+                    {video.file_urls?.original && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDirectDownload(video.file_urls.original as string)}
+                      >
+                        Original
+                      </Button>
+                    )}
+                    {video.file_urls?.hd && video.file_urls.hd !== video.file_urls?.original && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDirectDownload(video.file_urls.hd as string)}
+                      >
+                        HD
+                      </Button>
+                    )}
+                    {video.file_urls?.sd && 
+                     video.file_urls.sd !== video.file_urls?.original && 
+                     video.file_urls.sd !== video.file_urls?.hd && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDirectDownload(video.file_urls.sd as string)}
+                      >
+                        SD
+                      </Button>
+                    )}
                   </div>
-                  <Button 
-                    onClick={() => handleDownload('hd')}
-                    disabled={isLoading.hd}
-                    size="sm"
-                    className="min-w-[100px]"
-                  >
-                    {isLoading.hd ? (
-                      <span className="flex items-center">Processando...</span>
-                    ) : downloadSuccess.hd ? (
-                      <span className="flex items-center"><CheckCircle className="h-4 w-4 mr-1" /> Baixado</span>
-                    ) : (
-                      <span className="flex items-center"><Download className="h-4 w-4 mr-1" /> Baixar</span>
-                    )}
-                  </Button>
                 </div>
-              )}
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                disabled={isDownloading}
+              >
+                Cancelar
+              </Button>
               
-              {hasSd && (
-                <div className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <p className="font-medium">Qualidade Padrão (SD)</p>
-                    <p className="text-sm text-muted-foreground">{getApproxSize('sd')}</p>
-                  </div>
-                  <Button 
-                    onClick={() => handleDownload('sd')}
-                    disabled={isLoading.sd}
-                    size="sm"
-                    className="min-w-[100px]"
-                  >
-                    {isLoading.sd ? (
-                      <span className="flex items-center">Processando...</span>
-                    ) : downloadSuccess.sd ? (
-                      <span className="flex items-center"><CheckCircle className="h-4 w-4 mr-1" /> Baixado</span>
-                    ) : (
-                      <span className="flex items-center"><Download className="h-4 w-4 mr-1" /> Baixar</span>
-                    )}
-                  </Button>
-                </div>
+              {!hasNoQualityOptions && (
+                <Button 
+                  type="submit" 
+                  onClick={handleDownload}
+                  disabled={isDownloading || availableQualities.length === 0}
+                >
+                  {isDownloading ? (
+                    <>
+                      <Download className="mr-2 h-4 w-4 animate-spin" />
+                      Baixando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar
+                    </>
+                  )}
+                </Button>
               )}
-              
-              {!hasOriginal && !hasHd && !hasSd && (
-                <div className="p-4 text-center border border-amber-200 bg-amber-50 rounded-md flex flex-col items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-amber-500" />
-                  <p className="text-amber-700">Este vídeo não tem arquivos disponíveis para download.</p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        <div className="text-xs text-center text-muted-foreground">
-          Os downloads são registrados para fins de auditoria
-        </div>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
 };
+
+// Label component - reusable UI component
+const Label = ({ className, ...props }: React.HTMLAttributes<HTMLLabelElement>) => (
+  <label
+    className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}
+    {...props}
+  />
+);
 
 export default VideoDownloadDialog;

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { Eye, Download, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { StoredVideo } from '@/types/video-storage';
 import { deleteVideo } from '@/services/videoStorageService';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,8 @@ interface VideoCardProps {
   onDownload: () => void;
   processingTimeout?: boolean;
   timeSinceUpload: string;
+  onReprocess?: () => void;
+  isReprocessing?: boolean;
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ 
@@ -33,13 +35,16 @@ const VideoCard: React.FC<VideoCardProps> = ({
   onRefresh, 
   onDownload, 
   processingTimeout = false,
-  timeSinceUpload 
+  timeSinceUpload,
+  onReprocess,
+  isReprocessing = false
 }) => {
   const { toast } = useToast();
   const { isAdmin } = usePermissions();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const isProcessing = video.status === 'processing' || video.status === 'uploading';
+  const hasFileUrl = Boolean(video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd);
   
   const handleDelete = async () => {
     try {
@@ -69,6 +74,20 @@ const VideoCard: React.FC<VideoCardProps> = ({
     }
   };
 
+  // Função para abrir o vídeo para visualização
+  const handleViewVideo = () => {
+    const videoUrl = video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd;
+    if (videoUrl) {
+      window.open(videoUrl, '_blank');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro ao abrir vídeo",
+        description: "URL do vídeo não encontrada."
+      });
+    }
+  };
+
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       <div className="relative aspect-video">
@@ -92,6 +111,25 @@ const VideoCard: React.FC<VideoCardProps> = ({
                 <p className="mt-2 text-sm font-medium">Processando</p>
                 {processingTimeout && (
                   <p className="text-xs text-amber-500">Demorando mais que o normal</p>
+                )}
+                {processingTimeout && onReprocess && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2" 
+                    onClick={onReprocess}
+                    disabled={isReprocessing}
+                  >
+                    {isReprocessing ? (
+                      <>
+                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Reprocessando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
+                      </>
+                    )}
+                  </Button>
                 )}
               </div>
             ) : (
@@ -145,6 +183,17 @@ const VideoCard: React.FC<VideoCardProps> = ({
             )}
           </div>
         )}
+
+        {/* Informações de debug para administradores */}
+        {isAdmin() && processingTimeout && (
+          <div className="mt-2 text-xs text-muted-foreground border-t pt-2">
+            <p>Status: {video.status}</p>
+            <p>Arquivo: {Boolean(video.file_urls?.original) ? "✅" : "❌"}</p>
+            {video.metadata?.processing_progress && (
+              <p>Progresso: {video.metadata.processing_progress}</p>
+            )}
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="p-4 pt-0 border-t mt-auto flex justify-between">
@@ -155,8 +204,8 @@ const VideoCard: React.FC<VideoCardProps> = ({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  disabled={isProcessing || video.status === 'error'}
-                  onClick={() => window.open(video.file_urls.original || video.file_urls.hd || video.file_urls.sd, '_blank')}
+                  disabled={(isProcessing && !hasFileUrl) || video.status === 'error'}
+                  onClick={handleViewVideo}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -171,7 +220,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  disabled={isProcessing || video.status === 'error'}
+                  disabled={(isProcessing && !hasFileUrl) || video.status === 'error'}
                   onClick={onDownload}
                 >
                   <Download className="h-4 w-4" />

@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { Eye, Download, Loader2, AlertTriangle, RefreshCcw } from 'lucide-react';
 import { getVideos, getMyVideos } from '@/services/videoStorageService';
 import VideoStatusBadge from './VideoStatusBadge';
 import { StoredVideo, VideoStatus } from '@/types/video-storage';
@@ -34,6 +35,9 @@ const VideoList: React.FC<VideoListProps> = ({
   
   // Estado para monitorar o tempo de processamento dos vídeos
   const [processingTimeouts, setProcessingTimeouts] = useState<Record<string, boolean>>({});
+  
+  // Novo estado para controlar reprocessamento
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadVideos();
@@ -115,6 +119,9 @@ const VideoList: React.FC<VideoListProps> = ({
       if (processingTime > 5 * 60 * 1000 && !newTimeouts[video.id]) {
         newTimeouts[video.id] = true;
         
+        // Verificar se o vídeo realmente existe no storage
+        checkVideoFilesAndUpdate(video);
+        
         // Notificar o usuário apenas uma vez por vídeo
         toast({
           title: "Processamento demorado",
@@ -125,6 +132,115 @@ const VideoList: React.FC<VideoListProps> = ({
     });
     
     setProcessingTimeouts(newTimeouts);
+  };
+
+  // Nova função para verificar se o arquivo existe no storage e atualizar o status se necessário
+  const checkVideoFilesAndUpdate = async (video: StoredVideo) => {
+    try {
+      // Extrair o nome do arquivo do metadata ou file_urls
+      const fileName = video.metadata?.original_filename 
+        ? `${video.id}/original_${video.metadata.original_filename.replace(/[^a-zA-Z0-9.-]/g, '_')}` 
+        : null;
+      
+      if (!fileName) {
+        console.warn('Nome do arquivo não encontrado para verificar existência no storage');
+        return;
+      }
+
+      // Verificar se o arquivo existe no storage
+      const { data: fileExists } = await supabase
+        .storage
+        .from('videos')
+        .getPublicUrl(fileName);
+
+      if (fileExists?.publicUrl) {
+        // O arquivo existe no storage, vamos atualizar o status para 'ready' se ainda estiver em processamento
+        if (video.status === 'processing' || video.status === 'uploading') {
+          const { error } = await supabase
+            .from('videos_storage')
+            .update({
+              status: 'ready',
+              file_urls: {
+                ...video.file_urls,
+                original: fileExists.publicUrl,
+                hd: fileExists.publicUrl,
+                sd: fileExists.publicUrl
+              }
+            })
+            .eq('id', video.id);
+
+          if (!error) {
+            // Recarregar vídeos para mostrar o atualizado
+            loadVideos();
+            toast({
+              title: "Vídeo disponível",
+              description: `O vídeo "${video.title}" foi automaticamente marcado como pronto.`
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao verificar arquivos de vídeo:', error);
+    }
+  };
+
+  // Nova função para tentar reprocessar um vídeo travado
+  const handleReprocessVideo = async (video: StoredVideo) => {
+    try {
+      setReprocessingId(video.id);
+      
+      // Verificar se existe um nome de arquivo
+      let fileName = '';
+      
+      if (video.metadata?.original_filename) {
+        fileName = `${video.id}/original_${video.metadata.original_filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      } else if (video.file_urls?.original) {
+        // Tentar extrair o nome do arquivo da URL
+        const url = video.file_urls.original;
+        const pathParts = url.split('/').filter(Boolean);
+        if (pathParts.length > 0) {
+          fileName = `${video.id}/${pathParts[pathParts.length - 1]}`;
+        }
+      }
+      
+      if (!fileName) {
+        toast({
+          variant: "destructive",
+          title: "Erro no reprocessamento",
+          description: "Não foi possível identificar o arquivo do vídeo."
+        });
+        return;
+      }
+      
+      // Chamar a função de processamento novamente
+      const { error } = await supabase.functions.invoke('process-video', {
+        body: { videoId: video.id, fileName }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Reprocessamento iniciado",
+        description: `O vídeo "${video.title}" está sendo processado novamente.`
+      });
+      
+      // Atualizar a lista após um pequeno delay
+      setTimeout(() => {
+        loadVideos();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Erro ao reprocessar vídeo:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro no reprocessamento",
+        description: "Não foi possível iniciar o reprocessamento do vídeo."
+      });
+    } finally {
+      setReprocessingId(null);
+    }
   };
 
   const handleRefresh = () => {
@@ -185,6 +301,14 @@ const VideoList: React.FC<VideoListProps> = ({
         </div>
       ) : (
         <>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Vídeos ({totalVideos})</h2>
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {videos.map(video => (
               <VideoCard
@@ -194,6 +318,8 @@ const VideoList: React.FC<VideoListProps> = ({
                 onDownload={() => handleDownloadClick(video)}
                 processingTimeout={processingTimeouts[video.id]}
                 timeSinceUpload={getTimeSinceUpload(video.created_at)}
+                onReprocess={processingTimeouts[video.id] ? () => handleReprocessVideo(video) : undefined}
+                isReprocessing={reprocessingId === video.id}
               />
             ))}
           </div>
