@@ -679,7 +679,7 @@ const KanbanBoard: React.FC = () => {
       <DistributionDialog
         open={showDistributionDialog}
         onClose={() => setShowDistributionDialog(false)}
-        item={selectedItem}
+        item={selectedItem ? convertToContentPlannerItem(selectedItem) : null}
         onDistribute={handleDistribute}
       />
       
