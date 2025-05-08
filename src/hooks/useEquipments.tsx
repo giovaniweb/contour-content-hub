@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
 
-// Simplified equipment type
-interface Equipment {
+// Exportando o tipo Equipment para uso em outros componentes
+export interface Equipment {
   id: string;
   nome: string;
 }

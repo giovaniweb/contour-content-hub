@@ -39,6 +39,7 @@ export interface ContentPlannerFilter {
   format?: string;
   distribution?: string;
   equipmentId?: string;
+  status?: ContentPlannerStatus; // Adicionando campo status ao filtro
   dateRange?: {
     from?: Date;
     to?: Date;

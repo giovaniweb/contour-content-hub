@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MarketingObjectiveSelector } from "@/components/content-strategy/MarketingObjectiveSelector";
+import MarketingObjectiveSelector from "@/components/content-strategy/MarketingObjectiveSelector";
 import { ContentPlannerItem } from "@/types/content-planner";
 import { useEquipments } from "@/hooks/useEquipments";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
-import { ContentFormat, ContentDistribution } from "@/types/content-strategy";
+import { ContentFormat, ContentDistribution } from "@/types/content-planner";
 
 interface ContentPlannerDialogProps {
   open: boolean;
@@ -265,6 +265,53 @@ const ContentPlannerDialog: React.FC<ContentPlannerDialogProps> = ({
       </DialogContent>
     </Dialog>
   );
+};
+
+// Funções utilitárias para o componente
+const handleAddTag = () => {
+  if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+    setTags([...tags, currentTag.trim()]);
+    setCurrentTag("");
+  }
+};
+
+const handleRemoveTag = (tag: string) => {
+  setTags(tags.filter(t => t !== tag));
+};
+
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' && currentTag.trim()) {
+    e.preventDefault();
+    handleAddTag();
+  }
+};
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!title.trim()) {
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
+  const updatedItem: Partial<ContentPlannerItem> = {
+    title,
+    description,
+    tags,
+    format,
+    objective,
+    distribution,
+    equipmentId: equipmentId || undefined,
+    ...(item ? { id: item.id } : {})
+  };
+  
+  try {
+    await onSave(updatedItem);
+    onOpenChange(false);
+  } finally {
+    setIsSubmitting(false);
+  }
 };
 
 export default ContentPlannerDialog;
