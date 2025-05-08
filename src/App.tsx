@@ -11,6 +11,8 @@ import VideoSwipe from "@/pages/VideoSwipe";
 import VideoPlayer from "@/pages/VideoPlayer";
 import Media from "@/pages/Media";
 import NotFound from "@/pages/NotFound";
+import VideoBatchManage from "@/pages/VideoBatchManage";
+import TechnicalDocuments from "@/pages/TechnicalDocuments";
 import { AuthProvider } from '@/context/AuthContext';
 
 function App() {
@@ -28,6 +30,10 @@ function App() {
       element: <Navigate to="/video-storage" replace />,
     },
     {
+      path: "/videos/batch-manage",
+      element: <VideoBatchManage />,
+    },
+    {
       path: "/video-swipe",
       element: <VideoSwipe />,
     },
@@ -40,8 +46,32 @@ function App() {
       element: <Media />,
     },
     {
-      path: "/technical-documents",
+      path: "/media-library",
       element: <Navigate to="/media" replace />,
+    },
+    {
+      path: "/technical-documents",
+      element: <TechnicalDocuments />,
+    },
+    {
+      path: "/login",
+      element: <Navigate to="/" replace />,
+    },
+    {
+      path: "/register",
+      element: <Navigate to="/" replace />,
+    },
+    {
+      path: "/admin/dashboard",
+      element: <Navigate to="/admin/system-diagnostics" replace />,
+    },
+    {
+      path: "/dashboard",
+      element: <Navigate to="/" replace />,
+    },
+    {
+      path: "/equipments",
+      element: <Navigate to="/" replace />,
     },
     {
       path: "*",

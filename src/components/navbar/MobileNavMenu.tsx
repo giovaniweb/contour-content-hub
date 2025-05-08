@@ -14,9 +14,6 @@ import {
   FileText,
   Cog,
   VideoIcon,
-  BrainCircuit,
-  Presentation,
-  Calendar,
   Activity
 } from "lucide-react";
 
@@ -43,65 +40,49 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
         </SheetHeader>
         <div className="flex flex-col p-4 space-y-2">
           <Link
-            to="/dashboard"
+            to="/"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <Laptop className="h-5 w-5" />
-            <span>Dashboard</span>
+            <span>Início</span>
           </Link>
           <Link
-            to="/equipments"
+            to="/video-storage"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <Database className="h-5 w-5" />
-            <span>Equipamentos</span>
+            <span>Biblioteca de Vídeos</span>
           </Link>
           <Link
-            to="/content-strategy"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Presentation className="h-5 w-5" />
-            <span>Conteúdo</span>
-          </Link>
-          <Link
-            to="/custom-gpt"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <FileText className="h-5 w-5" />
-            <span>Roteiros</span>
-          </Link>
-          <Link
-            to="/media-library"
+            to="/video-swipe"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <VideoIcon className="h-5 w-5" />
-            <span>Mídias</span>
+            <span>Descobrir Vídeos</span>
           </Link>
           <Link
-            to="/calendar"
+            to="/media"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <Calendar className="h-5 w-5" />
-            <span>Agenda</span>
+            <VideoIcon className="h-5 w-5" />
+            <span>Biblioteca de Mídia</span>
           </Link>
           <Link
-            to="/marketing-consultant"
+            to="/technical-documents"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <BrainCircuit className="h-5 w-5" />
-            <span>Consultor de Marketing</span>
+            <FileText className="h-5 w-5" />
+            <span>Documentos Técnicos</span>
           </Link>
           {isAdmin() && (
             <>
               <Link
-                to="/admin/dashboard"
+                to="/admin/system-diagnostics"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted mt-4 border-t pt-4"
                 onClick={() => setIsOpen(false)}
               >

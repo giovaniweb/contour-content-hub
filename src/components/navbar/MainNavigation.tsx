@@ -27,19 +27,12 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
   // Define navigation links based on authentication and roles
   return (
     <div className="flex items-center space-x-1">
-      <NavLink to="/dashboard" icon={<LayoutGrid size={16} />} label="Dashboard" />
-      <NavLink to="/equipments" icon={<Database size={16} />} label="Equipamentos" />
-      <NavLink to="/content-strategy" icon={<Presentation size={16} />} label="Conteúdo" />
-      <NavLink to="/custom-gpt" icon={<FileText size={16} />} label="Roteiros" />
-      <NavLink to="/media-library" icon={<VideoIcon size={16} />} label="Mídias" />
-      <NavLink to="/calendar" icon={<Calendar size={16} />} label="Agenda" />
-      <NavLink 
-        to="/marketing-consultant" 
-        icon={<BrainCircuit size={16} />} 
-        label="Consultor" 
-      />
+      <NavLink to="/" icon={<LayoutGrid size={16} />} label="Dashboard" />
+      <NavLink to="/media" icon={<VideoIcon size={16} />} label="Mídias" />
+      <NavLink to="/video-storage" icon={<Database size={16} />} label="Vídeos" />
+      <NavLink to="/technical-documents" icon={<FileText size={16} />} label="Documentos" />
       {isAdmin() && (
-        <NavLink to="/admin/dashboard" icon={<Cog size={16} />} label="Admin" />
+        <NavLink to="/admin/system-diagnostics" icon={<Cog size={16} />} label="Admin" />
       )}
     </div>
   );

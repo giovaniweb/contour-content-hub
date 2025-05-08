@@ -36,9 +36,6 @@ const Navbar = () => {
           <Link to="/" className={`nav-item ${isActive('/') ? 'active' : ''}`}>
             Início
           </Link>
-          <Link to="/admin/videos" className={`nav-item ${isActive('/admin/videos') ? 'active' : ''}`}>
-            Admin
-          </Link>
           
           <Link to="/video-storage" className="nav-item">
             <Video className="h-5 w-5" />
@@ -53,6 +50,11 @@ const Navbar = () => {
           <Link to="/media" className="nav-item">
             <Video className="h-5 w-5" />
             <span>Biblioteca de Mídia</span>
+          </Link>
+          
+          <Link to="/technical-documents" className="nav-item">
+            <Video className="h-5 w-5" />
+            <span>Documentos Técnicos</span>
           </Link>
         </div>
 
@@ -76,7 +78,7 @@ const Navbar = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Perfil</span>
               </DropdownMenuItem>
@@ -88,7 +90,7 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Link to="/login">Login</Link>
+          <Link to="/">Login</Link>
         )}
       </div>
     </div>
