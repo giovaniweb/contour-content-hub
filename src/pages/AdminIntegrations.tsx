@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
-import { AlertCircle, Check, ExternalLink, ShieldAlert } from "lucide-react";
+import { AlertCircle, Check, ExternalLink, ShieldAlert, Globe, LayoutGrid } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,24 +67,59 @@ const AdminIntegrations: React.FC = () => {
   ];
 
   return (
-    <Layout title="Integrações">
-      <div className="container mx-auto py-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <ShieldAlert className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-bold">Integrações do Sistema</h1>
+    <Layout>
+      <div className="container mx-auto py-8">
+        <div className="mb-10 bg-gradient-to-r from-violet-50 to-indigo-50 p-6 rounded-xl">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="bg-indigo-100 p-3 rounded-full">
+              <Globe className="h-8 w-8 text-indigo-500" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+                Integrações do Sistema
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Conecte o Fluida com outras plataformas para expandir suas funcionalidades
+              </p>
+            </div>
           </div>
-          <p className="text-muted-foreground text-lg">
-            Conecte o Fluida com outras plataformas para expandir suas funcionalidades.
-          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="bg-white/80 p-4 rounded-lg shadow-sm flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium">2 Ativas</span>
+            </div>
+            <div className="bg-white/80 p-4 rounded-lg shadow-sm flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+              <span className="text-sm font-medium">0 Com erro</span>
+            </div>
+            <div className="bg-white/80 p-4 rounded-lg shadow-sm flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+              <span className="text-sm font-medium">4 Pendentes</span>
+            </div>
+            <div className="bg-white/80 p-4 rounded-lg shadow-sm flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span className="text-sm font-medium">6 Disponíveis</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold">Integrações disponíveis</h2>
+          </div>
+          <Button variant="outline" size="sm" className="text-xs">
+            Verificar atualizações
+          </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {integrations.map((integration, index) => (
             <Card key={index} className="overflow-hidden border border-border/50 hover:shadow-lg transition-shadow duration-300">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-slate-50 dark:bg-slate-950">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-background p-2 border border-border/50">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-white p-2 border border-border/50 shadow-sm">
                     <img 
                       src={integration.icon} 
                       alt={integration.name}
@@ -102,13 +137,13 @@ const AdminIntegrations: React.FC = () => {
                   {integration.status}
                 </Badge>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <CardDescription className="mb-6 text-sm">{integration.description}</CardDescription>
                 <div className="flex items-center justify-between">
                   <Button 
                     asChild={integration.link !== "#"} 
                     variant={integration.status === "Connected" ? "outline" : "default"}
-                    className="rounded-full"
+                    className="rounded-full shadow-sm"
                     onClick={() => integration.link === "#" && setSelectedIntegration(integration.name)}
                   >
                     {integration.link !== "#" ? (
@@ -136,7 +171,7 @@ const AdminIntegrations: React.FC = () => {
       
       {/* Dialog for integration setup */}
       <Dialog open={!!selectedIntegration} onOpenChange={() => setSelectedIntegration(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Configurar {selectedIntegration}</DialogTitle>
           </DialogHeader>
