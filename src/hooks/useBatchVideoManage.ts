@@ -138,10 +138,12 @@ export const useBatchVideoManage = () => {
       if (video.editEquipmentId !== video.originalEquipmentId) {
         if (video.editEquipmentId === 'none') {
           // Remove equipment association
-          const metadata = VideoMetadataSchema.parse({
+          const metadataObj = {
             ...(video.metadata || {}),
             equipment_id: null
-          });
+          };
+          
+          const metadata = VideoMetadataSchema.parse(metadataObj);
           
           await supabase.from('videos_storage')
             .update({
@@ -159,10 +161,12 @@ export const useBatchVideoManage = () => {
           // Add/update equipment association
           const selectedEquipment = equipments.find(eq => eq.id === video.editEquipmentId);
           
-          const metadata = VideoMetadataSchema.parse({
+          const metadataObj = {
             ...(video.metadata || {}),
             equipment_id: video.editEquipmentId
-          });
+          };
+          
+          const metadata = VideoMetadataSchema.parse(metadataObj);
           
           await supabase.from('videos_storage')
             .update({
@@ -349,9 +353,11 @@ export const useBatchVideoManage = () => {
         try {
           if (batchEquipmentId === 'none') {
             // Remove equipment association
-            const metadata = VideoMetadataSchema.parse({
+            const metadataObj = {
               equipment_id: null
-            });
+            };
+            
+            const metadata = VideoMetadataSchema.parse(metadataObj);
             
             await supabase.from('videos_storage')
               .update({
@@ -368,9 +374,11 @@ export const useBatchVideoManage = () => {
               .eq('id', videoId);
           } else if (selectedEquipment) {
             // Add/update equipment association
-            const metadata = VideoMetadataSchema.parse({
+            const metadataObj = {
               equipment_id: batchEquipmentId
-            });
+            };
+            
+            const metadata = VideoMetadataSchema.parse(metadataObj);
             
             await supabase.from('videos_storage')
               .update({
