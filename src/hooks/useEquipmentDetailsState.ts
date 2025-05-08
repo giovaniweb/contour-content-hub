@@ -22,7 +22,12 @@ export const useEquipmentDetailsState = (id?: string) => {
       }
       
       console.log(`Attempting to fetch equipment with ID: ${id}`);
-      logQuery('select', 'equipamentos', { id, component: 'EquipmentDetails' });
+      try {
+        logQuery('select', 'equipamentos', { id, component: 'EquipmentDetails' });
+      } catch (err) {
+        console.error("Error logging query:", err);
+        // Continue execution even if logging fails
+      }
       
       try {
         setLoading(true);

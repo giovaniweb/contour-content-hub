@@ -7,22 +7,33 @@ import PrivateRoute from './components/PrivateRoute';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ContentPlannerPage from "./pages/ContentPlannerPage";
+import EquipmentsPage from "./pages/EquipmentsPage";
+import EquipmentDetails from "./pages/EquipmentDetails";
+import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Private Routes */}
-        <Route path="/" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
-        <Route path="/content-planner" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
-      </Routes>
-    </Router>
+          {/* Private Routes */}
+          <Route path="/" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
+          <Route path="/content-planner" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
+          <Route path="/equipments" element={<PrivateRoute><EquipmentsPage /></PrivateRoute>} />
+          <Route path="/equipments/:id" element={<PrivateRoute><EquipmentDetails /></PrivateRoute>} />
+          
+          {/* Not Found Route - must be last */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

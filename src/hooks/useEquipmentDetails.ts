@@ -22,42 +22,49 @@ export const useEquipmentDetails = (id?: string) => {
 
       try {
         setIsLoading(true);
+        setError(null);
         
         // Fetch equipment details
         const equipmentData = await getEquipmentById(id);
         
         if (!equipmentData) {
           setError('Equipamento não encontrado');
+          setIsLoading(false);
           return;
         }
         
         setEquipment(equipmentData);
         
-        // Fetch related files
-        const { data: filesData, error: filesError } = await supabase
-          .from('documentos_tecnicos')
-          .select('*')
-          .eq('equipamento_id', id)
-          .eq('status', 'ativo');
-        
-        if (filesError) {
-          console.error('Error fetching files:', filesError);
-        }
-        
-        console.log('Files for equipment:', filesData);
-        setRelatedFiles(filesData || []);
-        
-        // Fetch related videos
-        const { data: videosData, error: videosError } = await supabase
-          .from('videos')
-          .select('*')
-          .contains('equipamentos', [equipmentData.nome]);
+        try {
+          // Fetch related files
+          const { data: filesData, error: filesError } = await supabase
+            .from('documentos_tecnicos')
+            .select('*')
+            .eq('equipamento_id', id)
+            .eq('status', 'ativo');
           
-        if (videosError) {
-          console.error('Error fetching videos:', videosError);
+          if (filesError) {
+            console.error('Error fetching files:', filesError);
+          }
+          
+          console.log('Files for equipment:', filesData);
+          setRelatedFiles(filesData || []);
+          
+          // Fetch related videos
+          const { data: videosData, error: videosError } = await supabase
+            .from('videos')
+            .select('*')
+            .contains('equipamentos', [equipmentData.nome]);
+            
+          if (videosError) {
+            console.error('Error fetching videos:', videosError);
+          }
+          
+          setRelatedVideos(videosData || []);
+        } catch (supabaseError) {
+          console.error('Supabase query error:', supabaseError);
+          // Continue with the equipment data we have
         }
-        
-        setRelatedVideos(videosData || []);
       } catch (err) {
         console.error('Error fetching equipment details:', err);
         setError('Erro ao carregar detalhes do equipamento');

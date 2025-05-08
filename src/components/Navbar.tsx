@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@/hooks/useUser';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Settings, Power, Video } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { Settings, Power, Video, Box, Database, Archive } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/context/AuthContext';
 
@@ -32,28 +32,53 @@ const Navbar = () => {
           Marketing Scripts AI
         </Link>
 
-        <div className="navigation-items">
-          <Link to="/" className={`nav-item ${isActive('/') ? 'active' : ''}`}>
+        <div className="navigation-items hidden md:flex md:space-x-4">
+          <Link 
+            to="/" 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              isActive('/') ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+            }`}
+          >
             Início
           </Link>
           
-          <Link to="/video-storage" className="nav-item">
-            <Video className="h-5 w-5" />
+          <Link 
+            to="/equipments" 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              location.pathname.includes('/equipment') ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+            }`}
+          >
+            <Box className="h-4 w-4" />
+            <span>Equipamentos</span>
+          </Link>
+          
+          <Link 
+            to="/video-storage" 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              location.pathname.includes('/video-storage') ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+            }`}
+          >
+            <Video className="h-4 w-4" />
             <span>Biblioteca de Vídeos</span>
           </Link>
           
-          <Link to="/video-swipe" className="nav-item">
-            <Video className="h-5 w-5" />
-            <span>Descobrir Vídeos</span>
-          </Link>
-          
-          <Link to="/media" className="nav-item">
-            <Video className="h-5 w-5" />
+          <Link 
+            to="/media" 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              location.pathname === '/media' ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+            }`}
+          >
+            <Database className="h-4 w-4" />
             <span>Biblioteca de Mídia</span>
           </Link>
           
-          <Link to="/technical-documents" className="nav-item">
-            <Video className="h-5 w-5" />
+          <Link 
+            to="/technical-documents" 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              location.pathname === '/technical-documents' ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+            }`}
+          >
+            <Archive className="h-4 w-4" />
             <span>Documentos Técnicos</span>
           </Link>
         </div>
