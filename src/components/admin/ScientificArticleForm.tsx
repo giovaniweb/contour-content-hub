@@ -4,24 +4,37 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useArticleForm, FormValues } from "./article-form/useArticleForm";
-import FileUploader from "./article-form/FileUploader";
+import { z } from "zod";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+
+import { supabase } from "@/integrations/supabase/client";
 import ArticleInfoDisplay from "./article-form/ArticleInfoDisplay";
 import ArticleFormFields from "./article-form/ArticleFormFields";
 import FilePreview from "./article-form/FilePreview";
 import { useUploadHandler } from "./article-form/useUploadHandler";
 import { useExtractedData } from "./article-form/useExtractedData";
-import { toast } from "sonner";
 import FileUploadSection from "./article-form/FileUploadSection";
+import { useEquipments } from "@/hooks/useEquipments";
+
+// Define form schema first to avoid using before declaration
+const formSchema = z.object({
+  titulo: z.string().min(3, { message: "Título precisa ter pelo menos 3 caracteres" }),
+  descricao: z.string().optional(),
+  equipamento_id: z.string().optional(),
+  idioma_original: z.string().default("pt"),
+  link_dropbox: z.string().url({ message: "Link inválido" }).optional().or(z.literal("")),
+});
+
+export type FormValues = z.infer<typeof formSchema>;
 
 interface ArticleFormProps {
   articleData?: any;
   onSuccess: (articleData?: any) => void;
   onCancel: () => void;
   isOpen?: boolean;
-  forceClearState?: boolean; // Add flag to force state clearing
+  forceClearState?: boolean;
 }
 
 const ScientificArticleForm: React.FC<ArticleFormProps> = ({ 
@@ -57,7 +70,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       keywords: articleData.keywords || [],
       researchers: articleData.researchers || []
     } : undefined,
-    forceClearState: true // Always force clear for new extraction
+    forceClearState // Always force clear for new extraction
   });
   
   // Extract file upload handling
@@ -85,7 +98,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       setUploadError(null);
       resetExtractedData();
     },
-    forceClearState: true // Always force clear for new extraction
+    forceClearState // Always force clear for new extraction
   });
   
   // Initialize form using React Hook Form
@@ -100,26 +113,11 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   });
 
-  // Extract form state handling
-  const {
-    isLoading,
-    equipments,
-    resetFormState,
-    onSubmit,
-    formSchema
-  } = useArticleForm(articleData, (data) => {
-    // Clear form before calling onSuccess
-    form.reset();
-    resetFormState();
-    resetUploadState();
-    resetExtractedData();
-    toast.success(articleData ? "Artigo atualizado" : "Artigo criado", {
-      description: articleData 
-        ? "O artigo científico foi atualizado com sucesso."
-        : "O novo artigo científico foi adicionado com sucesso."
-    });
-    onSuccess(data);
-  }, isOpen);
+  // Get equipments for the dropdown
+  const { equipments } = useEquipments();
+  
+  // State for form submission
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset form when component is mounted
   useEffect(() => {
@@ -139,7 +137,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       });
       
       // Reset all other states
-      resetFormState();
       resetUploadState();
       resetExtractedData();
       
@@ -187,7 +184,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       console.log(`[${instanceId.current}] ScientificArticleForm unmounting, resetting all states`);
       resetAllStates();
     };
-  }, [forceClearState, articleData]);
+  }, [forceClearState, articleData, form, resetUploadState, resetExtractedData, setFileUrl, setFile, setHandlerUploadError]);
 
   // Auto process file when it's selected
   useEffect(() => {
@@ -199,7 +196,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
         }
       });
     }
-  }, [file, fileUrl, isProcessing]);
+  }, [file, fileUrl, isProcessing, handleFileUpload]);
 
   // Update form when suggested data changes
   useEffect(() => {
@@ -246,12 +243,91 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     // Clear previous extracted data
     resetExtractedData();
     
-    // Clear form fields
+    // Clear form fields to ensure no old data is shown
     form.setValue("titulo", "");
     form.setValue("descricao", "");
     
     // Handle file change
     handleFileChange(e);
+  };
+
+  // Form submission handler
+  const onSubmit = async (values: FormValues) => {
+    try {
+      setIsLoading(true);
+      console.log("Submitting form with values:", values);
+      
+      // Use fileUrl from upload step or value of link_dropbox
+      const finalFileUrl = values.link_dropbox || null;
+      
+      // Construct article payload
+      const articlePayload = {
+        titulo: values.titulo,
+        descricao: values.descricao || null,
+        equipamento_id: values.equipamento_id === "none" ? null : values.equipamento_id || null,
+        tipo: 'artigo_cientifico',
+        idioma_original: values.idioma_original,
+        link_dropbox: finalFileUrl,
+        status: 'ativo',
+        criado_por: (await supabase.auth.getUser()).data.user?.id || null
+      };
+
+      console.log("Submitting article payload:", articlePayload);
+
+      let savedArticleData = null;
+
+      if (articleData && articleData.id) {
+        // Update existing article
+        const { error, data } = await supabase
+          .from('documentos_tecnicos')
+          .update(articlePayload)
+          .eq('id', articleData.id)
+          .select();
+          
+        if (error) {
+          console.error("Error updating article:", error);
+          throw error;
+        }
+
+        savedArticleData = data ? data[0] : articleData;
+        console.log("Article updated successfully:", savedArticleData);
+      } else {
+        // Create new article
+        const { error, data } = await supabase
+          .from('documentos_tecnicos')
+          .insert([articlePayload])
+          .select();
+          
+        if (error) {
+          console.error("Error inserting article:", error);
+          throw error;
+        }
+
+        savedArticleData = data ? data[0] : null;
+        console.log("Article created successfully:", savedArticleData);
+      }
+
+      // Clear form before calling onSuccess
+      form.reset();
+      resetUploadState();
+      resetExtractedData();
+      
+      toast.success(articleData ? "Artigo atualizado" : "Artigo criado", {
+        description: articleData 
+          ? "O artigo científico foi atualizado com sucesso."
+          : "O novo artigo científico foi adicionado com sucesso."
+      });
+      
+      // Pass saved data to success handler
+      onSuccess(savedArticleData);
+    } catch (error: any) {
+      console.error('Error saving article:', error);
+      toast.error("Erro ao salvar artigo", {
+        description: "Não foi possível salvar o artigo científico. Por favor, tente novamente."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -326,7 +402,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
                 // Clear form before canceling
                 console.log(`[${instanceId.current}] Canceling and clearing form`);
                 form.reset();
-                resetFormState();
                 resetUploadState();
                 resetExtractedData();
                 onCancel();

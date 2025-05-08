@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, FileText, ExternalLink } from "lucide-react";
+import { X, FileText, ExternalLink, Eye } from "lucide-react";
+import { processPdfUrl } from "@/utils/pdfUtils";
+import PdfViewer from "@/components/documents/PdfViewer";
 
 interface FilePreviewProps {
   file: File | null;
@@ -10,12 +12,17 @@ interface FilePreviewProps {
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile }) => {
+  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+  
   if (!file && !fileUrl) {
     return null;
   }
 
+  // Check if URL is valid for preview
+  const isValidUrl = fileUrl && fileUrl.trim().length > 0;
+  
   return (
-    <div className="border rounded-md p-4 bg-muted/20">
+    <div className="border rounded-md p-4 bg-muted/20 mt-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <FileText className="h-8 w-8 text-primary" />
@@ -32,16 +39,29 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
         </div>
         <div className="flex items-center space-x-2">
           {fileUrl && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-4 w-4 mr-1" />
-              Visualizar
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsPdfViewerOpen(true)}
+                className="flex items-center gap-1"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Visualizar
+              </Button>
+              
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </>
           )}
+          
           {onClearFile && (
             <Button
               type="button"
@@ -54,6 +74,16 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
           )}
         </div>
       </div>
+      
+      {/* PDF Viewer Dialog */}
+      {isValidUrl && (
+        <PdfViewer
+          isOpen={isPdfViewerOpen}
+          onOpenChange={setIsPdfViewerOpen}
+          title={file?.name || "Documento PDF"}
+          pdfUrl={fileUrl}
+        />
+      )}
     </div>
   );
 };

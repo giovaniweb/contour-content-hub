@@ -19,29 +19,29 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
 
-  // Efeito para processar a URL do PDF quando o modal é aberto
+  // Effect to process the PDF URL when the modal is opened
   useEffect(() => {
-    // Se o modal estiver fechado, não fazemos nada
+    // If the modal is closed, do nothing
     if (!isOpen) {
       return;
     }
     
-    // Reset dos estados no início
+    // Reset states at the beginning
     setLoading(true);
     setError(null);
     setFinalUrl('');
     
-    // Verificamos se temos uma URL
+    // Check if we have a URL
     if (!pdfUrl) {
       setLoading(false);
       setError("URL do documento não encontrada");
       return;
     }
 
-    console.log(`Preparando visualização do PDF (${documentId || 'unknown'}):`, pdfUrl);
+    console.log(`Preparing PDF view (${documentId || 'unknown'}):`, pdfUrl);
       
     try {
-      // Processamos a URL usando nossa utilidade
+      // Process URL using our utility
       const { processedUrl } = processPdfUrl(pdfUrl);
       
       if (processedUrl) {
@@ -50,14 +50,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         setError("URL do documento inválida");
       }
     } catch (err: any) {
-      console.error("Erro ao processar URL do PDF:", err);
+      console.error("Error processing PDF URL:", err);
       setError(`Erro ao processar URL do documento: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
   }, [pdfUrl, isOpen, documentId]);
 
-  // Função para abrir o PDF em uma nova aba
+  // Function to open PDF in a new tab
   const openInNewTab = () => {
     try {
       if (finalUrl) {
@@ -74,12 +74,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
         toast.error("URL do documento não encontrada");
       }
     } catch (error: any) {
-      console.error("Erro ao abrir documento:", error);
+      console.error("Error opening document:", error);
       toast.error(error.message || "Não foi possível abrir o documento");
     }
   };
   
-  // Função para tentar novamente carregar o PDF
+  // Function to retry loading the PDF
   const handleRetry = () => {
     setLoading(true);
     setError(null);
@@ -160,9 +160,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
                 className="w-full h-full border-0"
                 title={title}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-                onLoad={() => console.log("PDF carregado com sucesso")}
+                onLoad={() => console.log("PDF loaded successfully")}
                 onError={(e) => {
-                  console.error("Erro ao carregar o PDF", e);
+                  console.error("Error loading PDF", e);
                   setError("Não foi possível carregar o documento.");
                 }}
               />

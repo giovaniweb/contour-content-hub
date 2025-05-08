@@ -16,7 +16,7 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
   onSuccess,
   articleData
 }) => {
-  // Geração de chave única para forçar remontagem do componente
+  // Generate a unique key to force remounting the component
   const generateFormKey = () => {
     const operation = articleData ? `edit-${articleData.id}` : 'new';
     const timestamp = Date.now();
@@ -24,22 +24,18 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
     return `article-form-${operation}-${timestamp}-${randomValue}`;
   };
   
-  // Estado para a chave do formulário
+  // Form key state
   const [formKey, setFormKey] = useState(generateFormKey());
   
-  // Força remontagem do componente quando o diálogo abre ou o artigo muda
+  // Force component remounting when dialog opens or article changes
   useEffect(() => {
     console.log(`Dialog state changed - isOpen: ${isOpen}, mode: ${articleData ? 'edit' : 'new'}`);
     
     if (isOpen) {
+      // Generate a new key to force remounting the form component
       const newKey = generateFormKey();
       console.log(`Generating new form key: ${newKey}`);
       setFormKey(newKey);
-      
-      // Limpeza adicional para segurança
-      if (!articleData) {
-        console.log("Creating new article - ensuring all previous states are cleared");
-      }
     }
   }, [isOpen, articleData]);
 
@@ -64,13 +60,13 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        {/* Renderiza o formulário apenas quando o diálogo está aberto e com uma chave única para forçar remontagem */}
+        {/* Render form only when dialog is open with a unique key to force remounting */}
         {isOpen && (
           <ScientificArticleForm
             key={formKey}
             isOpen={isOpen}
             articleData={articleData}
-            forceClearState={!articleData} // Flag explícita para limpar o estado para novos artigos
+            forceClearState={!articleData} // Explicitly clear state for new articles
             onSuccess={(data) => {
               console.log("Form submitted successfully, calling onSuccess");
               onSuccess(data);
