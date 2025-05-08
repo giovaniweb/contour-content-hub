@@ -64,6 +64,13 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
     }
   };
 
+  const handleDownload = () => {
+    toast({
+      title: "Download started",
+      description: `Downloading ${media.title}...`,
+    });
+  };
+
   // Render list view
   if (viewMode === "list") {
     return (
@@ -96,6 +103,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
               <MediaCardFooter 
                 videoUrl={media.videoUrl}
                 viewMode="list"
+                onDownload={handleDownload}
               />
             </CardFooter>
           </div>
@@ -129,7 +137,10 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
         </CardContent>
         
         <CardFooter className="p-0">
-          <MediaCardFooter videoUrl={media.videoUrl} />
+          <MediaCardFooter 
+            videoUrl={media.videoUrl} 
+            onDownload={handleDownload}
+          />
         </CardFooter>
       </Card>
     </TooltipProvider>

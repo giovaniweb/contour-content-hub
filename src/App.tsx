@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import HomePage from "./pages/HomePage";
 import Media from './pages/Media';
+import MediaLibrary from './pages/MediaLibrary';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import ScriptValidation from './pages/ScriptValidation';
 import CustomGpt from './pages/CustomGpt';
