@@ -36,7 +36,8 @@ import {
   FileVideo,
   Database,
   Code,
-  Upload
+  Upload,
+  Activity
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -142,6 +143,15 @@ export const AppSidebar = ({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
+            <SidebarMenuItem active={location.pathname === '/calendar'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/calendar' ? "active" : "default"}>
+                <NavLink to="/calendar" className="flex items-center">
+                  <Calendar className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                  {open && <span>Agenda</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
             <SidebarMenuItem active={location.pathname.startsWith('/equipments') && !location.pathname.startsWith('/admin')}>
               <SidebarMenuButton asChild variant={location.pathname.startsWith('/equipments') && !location.pathname.startsWith('/admin') ? "active" : "default"}>
                 <NavLink to="/equipments" className="flex items-center">
@@ -212,10 +222,10 @@ export const AppSidebar = ({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={location.pathname === '/admin/system'}>
-                <SidebarMenuButton asChild variant={location.pathname === '/admin/system' ? "active" : "default"}>
-                  <NavLink to="/admin/system" className="flex items-center">
-                    <Code className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+              <SidebarMenuItem active={location.pathname === '/admin/system-diagnostics'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/admin/system-diagnostics' ? "active" : "default"}>
+                  <NavLink to="/admin/system-diagnostics" className="flex items-center">
+                    <Activity className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Diagnóstico</span>}
                   </NavLink>
                 </SidebarMenuButton>

@@ -15,7 +15,9 @@ import {
   Cog,
   VideoIcon,
   BrainCircuit,
-  Presentation
+  Presentation,
+  Calendar,
+  Activity
 } from "lucide-react";
 
 interface MobileNavMenuProps {
@@ -73,12 +75,20 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Roteiros</span>
           </Link>
           <Link
-            to="/media"
+            to="/media-library"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <VideoIcon className="h-5 w-5" />
             <span>Mídias</span>
+          </Link>
+          <Link
+            to="/calendar"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Calendar className="h-5 w-5" />
+            <span>Agenda</span>
           </Link>
           <Link
             to="/marketing-consultant"
@@ -89,14 +99,24 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Consultor de Marketing</span>
           </Link>
           {isAdmin() && (
-            <Link
-              to="/admin/dashboard"
-              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-              onClick={() => setIsOpen(false)}
-            >
-              <Cog className="h-5 w-5" />
-              <span>Admin</span>
-            </Link>
+            <>
+              <Link
+                to="/admin/dashboard"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted mt-4 border-t pt-4"
+                onClick={() => setIsOpen(false)}
+              >
+                <Cog className="h-5 w-5" />
+                <span>Admin</span>
+              </Link>
+              <Link
+                to="/admin/system-diagnostics"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <Activity className="h-5 w-5" />
+                <span>Diagnóstico</span>
+              </Link>
+            </>
           )}
         </div>
       </SheetContent>
