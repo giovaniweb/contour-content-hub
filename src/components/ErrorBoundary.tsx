@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -30,17 +31,30 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // You can also log the error to an error reporting service
+    // Log error to an error reporting service
     console.error("ErrorBoundary caught an error:", error, errorInfo);
     this.setState({
       error,
       errorInfo
     });
   }
+  
+  handleResetError = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
+      // Custom fallback UI if provided
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      
+      // Default fallback UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <div className="w-full max-w-md p-6 bg-card rounded-lg shadow-lg">
@@ -59,7 +73,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => window.location.reload()}
+                  onClick={() => {
+                    this.handleResetError();
+                    window.location.reload();
+                  }}
                 >
                   Tentar novamente
                 </Button>
@@ -85,4 +102,18 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+// Component-level error boundary HOC
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  FallbackComponent: React.ReactNode = null
+) {
+  return function WithErrorBoundary(props: P) {
+    return (
+      <ErrorBoundary fallback={FallbackComponent}>
+        <Component {...props} />
+      </ErrorBoundary>
+    );
+  };
 }

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Login from './pages/Login';
@@ -20,86 +20,125 @@ import VideosPage from './pages/VideosPage';
 import TechnicalDocuments from './pages/TechnicalDocuments';
 import ContentStrategy from './pages/ContentStrategy';
 import Calendar from './pages/Calendar';
+import { LoadingSpinner } from './components/ui/loading-spinner';
+
+// Suspense fallback for lazy-loaded routes
+const SuspenseFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <LoadingSpinner message="Carregando..." submessage="Aguarde um momento..." />
+  </div>
+);
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading spinner while auth state is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner 
+          message="Inicializando Fluida..." 
+          submessage="Configurando sua experiência..." 
+        />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
       <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Suspense fallback={<SuspenseFallback />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route 
+              path="/login" 
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
+            />
+            <Route 
+              path="/register" 
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} 
+            />
+            <Route 
+              path="/forgot-password" 
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} 
+            />
+            <Route 
+              path="/reset-password/:token" 
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ResetPassword />} 
+            />
 
-          {/* Private Routes */}
-          <Route path="/" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-          <Route path="/dashboard" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-          <Route path="/content-planner" element={
-            <PrivateRoute>
-              <ContentPlannerPage />
-            </PrivateRoute>
-          } />
-          <Route path="/equipments" element={
-            <PrivateRoute>
-              <EquipmentsPage />
-            </PrivateRoute>
-          } />
-          <Route path="/equipments/:id" element={
-            <PrivateRoute>
-              <EquipmentDetails />
-            </PrivateRoute>
-          } />
-          <Route path="/media" element={
-            <PrivateRoute>
-              <MediaLibrary />
-            </PrivateRoute>
-          } />
-          {/* New routes to fix 404 errors */}
-          <Route path="/custom-gpt" element={
-            <PrivateRoute>
-              <CustomGpt />
-            </PrivateRoute>
-          } />
-          <Route path="/script-validation" element={
-            <PrivateRoute>
-              <ScriptValidation />
-            </PrivateRoute>
-          } />
-          <Route path="/videos" element={
-            <PrivateRoute>
-              <VideosPage />
-            </PrivateRoute>
-          } />
-          <Route path="/technical-documents" element={
-            <PrivateRoute>
-              <TechnicalDocuments />
-            </PrivateRoute>
-          } />
-          <Route path="/content-strategy" element={
-            <PrivateRoute>
-              <ContentStrategy />
-            </PrivateRoute>
-          } />
-          <Route path="/calendar" element={
-            <PrivateRoute>
-              <Calendar />
-            </PrivateRoute>
-          } />
-          
-          {/* Not Found Route - must be last */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Private Routes */}
+            <Route path="/" element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/content-planner" element={
+              <PrivateRoute>
+                <ContentPlannerPage />
+              </PrivateRoute>
+            } />
+            <Route path="/equipments" element={
+              <PrivateRoute>
+                <EquipmentsPage />
+              </PrivateRoute>
+            } />
+            <Route path="/equipments/:id" element={
+              <PrivateRoute>
+                <EquipmentDetails />
+              </PrivateRoute>
+            } />
+            <Route path="/media" element={
+              <PrivateRoute>
+                <MediaLibrary />
+              </PrivateRoute>
+            } />
+            <Route path="/custom-gpt" element={
+              <PrivateRoute>
+                <CustomGpt />
+              </PrivateRoute>
+            } />
+            <Route path="/script-validation" element={
+              <PrivateRoute>
+                <ScriptValidation />
+              </PrivateRoute>
+            } />
+            <Route path="/videos" element={
+              <PrivateRoute>
+                <VideosPage />
+              </PrivateRoute>
+            } />
+            <Route path="/technical-documents" element={
+              <PrivateRoute>
+                <TechnicalDocuments />
+              </PrivateRoute>
+            } />
+            <Route path="/content-strategy" element={
+              <PrivateRoute>
+                <ContentStrategy />
+              </PrivateRoute>
+            } />
+            <Route path="/calendar" element={
+              <PrivateRoute>
+                <Calendar />
+              </PrivateRoute>
+            } />
+            
+            {/* Root redirect for authenticated users */}
+            <Route 
+              path="/" 
+              element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+            />
+            
+            {/* Not Found Route - must be last */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </Router>
     </ErrorBoundary>
   );

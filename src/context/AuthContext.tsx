@@ -11,8 +11,17 @@ import {
   updateUserProfile 
 } from "@/services/authService";
 
-// Create context with a default undefined value
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context with a safe default value instead of undefined
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  login: async () => {},
+  logout: async () => {},
+  register: async () => {},
+  updateUser: async () => {},
+  updatePassword: async () => false
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Make sure useAuthState is called inside this functional component
@@ -150,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Always provide a complete context value, never null
   const value: AuthContextType = {
     user,
     isLoading,
@@ -164,10 +174,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Create a safer hook that throws helpful error if used outside provider
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error(
+      "useAuth deve ser usado dentro de um AuthProvider. " +
+      "Verifique se o componente está dentro da árvore do AuthProvider."
+    );
   }
+  
   return context;
+};
+
+// Create a safe auth hook that provides graceful fallbacks
+export const useSafeAuth = () => {
+  try {
+    return useContext(AuthContext);
+  } catch (error) {
+    // Return safe default state if context is unavailable
+    console.error("Erro ao acessar AuthContext:", error);
+    return {
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      login: async () => {},
+      logout: async () => {},
+      register: async () => {},
+      updateUser: async () => {},
+      updatePassword: async () => false
+    };
+  }
 };

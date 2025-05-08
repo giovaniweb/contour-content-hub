@@ -21,50 +21,72 @@ const createDefaultUserProfile = (user: User): UserProfile => {
     language: "PT", // Default language 
     profilePhotoUrl: user.user_metadata?.avatar_url || '',
     passwordChanged: false, // Default value
-    role: 'cliente' // Default role
+    role: validateRole(user.user_metadata?.role || 'cliente') // Sanitize role
   };
+};
+
+// Helper function to validate role
+const validateRole = (role: string): 'cliente' | 'admin' | 'operador' | 'vendedor' => {
+  const validRoles = ['cliente', 'admin', 'operador', 'vendedor'];
+  if (validRoles.includes(role)) {
+    return role as 'cliente' | 'admin' | 'operador' | 'vendedor';
+  }
+  return 'cliente'; // Default to 'cliente' if invalid
 };
 
 export function useAuthState() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     console.log("useAuthState - Setting up auth state listener");
     
+    let isMounted = true;
+    
     // Set up listener for authentication changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        if (!isMounted) return;
+        
         console.log("Auth state changed:", { event, session: !!currentSession });
         setSession(currentSession);
         
         if (currentSession?.user) {
           // Use setTimeout to avoid potential deadlock issues with Supabase auth
           setTimeout(async () => {
+            if (!isMounted) return;
+            
             try {
               const userProfile = await fetchUserProfile(currentSession.user.id);
               
-              if (userProfile) {
+              if (userProfile && isMounted) {
                 console.log("User profile fetched successfully:", userProfile.name);
                 setUser(userProfile);
-              } else {
+              } else if (isMounted) {
                 console.log("No user profile found, creating default");
                 // If profile not found, create a default one from basic user data
                 setUser(createDefaultUserProfile(currentSession.user));
               }
             } catch (error) {
               console.error("Error fetching user profile:", error);
-              // Still update user state with basic info from session
-              console.log("Using default profile due to error");
-              setUser(createDefaultUserProfile(currentSession.user));
+              if (isMounted) {
+                // Still update user state with basic info from session
+                console.log("Using default profile due to error");
+                setUser(createDefaultUserProfile(currentSession.user));
+                setError(error instanceof Error ? error : new Error(String(error)));
+              }
+            } finally {
+              if (isMounted) {
+                setIsLoading(false);
+              }
             }
           }, 0);
-        } else {
+        } else if (isMounted) {
           setUser(null);
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       }
     );
 
@@ -74,6 +96,8 @@ export function useAuthState() {
         console.log("useAuthState - Checking initial session");
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
+        if (!isMounted) return;
+        
         if (initialSession?.user) {
           console.log("Initial session found with user:", initialSession.user.email);
           setSession(initialSession);
@@ -81,28 +105,36 @@ export function useAuthState() {
           try {
             const userProfile = await fetchUserProfile(initialSession.user.id);
             
-            if (userProfile) {
+            if (userProfile && isMounted) {
               console.log("Initial user profile fetched successfully:", userProfile.name);
               setUser(userProfile);
-            } else {
+            } else if (isMounted) {
               console.log("No initial user profile found, creating default");
               // If profile not found, create a default one from basic user data
               setUser(createDefaultUserProfile(initialSession.user));
             }
           } catch (error) {
             console.error("Error fetching initial user profile:", error);
-            // Still update user state with basic info from session
-            console.log("Using default profile for initial session due to error");
-            setUser(createDefaultUserProfile(initialSession.user));
+            if (isMounted) {
+              // Still update user state with basic info from session
+              console.log("Using default profile for initial session due to error");
+              setUser(createDefaultUserProfile(initialSession.user));
+              setError(error instanceof Error ? error : new Error(String(error)));
+            }
           }
-        } else {
+        } else if (isMounted) {
           console.log("No initial session found");
         }
         
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Error checking initial session:", error);
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          setError(error instanceof Error ? error : new Error(String(error)));
+        }
       }
     };
     
@@ -110,6 +142,7 @@ export function useAuthState() {
     
     return () => {
       console.log("useAuthState - Cleaning up auth subscription");
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -118,6 +151,7 @@ export function useAuthState() {
     user,
     session,
     isLoading,
+    error,
     isAuthenticated: !!user
   };
 }
