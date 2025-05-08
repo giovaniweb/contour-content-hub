@@ -1,92 +1,45 @@
 
 import React from 'react';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { ContentObjective } from '@/types/content-strategy';
-import { Eye, MessageSquare, ShoppingCart, RefreshCcw, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface MarketingObjectiveSelectorProps {
-  value: ContentObjective;
-  onValueChange: (value: ContentObjective) => void;
+  value: string;
+  onChange: (value: string) => void;
   className?: string;
 }
 
 const MarketingObjectiveSelector: React.FC<MarketingObjectiveSelectorProps> = ({
   value,
-  onValueChange,
-  className = ""
+  onChange,
+  className
 }) => {
+  const objectives = [
+    { id: "🟡 Atrair Atenção", label: "Atrair Atenção", color: "bg-yellow-100 hover:bg-yellow-200 border-yellow-300" },
+    { id: "🟢 Criar Conexão", label: "Criar Conexão", color: "bg-green-100 hover:bg-green-200 border-green-300" },
+    { id: "🔴 Fazer Comprar", label: "Fazer Comprar", color: "bg-red-100 hover:bg-red-200 border-red-300" },
+    { id: "🔁 Reativar Interesse", label: "Reativar Interesse", color: "bg-blue-100 hover:bg-blue-200 border-blue-300" },
+    { id: "✅ Fechar Agora", label: "Fechar Agora", color: "bg-emerald-100 hover:bg-emerald-200 border-emerald-300" },
+  ];
+
   return (
-    <RadioGroup
-      value={value}
-      onValueChange={(val) => onValueChange(val as ContentObjective)}
-      className={`grid grid-cols-1 md:grid-cols-5 gap-3 ${className}`}
-    >
-      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
-           onClick={() => onValueChange("🟡 Atrair Atenção")}
-      >
-        <RadioGroupItem value="🟡 Atrair Atenção" id="atrair_atencao" className="sr-only" />
-        <Eye className="h-6 w-6" />
-        <Label htmlFor="atrair_atencao" className="text-center text-sm font-medium cursor-pointer">
-          🟡 Atrair Atenção
-        </Label>
-        <span className="text-xs text-muted-foreground text-center">
-          Criar curiosidade, gerar clique
-        </span>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
-           onClick={() => onValueChange("🟢 Criar Conexão")}
-      >
-        <RadioGroupItem value="🟢 Criar Conexão" id="criar_conexao" className="sr-only" />
-        <MessageSquare className="h-6 w-6" />
-        <Label htmlFor="criar_conexao" className="text-center text-sm font-medium cursor-pointer">
-          🟢 Criar Conexão
-        </Label>
-        <span className="text-xs text-muted-foreground text-center">
-          Gerar empatia, identificação
-        </span>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
-           onClick={() => onValueChange("🔴 Fazer Comprar")}
-      >
-        <RadioGroupItem value="🔴 Fazer Comprar" id="fazer_comprar" className="sr-only" />
-        <ShoppingCart className="h-6 w-6" />
-        <Label htmlFor="fazer_comprar" className="text-center text-sm font-medium cursor-pointer">
-          🔴 Fazer Comprar
-        </Label>
-        <span className="text-xs text-muted-foreground text-center">
-          Destacar valor, diferencial
-        </span>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
-           onClick={() => onValueChange("🔁 Reativar Interesse")}
-      >
-        <RadioGroupItem value="🔁 Reativar Interesse" id="reativar_interesse" className="sr-only" />
-        <RefreshCcw className="h-6 w-6" />
-        <Label htmlFor="reativar_interesse" className="text-center text-sm font-medium cursor-pointer">
-          🔁 Reativar Interesse
-        </Label>
-        <span className="text-xs text-muted-foreground text-center">
-          Resgatar contatos frios
-        </span>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground hover:border-primary transition-all"
-           onClick={() => onValueChange("✅ Fechar Agora")}
-      >
-        <RadioGroupItem value="✅ Fechar Agora" id="fechar_agora" className="sr-only" />
-        <CheckCircle className="h-6 w-6" />
-        <Label htmlFor="fechar_agora" className="text-center text-sm font-medium cursor-pointer">
-          ✅ Fechar Agora
-        </Label>
-        <span className="text-xs text-muted-foreground text-center">
-          Urgência, conversão direta
-        </span>
-      </div>
-    </RadioGroup>
+    <div className={cn("flex flex-wrap gap-2", className)}>
+      {objectives.map((objective) => (
+        <Button
+          key={objective.id}
+          type="button"
+          variant="outline"
+          className={cn(
+            "border text-foreground",
+            value === objective.id ? `${objective.color} border-2` : "bg-transparent",
+            objective.color
+          )}
+          onClick={() => onChange(objective.id)}
+        >
+          {objective.label}
+        </Button>
+      ))}
+    </div>
   );
 };
 

@@ -1,54 +1,46 @@
 
-import { ContentObjective, ContentFormat, ContentCategory, ContentDistribution } from "@/types/content-strategy";
-import { MarketingObjectiveType, ScriptResponse } from "@/types/script";
-import { CalendarSuggestion } from "@/types/calendar";
+export type ContentPlannerStatus = 'idea' | 'script_generated' | 'approved' | 'scheduled' | 'published';
 
-export type ContentPlannerStatus = 
-  | "idea" 
-  | "script_generated" 
-  | "approved" 
-  | "scheduled" 
-  | "published";
+export type ContentFormat = 'vídeo' | 'story' | 'carrossel' | 'reels' | 'texto' | 'outro';
+
+export type ContentDistribution = 'Instagram' | 'YouTube' | 'TikTok' | 'Blog' | 'Múltiplos' | 'Outro';
 
 export interface ContentPlannerItem {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   status: ContentPlannerStatus;
   tags: string[];
   scriptId?: string;
-  script?: ScriptResponse;
   format: ContentFormat;
-  objective: ContentObjective | MarketingObjectiveType;
+  objective: string;
   distribution: ContentDistribution;
   equipmentId?: string;
   equipmentName?: string;
-  responsibleId?: string;
-  responsibleName?: string;
   scheduledDate?: string;
+  scheduledTime?: string;
   calendarEventId?: string;
-  aiGenerated: boolean;
+  authorId: string;
+  authorName?: string;
   createdAt: string;
   updatedAt: string;
-  createdById: string;
-}
-
-export interface ContentPlannerFilter {
-  status?: ContentPlannerStatus | ContentPlannerStatus[];
-  objective?: ContentObjective | MarketingObjectiveType;
-  distribution?: ContentDistribution;
-  format?: ContentFormat;
-  equipmentId?: string;
-  responsibleId?: string;
-  dateRange?: {
-    from?: Date;
-    to?: Date;
-  };
+  aiGenerated: boolean;
 }
 
 export interface ContentPlannerColumn {
   id: ContentPlannerStatus;
   title: string;
-  icon: string;
   items: ContentPlannerItem[];
+  icon: string;
+}
+
+export interface ContentPlannerFilter {
+  objective?: string;
+  format?: string;
+  distribution?: string;
+  equipmentId?: string;
+  dateRange?: {
+    from?: Date;
+    to?: Date;
+  };
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,8 +20,8 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
   onFilterChange
 }) => {
   const [dateRange, setDateRange] = useState<{
-    from?: Date;
-    to?: Date;
+    from: Date | undefined;
+    to: Date | undefined;
   }>({
     from: filters.dateRange?.from,
     to: filters.dateRange?.to
@@ -36,7 +35,7 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
     });
   };
   
-  const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
+  const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(range);
     onFilterChange({
       ...filters,
@@ -45,7 +44,7 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
   };
   
   const clearFilters = () => {
-    setDateRange({});
+    setDateRange({ from: undefined, to: undefined });
     onFilterChange({});
   };
   
