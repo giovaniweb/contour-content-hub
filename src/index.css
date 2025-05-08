@@ -1,139 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-
-/* Base styles */
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 210 40% 98%;
-    --ring: 215 20.2% 65.1%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
     --radius: 0.5rem;
+    
+    /* Fluida custom colors */
+    --fluida-blue: 209, 64%, 47%;     /* #2672B8 */
+    --fluida-blue-dark: 209, 64%, 37%; /* #1F5D9A */
+    --fluida-pink: 333, 100%, 75%;     /* #FF99CC */
+    --fluida-pink-dark: 333, 100%, 65%; /* #FF66B3 */
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 215 20.2% 65.1%;
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 1.2%;
-    --secondary: 222.2 47.4% 11.2%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --ring: 216 34% 17%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
-body {
-  @apply bg-background text-foreground;
-  font-feature-settings: "rlig" 1, "calt" 1;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
-/* Fluida Design System Classes */
+/* Custom Utility Classes */
 @layer components {
-  /* Fluida gradient text */
-  .fluida-gradient-text {
-    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink text-transparent bg-clip-text;
-  }
-  
-  /* Fluida gradient background */
   .fluida-gradient-bg {
-    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
+    @apply bg-gradient-to-r from-[#2672B8] to-[#FF99CC];
   }
   
-  /* Fluida card styles */
-  .fluida-card {
-    @apply border rounded-xl bg-white shadow-sm hover:shadow-md transition-all p-6;
+  .fluida-gradient-text {
+    @apply bg-gradient-to-r from-[#2672B8] to-[#FF99CC] bg-clip-text text-transparent;
   }
   
-  /* Fluida button primary */
-  .fluida-button-primary {
-    @apply bg-fluida-blue text-white hover:bg-fluida-blueDark transition-colors rounded-md px-4 py-2;
-  }
-  
-  /* Fluida button secondary */
-  .fluida-button-secondary {
-    @apply bg-fluida-pink text-white hover:opacity-90 transition-opacity rounded-md px-4 py-2;
-  }
-  
-  /* Fluida button outline */
-  .fluida-button-outline {
-    @apply border border-fluida-blue text-fluida-blue hover:bg-fluida-blue/10 transition-colors rounded-md px-4 py-2;
-  }
-  
-  /* Fluida gradient border */
-  .fluida-gradient-border {
-    @apply relative border rounded-md hover:shadow-sm;
-  }
-  
-  .fluida-gradient-border::after {
-    content: '';
-    @apply absolute inset-0 rounded-md border-2 border-transparent bg-clip-border;
-    background-image: linear-gradient(to right, #0094fb, #f300fc);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  /* Fluida page transitions */
-  .fluida-page-enter {
-    @apply opacity-0 transform translate-y-4;
-  }
-  
-  .fluida-page-enter-active {
-    @apply opacity-100 transform translate-y-0 transition-all duration-300;
-  }
-  
-  .fluida-page-exit {
-    @apply opacity-100 transform translate-y-0;
-  }
-  
-  .fluida-page-exit-active {
-    @apply opacity-0 transform -translate-y-4 transition-all duration-300;
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
   }
 }
 
-/* Responsive utilities */
-@layer utilities {
-  .mobile-full-width {
-    @apply w-full sm:w-auto;
+/* Feed style animations */
+.feed-item {
+  transition: all 0.3s ease;
+}
+
+.feed-item:hover {
+  transform: translateY(-2px);
+}
+
+.action-icon {
+  @apply text-contourline-darkBlue/70 hover:text-contourline-mediumBlue transition-colors;
+}
+
+/* Heart icon gradient effect when liked */
+.heart-liked {
+  background: linear-gradient(45deg, #ff6b6b, #ffa1a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.5));
+}
+
+/* Feed header animation */
+.feed-header {
+  background: linear-gradient(90deg, #162C45, #2672B8, #91B0DC);
+  background-size: 200% auto;
+  animation: gradient 15s ease infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
   }
-  
-  .mobile-stack {
-    @apply flex flex-col sm:flex-row;
+  50% {
+    background-position: 100% 50%;
   }
-  
-  .mobile-scroll {
-    @apply overflow-x-auto -mx-4 px-4 md:overflow-visible md:mx-0 md:px-0;
+  100% {
+    background-position: 0% 50%;
   }
 }
 
-/* Import responsive styles */
-@import './components/ui/css/responsive.css';
+/* Creative agenda styles */
+.calendar-day {
+  @apply border border-contourline-lightBlue/30 rounded-lg transition-all;
+}
+
+.calendar-day:hover {
+  @apply shadow-md border-contourline-lightBlue;
+}
+
+.calendar-day.has-content {
+  @apply bg-contourline-lightBlue/10;
+}
+
+.calendar-day.completed {
+  @apply border-contourline-mediumBlue/50 bg-contourline-mediumBlue/10;
+}
+
+/* Vista de grid/lista */
+.grid-view-transition {
+  transition: all 0.3s ease;
+}
+
+.grid-item {
+  @apply relative overflow-hidden rounded-lg;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-item:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
+}
+
+/* Badge animations */
+.badge-new {
+  animation: pulse 2s infinite;
+}
+
+.badge-trending {
+  background: linear-gradient(90deg, #ff6b6b, #ffa1a1, #ff6b6b);
+  background-size: 200% auto;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Dropdown animation */
+.dropdown-animation {
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

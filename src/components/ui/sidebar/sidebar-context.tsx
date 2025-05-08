@@ -3,7 +3,7 @@
 
 import * as React from "react"
 
-// Contexto do sidebar
+// Sidebar context
 const SidebarContext = React.createContext<{
   open: boolean;
   setOpen: (open: boolean) => void;

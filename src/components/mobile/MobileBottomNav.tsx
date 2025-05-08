@@ -1,73 +1,64 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { LayoutDashboard, Kanban, BookOpen, Settings, Lightbulb } from 'lucide-react';
+import React from "react";
+import { useLocation, Link } from "react-router-dom";
+import { 
+  LayoutDashboard, 
+  Kanban, 
+  Lightbulb, 
+  FileText,
+  Menu
+} from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
-interface NavItemProps {
-  icon: React.ElementType;
-  label: string;
-  path: string;
-  isActive: boolean;
-}
-
-const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, path, isActive }) => {
-  return (
-    <Link 
-      to={path} 
-      className={cn(
-        "flex flex-1 flex-col items-center justify-center space-y-1 px-2 py-1",
-        isActive ? "text-fluida-blue" : "text-muted-foreground"
-      )}
-      aria-label={label}
-    >
-      <Icon className={cn("h-5 w-5", isActive && "text-fluida-blue")} />
-      <span className="text-[10px]">{label}</span>
-      {isActive && (
-        <div className="absolute top-0 h-1 w-10 rounded-full bg-fluida-blue" />
-      )}
-    </Link>
-  );
-};
-
-interface MobileBottomNavProps {
-  className?: string;
-}
-
-const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ className }) => {
+export default function MobileBottomNav() {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const { setOpen } = useSidebar();
   
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
-    { icon: Kanban, label: 'Planner', path: '/content-planner' },
-    { icon: Lightbulb, label: 'Ideas', path: '/content-ideas' },
-    { icon: BookOpen, label: 'Resources', path: '/articles' },
-    { icon: Settings, label: 'Settings', path: '/settings' }
+  const openSidebar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(true);
+  };
+  
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
+      return true;
+    }
+    return location.pathname === path;
+  };
+  
+  const menuItems = [
+    { icon: LayoutDashboard, path: '/dashboard', label: 'Home' },
+    { icon: Kanban, path: '/content-planner', label: 'Planner' },
+    { icon: Lightbulb, path: '/content-ideas', label: 'Ideas' },
+    { icon: FileText, path: '/scripts', label: 'Scripts' },
   ];
-  
-  // Only show on mobile devices
-  if (window.innerWidth > 768) return null;
-  
-  return (
-    <>
-      <div className="h-16 md:hidden" /> {/* Spacer */}
-      <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-background/95 backdrop-blur-md ios-safe-bottom md:hidden",
-        className
-      )}>
-        {navItems.map((item) => (
-          <NavItem
-            key={item.path}
-            icon={item.icon}
-            label={item.label}
-            path={item.path}
-            isActive={currentPath === item.path || currentPath.startsWith(`${item.path}/`)}
-          />
-        ))}
-      </nav>
-    </>
-  );
-};
 
-export default MobileBottomNav;
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-40 px-2 py-1">
+      <div className="flex items-center justify-between">
+        {menuItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex flex-col items-center justify-center p-2 ${
+              isActive(item.path) 
+                ? "text-primary" 
+                : "text-muted-foreground"
+            }`}
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="text-xs mt-1">{item.label}</span>
+          </Link>
+        ))}
+        
+        <button
+          onClick={openSidebar}
+          className="flex flex-col items-center justify-center p-2 text-muted-foreground"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="text-xs mt-1">Menu</span>
+        </button>
+      </div>
+    </div>
+  );
+}

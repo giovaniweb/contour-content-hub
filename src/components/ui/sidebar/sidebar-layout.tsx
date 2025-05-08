@@ -5,16 +5,15 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./sidebar-context"
 
+// Header component
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
   ({ className, ...props }, ref) => {
-    const { open } = useSidebar()
-    
     return (
       <div
         ref={ref}
-        className={cn("flex h-14 items-center px-4 transition-all", open ? "" : "justify-center", className)}
+        className={cn("flex h-14 items-center px-4", className)}
         {...props}
       />
     )
@@ -22,6 +21,7 @@ const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
 )
 SidebarHeader.displayName = "SidebarHeader"
 
+// Content component
 interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
@@ -29,7 +29,7 @@ const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex-1 overflow-auto", className)}
+        className={cn("flex-1 overflow-auto p-3", className)}
         {...props}
       />
     )
@@ -37,16 +37,15 @@ const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
 )
 SidebarContent.displayName = "SidebarContent"
 
+// Footer component
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarFooter = React.forwardRef<HTMLDivElement, SidebarFooterProps>(
   ({ className, ...props }, ref) => {
-    const { open } = useSidebar()
-    
     return (
       <div
         ref={ref}
-        className={cn("flex items-center p-4 transition-all", open ? "" : "justify-center", className)}
+        className={cn("mt-auto p-4", className)}
         {...props}
       />
     )
@@ -54,14 +53,17 @@ const SidebarFooter = React.forwardRef<HTMLDivElement, SidebarFooterProps>(
 )
 SidebarFooter.displayName = "SidebarFooter"
 
+// Group component
 interface SidebarGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarGroup = React.forwardRef<HTMLDivElement, SidebarGroupProps>(
   ({ className, ...props }, ref) => {
+    const { open } = useSidebar()
+    
     return (
       <div
         ref={ref}
-        className={cn("mb-4 px-4", className)}
+        className={cn("pb-4", className)}
         {...props}
       />
     )
@@ -69,14 +71,18 @@ const SidebarGroup = React.forwardRef<HTMLDivElement, SidebarGroupProps>(
 )
 SidebarGroup.displayName = "SidebarGroup"
 
-interface SidebarGroupLabelProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+// Group label component
+interface SidebarGroupLabelProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const SidebarGroupLabel = React.forwardRef<HTMLParagraphElement, SidebarGroupLabelProps>(
+const SidebarGroupLabel = React.forwardRef<HTMLDivElement, SidebarGroupLabelProps>(
   ({ className, ...props }, ref) => {
     return (
-      <p
+      <div
         ref={ref}
-        className={cn("mb-2 text-xs font-semibold text-muted-foreground", className)}
+        className={cn(
+          "mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+          className
+        )}
         {...props}
       />
     )
@@ -84,6 +90,7 @@ const SidebarGroupLabel = React.forwardRef<HTMLParagraphElement, SidebarGroupLab
 )
 SidebarGroupLabel.displayName = "SidebarGroupLabel"
 
+// Group content component
 interface SidebarGroupContentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarGroupContent = React.forwardRef<HTMLDivElement, SidebarGroupContentProps>(
@@ -99,6 +106,7 @@ const SidebarGroupContent = React.forwardRef<HTMLDivElement, SidebarGroupContent
 )
 SidebarGroupContent.displayName = "SidebarGroupContent"
 
+// Separator component
 interface SidebarSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const SidebarSeparator = React.forwardRef<HTMLDivElement, SidebarSeparatorProps>(
@@ -106,7 +114,7 @@ const SidebarSeparator = React.forwardRef<HTMLDivElement, SidebarSeparatorProps>
     return (
       <div
         ref={ref}
-        className={cn("my-4 h-px bg-border", className)}
+        className={cn("my-2 h-px bg-border", className)}
         {...props}
       />
     )
@@ -121,5 +129,5 @@ export {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarSeparator
+  SidebarSeparator,
 }

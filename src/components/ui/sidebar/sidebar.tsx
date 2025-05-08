@@ -5,7 +5,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./sidebar-context"
 
-// Componente Sidebar principal
+// Main Sidebar component
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   collapsible?: boolean | "icon";
 }

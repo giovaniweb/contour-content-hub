@@ -1,111 +1,89 @@
 
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { Bell, Search, ChevronLeft, Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useScrollPosition } from '@/lib/interaction-utils';
-import NotificationsMenu from '../notifications/NotificationsMenu';
-import { useSidebar } from '@/components/ui/sidebar';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface CollapsibleHeaderProps {
   title?: string;
   showBack?: boolean;
-  actions?: React.ReactNode;
   transparent?: boolean;
-  className?: string;
+  actions?: React.ReactNode;
 }
 
 const CollapsibleHeader: React.FC<CollapsibleHeaderProps> = ({
   title,
   showBack = false,
-  actions,
   transparent = false,
-  className
+  actions,
 }) => {
-  const { isScrolled } = useScrollPosition();
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { open, setOpen } = useSidebar();
-  const [titleOpacity, setTitleOpacity] = useState(1);
-  
-  // Adjust title opacity based on scroll position
+
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      if (scrollY < 30) {
-        setTitleOpacity(1); // Full opacity at top
-      } else if (scrollY < 100) {
-        setTitleOpacity(1 - (scrollY - 30) / 70); // Fade out between 30px and 100px
+      if (window.scrollY > 10) {
+        setScrolled(true);
       } else {
-        setTitleOpacity(0); // Hidden after 100px scroll
+        setScrolled(false);
       }
     };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleBackClick = () => {
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate('/dashboard');
-    }
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const toggleSidebar = () => {
+    setOpen(!open);
   };
 
   return (
-    <header 
+    <header
       className={cn(
-        "sticky top-0 z-40 transition-all duration-300",
-        isScrolled && !transparent ? "bg-background/95 shadow-sm backdrop-blur-sm" : "bg-transparent",
-        className
+        "sticky top-0 z-30 transition-all duration-200 h-16",
+        scrolled || !transparent
+          ? "border-b bg-background/95 backdrop-blur-sm"
+          : "bg-transparent"
       )}
     >
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center">
-          {showBack ? (
-            <Button variant="ghost" size="icon" onClick={handleBackClick} className="mr-2">
-              <ChevronLeft className="h-6 w-6" />
-              <span className="sr-only">Back</span>
-            </Button>
-          ) : (
+      <div className="h-full flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          {!open && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setOpen(!open)}
               className="md:hidden"
+              onClick={toggleSidebar}
             >
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Menu</span>
+              <Menu className="h-5 w-5" />
             </Button>
           )}
-          
-          <div className="flex items-center">
-            {title && (
-              <h1 
-                className={cn(
-                  "text-xl font-semibold text-foreground transition-opacity duration-300",
-                  isScrolled && "md:opacity-100 opacity-0"
-                )}
-              >
-                {title}
-              </h1>
-            )}
-          </div>
+
+          {showBack && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleGoBack}
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+
+          {title && (
+            <h1 className="font-medium text-lg truncate">{title}</h1>
+          )}
         </div>
-        
-        <div className="flex items-center space-x-2">
-          {actions}
-          
-          <Button variant="ghost" size="icon" asChild className="mr-2">
-            <Link to="/search" aria-label="Search">
-              <Search className="h-5 w-5" />
-            </Link>
-          </Button>
-          
-          <NotificationsMenu />
-        </div>
+
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
     </header>
   );
