@@ -15,10 +15,17 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      // Move onError inside queries configuration
       onError: (error) => {
         console.error("Query error:", error);
       }
     },
+    mutations: {
+      // Add error handling for mutations as well
+      onError: (error) => {
+        console.error("Mutation error:", error);
+      }
+    }
   },
 });
 
