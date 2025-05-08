@@ -52,7 +52,7 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Equipamento</h3>
           <Select 
-            value={selectedEquipment} 
+            value={selectedEquipment || "placeholder"} 
             onValueChange={setSelectedEquipment}
             disabled={equipmentsLoading}
           >
@@ -60,7 +60,9 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
               <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent>
-              {equipments.map((eq) => (
+              {equipments
+                .filter(eq => eq && eq.id && eq.id !== "")
+                .map((eq) => (
                 <SelectItem key={eq.id} value={eq.id}>
                   {eq.nome}
                 </SelectItem>
@@ -72,7 +74,7 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Objetivo de Marketing</h3>
           <Select 
-            value={selectedObjective} 
+            value={selectedObjective || "placeholder"} 
             onValueChange={setSelectedObjective}
           >
             <SelectTrigger>

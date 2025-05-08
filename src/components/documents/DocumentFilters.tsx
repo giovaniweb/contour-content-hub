@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -169,7 +170,9 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              {equipments.map(equipment => (
+              {equipments
+                .filter(equipment => equipment && equipment.id && equipment.id !== "")
+                .map(equipment => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
                 </SelectItem>

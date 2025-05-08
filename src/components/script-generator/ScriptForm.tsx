@@ -142,7 +142,7 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
           <AccordionTrigger>Equipamentos</AccordionTrigger>
           <AccordionContent>
             <EquipmentSelector 
-              equipmentOptions={equipmentOptions}
+              equipmentOptions={equipmentOptions.filter(eq => eq && eq.id && eq.id !== "")}
               selectedEquipment={selectedEquipment}
               onEquipmentChange={handleEquipmentChange}
             />
@@ -153,8 +153,8 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
           <AccordionTrigger>Área do Corpo</AccordionTrigger>
           <AccordionContent>
             <BodyAreaSelector 
-              bodyAreas={bodyAreas}
-              value={bodyArea}
+              bodyAreas={bodyAreas.filter(area => area && area.value && area.value !== "")}
+              value={bodyArea || "default_area"}
               onValueChange={setBodyArea}
             />
           </AccordionContent>
@@ -164,7 +164,7 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
           <AccordionTrigger>Finalidade do Tratamento</AccordionTrigger>
           <AccordionContent>
             <PurposeSelector 
-              purposes={purposes}
+              purposes={purposes.filter(purpose => purpose && purpose.value && purpose.value !== "")}
               selectedPurposes={selectedPurposes}
               onPurposeChange={handlePurposeChange}
             />
@@ -187,7 +187,7 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
         <AccordionItem value="tone">
           <AccordionTrigger>Tom da Comunicação</AccordionTrigger>
           <AccordionContent>
-            <ToneSelector value={tone} onValueChange={setTone} />
+            <ToneSelector value={tone || "professional"} onValueChange={setTone} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

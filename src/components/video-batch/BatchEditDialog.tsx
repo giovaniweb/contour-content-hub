@@ -45,7 +45,9 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Nenhum equipamento</SelectItem>
-              {equipmentOptions.map(eq => (
+              {equipmentOptions
+                .filter(eq => eq && eq.id && eq.id !== "")
+                .map(eq => (
                 <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
               ))}
             </SelectContent>

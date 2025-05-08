@@ -123,12 +123,14 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
             <SelectValue placeholder="Selecione um equipamento (opcional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum</SelectItem>
-            {equipments.map((equipment) => (
-              <SelectItem key={equipment.id} value={equipment.id}>
-                {equipment.nome}
-              </SelectItem>
-            ))}
+            <SelectItem value="none">Nenhum</SelectItem>
+            {equipments
+              .filter(equipment => equipment.id && equipment.id !== "")
+              .map((equipment) => (
+                <SelectItem key={equipment.id} value={equipment.id}>
+                  {equipment.nome}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>
