@@ -3,6 +3,8 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import HighlightBanner from "@/components/dashboard/HighlightBanner";
+import TrendingItems from "@/components/dashboard/TrendingItems";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +23,21 @@ const Dashboard: React.FC = () => {
             <p>Esta é sua página de dashboard.</p>
           </CardContent>
         </Card>
+        
+        {/* Highlight Banner */}
+        <div className="mt-8">
+          <HighlightBanner 
+            title="Crie conteúdo que engaja" 
+            description="Utilize nossa plataforma inteligente para criar roteiros, validar ideias e planejar sua estratégia de conteúdo."
+            ctaText="Começar agora"
+            ctaLink="/custom-gpt"
+          />
+        </div>
+        
+        {/* Trending Items */}
+        <div className="mt-8">
+          <TrendingItems />
+        </div>
       </div>
     </Layout>
   );
