@@ -61,7 +61,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
                 <FormLabel>Estratégia de conteúdo</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  defaultValue={field.value || ""}
+                  value={field.value || ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -92,7 +93,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
               <FormLabel>Estratégia de conteúdo</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value}
+                defaultValue={field.value || ""}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>

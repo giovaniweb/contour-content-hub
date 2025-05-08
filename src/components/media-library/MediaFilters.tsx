@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -170,27 +171,32 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
             
             {hasActiveFilters && (
               <Button 
-                variant="outline" 
+                variant="ghost" 
+                size="sm" 
                 onClick={handleReset}
                 className="whitespace-nowrap"
-                size="sm"
               >
-                Limpar Filtros
+                <X className="h-4 w-4 mr-1" />
+                Limpar filtros
               </Button>
             )}
           </div>
         </div>
         
         {showAdvancedFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-muted/20 rounded-lg animate-in fade-in duration-150">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
             <div>
-              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+              <label className="text-sm font-medium mb-1 block">Equipamento</label>
+              <Select 
+                value={selectedEquipment || ""} 
+                onValueChange={setSelectedEquipment}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Equipamento" />
+                  <SelectValue placeholder="Todos os equipamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os Equipamentos</SelectItem>
-                  {equipmentOptions.map((equipment) => (
+                  <SelectItem value="">Todos os equipamentos</SelectItem>
+                  {equipmentOptions.map(equipment => (
                     <SelectItem key={equipment} value={equipment}>
                       {equipment}
                     </SelectItem>
@@ -200,13 +206,17 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
             </div>
             
             <div>
-              <Select value={selectedBodyArea} onValueChange={setSelectedBodyArea}>
+              <label className="text-sm font-medium mb-1 block">Área do Corpo</label>
+              <Select 
+                value={selectedBodyArea || ""} 
+                onValueChange={setSelectedBodyArea}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Área do Corpo" />
+                  <SelectValue placeholder="Todas as áreas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as Áreas</SelectItem>
-                  {bodyAreaOptions.map((area) => (
+                  <SelectItem value="">Todas as áreas</SelectItem>
+                  {bodyAreaOptions.map(area => (
                     <SelectItem key={area} value={area}>
                       {area}
                     </SelectItem>
@@ -216,13 +226,17 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
             </div>
             
             <div>
-              <Select value={selectedPurpose} onValueChange={setSelectedPurpose}>
+              <label className="text-sm font-medium mb-1 block">Finalidade</label>
+              <Select 
+                value={selectedPurpose || ""} 
+                onValueChange={setSelectedPurpose}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Finalidade" />
+                  <SelectValue placeholder="Todas as finalidades" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as Finalidades</SelectItem>
-                  {purposeOptions.map((purpose) => (
+                  <SelectItem value="">Todas as finalidades</SelectItem>
+                  {purposeOptions.map(purpose => (
                     <SelectItem key={purpose} value={purpose}>
                       {purpose}
                     </SelectItem>

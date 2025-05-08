@@ -132,7 +132,7 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
       </div>
 
       <VideoObjectiveSelector
-        value={marketingObjective}
+        value={marketingObjective || undefined}
         onValueChange={setMarketingObjective}
         className="pt-2"
       />
@@ -154,7 +154,7 @@ const ScriptForm: React.FC<ScriptFormProps> = ({
           <AccordionContent>
             <BodyAreaSelector 
               bodyAreas={bodyAreas.filter(area => area && area.value && area.value !== "")}
-              value={bodyArea || "default_area"}
+              value={bodyArea || ""}
               onValueChange={setBodyArea}
             />
           </AccordionContent>

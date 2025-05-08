@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,7 +240,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
           
           <div className="mt-4">
             <Label htmlFor="equipment" className="mb-1 block">Equipamento</Label>
-            <Select value={equipment} onValueChange={setEquipment}>
+            <Select value={equipment || ""} onValueChange={setEquipment}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um equipamento" />
               </SelectTrigger>
@@ -328,7 +329,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
                 
                 <div className="space-y-2">
                   <Label htmlFor="equipment">Equipamento</Label>
-                  <Select value={equipment} onValueChange={setEquipment}>
+                  <Select value={equipment || ""} onValueChange={setEquipment}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um equipamento" />
                     </SelectTrigger>
@@ -343,7 +344,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
                 
                 <div className="space-y-2">
                   <Label htmlFor="bodyArea">Área do Corpo</Label>
-                  <Select value={bodyArea} onValueChange={setBodyArea}>
+                  <Select value={bodyArea || ""} onValueChange={setBodyArea}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma área do corpo" />
                     </SelectTrigger>

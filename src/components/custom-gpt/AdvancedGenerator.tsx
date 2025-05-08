@@ -105,7 +105,7 @@ const AdvancedGenerator: React.FC<AdvancedGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Equipamento</h3>
           <Select 
-            value={selectedEquipment} 
+            value={selectedEquipment || ""} 
             onValueChange={setSelectedEquipment}
             disabled={equipmentsLoading}
           >
@@ -125,7 +125,7 @@ const AdvancedGenerator: React.FC<AdvancedGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Objetivo de Marketing</h3>
           <Select 
-            value={selectedObjective} 
+            value={selectedObjective || ""} 
             onValueChange={handleObjectiveSelect}
           >
             <SelectTrigger>

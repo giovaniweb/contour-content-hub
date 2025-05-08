@@ -15,6 +15,8 @@ interface DateRangeFilterProps {
 }
 
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChange }) => {
+  const safeValue = value || { from: undefined, to: undefined };
+  
   return (
     <div>
       <Popover>
@@ -23,18 +25,18 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChang
             variant="outline"
             className={cn(
               "w-full justify-start text-left text-sm h-9 font-normal",
-              !value || (!value.from && !value.to) && "text-muted-foreground"
+              (!safeValue.from && !safeValue.to) && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value && value.from ? (
-              value.to ? (
+            {safeValue.from ? (
+              safeValue.to ? (
                 <>
-                  {format(value.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                  {format(value.to, "dd/MM/yyyy", { locale: ptBR })}
+                  {format(safeValue.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                  {format(safeValue.to, "dd/MM/yyyy", { locale: ptBR })}
                 </>
               ) : (
-                format(value.from, "dd/MM/yyyy", { locale: ptBR })
+                format(safeValue.from, "dd/MM/yyyy", { locale: ptBR })
               )
             ) : (
               "Data de publicação"
@@ -44,7 +46,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChang
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="range"
-            selected={value}
+            selected={safeValue}
             onSelect={onChange}
             initialFocus
             locale={ptBR}
