@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -13,7 +14,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { 
-  Home, 
+  LayoutDashboard, 
   Kanban, 
   CalendarPlus, 
   FileText, 
@@ -25,7 +26,6 @@ import {
   BookText,
   PenTool,
   FilePlus,
-  LayoutDashboard,
   Database,
   LineChart,
   BarChart3,
@@ -43,7 +43,7 @@ export default function Sidebar() {
   const location = useLocation();
   const { user } = useAuth();
   
-  // Navigation structure
+  // Navigation structure with updated paths
   const navigationGroups = [
     {
       label: "Main",
@@ -51,7 +51,7 @@ export default function Sidebar() {
         { 
           name: 'Dashboard', 
           path: '/dashboard', 
-          icon: Home 
+          icon: LayoutDashboard 
         },
         { 
           name: 'Planner', 
@@ -60,18 +60,18 @@ export default function Sidebar() {
         },
         { 
           name: 'Idea Validator', 
-          path: '/idea-validator', 
+          path: '/content-ideas', 
           icon: Lightbulb,
           highlight: true
         },
         { 
           name: 'Scripts', 
-          path: '/custom-gpt', 
+          path: '/scripts', 
           icon: PenTool 
         },
         { 
           name: 'Content', 
-          path: '/content-strategy', 
+          path: '/content', 
           icon: FileText 
         },
         { 
@@ -98,7 +98,7 @@ export default function Sidebar() {
         },
         {
           name: 'Media Files',
-          path: '/technical-documents',
+          path: '/media-files',
           icon: FilePlus
         }
       ]
@@ -119,43 +119,43 @@ export default function Sidebar() {
       items: [
         {
           name: 'Strategy',
-          path: '/marketing-consultant',
+          path: '/content-strategy',
           icon: LineChart
         },
         {
           name: 'Agenda',
-          path: '/calendar',
+          path: '/agenda',
           icon: CalendarPlus
         },
         {
           name: 'Equipment',
-          path: '/equipments',
+          path: '/equipment',
           icon: Wrench
         }
       ]
     }
   ];
   
-  // Admin navigation items (only shown to admin users)
+  // Admin navigation items with updated paths
   const adminItems = [
     { 
       name: 'Admin Panel', 
-      path: '/admin/dashboard', 
+      path: '/admin', 
       icon: LayoutDashboard 
     },
     { 
       name: 'Integrations', 
-      path: '/admin/integrations', 
+      path: '/integrations', 
       icon: PuzzleIcon 
     },
     { 
       name: 'System Diagnostics', 
-      path: '/admin/system-diagnostics', 
+      path: '/diagnostics', 
       icon: Database 
     },
     { 
       name: 'AI Panel', 
-      path: '/admin/system-intelligence', 
+      path: '/ai-panel', 
       icon: BrainCircuit 
     },
     { 
@@ -167,10 +167,10 @@ export default function Sidebar() {
   
   // Check if the current path is active
   const isActive = (path: string) => {
-    if (path === '/dashboard' && location.pathname === '/') {
+    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
       return true;
     }
-    return location.pathname.startsWith(path);
+    return location.pathname === path;
   };
 
   return (

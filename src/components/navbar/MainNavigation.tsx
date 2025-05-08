@@ -10,7 +10,11 @@ import {
   Cog, 
   Database, 
   BrainCircuit,
-  Calendar 
+  Calendar, 
+  Kanban,
+  Lightbulb,
+  PenTool,
+  BarChart3
 } from "lucide-react";
 
 interface MainNavigationProps {
@@ -27,12 +31,13 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
   return (
     <div className="flex items-center space-x-1">
       <NavLink to="/dashboard" icon={<LayoutDashboard size={16} />} label="Dashboard" />
-      <NavLink to="/media" icon={<VideoIcon size={16} />} label="Mídias" />
-      <NavLink to="/videos" icon={<Database size={16} />} label="Vídeos" />
-      <NavLink to="/technical-documents" icon={<FileText size={16} />} label="Documentos" />
-      <NavLink to="/custom-gpt" icon={<BrainCircuit size={16} />} label="Roteiros" />
+      <NavLink to="/content-planner" icon={<Kanban size={16} />} label="Planner" />
+      <NavLink to="/content-ideas" icon={<Lightbulb size={16} />} label="Ideas" />
+      <NavLink to="/scripts" icon={<PenTool size={16} />} label="Scripts" />
+      <NavLink to="/videos" icon={<VideoIcon size={16} />} label="Videos" />
+      <NavLink to="/reports" icon={<BarChart3 size={16} />} label="Reports" />
       {isAdmin() && (
-        <NavLink to="/admin/system-diagnostics" icon={<Cog size={16} />} label="Admin" />
+        <NavLink to="/admin" icon={<Cog size={16} />} label="Admin" />
       )}
     </div>
   );

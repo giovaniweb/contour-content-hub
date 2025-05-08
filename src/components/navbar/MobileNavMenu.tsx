@@ -18,7 +18,16 @@ import {
   LayoutDashboard,
   BrainCircuit,
   CheckCircle,
-  Calendar
+  Calendar,
+  Lightbulb,
+  Images,
+  FilePlus,
+  BookText,
+  LineChart,
+  Wrench,
+  BarChart3,
+  PuzzleIcon,
+  PenTool
 } from "lucide-react";
 
 interface MobileNavMenuProps {
@@ -52,65 +61,97 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Dashboard</span>
           </Link>
           <Link
-            to="/videos"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Database className="h-5 w-5" />
-            <span>Biblioteca de Vídeos</span>
-          </Link>
-          <Link
-            to="/video-swipe"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <VideoIcon className="h-5 w-5" />
-            <span>Descobrir Vídeos</span>
-          </Link>
-          <Link
-            to="/media"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <VideoIcon className="h-5 w-5" />
-            <span>Biblioteca de Mídia</span>
-          </Link>
-          <Link
-            to="/technical-documents"
+            to="/content-planner"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <FileText className="h-5 w-5" />
-            <span>Documentos Técnicos</span>
+            <span>Planner</span>
           </Link>
           <Link
-            to="/custom-gpt"
+            to="/content-ideas"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <BrainCircuit className="h-5 w-5" />
-            <span>Roteiros</span>
+            <Lightbulb className="h-5 w-5" />
+            <span>Idea Validator</span>
           </Link>
           <Link
-            to="/script-validation"
+            to="/scripts"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <CheckCircle className="h-5 w-5" />
-            <span>Validador</span>
+            <PenTool className="h-5 w-5" />
+            <span>Scripts</span>
           </Link>
           <Link
-            to="/calendar"
+            to="/videos"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <VideoIcon className="h-5 w-5" />
+            <span>Videos</span>
+          </Link>
+          <Link
+            to="/media-library"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Images className="h-5 w-5" />
+            <span>Media Library</span>
+          </Link>
+          <Link
+            to="/media-files"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <FilePlus className="h-5 w-5" />
+            <span>Media Files</span>
+          </Link>
+          <Link
+            to="/content-strategy"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <LineChart className="h-5 w-5" />
+            <span>Strategy</span>
+          </Link>
+          <Link
+            to="/articles"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <BookText className="h-5 w-5" />
+            <span>Articles</span>
+          </Link>
+          <Link
+            to="/reports"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <BarChart3 className="h-5 w-5" />
+            <span>Reports</span>
+          </Link>
+          <Link
+            to="/agenda"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
             <Calendar className="h-5 w-5" />
             <span>Agenda</span>
           </Link>
+          <Link
+            to="/equipment"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Wrench className="h-5 w-5" />
+            <span>Equipment</span>
+          </Link>
           {isAdmin() && (
             <>
               <Link
-                to="/admin/system-diagnostics"
+                to="/admin"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted mt-4 border-t pt-4"
                 onClick={() => setIsOpen(false)}
               >
@@ -118,28 +159,36 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                 <span>Admin</span>
               </Link>
               <Link
-                to="/admin/system-diagnostics"
+                to="/diagnostics"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
                 <Activity className="h-5 w-5" />
-                <span>Diagnóstico</span>
+                <span>Diagnostics</span>
               </Link>
               <Link
-                to="/admin/system-intelligence"
+                to="/ai-panel"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
                 <BrainCircuit className="h-5 w-5" />
-                <span>IA do Sistema</span>
+                <span>AI Panel</span>
               </Link>
               <Link
-                to="/admin/content"
+                to="/integrations"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
-                <FileText className="h-5 w-5" />
-                <span>Conteúdo</span>
+                <PuzzleIcon className="h-5 w-5" />
+                <span>Integrations</span>
+              </Link>
+              <Link
+                to="/settings"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
               </Link>
             </>
           )}
