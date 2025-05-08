@@ -81,6 +81,22 @@ Deno.serve(async (req) => {
 
     console.log(`Iniciando processamento do vídeo ${videoId} com nome de arquivo ${fileName}`);
 
+    // Registrar tempo de início para calcular duração total
+    const startTime = Date.now();
+    
+    // Atualizar o status inicial para processamento
+    await supabaseAdmin
+      .from('videos_storage')
+      .update({ 
+        status: 'processing',
+        metadata: { 
+          processing_start_time: new Date().toISOString(),
+          processing_progress: 'Iniciando processamento...',
+          processing_estimated_time: '1-2 minutos'
+        }
+      })
+      .eq('id', videoId);
+
     // Em uma implementação real, aqui teríamos:
     // 1. Download do vídeo do storage
     // 2. Uso do FFmpeg para gerar thumbnails e versões em diferentes qualidades
@@ -91,14 +107,18 @@ Deno.serve(async (req) => {
     // Reduzido para 2 segundos para melhorar a experiência do usuário
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Registre o progresso do processamento
+    // Registre o progresso do processamento - Fase 1: Thumbnails
     console.log(`[${videoId}] Processamento: Gerando thumbnails...`);
     await Promise.all([
       supabaseAdmin
         .from('videos_storage')
         .update({ 
-          status: 'processing' as VideoStatus,
-          metadata: { processing_progress: 'Gerando miniaturas...' }
+          metadata: { 
+            processing_progress: 'Gerando miniaturas...',
+            processing_percent: 20,
+            processing_stage: 1,
+            processing_estimated_time: 'Aproximadamente 1 minuto restante'
+          }
         })
         .eq('id', videoId),
       new Promise(resolve => setTimeout(resolve, 500))
@@ -112,31 +132,45 @@ Deno.serve(async (req) => {
       throw new Error("Falha ao gerar URL assinado para o vídeo original");
     }
 
-    // Simular processamento de qualidade HD
+    // Simular processamento de qualidade HD - Fase 2
     console.log(`[${videoId}] Processamento: Gerando versão HD...`);
     await Promise.all([
       supabaseAdmin
         .from('videos_storage')
         .update({ 
-          metadata: { processing_progress: 'Gerando versão HD...' }
+          metadata: { 
+            processing_progress: 'Gerando versão HD...',
+            processing_percent: 50,
+            processing_stage: 2, 
+            processing_estimated_time: 'Aproximadamente 40 segundos restantes'
+          }
         })
         .eq('id', videoId),
       new Promise(resolve => setTimeout(resolve, 500))
     ]);
 
-    // Simulação do processamento de qualidade SD
+    // Simulação do processamento de qualidade SD - Fase 3
     console.log(`[${videoId}] Processamento: Gerando versão SD...`);
     await Promise.all([
       supabaseAdmin
         .from('videos_storage')
         .update({ 
-          metadata: { processing_progress: 'Gerando versão SD...' }
+          metadata: { 
+            processing_progress: 'Gerando versão SD...',
+            processing_percent: 80,
+            processing_stage: 3,
+            processing_estimated_time: 'Aproximadamente 15 segundos restantes'
+          }
         })
         .eq('id', videoId),
       new Promise(resolve => setTimeout(resolve, 500))
     ]);
     
-    // Atualizar status do vídeo e adicionar um thumbnail e URLs assinados
+    // Calcular duração total do processamento
+    const processingDuration = Date.now() - startTime;
+    const durationSeconds = Math.round(processingDuration / 1000);
+    
+    // Atualizar status do vídeo e adicionar um thumbnail e URLs assinados - Fase 4: Finalização
     console.log(`[${videoId}] Processamento: Finalizando...`);
     const { error: updateError } = await supabaseAdmin
       .from('videos_storage')
@@ -150,7 +184,10 @@ Deno.serve(async (req) => {
         },
         metadata: { 
           processing_progress: 'Concluído',
-          processing_completed_at: new Date().toISOString()
+          processing_percent: 100,
+          processing_stage: 4,
+          processing_completed_at: new Date().toISOString(),
+          processing_duration_seconds: durationSeconds
         }
       })
       .eq('id', videoId);
@@ -160,13 +197,14 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
-    console.log(`Vídeo ${videoId} processado com sucesso`);
+    console.log(`Vídeo ${videoId} processado com sucesso em ${durationSeconds} segundos`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Video processing completed',
         videoId: videoId,
+        processingTime: `${durationSeconds} segundos`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, Download, Loader2, AlertTriangle } from 'lucide-react';
@@ -8,6 +7,7 @@ import { StoredVideo, VideoStatus } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
 import VideoCard from './VideoCard';
 import VideoDownloadDialog from './VideoDownloadDialog';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 
 interface VideoListProps {
