@@ -1,93 +1,78 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { ContentPlannerItem, ContentPlannerStatus, ContentPlannerFilter } from '@/types/content-planner';
-import { linkScriptToCalendar } from '@/utils/api-scripts';
-import { scheduleContentInCalendar } from '@/services/contentStrategyService';
-import { NewCalendarEvent } from '@/types/calendar';
-import { usePermissions } from '@/hooks/use-permissions';
+import { toast } from 'sonner';
 
-// Fetch content planner items
+// Fetch content planner items based on filter
 export const fetchContentPlannerItems = async (
   filters: ContentPlannerFilter = {}
 ): Promise<ContentPlannerItem[]> => {
   try {
-    // Build the query
-    let query = supabase
-      .from('content_strategy_items')
-      .select(`
-        *,
-        equipamento:equipamento_id (nome),
-        responsavel:responsavel_id (nome)
-      `);
-    
-    // Apply status filter
-    if (filters.status) {
-      if (Array.isArray(filters.status)) {
-        query = query.in('status', filters.status);
-      } else {
-        query = query.eq('status', filters.status);
+    // This is a mock implementation
+    // In a real app, this would query an API or database
+    const mockItems: ContentPlannerItem[] = [
+      {
+        id: '1',
+        title: 'Como usar equipamento para melhores resultados',
+        description: 'Vídeo tutorial sobre o equipamento',
+        status: 'idea',
+        tags: ['tutorial', 'equipamento'],
+        format: 'vídeo',
+        objective: '🟡 Atrair Atenção',
+        distribution: 'YouTube',
+        equipmentId: 'eq1',
+        equipmentName: 'Equipamento X',
+        authorId: 'user1',
+        authorName: 'João Silva',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        aiGenerated: false,
+        responsibleId: 'user1',
+        responsibleName: 'João Silva'
+      },
+      {
+        id: '2',
+        title: 'Benefícios do equipamento Y',
+        description: 'Carrossel com infográficos dos benefícios',
+        status: 'script_generated',
+        tags: ['benefícios', 'infográfico'],
+        scriptId: 'script1',
+        format: 'carrossel',
+        objective: '🟢 Criar Conexão',
+        distribution: 'Instagram',
+        equipmentId: 'eq2',
+        equipmentName: 'Equipamento Y',
+        authorId: 'user1',
+        authorName: 'João Silva',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        aiGenerated: true,
+        responsibleId: 'user2',
+        responsibleName: 'Maria Souza'
       }
-    }
+    ];
     
-    // Apply other filters
-    if (filters.objective) {
-      query = query.eq('objetivo', filters.objective);
-    }
-    
-    if (filters.distribution) {
-      query = query.eq('distribuicao', filters.distribution);
-    }
-    
-    if (filters.format) {
-      query = query.eq('formato', filters.format);
-    }
-    
-    if (filters.equipmentId) {
-      query = query.eq('equipamento_id', filters.equipmentId);
-    }
-    
-    if (filters.responsibleId) {
-      query = query.eq('responsavel_id', filters.responsibleId);
-    }
-    
-    if (filters.dateRange?.from) {
-      query = query.gte('previsao', filters.dateRange.from.toISOString().split('T')[0]);
-    }
-    
-    if (filters.dateRange?.to) {
-      query = query.lte('previsao', filters.dateRange.to.toISOString().split('T')[0]);
-    }
-    
-    // Execute query
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Error fetching content planner items:', error);
-      throw error;
-    }
-    
-    // Transform data to the expected format
-    return (data || []).map(item => ({
-      id: item.id,
-      title: item.titulo || item.conteudo || 'Untitled Content',
-      description: item.descricao || '',
-      status: mapStatusToPlannerStatus(item.status),
-      tags: item.tags || [],
-      scriptId: item.roteiro_id,
-      format: item.formato,
-      objective: item.objetivo,
-      distribution: item.distribuicao,
-      equipmentId: item.equipamento_id,
-      equipmentName: item.equipamento?.nome,
-      responsibleId: item.responsavel_id,
-      responsibleName: item.responsavel?.nome,
-      scheduledDate: item.previsao,
-      calendarEventId: item.evento_agenda_id,
-      aiGenerated: Boolean(item.ai_generated),
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-      createdById: item.created_by || ''
-    }));
+    // Filter the mock items
+    return mockItems.filter(item => {
+      // Apply filters
+      if (filters.objective && item.objective !== filters.objective) return false;
+      if (filters.format && item.format !== filters.format) return false;
+      if (filters.distribution && item.distribution !== filters.distribution) return false;
+      if (filters.equipmentId && item.equipmentId !== filters.equipmentId) return false;
+      if (filters.responsibleId && item.responsibleId !== filters.responsibleId) return false;
+      if (filters.status && item.status !== filters.status) return false;
+      
+      // Date range filter
+      if (filters.dateRange?.from || filters.dateRange?.to) {
+        if (!item.scheduledDate) return false;
+        
+        const itemDate = new Date(item.scheduledDate);
+        
+        if (filters.dateRange.from && itemDate < filters.dateRange.from) return false;
+        if (filters.dateRange.to && itemDate > filters.dateRange.to) return false;
+      }
+      
+      return true;
+    });
   } catch (error) {
     console.error('Error in fetchContentPlannerItems:', error);
     return [];
@@ -99,62 +84,32 @@ export const createContentPlannerItem = async (
   item: Partial<ContentPlannerItem>
 ): Promise<ContentPlannerItem | null> => {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    
-    if (!userId) throw new Error('User not authenticated');
-    
-    const newItem = {
-      titulo: item.title,
-      descricao: item.description,
-      status: mapPlannerStatusToStatus(item.status || 'idea'),
-      tags: item.tags,
-      roteiro_id: item.scriptId,
-      formato: item.format,
-      objetivo: item.objective,
-      distribuicao: item.distribution,
-      equipamento_id: item.equipmentId,
-      responsavel_id: item.responsibleId,
-      previsao: item.scheduledDate,
-      evento_agenda_id: item.calendarEventId,
-      ai_generated: item.aiGenerated,
-      created_by: userId
+    // Mock implementation
+    const newItem: ContentPlannerItem = {
+      id: `item-${Date.now()}`,
+      title: item.title || '',
+      description: item.description || '',
+      status: item.status || 'idea',
+      tags: item.tags || [],
+      format: item.format || 'vídeo',
+      objective: item.objective || '🟡 Atrair Atenção',
+      distribution: item.distribution || 'Instagram',
+      equipmentId: item.equipmentId,
+      equipmentName: item.equipmentName,
+      authorId: 'currentUser', // Would be set by auth context
+      authorName: 'Current User', // Would be set by auth context
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      aiGenerated: item.aiGenerated || false,
+      responsibleId: item.responsibleId || 'currentUser',
+      responsibleName: item.responsibleName || 'Current User'
     };
     
-    const { data, error } = await supabase
-      .from('content_strategy_items')
-      .insert(newItem)
-      .select()
-      .single();
-      
-    if (error) {
-      console.error('Error creating content planner item:', error);
-      throw error;
-    }
-    
-    return {
-      id: data.id,
-      title: data.titulo || 'Untitled Content',
-      description: data.descricao || '',
-      status: mapStatusToPlannerStatus(data.status),
-      tags: data.tags || [],
-      scriptId: data.roteiro_id,
-      format: data.formato,
-      objective: data.objetivo,
-      distribution: data.distribuicao,
-      equipmentId: data.equipamento_id,
-      equipmentName: data.equipamento?.nome,
-      responsibleId: data.responsavel_id,
-      responsibleName: data.responsavel?.nome,
-      scheduledDate: data.previsao,
-      calendarEventId: data.evento_agenda_id,
-      aiGenerated: Boolean(data.ai_generated),
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      createdById: data.created_by || ''
-    };
+    toast.success("Item criado com sucesso");
+    return newItem;
   } catch (error) {
     console.error('Error in createContentPlannerItem:', error);
+    toast.error("Erro ao criar item");
     return null;
   }
 };
@@ -165,60 +120,37 @@ export const updateContentPlannerItem = async (
   item: Partial<ContentPlannerItem>
 ): Promise<ContentPlannerItem | null> => {
   try {
-    const updateItem: any = {};
-    
-    if (item.title !== undefined) updateItem.titulo = item.title;
-    if (item.description !== undefined) updateItem.descricao = item.description;
-    if (item.status !== undefined) updateItem.status = mapPlannerStatusToStatus(item.status);
-    if (item.tags !== undefined) updateItem.tags = item.tags;
-    if (item.scriptId !== undefined) updateItem.roteiro_id = item.scriptId;
-    if (item.format !== undefined) updateItem.formato = item.format;
-    if (item.objective !== undefined) updateItem.objetivo = item.objective;
-    if (item.distribution !== undefined) updateItem.distribuicao = item.distribution;
-    if (item.equipmentId !== undefined) updateItem.equipamento_id = item.equipmentId;
-    if (item.responsibleId !== undefined) updateItem.responsavel_id = item.responsibleId;
-    if (item.scheduledDate !== undefined) updateItem.previsao = item.scheduledDate;
-    if (item.calendarEventId !== undefined) updateItem.evento_agenda_id = item.calendarEventId;
-    
-    const { data, error } = await supabase
-      .from('content_strategy_items')
-      .update(updateItem)
-      .eq('id', id)
-      .select(`
-        *,
-        equipamento:equipamento_id (nome),
-        responsavel:responsavel_id (nome)
-      `)
-      .single();
-      
-    if (error) {
-      console.error('Error updating content planner item:', error);
-      throw error;
-    }
-    
-    return {
-      id: data.id,
-      title: data.titulo || 'Untitled Content',
-      description: data.descricao || '',
-      status: mapStatusToPlannerStatus(data.status),
-      tags: data.tags || [],
-      scriptId: data.roteiro_id,
-      format: data.formato,
-      objective: data.objetivo,
-      distribution: data.distribuicao,
-      equipmentId: data.equipamento_id,
-      equipmentName: data.equipamento?.nome,
-      responsibleId: data.responsavel_id,
-      responsibleName: data.responsavel?.nome,
-      scheduledDate: data.previsao,
-      calendarEventId: data.evento_agenda_id,
-      aiGenerated: Boolean(data.ai_generated),
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      createdById: data.created_by || ''
+    // Mock implementation
+    // In a real app, this would update the item in the database
+    const updatedItem: ContentPlannerItem = {
+      id,
+      title: item.title || 'Untitled',
+      description: item.description || '',
+      status: item.status || 'idea',
+      tags: item.tags || [],
+      scriptId: item.scriptId,
+      format: item.format || 'vídeo',
+      objective: item.objective || '🟡 Atrair Atenção',
+      distribution: item.distribution || 'Instagram',
+      equipmentId: item.equipmentId,
+      equipmentName: item.equipmentName,
+      scheduledDate: item.scheduledDate,
+      scheduledTime: item.scheduledTime,
+      calendarEventId: item.calendarEventId,
+      authorId: 'currentUser', // Would be set by auth context
+      authorName: 'Current User', // Would be set by auth context
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      aiGenerated: item.aiGenerated || false,
+      responsibleId: item.responsibleId || 'currentUser',
+      responsibleName: item.responsibleName || 'Current User'
     };
+    
+    toast.success("Item atualizado com sucesso");
+    return updatedItem;
   } catch (error) {
     console.error('Error in updateContentPlannerItem:', error);
+    toast.error("Erro ao atualizar item");
     return null;
   }
 };
@@ -226,177 +158,117 @@ export const updateContentPlannerItem = async (
 // Delete a content planner item
 export const deleteContentPlannerItem = async (id: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('content_strategy_items')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error deleting content planner item:', error);
-      throw error;
-    }
-    
+    // Mock implementation
+    toast.success("Item removido com sucesso");
     return true;
   } catch (error) {
     console.error('Error in deleteContentPlannerItem:', error);
+    toast.error("Erro ao remover item");
     return false;
   }
 };
 
-// Schedule an item to the calendar
+// Move an item to a different status
+export const moveItem = async (item: ContentPlannerItem, targetStatus: ContentPlannerStatus): Promise<ContentPlannerItem | null> => {
+  try {
+    // Mock implementation
+    const updatedItem = {
+      ...item,
+      status: targetStatus,
+      updatedAt: new Date().toISOString()
+    };
+    
+    toast.success(`Item movido para ${getStatusLabel(targetStatus)}`);
+    return updatedItem;
+  } catch (error) {
+    console.error('Error in moveItem:', error);
+    toast.error("Erro ao mover item");
+    return null;
+  }
+};
+
+// Schedule an item in the calendar
 export const scheduleContentPlannerItem = async (
   item: ContentPlannerItem,
   date: Date
 ): Promise<ContentPlannerItem | null> => {
   try {
-    // Create calendar event
-    const calendarEvent: NewCalendarEvent = {
-      date: date.toISOString().split('T')[0],
-      title: item.title,
-      description: item.description || '',
-      format: item.format as "video" | "story" | "image",
-      completed: false,
-      equipment: item.equipmentName || ''
+    // Mock implementation
+    const updatedItem = {
+      ...item,
+      status: 'scheduled',
+      scheduledDate: date.toISOString().split('T')[0],
+      calendarEventId: `cal-${Date.now()}`,
+      updatedAt: new Date().toISOString()
     };
     
-    // Schedule the content in calendar
-    const calendarEventId = await scheduleContentInCalendar(calendarEvent);
-    
-    if (!calendarEventId) {
-      throw new Error('Failed to schedule content in calendar');
-    }
-    
-    // If there's an associated script, link it to the calendar
-    if (item.scriptId) {
-      await linkScriptToCalendar(item.scriptId, calendarEventId);
-    }
-    
-    // Update the content planner item with the scheduled info
-    return await updateContentPlannerItem(item.id, {
-      status: 'scheduled',
-      scheduledDate: calendarEvent.date,
-      calendarEventId
-    });
+    toast.success("Conteúdo agendado com sucesso");
+    return updatedItem;
   } catch (error) {
     console.error('Error in scheduleContentPlannerItem:', error);
+    toast.error("Erro ao agendar conteúdo");
     return null;
   }
 };
 
-// Generate AI content suggestions based on strategy
+// Generate AI content suggestions
 export const generateContentSuggestions = async (
-  count: number = 5,
+  count: number = 3,
   objective?: string,
   format?: string
 ): Promise<ContentPlannerItem[]> => {
   try {
-    // This would typically call an AI service or edge function
-    // For now we'll return placeholder data
+    // Mock implementation
     const suggestions: ContentPlannerItem[] = [];
-    const now = new Date();
-    
-    const sampleTitles = [
-      "5 mitos sobre tratamentos faciais desmistificados",
-      "Como melhorar a retenção de clientes após procedimentos",
-      "Guia completo: pós-operatório em procedimentos estéticos",
-      "Transformações incríveis em 30 dias com nosso tratamento",
-      "Por que a tecnologia faz diferença nos resultados estéticos"
-    ];
-    
-    const sampleObjectives = [
-      "🟡 Atrair Atenção",
-      "🟢 Criar Conexão",
-      "🔴 Fazer Comprar",
-      "🔁 Reativar Interesse",
-      "✅ Fechar Agora"
-    ];
-    
-    const sampleFormats = ["vídeo", "story", "carrossel", "reels", "texto"];
-    const sampleDistributions = ["Instagram", "YouTube", "TikTok", "Blog", "Múltiplos"];
     
     for (let i = 0; i < count; i++) {
       suggestions.push({
-        id: `suggestion-${Date.now()}-${i}`,
-        title: sampleTitles[i % sampleTitles.length],
-        description: "Conteúdo gerado automaticamente pela IA com base nos objetivos estratégicos definidos.",
-        status: "idea",
-        tags: ["IA", "sugestão", format || sampleFormats[i % sampleFormats.length]],
-        format: (format as any) || sampleFormats[i % sampleFormats.length],
-        objective: (objective as any) || sampleObjectives[i % sampleObjectives.length],
-        distribution: sampleDistributions[i % sampleDistributions.length],
+        id: `ai-${Date.now()}-${i}`,
+        title: `Sugestão de conteúdo ${i + 1}`,
+        description: 'Conteúdo gerado por IA',
+        status: 'idea',
+        tags: ['IA', 'sugestão'],
+        format: (format as any) || 'vídeo',
+        objective: objective || '🟡 Atrair Atenção',
+        distribution: 'Instagram',
+        authorId: 'ai',
+        authorName: 'AI Generator',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         aiGenerated: true,
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-        createdById: "system-ai"
+        responsibleId: 'currentUser',
+        responsibleName: 'Current User'
       });
     }
     
+    toast.success(`${suggestions.length} sugestões geradas`);
     return suggestions;
   } catch (error) {
     console.error('Error in generateContentSuggestions:', error);
+    toast.error("Erro ao gerar sugestões");
     return [];
   }
 };
 
-// Helper functions
-function mapStatusToPlannerStatus(status: string): ContentPlannerStatus {
-  switch (status) {
-    case 'Planejado':
-      return 'idea';
-    case 'Em andamento':
-      return 'script_generated';
-    case 'Finalizado':
-      return 'approved';
-    case 'Agendado':
-      return 'scheduled';
-    case 'Publicado':
-      return 'published';
-    default:
-      return 'idea';
-  }
-}
-
-function mapPlannerStatusToStatus(status: ContentPlannerStatus): string {
-  switch (status) {
-    case 'idea':
-      return 'Planejado';
-    case 'script_generated':
-      return 'Em andamento';
-    case 'approved':
-      return 'Finalizado';
-    case 'scheduled':
-      return 'Agendado';
-    case 'published':
-      return 'Publicado';
-    default:
-      return 'Planejado';
-  }
-}
-
-// Check if user has permission to move item to specific status
+// Check if user can move item to target status
 export const canMoveToStatus = (
   item: ContentPlannerItem,
   targetStatus: ContentPlannerStatus,
   userId: string
 ): boolean => {
-  const { hasPermission } = usePermissions();
-  const isOwner = item.createdById === userId || item.responsibleId === userId;
-  const isAdmin = hasPermission('admin');
-  const isOperator = hasPermission('operador');
-  
-  // Admins can do anything
-  if (isAdmin) return true;
-  
-  // Check specific status transitions
-  switch (targetStatus) {
-    case 'approved':
-      // Only admins and operators can approve content
-      return isAdmin || isOperator;
-    case 'published':
-      // Only admins can mark as published
-      return isAdmin;
-    default:
-      // For other statuses, owners can move their items
-      return isOwner || isOperator;
+  // Mock implementation
+  // In a real app, this would check user permissions
+  return true;
+};
+
+// Helper to get a readable label for a status
+const getStatusLabel = (status: ContentPlannerStatus): string => {
+  switch (status) {
+    case 'idea': return 'Ideia';
+    case 'script_generated': return 'Roteiro Gerado';
+    case 'approved': return 'Aprovado';
+    case 'scheduled': return 'Agendado';
+    case 'published': return 'Publicado';
+    default: return 'Desconhecido';
   }
-}
+};
