@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import {
   Dialog,
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { TechnicalDocument } from "@/types/document";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { processPdfUrl, openPdfInNewTab } from "@/utils/pdfUtils";
+import { processPdfUrl, openPdfInNewTab, downloadPdf } from "@/utils/pdfUtils";
 import { 
   Download, 
   ZoomIn, 
@@ -26,6 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ArticleViewModalProps {
   article: TechnicalDocument;
@@ -46,14 +48,30 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
   const [asking, setAsking] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Array<{type: 'question' | 'answer', content: string}>>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const { processedUrl } = processPdfUrl(article.link_dropbox);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    if (!article.link_dropbox) {
+      toast({
+        title: "Download failed",
+        description: "No PDF URL available for this document",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      openPdfInNewTab(article.link_dropbox, article.titulo);
+      setIsDownloading(true);
+      await downloadPdf(article.link_dropbox, article.titulo);
+      
+      toast({
+        title: "Download started",
+        description: "Your PDF is being downloaded",
+      });
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast({
@@ -61,6 +79,8 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
         description: "Could not download the PDF. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -182,35 +202,75 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onCl
               <div className="flex flex-col h-full">
                 {/* PDF Controls */}
                 <div className="flex items-center justify-between border-b p-2">
-                  <div className="flex items-center">
-                    <Button variant="outline" size="sm" className="mr-1" onClick={zoomOut} title="Zoom Out">
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="mr-1" onClick={resetZoom} title="Reset Zoom">
-                      <span className="text-xs">{Math.round(pdfZoom * 100)}%</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="mr-1" onClick={zoomIn} title="Zoom In">
-                      <ZoomIn className="h-4 w-4" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center border rounded-md px-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={zoomOut} 
+                        title="Zoom Out"
+                        className="p-1 h-8"
+                      >
+                        <ZoomOut className="h-4 w-4" />
+                      </Button>
+                      <span className="text-xs px-2">{Math.round(pdfZoom * 100)}%</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={zoomIn} 
+                        title="Zoom In"
+                        className="p-1 h-8"
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={resetZoom} 
+                      title="Reset Zoom"
+                    >
+                      <RotateCw className="h-4 w-4 mr-1" />
+                      Reset
                     </Button>
                   </div>
-                  <Button variant="default" size="sm" onClick={handleDownload} title="Download PDF">
+                  
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handleDownload} 
+                    disabled={isDownloading}
+                    className="flex items-center gap-1"
+                  >
                     <Download className="h-4 w-4 mr-1" />
-                    Download
+                    {isDownloading ? "Baixando..." : "Download"}
                   </Button>
                 </div>
 
                 {/* PDF Document */}
                 <div className="flex-1 overflow-auto bg-muted/30 p-4">
-                  <div style={{ transform: `scale(${pdfZoom})`, transformOrigin: 'top center', transition: 'transform 0.2s' }}>
+                  <div style={{ transform: `scale(${pdfZoom})`, transformOrigin: 'top center', transition: 'transform 0.2s' }} className="min-h-full">
                     {processedUrl ? (
                       <iframe
                         src={processedUrl}
                         className="w-full h-[calc(100vh-14rem)] rounded-lg shadow-md bg-white"
                         title={article.titulo}
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
                       />
                     ) : (
                       <div className="w-full h-[calc(100vh-14rem)] flex items-center justify-center bg-white rounded-lg">
-                        <p className="text-muted-foreground">PDF preview not available</p>
+                        <div className="text-center">
+                          <FileWarning className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-muted-foreground mb-3">PDF preview not available</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => window.open(article.link_dropbox, '_blank')}
+                          >
+                            Tentar abrir em nova aba
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>

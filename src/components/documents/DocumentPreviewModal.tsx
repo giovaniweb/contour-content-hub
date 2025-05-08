@@ -43,14 +43,14 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
         setValidPdfUrl(document.preview_url);
       } else {
         console.error("Nenhuma URL de PDF válida disponível para o documento:", document.id);
-        toast("Nenhuma URL de PDF disponível para este documento");
+        toast.error("Nenhuma URL de PDF disponível para este documento");
         setValidPdfUrl(undefined);
         // Fechar o modal se não houver URL
         onOpenChange(false);
       }
     } catch (error) {
       console.error("Erro ao processar URL do PDF:", error);
-      toast("Erro ao processar URL do PDF");
+      toast.error("Erro ao processar URL do PDF");
       setValidPdfUrl(undefined);
       // Fechar o modal em caso de erro
       onOpenChange(false);

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { FileWarning, ExternalLink, RefreshCw } from 'lucide-react';
+import { FileWarning, ExternalLink, RefreshCw, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { processPdfUrl, openPdfInNewTab } from '@/utils/pdfUtils';
@@ -18,6 +18,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
+  const [zoom, setZoom] = useState(1);
 
   // Effect to process the PDF URL when the modal is opened
   useEffect(() => {
@@ -30,6 +31,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     setLoading(true);
     setError(null);
     setFinalUrl('');
+    setZoom(1);
     
     // Check if we have a URL
     if (!pdfUrl) {
@@ -45,6 +47,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
       const { processedUrl } = processPdfUrl(pdfUrl);
       
       if (processedUrl) {
+        console.log("Processed URL:", processedUrl);
         setFinalUrl(processedUrl);
       } else {
         setError("URL do documento inválida");
@@ -92,14 +95,57 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
     }, 100);
   };
 
+  // Zoom functions
+  const zoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const zoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  const resetZoom = () => {
+    setZoom(1);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="p-4">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="flex justify-between items-center">
             <span>Visualização do documento original</span>
             <div className="flex gap-2">
+              <div className="flex items-center border rounded-md px-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={zoomOut}
+                  className="p-1 h-8"
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-xs px-2">{Math.round(zoom * 100)}%</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={zoomIn}
+                  className="p-1 h-8"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={resetZoom}
+                className="flex items-center gap-1"
+              >
+                <RotateCw className="h-4 w-4" />
+                <span>Reset</span>
+              </Button>
+              
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -123,10 +169,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
           </DialogDescription>
         </DialogHeader>
         
-        <div className="w-full h-[80vh] bg-gray-100">
+        <div className="w-full h-[80vh] bg-gray-100 overflow-auto">
           {loading && (
             <div className="w-full h-full flex items-center justify-center">
               <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              <span className="ml-3 text-muted-foreground">Carregando documento...</span>
             </div>
           )}
           
@@ -155,17 +202,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
             </div>
           ) : (
             !loading && finalUrl && (
-              <iframe
-                src={finalUrl}
-                className="w-full h-full border-0"
-                title={title}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-                onLoad={() => console.log("PDF loaded successfully")}
-                onError={(e) => {
-                  console.error("Error loading PDF", e);
-                  setError("Não foi possível carregar o documento.");
-                }}
-              />
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s' }} className="min-h-full">
+                <iframe
+                  src={finalUrl}
+                  className="w-full h-full min-h-[80vh] border-0"
+                  title={title}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+                  onLoad={() => console.log("PDF loaded successfully")}
+                  onError={(e) => {
+                    console.error("Error loading PDF", e);
+                    setError("Não foi possível carregar o documento.");
+                  }}
+                />
+              </div>
             )
           )}
         </div>

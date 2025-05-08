@@ -1,9 +1,10 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, FileText, ExternalLink, Eye } from "lucide-react";
-import { processPdfUrl } from "@/utils/pdfUtils";
+import { X, FileText, ExternalLink, Eye, Download } from "lucide-react";
+import { processPdfUrl, downloadPdf } from "@/utils/pdfUtils";
 import PdfViewer from "@/components/documents/PdfViewer";
+import { toast } from "sonner";
 
 interface FilePreviewProps {
   file: File | null;
@@ -13,6 +14,7 @@ interface FilePreviewProps {
 
 const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile }) => {
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   
   if (!file && !fileUrl) {
     return null;
@@ -20,6 +22,24 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
 
   // Check if URL is valid for preview
   const isValidUrl = fileUrl && fileUrl.trim().length > 0;
+  
+  const handleDownload = async () => {
+    if (!fileUrl) {
+      toast.error("Nenhum arquivo disponível para download");
+      return;
+    }
+    
+    try {
+      setIsDownloading(true);
+      await downloadPdf(fileUrl, file?.name);
+      toast.success("Download iniciado");
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Erro ao iniciar download");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
   
   return (
     <div className="border rounded-md p-4 bg-muted/20 mt-4">
@@ -49,6 +69,17 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Visualizar
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                disabled={isDownloading}
+              >
+                <Download className="h-4 w-4 mr-1" />
+                {isDownloading ? "Baixando..." : "Download"}
               </Button>
               
               <Button
