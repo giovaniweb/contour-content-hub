@@ -42,7 +42,13 @@ const HomePage: React.FC = () => {
         </div>
         
         {/* Featured Banner - Step 1 */}
-        <HighlightBanner />
+        <HighlightBanner 
+          title="Crie conteúdo impactante"
+          description="Utilize nossa plataforma para criar scripts, vídeos e estratégias de conteúdo que engajam seu público."
+          ctaText="Começar agora"
+          ctaLink="/custom-gpt"
+          imageUrl="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
+        />
         
         {/* Trending Content - Step 2 */}
         <TrendingItems />
