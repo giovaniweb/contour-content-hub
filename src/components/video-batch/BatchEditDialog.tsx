@@ -42,10 +42,9 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
           <Select 
             value={batchEquipmentId} 
             onValueChange={setBatchEquipmentId}
-            placeholder="Selecione um equipamento"
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Nenhum equipamento</SelectItem>

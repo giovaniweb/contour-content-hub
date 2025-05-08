@@ -1,15 +1,14 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { ContentPlannerFilter } from "@/types/content-planner";
 import { useEquipments } from "@/hooks/useEquipments";
-import { CalendarIcon, Filter, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { FilterHeader } from "./filters/FilterHeader";
+import { FormatFilter } from "./filters/FormatFilter";
+import { ObjectiveFilter } from "./filters/ObjectiveFilter";
+import { DistributionFilter } from "./filters/DistributionFilter";
+import { EquipmentFilter } from "./filters/EquipmentFilter";
+import { DateRangeFilter } from "./filters/DateRangeFilter";
+import { hasActiveFilters } from "./filters/FilterUtils";
 
 interface ContentPlannerFiltersProps {
   filters: ContentPlannerFilter;
@@ -49,160 +48,53 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
     onFilterChange({});
   };
   
-  const hasActiveFilters = (): boolean => {
-    return Boolean(
-      filters.objective ||
-      filters.format ||
-      filters.distribution ||
-      filters.equipmentId ||
-      filters.dateRange?.from ||
-      filters.dateRange?.to
-    );
-  };
-  
   return (
     <div className="bg-muted/20 p-4 rounded-md">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium flex items-center">
-          <Filter className="h-4 w-4 mr-2" />
-          Filtros
-        </h3>
-        {hasActiveFilters() && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearFilters}
-            className="h-7 text-xs"
-          >
-            <X className="h-3 w-3 mr-1" />
-            Limpar filtros
-          </Button>
-        )}
-      </div>
+      <FilterHeader 
+        hasActiveFilters={hasActiveFilters(filters)}
+        onClearFilters={clearFilters}
+      />
       
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Format filter */}
         <div>
-          <Select
+          <FormatFilter 
             value={filters.format || "all"}
-            onValueChange={(value) => handleFilterChange('format', value === "all" ? undefined : value)}
-            placeholder="Formato"
-          >
-            <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os formatos</SelectItem>
-              <SelectItem value="vídeo">Vídeo</SelectItem>
-              <SelectItem value="story">Story</SelectItem>
-              <SelectItem value="carrossel">Carrossel</SelectItem>
-              <SelectItem value="reels">Reels</SelectItem>
-              <SelectItem value="texto">Texto</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => handleFilterChange('format', value)} 
+          />
         </div>
         
         {/* Objective filter */}
         <div>
-          <Select
+          <ObjectiveFilter 
             value={filters.objective || "all"}
-            onValueChange={(value) => handleFilterChange('objective', value === "all" ? undefined : value)}
-            placeholder="Objetivo"
-          >
-            <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os objetivos</SelectItem>
-              <SelectItem value="🟡 Atrair Atenção">Atrair Atenção</SelectItem>
-              <SelectItem value="🟢 Criar Conexão">Criar Conexão</SelectItem>
-              <SelectItem value="🔴 Fazer Comprar">Fazer Comprar</SelectItem>
-              <SelectItem value="🔁 Reativar Interesse">Reativar Interesse</SelectItem>
-              <SelectItem value="✅ Fechar Agora">Fechar Agora</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => handleFilterChange('objective', value)}
+          />
         </div>
         
         {/* Distribution filter */}
         <div>
-          <Select
+          <DistributionFilter 
             value={filters.distribution || "all"}
-            onValueChange={(value) => handleFilterChange('distribution', value === "all" ? undefined : value)}
-            placeholder="Canal"
-          >
-            <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os canais</SelectItem>
-              <SelectItem value="Instagram">Instagram</SelectItem>
-              <SelectItem value="YouTube">YouTube</SelectItem>
-              <SelectItem value="TikTok">TikTok</SelectItem>
-              <SelectItem value="Blog">Blog</SelectItem>
-              <SelectItem value="Múltiplos">Múltiplos</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => handleFilterChange('distribution', value)}
+          />
         </div>
         
         {/* Equipment filter */}
         <div>
-          <Select
+          <EquipmentFilter 
             value={filters.equipmentId || "all"}
-            onValueChange={(value) => handleFilterChange('equipmentId', value === "all" ? undefined : value)}
-            placeholder="Equipamento"
-          >
-            <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os equipamentos</SelectItem>
-              {equipments
-                .filter(equipment => equipment && equipment.id && equipment.id !== "")
-                .map((equipment) => (
-                  <SelectItem key={equipment.id} value={equipment.id}>
-                    {equipment.nome}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => handleFilterChange('equipmentId', value)}
+            equipments={equipments}
+          />
         </div>
         
         {/* Date range filter */}
         <div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left text-sm h-9 font-normal",
-                  !dateRange.from && !dateRange.to && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                      {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
-                    </>
-                  ) : (
-                    format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
-                  )
-                ) : (
-                  "Data de publicação"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={handleDateRangeChange}
-                initialFocus
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
+          <DateRangeFilter 
+            value={dateRange}
+            onChange={handleDateRangeChange}
+          />
         </div>
       </div>
     </div>

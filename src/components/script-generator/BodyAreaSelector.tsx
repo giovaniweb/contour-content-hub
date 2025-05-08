@@ -28,10 +28,9 @@ const BodyAreaSelector: React.FC<BodyAreaSelectorProps> = ({
     <Select 
       value={value || "default_area"} 
       onValueChange={onValueChange}
-      placeholder="Selecione uma área"
     >
       <SelectTrigger>
-        <SelectValue />
+        <SelectValue placeholder="Selecione uma área" />
       </SelectTrigger>
       <SelectContent>
         {bodyAreas
