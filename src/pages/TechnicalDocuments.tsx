@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/Layout';
 import DocumentUploadForm from '@/components/documents/DocumentUploadForm';
 import DocumentList from '@/components/documents/DocumentList';
-import DocumentFilters from '@/components/documents/DocumentFilters';
+import DocumentFilters from '@/components/documents/filters/DocumentFilters';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, FileText, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
