@@ -8,7 +8,8 @@ import Dashboard from '@/pages/Dashboard';
 import ContentPlannerPage from '@/pages/ContentPlannerPage'; 
 import ContentStrategy from '@/pages/ContentStrategy';
 import ScientificArticles from '@/pages/ScientificArticles'; 
-import ReportsPage from '@/pages/ReportsPage'; // Add the Reports page
+import ReportsPage from '@/pages/ReportsPage';
+import Settings from '@/pages/Settings';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/content-strategy" element={<ContentStrategy />} />
         <Route path="/articles" element={<ScientificArticles />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
       <Toaster />
     </SlideNotificationProvider>
