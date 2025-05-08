@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import HighlightBanner from "@/components/dashboard/HighlightBanner";
 import TrendingItems from "@/components/dashboard/TrendingItems";
 import RecommendationBlock from "@/components/dashboard/RecommendationBlock";
+import NotificationsDemo from "@/components/dashboard/NotificationsDemo";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -44,6 +45,9 @@ const Dashboard: React.FC = () => {
         <div className="mt-8">
           <RecommendationBlock />
         </div>
+        
+        {/* Add notification demo buttons */}
+        <NotificationsDemo />
       </div>
     </Layout>
   );
