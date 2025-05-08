@@ -1,125 +1,80 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import PrivateRoute from './components/PrivateRoute';
-import AdminRoute from './components/AdminRoute';
-
-import HomePage from './pages/HomePage';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
-import Index from './pages/Index';
-
-// Admin pages
-import AdminDashboard from './pages/AdminDashboard';
-import AdminContent from './pages/AdminContent';
-import AdminEquipments from './pages/AdminEquipments';
-import AdminIntegrations from './pages/AdminIntegrations';
-import VideoBatchImport from './pages/VideoBatchImport';
-import SystemIntelligence from './pages/SystemIntelligence';
-import SystemDiagnostics from './pages/SystemDiagnostics';
-
-// Other dashboard pages
-import Dashboard from './pages/Dashboard';
-import CustomGpt from './pages/CustomGpt';
-import ScriptGenerator from './pages/ScriptGenerator';
-import ScriptValidation from './pages/ScriptValidation';
-import ScriptValidationPage from './pages/ScriptValidationPage';
-import ScriptHistory from './pages/ScriptHistory';
-import ContentStrategy from './pages/ContentStrategy';
-import Calendar from './pages/Calendar';
-import EquipmentsPage from './pages/EquipmentsPage';
-import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
-import EquipmentDetails from './pages/EquipmentDetails';
-import MediaLibrary from './pages/MediaLibrary';
-import MarketingConsultant from './pages/MarketingConsultant';
-import TechnicalDocuments from './pages/TechnicalDocuments';
-import DocumentDetail from './pages/DocumentDetail';
-
-// Video storage related pages
-import VideoStorage from './pages/VideoStorage';
-import VideoSwipe from './pages/VideoSwipe';
-import VideoBatchManage from './pages/VideoBatchManage';
-
-// Sellers pages
-import SellerDashboard from './pages/seller/SellerDashboard';
-import ClientList from './pages/seller/ClientList';
-import ClientDetail from './pages/seller/ClientDetail';
-
-// Providers
-import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './components/theme-provider';
+import React from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import HomePage from "@/pages/HomePage";
+import UploadPage from "@/pages/UploadPage";
+import VideoStorage from "@/pages/VideoStorage";
+import VideoSwipe from "@/pages/VideoSwipe";
+import VideoPlayer from "@/pages/VideoPlayer";
+import BatchVideoManager from '@/pages/BatchVideoManager';
+import { AuthProvider } from '@/context/AuthContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import EquipmentPage from '@/pages/EquipmentPage';
 
 function App() {
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <HomePage />,
+    },
+    {
+      path: "/login",
+      element: <LoginPage />,
+    },
+    {
+      path: "/register",
+      element: <RegisterPage />,
+    },
+    {
+      path: "/upload",
+      element: (
+        <ProtectedRoute>
+          <UploadPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/video-storage",
+      element: (
+        <ProtectedRoute>
+          <VideoStorage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/batch-video-manager",
+      element: (
+        <ProtectedRoute>
+          <BatchVideoManager />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/equipments",
+      element: (
+        <ProtectedRoute>
+          <EquipmentPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/video-swipe",
+      element: <VideoSwipe />,
+    },
+    {
+      path: "/video-player",
+      element: <VideoPlayer />,
+    },
+  ]);
+
   return (
-    <ThemeProvider defaultTheme="light">
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            
-            {/* Protected routes */}
-            <Route element={<PrivateRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/custom-gpt" element={<CustomGpt />} />
-              <Route path="/generate-script" element={<ScriptGenerator />} />
-              <Route path="/script-validation" element={<ScriptValidation />} />
-              <Route path="/script-validation/:id" element={<ScriptValidationPage />} />
-              <Route path="/script-history" element={<ScriptHistory />} />
-              <Route path="/content-strategy" element={<ContentStrategy />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/equipment" element={<EquipmentsPage />} />
-              <Route path="/equipment-details" element={<EquipmentDetails />} />
-              <Route path="/equipment/:id" element={<EquipmentDetailsPage />} />
-              <Route path="/equipments" element={<EquipmentsPage />} />
-              <Route path="/equipments/:id" element={<EquipmentDetailsPage />} />
-              <Route path="/media-library" element={<MediaLibrary />} />
-              <Route path="/marketing-consultant" element={<MarketingConsultant />} />
-              <Route path="/system-intelligence" element={<SystemIntelligence />} />
-              <Route path="/system-diagnostics" element={<SystemDiagnostics />} />
-              <Route path="/documents" element={<TechnicalDocuments />} />
-              <Route path="/documents/:id" element={<DocumentDetail />} />
-              <Route path="/videos" element={<VideoStorage />} />
-              <Route path="/videos/batch-manage" element={<VideoBatchManage />} />
-              <Route path="/video-swipe" element={<VideoSwipe />} />
-            </Route>
-            
-            {/* Admin routes */}
-            <Route element={<AdminRoute />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/content" element={<AdminContent />} />
-              <Route path="/admin/equipment" element={<AdminEquipments />} />
-              <Route path="/admin/equipments" element={<AdminEquipments />} />
-              <Route path="/admin/videos" element={<VideoBatchImport />} />
-              <Route path="/admin/videos/batch-import" element={<VideoBatchImport />} />
-              <Route path="/admin/integrations" element={<AdminIntegrations />} />
-              <Route path="/admin/system-intelligence" element={<SystemIntelligence />} />
-              <Route path="/admin/system-diagnostics" element={<SystemDiagnostics />} />
-            </Route>
-            
-            {/* Seller routes */}
-            <Route element={<PrivateRoute />}>
-              <Route path="/seller/dashboard" element={<SellerDashboard />} />
-              <Route path="/seller/clients" element={<ClientList />} />
-              <Route path="/seller/clients/:id" element={<ClientDetail />} />
-            </Route>
-            
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   );
 }
 
