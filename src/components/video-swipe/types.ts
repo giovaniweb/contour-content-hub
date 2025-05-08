@@ -1,6 +1,7 @@
 
 import { VideoCardBaseProps } from '@/components/video-storage/types';
 import { StoredVideo } from '@/types/video-storage';
+import { VideoPlayerOptions, VideoPlayerState } from '@/hooks/video-player/types';
 
 export interface VideoSwipeProps extends VideoCardBaseProps {
   onSwipeLeft?: () => void;
@@ -23,9 +24,4 @@ export interface VideoSwipeState {
   isPlaying: boolean;
 }
 
-export interface VideoPlayerState {
-  isPlaying: boolean;
-  isMuted: boolean;
-  progress: number;
-  showControls: boolean;
-}
+export type { VideoPlayerState, VideoPlayerOptions };
