@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { StoredVideo } from '@/types/video-storage';
 import { SwipeAnimationVariants } from '@/hooks/video-swipe/use-swipe-animations';
 
@@ -15,7 +15,7 @@ const VideoSwipeCard: React.FC<VideoSwipeCardProps> = ({ video, direction, varia
     <motion.div
       key={video.id}
       custom={direction}
-      variants={variants}
+      variants={variants as Variants}
       initial="enter"
       animate="center"
       exit="exit"
