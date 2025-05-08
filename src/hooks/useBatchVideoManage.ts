@@ -1,31 +1,29 @@
-import { useState, useEffect } from 'react';
+
+import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
-import { StoredVideo, VideoMetadata, VideoMetadataSchema } from '@/types/video-storage';
-import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorage';
 import { usePermissions } from '@/hooks/use-permissions';
-import { supabase } from '@/integrations/supabase/client';
+import { StoredVideo } from '@/types/video-storage';
+import { EditableVideo, UseBatchVideoManageResult } from './video-batch/types';
+import { useVideoBatchState } from './video-batch/stateManagement';
+import { 
+  loadVideosData, 
+  saveVideoData, 
+  deleteVideoData, 
+  batchUpdateEquipment 
+} from './video-batch/videoOperations';
 
-interface EditableVideo extends StoredVideo {
-  isEditing: boolean;
-  editTitle: string;
-  editDescription: string;
-  editEquipmentId: string;
-  editTags: string[];
-  originalEquipmentId?: string;
-}
-
-export const useBatchVideoManage = () => {
+export const useBatchVideoManage = (): UseBatchVideoManageResult => {
   const { toast } = useToast();
   const { isAdmin } = usePermissions();
   const { equipments } = useEquipments();
   
-  const [videos, setVideos] = useState<EditableVideo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [batchEquipmentId, setBatchEquipmentId] = useState<string>('');
-  const [showBatchEditDialog, setShowBatchEditDialog] = useState(false);
+  const { 
+    videos, loading, selectedVideos, searchQuery, 
+    batchEquipmentId, showBatchEditDialog,
+    setVideos, setLoading, setSelectedVideos,
+    setSearchQuery, setBatchEquipmentId, setShowBatchEditDialog
+  } = useVideoBatchState();
 
   // Filter videos based on search query
   const filteredVideos = videos.filter(video => {
@@ -42,34 +40,7 @@ export const useBatchVideoManage = () => {
   const loadVideos = async () => {
     try {
       setLoading(true);
-      const response = await getVideos();
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      // Transform videos to add editing state
-      const editableVideos: EditableVideo[] = response.videos.map(video => {
-        // Extract equipment ID from metadata
-        let equipmentId = 'none';
-        if (video.metadata) {
-          const metadata = video.metadata as VideoMetadata;
-          if (metadata.equipment_id) {
-            equipmentId = metadata.equipment_id;
-          }
-        }
-        
-        return {
-          ...video,
-          isEditing: false,
-          editTitle: video.title,
-          editDescription: video.description || '',
-          editTags: [...video.tags],
-          editEquipmentId: equipmentId,
-          originalEquipmentId: equipmentId === 'none' ? undefined : equipmentId
-        };
-      });
-      
+      const editableVideos = await loadVideosData();
       setVideos(editableVideos);
     } catch (error: any) {
       toast({
@@ -123,99 +94,7 @@ export const useBatchVideoManage = () => {
     if (!video) return;
     
     try {
-      // Update video basic info
-      const updateResult = await updateVideo(videoId, {
-        title: video.editTitle,
-        description: video.editDescription,
-        tags: video.editTags,
-      });
-      
-      if (!updateResult.success) {
-        throw new Error(updateResult.error);
-      }
-      
-      // If equipment changed, update the metadata
-      if (video.editEquipmentId !== video.originalEquipmentId) {
-        if (video.editEquipmentId === 'none') {
-          // Remove equipment association
-          const metadataObj = {
-            ...(video.metadata || {}),
-            equipment_id: null
-          };
-          
-          const metadata = VideoMetadataSchema.parse(metadataObj);
-          
-          await supabase.from('videos_storage')
-            .update({
-              metadata
-            })
-            .eq('id', videoId);
-            
-          // Also remove from videos table if applicable
-          await supabase.from('videos')
-            .update({
-              equipment_id: null
-            })
-            .eq('id', videoId);
-        } else {
-          // Add/update equipment association
-          const selectedEquipment = equipments.find(eq => eq.id === video.editEquipmentId);
-          
-          const metadataObj = {
-            ...(video.metadata || {}),
-            equipment_id: video.editEquipmentId
-          };
-          
-          const metadata = VideoMetadataSchema.parse(metadataObj);
-          
-          await supabase.from('videos_storage')
-            .update({
-              metadata
-            })
-            .eq('id', videoId);
-            
-          // Update videos table if applicable
-          if (selectedEquipment) {
-            // Check if record exists in videos table
-            const { data: existingVideo } = await supabase
-              .from('videos')
-              .select()
-              .eq('id', videoId)
-              .single();
-              
-            if (existingVideo) {
-              await supabase.from('videos')
-                .update({
-                  equipment_id: video.editEquipmentId,
-                  equipamentos: [selectedEquipment.nome]
-                })
-                .eq('id', videoId);
-            } else {
-              // Create record if it doesn't exist
-              // First, get video details from videos_storage
-              const { data: videoData } = await supabase
-                .from('videos_storage')
-                .select('title, description, file_urls, tags')
-                .eq('id', videoId)
-                .single();
-                
-              if (videoData) {
-                const fileUrls = videoData.file_urls as Record<string, string>;
-                await supabase.from('videos')
-                  .insert({
-                    id: videoId,
-                    titulo: videoData.title,
-                    descricao: videoData.description || '',
-                    url_video: fileUrls?.original || '',
-                    equipamentos: [selectedEquipment.nome],
-                    equipment_id: video.editEquipmentId,
-                    tags: video.editTags || []
-                  });
-              }
-            }
-          }
-        }
-      }
+      await saveVideoData(video, equipments);
       
       // Update local state
       setVideos(videos.map(v => {
@@ -268,11 +147,7 @@ export const useBatchVideoManage = () => {
     }
     
     try {
-      const result = await deleteVideo(videoId);
-      
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      await deleteVideoData(videoId);
       
       setVideos(videos.filter(v => v.id !== videoId));
       setSelectedVideos(selectedVideos.filter(id => id !== videoId));
@@ -303,11 +178,11 @@ export const useBatchVideoManage = () => {
       
       // Process deletes sequentially to avoid rate limiting
       for (const videoId of selectedVideos) {
-        const result = await deleteVideo(videoId);
-        
-        if (result.success) {
+        try {
+          await deleteVideoData(videoId);
           successCount++;
-        } else {
+        } catch (error) {
+          console.error(`Error deleting video ${videoId}:`, error);
           failCount++;
         }
       }
@@ -341,97 +216,11 @@ export const useBatchVideoManage = () => {
     if (selectedVideos.length === 0 || !batchEquipmentId) return;
     
     try {
-      let successCount = 0;
-      let failCount = 0;
-      
-      const selectedEquipment = batchEquipmentId === 'none' 
-        ? null 
-        : equipments.find(eq => eq.id === batchEquipmentId);
-      
-      // Process updates sequentially
-      for (const videoId of selectedVideos) {
-        try {
-          if (batchEquipmentId === 'none') {
-            // Remove equipment association
-            const metadataObj = {
-              equipment_id: null
-            };
-            
-            const metadata = VideoMetadataSchema.parse(metadataObj);
-            
-            await supabase.from('videos_storage')
-              .update({
-                metadata
-              })
-              .eq('id', videoId);
-              
-            // Also remove from videos table if applicable
-            await supabase.from('videos')
-              .update({
-                equipment_id: null,
-                equipamentos: []
-              })
-              .eq('id', videoId);
-          } else if (selectedEquipment) {
-            // Add/update equipment association
-            const metadataObj = {
-              equipment_id: batchEquipmentId
-            };
-            
-            const metadata = VideoMetadataSchema.parse(metadataObj);
-            
-            await supabase.from('videos_storage')
-              .update({
-                metadata
-              })
-              .eq('id', videoId);
-              
-            // Check if record exists in videos table
-            const { data: existingVideo } = await supabase
-              .from('videos')
-              .select()
-              .eq('id', videoId)
-              .single();
-              
-            if (existingVideo) {
-              // For existing videos in the videos table, update the equipment_id
-              await supabase.from('videos')
-                .update({
-                  equipment_id: batchEquipmentId,
-                  equipamentos: [selectedEquipment.nome]
-                })
-                .eq('id', videoId);
-            } else {
-              // Create a new entry in the videos table with equipment_id
-              // First, get video details from videos_storage
-              const { data: videoData } = await supabase
-                .from('videos_storage')
-                .select('title, description, file_urls, tags')
-                .eq('id', videoId)
-                .single();
-                
-              if (videoData) {
-                const fileUrls = videoData.file_urls as Record<string, string>;
-                await supabase.from('videos')
-                  .insert({
-                    id: videoId,
-                    titulo: videoData.title,
-                    descricao: videoData.description || '',
-                    url_video: fileUrls?.original || '',
-                    equipamentos: [selectedEquipment.nome],
-                    equipment_id: batchEquipmentId,
-                    tags: videoData.tags || []
-                  });
-              }
-            }
-          }
-          
-          successCount++;
-        } catch (error) {
-          console.error(`Error updating video ${videoId}:`, error);
-          failCount++;
-        }
-      }
+      const { successCount, failCount } = await batchUpdateEquipment(
+        selectedVideos, 
+        batchEquipmentId, 
+        equipments
+      );
       
       // Update local state
       setVideos(videos.map(video => {

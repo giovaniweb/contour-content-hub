@@ -1,5 +1,6 @@
 // Re-export video types to keep them accessible
 import { VideoMetadataSchema } from '@/types/video-storage';
+import { Json } from '@/types/supabase';
 
 export type { 
   VideoStatus, 

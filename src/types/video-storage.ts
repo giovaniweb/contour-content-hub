@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 // Define Zod schema for VideoMetadata
 export const VideoMetadataSchema = z.object({
-  equipment_id: z.string().optional(),
+  equipment_id: z.string().optional().nullable(),
   original_filename: z.string().optional(),
   width: z.number().optional(),
   height: z.number().optional(),
