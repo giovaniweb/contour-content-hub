@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,7 @@ interface ContentPlannerCardProps {
   onGenerateScript?: (item: ContentPlannerItem) => void;
   onValidate?: (item: ContentPlannerItem) => void;
   onSchedule?: (item: ContentPlannerItem) => void;
+  onViewDetails?: (item: ContentPlannerItem) => void; // New prop for detailed view
 }
 
 const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
@@ -26,7 +26,8 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
   onDelete,
   onGenerateScript,
   onValidate,
-  onSchedule
+  onSchedule,
+  onViewDetails
 }) => {
   // Format objective for display
   const formatObjective = (objective: string) => {
@@ -41,6 +42,19 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
     return objective;
   };
   
+  // Handle click on the card
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If clicking on a button, prevent opening the detailed view
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
+    // Open detailed view
+    if (onViewDetails) {
+      onViewDetails(item);
+    }
+  };
+  
   return (
     <Draggable draggableId={item.id} index={index}>
       {(provided) => (
@@ -49,8 +63,9 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className="mb-3"
+          onClick={handleCardClick}
         >
-          <Card className="bg-card shadow-sm hover:shadow-md transition-all">
+          <Card className="bg-card shadow-sm hover:shadow-md transition-all cursor-pointer">
             <CardHeader className="py-3 px-4">
               <div className="flex items-start justify-between">
                 <h3 className="text-sm font-medium line-clamp-2">{item.title}</h3>
@@ -144,7 +159,10 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                   variant="ghost" 
                   size="sm" 
                   className="h-7 px-2 text-xs"
-                  onClick={() => onEdit(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(item);
+                  }}
                 >
                   Editar
                 </Button>
@@ -152,7 +170,10 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                   variant="ghost" 
                   size="sm"
                   className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                  onClick={() => onDelete(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(item.id);
+                  }}
                 >
                   Remover
                 </Button>
@@ -165,7 +186,10 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     variant="outline"
                     size="sm"
                     className="h-7 px-2 text-xs"
-                    onClick={() => onGenerateScript(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onGenerateScript(item);
+                    }}
                   >
                     <FileText className="h-3 w-3 mr-1" />
                     Gerar Roteiro
@@ -177,7 +201,10 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     variant="outline"
                     size="sm"
                     className="h-7 px-2 text-xs"
-                    onClick={() => onValidate(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onValidate(item);
+                    }}
                   >
                     <Check className="h-3 w-3 mr-1" />
                     Validar
@@ -189,7 +216,10 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     variant="outline"
                     size="sm"
                     className="h-7 px-2 text-xs"
-                    onClick={() => onSchedule(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSchedule(item);
+                    }}
                   >
                     <Calendar className="h-3 w-3 mr-1" />
                     Agendar
@@ -202,6 +232,7 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     size="sm"
                     className="h-7 px-2 text-xs"
                     disabled
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <ArrowRight className="h-3 w-3 mr-1" />
                     Publicar

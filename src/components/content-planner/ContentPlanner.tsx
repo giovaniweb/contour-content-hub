@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import KanbanBoard from './KanbanBoard';
+import ContentPlannerDetailModal from './ContentPlannerDetailModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -9,14 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, Calendar, Sparkles } from 'lucide-react';
 import { useContentPlanner } from '@/hooks/useContentPlanner';
+import { ContentPlannerItem } from '@/types/content-planner';
 
 const ContentPlanner: React.FC = () => {
   const [view, setView] = useState<'board' | 'list' | 'calendar'>('board');
   const [smartSuggestionsEnabled, setSmartSuggestionsEnabled] = useState(true);
   const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(false);
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ContentPlannerItem | null>(null);
   
-  const { loading } = useContentPlanner();
+  const { loading, addItem, updateItem, removeItem } = useContentPlanner();
 
   const handleGenerateSuggestions = () => {
     setIsGeneratingSuggestions(true);
@@ -24,6 +28,11 @@ const ContentPlanner: React.FC = () => {
     setTimeout(() => {
       setIsGeneratingSuggestions(false);
     }, 2000);
+  };
+  
+  const handleViewDetails = (item: ContentPlannerItem) => {
+    setSelectedItem(item);
+    setDetailModalOpen(true);
   };
 
   return (
@@ -125,6 +134,14 @@ const ContentPlanner: React.FC = () => {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <ContentPlannerDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        item={selectedItem}
+        onUpdate={updateItem}
+        onDelete={removeItem}
+      />
     </div>
   );
 };

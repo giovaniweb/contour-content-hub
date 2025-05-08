@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import DistributionDialog from "./DistributionDialog";
 import { ContentPlannerItem } from '@/types/content-planner';
+import ContentPlannerDetailModal from './ContentPlannerDetailModal';
 
 // Kanban column definition
 interface KanbanColumn {
@@ -207,6 +207,10 @@ const KanbanBoard: React.FC = () => {
   });
   const { showNotification } = useSlideNotifications();
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // New state for the detailed modal
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedContentItem, setSelectedContentItem] = useState<ContentPlannerItem | null>(null);
 
   // Handle drag and drop
   const onDragEnd = (result: DropResult) => {
@@ -422,6 +426,13 @@ const KanbanBoard: React.FC = () => {
   // Open card details
   const openCardDetails = (item: KanbanItem) => {
     setSelectedItem(item);
+    
+    // Convert KanbanItem to ContentPlannerItem for the detail modal
+    const contentItem = convertToContentPlannerItem(item);
+    setSelectedContentItem(contentItem);
+    setDetailModalOpen(true);
+    
+    // Keep the existing functionality as well
     setShowCardDetailDialog(true);
   };
   
@@ -521,6 +532,58 @@ const KanbanBoard: React.FC = () => {
     };
   };
 
+  // Update content item in the Detail Modal
+  const handleUpdateContentItem = async (id: string, data: Partial<ContentPlannerItem>): Promise<ContentPlannerItem | null> => {
+    // Find the corresponding KanbanItem
+    let updatedItem = null;
+    
+    setColumns(columns.map(col => ({
+      ...col,
+      items: col.items.map(item => {
+        if (item.id === id) {
+          const updated = {
+            ...item,
+            ...data,
+            title: data.title || item.title
+          };
+          updatedItem = updated;
+          return updated;
+        }
+        return item;
+      })
+    })));
+    
+    // Show success notification
+    showNotification({
+      title: 'Item Atualizado',
+      message: 'As alterações foram salvas com sucesso',
+      type: 'success',
+    });
+    
+    return updatedItem ? convertToContentPlannerItem(updatedItem) : null;
+  };
+  
+  // Delete content item from the Detail Modal
+  const handleDeleteContentItem = async (id: string): Promise<boolean> => {
+    // Remove the item from all columns
+    setColumns(columns.map(col => ({
+      ...col,
+      items: col.items.filter(item => item.id !== id)
+    })));
+    
+    // Close the modal
+    setDetailModalOpen(false);
+    
+    // Show success notification
+    showNotification({
+      title: 'Item Removido',
+      message: 'O item foi excluído com sucesso',
+      type: 'success',
+    });
+    
+    return true;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -586,9 +649,10 @@ const KanbanBoard: React.FC = () => {
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               className={cn(
-                                "mb-3 shadow-sm hover:shadow-md transition-shadow",
+                                "mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer",
                                 snapshot.isDragging && "shadow-md rotate-2"
                               )}
+                              onClick={() => openCardDetails(item)}
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between">
@@ -683,7 +747,7 @@ const KanbanBoard: React.FC = () => {
         onDistribute={handleDistribute}
       />
       
-      {/* Card Details Dialog */}
+      {/* Card Detail Modal - OLD UI */}
       <Dialog open={showCardDetailDialog} onOpenChange={setShowCardDetailDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -755,6 +819,15 @@ const KanbanBoard: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* New Content Detail Modal */}
+      <ContentPlannerDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        item={selectedContentItem}
+        onUpdate={handleUpdateContentItem}
+        onDelete={handleDeleteContentItem}
+      />
       
       {/* Generate AI Caption Dialog */}
       <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
