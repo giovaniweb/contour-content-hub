@@ -25,6 +25,9 @@ export interface ContentPlannerItem {
   createdAt: string;
   updatedAt: string;
   aiGenerated: boolean;
+  createdById?: string;
+  responsibleId?: string;
+  responsibleName?: string;
 }
 
 export interface ContentPlannerColumn {
@@ -39,7 +42,8 @@ export interface ContentPlannerFilter {
   format?: string;
   distribution?: string;
   equipmentId?: string;
-  status?: ContentPlannerStatus; // Adicionando campo status ao filtro
+  status?: ContentPlannerStatus;
+  responsibleId?: string;
   dateRange?: {
     from?: Date;
     to?: Date;

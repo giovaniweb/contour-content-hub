@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 // Componente simplificado de autenticação
 // Em uma implementação real, isto verificaria o estado de autenticação
