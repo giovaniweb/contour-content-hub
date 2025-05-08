@@ -65,7 +65,7 @@ const RecommendationBlock: React.FC<RecommendationBlockProps> = ({ maxItems = 4 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-contourline-mediumBlue" />
-          <h2 className="text-2xl font-bold">Recomendações para Você</h2>
+          <h2 className="text-2xl font-bold">Recomendações Personalizadas</h2>
         </div>
         <Button variant="outline" size="sm" className="text-sm">
           Atualizar

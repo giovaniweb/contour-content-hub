@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import HighlightBanner from "@/components/dashboard/HighlightBanner";
 import TrendingItems from "@/components/dashboard/TrendingItems";
+import RecommendationBlock from "@/components/dashboard/RecommendationBlock";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -37,6 +38,11 @@ const Dashboard: React.FC = () => {
         {/* Trending Items */}
         <div className="mt-8">
           <TrendingItems />
+        </div>
+        
+        {/* Recommendation Block */}
+        <div className="mt-8">
+          <RecommendationBlock />
         </div>
       </div>
     </Layout>
