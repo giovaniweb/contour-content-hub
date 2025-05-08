@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import ScientificArticleForm from './ScientificArticleForm';
 
 interface ScientificArticleDialogProps {
@@ -17,8 +16,7 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
   onSuccess,
   articleData
 }) => {
-  // Significantly more robust key generation system
-  // Uses operation type + timestamp + random value + article ID if present
+  // Geração de chave única para forçar remontagem do componente
   const generateFormKey = () => {
     const operation = articleData ? `edit-${articleData.id}` : 'new';
     const timestamp = Date.now();
@@ -26,10 +24,10 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
     return `article-form-${operation}-${timestamp}-${randomValue}`;
   };
   
-  // Initialize form key state
+  // Estado para a chave do formulário
   const [formKey, setFormKey] = useState(generateFormKey());
   
-  // Force a complete remount of the component whenever dialog opens or article changes
+  // Força remontagem do componente quando o diálogo abre ou o artigo muda
   useEffect(() => {
     console.log(`Dialog state changed - isOpen: ${isOpen}, mode: ${articleData ? 'edit' : 'new'}`);
     
@@ -38,14 +36,14 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
       console.log(`Generating new form key: ${newKey}`);
       setFormKey(newKey);
       
-      // Additional cleanup for safety
+      // Limpeza adicional para segurança
       if (!articleData) {
         console.log("Creating new article - ensuring all previous states are cleared");
       }
     }
   }, [isOpen, articleData]);
 
-  // Ensure the dialog is completely remounted when article ID changes
+  // Garante que o diálogo seja remontado quando o ID do artigo muda
   useEffect(() => {
     if (articleData?.id) {
       console.log(`Article ID changed to: ${articleData.id}, forcing remount`);
@@ -74,17 +72,16 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        {/* Only render form when dialog is open and with a unique key to force remount */}
+        {/* Renderiza o formulário apenas quando o diálogo está aberto e com uma chave única para forçar remontagem */}
         {isOpen && (
           <ScientificArticleForm
             key={formKey}
             isOpen={isOpen}
             articleData={articleData}
-            forceClearState={!articleData} // Pass explicit flag to clear state for new articles
+            forceClearState={!articleData} // Flag explícita para limpar o estado para novos artigos
             onSuccess={(data) => {
               console.log("Form submitted successfully, calling onSuccess");
               onSuccess(data);
-              onClose();
             }}
             onCancel={() => {
               console.log("Form cancelled, calling onClose");

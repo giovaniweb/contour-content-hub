@@ -37,21 +37,21 @@ const ScientificArticleManager: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('documentos_tecnicos')
-          .select('descricao') // Changed from 'topic' to 'descricao' as a potential topic field
+          .select('descricao') 
           .eq('tipo', 'artigo_cientifico')
           .order('descricao');
           
         if (error) throw error;
         
-        // Extract and deduplicate topics from description field (or another appropriate field)
+        // Extract and deduplicate topics from description field
         const topics = [...new Set(data
           .map(item => item.descricao)
           .filter(Boolean)
-          .map(desc => typeof desc === 'string' ? desc.split(' ')[0] : '') // Just as an example to extract topics
+          .map(desc => typeof desc === 'string' ? desc.split(' ')[0] : '') 
           .filter(t => t.length > 0)
         )];
         
-        setTopicOptions(topics.length > 0 ? topics : ['General']); // Default to 'General' if no topics found
+        setTopicOptions(topics.length > 0 ? topics : ['General']); 
       } catch (error) {
         console.error('Error fetching topics:', error);
       }
@@ -60,7 +60,7 @@ const ScientificArticleManager: React.FC = () => {
     fetchTopics();
   }, []);
 
-  // Fetch articles - Fixed function with better error logging
+  // Fetch articles
   const fetchArticles = async () => {
     try {
       setIsLoading(true);
@@ -103,13 +103,13 @@ const ScientificArticleManager: React.FC = () => {
     }
   };
 
-  // Add this useEffect hook to make sure articles are fetched when the component mounts
+  // Make sure articles are fetched when the component mounts
   // and when search or filter changes
   useEffect(() => {
     fetchArticles();
   }, [searchQuery, filterEquipment]);
 
-  // Make sure the handler for article added refreshes the list
+  // Handler for article added refreshes the list
   const handleArticleAdded = (articleData: any) => {
     console.log("Article added or updated:", articleData);
     fetchArticles();
@@ -226,12 +226,11 @@ const ScientificArticleManager: React.FC = () => {
         <ScientificArticleList 
           articles={articles} 
           onDelete={handleDeleteArticle} 
-          onUpdate={handleOpenEditArticleDialog} // This matches the expected (article: any) => void signature
+          onUpdate={handleOpenEditArticleDialog}
           viewMode={viewMode}
         />
       )}
       
-      {/* Use the ScientificArticleDialog component */}
       <ScientificArticleDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}

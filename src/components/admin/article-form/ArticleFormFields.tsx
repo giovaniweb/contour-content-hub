@@ -58,6 +58,7 @@ const ArticleFormFields: React.FC<ArticleFormFieldsProps> = ({ form, equipments 
               <FormLabel>Equipamento relacionado</FormLabel>
               <Select
                 onValueChange={field.onChange}
+                value={field.value || ''}
                 defaultValue={field.value || ''}
               >
                 <FormControl>
@@ -87,6 +88,7 @@ const ArticleFormFields: React.FC<ArticleFormFieldsProps> = ({ form, equipments 
               <FormLabel>Idioma original</FormLabel>
               <Select
                 onValueChange={field.onChange}
+                value={field.value}
                 defaultValue={field.value}
               >
                 <FormControl>

@@ -24,7 +24,7 @@ export const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-// Default values for the form
+// Valores padrão para o formulário
 const defaultFormValues: FormValues = {
   titulo: "",
   descricao: "",
@@ -34,30 +34,29 @@ const defaultFormValues: FormValues = {
 };
 
 export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: (data?: any) => void, isDialogOpen: boolean = false) => {
-  // State for form submission control
+  // Estado para controle de submissão do formulário
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get available equipment data
+  // Obtém dados de equipamentos disponíveis
   const { equipments } = useEquipments();
   
-  // Reset all form state values to their defaults
+  // Resetar todos os valores do estado do formulário para os padrões
   const resetFormState = useCallback(() => {
     console.log("Resetting form state");
-    // This function is designed to be called externally
-    // to reset form state when necessary (e.g., on dialog open,
-    // on form submission success, or when unmounting the component)
+    // Esta função é projetada para ser chamada externamente
+    // para resetar o estado do formulário quando necessário
   }, []);
 
-  // Form submission handler
+  // Manipulador de envio do formulário
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
       console.log("Submitting form with values:", values);
       
-      // Use fileUrl from upload step or link_dropbox value
+      // Use fileUrl do passo de upload ou valor de link_dropbox
       const finalFileUrl = values.link_dropbox || null;
       
-      // Build article payload
+      // Construir payload do artigo
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
@@ -74,7 +73,7 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
       let savedArticleData = null;
 
       if (articleData && articleData.id) {
-        // Update existing article
+        // Atualizar artigo existente
         const { error, data } = await supabase
           .from('documentos_tecnicos')
           .update(articlePayload)
@@ -87,8 +86,9 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         }
 
         savedArticleData = data ? data[0] : articleData;
+        console.log("Article updated successfully:", savedArticleData);
       } else {
-        // Create new article
+        // Criar novo artigo
         const { error, data } = await supabase
           .from('documentos_tecnicos')
           .insert([articlePayload])
@@ -100,9 +100,10 @@ export const useArticleForm = (articleData: ArticleData | undefined, onSuccess: 
         }
 
         savedArticleData = data ? data[0] : null;
+        console.log("Article created successfully:", savedArticleData);
       }
 
-      // Pass the saved data to success handler
+      // Passar os dados salvos para o manipulador de sucesso
       onSuccess(savedArticleData);
     } catch (error: any) {
       console.error('Error saving article:', error);
