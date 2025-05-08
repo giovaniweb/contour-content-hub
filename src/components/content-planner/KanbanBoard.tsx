@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import DistributionDialog from "./DistributionDialog";
 
 // Kanban column definition
 interface KanbanColumn {
@@ -428,6 +429,72 @@ const KanbanBoard: React.FC = () => {
     setShowGenerateDialog(true);
   };
   
+  // Add a handler for distribution
+  const handleDistribute = (platforms: string[]) => {
+    if (!selectedItem) return;
+
+    // Create new subtasks based on distributed platforms
+    const platformSubtasks = platforms.map(platform => ({
+      id: `dist-${selectedItem.id}-${platform}`,
+      text: `Publicado no ${platform.charAt(0).toUpperCase() + platform.slice(1)}`,
+      completed: true
+    }));
+    
+    // Update the item and move it to the distributed column if needed
+    if (platforms.length > 0) {
+      // First, find and update the item
+      setColumns(columns.map(col => ({
+        ...col,
+        items: col.items.map(item => {
+          if (item.id === selectedItem.id) {
+            return {
+              ...item,
+              status: 'distributed',
+              subtasks: [...item.subtasks, ...platformSubtasks]
+            };
+          }
+          return item;
+        })
+      })));
+      
+      // Then, move it from published to distributed
+      setTimeout(() => {
+        setColumns(columns => {
+          const publishedItems = columns.find(col => col.id === 'published')?.items.filter(item => 
+            item.id !== selectedItem.id
+          ) || [];
+          
+          const distributedItems = [...(columns.find(col => col.id === 'distributed')?.items || [])];
+          
+          if (!distributedItems.some(item => item.id === selectedItem.id)) {
+            distributedItems.push({
+              ...selectedItem,
+              status: 'distributed',
+              subtasks: [...selectedItem.subtasks, ...platformSubtasks]
+            });
+          }
+          
+          return columns.map(col => {
+            if (col.id === 'published') {
+              return { ...col, items: publishedItems };
+            }
+            if (col.id === 'distributed') {
+              return { ...col, items: distributedItems };
+            }
+            return col;
+          });
+        });
+        
+        // Show success notification
+        showNotification({
+          title: 'Conteúdo Distribuído',
+          message: `Conteúdo distribuído para ${platforms.length} plataformas`,
+          type: 'success',
+        });
+      }, 500);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -583,57 +650,13 @@ const KanbanBoard: React.FC = () => {
       </DragDropContext>
       
       {/* Distribution Dialog */}
-      <Dialog open={showDistributionDialog} onOpenChange={setShowDistributionDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Distribuir Conteúdo</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="mb-4">Parabéns! Seu conteúdo foi publicado. Escolha as plataformas para distribuição:</p>
-            
-            <div className="space-y-3 mb-6">
-              {distributionPlatforms.map(platform => (
-                <div key={platform.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={platform.id} 
-                    checked={selectedPlatforms[platform.id]} 
-                    onCheckedChange={() => handlePlatformChange(platform.id)}
-                  />
-                  <Label htmlFor={platform.id} className="flex items-center">
-                    <platform.icon className={cn("h-5 w-5 mr-2", platform.color)} />
-                    {platform.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
-            
-            {Object.entries(selectedPlatforms).some(([key, value]) => value) && (
-              <div className="space-y-4">
-                <h4 className="font-medium">Sugestões de adaptação</h4>
-                
-                {Object.entries(selectedPlatforms)
-                  .filter(([_, isSelected]) => isSelected)
-                  .map(([platform, _]) => (
-                    <DistributionSuggestion 
-                      key={platform} 
-                      platform={distributionPlatforms.find(p => p.id === platform)!} 
-                    />
-                  ))
-                }
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDistributionDialog(false)}>
-              Ignorar
-            </Button>
-            <Button onClick={distributeContent} variant="accent" className="transition-transform hover:scale-105">
-              Distribuir Conteúdo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+      <DistributionDialog
+        open={showDistributionDialog}
+        onClose={() => setShowDistributionDialog(false)}
+        item={selectedItem}
+        onDistribute={handleDistribute}
+      />
+      
       {/* Card Details Dialog */}
       <Dialog open={showCardDetailDialog} onOpenChange={setShowCardDetailDialog}>
         <DialogContent className="sm:max-w-md">

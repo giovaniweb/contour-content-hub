@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -74,6 +73,12 @@ export default function Sidebar() {
           name: 'Content', 
           path: '/content-strategy', 
           icon: FileText 
+        },
+        { 
+          name: 'Reports', 
+          path: '/reports', 
+          icon: BarChart3,
+          highlight: true 
         },
       ]
     },
