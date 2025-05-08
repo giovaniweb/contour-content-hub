@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -190,7 +189,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
             <p>Status: {video.status}</p>
             <p>Arquivo: {Boolean(video.file_urls?.original) ? "✅" : "❌"}</p>
             {video.metadata?.processing_progress && (
-              <p>Progresso: {video.metadata.processing_progress}</p>
+              <p>Progresso: {typeof video.metadata.processing_progress === 'string' ? video.metadata.processing_progress : JSON.stringify(video.metadata.processing_progress)}</p>
             )}
           </div>
         )}
