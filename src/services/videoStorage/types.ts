@@ -1,4 +1,6 @@
 // Re-export video types to keep them accessible
+import { VideoMetadataSchema } from '@/types/video-storage';
+
 export type { 
   VideoStatus, 
   VideoQuality, 
@@ -11,6 +13,8 @@ export type {
   VideoFilterOptions,
   VideoSortOptions 
 } from '@/types/video-storage';
+
+export { VideoMetadataSchema };
 
 // Common constants for video services
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB

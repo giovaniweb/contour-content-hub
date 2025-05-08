@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
-import { StoredVideo, VideoMetadata } from '@/types/video-storage';
+import { StoredVideo, VideoMetadata, VideoMetadataSchema } from '@/types/video-storage';
 import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorage';
 import { usePermissions } from '@/hooks/use-permissions';
 import { supabase } from '@/integrations/supabase/client';
@@ -138,12 +138,14 @@ export const useBatchVideoManage = () => {
       if (video.editEquipmentId !== video.originalEquipmentId) {
         if (video.editEquipmentId === 'none') {
           // Remove equipment association
+          const metadata = VideoMetadataSchema.parse({
+            ...(video.metadata || {}),
+            equipment_id: null
+          });
+          
           await supabase.from('videos_storage')
             .update({
-              metadata: {
-                ...(video.metadata || {}),
-                equipment_id: null
-              } as VideoMetadata
+              metadata
             })
             .eq('id', videoId);
             
@@ -157,12 +159,14 @@ export const useBatchVideoManage = () => {
           // Add/update equipment association
           const selectedEquipment = equipments.find(eq => eq.id === video.editEquipmentId);
           
+          const metadata = VideoMetadataSchema.parse({
+            ...(video.metadata || {}),
+            equipment_id: video.editEquipmentId
+          });
+          
           await supabase.from('videos_storage')
             .update({
-              metadata: {
-                ...(video.metadata || {}),
-                equipment_id: video.editEquipmentId
-              } as VideoMetadata
+              metadata
             })
             .eq('id', videoId);
             
@@ -345,11 +349,13 @@ export const useBatchVideoManage = () => {
         try {
           if (batchEquipmentId === 'none') {
             // Remove equipment association
+            const metadata = VideoMetadataSchema.parse({
+              equipment_id: null
+            });
+            
             await supabase.from('videos_storage')
               .update({
-                metadata: {
-                  equipment_id: null
-                } as VideoMetadata
+                metadata
               })
               .eq('id', videoId);
               
@@ -362,11 +368,13 @@ export const useBatchVideoManage = () => {
               .eq('id', videoId);
           } else if (selectedEquipment) {
             // Add/update equipment association
+            const metadata = VideoMetadataSchema.parse({
+              equipment_id: batchEquipmentId
+            });
+            
             await supabase.from('videos_storage')
               .update({
-                metadata: {
-                  equipment_id: batchEquipmentId
-                } as VideoMetadata
+                metadata
               })
               .eq('id', videoId);
               

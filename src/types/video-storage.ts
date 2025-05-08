@@ -1,18 +1,33 @@
 
+import { z } from 'zod';
+
+// Define Zod schema for VideoMetadata
+export const VideoMetadataSchema = z.object({
+  equipment_id: z.string().optional(),
+  original_filename: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  format: z.string().optional(),
+  codec: z.string().optional(),
+  fps: z.number().optional(),
+  area_corpo: z.string().optional(),
+  categoria: z.string().optional(),
+  compartilhamentos: z.number().optional(),
+  curtidas: z.number().optional(),
+  data_upload: z.string().optional(),
+  descricao: z.string().optional(),
+  descricao_curta: z.string().optional(),
+  descricao_detalhada: z.string().optional(),
+  duracao: z.string().optional(),
+  vimeo_id: z.string().optional(),
+}).catchall(z.unknown()); // Allow additional properties
+
+// Export types for VideoMetadata
+export type VideoMetadata = z.infer<typeof VideoMetadataSchema>;
+
 export type VideoStatus = 'uploading' | 'processing' | 'ready' | 'error';
 export type VideoQuality = 'sd' | 'hd' | 'original';
 export type VideoQueueStatus = 'pending' | 'uploading' | 'completed' | 'error';
-
-export interface VideoMetadata {
-  equipment_id?: string; // Added this property
-  original_filename?: string;
-  width?: number;
-  height?: number;
-  format?: string;
-  codec?: string;
-  fps?: number;
-  [key: string]: any; // Allow for additional properties
-}
 
 export interface StoredVideo {
   id: string;
