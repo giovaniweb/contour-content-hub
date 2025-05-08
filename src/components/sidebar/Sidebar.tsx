@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
@@ -191,15 +190,6 @@ export const AppSidebar = ({
                   <NavLink to="/admin/content" className="flex items-center">
                     <FileText className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Conteúdo</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              <SidebarMenuItem active={location.pathname === '/videos/batch-manage'}>
-                <SidebarMenuButton asChild variant={location.pathname === '/videos/batch-manage' ? "active" : "default"}>
-                  <NavLink to="/videos/batch-manage" className="flex items-center">
-                    <Upload className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
-                    {open && <span>Upload de Vídeos</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

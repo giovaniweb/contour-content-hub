@@ -9,7 +9,6 @@ import {
   VideoIcon, 
   Cog, 
   Database, 
-  Presentation, 
   BrainCircuit,
   Calendar 
 } from "lucide-react";

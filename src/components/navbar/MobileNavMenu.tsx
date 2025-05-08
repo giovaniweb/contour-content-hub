@@ -133,6 +133,14 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                 <BrainCircuit className="h-5 w-5" />
                 <span>IA do Sistema</span>
               </Link>
+              <Link
+                to="/admin/content"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <FileText className="h-5 w-5" />
+                <span>Conteúdo</span>
+              </Link>
             </>
           )}
         </div>
