@@ -41,7 +41,8 @@ export default function Sidebar() {
     { 
       name: 'Planner', 
       path: '/content-planner', 
-      icon: Kanban 
+      icon: Kanban,
+      highlight: true // Highlight this menu item as the new feature
     },
     { 
       name: 'Calendário', 
@@ -100,10 +101,14 @@ export default function Sidebar() {
                   asChild 
                   active={isActive(item.path)}
                   collapsible
+                  className={item.highlight ? "relative fluida-gradient-border z-10" : ""}
                 >
                   <Link to={item.path}>
                     <item.icon className="h-5 w-5" />
                     <span>{item.name}</span>
+                    {item.highlight && open && (
+                      <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-fluida-pink animate-pulse" />
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

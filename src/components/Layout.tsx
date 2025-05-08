@@ -9,7 +9,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 interface LayoutProps {
   children: React.ReactNode;
   fullWidth?: boolean;
-  title?: string; // Add title prop to support existing usage
+  title?: string;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, fullWidth = false, title }) => {

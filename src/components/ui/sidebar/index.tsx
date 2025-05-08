@@ -1,21 +1,22 @@
 
-// Exportar contexto
+// Export context
 export { SidebarProvider, useSidebar } from "./sidebar-context"
 
-// Exportar componente principal
+// Export main component
 export { Sidebar } from "./sidebar"
 
-// Exportar componentes de layout
+// Export layout components
 export {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarSeparator
 } from "./sidebar-layout"
 
-// Exportar componentes de menu
+// Export menu components
 export {
   SidebarMenu,
   SidebarMenuItem,

@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Plus, Calendar, FileText, Instagram, Youtube } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Check, Plus, Calendar, FileText, Instagram, Youtube, TrendingUp } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { useSlideNotifications } from '@/components/notifications/SlideNotificationProvider';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ContentPlannerItem } from '@/types/content-planner';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 // Kanban column definition
 interface KanbanColumn {
@@ -18,6 +18,7 @@ interface KanbanColumn {
   title: string;
   items: KanbanItem[];
   color: string; // Color for visual indication
+  icon: React.ReactNode;
 }
 
 // Kanban item definition
@@ -31,11 +32,46 @@ interface KanbanItem {
   subtasks: { id: string; text: string; completed: boolean }[];
 }
 
+// Custom TikTok icon component
+const TikTokIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  );
+};
+
+// Types for distribution platforms
+interface DistributionPlatform {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+const distributionPlatforms: DistributionPlatform[] = [
+  { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+  { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-black' },
+  { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' }
+];
+
 // Initial columns data
 const initialColumns: KanbanColumn[] = [
   {
     id: 'todo',
     title: 'To Do',
+    icon: <TrendingUp className="h-4 w-4 text-blue-500" />,
     items: [
       {
         id: 'task-1',
@@ -65,6 +101,7 @@ const initialColumns: KanbanColumn[] = [
   {
     id: 'in-production',
     title: 'In Production',
+    icon: <FileText className="h-4 w-4 text-purple-500" />,
     items: [
       {
         id: 'task-3',
@@ -83,6 +120,7 @@ const initialColumns: KanbanColumn[] = [
   {
     id: 'review',
     title: 'Under Review',
+    icon: <Check className="h-4 w-4 text-amber-500" />,
     items: [
       {
         id: 'task-4',
@@ -101,12 +139,14 @@ const initialColumns: KanbanColumn[] = [
   {
     id: 'published',
     title: 'Published',
+    icon: <Check className="h-4 w-4 text-green-500" />,
     items: [],
     color: 'bg-green-50 border-green-200 text-green-700'
   },
   {
     id: 'distributed',
     title: 'Distributed',
+    icon: <Check className="h-4 w-4 text-indigo-500" />,
     items: [
       {
         id: 'task-5',
@@ -125,44 +165,14 @@ const initialColumns: KanbanColumn[] = [
   }
 ];
 
-// Types for distribution platforms
-interface DistributionPlatform {
-  id: string;
-  name: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-// Custom TikTok icon component
-const TikTokIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-    </svg>
-  );
-};
-
-const distributionPlatforms: DistributionPlatform[] = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-  { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-black' },
-  { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' }
-];
-
 // Component for a distribution suggestion
 const DistributionSuggestion: React.FC<{ platform: DistributionPlatform }> = ({ platform }) => {
   return (
-    <div className="border rounded-lg p-4 mb-4 transition-all hover:border-primary/30 hover:bg-accent/20 cursor-pointer">
+    <motion.div 
+      className="border rounded-lg p-4 mb-4 transition-all hover:border-primary/30 hover:bg-accent/20 cursor-pointer"
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    >
       <div className="flex items-center mb-2">
         <platform.icon className={cn("h-5 w-5 mr-2", platform.color)} />
         <h4 className="font-medium">Distribuir para {platform.name}</h4>
@@ -177,7 +187,7 @@ const DistributionSuggestion: React.FC<{ platform: DistributionPlatform }> = ({ 
       <Button variant="outline" size="sm" className="mt-3 w-full">
         Preparar para {platform.name}
       </Button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -186,12 +196,15 @@ const KanbanBoard: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<KanbanItem | null>(null);
   const [showDistributionDialog, setShowDistributionDialog] = useState(false);
   const [showNewContentDialog, setShowNewContentDialog] = useState(false);
+  const [showCardDetailDialog, setShowCardDetailDialog] = useState(false);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Record<string, boolean>>({
     'instagram': false,
     'tiktok': false,
     'youtube': false
   });
   const { showNotification } = useSlideNotifications();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Handle drag and drop
   const onDragEnd = (result: DropResult) => {
@@ -361,6 +374,22 @@ const KanbanBoard: React.FC = () => {
   // Add a new content item
   const handleAddNewContent = () => {
     // Mock implementation for now
+    const newItem: KanbanItem = {
+      id: `task-${Date.now()}`,
+      title: 'Novo conteúdo',
+      type: 'video',
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: 'todo',
+      subtasks: [
+        { id: `sub-${Date.now()}-1`, text: 'Planejar conteúdo', completed: false },
+        { id: `sub-${Date.now()}-2`, text: 'Criar rascunho', completed: false },
+      ]
+    };
+    
+    setColumns(columns.map(col => 
+      col.id === 'todo' ? { ...col, items: [...col.items, newItem] } : col
+    ));
+    
     setShowNewContentDialog(false);
     showNotification({
       title: 'Novo Conteúdo',
@@ -368,14 +397,45 @@ const KanbanBoard: React.FC = () => {
       type: 'success',
     });
   };
+
+  // Generate caption with mock AI
+  const handleGenerateCaption = () => {
+    if (!selectedItem) return;
+    
+    setIsGenerating(true);
+    
+    // Mock AI generation timing
+    setTimeout(() => {
+      setIsGenerating(false);
+      setShowGenerateDialog(false);
+      
+      showNotification({
+        title: 'Legenda Gerada',
+        message: 'Legenda gerada com sucesso para ' + selectedItem.title,
+        type: 'success',
+      });
+    }, 2000);
+  };
+  
+  // Open card details
+  const openCardDetails = (item: KanbanItem) => {
+    setSelectedItem(item);
+    setShowCardDetailDialog(true);
+  };
+  
+  // Open generate caption dialog
+  const openGenerateCaption = (item: KanbanItem) => {
+    setSelectedItem(item);
+    setShowGenerateDialog(true);
+  };
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-contourline-darkBlue">Planner de Conteúdo</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-bold fluida-gradient-text">Planner de Conteúdo</h1>
         <Dialog open={showNewContentDialog} onOpenChange={setShowNewContentDialog}>
           <DialogTrigger asChild>
-            <Button className="flex items-center">
+            <Button className="fluida-button-primary flex items-center">
               <Plus className="h-5 w-5 mr-2" />
               Novo Conteúdo
             </Button>
@@ -385,11 +445,14 @@ const KanbanBoard: React.FC = () => {
               <DialogTitle>Adicionar Novo Conteúdo</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <p>Funcionalidade a ser implementada.</p>
+              <p>Aqui você poderá criar um novo conteúdo para seu planejamento.</p>
+              <p className="text-sm text-muted-foreground">
+                (Esta funcionalidade será implementada com formulário completo em uma atualização futura)
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setShowNewContentDialog(false)}>Cancelar</Button>
-              <Button type="button" onClick={handleAddNewContent}>Adicionar</Button>
+              <Button type="button" onClick={handleAddNewContent} variant="accent">Criar Conteúdo</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -399,7 +462,8 @@ const KanbanBoard: React.FC = () => {
         <div className="flex space-x-4 pb-6 overflow-x-auto">
           {columns.map((column) => (
             <div key={column.id} className="min-w-[300px] max-w-[300px] flex-shrink-0">
-              <div className={`rounded-t-lg p-3 ${column.color}`}>
+              <div className={`rounded-t-lg p-3 ${column.color} flex items-center`}>
+                <span className="mr-2">{column.icon}</span>
                 <h3 className="font-medium">{column.title} ({column.items.length})</h3>
               </div>
               <Droppable droppableId={column.id}>
@@ -420,96 +484,93 @@ const KanbanBoard: React.FC = () => {
                     {column.items.map((item, index) => (
                       <Draggable key={item.id} draggableId={item.id} index={index}>
                         {(provided, snapshot) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={cn(
-                              "mb-3 shadow-sm hover:shadow-md transition-shadow",
-                              snapshot.isDragging && "shadow-md rotate-2"
-                            )}
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
                           >
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <Badge 
-                                  variant="outline" 
-                                  className={cn(
-                                    "mb-2",
-                                    item.type === 'video' && "bg-red-50 text-red-700 border-red-200",
-                                    item.type === 'post' && "bg-blue-50 text-blue-700 border-blue-200",
-                                    item.type === 'carrossel' && "bg-amber-50 text-amber-700 border-amber-200",
-                                    item.type === 'reels' && "bg-purple-50 text-purple-700 border-purple-200",
-                                    item.type === 'story' && "bg-green-50 text-green-700 border-green-200"
-                                  )}
-                                >
-                                  {item.type}
-                                </Badge>
-                                {item.deadline && (
-                                  <div className="text-xs text-muted-foreground flex items-center">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {new Date(item.deadline).toLocaleDateString('pt-BR')}
-                                  </div>
-                                )}
-                              </div>
-
-                              <h3 className="font-medium mb-2">{item.title}</h3>
-                              
-                              <div className="space-y-1.5 mt-3">
-                                {item.subtasks.map((subtask) => (
-                                  <div 
-                                    key={subtask.id} 
-                                    className="flex items-start"
-                                    onClick={() => toggleSubtaskCompletion(item.id, subtask.id)}
+                            <Card
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={cn(
+                                "mb-3 shadow-sm hover:shadow-md transition-shadow",
+                                snapshot.isDragging && "shadow-md rotate-2"
+                              )}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "mb-2",
+                                      item.type === 'video' && "bg-red-50 text-red-700 border-red-200",
+                                      item.type === 'post' && "bg-blue-50 text-blue-700 border-blue-200",
+                                      item.type === 'carrossel' && "bg-amber-50 text-amber-700 border-amber-200",
+                                      item.type === 'reels' && "bg-purple-50 text-purple-700 border-purple-200",
+                                      item.type === 'story' && "bg-green-50 text-green-700 border-green-200"
+                                    )}
                                   >
-                                    <Checkbox 
-                                      id={subtask.id} 
-                                      checked={subtask.completed}
-                                      className="mt-1"
-                                    />
-                                    <Label 
-                                      htmlFor={subtask.id} 
-                                      className={cn(
-                                        "ml-2 text-sm cursor-pointer",
-                                        subtask.completed && "line-through text-muted-foreground"
-                                      )}
-                                    >
-                                      {subtask.text}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className="flex justify-between items-center mt-4 pt-2 border-t">
-                                <Button variant="ghost" size="sm" className="text-xs px-2">
-                                  <FileText className="h-3.5 w-3.5 mr-1" />
-                                  Detalhes
-                                </Button>
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-xs">
-                                      Ações
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>{item.title}</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                      <Button className="w-full" variant="outline">
-                                        Editar Conteúdo
-                                      </Button>
-                                      <Button className="w-full" variant="outline">
-                                        Gerar Legenda com IA
-                                      </Button>
-                                      <Button className="w-full" variant="outline">
-                                        Enviar para Agendamento
-                                      </Button>
+                                    {item.type}
+                                  </Badge>
+                                  {item.deadline && (
+                                    <div className="text-xs text-muted-foreground flex items-center">
+                                      <Calendar className="h-3 w-3 mr-1" />
+                                      {new Date(item.deadline).toLocaleDateString('pt-BR')}
                                     </div>
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
-                            </CardContent>
-                          </Card>
+                                  )}
+                                </div>
+
+                                <h3 className="font-medium mb-2">{item.title}</h3>
+                                
+                                <div className="space-y-1.5 mt-3">
+                                  {item.subtasks.map((subtask) => (
+                                    <div 
+                                      key={subtask.id} 
+                                      className="flex items-start"
+                                      onClick={() => toggleSubtaskCompletion(item.id, subtask.id)}
+                                    >
+                                      <Checkbox 
+                                        id={subtask.id} 
+                                        checked={subtask.completed}
+                                        className="mt-1"
+                                      />
+                                      <Label 
+                                        htmlFor={subtask.id} 
+                                        className={cn(
+                                          "ml-2 text-sm cursor-pointer",
+                                          subtask.completed && "line-through text-muted-foreground"
+                                        )}
+                                      >
+                                        {subtask.text}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="flex justify-between items-center mt-4 pt-2 border-t">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="text-xs px-2"
+                                    onClick={() => openCardDetails(item)}
+                                  >
+                                    <FileText className="h-3.5 w-3.5 mr-1" />
+                                    Detalhes
+                                  </Button>
+                                  
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-xs"
+                                    onClick={() => openGenerateCaption(item)}
+                                  >
+                                    Gerar Legenda
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
                         )}
                       </Draggable>
                     ))}
@@ -567,8 +628,135 @@ const KanbanBoard: React.FC = () => {
             <Button variant="outline" onClick={() => setShowDistributionDialog(false)}>
               Ignorar
             </Button>
-            <Button onClick={distributeContent} className="transition-transform hover:scale-105">
+            <Button onClick={distributeContent} variant="accent" className="transition-transform hover:scale-105">
               Distribuir Conteúdo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Card Details Dialog */}
+      <Dialog open={showCardDetailDialog} onOpenChange={setShowCardDetailDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Conteúdo</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="py-4">
+              <div className="mb-4">
+                <h3 className="text-xl font-medium mb-2">{selectedItem.title}</h3>
+                <div className="flex gap-2 mb-3">
+                  <Badge>{selectedItem.type}</Badge>
+                  <Badge variant="outline">Status: {selectedItem.status}</Badge>
+                </div>
+                {selectedItem.deadline && (
+                  <div className="flex items-center text-sm text-muted-foreground mb-3">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Data limite: {new Date(selectedItem.deadline).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
+              </div>
+              
+              <div className="border-t pt-3 mb-4">
+                <h4 className="font-medium mb-2">Checklist:</h4>
+                <div className="space-y-2">
+                  {selectedItem.subtasks.map(subtask => (
+                    <div 
+                      key={subtask.id} 
+                      className="flex items-start"
+                    >
+                      <Checkbox 
+                        id={`detail-${subtask.id}`} 
+                        checked={subtask.completed}
+                        className="mt-1"
+                      />
+                      <Label 
+                        htmlFor={`detail-${subtask.id}`} 
+                        className={cn(
+                          "ml-2 text-sm",
+                          subtask.completed && "line-through text-muted-foreground"
+                        )}
+                      >
+                        {subtask.text}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="border-t pt-3 flex flex-col gap-2">
+                <h4 className="font-medium mb-2">Ações:</h4>
+                <Button 
+                  onClick={() => {
+                    setShowCardDetailDialog(false);
+                    setShowGenerateDialog(true);
+                  }}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Gerar Legenda com IA
+                </Button>
+                <Button 
+                  className="w-full"
+                  variant="outline"
+                >
+                  Enviar para Agendamento
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Generate AI Caption Dialog */}
+      <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerar Legenda com IA</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="py-4">
+              <p className="mb-4">A IA irá gerar uma legenda personalizada para o conteúdo: <strong>{selectedItem.title}</strong></p>
+              
+              {isGenerating ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="fluida-gradient-bg h-8 w-8 animate-spin rounded-full" />
+                  <p className="mt-4 text-center text-sm text-muted-foreground">
+                    Gerando legenda personalizada...
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Clique no botão abaixo para iniciar a geração de legenda usando inteligência artificial.
+                  </p>
+                  
+                  <div className="fluida-card p-4 mb-4">
+                    <h4 className="text-sm font-medium mb-1">Sugestões incluirão:</h4>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• Legenda principal otimizada</li>
+                      <li>• Conjuntos de hashtags relevantes</li>
+                      <li>• Calls-to-action personalizados</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowGenerateDialog(false)}
+              disabled={isGenerating}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="accent"
+              onClick={handleGenerateCaption}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "Gerando..." : "Gerar Legenda"}
             </Button>
           </DialogFooter>
         </DialogContent>
