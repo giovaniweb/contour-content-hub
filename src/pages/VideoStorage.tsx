@@ -1,20 +1,13 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
-import VideoList from '@/components/video-storage/VideoList';
-import VideoUploader from '@/components/video-storage/VideoUploader';
-import BatchVideoUploader from '@/components/video-storage/BatchVideoUploader';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pencil, Plus, Upload, Video } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
 import { usePermissions } from '@/hooks/use-permissions';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Pencil, Plus, Upload, Video } from 'lucide-react';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const VideoStorage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -23,14 +16,14 @@ const VideoStorage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate(); // Added useNavigate hook
+  const navigate = useNavigate();
   const equipmentId = searchParams.get('equipment');
 
   // Open upload dialog automatically if equipment parameter is present in URL
-  useEffect(() => {
+  React.useEffect(() => {
     if (equipmentId && isAdmin()) {
       setShowUploadDialog(true);
-      setUploadMode('single'); // Default to single mode when coming from equipment page
+      setUploadMode('single');
     }
   }, [equipmentId, isAdmin]);
 
@@ -60,7 +53,7 @@ const VideoStorage: React.FC = () => {
     }
   };
 
-  const handleUploadComplete = (videoId?: string) => {
+  const handleUploadComplete = () => {
     setShowUploadDialog(false);
     // Muda para a aba "Meus Vídeos" após o upload
     setActiveTab('mine');
@@ -132,32 +125,30 @@ const VideoStorage: React.FC = () => {
           </div>
           
           <TabsContent value="all" className="space-y-4">
-            <VideoList
-              emptyStateMessage="Nenhum vídeo disponível. Entre em contato com um administrador para adicionar vídeos."
-            />
+            <div className="text-center py-10">
+              <Video className="h-16 w-16 mx-auto text-muted-foreground opacity-30" />
+              <p className="mt-4 text-muted-foreground">
+                Nenhum vídeo disponível. Entre em contato com um administrador para adicionar vídeos.
+              </p>
+            </div>
           </TabsContent>
           
           <TabsContent value="mine" className="space-y-4">
-            <VideoList
-              onlyMine
-              emptyStateMessage={
-                <div className="text-center space-y-3 py-8">
-                  <p className="text-muted-foreground">
-                    {isAdmin() 
-                      ? "Você ainda não enviou nenhum vídeo" 
-                      : "Você não possui vídeos. Apenas administradores podem fazer upload de vídeos."}
-                  </p>
-                  {isAdmin() && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleUploadClick}
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Enviar seu primeiro vídeo
-                    </Button>
-                  )}
-                </div>
-              }
-            />
+            <div className="text-center space-y-3 py-8">
+              <p className="text-muted-foreground">
+                {isAdmin() 
+                  ? "Você ainda não enviou nenhum vídeo" 
+                  : "Você não possui vídeos. Apenas administradores podem fazer upload de vídeos."}
+              </p>
+              {isAdmin() && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleUploadClick}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Enviar seu primeiro vídeo
+                </Button>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -166,18 +157,18 @@ const VideoStorage: React.FC = () => {
       {isAdmin() && (
         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogContent className={uploadMode === 'batch' ? "sm:max-w-3xl" : "sm:max-w-lg"}>
-            {uploadMode === 'single' ? (
-              <VideoUploader
-                onUploadComplete={handleUploadComplete}
-                onCancel={() => setShowUploadDialog(false)}
-                equipmentId={equipmentId || undefined}
-              />
-            ) : (
-              <BatchVideoUploader
-                onUploadComplete={handleUploadComplete}
-                onCancel={() => setShowUploadDialog(false)}
-              />
-            )}
+            <div className="p-6 text-center">
+              <h2 className="text-xl font-bold mb-4">
+                {uploadMode === 'single' ? 'Enviar Vídeo' : 'Upload em Lote'}
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Funcionalidade de upload em desenvolvimento.
+              </p>
+              <div className="flex justify-center space-x-3">
+                <Button variant="outline" onClick={() => setShowUploadDialog(false)}>Cancelar</Button>
+                <Button onClick={handleUploadComplete}>Simular upload</Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       )}

@@ -12,11 +12,13 @@ import EquipmentsPage from "./pages/EquipmentsPage";
 import EquipmentDetails from "./pages/EquipmentDetails";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
+import HomePage from "./pages/HomePage";
 import MediaLibrary from "./pages/MediaLibrary";
 import { ErrorBoundary } from './components/ErrorBoundary';
 import ScriptValidation from './pages/ScriptValidation';
 import CustomGpt from './pages/CustomGpt';
 import VideosPage from './pages/VideosPage';
+import VideoStorage from './pages/VideoStorage';
 import TechnicalDocuments from './pages/TechnicalDocuments';
 import ContentStrategy from './pages/ContentStrategy';
 import Calendar from './pages/Calendar';
@@ -77,7 +79,7 @@ function App() {
             {/* Private Routes */}
             <Route path="/" element={
               <PrivateRoute>
-                <Dashboard />
+                <HomePage />
               </PrivateRoute>
             } />
             <Route path="/dashboard" element={
@@ -118,6 +120,11 @@ function App() {
             <Route path="/videos" element={
               <PrivateRoute>
                 <VideosPage />
+              </PrivateRoute>
+            } />
+            <Route path="/video-storage" element={
+              <PrivateRoute>
+                <VideoStorage />
               </PrivateRoute>
             } />
             <Route path="/technical-documents" element={

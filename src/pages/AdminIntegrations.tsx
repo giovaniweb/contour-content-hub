@@ -1,15 +1,16 @@
 
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
-import { AlertCircle, Check, ExternalLink } from "lucide-react";
+import { AlertCircle, Check, ExternalLink, ShieldAlert } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 const AdminIntegrations: React.FC = () => {
   const { isAdmin } = usePermissions();
@@ -68,40 +69,46 @@ const AdminIntegrations: React.FC = () => {
   return (
     <Layout title="Integrações">
       <div className="container mx-auto py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Integrações</h1>
-          <p className="text-muted-foreground">Conecte o sistema com outras plataformas e serviços.</p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <ShieldAlert className="h-6 w-6 text-primary" />
+            <h1 className="text-3xl font-bold">Integrações do Sistema</h1>
+          </div>
+          <p className="text-muted-foreground text-lg">
+            Conecte o Fluida com outras plataformas para expandir suas funcionalidades.
+          </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {integrations.map((integration, index) => (
-            <Card key={index} className="overflow-hidden border border-border/50 hover:shadow-md transition-shadow">
+            <Card key={index} className="overflow-hidden border border-border/50 hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded overflow-hidden flex items-center justify-center bg-background">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-background p-2 border border-border/50">
                     <img 
                       src={integration.icon} 
                       alt={integration.name}
-                      className="w-7 h-7 object-contain"
+                      className="w-8 h-8 object-contain"
                     />
                   </div>
-                  <CardTitle className="text-lg">{integration.name}</CardTitle>
+                  <CardTitle className="text-xl">{integration.name}</CardTitle>
                 </div>
-                <div className={`px-2 py-1 rounded text-xs flex items-center ${
+                <Badge className={`px-2 py-1 ${
                   integration.status === "Connected" 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                 }`}>
                   {integration.status === "Connected" && <Check className="w-3 h-3 mr-1" />}
                   {integration.status}
-                </div>
+                </Badge>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-muted-foreground">{integration.description}</p>
+                <CardDescription className="mb-6 text-sm">{integration.description}</CardDescription>
                 <div className="flex items-center justify-between">
                   <Button 
                     asChild={integration.link !== "#"} 
                     variant={integration.status === "Connected" ? "outline" : "default"}
+                    className="rounded-full"
                     onClick={() => integration.link === "#" && setSelectedIntegration(integration.name)}
                   >
                     {integration.link !== "#" ? (
