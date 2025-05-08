@@ -1,15 +1,14 @@
 
 import React, { useState } from "react";
-import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import { DropResult } from "@hello-pangea/dnd";
 import { useContentPlanner } from "@/hooks/content-planner/useContentPlanner";
-import ContentPlannerColumn from "./ContentPlannerColumn";
+import { ContentPlannerItem, ContentPlannerFilter } from "@/types/content-planner";
+import ContentPlannerHeader from "./ContentPlannerHeader";
 import ContentPlannerFilters from "./ContentPlannerFilters";
+import ContentPlannerColumns from "./ContentPlannerColumns";
 import ContentPlannerDialog from "./ContentPlannerDialog";
 import ContentPlannerScheduleDialog from "./ContentPlannerScheduleDialog";
-import { Button } from "@/components/ui/button";
-import { ContentPlannerItem, ContentPlannerFilter } from "@/types/content-planner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, CalendarClock, CalendarCheck, Sparkles } from "lucide-react";
+import ContentPlannerDeleteDialog from "./ContentPlannerDeleteDialog";
 
 const ContentPlanner: React.FC = () => {
   const {
@@ -116,52 +115,24 @@ const ContentPlanner: React.FC = () => {
   
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Planejador de Conteúdo</h1>
-          <p className="text-muted-foreground">
-            Organize seu plano de marketing de forma visual e estratégica
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleGenerateSuggestions}
-            disabled={isGeneratingSuggestions}
-            className="flex items-center"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {isGeneratingSuggestions ? "Gerando..." : "Gerar Sugestões"}
-          </Button>
-          <Button onClick={handleNewItem} className="flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Conteúdo
-          </Button>
-        </div>
-      </div>
+      <ContentPlannerHeader
+        onNewItem={handleNewItem}
+        onGenerateSuggestions={handleGenerateSuggestions}
+        isGeneratingSuggestions={isGeneratingSuggestions}
+      />
       
       <ContentPlannerFilters 
         filters={filters} 
         onFilterChange={setFilters} 
       />
       
-      <div className="mt-6 flex-1 overflow-x-auto pb-6">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4">
-            {columns.map(column => (
-              <ContentPlannerColumn
-                key={column.id}
-                column={column}
-                onEditItem={handleEditItem}
-                onDeleteItem={handleDeleteClick}
-                onGenerateScript={() => {}} // TODO: Implement script generation
-                onValidateScript={() => {}} // TODO: Implement script validation
-                onScheduleItem={handleScheduleClick}
-              />
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
+      <ContentPlannerColumns
+        columns={columns}
+        onEditItem={handleEditItem}
+        onDeleteItem={handleDeleteClick}
+        onScheduleItem={handleScheduleClick}
+        onDragEnd={handleDragEnd}
+      />
       
       {/* Dialog for creating/editing items */}
       <ContentPlannerDialog
@@ -182,26 +153,12 @@ const ContentPlanner: React.FC = () => {
       )}
       
       {/* Delete confirmation dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remover Item</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja remover o item "{selectedItem?.title}"?
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Remover
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ContentPlannerDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        item={selectedItem}
+        onConfirmDelete={handleConfirmDelete}
+      />
     </div>
   );
 };
