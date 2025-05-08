@@ -82,7 +82,7 @@ const mockPerformanceData = {
 const ReportsPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("2025-05");
   const [selectedClient, setSelectedClient] = useState<string>("all");
-  const { theme } = useTheme();
+  const { theme = 'light' } = useTheme();
   const { toast } = useToast();
 
   // Calculate completion percentage

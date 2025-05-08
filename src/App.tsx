@@ -1,7 +1,7 @@
 
 import { Route, Routes } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { SlideNotificationsProvider } from '@/components/notifications/SlideNotificationProvider';
+import { SlideNotificationProvider } from '@/components/notifications/SlideNotificationProvider';
 
 // Pages
 import Dashboard from '@/pages/Dashboard';
@@ -12,7 +12,7 @@ import ReportsPage from '@/pages/ReportsPage'; // Add the Reports page
 
 function App() {
   return (
-    <SlideNotificationsProvider>
+    <SlideNotificationProvider>
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -22,7 +22,7 @@ function App() {
         <Route path="/reports" element={<ReportsPage />} />
       </Routes>
       <Toaster />
-    </SlideNotificationsProvider>
+    </SlideNotificationProvider>
   );
 }
 

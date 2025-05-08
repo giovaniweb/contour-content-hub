@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ContentPlannerItem } from "@/types/content-planner";
-import { Calendar, Image, Hash, Instagram, YouTube, AlertCircle, Loader2 } from "lucide-react";
+import { Calendar, Image, Hash, Instagram, Youtube, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -71,7 +71,7 @@ const platformConfigs: PlatformConfig[] = [
   {
     id: "youtube",
     name: "YouTube",
-    icon: YouTube,
+    icon: Youtube,
     color: "text-red-500",
     connected: true,
     suggestedCaption: "Neste vídeo demonstramos como funciona o equipamento de última geração para tratamentos faciais. Assista até o final para conhecer todos os benefícios e resultados que você pode obter!",

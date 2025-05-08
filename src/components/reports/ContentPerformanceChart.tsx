@@ -12,7 +12,7 @@ const data = [
 ];
 
 const ContentPerformanceChart: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme = 'light' } = useTheme();
   
   return (
     <ResponsiveContainer width="100%" height="100%">
