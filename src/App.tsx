@@ -30,6 +30,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminSystemIntelligence from './pages/AdminSystemIntelligence';
 import AdminSystemDiagnostics from './pages/AdminSystemDiagnostics';
 import AdminIntegrations from './pages/AdminIntegrations';
+import AdminAIPanel from './pages/AdminAIPanel';
 import { SlideNotificationProvider } from './components/notifications/SlideNotificationProvider';
 import IdeaValidatorPage from './pages/IdeaValidatorPage';
 import ScientificArticles from './pages/ScientificArticles';
@@ -196,6 +197,11 @@ function App() {
               <Route path="/admin/vimeo-settings" element={
                 <PrivateRoute>
                   <AdminVimeoSettings />
+                </PrivateRoute>
+              } />
+              <Route path="/admin/ai-panel" element={
+                <PrivateRoute>
+                  <AdminAIPanel />
                 </PrivateRoute>
               } />
               
