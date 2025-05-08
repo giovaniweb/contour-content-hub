@@ -57,6 +57,11 @@ const MediaLibrary: React.FC = () => {
     setShowIdeasModal(true);
   };
 
+  // Mock data for trending sections
+  const trendingVideos = mediaItems.filter(item => item.type === "video_pronto").slice(0, 4);
+  const trendingImages = mediaItems.filter(item => item.type === "image").slice(0, 4);
+  const trendingFiles = mediaItems.filter(item => item.type === "take").slice(0, 4);
+
   return (
     <Layout>
       <div className="container mx-auto py-6">
@@ -64,7 +69,28 @@ const MediaLibrary: React.FC = () => {
         <FeatureBanner />
 
         {/* Trending Sections */}
-        <MediaTrendingSection />
+        <div className="space-y-10 mt-10">
+          <MediaTrendingSection 
+            title="Trending Videos" 
+            type="video" 
+            items={trendingVideos}
+            onDownload={handleDownloadAndShowIdeas}
+          />
+
+          <MediaTrendingSection 
+            title="Popular Images" 
+            type="image" 
+            items={trendingImages}
+            onDownload={handleDownloadAndShowIdeas}
+          />
+
+          <MediaTrendingSection 
+            title="Top Documents" 
+            type="file" 
+            items={trendingFiles}
+            onDownload={handleDownloadAndShowIdeas}
+          />
+        </div>
 
         {/* Media Creation Section */}
         <MediaCreationSection />
@@ -162,7 +188,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Ideas Modal */}
       <DownloadIdeasModal 
-        isOpen={showIdeasModal}
+        open={showIdeasModal}
         onClose={() => setShowIdeasModal(false)}
         media={selectedMedia}
       />
