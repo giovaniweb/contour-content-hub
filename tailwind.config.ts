@@ -63,12 +63,20 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// Fluida brand colors
+				fluida: {
+					blue: '#0094fb',    // Primary color
+					pink: '#f300fc',    // Accent color
+					blueDark: '#0077c8', // Darker shade for hover states
+					pinkDark: '#c200ca', // Darker pink for hover states
+					gradient: 'linear-gradient(to right, #0094fb, #f300fc)'
+				},
 				// Nova paleta de cores personalizada - Contourline
 				contourline: {
 					// Azul Escuro - #162C45 | RGB 20 44 70
 					darkBlue: '#162C45',
 					// Azul Médio - #2672B8 | RGB 23 114 185
-					mediumBlue: '#2672B8',
+					mediumBlue: '#0094fb', // Updated to Fluida blue
 					// Azul Claro - #91B0DC | RGB 145 176 221
 					lightBlue: '#91B0DC',
 					// Cinza Claro - #E7E7E6 | RGB 232 231 231
@@ -77,6 +85,8 @@ export default {
 					black: '#202020',
 					// Branco (para fundos) - #FFFFFF
 					white: '#FFFFFF',
+					// Accent (from Fluida)
+					accent: '#f300fc',
 				}
 			},
 			fontFamily: {
@@ -120,6 +130,7 @@ export default {
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'fluida-gradient': 'linear-gradient(to right, #0094fb, #f300fc)',
 			},
 		}
 	},

@@ -41,7 +41,7 @@ const SlideNotification: React.FC<SlideNotificationProps> = ({
       case 'warning':
         return 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800';
       default:
-        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800';
+        return 'bg-fluida-blue/5 border-fluida-blue/20 dark:bg-fluida-blue/10 dark:border-fluida-blue/30';
     }
   };
 
@@ -54,7 +54,7 @@ const SlideNotification: React.FC<SlideNotificationProps> = ({
       case 'warning':
         return <div className="w-2 h-2 rounded-full bg-amber-500"></div>;
       default:
-        return <div className="w-2 h-2 rounded-full bg-blue-500"></div>;
+        return <div className="w-2 h-2 rounded-full bg-fluida-blue"></div>;
     }
   };
 

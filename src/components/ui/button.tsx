@@ -10,17 +10,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-contourline-mediumBlue text-white hover:bg-contourline-mediumBlue/90",
+        default: "bg-fluida-blue text-white hover:bg-fluida-blueDark",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-contourline-mediumBlue/30 bg-background text-contourline-darkBlue hover:bg-contourline-lightBlue/10 hover:text-contourline-darkBlue",
+          "border border-fluida-blue/30 bg-background text-fluida-blue hover:bg-fluida-blue/10 hover:text-fluida-blueDark",
         secondary:
           "bg-contourline-darkBlue text-white hover:bg-contourline-darkBlue/80",
-        ghost: "hover:bg-contourline-lightBlue/10 hover:text-contourline-darkBlue text-contourline-darkBlue",
-        link: "text-contourline-mediumBlue underline-offset-4 hover:underline",
+        ghost: "hover:bg-fluida-blue/10 hover:text-fluida-blue text-contourline-darkBlue",
+        link: "text-fluida-blue underline-offset-4 hover:underline",
         action: "bg-white shadow-md border border-gray-100 text-contourline-darkBlue hover:bg-contourline-lightBlue/10 hover:border-contourline-lightBlue/30",
         warning: "bg-amber-500 text-white hover:bg-amber-600",
+        accent: "bg-fluida-pink text-white hover:bg-fluida-pink/90",
+        gradient: "bg-gradient-to-r from-fluida-blue to-fluida-pink text-white hover:opacity-90",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -73,7 +73,7 @@ export default function Sidebar() {
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           {open && (
-            <div className="font-semibold text-xl text-contourline-darkBlue">
+            <div className="font-semibold text-xl fluida-gradient-text">
               Fluida
             </div>
           )}

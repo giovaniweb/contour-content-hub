@@ -14,7 +14,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 84% 4.9%;
     
-    --primary: 221 83% 53%;
+    /* Updated to Fluida blue */
+    --primary: 203 100% 49%;
     --primary-foreground: 210 40% 98%;
     
     --secondary: 210 40% 96.1%;
@@ -23,7 +24,8 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
     
-    --accent: 210 40% 96.1%;
+    /* Updated to be more aligned with Fluida accent */
+    --accent: 298 100% 49%;
     --accent-foreground: 222 47% 11.2%;
     
     --destructive: 0 84% 60%;
@@ -31,18 +33,20 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    /* Updated to use Fluida blue as ring color */
+    --ring: 203 100% 49%;
     
     --radius: 0.5rem;
 
     --sidebar-background: 222 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
+    /* Updated to use Fluida blue for sidebar primary */
+    --sidebar-primary: 203 100% 49%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 224.3 76.3% 48%;
+    --sidebar-ring: 203 100% 49%;
   }
 }
 
@@ -66,5 +70,30 @@
   
   .nav-item.active {
     @apply bg-accent text-foreground;
+  }
+
+  /* New Fluida-specific utility classes */
+  .fluida-gradient-bg {
+    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
+  }
+
+  .fluida-gradient-text {
+    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink bg-clip-text text-transparent;
+  }
+
+  .fluida-button-primary {
+    @apply bg-fluida-blue text-white hover:bg-fluida-blueDark transition-colors;
+  }
+
+  .fluida-button-accent {
+    @apply bg-fluida-pink text-white hover:bg-fluida-pinkDark transition-colors;
+  }
+  
+  .fluida-card {
+    @apply border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all;
+  }
+  
+  .fluida-gradient-border {
+    @apply relative before:absolute before:-inset-[1px] before:rounded-[inherit] before:bg-gradient-to-r before:from-fluida-blue before:to-fluida-pink before:-z-10;
   }
 }

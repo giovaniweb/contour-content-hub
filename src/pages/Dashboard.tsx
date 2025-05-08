@@ -20,14 +20,14 @@ const Dashboard: React.FC = () => {
   return (
     <Layout fullWidth>
       <div className="max-w-7xl mx-auto px-4 space-y-8 py-6">
-        <Card>
-          <CardHeader>
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-gradient-to-r from-fluida-blue to-fluida-pink text-white">
             <CardTitle>Bem-vindo, {userName}!</CardTitle>
           </CardHeader>
           <CardContent>
             <p>Esta é sua página de dashboard.</p>
             <div className="mt-4">
-              <Button asChild className="flex items-center" variant="outline">
+              <Button asChild className="flex items-center" variant="default">
                 <Link to="/content-planner">
                   <Kanban className="h-5 w-5 mr-2" />
                   Acessar Planner de Conteúdo

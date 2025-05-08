@@ -21,10 +21,10 @@ const HighlightBanner: React.FC<HighlightBannerProps> = ({
   imageUrl,
   videoId
 }) => {
-  // Determine background style based on provided image or default gradient
+  // Determine background style based on provided image or default Fluida gradient
   const backgroundStyle = imageUrl 
     ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : { background: 'linear-gradient(to right, var(--contourline-darkBlue), var(--contourline-mediumBlue))' };
+    : { background: 'linear-gradient(to right, #0094fb, #f300fc)' };
   
   return (
     <div 
@@ -43,7 +43,7 @@ const HighlightBanner: React.FC<HighlightBannerProps> = ({
             {description}
           </p>
           <div className="flex gap-3">
-            <Button asChild variant="secondary" className="font-medium group-hover:shadow-lg transition-all">
+            <Button asChild variant="accent" className="font-medium group-hover:shadow-lg transition-all">
               <Link to={ctaLink}>{ctaText}</Link>
             </Button>
             
