@@ -209,10 +209,9 @@ const VideoContentManager: React.FC = () => {
             <Select 
               value={filterType} 
               onValueChange={setFilterType}
-              placeholder="Filtrar por tipo"
             >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue />
+                <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
@@ -227,10 +226,9 @@ const VideoContentManager: React.FC = () => {
             <Select 
               value={filterEquipment} 
               onValueChange={setFilterEquipment}
-              placeholder="Filtrar por equipamento"
             >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue />
+                <SelectValue placeholder="Filtrar por equipamento" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os equipamentos</SelectItem>

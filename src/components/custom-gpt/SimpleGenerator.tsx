@@ -52,13 +52,12 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Equipamento</h3>
           <Select 
-            value={selectedEquipment || "placeholder"} 
+            value={selectedEquipment || ""} 
             onValueChange={setSelectedEquipment}
             disabled={equipmentsLoading}
-            placeholder="Selecione um equipamento"
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent>
               {equipments
@@ -75,12 +74,11 @@ const SimpleGenerator: React.FC<SimpleGeneratorProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-4">Objetivo de Marketing</h3>
           <Select 
-            value={selectedObjective || "placeholder"} 
+            value={selectedObjective || ""} 
             onValueChange={setSelectedObjective}
-            placeholder="Selecione um objetivo"
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione um objetivo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="🟡 Atrair Atenção">🟡 Atrair Atenção</SelectItem>

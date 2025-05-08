@@ -69,10 +69,9 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
           <Select 
             value={format} 
             onValueChange={(value) => setFormat(value as ContentFormat)}
-            placeholder="Selecione o formato"
           >
             <SelectTrigger id="format">
-              <SelectValue />
+              <SelectValue placeholder="Selecione o formato" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="vídeo">Vídeo</SelectItem>
@@ -90,10 +89,9 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
           <Select 
             value={distribution} 
             onValueChange={(value) => setDistribution(value as ContentDistribution)}
-            placeholder="Selecione o canal"
           >
             <SelectTrigger id="distribution">
-              <SelectValue />
+              <SelectValue placeholder="Selecione o canal" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Instagram">Instagram</SelectItem>
@@ -120,10 +118,9 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
         <Select 
           value={equipmentId || "none"} 
           onValueChange={setEquipmentId}
-          placeholder="Selecione um equipamento"
         >
           <SelectTrigger id="equipment">
-            <SelectValue />
+            <SelectValue placeholder="Selecione um equipamento" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Nenhum</SelectItem>

@@ -62,11 +62,10 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
-                  placeholder="Selecione uma estratégia"
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione uma estratégia" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -94,11 +93,10 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                placeholder="Selecione uma estratégia"
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione uma estratégia" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
