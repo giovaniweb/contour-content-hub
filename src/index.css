@@ -1,145 +1,139 @@
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
+/* Base styles */
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-
-    --primary: 214 100% 49%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
-
     --ring: 215 20.2% 65.1%;
-
     --radius: 0.5rem;
-
-    --fluida-blue: 205 100% 49%;
-    --fluida-pink: 298 100% 49%;
-    --fluida-blueDark: 205 100% 29%;
   }
 
   .dark {
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
-
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
-
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 1.2%;
-
     --secondary: 222.2 47.4% 11.2%;
     --secondary-foreground: 210 40% 98%;
-
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-
     --ring: 216 34% 17%;
-
-    --radius: 0.5rem;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Fluida Design System Classes */
+@layer components {
+  /* Fluida gradient text */
+  .fluida-gradient-text {
+    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink text-transparent bg-clip-text;
   }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+  
+  /* Fluida gradient background */
+  .fluida-gradient-bg {
+    @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
+  }
+  
+  /* Fluida card styles */
+  .fluida-card {
+    @apply border rounded-xl bg-white shadow-sm hover:shadow-md transition-all p-6;
+  }
+  
+  /* Fluida button primary */
+  .fluida-button-primary {
+    @apply bg-fluida-blue text-white hover:bg-fluida-blueDark transition-colors rounded-md px-4 py-2;
+  }
+  
+  /* Fluida button secondary */
+  .fluida-button-secondary {
+    @apply bg-fluida-pink text-white hover:opacity-90 transition-opacity rounded-md px-4 py-2;
+  }
+  
+  /* Fluida button outline */
+  .fluida-button-outline {
+    @apply border border-fluida-blue text-fluida-blue hover:bg-fluida-blue/10 transition-colors rounded-md px-4 py-2;
+  }
+  
+  /* Fluida gradient border */
+  .fluida-gradient-border {
+    @apply relative border rounded-md hover:shadow-sm;
+  }
+  
+  .fluida-gradient-border::after {
+    content: '';
+    @apply absolute inset-0 rounded-md border-2 border-transparent bg-clip-border;
+    background-image: linear-gradient(to right, #0094fb, #f300fc);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  
+  /* Fluida page transitions */
+  .fluida-page-enter {
+    @apply opacity-0 transform translate-y-4;
+  }
+  
+  .fluida-page-enter-active {
+    @apply opacity-100 transform translate-y-0 transition-all duration-300;
+  }
+  
+  .fluida-page-exit {
+    @apply opacity-100 transform translate-y-0;
+  }
+  
+  .fluida-page-exit-active {
+    @apply opacity-0 transform -translate-y-4 transition-all duration-300;
   }
 }
 
-/* Fluida specific styling */
-.fluida-gradient-text {
-  @apply bg-gradient-to-r from-fluida-blue to-fluida-pink text-transparent bg-clip-text;
+/* Responsive utilities */
+@layer utilities {
+  .mobile-full-width {
+    @apply w-full sm:w-auto;
+  }
+  
+  .mobile-stack {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  .mobile-scroll {
+    @apply overflow-x-auto -mx-4 px-4 md:overflow-visible md:mx-0 md:px-0;
+  }
 }
 
-.fluida-gradient-bg {
-  @apply bg-gradient-to-r from-fluida-blue to-fluida-pink;
-}
-
-.fluida-gradient-border {
-  position: relative;
-}
-
-.fluida-gradient-border::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 0.375rem; /* same as rounded-md */
-  padding: 1px;
-  background: linear-gradient(to right, #0094fb, #f300fc);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Sidebar styles */
-.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar {
-  width: 5px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 20px;
-}
-
-/* Hover styles for sidebar items */
-.sidebar-menu-item {
-  transition: all 0.2s ease;
-}
-
-.sidebar-menu-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  transform: translateX(2px);
-}
+/* Import responsive styles */
+@import './components/ui/css/responsive.css';
