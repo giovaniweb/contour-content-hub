@@ -1,9 +1,21 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 import { UserProfile } from "@/types/auth";
 import { fetchUserProfile } from "@/services/authService";
+
+// Helper function to create a UserProfile from a User object
+const createDefaultUserProfile = (user: User): UserProfile => {
+  return {
+    id: user.id,
+    name: user.user_metadata?.name || '',
+    email: user.email || '',
+    language: "PT", // Default language 
+    passwordChanged: false, // Default value
+    role: 'cliente' // Default role
+  };
+};
 
 export function useAuthState() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -21,11 +33,17 @@ export function useAuthState() {
           setTimeout(async () => {
             try {
               const userProfile = await fetchUserProfile(currentSession.user.id);
-              setUser(userProfile);
+              
+              if (userProfile) {
+                setUser(userProfile);
+              } else {
+                // If profile not found, create a default one from basic user data
+                setUser(createDefaultUserProfile(currentSession.user));
+              }
             } catch (error) {
               console.error("Error fetching user profile:", error);
               // Still update user state with basic info from session
-              setUser(currentSession.user as UserProfile);
+              setUser(createDefaultUserProfile(currentSession.user));
             }
           }, 0);
         } else {
@@ -46,11 +64,17 @@ export function useAuthState() {
           
           try {
             const userProfile = await fetchUserProfile(initialSession.user.id);
-            setUser(userProfile);
+            
+            if (userProfile) {
+              setUser(userProfile);
+            } else {
+              // If profile not found, create a default one from basic user data
+              setUser(createDefaultUserProfile(initialSession.user));
+            }
           } catch (error) {
             console.error("Error fetching initial user profile:", error);
             // Still update user state with basic info from session
-            setUser(initialSession.user as UserProfile);
+            setUser(createDefaultUserProfile(initialSession.user));
           }
         }
         
