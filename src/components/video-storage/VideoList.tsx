@@ -119,7 +119,7 @@ const VideoList: React.FC<VideoListProps> = ({
         toast({
           title: "Processamento demorado",
           description: `O vídeo "${video.title}" está demorando mais do que o esperado.`,
-          variant: "warning"
+          variant: "destructive"
         });
       }
     });
