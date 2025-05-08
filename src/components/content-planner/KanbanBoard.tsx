@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
@@ -468,7 +469,7 @@ const KanbanBoard: React.FC = () => {
           const distributedItems = [...(columns.find(col => col.id === 'distributed')?.items || [])];
           
           if (!distributedItems.some(item => item.id === selectedItem.id)) {
-            // Create a KanbanItem for the distributed column
+            // Create a KanbanItem for the distributed column - this is a stand-alone KanbanItem
             const kanbanItem: KanbanItem = {
               id: selectedItem.id,
               title: selectedItem.title,
@@ -500,6 +501,24 @@ const KanbanBoard: React.FC = () => {
         });
       }, 500);
     }
+  };
+
+  // Convert KanbanItem to ContentPlannerItem (helper function to address type mismatch)
+  const convertToContentPlannerItem = (item: KanbanItem): ContentPlannerItem => {
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.title, // Use title as description
+      status: item.status as any,
+      tags: [], // Default empty array for tags
+      format: item.type as any, // Map type to format
+      objective: "Content Distribution", // Default objective
+      distribution: item.platform as any || "Múltiplos", // Use platform or default
+      authorId: "system", // Default author ID
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      aiGenerated: false
+    };
   };
 
   return (
