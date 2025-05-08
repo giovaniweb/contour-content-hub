@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
 import { StoredVideo, VideoMetadata } from '@/types/video-storage';
-import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorageService';
+import { getVideos, updateVideo, deleteVideo } from '@/services/videoStorage';
 import { usePermissions } from '@/hooks/use-permissions';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -188,7 +187,7 @@ export const useBatchVideoManage = () => {
               // First, get video details from videos_storage
               const { data: videoData } = await supabase
                 .from('videos_storage')
-                .select('title, description, file_urls')
+                .select('title, description, file_urls, tags')
                 .eq('id', videoId)
                 .single();
                 
@@ -201,7 +200,8 @@ export const useBatchVideoManage = () => {
                     descricao: videoData.description || '',
                     url_video: fileUrls?.original || '',
                     equipamentos: [selectedEquipment.nome],
-                    equipment_id: video.editEquipmentId
+                    equipment_id: video.editEquipmentId,
+                    tags: video.editTags || []
                   });
               }
             }
@@ -390,7 +390,7 @@ export const useBatchVideoManage = () => {
               // First, get video details from videos_storage
               const { data: videoData } = await supabase
                 .from('videos_storage')
-                .select('title, description, file_urls')
+                .select('title, description, file_urls, tags')
                 .eq('id', videoId)
                 .single();
                 
@@ -403,7 +403,8 @@ export const useBatchVideoManage = () => {
                     descricao: videoData.description || '',
                     url_video: fileUrls?.original || '',
                     equipamentos: [selectedEquipment.nome],
-                    equipment_id: batchEquipmentId
+                    equipment_id: batchEquipmentId,
+                    tags: videoData.tags || []
                   });
               }
             }
