@@ -14,6 +14,7 @@ import NotFound from "@/pages/NotFound";
 import VideoBatchManage from "@/pages/VideoBatchManage";
 import TechnicalDocuments from "@/pages/TechnicalDocuments";
 import { AuthProvider } from '@/context/AuthContext';
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const router = createBrowserRouter([
@@ -82,6 +83,7 @@ function App() {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
+      <Toaster />
     </AuthProvider>
   );
 }
