@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
@@ -36,7 +37,8 @@ import {
   Database,
   Code,
   Upload,
-  Activity
+  Activity,
+  Kanban
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -93,6 +95,15 @@ export const AppSidebar = ({
                 <NavLink to="/dashboard" className="flex items-center">
                   <Home className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                   {open && <span>Início</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem active={location.pathname === '/content-planner'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/content-planner' ? "active" : "default"}>
+                <NavLink to="/content-planner" className="flex items-center">
+                  <Kanban className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
+                  {open && <span>Planner</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

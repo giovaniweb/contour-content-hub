@@ -2,11 +2,14 @@
 import React from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import HighlightBanner from "@/components/dashboard/HighlightBanner";
 import TrendingItems from "@/components/dashboard/TrendingItems";
 import RecommendationBlock from "@/components/dashboard/RecommendationBlock";
 import NotificationsDemo from "@/components/dashboard/NotificationsDemo";
+import { Kanban } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -23,6 +26,14 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p>Esta é sua página de dashboard.</p>
+            <div className="mt-4">
+              <Button asChild className="flex items-center" variant="outline">
+                <Link to="/content-planner">
+                  <Kanban className="h-5 w-5 mr-2" />
+                  Acessar Planner de Conteúdo
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
         
