@@ -15,7 +15,7 @@ interface UseExtractedDataProps {
     extractedKeywords: string[];
     extractedResearchers: string[];
   }) => void;
-  forceClearState?: boolean; // New flag to force clearing state
+  forceClearState?: boolean; // Flag to force clearing state
 }
 
 export const useExtractedData = ({ 
@@ -23,17 +23,14 @@ export const useExtractedData = ({
   onDataChanged,
   forceClearState = false
 }: UseExtractedDataProps = {}) => {
-  // Track mount/unmount cycles
-  const mountCountRef = useRef(0);
+  // Debug tracking
+  const instanceId = useRef(`extracted-data-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   
   // Always initialize with empty state
   const [suggestedTitle, setSuggestedTitle] = useState<string>('');
   const [suggestedDescription, setSuggestedDescription] = useState<string>('');
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
   const [extractedResearchers, setExtractedResearchers] = useState<string[]>([]);
-  
-  // Debug tracking
-  const instanceId = useRef(`extracted-data-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   
   // Forced reset of all state
   const resetAllState = useCallback(() => {
@@ -44,15 +41,9 @@ export const useExtractedData = ({
     setExtractedResearchers([]);
   }, []);
   
-  // Create a ref to track if this is first mount to force reset
-  const isInitialized = useCallback(() => {
-    return initialData !== undefined;
-  }, [initialData]);
-  
   // On component mount
   useEffect(() => {
-    mountCountRef.current++;
-    console.log(`[${instanceId.current}] useExtractedData mounted (count: ${mountCountRef.current}), forceClearState: ${forceClearState}`);
+    console.log(`[${instanceId.current}] useExtractedData mounted, forceClearState: ${forceClearState}`);
     
     // Force reset on unmount
     return () => {
@@ -70,16 +61,11 @@ export const useExtractedData = ({
     }
   }, [forceClearState, resetAllState]);
   
-  // Reset all data first, then set from initialData if available
+  // Set data from initialData if available (and not being cleared)
   useEffect(() => {
-    console.log(`[${instanceId.current}] initialData effect triggered, initialData:`, initialData ? "present" : "absent");
-    
-    // Always clear previous data first
-    resetAllState();
-    
-    // Only set data if initialData is provided (editing mode)
-    if (initialData) {
-      console.log(`[${instanceId.current}] Setting extracted data from initialData:`, initialData);
+    // Only set data if initialData is provided (editing mode) and not forcing clear
+    if (initialData && !forceClearState) {
+      console.log(`[${instanceId.current}] Setting extracted data from initialData`);
       
       if (initialData.title) {
         setSuggestedTitle(initialData.title);
@@ -96,10 +82,8 @@ export const useExtractedData = ({
       if (initialData.researchers && initialData.researchers.length > 0) {
         setExtractedResearchers(initialData.researchers);
       }
-    } else {
-      console.log(`[${instanceId.current}] No initialData provided, keeping all states empty`);
     }
-  }, [initialData, resetAllState]);
+  }, [initialData, forceClearState]);
   
   // Notify parent component when extracted data changes
   useEffect(() => {
@@ -118,6 +102,9 @@ export const useExtractedData = ({
   const handleExtractedData = useCallback((data: ExtractedData) => {
     console.log(`[${instanceId.current}] Setting new extracted data from document:`, data);
     
+    // Always clear previous data first
+    resetAllState();
+    
     if (data.title) {
       setSuggestedTitle(data.title);
     }
@@ -133,7 +120,7 @@ export const useExtractedData = ({
     if (data.researchers) {
       setExtractedResearchers(data.researchers);
     }
-  }, []);
+  }, [resetAllState]);
   
   // Complete reset of all extracted data
   const resetExtractedData = useCallback(() => {
@@ -151,7 +138,6 @@ export const useExtractedData = ({
     extractedResearchers, 
     setExtractedResearchers,
     handleExtractedData,
-    resetExtractedData,
-    isInitialized
+    resetExtractedData
   };
 };

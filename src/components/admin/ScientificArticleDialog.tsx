@@ -43,14 +43,6 @@ const ScientificArticleDialog: React.FC<ScientificArticleDialogProps> = ({
     }
   }, [isOpen, articleData]);
 
-  // Garante que o diálogo seja remontado quando o ID do artigo muda
-  useEffect(() => {
-    if (articleData?.id) {
-      console.log(`Article ID changed to: ${articleData.id}, forcing remount`);
-      setFormKey(generateFormKey());
-    }
-  }, [articleData?.id]);
-
   return (
     <Dialog 
       open={isOpen} 

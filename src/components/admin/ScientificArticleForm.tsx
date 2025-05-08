@@ -14,6 +14,7 @@ import FilePreview from "./article-form/FilePreview";
 import { useUploadHandler } from "./article-form/useUploadHandler";
 import { useExtractedData } from "./article-form/useExtractedData";
 import { toast } from "sonner";
+import FileUploadSection from "./article-form/FileUploadSection";
 
 interface ArticleFormProps {
   articleData?: any;
@@ -36,14 +37,18 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
   console.log(`[${instanceId.current}] ScientificArticleForm rendering, article:`, 
     articleData?.id || 'novo', "isOpen:", isOpen, "forceClearState:", forceClearState);
   
-  // Extract extracted data handling with initialData only if this is an edit
+  // Extract extracted data handling - no initial data for new articles
   const {
     suggestedTitle,
     suggestedDescription,
     extractedKeywords,
     extractedResearchers,
     handleExtractedData,
-    resetExtractedData
+    resetExtractedData,
+    setSuggestedTitle,
+    setSuggestedDescription,
+    setExtractedKeywords,
+    setExtractedResearchers
   } = useExtractedData({
     // Only pass initialData if we're editing an existing article
     initialData: articleData ? {
@@ -52,7 +57,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       keywords: articleData.keywords || [],
       researchers: articleData.researchers || []
     } : undefined,
-    forceClearState: forceClearState || !articleData // Force clear if explicitly requested or new article
+    forceClearState: true // Always force clear for new extraction
   });
   
   // Extract file upload handling
@@ -80,13 +85,22 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       setUploadError(null);
       resetExtractedData();
     },
-    forceClearState: forceClearState || !articleData // Force clear if explicitly requested or new article
+    forceClearState: true // Always force clear for new extraction
   });
   
+  // Initialize form using React Hook Form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      titulo: "",
+      descricao: "",
+      equipamento_id: "",
+      idioma_original: "pt",
+      link_dropbox: ""
+    }
+  });
+
   // Extract form state handling
-  const [uploadStep, setUploadStep] = React.useState<'upload' | 'form'>(articleData ? 'form' : 'upload');
-  console.log(`[${instanceId.current}] Estado atual do uploadStep:`, uploadStep);
-  
   const {
     isLoading,
     equipments,
@@ -106,18 +120,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     });
     onSuccess(data);
   }, isOpen);
-  
-  // Initialize form using React Hook Form
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      titulo: "",
-      descricao: "",
-      equipamento_id: "",
-      idioma_original: "pt",
-      link_dropbox: ""
-    }
-  });
 
   // Reset form when component is mounted
   useEffect(() => {
@@ -156,7 +158,7 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     };
     
     // If forcing clear state, reset everything
-    if (forceClearState) {
+    if (forceClearState || !articleData) {
       resetAllStates();
     }
     
@@ -185,64 +187,29 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
       console.log(`[${instanceId.current}] ScientificArticleForm unmounting, resetting all states`);
       resetAllStates();
     };
-  }, [forceClearState]);
+  }, [forceClearState, articleData]);
 
-  // Track dialog open/closed state and reset form when opened
+  // Auto process file when it's selected
   useEffect(() => {
-    console.log(`[${instanceId.current}] isOpen or articleData changed:`, isOpen, articleData?.id);
-    if (isOpen) {
-      console.log(`[${instanceId.current}] Dialog open, resetting form`);
-      
-      // Reset file input value
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      
-      // Initialize form with articleData or empty values
-      if (articleData) {
-        console.log(`[${instanceId.current}] Filling form with article data:`, articleData.titulo);
-        form.reset({
-          titulo: articleData.titulo || "",
-          descricao: articleData.descricao || "",
-          equipamento_id: articleData.equipamento_id || "",
-          idioma_original: articleData.idioma_original || "pt",
-          link_dropbox: articleData.link_dropbox || ""
-        });
-        
-        if (articleData.link_dropbox) {
-          setFileUrl(articleData.link_dropbox);
+    if (file && !fileUrl && !isProcessing) {
+      console.log(`[${instanceId.current}] New file detected, auto-processing...`);
+      handleFileUpload().then((success) => {
+        if (success) {
+          console.log(`[${instanceId.current}] Auto-processing successful`);
         }
-      } else {
-        console.log(`[${instanceId.current}] Clearing form for new article`);
-        form.reset({
-          titulo: "",
-          descricao: "",
-          equipamento_id: "",
-          idioma_original: "pt",
-          link_dropbox: ""
-        });
-        
-        // For new articles, ensure everything is reset
-        setFileUrl(null);
-        setFile(null);
-        resetExtractedData();
-      }
+      });
     }
-  }, [isOpen, articleData]);
+  }, [file, fileUrl, isProcessing]);
 
-  // Update form when suggested data changes - but only if fields are empty
+  // Update form when suggested data changes
   useEffect(() => {
-    const currentTitle = form.getValues("titulo");
-    const currentDesc = form.getValues("descricao");
-    
-    // Only update form with suggested data if the form fields are empty or very short
-    // This prevents overwriting user input
-    if (suggestedTitle && (!currentTitle || currentTitle.length < 5)) {
+    // Always update form with extracted data immediately
+    if (suggestedTitle) {
       console.log(`[${instanceId.current}] Updating title with suggestion:`, suggestedTitle);
       form.setValue("titulo", suggestedTitle);
     }
     
-    if (suggestedDescription && (!currentDesc || currentDesc.length < 10)) {
+    if (suggestedDescription) {
       console.log(`[${instanceId.current}] Updating description with suggestion:`, suggestedDescription);
       form.setValue("descricao", suggestedDescription);
     }
@@ -253,7 +220,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     if (articleData?.link_dropbox && !fileUrl) {
       console.log(`[${instanceId.current}] Setting file URL from article:`, articleData.link_dropbox);
       setFileUrl(articleData.link_dropbox);
-      setUploadStep('form');
     } else if (!articleData && !forceClearState) {
       // If this is a new article and not already reset, clear file URL
       console.log(`[${instanceId.current}] Clearing file URL for new article`);
@@ -273,30 +239,62 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
     }
   }, [fileUrl, form]);
 
-  // Upload step UI
-  if (uploadStep === 'upload') {
-    return (
-      <FileUploader 
-        file={file}
-        setFile={setFile}
-        fileUrl={fileUrl}
-        setFileUrl={setFileUrl}
-        isProcessing={isProcessing}
-        uploadError={uploadError || handlerUploadError}
-        processingProgress={processingProgress}
-        processingFailed={processingFailed}
-        onProcessFile={handleFileUpload}
-        onSetUploadStep={setUploadStep}
-        onResetData={resetExtractedData}
-      />
-    );
-  }
+  // Handle file upload and extraction
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(`[${instanceId.current}] File input changed`);
+    
+    // Clear previous extracted data
+    resetExtractedData();
+    
+    // Clear form fields
+    form.setValue("titulo", "");
+    form.setValue("descricao", "");
+    
+    // Handle file change
+    handleFileChange(e);
+  };
 
-  // Form step UI
   return (
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* File Upload Section - Always shown first */}
+          <div className="mb-6 border rounded-md p-4 bg-muted/20">
+            <h3 className="text-lg font-medium mb-2">Anexar artigo científico (PDF)</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Anexe um arquivo PDF para extração automática dos dados do artigo
+            </p>
+            
+            <FileUploadSection
+              file={file}
+              fileUrl={fileUrl} 
+              isProcessing={isProcessing}
+              uploadError={uploadError || handlerUploadError}
+              processingProgress={processingProgress}
+              onFileChange={onFileChange}
+              onProcessFile={handleFileUpload}
+              onClearFile={() => {
+                handleClearFile();
+                resetExtractedData();
+                form.setValue("titulo", "");
+                form.setValue("descricao", "");
+              }}
+            />
+            
+            {(file || fileUrl) && (
+              <FilePreview 
+                file={file} 
+                fileUrl={fileUrl || articleData?.link_dropbox} 
+                onClearFile={() => {
+                  handleClearFile();
+                  resetExtractedData();
+                  form.setValue("titulo", "");
+                  form.setValue("descricao", "");
+                }} 
+              />
+            )}
+          </div>
+
           {/* Extracted information display */}
           <ArticleInfoDisplay 
             extractedKeywords={extractedKeywords} 
@@ -319,51 +317,6 @@ const ScientificArticleForm: React.FC<ArticleFormProps> = ({
             form={form} 
             equipments={equipments} 
           />
-          
-          {/* File preview */}
-          {(file || fileUrl || articleData?.link_dropbox) && (
-            <div className="mt-4">
-              <FilePreview 
-                file={file} 
-                fileUrl={fileUrl || articleData?.link_dropbox} 
-                onClearFile={handleClearFile} 
-              />
-            </div>
-          )}
-          
-          {/* Alternative file upload in form step */}
-          {!file && !fileUrl && !articleData?.link_dropbox && (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Anexar documento PDF</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-primary file:text-white
-                    hover:file:bg-primary/90"
-                />
-                
-                {file && !fileUrl && !isProcessing && (
-                  <Button 
-                    type="button"
-                    onClick={() => {
-                      console.log(`[${instanceId.current}] Process file button clicked`);
-                      handleFileUpload();
-                    }}
-                    disabled={isProcessing}
-                  >
-                    Processar arquivo
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
           
           <div className="flex justify-end gap-2 pt-4">
             <Button

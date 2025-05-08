@@ -1,5 +1,5 @@
 
-// I'll update the useUploadHandler hook to support the forceClearState flag
+// I'll update the useUploadHandler hook to support immediate file processing
 import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { uploadFileToStorage, processFileContent } from "@/services/documentProcessing";
