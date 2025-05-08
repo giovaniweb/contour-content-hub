@@ -15,6 +15,11 @@ import Settings from '@/pages/Settings';
 import Calendar from '@/pages/Calendar';
 import CustomGpt from '@/pages/CustomGpt';
 import IdeaValidatorPage from '@/pages/IdeaValidatorPage';
+import VideosPage from '@/pages/VideosPage';
+import MediaLibraryPage from '@/pages/MediaLibraryPage';
+import MediaFilesPage from '@/pages/MediaFilesPage';
+import ContentPage from '@/pages/ContentPage';
+import ScriptGenerator from '@/pages/ScriptGenerator';
 
 // Admin Pages
 import AdminContent from '@/pages/AdminContent';
@@ -23,16 +28,6 @@ import AdminEquipments from '@/pages/AdminEquipments';
 import AdminSystemDiagnostics from '@/pages/AdminSystemDiagnostics';
 import AdminSystemIntelligence from '@/pages/AdminSystemIntelligence';
 import AdminIntegrations from '@/pages/AdminIntegrations';
-
-// Mock pages for routes that don't have components yet
-const MockPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      <h1 className="text-2xl font-bold mb-4">{title} Page</h1>
-      <p className="text-muted-foreground">This page is coming soon.</p>
-    </div>
-  </div>
-);
 
 // Page loading wrapper
 const PageLoader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -94,10 +89,18 @@ function App() {
           } 
         />
         <Route 
+          path="/script-generator" 
+          element={
+            <PageLoader>
+              <ScriptGenerator />
+            </PageLoader>
+          } 
+        />
+        <Route 
           path="/content" 
           element={
             <PageLoader>
-              <MockPage title="Content" />
+              <ContentPage />
             </PageLoader>
           } 
         />
@@ -129,7 +132,7 @@ function App() {
           path="/videos" 
           element={
             <PageLoader>
-              <MockPage title="Videos" />
+              <VideosPage />
             </PageLoader>
           } 
         />
@@ -137,7 +140,7 @@ function App() {
           path="/media-library" 
           element={
             <PageLoader>
-              <MockPage title="Media Library" />
+              <MediaLibraryPage />
             </PageLoader>
           } 
         />
@@ -145,7 +148,7 @@ function App() {
           path="/media-files" 
           element={
             <PageLoader>
-              <MockPage title="Media Files" />
+              <MediaFilesPage />
             </PageLoader>
           } 
         />
@@ -161,7 +164,7 @@ function App() {
           path="/equipment" 
           element={
             <PageLoader>
-              <MockPage title="Equipment" />
+              <MediaFilesPage />
             </PageLoader>
           } 
         />

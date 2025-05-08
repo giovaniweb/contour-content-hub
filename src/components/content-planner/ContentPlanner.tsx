@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import KanbanBoard from './KanbanBoard';
 import ContentPlannerDetailModal from './ContentPlannerDetailModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter, Calendar, Sparkles } from 'lucide-react';
 import { useContentPlanner } from '@/hooks/useContentPlanner';
 import { ContentPlannerItem } from '@/types/content-planner';
+import { useToast } from '@/hooks/use-toast';
 
 const ContentPlanner: React.FC = () => {
   const [view, setView] = useState<'board' | 'list' | 'calendar'>('board');
@@ -19,6 +21,8 @@ const ContentPlanner: React.FC = () => {
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentPlannerItem | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   const { loading, addItem, updateItem, removeItem } = useContentPlanner();
 
@@ -27,12 +31,36 @@ const ContentPlanner: React.FC = () => {
     // Mock API call timing
     setTimeout(() => {
       setIsGeneratingSuggestions(false);
+      toast({
+        title: "Sugestões geradas",
+        description: "Novas ideias de conteúdo foram adicionadas ao seu planner.",
+      });
     }, 2000);
   };
   
   const handleViewDetails = (item: ContentPlannerItem) => {
     setSelectedItem(item);
     setDetailModalOpen(true);
+  };
+
+  const handleGenerateScript = (item: ContentPlannerItem) => {
+    navigate('/script-generator', { 
+      state: { 
+        contentItem: item
+      }
+    });
+  };
+
+  const handleValidateItem = (item: ContentPlannerItem) => {
+    navigate('/content-ideas', { 
+      state: { 
+        ideaToValidate: {
+          content: item.title,
+          objective: item.objective,
+          format: item.format
+        }
+      }
+    });
   };
 
   return (
@@ -112,7 +140,11 @@ const ContentPlanner: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-contourline-mediumBlue" />
             </div>
           ) : (
-            <KanbanBoard />
+            <KanbanBoard 
+              onViewDetails={handleViewDetails}
+              onGenerateScript={handleGenerateScript}
+              onValidate={handleValidateItem}
+            />
           )}
         </TabsContent>
         
@@ -141,6 +173,8 @@ const ContentPlanner: React.FC = () => {
         item={selectedItem}
         onUpdate={updateItem}
         onDelete={removeItem}
+        onGenerateScript={handleGenerateScript}
+        onValidate={handleValidateItem}
       />
     </div>
   );

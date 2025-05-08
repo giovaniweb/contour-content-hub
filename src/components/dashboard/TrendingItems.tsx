@@ -1,142 +1,121 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, ChevronRight, Video, FileText, Image } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from 'react-router-dom';
+import { motion } from "framer-motion";
+import { itemVariants } from "@/lib/animations";
 
-// Types for trending items
 interface TrendingItem {
   id: string;
-  type: 'video' | 'script' | 'image' | 'document';
   title: string;
-  views: number;
-  description?: string;
-  thumbnail?: string;
+  type: 'video' | 'article' | 'script';
+  thumbnail: string;
+  views?: number;
   link: string;
-  date: string;
-  badge?: string;
 }
 
-// Mock data for trending items (in a real application this would come from an API)
-const SAMPLE_TRENDING: TrendingItem[] = [
+const trendingItems: TrendingItem[] = [
   {
     id: '1',
+    title: 'Como utilizar o Aparelho X para Tratamento Facial',
     type: 'video',
-    title: 'Demonstração Adella para flacidez facial',
-    views: 280,
-    thumbnail: 'https://images.unsplash.com/photo-1559599189-fe84dea4eb79?q=80&w=1000&auto=format&fit=crop',
-    description: 'Vídeo demonstrativo sobre o uso do equipamento Adella para tratamentos de flacidez facial.',
-    link: '/video-player?id=1',
-    date: '2025-05-01',
-    badge: 'Novo'
+    thumbnail: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
+    views: 1240,
+    link: '/videos'
   },
   {
     id: '2',
-    type: 'script',
-    title: 'Roteiro: Benefícios da ultracavitação',
-    views: 145,
-    description: 'Roteiro detalhado para vídeo explicativo sobre ultracavitação e seus benefícios.',
-    link: '/custom-gpt/scripts/2',
-    date: '2025-05-03'
+    title: 'Eficácia do Tratamento X no Rejuvenescimento Facial: Um Estudo Clínico',
+    type: 'article',
+    thumbnail: '/assets/images/article-thumbnail-1.jpg',
+    views: 856,
+    link: '/articles'
   },
   {
     id: '3',
-    type: 'video',
-    title: 'Como utilizar o Koios para gordura localizada',
-    views: 198,
-    thumbnail: 'https://images.unsplash.com/photo-1535748328504-e239d4586c8e?q=80&w=1000&auto=format&fit=crop',
-    description: 'Tutorial para profissionais sobre o uso do Koios em tratamentos de gordura localizada.',
-    link: '/video-player?id=3',
-    date: '2025-04-28'
+    title: 'Roteiro: 5 Benefícios do Tratamento Y para Rejuvenescimento',
+    type: 'script',
+    thumbnail: '/assets/images/script-thumbnail-1.jpg',
+    views: 542,
+    link: '/scripts'
   },
   {
     id: '4',
-    type: 'document',
-    title: 'Artigo científico: Radiofrequência e colágeno',
-    views: 112,
-    description: 'Estudo sobre os efeitos da radiofrequência na produção de colágeno.',
-    link: '/technical-documents/4',
-    date: '2025-05-02'
+    title: 'Demonstração do Procedimento Y - Passo a passo detalhado',
+    type: 'video',
+    thumbnail: '/assets/images/video-thumbnail-2.jpg',
+    views: 890,
+    link: '/videos'
   }
 ];
 
-interface TrendingItemsProps {
-  maxItems?: number;
-}
-
-const TrendingItems: React.FC<TrendingItemsProps> = ({ maxItems = 4 }) => {
-  const items = SAMPLE_TRENDING.slice(0, maxItems);
+const TrendingItemCard: React.FC<{ item: TrendingItem; index: number }> = ({ item, index }) => {
+  const navigate = useNavigate();
   
-  // Get appropriate icon based on content type
-  const getIcon = (type: string) => {
+  const handleClick = () => {
+    navigate(item.link);
+  };
+  
+  const getTypeLabel = (type: string) => {
     switch(type) {
-      case 'video':
-        return <Video className="h-5 w-5 text-purple-500" />;
-      case 'script':
-        return <FileText className="h-5 w-5 text-blue-500" />;
-      case 'image':
-        return <Image className="h-5 w-5 text-green-500" />;
-      default:
-        return <FileText className="h-5 w-5 text-amber-500" />;
+      case 'video': return 'Vídeo';
+      case 'article': return 'Artigo';
+      case 'script': return 'Roteiro';
+      default: return type;
     }
   };
   
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-contourline-mediumBlue" />
-          <h2 className="text-2xl font-bold">Conteúdo em Alta</h2>
+    <motion.div
+      variants={itemVariants}
+      className="cursor-pointer"
+      onClick={handleClick}
+    >
+      <Card className="overflow-hidden group hover:shadow-md transition-all h-full flex flex-col">
+        <div className="relative">
+          <img 
+            src={item.thumbnail} 
+            alt={item.title}
+            className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+            {getTypeLabel(item.type)}
+          </div>
+          {item.views && (
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              {item.views.toLocaleString()} visualizações
+            </div>
+          )}
         </div>
-        <Button asChild variant="ghost" size="sm" className="text-sm">
-          <Link to="/media" className="flex items-center">
-            Ver tudo <ChevronRight className="ml-1 h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {items.map((item) => (
-          <Link key={item.id} to={item.link}>
-            <Card className="h-full border border-border/50 hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
-              {item.thumbnail && (
-                <div className="h-40 overflow-hidden rounded-t-lg">
-                  <img 
-                    src={item.thumbnail} 
-                    alt={item.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              )}
-              <CardHeader className={item.thumbnail ? "pb-2" : "pb-2 pt-6"}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center">
-                    {getIcon(item.type)}
-                    <CardTitle className="ml-2 text-lg">{item.title.length > 25 ? `${item.title.substring(0, 25)}...` : item.title}</CardTitle>
-                  </div>
-                  {item.badge && (
-                    <Badge className="bg-amber-100 text-amber-800 border-amber-200 ml-2 badge-new">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {item.description && (
-                  <p className="text-sm text-muted-foreground mb-2">{item.description.length > 70 ? `${item.description.substring(0, 70)}...` : item.description}</p>
-                )}
-                <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-                  <span>{item.views} visualizações</span>
-                  <span>{new Date(item.date).toLocaleDateString('pt-BR')}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
+        <CardContent className="p-4 flex-1 flex flex-col justify-between">
+          <h3 className="font-medium text-base line-clamp-2">{item.title}</h3>
+          <div className="flex justify-end mt-2">
+            <div className="text-sm font-medium text-muted-foreground">
+              #{index + 1}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+const TrendingItems: React.FC = () => {
+  return (
+    <Card>
+      <CardContent className="p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Conteúdos Populares</h2>
+          <span className="text-sm text-muted-foreground">Última semana</span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {trendingItems.map((item, index) => (
+            <TrendingItemCard key={item.id} item={item} index={index} />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

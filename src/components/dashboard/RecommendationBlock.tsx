@@ -1,106 +1,143 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, Zap, Calendar, FileText, Play, PenTool } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { FileText, VideoIcon, Calendar, ArrowRight, MessageSquare, Image } from "lucide-react";
 
 interface Recommendation {
   id: string;
   title: string;
+  type: 'video' | 'article' | 'script' | 'social' | 'image';
+  thumbnail: string;
+  tags: string[];
   description: string;
-  icon: React.ElementType;
-  actionText: string;
-  actionLink: string;
-  color: string;
+  link: string;
 }
 
-const SAMPLE_RECOMMENDATIONS: Recommendation[] = [
+// Mock recommendation data
+const recommendations: Recommendation[] = [
   {
     id: '1',
-    title: 'Complete seu roteiro',
+    title: 'Complete seu roteiro sobre tratamentos faciais',
+    type: 'script',
+    thumbnail: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
+    tags: ['roteiro', 'facial'],
     description: 'Você tem um roteiro em progresso sobre tratamentos faciais.',
-    icon: FileText,
-    actionText: 'Continuar roteiro',
-    actionLink: '/custom-gpt?draft=123',
-    color: 'bg-blue-50 text-blue-600'
+    link: '/scripts'
   },
   {
     id: '2',
     title: 'Planeje sua semana',
+    type: 'social',
+    thumbnail: '/assets/images/calendar-thumbnail.jpg',
+    tags: ['planejamento', 'agenda'],
     description: 'Você tem 3 gravações pendentes para esta semana.',
-    icon: Calendar,
-    actionText: 'Ver agenda',
-    actionLink: '/calendar',
-    color: 'bg-purple-50 text-purple-600'
+    link: '/agenda'
   },
   {
     id: '3',
     title: 'Grave novo conteúdo',
+    type: 'video',
+    thumbnail: '/assets/images/record-thumbnail.jpg',
+    tags: ['gravação', 'conteúdo'],
     description: 'Baseado no seu plano de conteúdo, sugerimos um vídeo sobre Hipro.',
-    icon: Play,
-    actionText: 'Iniciar gravação',
-    actionLink: '/video-storage/create',
-    color: 'bg-red-50 text-red-600'
+    link: '/content-planner'
   },
   {
     id: '4',
     title: 'Revise sua estratégia',
+    type: 'image',
+    thumbnail: '/assets/images/strategy-thumbnail.jpg',
+    tags: ['estratégia', 'marketing'],
     description: 'Sua estratégia de conteúdo para Maio precisa de atualização.',
-    icon: PenTool,
-    actionText: 'Revisar estratégia',
-    actionLink: '/content-strategy',
-    color: 'bg-green-50 text-green-600'
+    link: '/content-strategy'
   }
 ];
 
-interface RecommendationBlockProps {
-  maxItems?: number;
-}
-
-const RecommendationBlock: React.FC<RecommendationBlockProps> = ({ maxItems = 4 }) => {
-  const recommendations = SAMPLE_RECOMMENDATIONS.slice(0, maxItems);
+const RecommendationCard: React.FC<{ recommendation: Recommendation }> = ({ recommendation }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(recommendation.link);
+  };
+  
+  const getIcon = (type: string) => {
+    switch(type) {
+      case 'video': return <VideoIcon className="h-5 w-5" />;
+      case 'article':
+      case 'script': 
+        return <FileText className="h-5 w-5" />;
+      case 'social': 
+        return <MessageSquare className="h-5 w-5" />;
+      case 'image': 
+        return <Image className="h-5 w-5" />;
+      default: 
+        return <Calendar className="h-5 w-5" />;
+    }
+  };
   
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-contourline-mediumBlue" />
-          <h2 className="text-2xl font-bold">Recomendações Personalizadas</h2>
+    <Card className="overflow-hidden hover:shadow-md transition-all cursor-pointer" onClick={handleClick}>
+      <div className="flex flex-col sm:flex-row h-full">
+        <div className="sm:w-1/3">
+          <img 
+            src={recommendation.thumbnail} 
+            alt={recommendation.title}
+            className="w-full h-full object-cover"
+          />
         </div>
-        <Button variant="outline" size="sm" className="text-sm">
-          Atualizar
-        </Button>
+        <div className="sm: w-2/3 p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              {getIcon(recommendation.type)}
+              <h3 className="font-medium">{recommendation.title}</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">{recommendation.description}</p>
+            <div className="flex flex-wrap gap-1 mb-4">
+              {recommendation.tags.map((tag, idx) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <Button className="self-end flex items-center gap-1" variant="ghost" size="sm">
+            <span>Ver</span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {recommendations.map(item => (
-          <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all duration-300 border-border/50 group">
-            <CardHeader className={`${item.color} bg-opacity-20 pb-3`}>
-              <div className="flex items-center">
-                <div className={`${item.color} p-2 rounded-md`}>
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <CardTitle className="text-lg ml-3">{item.title}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-3">
-              <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
-              <Button 
-                asChild 
-                variant="outline" 
-                size="sm" 
-                className="w-full group-hover:bg-contourline-lightBlue/10 group-hover:border-contourline-lightBlue/30"
-              >
-                <a href={item.actionLink} className="flex items-center justify-center">
-                  <Zap className="mr-2 h-4 w-4" />
-                  {item.actionText}
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+    </Card>
+  );
+};
+
+const RecommendationBlock: React.FC = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <Card>
+      <CardContent className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Recomendações Personalizadas</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/dashboard')}
+            className="text-sm"
+          >
+            Atualizar
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {recommendations.map((recommendation) => (
+            <RecommendationCard key={recommendation.id} recommendation={recommendation} />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
