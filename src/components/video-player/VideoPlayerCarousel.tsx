@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp } from 'lucide-react';
@@ -32,14 +32,14 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
   React.useEffect(() => {
     if (!api) return;
     
-    const onSelect = () => {
+    const handleSelect = () => {
       const selectedIndex = api.selectedScrollSnap();
       onSelect(selectedIndex);
     };
     
-    api.on("select", onSelect);
+    api.on("select", handleSelect);
     return () => {
-      api.off("select", onSelect);
+      api.off("select", handleSelect);
     };
   }, [api, onSelect]);
 

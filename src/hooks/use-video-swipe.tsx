@@ -4,12 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { StoredVideo } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
 import { deleteVideo } from '@/services/videoStorageService';
+import { VideoSwipeState } from '@/components/video-swipe/types';
 
 export function useVideoSwipe() {
   const [videos, setVideos] = useState<StoredVideo[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [state, setState] = useState<VideoSwipeState>({
+    currentIndex: 0,
+    direction: null,
+    isPlaying: false
+  });
   const [loading, setLoading] = useState(true);
-  const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,20 +62,23 @@ export function useVideoSwipe() {
   };
 
   const handleSwipe = (direction: 'left' | 'right') => {
-    setDirection(direction);
+    setState(prev => ({ ...prev, direction }));
+    
     setTimeout(() => {
-      setCurrentIndex((prevIndex) => {
-        if (prevIndex < videos.length - 1) {
-          return prevIndex + 1;
+      setState(prev => {
+        const currentIndex = prev.currentIndex < videos.length - 1 
+          ? prev.currentIndex + 1 
+          : 0;
+          
+        if (currentIndex === 0 && prev.currentIndex === videos.length - 1) {
+          toast({
+            title: "Fim dos vídeos",
+            description: "Você visualizou todos os vídeos disponíveis."
+          });
         }
-        // If we've reached the end, restart or show a message
-        toast({
-          title: "Fim dos vídeos",
-          description: "Você visualizou todos os vídeos disponíveis."
-        });
-        return 0;
+        
+        return { ...prev, currentIndex, direction: null };
       });
-      setDirection(null);
     }, 300);
   };
 
@@ -89,8 +96,8 @@ export function useVideoSwipe() {
         description: "O vídeo foi removido com sucesso."
       });
       
-      if (currentIndex >= videos.length - 1) {
-        setCurrentIndex(0);
+      if (state.currentIndex >= videos.length - 1) {
+        setState(prev => ({ ...prev, currentIndex: 0 }));
       }
     } catch (error: any) {
       toast({
@@ -121,14 +128,14 @@ export function useVideoSwipe() {
     }
   };
 
-  const currentVideo = videos[currentIndex];
+  const currentVideo = videos[state.currentIndex];
 
   return {
     videos,
     currentVideo,
     loading,
-    direction,
-    currentIndex,
+    direction: state.direction,
+    currentIndex: state.currentIndex,
     variants,
     fetchVideos,
     handleLike,

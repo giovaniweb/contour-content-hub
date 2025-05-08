@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { motion, PanInfo } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, PanInfo, useAnimation } from 'framer-motion';
 import { StoredVideo } from '@/types/video-storage';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -26,7 +26,7 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
   className
 }) => {
   const isMobile = useIsMobile();
-  const controls = React.useAnimation();
+  const controls = useAnimation();
   
   const {
     currentIndex,
