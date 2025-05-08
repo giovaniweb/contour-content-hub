@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
 import { usePermissions } from '@/hooks/use-permissions';
-import { StoredVideo } from '@/types/video-storage';
 import { EditableVideo, UseBatchVideoManageResult } from './video-batch/types';
 import { useVideoBatchState } from './video-batch/stateManagement';
 import { 

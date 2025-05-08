@@ -2,10 +2,7 @@
 import { useState } from 'react';
 import { EditableVideo, BatchVideoState } from './types';
 
-export const useVideoBatchState = (): BatchVideoState & {
-  setVideos: React.Dispatch<React.SetStateAction<EditableVideo[]>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
-} => {
+export const useVideoBatchState = () => {
   const [videos, setVideos] = useState<EditableVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);

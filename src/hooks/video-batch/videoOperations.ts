@@ -49,6 +49,7 @@ export const updateEquipmentAssociation = async (
       equipment_id: null
     };
     
+    // Validate using Zod schema and get plain object
     const metadata = VideoMetadataSchema.parse(metadataObj);
     
     await supabase.from('videos_storage')
@@ -72,6 +73,7 @@ export const updateEquipmentAssociation = async (
       equipment_id: equipmentId
     };
     
+    // Validate using Zod schema and get plain object
     const metadata = VideoMetadataSchema.parse(metadataObj);
     
     await supabase.from('videos_storage')
@@ -148,10 +150,12 @@ export const batchUpdateEquipment = async (
     try {
       if (equipmentId === 'none') {
         // Remove equipment association
+        // Create object to validate
         const metadataObj = {
           equipment_id: null
         };
         
+        // Validate with schema and get plain object
         const metadata = VideoMetadataSchema.parse(metadataObj);
         
         await supabase.from('videos_storage')
@@ -173,6 +177,7 @@ export const batchUpdateEquipment = async (
           equipment_id: equipmentId
         };
         
+        // Validate with schema and get plain object
         const metadata = VideoMetadataSchema.parse(metadataObj);
         
         await supabase.from('videos_storage')

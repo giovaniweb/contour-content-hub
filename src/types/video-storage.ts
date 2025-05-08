@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 // Define Zod schema for VideoMetadata
