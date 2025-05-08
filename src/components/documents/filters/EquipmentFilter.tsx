@@ -24,10 +24,13 @@ export const EquipmentFilter: React.FC<EquipmentFilterProps> = ({
   equipments, 
   onEquipmentChange 
 }) => {
+  // Garante sempre um valor válido
+  const safeValue = equipmentId || "all";
+  
   return (
     <div>
       <Select
-        value={equipmentId || "all"}
+        value={safeValue}
         onValueChange={onEquipmentChange}
       >
         <SelectTrigger>

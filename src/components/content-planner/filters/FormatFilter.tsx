@@ -17,10 +17,13 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
   value, 
   onValueChange 
 }) => {
+  // Garante sempre um valor válido
+  const safeValue = value || "all";
+  
   return (
     <div>
       <Select
-        value={value || "all"}
+        value={safeValue}
         onValueChange={(value) => onValueChange(value === "all" ? undefined : value)}
       >
         <SelectTrigger className="w-full text-sm h-9">

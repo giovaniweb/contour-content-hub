@@ -17,10 +17,13 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
   language, 
   onLanguageChange 
 }) => {
+  // Garante sempre um valor válido
+  const safeValue = language || "all";
+  
   return (
     <div>
       <Select
-        value={language || "all"}
+        value={safeValue}
         onValueChange={onLanguageChange}
       >
         <SelectTrigger>

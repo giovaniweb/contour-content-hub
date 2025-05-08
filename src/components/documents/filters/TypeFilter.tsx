@@ -18,10 +18,13 @@ export const TypeFilter: React.FC<TypeFilterProps> = ({
   documentType, 
   onTypeChange 
 }) => {
+  // Garante sempre um valor válido
+  const safeValue = documentType || "all";
+  
   return (
     <div>
       <Select
-        value={documentType || "all"}
+        value={safeValue}
         onValueChange={onTypeChange}
       >
         <SelectTrigger>

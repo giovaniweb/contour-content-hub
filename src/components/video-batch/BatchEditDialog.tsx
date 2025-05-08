@@ -63,7 +63,7 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
           </Button>
           <Button 
             onClick={onApply} 
-            disabled={!batchEquipmentId}
+            disabled={!batchEquipmentId || batchEquipmentId === "none"}
           >
             Aplicar para {selectedCount} vídeos
           </Button>

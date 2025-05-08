@@ -28,7 +28,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
                     min={1} 
                     max={5} 
                     {...field} 
-                    onChange={e => field.onChange(parseInt(e.target.value))}
+                    onChange={e => field.onChange(parseInt(e.target.value) || 1)} // Valor padrão seguro
+                    value={field.value || 1}
                   />
                 </FormControl>
                 <FormDescription>
@@ -46,7 +47,11 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
               <FormItem>
                 <FormLabel>Tom de linguagem (opcional)</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: descontraído, técnico, motivacional..." />
+                  <Input 
+                    {...field} 
+                    placeholder="Ex: descontraído, técnico, motivacional..." 
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -61,8 +66,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
                 <FormLabel>Estratégia de conteúdo</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value || ""}
-                  value={field.value || ""}
+                  defaultValue={field.value || "🟡 Atrair Atenção"}
+                  value={field.value || "🟡 Atrair Atenção"}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -93,8 +98,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
               <FormLabel>Estratégia de conteúdo</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value || ""}
-                value={field.value || ""}
+                defaultValue={field.value || "🟡 Atrair Atenção"}
+                value={field.value || "🟡 Atrair Atenção"}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -129,7 +134,8 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
                     min={1} 
                     max={10} 
                     {...field} 
-                    onChange={e => field.onChange(parseInt(e.target.value))}
+                    onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                    value={field.value || 1}
                   />
                 </FormControl>
                 <FormDescription>
@@ -147,7 +153,11 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
               <FormItem>
                 <FormLabel>Tom de linguagem (opcional)</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: descontraído, técnico, motivacional..." />
+                  <Input 
+                    {...field} 
+                    placeholder="Ex: descontraído, técnico, motivacional..." 
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
