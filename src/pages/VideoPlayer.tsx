@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
@@ -220,7 +219,10 @@ const VideoPlayer: React.FC = () => {
             opts={{ 
               startIndex: currentVideoIndex 
             }}
-            onSelect={handleCarouselSelect}
+            onSelect={(api) => {
+              const selectedIndex = api.selectedScrollSnap();
+              handleCarouselSelect(selectedIndex);
+            }}
           >
             <CarouselContent>
               {videos.map((video, index) => (

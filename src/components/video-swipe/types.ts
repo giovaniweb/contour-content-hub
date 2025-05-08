@@ -1,5 +1,6 @@
 
 import { VideoCardBaseProps } from '@/components/video-storage/types';
+import { StoredVideo } from '@/types/video-storage'; // Import StoredVideo type
 
 export interface VideoSwipeProps extends VideoCardBaseProps {
   onSwipeLeft?: () => void;
