@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
 import { StoredVideo } from '@/types/video-storage';
@@ -130,11 +129,13 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
         return false;
       }
       
+      // We need to adjust this to use a table that exists in our database
+      // Instead of 'video_likes', we'll use 'favoritos' which serves the same purpose
       const { data, error } = await supabase
-        .from('video_likes')
+        .from('favoritos')
         .insert({ 
           video_id: videoId, 
-          user_id: user.user.id 
+          usuario_id: user.user.id 
         })
         .select();
       

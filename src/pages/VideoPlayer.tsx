@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { ThumbsUp } from 'lucide-react';
 import VideoSwipeViewer from '@/components/video-storage/VideoSwipeViewer';
 import { supabase } from '@/integrations/supabase/client';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
@@ -134,6 +135,11 @@ const VideoPlayer: React.FC = () => {
     });
   };
 
+  // Create a callback for handling carousel selection
+  const handleCarouselSelect = useCallback((index: number) => {
+    setCurrentVideoIndex(index);
+  }, []);
+
   if (loading) {
     return (
       <Layout>
@@ -211,8 +217,10 @@ const VideoPlayer: React.FC = () => {
         <div className="h-[70vh] w-full max-w-4xl mx-auto overflow-hidden">
           <Carousel
             className="w-full"
-            currentIndex={currentVideoIndex}
-            onSelect={(index) => setCurrentVideoIndex(index)}
+            opts={{ 
+              startIndex: currentVideoIndex 
+            }}
+            onSelect={handleCarouselSelect}
           >
             <CarouselContent>
               {videos.map((video, index) => (
