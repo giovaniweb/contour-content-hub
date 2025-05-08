@@ -102,7 +102,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
             
             <CardFooter className="p-4 pt-0 mt-auto">
               <MediaCardFooter 
-                videoUrl={media.videoUrl || media.url}
+                videoUrl={media.url}
                 viewMode="list"
                 onDownload={handleDownload}
               />
@@ -139,7 +139,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media, viewMode = "grid", onUpdat
         
         <CardFooter className="p-0">
           <MediaCardFooter 
-            videoUrl={media.videoUrl || media.url} 
+            videoUrl={media.url}
             onDownload={handleDownload}
           />
         </CardFooter>
