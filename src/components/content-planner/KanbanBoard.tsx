@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import DistributionDialog from "./DistributionDialog";
+import { ContentPlannerItem } from '@/types/content-planner';
 
 // Kanban column definition
 interface KanbanColumn {
@@ -468,20 +469,20 @@ const KanbanBoard: React.FC = () => {
           
           if (!distributedItems.some(item => item.id === selectedItem.id)) {
             // Create a compatible ContentPlannerItem from KanbanItem
-            const contentPlannerItem = {
-              ...selectedItem,
-              description: selectedItem.title,
+            const contentPlannerItem: ContentPlannerItem = {
+              id: selectedItem.id,
+              title: selectedItem.title,
+              description: selectedItem.title, // Use title as description
+              status: 'distributed' as any,
               tags: [],
               format: selectedItem.type as any,
               objective: "Content Distribution",
-              distribution: selectedItem.platform || "Multiple",
+              distribution: selectedItem.platform as any || "Múltiplos",
               authorId: "system",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              aiGenerated: false,
-              status: 'distributed',
-              subtasks: [...selectedItem.subtasks, ...platformSubtasks]
-            } as unknown as ContentPlannerItem;
+              aiGenerated: false
+            };
             
             distributedItems.push(contentPlannerItem);
           }

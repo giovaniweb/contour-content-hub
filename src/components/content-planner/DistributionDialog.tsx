@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -408,7 +407,7 @@ const DistributionDialog: React.FC<DistributionDialogProps> = ({
                       </ul>
                     </div>
                     <div className="border rounded-lg p-3">
-                      <p className="font-medium"><YouTube className="h-3 w-3 inline mr-1" /> YouTube</p>
+                      <p className="font-medium"><Youtube className="h-3 w-3 inline mr-1" /> YouTube</p>
                       <ul className="text-muted-foreground space-y-1 mt-2">
                         <li>Vídeo: 1920 x 1080px</li>
                         <li>Thumbnail: 1280 x 720px</li>
