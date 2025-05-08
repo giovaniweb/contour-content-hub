@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -102,8 +103,9 @@ export default function Sidebar() {
       items: [
         {
           name: 'Articles',
-          path: '/scientific-articles',
-          icon: BookText
+          path: '/articles',
+          icon: BookText,
+          highlight: true
         }
       ]
     },

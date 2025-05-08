@@ -1,0 +1,315 @@
+
+import React, { useState, useRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { TechnicalDocument } from "@/types/document";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { processPdfUrl, openPdfInNewTab } from "@/utils/pdfUtils";
+import { 
+  Download, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCw, 
+  ChevronLeft, 
+  ChevronRight, 
+  X, 
+  Send, 
+  User, 
+  Bot,
+  Loader2
+} from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ArticleViewModalProps {
+  article: TechnicalDocument;
+  open: boolean;
+  onClose: () => void;
+}
+
+interface AskQuestionResponse {
+  success: boolean;
+  answer: string;
+  error?: string;
+  sourceDocument?: string;
+}
+
+const ArticleViewModal: React.FC<ArticleViewModalProps> = ({ article, open, onClose }) => {
+  const [pdfZoom, setPdfZoom] = useState(1);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<Array<{type: 'question' | 'answer', content: string}>>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const { processedUrl } = processPdfUrl(article.link_dropbox);
+
+  const handleDownload = () => {
+    try {
+      openPdfInNewTab(article.link_dropbox, article.titulo);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const zoomIn = () => {
+    setPdfZoom((prev) => Math.min(prev + 0.25, 3));
+  };
+
+  const zoomOut = () => {
+    setPdfZoom((prev) => Math.max(prev - 0.25, 0.5));
+  };
+
+  const resetZoom = () => {
+    setPdfZoom(1);
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleAskQuestion = async () => {
+    if (!question.trim() || asking) return;
+
+    setAsking(true);
+    // Add question to conversation
+    setConversationHistory((prev) => [...prev, { type: 'question', content: question }]);
+    
+    try {
+      // Call the Supabase Edge function to ask a question about the document
+      const { data, error } = await supabase.functions.invoke<AskQuestionResponse>(
+        'ask-document', 
+        { 
+          body: { 
+            documentId: article.id,
+            question: question 
+          } 
+        }
+      );
+
+      if (error) throw error;
+      
+      if (!data || !data.success) {
+        throw new Error(data?.error || "Failed to get an answer");
+      }
+
+      // Add answer to conversation
+      setConversationHistory((prev) => [...prev, { type: 'answer', content: data.answer }]);
+      setAnswer(data.answer);
+      setQuestion("");
+
+      // Scroll to bottom of conversation after a short delay
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error("Error asking question:", error);
+      toast({
+        title: "Question failed",
+        description: "Could not get an answer. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Add error message to conversation
+      setConversationHistory((prev) => [
+        ...prev, 
+        { 
+          type: 'answer', 
+          content: "I'm sorry, I couldn't process your question. Please try again." 
+        }
+      ]);
+    } finally {
+      setAsking(false);
+      setTimeout(scrollToBottom, 100);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(newOpen) => !newOpen && onClose()}>
+      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+        <div className="flex flex-col h-[85vh]">
+          {/* Header with title and close button */}
+          <div className="flex justify-between items-center border-b p-4 bg-gradient-to-r from-fluida-blue/10 to-fluida-pink/10">
+            <div>
+              <h2 className="text-xl font-bold text-foreground truncate max-w-[60vw]">
+                {article.titulo}
+              </h2>
+              <div className="flex items-center gap-2 mt-1">
+                {article.researchers && article.researchers.length > 0 && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="h-3 w-3 mr-1" />
+                    {article.researchers.length === 1 
+                      ? article.researchers[0] 
+                      : `${article.researchers.length} researchers`
+                    }
+                  </div>
+                )}
+                {article.keywords && article.keywords.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    {article.keywords.slice(0, 3).map((keyword, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs font-normal">
+                        {keyword}
+                      </Badge>
+                    ))}
+                    {article.keywords.length > 3 && (
+                      <Badge variant="secondary" className="text-xs font-normal">
+                        +{article.keywords.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            <Button variant="ghost" onClick={onClose} size="icon">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Main content area */}
+          <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden">
+            {/* PDF Viewer Panel */}
+            <ResizablePanel defaultSize={65} minSize={40} className="overflow-hidden">
+              <div className="flex flex-col h-full">
+                {/* PDF Controls */}
+                <div className="flex items-center justify-between border-b p-2">
+                  <div className="flex items-center">
+                    <Button variant="outline" size="sm" className="mr-1" onClick={zoomOut} title="Zoom Out">
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="mr-1" onClick={resetZoom} title="Reset Zoom">
+                      <span className="text-xs">{Math.round(pdfZoom * 100)}%</span>
+                    </Button>
+                    <Button variant="outline" size="sm" className="mr-1" onClick={zoomIn} title="Zoom In">
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button variant="default" size="sm" onClick={handleDownload} title="Download PDF">
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
+                </div>
+
+                {/* PDF Document */}
+                <div className="flex-1 overflow-auto bg-muted/30 p-4">
+                  <div style={{ transform: `scale(${pdfZoom})`, transformOrigin: 'top center', transition: 'transform 0.2s' }}>
+                    {processedUrl ? (
+                      <iframe
+                        src={processedUrl}
+                        className="w-full h-[calc(100vh-14rem)] rounded-lg shadow-md bg-white"
+                        title={article.titulo}
+                      />
+                    ) : (
+                      <div className="w-full h-[calc(100vh-14rem)] flex items-center justify-center bg-white rounded-lg">
+                        <p className="text-muted-foreground">PDF preview not available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle />
+            
+            {/* Q&A Panel */}
+            <ResizablePanel defaultSize={35} minSize={25} className="overflow-hidden">
+              <div className="flex flex-col h-full">
+                <div className="border-b p-3">
+                  <h3 className="font-semibold text-md">Ask about this article</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Ask questions about the content of this specific article
+                  </p>
+                </div>
+                
+                <ScrollArea className="flex-1 p-4">
+                  {conversationHistory.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                      <Bot className="h-12 w-12 text-muted-foreground mb-3" />
+                      <h3 className="font-medium text-lg">Ask a question</h3>
+                      <p className="text-muted-foreground text-sm mt-2">
+                        Ask me questions about the content of this scientific article. I'll answer based on the information available in this document only.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {conversationHistory.map((item, index) => (
+                        <div 
+                          key={index} 
+                          className={`flex ${item.type === 'question' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div 
+                            className={cn(
+                              "max-w-[80%] p-3 rounded-lg",
+                              item.type === 'question' 
+                                ? "bg-fluida-blue text-white" 
+                                : "bg-muted"
+                            )}
+                          >
+                            <div className="flex items-center mb-1">
+                              {item.type === 'question' ? (
+                                <>
+                                  <span className="text-xs font-semibold">You</span>
+                                  <User className="h-3 w-3 ml-1" />
+                                </>
+                              ) : (
+                                <>
+                                  <Bot className="h-3 w-3 mr-1" />
+                                  <span className="text-xs font-semibold">Article Assistant</span>
+                                </>
+                              )}
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  )}
+                </ScrollArea>
+                
+                <div className="border-t p-3">
+                  <form 
+                    onSubmit={(e) => { 
+                      e.preventDefault(); 
+                      handleAskQuestion(); 
+                    }} 
+                    className="flex gap-2"
+                  >
+                    <Input 
+                      placeholder="Ask a question about this article..." 
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      disabled={asking}
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={!question.trim() || asking}
+                      className="bg-gradient-to-r from-fluida-blue to-fluida-pink hover:opacity-90 text-white"
+                    >
+                      {asking ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default ArticleViewModal;

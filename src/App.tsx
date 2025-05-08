@@ -162,6 +162,11 @@ function App() {
                   <ScientificArticles />
                 </PrivateRoute>
               } />
+              <Route path="/articles" element={
+                <PrivateRoute>
+                  <ScientificArticles />
+                </PrivateRoute>
+              } />
               <Route path="/marketing-consultant" element={
                 <PrivateRoute>
                   <ContentStrategy />
