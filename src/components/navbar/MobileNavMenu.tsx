@@ -14,7 +14,8 @@ import {
   FileText,
   Cog,
   VideoIcon,
-  Activity
+  Activity,
+  LayoutDashboard
 } from "lucide-react";
 
 interface MobileNavMenuProps {
@@ -44,8 +45,8 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <Laptop className="h-5 w-5" />
-            <span>Início</span>
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Dashboard</span>
           </Link>
           <Link
             to="/video-storage"

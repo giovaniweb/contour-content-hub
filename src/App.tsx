@@ -13,6 +13,13 @@ import Media from "@/pages/Media";
 import NotFound from "@/pages/NotFound";
 import VideoBatchManage from "@/pages/VideoBatchManage";
 import TechnicalDocuments from "@/pages/TechnicalDocuments";
+import SystemDiagnostics from "@/pages/SystemDiagnostics";
+import AdminEquipments from "@/pages/AdminEquipments";
+import AdminVimeoSettings from "@/pages/AdminVimeoSettings";
+import AdminContent from "@/pages/AdminContent";
+import EquipmentDetails from "@/pages/EquipmentDetails";
+import Dashboard from "@/pages/Dashboard";
+import ContentStrategy from "@/pages/ContentStrategy";
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from "@/components/ui/sonner";
 
@@ -21,6 +28,11 @@ function App() {
     {
       path: "/",
       element: <HomePage />,
+      errorElement: <NotFound />,
+    },
+    {
+      path: "/dashboard",
+      element: <Dashboard />,
     },
     {
       path: "/video-storage",
@@ -63,16 +75,38 @@ function App() {
       element: <Navigate to="/" replace />,
     },
     {
-      path: "/admin/dashboard",
-      element: <Navigate to="/admin/system-diagnostics" replace />,
+      path: "/admin",
+      errorElement: <NotFound />,
+      children: [
+        {
+          path: "dashboard",
+          element: <Navigate to="/admin/system-diagnostics" replace />,
+        },
+        {
+          path: "system-diagnostics",
+          element: <SystemDiagnostics />,
+        },
+        {
+          path: "equipments",
+          element: <AdminEquipments />,
+        },
+        {
+          path: "vimeo-settings",
+          element: <AdminVimeoSettings />,
+        },
+        {
+          path: "content",
+          element: <AdminContent />,
+        },
+      ]
     },
     {
-      path: "/dashboard",
-      element: <Navigate to="/" replace />,
+      path: "/equipments/:id",
+      element: <EquipmentDetails />,
     },
     {
-      path: "/equipments",
-      element: <Navigate to="/" replace />,
+      path: "/content-strategy",
+      element: <ContentStrategy />,
     },
     {
       path: "*",

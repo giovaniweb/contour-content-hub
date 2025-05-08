@@ -5,7 +5,7 @@ import { NavLink } from "./NavLink";
 import { usePermissions } from "@/hooks/use-permissions";
 import { 
   FileText, 
-  LayoutGrid, 
+  LayoutDashboard, 
   VideoIcon, 
   Cog, 
   Database, 
@@ -27,7 +27,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
   // Define navigation links based on authentication and roles
   return (
     <div className="flex items-center space-x-1">
-      <NavLink to="/" icon={<LayoutGrid size={16} />} label="Dashboard" />
+      <NavLink to="/" icon={<LayoutDashboard size={16} />} label="Dashboard" />
       <NavLink to="/media" icon={<VideoIcon size={16} />} label="Mídias" />
       <NavLink to="/video-storage" icon={<Database size={16} />} label="Vídeos" />
       <NavLink to="/technical-documents" icon={<FileText size={16} />} label="Documentos" />
