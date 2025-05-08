@@ -203,7 +203,9 @@ const HomePage: React.FC = () => {
         </div>
       </div>
       
-      <style jsx>{`
+      {/* Fix: Using style tag properly without the 'jsx' property */}
+      <style>
+        {`
         .typing-animation {
           border-right: 2px solid currentColor;
           padding-right: 5px;
@@ -214,7 +216,8 @@ const HomePage: React.FC = () => {
           from, to { border-color: transparent }
           50% { border-color: currentColor; }
         }
-      `}</style>
+        `}
+      </style>
     </Layout>
   );
 };
