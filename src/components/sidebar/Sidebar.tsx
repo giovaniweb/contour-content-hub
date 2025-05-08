@@ -125,9 +125,9 @@ export const AppSidebar = ({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            <SidebarMenuItem active={location.pathname === '/documents'}>
-              <SidebarMenuButton asChild variant={location.pathname === '/documents' ? "active" : "default"}>
-                <NavLink to="/documents" className="flex items-center">
+            <SidebarMenuItem active={location.pathname === '/technical-documents'}>
+              <SidebarMenuButton asChild variant={location.pathname === '/technical-documents' ? "active" : "default"}>
+                <NavLink to="/technical-documents" className="flex items-center">
                   <BookOpen className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                   {open && <span>Artigos</span>}
                 </NavLink>
@@ -195,9 +195,9 @@ export const AppSidebar = ({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={location.pathname === '/videos'}>
-                <SidebarMenuButton asChild variant={location.pathname === '/videos' ? "active" : "default"}>
-                  <NavLink to="/videos" className="flex items-center">
+              <SidebarMenuItem active={location.pathname === '/videos/batch-manage'}>
+                <SidebarMenuButton asChild variant={location.pathname === '/videos/batch-manage' ? "active" : "default"}>
+                  <NavLink to="/videos/batch-manage" className="flex items-center">
                     <Upload className={cn("h-5 w-5", open ? "mr-2" : "mx-auto")} />
                     {open && <span>Upload de Vídeos</span>}
                   </NavLink>

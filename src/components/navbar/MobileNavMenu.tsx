@@ -15,7 +15,10 @@ import {
   Cog,
   VideoIcon,
   Activity,
-  LayoutDashboard
+  LayoutDashboard,
+  BrainCircuit,
+  CheckCircle,
+  Calendar
 } from "lucide-react";
 
 interface MobileNavMenuProps {
@@ -41,7 +44,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
         </SheetHeader>
         <div className="flex flex-col p-4 space-y-2">
           <Link
-            to="/"
+            to="/dashboard"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -49,7 +52,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Dashboard</span>
           </Link>
           <Link
-            to="/video-storage"
+            to="/videos"
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -80,6 +83,30 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <FileText className="h-5 w-5" />
             <span>Documentos Técnicos</span>
           </Link>
+          <Link
+            to="/custom-gpt"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <BrainCircuit className="h-5 w-5" />
+            <span>Roteiros</span>
+          </Link>
+          <Link
+            to="/script-validation"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <CheckCircle className="h-5 w-5" />
+            <span>Validador</span>
+          </Link>
+          <Link
+            to="/calendar"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+            onClick={() => setIsOpen(false)}
+          >
+            <Calendar className="h-5 w-5" />
+            <span>Agenda</span>
+          </Link>
           {isAdmin() && (
             <>
               <Link
@@ -97,6 +124,14 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
               >
                 <Activity className="h-5 w-5" />
                 <span>Diagnóstico</span>
+              </Link>
+              <Link
+                to="/admin/system-intelligence"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <BrainCircuit className="h-5 w-5" />
+                <span>IA do Sistema</span>
               </Link>
             </>
           )}
