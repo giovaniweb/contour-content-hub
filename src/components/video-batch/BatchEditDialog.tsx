@@ -40,7 +40,7 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
         
         <div className="py-4">
           <Select 
-            value={batchEquipmentId} 
+            value={batchEquipmentId || ""} 
             onValueChange={setBatchEquipmentId}
           >
             <SelectTrigger>

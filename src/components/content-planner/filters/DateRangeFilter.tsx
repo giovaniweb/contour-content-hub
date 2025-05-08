@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
 interface DateRangeFilterProps {
-  value: DateRange;
+  value: DateRange | { from: undefined; to: undefined };
   onChange: (range: DateRange) => void;
 }
 
@@ -23,11 +23,11 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChang
             variant="outline"
             className={cn(
               "w-full justify-start text-left text-sm h-9 font-normal",
-              !value.from && !value.to && "text-muted-foreground"
+              !value || (!value.from && !value.to) && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value.from ? (
+            {value && value.from ? (
               value.to ? (
                 <>
                   {format(value.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}

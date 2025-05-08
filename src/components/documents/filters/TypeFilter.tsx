@@ -21,7 +21,7 @@ export const TypeFilter: React.FC<TypeFilterProps> = ({
   return (
     <div>
       <Select
-        value={documentType}
+        value={documentType || "all"}
         onValueChange={onTypeChange}
       >
         <SelectTrigger>

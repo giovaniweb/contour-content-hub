@@ -27,7 +27,7 @@ export const EquipmentFilter: React.FC<EquipmentFilterProps> = ({
   return (
     <div>
       <Select
-        value={equipmentId}
+        value={equipmentId || "all"}
         onValueChange={onEquipmentChange}
       >
         <SelectTrigger>

@@ -20,7 +20,7 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
   return (
     <div>
       <Select
-        value={language}
+        value={language || "all"}
         onValueChange={onLanguageChange}
       >
         <SelectTrigger>

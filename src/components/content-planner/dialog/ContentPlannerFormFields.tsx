@@ -67,7 +67,7 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
         <div className="space-y-2">
           <Label htmlFor="format">Formato</Label>
           <Select 
-            value={format} 
+            value={format || ""} 
             onValueChange={(value) => setFormat(value as ContentFormat)}
           >
             <SelectTrigger id="format">
@@ -87,7 +87,7 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
         <div className="space-y-2">
           <Label htmlFor="distribution">Canal de distribuição</Label>
           <Select 
-            value={distribution} 
+            value={distribution || ""} 
             onValueChange={(value) => setDistribution(value as ContentDistribution)}
           >
             <SelectTrigger id="distribution">
