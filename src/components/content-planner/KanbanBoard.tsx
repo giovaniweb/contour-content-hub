@@ -468,23 +468,17 @@ const KanbanBoard: React.FC = () => {
           const distributedItems = [...(columns.find(col => col.id === 'distributed')?.items || [])];
           
           if (!distributedItems.some(item => item.id === selectedItem.id)) {
-            // Create a compatible ContentPlannerItem from KanbanItem
-            const contentPlannerItem: ContentPlannerItem = {
+            // Create a KanbanItem for the distributed column
+            const kanbanItem: KanbanItem = {
               id: selectedItem.id,
               title: selectedItem.title,
-              description: selectedItem.title, // Use title as description
-              status: 'distributed' as any,
-              tags: [],
-              format: selectedItem.type as any,
-              objective: "Content Distribution",
-              distribution: selectedItem.platform as any || "Múltiplos",
-              authorId: "system",
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              aiGenerated: false
+              type: selectedItem.type,
+              status: 'distributed',
+              platform: platforms.length === 1 ? platforms[0] : 'Multiple',
+              subtasks: selectedItem.subtasks.concat(platformSubtasks)
             };
             
-            distributedItems.push(contentPlannerItem);
+            distributedItems.push(kanbanItem);
           }
           
           return columns.map(col => {
