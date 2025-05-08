@@ -24,43 +24,15 @@ import { LoadingSpinner } from './components/ui/loading-spinner';
 import AdminEquipments from './pages/AdminEquipments';
 import AdminContent from './pages/AdminContent';
 import AdminVimeoSettings from './pages/AdminVimeoSettings';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminSystemIntelligence from './pages/AdminSystemIntelligence';
+import AdminSystemDiagnostics from './pages/AdminSystemDiagnostics';
+import AdminIntegrations from './pages/AdminIntegrations';
 
 // Suspense fallback for lazy-loaded routes
 const SuspenseFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <LoadingSpinner message="Carregando..." submessage="Aguarde um momento..." />
-  </div>
-);
-
-// Simple admin dashboard component - we'll create proper file later
-const AdminDashboard = () => (
-  <div className="container mx-auto py-6">
-    <h1 className="text-2xl font-bold mb-4">Painel de Administração</h1>
-    <p className="text-muted-foreground">Bem-vindo ao painel de administração do sistema.</p>
-  </div>
-);
-
-// Simple System Intelligence Admin component
-const AdminSystemIntelligence = () => (
-  <div className="container mx-auto py-6">
-    <h1 className="text-2xl font-bold mb-4">IA do Sistema</h1>
-    <p className="text-muted-foreground">Configurações de inteligência artificial do sistema.</p>
-  </div>
-);
-
-// Simple System Diagnostics Admin component
-const AdminSystemDiagnostics = () => (
-  <div className="container mx-auto py-6">
-    <h1 className="text-2xl font-bold mb-4">Diagnóstico do Sistema</h1>
-    <p className="text-muted-foreground">Ferramentas de diagnóstico e monitoramento do sistema.</p>
-  </div>
-);
-
-// Simple Integrations Admin component
-const AdminIntegrations = () => (
-  <div className="container mx-auto py-6">
-    <h1 className="text-2xl font-bold mb-4">Integrações</h1>
-    <p className="text-muted-foreground">Gerencie as integrações do sistema com serviços externos.</p>
   </div>
 );
 
