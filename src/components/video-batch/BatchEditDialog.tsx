@@ -39,17 +39,21 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
         </DialogHeader>
         
         <div className="py-4">
-          <Select value={batchEquipmentId} onValueChange={setBatchEquipmentId}>
+          <Select 
+            value={batchEquipmentId} 
+            onValueChange={setBatchEquipmentId}
+            placeholder="Selecione um equipamento"
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um equipamento" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Nenhum equipamento</SelectItem>
               {equipmentOptions
                 .filter(eq => eq && eq.id && eq.id !== "")
                 .map(eq => (
-                <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
-              ))}
+                  <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>

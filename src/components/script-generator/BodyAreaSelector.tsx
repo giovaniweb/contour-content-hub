@@ -25,16 +25,22 @@ const BodyAreaSelector: React.FC<BodyAreaSelectorProps> = ({
   onValueChange,
 }) => {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select 
+      value={value || "default_area"} 
+      onValueChange={onValueChange}
+      placeholder="Selecione uma área"
+    >
       <SelectTrigger>
-        <SelectValue placeholder="Selecione uma área" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {bodyAreas.map((area) => (
-          <SelectItem key={area.value} value={area.value}>
-            {area.label}
-          </SelectItem>
-        ))}
+        {bodyAreas
+          .filter(area => area && area.value && area.value !== "")
+          .map((area) => (
+            <SelectItem key={area.value} value={area.value}>
+              {area.label}
+            </SelectItem>
+          ))}
       </SelectContent>
     </Select>
   );

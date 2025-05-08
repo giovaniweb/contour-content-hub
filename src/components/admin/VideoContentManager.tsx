@@ -206,9 +206,13 @@ const VideoContentManager: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
           <div>
             <Label htmlFor="filterType">Tipo de Vídeo</Label>
-            <Select value={filterType} onValueChange={setFilterType}>
+            <Select 
+              value={filterType} 
+              onValueChange={setFilterType}
+              placeholder="Filtrar por tipo"
+            >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue placeholder="Filtrar por tipo" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
@@ -220,17 +224,23 @@ const VideoContentManager: React.FC = () => {
           
           <div>
             <Label htmlFor="filterEquipment">Equipamento</Label>
-            <Select value={filterEquipment} onValueChange={setFilterEquipment}>
+            <Select 
+              value={filterEquipment} 
+              onValueChange={setFilterEquipment}
+              placeholder="Filtrar por equipamento"
+            >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue placeholder="Filtrar por equipamento" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os equipamentos</SelectItem>
-                {equipmentOptions.map((equipment) => (
-                  <SelectItem key={equipment} value={equipment}>
-                    {equipment}
-                  </SelectItem>
-                ))}
+                {equipmentOptions
+                  .filter(equipment => equipment && equipment !== "")
+                  .map((equipment) => (
+                    <SelectItem key={equipment} value={equipment}>
+                      {equipment}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

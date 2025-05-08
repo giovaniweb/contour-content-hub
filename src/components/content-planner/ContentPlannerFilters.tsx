@@ -86,9 +86,10 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
           <Select
             value={filters.format || "all"}
             onValueChange={(value) => handleFilterChange('format', value === "all" ? undefined : value)}
+            placeholder="Formato"
           >
             <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue placeholder="Formato" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os formatos</SelectItem>
@@ -106,9 +107,10 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
           <Select
             value={filters.objective || "all"}
             onValueChange={(value) => handleFilterChange('objective', value === "all" ? undefined : value)}
+            placeholder="Objetivo"
           >
             <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue placeholder="Objetivo" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os objetivos</SelectItem>
@@ -126,9 +128,10 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
           <Select
             value={filters.distribution || "all"}
             onValueChange={(value) => handleFilterChange('distribution', value === "all" ? undefined : value)}
+            placeholder="Canal"
           >
             <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue placeholder="Canal" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os canais</SelectItem>
@@ -146,14 +149,15 @@ const ContentPlannerFilters: React.FC<ContentPlannerFiltersProps> = ({
           <Select
             value={filters.equipmentId || "all"}
             onValueChange={(value) => handleFilterChange('equipmentId', value === "all" ? undefined : value)}
+            placeholder="Equipamento"
           >
             <SelectTrigger className="w-full text-sm h-9">
-              <SelectValue placeholder="Equipamento" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os equipamentos</SelectItem>
               {equipments
-                .filter(equipment => equipment.id && equipment.id !== "")
+                .filter(equipment => equipment && equipment.id && equipment.id !== "")
                 .map((equipment) => (
                   <SelectItem key={equipment.id} value={equipment.id}>
                     {equipment.nome}

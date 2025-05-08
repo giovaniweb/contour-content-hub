@@ -146,9 +146,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
           <Select
             value={documentType}
             onValueChange={(value: string) => handleFilterChange('type', value)}
+            placeholder="Tipo de documento"
           >
             <SelectTrigger>
-              <SelectValue placeholder="Tipo de documento" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
@@ -164,9 +165,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
           <Select
             value={equipmentId}
             onValueChange={(value) => handleFilterChange('equipment', value)}
+            placeholder="Equipamento"
           >
             <SelectTrigger>
-              <SelectValue placeholder="Equipamento" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
@@ -185,9 +187,10 @@ const DocumentFilters: React.FC<DocumentFiltersProps> = ({ onChange }) => {
           <Select
             value={language}
             onValueChange={(value) => handleFilterChange('language', value)}
+            placeholder="Idioma"
           >
             <SelectTrigger>
-              <SelectValue placeholder="Idioma" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>

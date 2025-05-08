@@ -59,10 +59,14 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Estratégia de conteúdo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  placeholder="Selecione uma estratégia"
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma estratégia" />
+                      <SelectValue />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -87,10 +91,14 @@ const FormControls: React.FC<FormControlsProps> = ({ form, formType }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Estratégia de conteúdo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                placeholder="Selecione uma estratégia"
+              >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma estratégia" />
+                    <SelectValue />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

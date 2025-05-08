@@ -69,9 +69,10 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
           <Select 
             value={format} 
             onValueChange={(value) => setFormat(value as ContentFormat)}
+            placeholder="Selecione o formato"
           >
             <SelectTrigger id="format">
-              <SelectValue placeholder="Selecione o formato" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="vídeo">Vídeo</SelectItem>
@@ -89,9 +90,10 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
           <Select 
             value={distribution} 
             onValueChange={(value) => setDistribution(value as ContentDistribution)}
+            placeholder="Selecione o canal"
           >
             <SelectTrigger id="distribution">
-              <SelectValue placeholder="Selecione o canal" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Instagram">Instagram</SelectItem>
@@ -116,16 +118,17 @@ const ContentPlannerFormFields: React.FC<ContentPlannerFormFieldsProps> = ({
       <div className="space-y-2">
         <Label htmlFor="equipment">Equipamento</Label>
         <Select 
-          value={equipmentId} 
+          value={equipmentId || "none"} 
           onValueChange={setEquipmentId}
+          placeholder="Selecione um equipamento"
         >
           <SelectTrigger id="equipment">
-            <SelectValue placeholder="Selecione um equipamento (opcional)" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Nenhum</SelectItem>
             {equipments
-              .filter(equipment => equipment.id && equipment.id !== "")
+              .filter(equipment => equipment && equipment.id && equipment.id !== "")
               .map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
