@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -13,7 +12,7 @@ import EquipmentDetails from "./pages/EquipmentDetails";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import HomePage from "./pages/HomePage";
-import MediaLibrary from "./pages/MediaLibrary";
+import Media from './pages/Media';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import ScriptValidation from './pages/ScriptValidation';
 import CustomGpt from './pages/CustomGpt';
@@ -113,6 +112,11 @@ function App() {
                 </PrivateRoute>
               } />
               <Route path="/media" element={
+                <PrivateRoute>
+                  <Media />
+                </PrivateRoute>
+              } />
+              <Route path="/media-library" element={
                 <PrivateRoute>
                   <MediaLibrary />
                 </PrivateRoute>

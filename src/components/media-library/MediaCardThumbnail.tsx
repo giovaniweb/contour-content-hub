@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { getMediaTypeIcon, getBadgeVariant, getMediaTypeName } from "./utils/mediaCardUtils";
+import { getMediaTypeIcon, getMediaTypeName, mediaTypeToColor } from "./mediaUtils";
 
 interface MediaCardThumbnailProps {
   thumbnailUrl: string;
@@ -25,6 +25,10 @@ const MediaCardThumbnail: React.FC<MediaCardThumbnailProps> = ({
   onToggleFavorite,
   viewMode = "grid"
 }) => {
+  const getBadgeClass = () => {
+    return `flex items-center gap-1 ${mediaTypeToColor(type)}`;
+  };
+  
   return (
     <div className={cn("relative", viewMode === "list" ? "w-1/4 min-w-[120px]" : "")}>
       <div className={viewMode === "grid" ? "aspect-video bg-gray-200" : ""}>
@@ -44,7 +48,7 @@ const MediaCardThumbnail: React.FC<MediaCardThumbnailProps> = ({
       
       {viewMode === "grid" && (
         <div className="absolute top-2 right-2">
-          <Badge variant={getBadgeVariant(type)} className="flex items-center gap-1">
+          <Badge variant="outline" className={getBadgeClass()}>
             {getMediaTypeIcon(type)}
             <span>{getMediaTypeName(type)}</span>
           </Badge>

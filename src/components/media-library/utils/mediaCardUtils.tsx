@@ -1,46 +1,58 @@
 
-import { cn } from "@/lib/utils";
-import { Video as VideoIcon, Camera, Film } from "lucide-react";
 import React from "react";
+import { Video, Image, FileText, Film, Camera } from "lucide-react";
 
-// Get the icon based on media type
-export const getMediaTypeIcon = (type: string): React.ReactNode => {
+export const getMediaTypeIcon = (type: string) => {
   switch (type) {
+    case "video":
+      return <Video className="h-4 w-4" />;
+    case "arte":
+      return <Image className="h-4 w-4" />;
+    case "artigo":
+      return <FileText className="h-4 w-4" />;
+    case "documentacao":
+      return <FileText className="h-4 w-4" />;
     case "video_pronto":
-      return <VideoIcon className="h-4 w-4" />;
+      return <Film className="h-4 w-4" />;
     case "take":
       return <Film className="h-4 w-4" />;
     case "image":
       return <Camera className="h-4 w-4" />;
     default:
-      return <VideoIcon className="h-4 w-4" />;
+      return null;
   }
 };
 
-// Get badge color based on media type
-export const getBadgeVariant = (type: string) => {
-  switch (type) {
-    case "video_pronto":
-      return "default";
-    case "take":
-      return "secondary";
-    case "image":
-      return "outline";
-    default:
-      return "default";
-  }
-};
-
-// Get formatted media type name
 export const getMediaTypeName = (type: string) => {
   switch (type) {
+    case "all":
+      return "Todos os itens";
+    case "video":
+      return "Vídeos";
+    case "arte":
+      return "Artes";
+    case "artigo":
+      return "Artigos";
+    case "documentacao":
+      return "Documentação";
     case "video_pronto":
-      return "Vídeo";
+      return "Vídeos Prontos";
     case "take":
-      return "Take";
+      return "Takes Brutos";
     case "image":
-      return "Imagem";
+      return "Imagens";
     default:
-      return type;
+      return "Mídia";
+  }
+};
+
+export const getBadgeVariant = (type: string): "default" | "secondary" | "destructive" | "outline" => {
+  switch (type) {
+    case "video":
+    case "video_pronto":
+    case "take":
+      return "outline";
+    default:
+      return "outline";
   }
 };

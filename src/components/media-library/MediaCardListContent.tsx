@@ -2,7 +2,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import StarRating from "./StarRating";
-import { getMediaTypeIcon, getMediaTypeName, getBadgeVariant } from "./utils/mediaCardUtils";
+import { getMediaTypeIcon, getMediaTypeName } from "./mediaUtils";
 
 interface MediaCardListContentProps {
   title: string;
@@ -30,7 +30,7 @@ const MediaCardListContent: React.FC<MediaCardListContentProps> = ({
           <h3 className="font-medium">{title}</h3>
           
           <div className="flex items-center mt-1">
-            <Badge variant={getBadgeVariant(type)} className="flex items-center gap-1 mr-2">
+            <Badge variant="outline" className="flex items-center gap-1 mr-2">
               {getMediaTypeIcon(type)}
               <span>{getMediaTypeName(type)}</span>
             </Badge>

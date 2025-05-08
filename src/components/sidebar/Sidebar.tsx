@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -38,8 +37,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Sidebar() {
   const { open, setOpen } = useSidebar();
@@ -88,9 +85,10 @@ export default function Sidebar() {
           icon: Video
         },
         {
-          name: 'Photos / Designs',
-          path: '/media',
-          icon: Images
+          name: 'Media Library',
+          path: '/media-library',
+          icon: Images,
+          highlight: true
         },
         {
           name: 'Media Files',

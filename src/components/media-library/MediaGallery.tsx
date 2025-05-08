@@ -3,8 +3,12 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoaderIcon, Search } from "lucide-react";
-import { MediaItem } from "@/utils/api";
-import MediaCard from "@/components/MediaCard";
+import { MediaItem } from "./mockData";
+import { Card } from "@/components/ui/card";
+import MediaCardThumbnail from "./MediaCardThumbnail";
+import MediaCardContent from "./MediaCardContent";
+import MediaCardFooter from "./MediaCardFooter";
+import MediaCardListContent from "./MediaCardListContent";
 import { getMediaTypeIcon, getMediaTypeName } from "./mediaUtils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -15,6 +19,7 @@ interface MediaGalleryProps {
   viewMode: "grid" | "list";
   handleReset: () => void;
   handleMediaUpdate: () => void;
+  onDownload: (item: MediaItem) => void;
 }
 
 const MediaGallery: React.FC<MediaGalleryProps> = ({ 
@@ -23,8 +28,30 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
   isLoading, 
   viewMode,
   handleReset, 
-  handleMediaUpdate 
+  handleMediaUpdate,
+  onDownload
 }) => {
+  const [isRating, setIsRating] = React.useState<Record<string, boolean>>({});
+  const [isTogglingFavorite, setIsTogglingFavorite] = React.useState<Record<string, boolean>>({});
+  
+  const handleToggleFavorite = (id: string) => {
+    setIsTogglingFavorite(prev => ({ ...prev, [id]: true }));
+    
+    setTimeout(() => {
+      setIsTogglingFavorite(prev => ({ ...prev, [id]: false }));
+      handleMediaUpdate();
+    }, 300);
+  };
+  
+  const handleRate = (id: string, rating: number) => {
+    setIsRating(prev => ({ ...prev, [id]: true }));
+    
+    setTimeout(() => {
+      setIsRating(prev => ({ ...prev, [id]: false }));
+      handleMediaUpdate();
+    }, 500);
+  };
+  
   return (
     <TooltipProvider>
       <div className="mt-2">
@@ -50,12 +77,54 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({
               : "space-y-4"
             }>
               {filteredItems.map((item) => (
-                <MediaCard 
+                <Card 
                   key={item.id} 
-                  media={item}
-                  viewMode={viewMode}
-                  onUpdate={handleMediaUpdate}
-                />
+                  className={`overflow-hidden hover:shadow-md transition-all ${viewMode === "list" ? "flex" : ""}`}
+                >
+                  <MediaCardThumbnail 
+                    thumbnailUrl={item.thumbnailUrl}
+                    duration={item.duration}
+                    type={item.type}
+                    isFavorite={item.isFavorite}
+                    isTogglingFavorite={!!isTogglingFavorite[item.id]}
+                    onToggleFavorite={() => handleToggleFavorite(item.id)}
+                    viewMode={viewMode}
+                  />
+                  
+                  {viewMode === "grid" ? (
+                    <>
+                      <MediaCardContent 
+                        title={item.title}
+                        equipment={item.equipment}
+                        purpose={item.purpose}
+                        rating={item.rating}
+                        isRating={!!isRating[item.id]}
+                        onRate={(rating) => handleRate(item.id, rating)}
+                      />
+                      <MediaCardFooter 
+                        videoUrl={item.url}
+                        onDownload={() => onDownload(item)}
+                      />
+                    </>
+                  ) : (
+                    <div className="flex-1 flex flex-col justify-between">
+                      <MediaCardListContent
+                        title={item.title}
+                        equipment={item.equipment}
+                        purpose={item.purpose}
+                        type={item.type}
+                        rating={item.rating}
+                        isRating={!!isRating[item.id]}
+                        onRate={(rating) => handleRate(item.id, rating)}
+                      />
+                      <MediaCardFooter 
+                        videoUrl={item.url}
+                        viewMode={viewMode}
+                        onDownload={() => onDownload(item)}
+                      />
+                    </div>
+                  )}
+                </Card>
               ))}
             </div>
           </>
