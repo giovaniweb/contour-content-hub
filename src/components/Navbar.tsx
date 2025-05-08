@@ -17,7 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
   const { user } = useUser();
-  const { logout } = useAuth(); // Use logout instead of signOut
+  const { logout } = useAuth(); 
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -40,7 +40,7 @@ const Navbar = () => {
             Admin
           </Link>
           
-          <Link to="/videos" className="nav-item">
+          <Link to="/video-storage" className="nav-item">
             <Video className="h-5 w-5" />
             <span>Biblioteca de Vídeos</span>
           </Link>
@@ -48,6 +48,11 @@ const Navbar = () => {
           <Link to="/video-swipe" className="nav-item">
             <Video className="h-5 w-5" />
             <span>Descobrir Vídeos</span>
+          </Link>
+          
+          <Link to="/media" className="nav-item">
+            <Video className="h-5 w-5" />
+            <span>Biblioteca de Mídia</span>
           </Link>
         </div>
 

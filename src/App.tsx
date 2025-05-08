@@ -3,6 +3,7 @@ import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 import HomePage from "@/pages/HomePage";
 import VideoStorage from "@/pages/VideoStorage";
@@ -23,6 +24,10 @@ function App() {
       element: <VideoStorage />,
     },
     {
+      path: "/videos",
+      element: <Navigate to="/video-storage" replace />,
+    },
+    {
       path: "/video-swipe",
       element: <VideoSwipe />,
     },
@@ -33,6 +38,10 @@ function App() {
     {
       path: "/media",
       element: <Media />,
+    },
+    {
+      path: "/technical-documents",
+      element: <Navigate to="/media" replace />,
     },
     {
       path: "*",
