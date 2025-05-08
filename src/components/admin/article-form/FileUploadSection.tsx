@@ -1,8 +1,9 @@
 
 import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Upload, FileX } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface FileUploadSectionProps {
   file: File | null;
@@ -13,7 +14,7 @@ interface FileUploadSectionProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onProcessFile: () => Promise<boolean>;
   onClearFile: () => void;
-  disabled?: boolean;
+  fileInputRef?: React.RefObject<HTMLInputElement>;
 }
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = ({
@@ -25,78 +26,53 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   onFileChange,
   onProcessFile,
   onClearFile,
-  disabled = false
+  fileInputRef
 }) => {
+  if (fileUrl) return null;
+  
   return (
     <div className="space-y-4">
-      <div className="text-sm font-medium">Anexar documento PDF</div>
-      
-      {uploadError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro no upload</AlertTitle>
-          <AlertDescription>{uploadError}</AlertDescription>
-        </Alert>
-      )}
-      
-      {processingProgress && (
-        <Alert>
-          <div className="flex items-center gap-2">
-            <div className="animate-spin">
-              <Upload className="h-4 w-4" />
-            </div>
-            <AlertTitle>Processando...</AlertTitle>
-          </div>
-          <AlertDescription>{processingProgress}</AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="flex flex-col md:flex-row gap-2">
-        <div className="flex-1">
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={onFileChange}
-            disabled={isProcessing || disabled}
-            className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-md file:border-0
-              file:text-sm file:font-semibold
-              file:bg-primary file:text-white
-              hover:file:bg-primary/90
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          {file && !fileUrl && (
-            <Button 
-              type="button"
-              onClick={onProcessFile}
-              disabled={isProcessing || !file || disabled}
-              className="flex items-center gap-1"
-            >
-              <Upload className="h-4 w-4" />
-              Processar
-            </Button>
-          )}
-          
-          {file && (
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={onClearFile}
-              disabled={isProcessing || disabled}
-            >
-              <FileX className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+      <div>
+        <Label htmlFor="file_upload">Upload do arquivo PDF</Label>
+        <Input 
+          ref={fileInputRef}
+          id="file_upload" 
+          type="file" 
+          accept="application/pdf" 
+          onChange={onFileChange}
+          disabled={isProcessing}
+          className="mt-1"
+        />
       </div>
-      
-      {file && !fileUrl && !isProcessing && (
-        <div className="text-xs text-muted-foreground">
-          Arquivo selecionado: <span className="font-medium">{file.name}</span> ({(file.size / 1024 / 1024).toFixed(2)} MB)
+
+      {file && !isProcessing && (
+        <div className="bg-muted/30 p-3 rounded-md flex justify-between items-center">
+          <div>
+            <p className="text-sm font-medium">{file.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {(file.size / (1024 * 1024)).toFixed(2)} MB
+            </p>
+          </div>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={onProcessFile}
+            disabled={isProcessing}
+          >
+            Processar
+          </Button>
+        </div>
+      )}
+
+      {isProcessing && (
+        <div className="bg-muted/30 p-3 rounded-md flex items-center">
+          <Loader2 className="h-4 w-4 mr-2 animate-spin text-primary" />
+          <div>
+            <p className="text-sm font-medium">Processando arquivo</p>
+            <p className="text-xs text-muted-foreground">
+              {processingProgress || "Aguarde enquanto extraímos o conteúdo..."}
+            </p>
+          </div>
         </div>
       )}
     </div>
