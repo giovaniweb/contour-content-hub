@@ -1,83 +1,57 @@
-
 "use client"
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "./sidebar-context"
 
-export function SidebarMenu({
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLUListElement>) {
+// Export sidebar menu component
+export interface SidebarMenuProps extends React.HTMLAttributes<HTMLUListElement> {}
+
+export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
   return (
-    <ul
-      className={cn("space-y-1 px-2", className)}
-      {...props}
-    >
-      {children}
-    </ul>
+    <ul className={cn("flex flex-col gap-1", className)} {...props} />
   )
 }
 
-interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLLIElement> {
-  active?: boolean;
+// Export sidebar menu item component
+export interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLLIElement> {}
+
+export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
+  return (
+    <li className={cn("", className)} {...props} />
+  )
 }
 
-export function SidebarMenuItem({
+// Export sidebar menu button props
+export interface SidebarMenuButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  active?: boolean;
+  collapsible?: boolean;
+}
+
+// Export SidebarMenuButton component
+export function SidebarMenuButton({
   className,
-  children,
-  active,
+  asChild = false,
+  active = false,
+  collapsible = false,
   ...props
-}: SidebarMenuItemProps) {
+}: SidebarMenuButtonProps) {
+  const { open } = useSidebar();
+  const Comp = asChild ? Slot : "button";
+
   return (
-    <li
+    <Comp
       className={cn(
-        "relative",
-        active && "before:absolute before:left-0 before:top-1 before:h-[calc(100%-0.5rem)] before:w-1 before:rounded-r before:bg-primary",
+        "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent/50",
+        active && "bg-accent/50 font-medium text-foreground",
+        !active && "text-muted-foreground hover:text-foreground",
+        !open && collapsible && "justify-center px-2",
         className
       )}
       {...props}
-    >
-      {children}
-    </li>
-  )
-}
-
-const sidebarMenuButtonVariants = cva(
-  "flex w-full items-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-  {
-    variants: {
-      variant: {
-        default: "",
-        active: "bg-accent text-accent-foreground font-medium",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-export interface SidebarMenuButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof sidebarMenuButtonVariants> {
-  asChild?: boolean
-}
-
-export const SidebarMenuButton = React.forwardRef<
-  HTMLButtonElement,
-  SidebarMenuButtonProps
->(({ className, variant, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button"
-  
-  return (
-    <Comp
-      className={cn(sidebarMenuButtonVariants({ variant, className }))}
-      ref={ref}
-      {...props}
     />
-  )
-})
-SidebarMenuButton.displayName = "SidebarMenuButton"
+  );
+}

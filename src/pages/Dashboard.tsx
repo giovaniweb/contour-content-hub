@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
             title="Crie conteúdo que engaja" 
             description="Utilize nossa plataforma inteligente para criar roteiros, validar ideias e planejar sua estratégia de conteúdo."
             ctaText="Começar agora"
-            ctaLink="/custom-gpt"
+            ctaLink="/content-planner"
           />
         </div>
         

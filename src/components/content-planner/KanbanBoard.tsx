@@ -162,7 +162,7 @@ const distributionPlatforms: DistributionPlatform[] = [
 // Component for a distribution suggestion
 const DistributionSuggestion: React.FC<{ platform: DistributionPlatform }> = ({ platform }) => {
   return (
-    <div className="border rounded-lg p-4 mb-4">
+    <div className="border rounded-lg p-4 mb-4 transition-all hover:border-primary/30 hover:bg-accent/20 cursor-pointer">
       <div className="flex items-center mb-2">
         <platform.icon className={cn("h-5 w-5 mr-2", platform.color)} />
         <h4 className="font-medium">Distribuir para {platform.name}</h4>
@@ -171,7 +171,7 @@ const DistributionSuggestion: React.FC<{ platform: DistributionPlatform }> = ({ 
       <div className="space-y-2 text-sm text-muted-foreground">
         <p>• Sugestão de legenda adaptada para {platform.name}</p>
         <p>• Geração de thumbnail otimizada</p>
-        <p>• Hashtags recomendadas: #conteudo #fluida #{platform.name}</p>
+        <p>• Hashtags recomendadas: #conteudo #fluida #{platform.name.toLowerCase()}</p>
       </div>
       
       <Button variant="outline" size="sm" className="mt-3 w-full">
@@ -185,6 +185,7 @@ const KanbanBoard: React.FC = () => {
   const [columns, setColumns] = useState<KanbanColumn[]>(initialColumns);
   const [selectedItem, setSelectedItem] = useState<KanbanItem | null>(null);
   const [showDistributionDialog, setShowDistributionDialog] = useState(false);
+  const [showNewContentDialog, setShowNewContentDialog] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Record<string, boolean>>({
     'instagram': false,
     'tiktok': false,
@@ -249,7 +250,7 @@ const KanbanBoard: React.FC = () => {
         setShowDistributionDialog(true);
       }
       
-      // Show notification feedback
+      // Show notification feedback with animation
       showNotification({
         title: 'Status Atualizado',
         message: `Item movido para ${destColumn.title}`,
@@ -348,13 +349,31 @@ const KanbanBoard: React.FC = () => {
     }
     
     setShowDistributionDialog(false);
+    
+    // Reset selected platforms
+    setSelectedPlatforms({
+      'instagram': false,
+      'tiktok': false,
+      'youtube': false
+    });
+  };
+
+  // Add a new content item
+  const handleAddNewContent = () => {
+    // Mock implementation for now
+    setShowNewContentDialog(false);
+    showNotification({
+      title: 'Novo Conteúdo',
+      message: 'Novo conteúdo adicionado ao planner',
+      type: 'success',
+    });
   };
   
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Planner de Conteúdo</h1>
-        <Dialog>
+        <h1 className="text-2xl font-bold text-contourline-darkBlue">Planner de Conteúdo</h1>
+        <Dialog open={showNewContentDialog} onOpenChange={setShowNewContentDialog}>
           <DialogTrigger asChild>
             <Button className="flex items-center">
               <Plus className="h-5 w-5 mr-2" />
@@ -369,8 +388,8 @@ const KanbanBoard: React.FC = () => {
               <p>Funcionalidade a ser implementada.</p>
             </div>
             <DialogFooter>
-              <Button type="button" variant="secondary">Cancelar</Button>
-              <Button type="button">Adicionar</Button>
+              <Button type="button" variant="secondary" onClick={() => setShowNewContentDialog(false)}>Cancelar</Button>
+              <Button type="button" onClick={handleAddNewContent}>Adicionar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -548,7 +567,7 @@ const KanbanBoard: React.FC = () => {
             <Button variant="outline" onClick={() => setShowDistributionDialog(false)}>
               Ignorar
             </Button>
-            <Button onClick={distributeContent}>
+            <Button onClick={distributeContent} className="transition-transform hover:scale-105">
               Distribuir Conteúdo
             </Button>
           </DialogFooter>
