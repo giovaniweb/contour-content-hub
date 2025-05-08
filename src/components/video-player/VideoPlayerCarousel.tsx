@@ -11,6 +11,7 @@ import {
   CarouselPrevious,
   CarouselNext
 } from '@/components/ui/carousel';
+import { type CarouselApi } from '@/components/ui/carousel';
 
 interface VideoPlayerCarouselProps {
   videos: StoredVideo[];
@@ -25,6 +26,23 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
   onLike,
   onSelect
 }) => {
+  const [api, setApi] = React.useState<CarouselApi>();
+  
+  // When the carousel API is available, set up a listener for changes
+  React.useEffect(() => {
+    if (!api) return;
+    
+    const onSelect = () => {
+      const selectedIndex = api.selectedScrollSnap();
+      onSelect(selectedIndex);
+    };
+    
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api, onSelect]);
+
   return (
     <Layout>
       <div className="container mx-auto py-6">
@@ -38,11 +56,9 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
         <div className="h-[70vh] w-full max-w-4xl mx-auto overflow-hidden">
           <Carousel
             className="w-full"
+            setApi={setApi}
             opts={{ 
               startIndex: currentVideoIndex 
-            }}
-            onSelect={(api) => {
-              onSelect(api.selectedScrollSnap());
             }}
           >
             <CarouselContent>
