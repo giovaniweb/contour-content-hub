@@ -7,7 +7,8 @@ import {
   PlaySquare,
   User,
   Calendar,
-  PencilLine
+  PencilLine,
+  Database
 } from "lucide-react";
 
 export interface SidebarLink {
@@ -28,7 +29,7 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Dashboard",
         icon: Home,
-        path: "/",
+        path: "/dashboard",
       },
       {
         name: "Perfil",
@@ -38,17 +39,27 @@ export const sidebarData: SidebarGroup[] = [
     ],
   },
   {
+    name: "Equipamentos",
+    links: [
+      {
+        name: "Lista de Equipamentos",
+        icon: Database,
+        path: "/equipments",
+      },
+    ],
+  },
+  {
     name: "Conteúdo",
     links: [
       {
         name: "Gerador de Roteiros",
         icon: FileText,
-        path: "/script-generator",
+        path: "/generate-script",
       },
       {
         name: "Meus Roteiros",
         icon: FolderOpen,
-        path: "/scripts",
+        path: "/script-history",
       },
       {
         name: "Biblioteca de Mídia",

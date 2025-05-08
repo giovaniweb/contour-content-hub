@@ -17,6 +17,8 @@ import AdminContent from './pages/AdminContent';
 import AdminEquipments from './pages/AdminEquipments';
 import AdminIntegrations from './pages/AdminIntegrations';
 import VideoBatchImport from './pages/VideoBatchImport';
+import SystemIntelligence from './pages/SystemIntelligence';
+import SystemDiagnostics from './pages/SystemDiagnostics';
 
 // Other dashboard pages
 import Dashboard from './pages/Dashboard';
@@ -32,8 +34,6 @@ import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
 import EquipmentDetails from './pages/EquipmentDetails';
 import MediaLibrary from './pages/MediaLibrary';
 import MarketingConsultant from './pages/MarketingConsultant';
-import SystemIntelligence from './pages/SystemIntelligence';
-import SystemDiagnostics from './pages/SystemDiagnostics';
 import TechnicalDocuments from './pages/TechnicalDocuments';
 import DocumentDetail from './pages/DocumentDetail';
 
@@ -80,6 +80,8 @@ function App() {
               <Route path="/equipment" element={<EquipmentsPage />} />
               <Route path="/equipment-details" element={<EquipmentDetails />} />
               <Route path="/equipment/:id" element={<EquipmentDetailsPage />} />
+              <Route path="/equipments" element={<EquipmentsPage />} />
+              <Route path="/equipments/:id" element={<EquipmentDetailsPage />} />
               <Route path="/media-library" element={<MediaLibrary />} />
               <Route path="/marketing-consultant" element={<MarketingConsultant />} />
               <Route path="/system-intelligence" element={<SystemIntelligence />} />
@@ -96,9 +98,12 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/equipment" element={<AdminEquipments />} />
+              <Route path="/admin/equipments" element={<AdminEquipments />} />
               <Route path="/admin/videos" element={<VideoBatchImport />} />
               <Route path="/admin/videos/batch-import" element={<VideoBatchImport />} />
               <Route path="/admin/integrations" element={<AdminIntegrations />} />
+              <Route path="/admin/system-intelligence" element={<SystemIntelligence />} />
+              <Route path="/admin/system-diagnostics" element={<SystemDiagnostics />} />
             </Route>
             
             {/* Seller routes */}

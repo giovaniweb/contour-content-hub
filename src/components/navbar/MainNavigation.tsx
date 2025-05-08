@@ -30,7 +30,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
       <NavLink to="/equipments" icon={<Database size={16} />} label="Equipamentos" />
       <NavLink to="/content-strategy" icon={<Presentation size={16} />} label="Conteúdo" />
       <NavLink to="/custom-gpt" icon={<FileText size={16} />} label="Roteiros" />
-      <NavLink to="/media" icon={<VideoIcon size={16} />} label="Mídias" />
+      <NavLink to="/media-library" icon={<VideoIcon size={16} />} label="Mídias" />
       <NavLink 
         to="/marketing-consultant" 
         icon={<BrainCircuit size={16} />} 
