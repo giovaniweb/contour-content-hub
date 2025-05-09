@@ -1,4 +1,5 @@
-import { ContentItem, ContentPlannerState } from "@/types/content-planner";
+
+import { ContentPlannerState } from "@/types/content-planner";
 
 // Initial state for the content planner
 export const initialState: ContentPlannerState = {
@@ -18,8 +19,16 @@ export const initialState: ContentPlannerState = {
   modalData: null,
 };
 
+// Add initialColumns to fix build errors
+export const initialColumns = [
+  { id: 'backlog', title: 'Backlog' },
+  { id: 'in-progress', title: 'Em Progresso' },
+  { id: 'review', title: 'Revisão' },
+  { id: 'done', title: 'Concluído' }
+];
+
 // Mock items for development and testing
-export const mockItems: ContentItem[] = [
+export const mockItems = [
   {
     id: '1',
     title: 'Post sobre tratamento facial',

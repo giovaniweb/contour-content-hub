@@ -71,6 +71,9 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
         className="parallax-background absolute inset-0"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
         }}
       />
       
@@ -153,6 +156,21 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
           </AnimatePresence>
         </motion.div>
       </div>
+
+      <style jsx>{`
+        .parallax-section {
+          background: linear-gradient(45deg, rgba(0,148,251,0.1), rgba(243,0,252,0.1));
+          overflow: hidden;
+        }
+        
+        .parallax-background {
+          background-size: cover;
+          background-position: center;
+          transform-style: preserve-3d;
+          will-change: transform;
+          transition: transform 0.1s ease-out;
+        }
+      `}</style>
     </section>
   );
 };

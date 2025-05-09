@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
-import { itemVariants } from "@/lib/animations";
+import { listItemVariants } from "@/lib/animations";
 
 interface TrendingItem {
   id: string;
@@ -67,7 +67,7 @@ const TrendingItemCard: React.FC<{ item: TrendingItem; index: number }> = ({ ite
   
   return (
     <motion.div
-      variants={itemVariants}
+      variants={listItemVariants}
       className="cursor-pointer"
       onClick={handleClick}
     >

@@ -1,3 +1,4 @@
+
 import { Variants } from "framer-motion";
 
 // Define slide variants for page transitions
@@ -99,6 +100,66 @@ export const pulseVariants: Variants = {
       repeat: Infinity,
       repeatType: "reverse",
       duration: 1.5
+    }
+  }
+};
+
+// Adding missing animations that were causing build errors
+export const itemVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.4
+    }
+  }
+};
+
+export const staggerChildren: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+// New animation for the idea validator
+export const glowingContainerVariants: Variants = {
+  hidden: { 
+    boxShadow: "0 0 0 rgba(0, 148, 251, 0)",
+    opacity: 0,
+    y: 20 
+  },
+  visible: { 
+    boxShadow: ["0 0 10px rgba(0, 148, 251, 0.3)", "0 0 20px rgba(243, 0, 252, 0.5)", "0 0 10px rgba(0, 148, 251, 0.3)"],
+    opacity: 1,
+    y: 0,
+    transition: {
+      boxShadow: {
+        repeat: Infinity,
+        repeatType: "reverse",
+        duration: 3
+      },
+      opacity: { duration: 0.5 },
+      y: { duration: 0.5 }
+    }
+  }
+};
+
+// Typing cursor animation
+export const typingCursorVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: [0, 1, 0],
+    transition: {
+      repeat: Infinity,
+      duration: 0.8
     }
   }
 };
