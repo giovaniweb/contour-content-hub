@@ -1,3 +1,4 @@
+
 import React, { Suspense, useEffect } from 'react';
 import { Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -57,17 +58,17 @@ const PageLoader = ({ children }: { children: React.ReactNode }) => (
 
 // Route guard component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && !publicRoutes.includes(location.pathname)) {
+    if (!isLoading && !isAuthenticated && !publicRoutes.includes(location.pathname)) {
       navigate('/login', { state: { from: location.pathname } });
     }
-  }, [isAuthenticated, loading, location, navigate]);
+  }, [isAuthenticated, isLoading, location, navigate]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner size="lg" message="Verificando autenticação..." />
