@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowLeft, Share2, Download, Copy, ThumbsUp } from 'lucide-react';
+import { Sparkles, ArrowLeft, Share2, Download, Copy, ThumbsUp, CalendarRange } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import ScriptToPlannerModal from '@/components/script-generator/ScriptToPlannerModal';
 
 interface ScriptGeneratorState {
   ideaText?: string;
@@ -47,6 +47,7 @@ const ScriptGeneratorPage: React.FC = () => {
   });
   const [step, setStep] = useState<'ideaInput' | 'generating' | 'result'>('ideaInput');
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
+  const [isPlannerModalOpen, setIsPlannerModalOpen] = useState(false);
 
   // Load data from location state if available
   useEffect(() => {
@@ -119,6 +120,11 @@ const ScriptGeneratorPage: React.FC = () => {
       title: "Roteiro copiado!",
       description: "O texto foi copiado para a área de transferência.",
     });
+  };
+
+  const handleAddToPlanner = () => {
+    if (!generatedScript) return;
+    setIsPlannerModalOpen(true);
   };
 
   const generateMockScript = (data: FormData): GeneratedScript => {
@@ -446,6 +452,18 @@ const ScriptGeneratorPage: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
+              
+              <div className="flex-1"></div>
+              
+              <Button 
+                variant="outline"
+                className="gap-2 border-fluida-blue text-fluida-blue"
+                onClick={handleAddToPlanner}
+              >
+                <CalendarRange className="h-4 w-4" />
+                Usar no Planner
+              </Button>
+              
               <Button 
                 className="gap-2 bg-gradient-to-r from-fluida-blue to-fluida-pink text-white"
                 onClick={() => setStep('ideaInput')}
@@ -456,6 +474,14 @@ const ScriptGeneratorPage: React.FC = () => {
             </div>
           </div>
         </Card>
+        
+        {/* Modal for adding to planner */}
+        <ScriptToPlannerModal
+          open={isPlannerModalOpen}
+          onOpenChange={setIsPlannerModalOpen}
+          scriptTitle={generatedScript.title}
+          scriptContent={`${generatedScript.opening}\n\n${generatedScript.body}\n\n${generatedScript.closing}`}
+        />
       </div>
     );
   };

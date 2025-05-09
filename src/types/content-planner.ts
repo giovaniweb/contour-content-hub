@@ -5,6 +5,12 @@ export type ContentFormat = 'vídeo' | 'story' | 'carrossel' | 'reels' | 'texto'
 
 export type ContentDistribution = 'Instagram' | 'YouTube' | 'TikTok' | 'Blog' | 'Múltiplos' | 'Outro';
 
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  checked: boolean;
+}
+
 export interface ContentPlannerItem {
   id: string;
   title: string;
@@ -28,6 +34,7 @@ export interface ContentPlannerItem {
   createdById?: string;
   responsibleId?: string;
   responsibleName?: string;
+  checklist?: ChecklistItem[];
 }
 
 export interface ContentPlannerColumn {
