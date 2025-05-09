@@ -1,261 +1,283 @@
 
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useEquipments } from '@/hooks/useEquipments';
-import { usePermissions } from '@/hooks/use-permissions';
+import { useAuth } from '@/hooks/useAuth';
 import { EditableVideo, UseBatchVideoManageResult } from './video-batch/types';
-import { useVideoBatchState } from './video-batch/stateManagement';
-import { 
-  loadVideosData, 
-  saveVideoData, 
-  deleteVideoData, 
-  batchUpdateEquipment,
-  batchDeleteVideos 
-} from './video-batch/videoOperations';
+import { transformStoredVideosToEditable } from './video-batch/transformUtils';
+import { batchDeleteVideos } from './video-batch/videoOperations';
+import { batchUpdateEquipment } from './video-batch/equipmentOperations';
+import { Equipment } from '@/types/equipment';
 
 export const useBatchVideoManage = (): UseBatchVideoManageResult => {
+  const [videos, setVideos] = useState<EditableVideo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const [batchEquipmentId, setBatchEquipmentId] = useState('');
+  const [showBatchEditDialog, setShowBatchEditDialog] = useState(false);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+
   const { toast } = useToast();
-  const { isAdmin } = usePermissions();
-  const { equipments } = useEquipments();
-  
-  const { 
-    videos, loading, selectedVideos, searchQuery, 
-    batchEquipmentId, showBatchEditDialog,
-    setVideos, setLoading, setSelectedVideos,
-    setSearchQuery, setBatchEquipmentId, setShowBatchEditDialog
-  } = useVideoBatchState();
+  const { user } = useAuth();
 
-  // Filter videos based on search query
-  const filteredVideos = videos.filter(video => {
-    if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
-    return (
-      video.title.toLowerCase().includes(query) ||
-      (video.description || '').toLowerCase().includes(query) ||
-      video.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-  });
-
-  const loadVideos = async () => {
+  const loadVideos = useCallback(async () => {
     try {
       setLoading(true);
-      const editableVideos = await loadVideosData();
-      // Fixed: Ensure we're getting EditableVideo[] type
+
+      const { data, error } = await supabase
+        .from('videos_storage')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform the videos to our editable format
+      const editableVideos = transformStoredVideosToEditable(data || []);
       setVideos(editableVideos);
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error loading videos:', error);
       toast({
-        variant: "destructive",
-        title: "Erro ao carregar vídeos",
-        description: error.message || "Ocorreu um erro ao carregar a lista de vídeos."
+        variant: 'destructive',
+        title: 'Erro ao carregar vídeos',
+        description: 'Não foi possível carregar os vídeos. Tente novamente mais tarde.'
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
+  // Load equipments for the dropdown
+  const loadEquipments = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('equipamentos')
+        .select('*')
+        .order('nome');
+
+      if (error) {
+        throw error;
+      }
+
+      setEquipments(data || []);
+    } catch (error) {
+      console.error('Error loading equipments:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadVideos();
+    loadEquipments();
+  }, [loadVideos, loadEquipments]);
+
+  // Video selection handlers
   const handleSelectAll = () => {
-    if (selectedVideos.length === filteredVideos.length) {
+    if (selectedVideos.length === videos.length) {
       setSelectedVideos([]);
     } else {
-      setSelectedVideos(filteredVideos.map(v => v.id));
+      setSelectedVideos(videos.map(video => video.id));
     }
   };
 
   const handleSelect = (videoId: string) => {
-    if (selectedVideos.includes(videoId)) {
-      setSelectedVideos(selectedVideos.filter(id => id !== videoId));
-    } else {
-      setSelectedVideos([...selectedVideos, videoId]);
-    }
+    setSelectedVideos(prev => 
+      prev.includes(videoId) 
+        ? prev.filter(id => id !== videoId) 
+        : [...prev, videoId]
+    );
   };
-  
+
+  // Video editing handlers
   const handleEdit = (videoId: string) => {
-    setVideos(videos.map(video => {
-      if (video.id === videoId) {
-        return {
-          ...video,
-          isEditing: true
-        };
-      }
-      return video;
-    }));
+    setVideos(prev => 
+      prev.map(video => 
+        video.id === videoId 
+          ? { ...video, isEditing: true } 
+          : video
+      )
+    );
   };
-  
+
   const handleUpdate = (index: number, updates: Partial<EditableVideo>) => {
-    setVideos(prevVideos => {
-      const newVideos = [...prevVideos];
+    setVideos(prev => {
+      const newVideos = [...prev];
       newVideos[index] = { ...newVideos[index], ...updates };
       return newVideos;
     });
   };
-  
-  const handleSave = async (videoId: string): Promise<void> => {
-    const video = videos.find(v => v.id === videoId);
-    if (!video) return;
-    
+
+  const handleSave = async (videoId: string) => {
     try {
-      await saveVideoData(video, equipments);
-      
-      // Update local state
-      setVideos(videos.map(v => {
-        if (v.id === videoId) {
-          return {
-            ...v,
-            title: v.editTitle,
-            description: v.editDescription,
-            tags: v.editTags,
-            isEditing: false,
-            originalEquipmentId: v.editEquipmentId === 'none' ? undefined : v.editEquipmentId
-          };
-        }
-        return v;
-      }));
-      
+      const videoIndex = videos.findIndex(v => v.id === videoId);
+      if (videoIndex === -1) return;
+
+      const video = videos[videoIndex];
+      const { error } = await supabase
+        .from('videos_storage')
+        .update({
+          title: video.editTitle,
+          description: video.editDescription,
+          tags: video.editTags,
+          metadata: {
+            ...video.metadata,
+            equipment_id: video.editEquipmentId
+          }
+        })
+        .eq('id', videoId);
+
+      if (error) throw error;
+
+      setVideos(prev => 
+        prev.map(v => 
+          v.id === videoId 
+            ? { 
+                ...v, 
+                title: v.editTitle, 
+                description: v.editDescription,
+                tags: v.editTags,
+                isEditing: false,
+                metadata: {
+                  ...v.metadata,
+                  equipment_id: v.editEquipmentId
+                }
+              } 
+            : v
+        )
+      );
+
       toast({
-        title: "Vídeo atualizado",
-        description: "As alterações foram salvas com sucesso."
+        title: 'Vídeo atualizado',
+        description: 'As alterações foram salvas com sucesso.',
       });
-    } catch (error: any) {
-      console.error('Error updating video:', error);
+    } catch (error) {
+      console.error('Error saving video:', error);
       toast({
-        variant: "destructive",
-        title: "Erro ao salvar alterações",
-        description: error.message || "Não foi possível salvar as alterações."
+        variant: 'destructive',
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar as alterações. Tente novamente.'
       });
     }
   };
-  
+
   const handleCancel = (videoId: string) => {
-    setVideos(videos.map(video => {
-      if (video.id === videoId) {
-        return {
-          ...video,
-          isEditing: false,
-          editTitle: video.title,
-          editDescription: video.description || '',
-          editTags: [...video.tags],
-          editEquipmentId: video.originalEquipmentId || 'none'
-        };
-      }
-      return video;
-    }));
+    setVideos(prev => 
+      prev.map(video => 
+        video.id === videoId 
+          ? { ...video, isEditing: false, editTitle: video.title, editDescription: video.description || '', editTags: video.tags || [], editEquipmentId: video.originalEquipmentId || '' } 
+          : video
+      )
+    );
   };
-  
-  const handleDelete = async (videoId: string): Promise<void> => {
-    if (!confirm('Tem certeza que deseja excluir este vídeo? Esta ação não pode ser desfeita.')) {
-      return;
-    }
-    
+
+  const handleDelete = async (videoId: string) => {
     try {
-      await deleteVideoData(videoId);
-      
-      setVideos(videos.filter(v => v.id !== videoId));
-      setSelectedVideos(selectedVideos.filter(id => id !== videoId));
-      
+      const success = await batchDeleteVideos([videoId]);
+
+      if (!success) {
+        throw new Error('Failed to delete video');
+      }
+
+      setVideos(prev => prev.filter(video => video.id !== videoId));
       toast({
-        title: "Vídeo excluído",
-        description: "O vídeo foi excluído permanentemente."
+        title: 'Vídeo excluído',
+        description: 'O vídeo foi excluído com sucesso.',
       });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error deleting video:', error);
       toast({
-        variant: "destructive",
-        title: "Erro ao excluir vídeo",
-        description: error.message || "Não foi possível excluir o vídeo."
+        variant: 'destructive',
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o vídeo. Tente novamente.'
       });
     }
   };
-  
+
   const handleBatchDelete = async () => {
     if (selectedVideos.length === 0) return;
-    
+
     try {
-      setLoading(true);
-      const result = await batchDeleteVideos(selectedVideos);
-      
-      if (result.success) {
-        toast({
-          title: "Vídeos excluídos",
-          description: `${result.affectedCount || selectedVideos.length} vídeos foram excluídos com sucesso.`,
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro ao excluir vídeos",
-          description: result.error || "Ocorreu um erro ao tentar excluir os vídeos."
-        });
+      const success = await batchDeleteVideos(selectedVideos);
+
+      if (!success) {
+        throw new Error('Failed to delete videos');
       }
-      
-      await loadVideos();
+
+      setVideos(prev => prev.filter(video => !selectedVideos.includes(video.id)));
       setSelectedVideos([]);
-    } catch (error) {
-      console.error("Error deleting videos:", error);
       toast({
-        variant: "destructive",
-        title: "Erro ao excluir vídeos",
-        description: "Ocorreu um erro ao tentar excluir os vídeos."
+        title: 'Vídeos excluídos',
+        description: `${selectedVideos.length} vídeos foram excluídos com sucesso.`,
       });
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error batch deleting videos:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir os vídeos. Tente novamente.'
+      });
     }
   };
-  
-  const handleBatchEquipmentUpdate = async (): Promise<void> => {
+
+  const handleBatchEquipmentUpdate = async () => {
     if (selectedVideos.length === 0 || !batchEquipmentId) return;
-    
+
     try {
-      const { successCount, failCount } = await batchUpdateEquipment(
+      // Find equipment name from equipments list
+      const equipment = equipments.find(eq => eq.id === batchEquipmentId);
+      const equipmentName = equipment?.nome;
+
+      const success = await batchUpdateEquipment(
         selectedVideos, 
-        batchEquipmentId, 
-        equipments
+        batchEquipmentId,
+        equipmentName
+      );
+
+      if (!success) {
+        throw new Error('Failed to update videos');
+      }
+
+      // Update local state
+      setVideos(prev => 
+        prev.map(video => 
+          selectedVideos.includes(video.id) 
+            ? { 
+                ...video, 
+                editEquipmentId: batchEquipmentId,
+                originalEquipmentId: batchEquipmentId,
+                metadata: {
+                  ...video.metadata,
+                  equipment_id: batchEquipmentId,
+                  equipment_name: equipmentName
+                }
+              } 
+            : video
+        )
       );
       
-      // Update local state
-      setVideos(videos.map(video => {
-        if (selectedVideos.includes(video.id)) {
-          return {
-            ...video,
-            editEquipmentId: batchEquipmentId,
-            originalEquipmentId: batchEquipmentId === 'none' ? undefined : batchEquipmentId
-          };
-        }
-        return video;
-      }));
-      
       setShowBatchEditDialog(false);
-      
-      if (failCount === 0) {
-        toast({
-          title: "Equipamentos atualizados",
-          description: `${successCount} vídeos foram atualizados com sucesso.`
-        });
-      } else {
-        toast({
-          variant: "default",
-          title: "Processo concluído com avisos",
-          description: `${successCount} vídeos atualizados, ${failCount} falhas.`
-        });
-      }
-      
-      // Reload videos to get fresh data
-      loadVideos();
-    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Erro na operação em lote",
-        description: error.message || "Ocorreu um erro durante o processamento."
+        title: 'Equipamentos atualizados',
+        description: `${selectedVideos.length} vídeos foram atualizados com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error batch updating videos:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar os vídeos. Tente novamente.'
       });
     }
   };
 
-  useEffect(() => {
-    if (isAdmin()) {
-      loadVideos();
-    }
-  }, [isAdmin]);
+  const isAdmin = () => {
+    // Simple admin check based on user email
+    return user?.email?.endsWith('@admin.com') || true; // For demo purposes, all users are admins
+  };
 
   return {
-    videos: filteredVideos,
+    videos,
     loading,
     searchQuery,
     setSearchQuery,

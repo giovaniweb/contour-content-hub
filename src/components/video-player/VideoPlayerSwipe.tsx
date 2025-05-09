@@ -55,7 +55,6 @@ export const VideoPlayerSwipe: React.FC<VideoPlayerSwipeProps> = ({
             onClose={handleClose}
             onNext={handleNext}
             onPrevious={handlePrevious}
-            // Custom handlers for this component
             customHandlers={{
               onLike,
               onSkip

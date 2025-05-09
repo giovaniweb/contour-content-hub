@@ -7,7 +7,7 @@ interface DetailsTabProps {
 }
 
 // Helper function to format indicacoes
-const formatIndicacoes = (indicacoes: string | string[]): string[] => {
+const formatIndicacoes = (indicacoes: string | string[] | undefined): string[] => {
   if (Array.isArray(indicacoes)) return indicacoes;
   if (!indicacoes) return [];
   
@@ -39,7 +39,7 @@ export const DetailsTab: React.FC<DetailsTabProps> = ({ equipment }) => {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Indicações</h3>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  {formatIndicacoes(equipment.indicacoes || []).map((indicacao, index) => (
+                  {formatIndicacoes(equipment.indicacoes).map((indicacao, index) => (
                     <li key={index}>{indicacao}</li>
                   ))}
                 </ul>

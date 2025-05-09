@@ -1,109 +1,91 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { EditableVideo } from './types';
-import { transformVideosToEditableVideos } from './transformUtils';
-import { saveVideoEquipment, batchUpdateEquipment } from './equipmentOperations';
+import { toast } from '@/hooks/use-toast';
 
-// Existing export from your file
-export const loadVideosData = async () => {
+/**
+ * Batch update equipment for multiple videos
+ */
+export const batchUpdateEquipment = async (
+  videoIds: string[], 
+  equipmentId: string,
+  equipmentName?: string
+): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('videos')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      throw new Error(error.message);
+    if (!videoIds || videoIds.length === 0) {
+      return false;
     }
-    
-    // Transform to EditableVideo format
-    return transformVideosToEditableVideos(data || []);
-  } catch (error) {
-    console.error('Error loading videos data:', error);
-    throw error;
-  }
-};
 
-export const saveVideoData = async (video: EditableVideo, equipments: any[]) => {
-  try {
-    // Prepare update data
-    const updateData = {
-      titulo: video.editTitle,
-      descricao_curta: video.editDescription,
-      tags: video.editTags,
-      equipment_id: video.editEquipmentId === 'none' ? null : video.editEquipmentId
-    };
-    
-    // Update video record
-    const { error } = await supabase
-      .from('videos')
-      .update(updateData)
-      .eq('id', video.id);
-    
-    if (error) {
-      throw error;
-    }
-    
-    // If equipment changed, update equipment relationship
-    if (video.originalEquipmentId !== video.editEquipmentId) {
-      await saveVideoEquipment(
-        video.id, 
-        video.editEquipmentId === 'none' ? null : video.editEquipmentId
-      );
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error saving video:', error);
-    return { success: false, error: error.message };
-  }
-};
+    // For each video ID, update the metadata with the new equipment
+    for (const id of videoIds) {
+      const { data: video, error: fetchError } = await supabase
+        .from('videos_storage')
+        .select('metadata')
+        .eq('id', id)
+        .single();
 
-export const deleteVideoData = async (videoId: string) => {
-  try {
-    const { error } = await supabase
-      .from('videos')
-      .delete()
-      .eq('id', videoId);
-    
-    if (error) {
-      throw error;
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error deleting video:', error);
-    return { success: false, error: error.message };
-  }
-};
+      if (fetchError) {
+        console.error(`Error fetching video ${id}:`, fetchError);
+        continue;
+      }
 
-// Add the missing batchDeleteVideos function
-export const batchDeleteVideos = async (videoIds: string[]) => {
-  try {
-    const { data, error, count } = await supabase
-      .from('videos')
-      .delete()
-      .in('id', videoIds)
-      .select();
-    
-    if (error) {
-      return { 
-        success: false, 
-        error: error.message 
+      // Prepare updated metadata
+      const metadata = video?.metadata || {};
+      const updatedMetadata = {
+        ...metadata,
+        equipment_id: equipmentId,
+        equipment_name: equipmentName
       };
+
+      // Update the video record
+      const { error: updateError } = await supabase
+        .from('videos_storage')
+        .update({ metadata: updatedMetadata })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error(`Error updating video ${id}:`, updateError);
+        return false;
+      }
     }
-    
-    return { 
-      success: true, 
-      affectedCount: count || videoIds.length 
-    };
-  } catch (error: any) {
-    console.error('Error in batch delete:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to delete videos'
-    };
+
+    return true;
+  } catch (error) {
+    console.error('Error in batchUpdateEquipment:', error);
+    return false;
   }
 };
 
-// Export batchUpdateEquipment from here as well to fix the import issue
-export { batchUpdateEquipment };
+/**
+ * Deletes multiple videos by their IDs
+ */
+export const batchDeleteVideos = async (videoIds: string[]): Promise<boolean> => {
+  try {
+    if (!videoIds || videoIds.length === 0) {
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('videos_storage')
+      .delete()
+      .in('id', videoIds);
+
+    if (error) {
+      console.error('Error deleting videos:', error);
+      toast({
+        title: 'Erro ao excluir vídeos',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in batchDeleteVideos:', error);
+    return false;
+  }
+};
+
+// Re-export other functions
+export * from './basicVideoOperations';

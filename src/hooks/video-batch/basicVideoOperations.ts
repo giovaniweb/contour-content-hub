@@ -1,68 +1,110 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { EditableVideo } from './types';
+import { toast } from '@/hooks/use-toast';
+import { VideoMetadata, StoredVideo } from '@/types/video-storage';
 
-export const loadVideosData = async () => {
+export const fetchVideos = async (): Promise<StoredVideo[]> => {
   try {
     const { data, error } = await supabase
       .from('videos_storage')
       .select('*')
       .order('created_at', { ascending: false });
-      
+
     if (error) {
       throw error;
     }
-    
-    return { success: true, data };
+
+    return data || [];
   } catch (error) {
-    console.error("Error loading videos:", error);
-    return { success: false, error: (error as Error).message };
+    console.error('Error fetching videos:', error);
+    return [];
   }
 };
 
-export const saveVideoData = async (videoId: string, updates: Partial<EditableVideo>) => {
+export const updateVideoTitle = async (
+  videoId: string, 
+  title: string
+): Promise<boolean> => {
   try {
-    // Extract only updatable fields
-    const { title, description, tags, metadata } = updates;
-    
+    const { error } = await supabase
+      .from('videos_storage')
+      .update({ title })
+      .eq('id', videoId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating video title:', error);
+    return false;
+  }
+};
+
+export const updateVideoMetadata = async (
+  videoId: string, 
+  metadata: VideoMetadata
+): Promise<boolean> => {
+  try {
     const { error } = await supabase
       .from('videos_storage')
       .update({ 
-        title, 
-        description, 
-        tags,
-        metadata
+        metadata: metadata as any // Type assertion to satisfy the Json type
       })
       .eq('id', videoId);
-      
+
     if (error) {
       throw error;
     }
-    
-    return { success: true };
+
+    return true;
   } catch (error) {
-    console.error("Error saving video:", error);
-    return { success: false, error: (error as Error).message };
+    console.error('Error updating video metadata:', error);
+    return false;
   }
 };
 
-export const deleteVideo = async (videoId: string) => {
+export const deleteVideo = async (videoId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('videos_storage')
       .delete()
       .eq('id', videoId);
-      
+
     if (error) {
       throw error;
     }
-    
-    return { success: true };
+
+    return true;
   } catch (error) {
-    console.error("Error deleting video:", error);
-    return { success: false, error: (error as Error).message };
+    console.error('Error deleting video:', error);
+    toast({
+      variant: 'destructive',
+      title: 'Error deleting video',
+      description: 'The video could not be deleted.',
+    });
+    return false;
   }
 };
 
-// Alias for backward compatibility
-export const deleteVideoData = deleteVideo;
+export const updateVideoTags = async (
+  videoId: string,
+  tags: string[]
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('videos_storage')
+      .update({ tags })
+      .eq('id', videoId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating video tags:', error);
+    return false;
+  }
+};

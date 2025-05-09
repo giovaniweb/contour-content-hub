@@ -2,7 +2,7 @@
 import React from 'react';
 import { TechnicalDocument } from '@/types/document';
 
-interface DocumentIdeasProps {
+export interface DocumentIdeasProps {
   className?: string;
   document?: TechnicalDocument; 
 }
