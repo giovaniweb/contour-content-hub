@@ -9,20 +9,20 @@ export interface Equipment {
   beneficios?: string;
   diferenciais?: string;
   linguagem?: string;
-  indicacoes?: string[];
-  efeito?: string;
+  indicacoes: string[];
   ativo?: boolean;
   image_url?: string;
   data_cadastro?: string;
+  efeito?: string;
 }
 
 export type EquipmentCreationProps = Omit<Equipment, "id" | "data_cadastro">;
+
 export type EquipmentDraft = Partial<Equipment>;
 
 export interface EquipmentFormProps {
-  equipment?: Equipment;
-  onSubmit: (data: EquipmentCreationProps) => void;
-  onCancel?: () => void;
+  equipment?: EquipmentDraft;
+  onSubmit: (data: EquipmentDraft) => void;
 }
 
 export type ValidationErrors = {

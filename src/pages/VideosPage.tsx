@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loadVideosData } from '@/hooks/video-batch/basicVideoOperations';
+import { loadVideosData } from '@/hooks/video-batch/videoBatchOperations';
 import { StoredVideo } from '@/types/video-storage';
 import { Button } from '@/components/ui/button';
 import { Plus, Upload } from 'lucide-react';

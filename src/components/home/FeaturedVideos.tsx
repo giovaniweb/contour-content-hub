@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
-import { loadVideosData } from '@/hooks/video-batch/basicVideoOperations';
+import { loadVideosData } from '@/hooks/video-batch/videoBatchOperations';
 
 // Fix the import from named to default
 import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';

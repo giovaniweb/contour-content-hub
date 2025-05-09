@@ -2,7 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { VideoMetadata, StoredVideo } from '@/types/video-storage';
+import { loadVideosData } from './videoBatchOperations';
 
+// Re-export loadVideosData for backward compatibility
+export { loadVideosData };
+
+// The original fetchVideos function
 export const fetchVideos = async (): Promise<StoredVideo[]> => {
   try {
     const { data, error } = await supabase
@@ -14,7 +19,22 @@ export const fetchVideos = async (): Promise<StoredVideo[]> => {
       throw error;
     }
 
-    return data || [];
+    // Convert the data to StoredVideo type
+    return data.map(video => ({
+      id: video.id,
+      title: video.title || '',
+      description: video.description || '',
+      file_urls: video.file_urls as unknown as StoredVideo['file_urls'],
+      thumbnail_url: video.thumbnail_url,
+      created_at: video.created_at,
+      updated_at: video.updated_at,
+      status: video.status,
+      metadata: video.metadata,
+      tags: video.tags || [],
+      public: video.public,
+      duration: video.duration,
+      size: video.size
+    })) || [];
   } catch (error) {
     console.error('Error fetching videos:', error);
     return [];
