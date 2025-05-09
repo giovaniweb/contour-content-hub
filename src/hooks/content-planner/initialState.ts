@@ -1,143 +1,112 @@
+import { ContentItem, ContentPlannerState } from "@/types/content-planner";
 
-import { ContentPlannerColumn, ContentPlannerItem } from '@/types/content-planner';
+// Initial state for the content planner
+export const initialState: ContentPlannerState = {
+  items: [],
+  loading: false,
+  error: null,
+  selectedItem: null,
+  selectedDate: null,
+  view: 'month',
+  filters: {
+    status: 'all',
+    type: 'all',
+    search: '',
+  },
+  isModalOpen: false,
+  modalType: null,
+  modalData: null,
+};
 
-// Estado inicial das colunas do Kanban
-export const initialColumns: ContentPlannerColumn[] = [
+// Mock items for development and testing
+export const mockItems: ContentItem[] = [
   {
-    id: 'idea',
-    title: '💡 Ideias',
-    items: [],
-    icon: '💡'
-  },
-  {
-    id: 'script_generated',
-    title: '✍️ Roteiro Gerado',
-    items: [],
-    icon: '✍️'
-  },
-  {
-    id: 'approved',
-    title: '✅ Aprovado',
-    items: [],
-    icon: '✅'
-  },
-  {
-    id: 'scheduled',
-    title: '📅 Agendado',
-    items: [],
-    icon: '📅'
-  },
-  {
-    id: 'published',
-    title: '📢 Publicado',
-    items: [],
-    icon: '📢'
-  }
-];
-
-// Dados de exemplo para simular conteúdo no Planner
-export const mockItems: ContentPlannerItem[] = [
-  {
-    id: 'item-1',
-    title: 'Benefícios do ácido hialurônico para pele madura',
-    description: 'Vídeo explicativo sobre como o ácido hialurônico pode beneficiar peles acima dos 40 anos',
-    status: 'idea',
-    tags: ['skincare', 'ácido hialurônico', 'pele madura'],
-    format: 'vídeo',
-    objective: 'Educar',
-    distribution: 'Instagram',
-    equipmentId: 'equip-123',
-    equipmentName: 'Equipamento Facial X200',
-    authorId: 'user-1',
-    authorName: 'Maria Silva',
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    aiGenerated: false,
-    responsibleId: 'user-2',
-    responsibleName: 'João Costa'
-  },
-  {
-    id: 'item-2',
-    title: 'Comparativo: laser vs radiofrequência',
-    description: 'Análise detalhada das diferenças, vantagens e indicações de cada tecnologia',
-    status: 'script_generated',
-    scriptId: 'script-456',
-    tags: ['laser', 'radiofrequência', 'comparativo', 'tecnologia'],
-    format: 'carrossel',
-    objective: 'Comparar',
-    distribution: 'Instagram',
-    equipmentId: 'equip-456',
-    equipmentName: 'Laser Pro Max',
-    authorId: 'user-1',
-    authorName: 'Maria Silva',
-    createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    aiGenerated: true,
-    responsibleId: 'user-3',
-    responsibleName: 'Ana Ferreira'
-  },
-  {
-    id: 'item-3',
-    title: 'Tutorial: aplicação correta de preenchimento labial',
-    description: 'Passo a passo detalhado sobre a técnica mais segura para preenchimento labial com ácido hialurônico',
-    status: 'approved',
-    scriptId: 'script-789',
-    tags: ['tutorial', 'preenchimento', 'lábios', 'técnica'],
-    format: 'vídeo',
-    objective: 'Instruir',
-    distribution: 'YouTube',
-    equipmentId: 'equip-789',
-    equipmentName: 'Kit Preenchimento Premium',
-    authorId: 'user-2',
-    authorName: 'João Costa',
-    createdAt: new Date(Date.now() - 86400000 * 14).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    aiGenerated: false,
-    responsibleId: 'user-1',
-    responsibleName: 'Maria Silva'
-  },
-  {
-    id: 'item-4',
-    title: 'Resultados reais: antes e depois com o equipamento X',
-    description: 'Demonstração de resultados de pacientes reais após tratamento com o equipamento X',
+    id: '1',
+    title: 'Post sobre tratamento facial',
+    description: 'Explicação sobre o novo tratamento de rejuvenescimento',
+    date: '2023-10-15',
     status: 'scheduled',
-    scriptId: 'script-101',
-    tags: ['resultados', 'antes e depois', 'casos reais'],
-    format: 'reels',
-    objective: 'Demonstrar',
-    distribution: 'Instagram',
-    equipmentId: 'equip-123',
-    equipmentName: 'Equipamento Facial X200',
-    scheduledDate: new Date(Date.now() + 86400000 * 3).toISOString(),
-    scheduledTime: '14:30',
-    calendarEventId: 'cal-123',
-    authorId: 'user-3',
-    authorName: 'Ana Ferreira',
-    createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    aiGenerated: true,
-    responsibleId: 'user-2',
-    responsibleName: 'João Costa'
+    type: 'post',
+    tags: ['facial', 'rejuvenescimento'],
+    assignedTo: 'Dr. Silva',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881',
+        alt: 'Tratamento facial'
+      }
+    ]
   },
   {
-    id: 'item-5',
-    title: '5 mitos sobre tratamentos estéticos',
-    description: 'Desmistificando informações falsas sobre procedimentos estéticos comuns',
+    id: '2',
+    title: 'Vídeo demonstrativo de preenchimento',
+    description: 'Vídeo curto mostrando a técnica de preenchimento labial',
+    date: '2023-10-18',
+    status: 'draft',
+    type: 'video',
+    tags: ['preenchimento', 'labial', 'técnica'],
+    assignedTo: 'Dra. Oliveira',
+    media: [
+      {
+        type: 'video',
+        url: 'https://example.com/video123.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1562184552-997c461abbe6'
+      }
+    ]
+  },
+  {
+    id: '3',
+    title: 'Promoção de Botox',
+    description: 'Anúncio da promoção mensal de Botox',
+    date: '2023-10-25',
     status: 'published',
-    scriptId: 'script-102',
-    tags: ['mitos', 'educação', 'esclarecimento'],
-    format: 'carrossel',
-    objective: 'Educar',
-    distribution: 'Instagram',
-    scheduledDate: new Date(Date.now() - 86400000 * 5).toISOString(),
-    scheduledTime: '10:00',
-    calendarEventId: 'cal-456',
-    authorId: 'user-1',
-    authorName: 'Maria Silva',
-    createdAt: new Date(Date.now() - 86400000 * 20).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    aiGenerated: false,
-    responsibleId: 'user-1',
-    responsibleName: 'Maria Silva'
+    type: 'promotion',
+    tags: ['botox', 'promoção', 'desconto'],
+    assignedTo: 'Marketing',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937',
+        alt: 'Promoção de Botox'
+      }
+    ]
+  },
+  {
+    id: '4',
+    title: 'Live sobre cuidados pós-procedimento',
+    description: 'Live no Instagram sobre cuidados após procedimentos estéticos',
+    date: '2023-11-05',
+    status: 'scheduled',
+    type: 'live',
+    tags: ['cuidados', 'pós-procedimento', 'instagram'],
+    assignedTo: 'Dra. Costa',
+    media: []
+  },
+  {
+    id: '5',
+    title: 'Artigo sobre novas tecnologias',
+    description: 'Artigo para o blog sobre as novas tecnologias em estética',
+    date: '2023-11-10',
+    status: 'draft',
+    type: 'article',
+    tags: ['tecnologia', 'inovação', 'estética'],
+    assignedTo: 'Dr. Mendes',
+    media: []
   }
 ];
+
+// Reducer action types
+export enum ActionType {
+  FETCH_ITEMS_START = 'FETCH_ITEMS_START',
+  FETCH_ITEMS_SUCCESS = 'FETCH_ITEMS_SUCCESS',
+  FETCH_ITEMS_FAILURE = 'FETCH_ITEMS_FAILURE',
+  SELECT_ITEM = 'SELECT_ITEM',
+  SELECT_DATE = 'SELECT_DATE',
+  CHANGE_VIEW = 'CHANGE_VIEW',
+  SET_FILTER = 'SET_FILTER',
+  OPEN_MODAL = 'OPEN_MODAL',
+  CLOSE_MODAL = 'CLOSE_MODAL',
+  ADD_ITEM = 'ADD_ITEM',
+  UPDATE_ITEM = 'UPDATE_ITEM',
+  DELETE_ITEM = 'DELETE_ITEM',
+}
