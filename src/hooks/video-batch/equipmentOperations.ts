@@ -37,9 +37,9 @@ export const batchUpdateEquipment = async (
       // Prepare updated metadata
       const currentMetadata = data.metadata || {};
       
-      // Fix: Create a new object with the necessary equipment properties
+      // Create a new object with the necessary equipment properties
       const updatedMetadata = {
-        ...(typeof currentMetadata === 'object' ? currentMetadata : {}),
+        ...currentMetadata,
         equipment_id: equipmentId,
         equipment_name: equipmentName || ''
       };

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import {
   Card,
@@ -22,7 +23,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { TechnicalDocument } from '@/types/document';
 import { downloadPdfFile } from '@/services/documentService';
-import DocumentIdeas from './DocumentIdeas'; // Import DocumentIdeas component
+
+// Updated DocumentIdeas component interface with className prop
+interface DocumentIdeasProps {
+  document: TechnicalDocument;
+  className?: string;
+}
+
+// Placeholder for DocumentIdeas component
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document, className }) => {
+  return (
+    <div className={className}>
+      <p>Document ideas content will be displayed here.</p>
+    </div>
+  );
+};
 
 interface DocumentContentProps {
   document: TechnicalDocument;
