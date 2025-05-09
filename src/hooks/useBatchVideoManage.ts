@@ -14,7 +14,7 @@ export function useTypeSafeBatchVideoManage() {
 // This function is now the default export
 export function useBatchVideoManage() {
   // Implementation of the hook
-  // For now, returning a minimal implementation to fix the type error
+  // Modificando as funções para retornar Promises
   return {
     videos: [],
     loading: false,
@@ -31,11 +31,20 @@ export function useBatchVideoManage() {
     handleSelect: (id: string) => {},
     handleEdit: (id: string) => {},
     handleUpdate: (id: string, data: any) => {},
-    handleSave: (id: string) => {},
+    // Modificando estas funções para retornar Promises
+    handleSave: async (id: string): Promise<void> => {
+      return Promise.resolve();
+    },
     handleCancel: (id: string) => {},
-    handleDelete: (id: string) => {},
-    handleBatchDelete: async () => {},
-    handleBatchEquipmentUpdate: async () => {},
+    handleDelete: async (id: string): Promise<void> => {
+      return Promise.resolve();
+    },
+    handleBatchDelete: async (): Promise<void> => {
+      return Promise.resolve();
+    },
+    handleBatchEquipmentUpdate: async (): Promise<void> => {
+      return Promise.resolve();
+    },
     isAdmin: () => true,
     equipments: []
   };
