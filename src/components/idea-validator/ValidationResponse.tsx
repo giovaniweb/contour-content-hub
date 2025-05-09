@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, ShoppingBag } from 'lucide-react';
+import { ArrowRight, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,29 +15,45 @@ const ValidationResponse: React.FC<ValidationResponseProps> = ({ ideaText, objec
   
   // Generate response based on the idea and objective
   const generateResponse = () => {
+    // Positive greeting options
+    const greetings = ["Boa!", "Ótima ideia!", "Legal isso!", "Adorei!", "Excelente!"];
+    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    
+    // Determine response based on objective
     if (objective === 'emotion') {
       // For emotional content
       if (ideaText.toLowerCase().includes('massinha') && ideaText.toLowerCase().includes('mães')) {
-        return "A massinha lembra infância, cuidado e criação — é um gesto que emociona. Isso cria conexão real com quem assiste. É conteúdo que aproxima.";
+        return `${randomGreeting} Essa ideia tem cheiro de nostalgia e muito carinho envolvido. Massinha lembra infância, criatividade, tempo junto com quem a gente ama.`;
       } else if (ideaText.toLowerCase().includes('antes e depois')) {
-        return "Transformações têm uma carga emocional imensa porque mostram superação e mudança. Isso cria empatia imediata com quem assiste e toca no desejo humano de evolução.";
+        return `${randomGreeting} Essa ideia toca no coração do público e mostra uma jornada real. Transformações têm uma carga emocional imensa porque mostram superação e mudança.`;
       } else if (ideaText.toLowerCase().includes('tutorial')) {
-        return "Compartilhar conhecimento é um gesto de generosidade que cria conexão. Esse tipo de conteúdo torna sua marca uma amiga que ajuda, não apenas uma empresa que vende.";
+        return `${randomGreeting} Compartilhar conhecimento é um gesto de generosidade que cria conexão. Esse tipo de conteúdo torna sua marca uma amiga que ajuda, não apenas uma empresa que vende.`;
       } else {
-        return "Essa ideia tem um potencial emocional incrível. Ao focar nas sensações e resultados, você cria uma conexão genuína com o público. É um conteúdo que vai tocar corações.";
+        return `${randomGreeting} Essa ideia tem potencial para criar uma conexão genuína. Conteúdo que emociona fica na memória e aproxima as pessoas da sua marca.`;
       }
     } else {
       // For sales content
       if (ideaText.toLowerCase().includes('massinha') && ideaText.toLowerCase().includes('mães')) {
-        return "Essa ideia é perfeita para converter em vendas de presentes para o Dia das Mães. Use a nostalgia da massinha para criar urgência: 'Quer dar um presente inesquecível? Temos apenas 10 vagas para o procedimento X antes do Dia das Mães!'";
+        return `${randomGreeting} Essa ideia chama atenção e pode converter bem. Use a nostalgia da massinha para criar urgência: quem não quer dar um presente inesquecível?`;
       } else if (ideaText.toLowerCase().includes('antes e depois')) {
-        return "Transformações são poderosas para vendas porque provam resultados reais. Destaque números e estatísticas: 'Veja como 90% das clientes notam diferença em apenas uma sessão!'";
+        return `${randomGreeting} Essa ideia vende porque prova resultados reais. Antes e depois é irresistível porque mostra exatamente o que o cliente pode esperar.`;
       } else if (ideaText.toLowerCase().includes('tutorial')) {
-        return "Tutoriais que mostram apenas parte da solução são ótimos para vendas. Mostre o suficiente para gerar interesse e termine com um call to action: 'Para resultados completos, agende uma avaliação!'";
+        return `${randomGreeting} Tutorial é ótimo para mostrar o seu valor e conhecimento. Entregue dicas práticas, mas deixe claro que tem muito mais para oferecer no serviço completo.`;
       } else {
-        return "Essa ideia tem grande potencial comercial. Ao destacar os benefícios e criar um senso de urgência ou exclusividade, você pode converter visualizações em agendamentos reais e vendas efetivas.";
+        return `${randomGreeting} Essa ideia tem potencial para converter. Um bom gancho no início e um chamado para ação no final podem transformar visualizações em agendamentos reais.`;
       }
     }
+  };
+  
+  // Get closing statement
+  const getClosingStatement = () => {
+    const closings = [
+      "Vamos transformar isso em um conteúdo incrível?",
+      "Partiu montar um roteiro forte com isso?",
+      "Vamos criar algo marcante com essa ideia?",
+      "Pronto pra transformar essa ideia em realidade?"
+    ];
+    return closings[Math.floor(Math.random() * closings.length)];
   };
   
   const handleCreateScript = () => {
@@ -68,11 +84,7 @@ const ValidationResponse: React.FC<ValidationResponseProps> = ({ ideaText, objec
                 ? 'bg-pink-100 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400' 
                 : 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
             }`}>
-              {objective === 'emotion' ? (
-                <Sparkles className="h-6 w-6" />
-              ) : (
-                <ShoppingBag className="h-6 w-6" />
-              )}
+              <MessageSquare className="h-6 w-6" />
             </div>
             
             <div>
@@ -81,14 +93,14 @@ const ValidationResponse: React.FC<ValidationResponseProps> = ({ ideaText, objec
               </h3>
               
               <p className="text-lg mb-6 leading-relaxed">
-                "Essa ideia tem um toque {objective === 'emotion' ? 'lindo' : 'estratégico'}. {generateResponse()}"
+                {generateResponse()}
+              </p>
+              
+              <p className="text-lg font-medium mb-6">
+                {getClosingStatement()}
               </p>
               
               <div className="mt-8">
-                <p className="text-lg font-medium mb-4">
-                  Vamos transformar isso em um roteiro {objective === 'emotion' ? 'que toque corações' : 'que gere resultados'}?
-                </p>
-                
                 <Button
                   onClick={handleCreateScript}
                   className="bg-gradient-to-r from-fluida-blue to-fluida-pink hover:opacity-90 text-white px-6 py-6 rounded-full text-lg font-medium flex items-center gap-2"
