@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { StoredVideo } from '@/types/video-storage';
 import { Equipment } from '@/types/equipment';
 import { useBatchVideoStore } from './video-batch/videoBatchStore';
-import { loadVideosData, batchUpdateEquipment } from './video-batch/videoBatchOperations';
+import { loadVideosData } from './video-batch/videoBatchOperations';
 import { batchDeleteVideos } from './video-batch/videoOperations';
+import { batchUpdateEquipment } from './video-batch/equipmentOperations';
 import { EditableVideo } from './video-batch/types';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -304,12 +305,12 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     const equipmentsList: Equipment[] = data.map(item => ({
       id: item.id,
       nome: item.nome,
-      descricao: item.descricao || '',  // Provide default values for required fields
-      categoria: item.categoria || '',   // Provide default values for required fields
-      tecnologia: item.tecnologia,
-      beneficios: item.beneficios,
-      diferenciais: item.diferenciais,
-      linguagem: item.linguagem,
+      descricao: item.descricao || '',  // Add default values for required fields
+      categoria: item.categoria || '',  // Add default values for required fields
+      tecnologia: item.tecnologia || '',
+      beneficios: item.beneficios || '',
+      diferenciais: item.diferenciais || '',
+      linguagem: item.linguagem || '',
       indicacoes: Array.isArray(item.indicacoes) 
         ? item.indicacoes 
         : typeof item.indicacoes === 'string'

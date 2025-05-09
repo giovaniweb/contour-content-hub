@@ -1,43 +1,43 @@
 
 import { useState, useEffect } from "react";
+import { Equipment } from '@/types/equipment'; // Import Equipment from the types directory
 
-// Exportando o tipo Equipment para uso em outros componentes
-export interface Equipment {
-  id: string;
-  nome: string;
-  tecnologia?: string;
-  beneficios?: string;
-  diferenciais?: string;
-  linguagem?: string;
-  ativo?: boolean;
-  image_url?: string;
-}
+export { Equipment }; // Re-export the type
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([
     { 
       id: 'eq1', 
       nome: 'Equipamento X',
+      descricao: 'Descrição do equipamento X',
+      categoria: 'Categoria 1',
       tecnologia: 'Tecnologia avançada',
       beneficios: 'Resultados rápidos, Sem dor, Não invasivo',
       diferenciais: 'Único no mercado com tecnologia dupla',
-      linguagem: 'técnica'
+      linguagem: 'técnica',
+      indicacoes: ['Indicação 1', 'Indicação 2']
     },
     { 
       id: 'eq2', 
       nome: 'Equipamento Y',
+      descricao: 'Descrição do equipamento Y',
+      categoria: 'Categoria 2',
       tecnologia: 'Laser de última geração',
       beneficios: 'Tratamento eficaz, Recuperação rápida',
       diferenciais: 'Máxima potência com segurança',
-      linguagem: 'acessível'
+      linguagem: 'acessível',
+      indicacoes: ['Indicação 3', 'Indicação 4']
     },
     { 
       id: 'eq3', 
       nome: 'Equipamento Z',
+      descricao: 'Descrição do equipamento Z',
+      categoria: 'Categoria 3',
       tecnologia: 'Ultrassom focalizado',
       beneficios: 'Resultados permanentes, Sem tempo de inatividade',
       diferenciais: 'Tratamento personalizado',
-      linguagem: 'comercial'
+      linguagem: 'comercial',
+      indicacoes: ['Indicação 5', 'Indicação 6']
     },
   ]);
   

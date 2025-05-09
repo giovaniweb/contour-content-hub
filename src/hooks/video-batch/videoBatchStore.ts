@@ -1,6 +1,16 @@
 
 import { create } from 'zustand';
-import { BatchVideoState } from './types';
+import { EditableVideo } from './types';
+
+// Update BatchVideoState to include the setter methods
+export interface BatchVideoState {
+  videos: EditableVideo[];
+  loading: boolean;
+  error: string | null;
+  setVideos: (videos: EditableVideo[]) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+}
 
 export const useBatchVideoStore = create<BatchVideoState>((set) => ({
   videos: [],

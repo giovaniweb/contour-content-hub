@@ -4,7 +4,7 @@ import { TechnicalDocument } from '@/types/document';
 
 interface DocumentIdeasProps {
   document: TechnicalDocument;
-  className?: string;
+  className?: string;  // Add this to accept className prop
 }
 
 const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document, className }) => {
