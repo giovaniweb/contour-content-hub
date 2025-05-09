@@ -126,7 +126,7 @@ const VideoBatchManage: React.FC = () => {
               selectedCount={selectedVideos.length}
               onClearSelection={() => setSelectedVideos([])}
               onShowEditDialog={() => setShowBatchEditDialog(true)}
-              onDelete={handleBatchDelete}
+              onDelete={() => handleBatchDelete().catch(err => console.error(err))}
             />
             
             {/* Videos list */}
@@ -137,10 +137,14 @@ const VideoBatchManage: React.FC = () => {
               onSelect={handleSelect}
               onSelectAll={handleSelectAll}
               onEdit={handleEdit}
-              onSave={handleSave}
+              onSave={(videoId) => handleSave(videoId).catch(err => console.error(err))}
               onCancel={handleCancel}
-              onDelete={handleDelete}
-              onUpdateVideo={handleUpdate}
+              onDelete={(videoId) => handleDelete(videoId).catch(err => console.error(err))}
+              onUpdateVideo={(index, updates) => {
+                // Convert index to string if needed by the underlying implementation
+                const id = typeof index === 'number' ? videos[index].id : index;
+                handleUpdate(id, updates);
+              }}
             />
             
             {videos.length > 0 && (
@@ -158,7 +162,7 @@ const VideoBatchManage: React.FC = () => {
           batchEquipmentId={batchEquipmentId}
           setBatchEquipmentId={setBatchEquipmentId}
           selectedCount={selectedVideos.length}
-          onApply={handleBatchEquipmentUpdate}
+          onApply={() => handleBatchEquipmentUpdate().catch(err => console.error(err))}
         />
       </div>
     </Layout>

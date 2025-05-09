@@ -20,7 +20,9 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
           linguagem: 'técnica',
           indicacoes: ['Indicação 1', 'Indicação 2'],
           ativo: true,
-          data_cadastro: new Date().toISOString()
+          data_cadastro: new Date().toISOString(),
+          efeito: '',             // Add missing property
+          image_url: ''           // Add missing property
         },
         {
           id: 'import2',
@@ -33,7 +35,9 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
           linguagem: 'comercial',
           indicacoes: ['Indicação A', 'Indicação B'],
           ativo: true,
-          data_cadastro: new Date().toISOString()
+          data_cadastro: new Date().toISOString(),
+          efeito: '',             // Add missing property
+          image_url: ''           // Add missing property
         }
       ];
       
