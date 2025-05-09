@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -82,7 +83,7 @@ export const Navbar: React.FC = () => {
 
         {/* Menu de perfil e botão para menu mobile */}
         <div className="flex items-center gap-2">
-          {/* Notification Bell - Step 4 */}
+          {/* Notification Bell */}
           {isAuthenticated && <NotificationsMenu />}
 
           {/* Menu mobile (hambúrguer) */}

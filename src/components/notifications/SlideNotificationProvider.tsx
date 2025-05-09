@@ -50,7 +50,7 @@ export const SlideNotificationProvider: React.FC<{children: React.ReactNode}> = 
     <SlideNotificationContext.Provider value={{ notifications, showNotification, dismissNotification }}>
       {children}
       <AnimatePresence>
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+        <div className="fixed top-4 right-4 left-4 md:left-auto z-50 flex flex-col gap-2 max-w-sm mx-auto md:mx-0">
           {notifications.map(notification => (
             <Notification 
               key={notification.id} 
@@ -88,20 +88,20 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss }) 
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="rounded-lg shadow-lg overflow-hidden bg-white border border-gray-100"
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      className="rounded-lg shadow-lg overflow-hidden bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 backdrop-blur-sm"
     >
       <div className="flex items-start">
         <div className={cn("p-3 flex items-center justify-center", bgColor[type])}>
           {icon[type]}
         </div>
         <div className="p-3 flex-1">
-          <h4 className="font-medium text-gray-900">{title}</h4>
-          <p className="text-sm text-gray-500">{message}</p>
+          <h4 className="font-medium text-gray-900 dark:text-gray-100">{title}</h4>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
         </div>
-        <button onClick={onDismiss} className="p-2 text-gray-400 hover:text-gray-600">
+        <button onClick={onDismiss} className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
           <X className="h-4 w-4" />
         </button>
       </div>

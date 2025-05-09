@@ -1,201 +1,267 @@
 
-import React, { useState } from 'react';
-import { StoredVideo } from '@/types/video-storage';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Maximize, Minimize, Share2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { X, ThumbsUp, ThumbsDown, Share2, Download } from 'lucide-react';
+import { StoredVideo } from '@/types/video-storage';
+import { VideoProgressBar } from './VideoProgressBar';
+import { LoadingSpinner } from '@/components/ui/loading-states';
+import { cn } from '@/lib/utils';
+import { useVideoPlayer } from '@/hooks/use-video-player';
+import { VideoPlayerControls } from './VideoPlayerControls';
+import { VideoInfoOverlay } from './VideoInfoOverlay';
 
 interface VideoPlayerModalProps {
   video: StoredVideo;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  showNavigation?: boolean;
 }
 
-export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ 
-  video, 
+export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
+  video,
   open,
-  onOpenChange
+  onOpenChange,
+  onNext,
+  onPrevious,
+  showNavigation = false,
 }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  const videoUrl = video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd;
-  const isVimeoVideo = video.metadata?.vimeo_id || (videoUrl && videoUrl.includes('vimeo.com'));
-  const isYoutubeVideo = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'));
-  
-  const getEmbedUrl = () => {
-    if (!videoUrl) return '';
+  const {
+    isPlaying,
+    progress,
+    duration,
+    currentTime,
+    volume,
+    isMuted,
+    isBuffering,
+    togglePlay,
+    handleTimeUpdate,
+    handleVideoEnded,
+    handleLoadedMetadata,
+    handleVolumeChange,
+    toggleMute,
+    handleSeek,
+    handleVideoError,
+  } = useVideoPlayer(videoRef);
+
+  // Reset state when video changes
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
     
-    if (isVimeoVideo) {
-      // Extrair o ID do Vimeo da URL ou usar o ID armazenado
-      const vimeoId = video.metadata?.vimeo_id || videoUrl.match(/(?:vimeo\.com\/(?:video\/)?)?(\d+)/)?.[1];
-      return vimeoId ? `https://player.vimeo.com/video/${vimeoId}` : '';
+    // Auto-play when modal opens
+    if (open && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Auto-play was prevented, do nothing
+      });
     }
     
-    if (isYoutubeVideo) {
-      // Extrair o ID do YouTube da URL
-      let youtubeId;
-      if (videoUrl.includes('youtu.be/')) {
-        youtubeId = videoUrl.split('youtu.be/')[1];
-      } else if (videoUrl.includes('watch?v=')) {
-        youtubeId = videoUrl.split('watch?v=')[1];
+    // Auto-pause when modal closes
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pause();
       }
+    };
+  }, [video, open]);
+
+  // Handle controls visibility
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    
+    const handleMouseMove = () => {
+      setShowControls(true);
+      clearTimeout(timeout);
       
-      // Remover quaisquer parâmetros extras
-      if (youtubeId && youtubeId.includes('&')) {
-        youtubeId = youtubeId.split('&')[0];
-      }
-      
-      return youtubeId ? `https://www.youtube.com/embed/${youtubeId}` : '';
+      timeout = setTimeout(() => {
+        if (isPlaying) {
+          setShowControls(false);
+        }
+      }, 3000);
+    };
+    
+    if (open) {
+      window.addEventListener('mousemove', handleMouseMove);
     }
     
-    // Retornar a URL direta para vídeos MP4 ou outros formatos
-    return videoUrl;
-  };
-  
-  const handleDownload = async () => {
-    if (!videoUrl) {
-      toast.error("URL do vídeo não disponível");
-      return;
-    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(timeout);
+    };
+  }, [isPlaying, open]);
+
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
     
-    try {
-      // Para vídeos diretos (não embeds)
-      if (!isVimeoVideo && !isYoutubeVideo) {
-        const a = document.createElement('a');
-        a.href = videoUrl;
-        a.download = `${video.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        toast.success("Download iniciado");
-      } else {
-        // Para vídeos embed, mostrar mensagem explicando que não é possível baixar diretamente
-        toast.info("O download direto não está disponível para este vídeo", {
-          description: "Acesse a plataforma original para fazer o download."
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao baixar vídeo:", error);
-      toast.error("Erro ao iniciar o download");
-    }
-  };
-  
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: video.title,
-          text: video.description || 'Confira este vídeo',
-          url: window.location.href
-        });
-      } catch (error) {
-        console.error("Erro ao compartilhar:", error);
-      }
-    } else {
-      // Fallback para navegadores que não suportam a API de compartilhamento
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copiado para a área de transferência");
-    }
-  };
-  
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      const videoElement = document.querySelector('.video-player-container') as HTMLElement;
-      if (videoElement && videoElement.requestFullscreen) {
-        videoElement.requestFullscreen()
-          .then(() => setIsFullscreen(true))
-          .catch(err => console.error("Erro ao entrar em tela cheia:", err));
+      const videoContainer = document.querySelector('.video-player-container');
+      if (videoContainer) {
+        videoContainer.requestFullscreen().catch(err => {
+          console.error('Error attempting to enable fullscreen:', err);
+        });
       }
     } else {
-      document.exitFullscreen()
-        .then(() => setIsFullscreen(false))
-        .catch(err => console.error("Erro ao sair da tela cheia:", err));
+      document.exitFullscreen();
     }
   };
-  
-  const embedUrl = getEmbedUrl();
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-background p-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl">{video.title}</DialogTitle>
-          </DialogHeader>
-        </div>
-        
-        <div className="video-player-container relative">
-          {embedUrl ? (
-            <div className="aspect-video bg-black">
-              {isVimeoVideo || isYoutubeVideo ? (
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allowFullScreen
-                  allow="autoplay; fullscreen; picture-in-picture"
-                ></iframe>
-              ) : (
-                <video
-                  src={embedUrl}
-                  className="w-full h-full"
-                  controls
-                  autoPlay
-                ></video>
-              )}
-            </div>
-          ) : (
-            <div className="aspect-video bg-muted flex items-center justify-center">
-              <p className="text-muted-foreground">Vídeo não disponível</p>
-            </div>
+      <DialogContent 
+        className={cn(
+          "max-w-5xl w-[90vw] p-0 gap-0 overflow-hidden", 
+          isFullscreen ? "fixed inset-0 w-full max-w-none h-full rounded-none" : ""
+        )}
+      >
+        <div 
+          className={cn(
+            "video-player-container relative bg-black overflow-hidden",
+            isFullscreen ? "h-full w-full" : "aspect-video"
           )}
-        </div>
-        
-        <div className="p-4 space-y-4">
-          {video.description && (
-            <p className="text-muted-foreground">{video.description}</p>
+          onMouseEnter={() => setShowControls(true)}
+          onMouseLeave={() => isPlaying && setShowControls(false)}
+        >
+          {/* Close button - always visible */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 z-50 bg-black/50 text-white hover:bg-black/70"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          
+          {/* Video element */}
+          <video
+            ref={videoRef}
+            src={video.url}
+            className="w-full h-full object-contain"
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleVideoEnded}
+            onError={handleVideoError}
+            onCanPlay={() => setIsLoading(false)}
+            poster={video.thumbnail_url || undefined}
+            playsInline
+          />
+          
+          {/* Loading spinner */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <LoadingSpinner size="lg" />
+            </div>
           )}
           
-          <div className="flex flex-wrap gap-2 justify-between">
-            <div className="space-x-2">
-              <Button variant="outline" size="sm" onClick={handleDownload} disabled={!videoUrl || isVimeoVideo || isYoutubeVideo}>
-                <Download className="h-4 w-4 mr-2" />
-                Baixar
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleShare}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
+          {/* Error message */}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white flex-col gap-4 p-4">
+              <p className="text-lg font-medium">Erro ao carregar o vídeo</p>
+              <p className="text-sm text-gray-400">{error}</p>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Fechar
               </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={toggleFullscreen}>
-              {isFullscreen ? (
-                <>
-                  <Minimize className="h-4 w-4 mr-2" />
-                  Sair da tela cheia
-                </>
-              ) : (
-                <>
-                  <Maximize className="h-4 w-4 mr-2" />
-                  Tela cheia
-                </>
+          )}
+          
+          {/* Video info overlay - visible when paused */}
+          {!isPlaying && !isLoading && !error && (
+            <VideoInfoOverlay
+              video={video}
+              isVisible={!isPlaying && showControls}
+            />
+          )}
+          
+          {/* Video controls */}
+          {showControls && !error && !isLoading && (
+            <VideoPlayerControls
+              isPlaying={isPlaying}
+              isMuted={isMuted}
+              volume={volume}
+              currentTime={currentTime}
+              duration={duration}
+              progress={progress}
+              isBuffering={isBuffering}
+              onTogglePlay={togglePlay}
+              onToggleMute={toggleMute}
+              onVolumeChange={handleVolumeChange}
+              onSeek={handleSeek}
+              onToggleFullscreen={toggleFullscreen}
+              isFullscreen={isFullscreen}
+              onNext={onNext && showNavigation ? onNext : undefined}
+              onPrevious={onPrevious && showNavigation ? onPrevious : undefined}
+            />
+          )}
+          
+          {/* Progress bar - always visible when not in loading/error state */}
+          {!isLoading && !error && (
+            <div className={cn(
+              "absolute bottom-0 left-0 right-0 transition-opacity duration-300",
+              showControls ? "opacity-100" : "opacity-0"
+            )}>
+              <VideoProgressBar
+                progress={progress}
+                onSeek={handleSeek}
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Video info and actions */}
+        <div className="p-4 space-y-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <DialogTitle className="text-xl font-medium line-clamp-2">
+                {video.title || "Vídeo sem título"}
+              </DialogTitle>
+              {video.description && (
+                <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
+                  {video.description}
+                </p>
               )}
-            </Button>
+            </div>
           </div>
           
-          {video.tags && video.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {video.tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <ThumbsUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Gostei</span>
+            </Button>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <ThumbsDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Não gostei</span>
+            </Button>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Compartilhar</span>
+            </Button>
+            {video.downloadable !== false && (
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Download</span>
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -46,3 +46,57 @@ export const validatePdfUrl = async (url: string): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Processa uma URL de PDF para garantir que ela é válida
+ * @param url URL do PDF a ser processada
+ * @returns URL processada ou null se inválida
+ */
+export const processPdfUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  return url.trim();
+};
+
+/**
+ * Abre um PDF em uma nova aba do navegador
+ * @param url URL do PDF a ser aberto
+ */
+export const openPdfInNewTab = (url: string): void => {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
+/**
+ * Verifica se uma URL de PDF é válida de forma síncrona
+ * Esta é uma verificação básica de formato, não de conteúdo
+ * @param url URL a ser verificada
+ * @returns boolean indicando se o formato da URL parece válido
+ */
+export const isPdfUrlValid = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  return url.trim().length > 0;
+};
+
+/**
+ * Extrai nome do arquivo a partir da URL ou usa fallback
+ * @param url URL do PDF
+ * @param fallback Nome padrão caso não seja possível extrair
+ * @returns Nome do arquivo para download
+ */
+export const getPdfFilename = (url: string, fallback: string = 'documento.pdf'): string => {
+  if (!url) return fallback;
+  
+  try {
+    const urlObj = new URL(url);
+    const pathSegments = urlObj.pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    
+    if (lastSegment && lastSegment.toLowerCase().endsWith('.pdf')) {
+      return decodeURIComponent(lastSegment);
+    }
+    
+    return fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
