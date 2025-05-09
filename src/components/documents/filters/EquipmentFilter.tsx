@@ -24,7 +24,7 @@ export const EquipmentFilter: React.FC<EquipmentFilterProps> = ({
   equipments, 
   onEquipmentChange 
 }) => {
-  // Garante sempre um valor válido
+  // Garante sempre um valor válido, usando "all" em vez de string vazia
   const safeValue = equipmentId || "all";
   
   return (

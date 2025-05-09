@@ -17,7 +17,7 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
   language, 
   onLanguageChange 
 }) => {
-  // Garante sempre um valor válido
+  // Garante sempre um valor válido, usando "all" em vez de string vazia
   const safeValue = language || "all";
   
   return (

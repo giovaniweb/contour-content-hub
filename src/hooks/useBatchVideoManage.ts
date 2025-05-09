@@ -301,11 +301,11 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
       return [];
     }
 
-    // Transform the data to match the Equipment type
+    // Transform the data to match the Equipment type with proper fallbacks
     const equipmentsList: Equipment[] = data.map(item => ({
       id: item.id,
-      nome: item.nome,
-      // Add default values for required fields that might not exist in the database
+      nome: item.nome || '',
+      // Use explicit fallbacks for all required fields to prevent TypeScript errors
       descricao: item.descricao || '',
       categoria: item.categoria || '',
       tecnologia: item.tecnologia || '',

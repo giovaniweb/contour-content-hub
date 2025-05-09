@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { VideoMetadata } from '@/types/video-storage';
 import { toast } from '@/hooks/use-toast';
@@ -34,10 +33,20 @@ export const batchUpdateEquipment = async (
         continue;
       }
 
-      // Prepare updated metadata - ensure it's a valid object before spreading
-      const currentMetadata = data.metadata && typeof data.metadata === 'object' 
-        ? data.metadata 
-        : {};
+      // Prepare updated metadata - ensure it's a valid object before processing
+      // Safely handle currentMetadata to ensure it's an object before spread
+      let currentMetadata = {};
+      
+      if (data?.metadata && typeof data.metadata === 'object') {
+        currentMetadata = data.metadata;
+      } else if (typeof data?.metadata === 'string') {
+        try {
+          currentMetadata = JSON.parse(data.metadata);
+        } catch (e) {
+          console.error('Invalid metadata JSON string:', e);
+          // Keep currentMetadata as empty object
+        }
+      }
       
       // Create a new object with the necessary equipment properties
       const updatedMetadata = {

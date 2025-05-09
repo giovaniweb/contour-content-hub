@@ -18,7 +18,7 @@ export const TypeFilter: React.FC<TypeFilterProps> = ({
   documentType, 
   onTypeChange 
 }) => {
-  // Garante sempre um valor válido
+  // Garante sempre um valor válido, usando "all" em vez de string vazia
   const safeValue = documentType || "all";
   
   return (
