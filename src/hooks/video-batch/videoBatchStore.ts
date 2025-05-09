@@ -7,7 +7,7 @@ export interface BatchVideoState {
   videos: EditableVideo[];
   loading: boolean;
   error: string | null;
-  setVideos: (videos: EditableVideo[]) => void;
+  setVideos: (videos: EditableVideo[] | ((prev: EditableVideo[]) => EditableVideo[])) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }
@@ -16,7 +16,9 @@ export const useBatchVideoStore = create<BatchVideoState>((set) => ({
   videos: [],
   loading: false,
   error: null,
-  setVideos: (videos) => set({ videos }),
+  setVideos: (videos) => set((state) => ({
+    videos: typeof videos === 'function' ? videos(state.videos) : videos
+  })),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 }));

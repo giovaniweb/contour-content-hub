@@ -39,7 +39,7 @@ export const batchUpdateEquipment = async (
       
       // Create a new object with the necessary equipment properties
       const updatedMetadata = {
-        ...(currentMetadata as object), // Fix: Cast to object before spreading
+        ...(typeof currentMetadata === 'object' ? currentMetadata : {}),
         equipment_id: equipmentId,
         equipment_name: equipmentName || ''
       };

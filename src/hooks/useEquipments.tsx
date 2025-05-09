@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Equipment } from '@/types/equipment'; // Import Equipment from the types directory
+import type { Equipment } from '@/types/equipment'; // Import Equipment type with 'type' keyword
 
-export { Equipment }; // Re-export the type
+export type { Equipment }; // Re-export the type with 'type' keyword
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([

@@ -53,8 +53,6 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        // Use default icons rather than custom properties
-        // This fixes the TypeScript error
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}

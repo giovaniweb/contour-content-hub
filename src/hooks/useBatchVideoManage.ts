@@ -1,6 +1,7 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { StoredVideo } from '@/types/video-storage';
-import { Equipment } from '@/types/equipment';
+import type { Equipment } from '@/types/equipment';
 import { useBatchVideoStore } from './video-batch/videoBatchStore';
 import { loadVideosData } from './video-batch/videoBatchOperations';
 import { batchDeleteVideos } from './video-batch/videoOperations';
@@ -107,15 +108,15 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
   };
 
   const handleEdit = (videoId: string) => {
-    setVideos(prevVideos =>
-      prevVideos.map(video =>
+    setVideos((prevVideos: EditableVideo[]) =>
+      prevVideos.map((video: EditableVideo) =>
         video.id === videoId ? { ...video, isEditing: true } : video
       )
     );
   };
 
   const handleUpdate = (index: number, updates: Partial<EditableVideo>) => {
-    setVideos(prevVideos => {
+    setVideos((prevVideos: EditableVideo[]) => {
       const newVideos = [...prevVideos];
       newVideos[index] = { ...newVideos[index], ...updates };
       return newVideos;
@@ -156,8 +157,8 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
         return;
       }
 
-      setVideos(prevVideos =>
-        prevVideos.map(video =>
+      setVideos((prevVideos: EditableVideo[]) =>
+        prevVideos.map((video: EditableVideo) =>
           video.id === videoId
             ? {
                 ...video,
@@ -188,8 +189,8 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
   };
 
   const handleCancel = (videoId: string) => {
-    setVideos(prevVideos =>
-      prevVideos.map(video =>
+    setVideos((prevVideos: EditableVideo[]) =>
+      prevVideos.map((video: EditableVideo) =>
         video.id === videoId ? {
           ...video,
           isEditing: false,
@@ -206,7 +207,7 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     setLoading(true);
     try {
       await batchDeleteVideos([videoId]);
-      setVideos(prevVideos => prevVideos.filter(video => video.id !== videoId));
+      setVideos((prevVideos: EditableVideo[]) => prevVideos.filter((video: EditableVideo) => video.id !== videoId));
       setSelectedVideos(prevSelected => prevSelected.filter(id => id !== videoId));
       toast({
         title: "Vídeo excluído",
@@ -228,7 +229,7 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     setLoading(true);
     try {
       await batchDeleteVideos(selectedVideos);
-      setVideos(prevVideos => prevVideos.filter(video => !selectedVideos.includes(video.id)));
+      setVideos((prevVideos: EditableVideo[]) => prevVideos.filter((video: EditableVideo) => !selectedVideos.includes(video.id)));
       setSelectedVideos([]);
       toast({
         title: "Vídeos excluídos",
@@ -251,8 +252,8 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     try {
       const success = await batchUpdateEquipment(selectedVideos, batchEquipmentId);
       if (success) {
-        setVideos(prevVideos =>
-          prevVideos.map(video =>
+        setVideos((prevVideos: EditableVideo[]) =>
+          prevVideos.map((video: EditableVideo) =>
             selectedVideos.includes(video.id) ? {
               ...video,
               metadata: {
