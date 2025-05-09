@@ -11,11 +11,12 @@ interface ParallaxPromptProps {
 }
 
 const PlaceholderExamples = [
-  "Ideia: vídeo com massinha para o Dia das Mães",
-  "Ideia: bastidores da clínica antes da abertura",
-  "Ideia: tutorial de skincare com paciente real",
-  "Ideia: antes e depois de preenchimento labial",
-  "Ideia: explicação sobre tecnologia do equipamento"
+  "Vídeo com massinha para o Dia das Mães",
+  "Bastidores da clínica antes da abertura",
+  "Tutorial de skincare com paciente real",
+  "Antes e depois de preenchimento labial",
+  "Vídeo explicando a tecnologia do equipamento",
+  "Depoimento de cliente satisfeito"
 ];
 
 const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting }) => {
@@ -107,16 +108,19 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
           placeholder={displayText}
           aria-label="Digite sua ideia aqui"
         />
-        <Button 
-          type="submit" 
-          className="submit-button" 
-          disabled={!idea.trim() || isSubmitting}
-          variant="ghost"
-          size="icon"
-          aria-label="Enviar ideia"
-        >
-          <SendHorizontal className="h-5 w-5" />
-        </Button>
+        
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <Button 
+            type="submit" 
+            className="submit-button" 
+            disabled={!idea.trim() || isSubmitting}
+            variant="ghost"
+            size="icon"
+            aria-label="Enviar ideia"
+          >
+            <SendHorizontal className="h-5 w-5" />
+          </Button>
+        </div>
       </form>
 
       <style>
@@ -133,6 +137,7 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
           outline: none;
           transition: all 0.3s ease;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          padding-right: 4rem;
         }
         
         .typing-input:focus, .typing-input:hover {
@@ -142,33 +147,6 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
         
         .typing-input::placeholder {
           color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .submit-button {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: linear-gradient(45deg, #0094fb, #f300fc);
-          color: white;
-          border-radius: 50%;
-          width: 45px;
-          height: 45px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .submit-button:hover:not(:disabled) {
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 0 20px rgba(243, 0, 252, 0.3);
-        }
-        
-        .submit-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
         }
         `}
       </style>
