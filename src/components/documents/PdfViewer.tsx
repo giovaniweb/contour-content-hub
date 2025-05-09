@@ -12,9 +12,10 @@ interface PdfViewerProps {
   title: string;
   pdfUrl: string | undefined;
   documentId?: string;
+  className?: string;
 }
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfUrl, documentId }) => {
+const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfUrl, documentId, className }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalUrl, setFinalUrl] = useState<string>('');
@@ -110,7 +111,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className={`max-w-4xl max-h-[90vh] p-0 overflow-hidden ${className || ''}`}>
         <DialogHeader className="p-4">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="flex justify-between items-center">

@@ -1,7 +1,16 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward, SkipBack } from 'lucide-react';
+import { 
+  Play, 
+  Pause, 
+  Volume2, 
+  VolumeX, 
+  Maximize, 
+  Minimize,
+  SkipBack, 
+  SkipForward 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VideoPlayerControlsProps {
@@ -25,99 +34,78 @@ export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   onToggleMute,
   onToggleFullscreen,
   onNext,
-  onPrevious
+  onPrevious,
 }) => {
   return (
-    <div
-      className={cn(
-        "absolute inset-0 flex flex-col justify-between p-4 transition-opacity duration-300",
-        showControls ? "opacity-100" : "opacity-0 pointer-events-none"
-      )}
-    >
-      {/* Top controls - empty for now */}
-      <div></div>
-      
-      {/* Center controls */}
-      <div className="flex items-center justify-center gap-8">
-        {/* Show previous button if navigation is enabled */}
-        {onPrevious && (
+    <div className={cn(
+      "absolute bottom-12 left-0 right-0 p-4 transition-opacity duration-300",
+      showControls ? "opacity-100" : "opacity-0",
+    )}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+            onClick={onTogglePlay}
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5" />
+            ) : (
+              <Play className="h-5 w-5" />
+            )}
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+            onClick={onToggleMute}
+          >
+            {isMuted ? (
+              <VolumeX className="h-5 w-5" />
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {onPrevious && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-black/70 text-white hover:bg-black/90"
+              onClick={onPrevious}
+            >
+              <SkipBack className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {onNext && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-black/70 text-white hover:bg-black/90"
+              onClick={onNext}
+            >
+              <SkipForward className="h-5 w-5" />
+            </Button>
+          )}
+          
           <Button
             variant="ghost"
             size="icon"
-            className="bg-black/30 text-white hover:bg-black/50 rounded-full h-12 w-12"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrevious();
-            }}
+            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+            onClick={onToggleFullscreen}
           >
-            <SkipBack className="h-6 w-6" />
+            {isFullscreen ? (
+              <Minimize className="h-5 w-5" />
+            ) : (
+              <Maximize className="h-5 w-5" />
+            )}
           </Button>
-        )}
-        
-        {/* Play/Pause button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="bg-black/30 text-white hover:bg-black/50 rounded-full h-16 w-16"
-          onClick={(e) => {
-            e.stopPropagation();
-            onTogglePlay();
-          }}
-        >
-          {isPlaying ? (
-            <Pause className="h-8 w-8" />
-          ) : (
-            <Play className="h-8 w-8" />
-          )}
-        </Button>
-        
-        {/* Show next button if navigation is enabled */}
-        {onNext && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-black/30 text-white hover:bg-black/50 rounded-full h-12 w-12"
-            onClick={(e) => {
-              e.stopPropagation();
-              onNext();
-            }}
-          >
-            <SkipForward className="h-6 w-6" />
-          </Button>
-        )}
-      </div>
-      
-      {/* Bottom controls */}
-      <div className="flex justify-between items-center">
-        {/* Mute/Unmute button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-white hover:bg-black/20"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleMute();
-          }}
-        >
-          {isMuted ? (
-            <VolumeX className="h-5 w-5" />
-          ) : (
-            <Volume2 className="h-5 w-5" />
-          )}
-        </Button>
-        
-        {/* Fullscreen button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-white hover:bg-black/20"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFullscreen();
-          }}
-        >
-          <Maximize className="h-5 w-5" />
-        </Button>
+        </div>
       </div>
     </div>
   );

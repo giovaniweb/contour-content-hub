@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileText, ExternalLink, Eye, Download } from "lucide-react";
-import { processPdfUrl, downloadPdf } from "@/utils/pdfUtils";
+import { isPdfUrlValid, openPdfInNewTab } from "@/utils/pdfUtils";
 import PdfViewer from "@/components/documents/PdfViewer";
 import { toast } from "sonner";
+import { downloadPdfFile } from "@/services/documentService";
 
 interface FilePreviewProps {
   file: File | null;
@@ -31,7 +32,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
     
     try {
       setIsDownloading(true);
-      await downloadPdf(fileUrl, file?.name);
+      await downloadPdfFile(fileUrl, file?.name);
       toast.success("Download iniciado");
     } catch (error) {
       console.error("Error downloading file:", error);

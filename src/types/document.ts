@@ -12,7 +12,7 @@ export interface TechnicalDocument {
   link_dropbox?: string;
   arquivo_url?: string;
   preview_url?: string;
-  pdfUrl?: string; // Added this property
+  pdfUrl?: string;
   idioma_original?: string;
   idiomas_traduzidos?: string[];
   status?: DocumentStatus;

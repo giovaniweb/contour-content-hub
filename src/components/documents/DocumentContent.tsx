@@ -23,7 +23,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { TechnicalDocument } from '@/types/document';
 import { downloadPdfFile } from '@/services/documentService';
-import DocumentIdeas from './DocumentIdeas';
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -76,10 +75,10 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
         </CardTitle>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" onClick={handleCopyToClipboard} disabled={isCopied}>
-            {isCopied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4" />}
+            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </Button>
           <Button variant="outline" size="icon" onClick={handleDownloadPdf} disabled={isGenerating}>
-            {isGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4" />}
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

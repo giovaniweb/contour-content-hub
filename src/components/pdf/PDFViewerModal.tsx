@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Download, ZoomIn, ZoomOut, RotateCw, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { downloadPdf, validatePdfUrl } from '@/utils/pdfUtils';
+import { downloadPdf, isPdfUrlValid } from '@/utils/pdfUtils';
 
 interface PDFViewerModalProps {
   open: boolean;
@@ -32,7 +32,7 @@ const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
         try {
           setIsLoading(true);
           setHasError(false);
-          const isValid = await validatePdfUrl(pdfUrl);
+          const isValid = isPdfUrlValid(pdfUrl);
           if (!isValid) {
             setHasError(true);
             toast.error("Não foi possível carregar o PDF", {
