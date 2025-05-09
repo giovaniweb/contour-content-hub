@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { StoredVideo } from '@/types/video-storage';
 import type { Equipment } from '@/types/equipment';
