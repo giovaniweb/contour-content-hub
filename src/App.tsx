@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -23,6 +22,7 @@ import ContentPage from '@/pages/ContentPage';
 import ScriptGenerator from '@/pages/ScriptGenerator';
 
 // Admin Pages
+import AdminDashboard from '@/pages/AdminDashboard';
 import AdminContent from '@/pages/AdminContent';
 import AdminVimeoSettings from '@/pages/AdminVimeoSettings';
 import AdminEquipments from '@/pages/AdminEquipments';
@@ -183,7 +183,7 @@ function App() {
           path="/admin" 
           element={
             <PageLoader>
-              <MockPage title="Admin Dashboard" />
+              <AdminDashboard />
             </PageLoader>
           } 
         />
