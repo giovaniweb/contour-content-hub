@@ -1,5 +1,25 @@
 
-export type MarketingObjectiveType = 'emotion' | 'sales' | '🟡 Atrair Atenção' | '🟢 Criar Conexão' | '🔴 Fazer Comprar' | '🔁 Reativar Interesse' | '✅ Fechar Agora' | 'atrair_atencao' | 'criar_conexao' | 'fazer_comprar' | 'reativar_interesse' | 'fechar_agora';
+import { MarketingObjectiveType } from './script';
+
+export interface FormData {
+  idea: string;
+  objective: 'emotion' | 'sales';
+  audience?: string;
+  theme?: string;
+}
+
+export interface GeneratedScript {
+  title: string;
+  opening: string;
+  body: string;
+  closing: string;
+  visualSuggestion: string;
+  duration: string;
+  finalPhrase: string;
+  initialScore: number;
+  refinedScript: string;
+  finalScore: number;
+}
 
 export interface ScriptGeneratorState {
   ideaText?: string;
