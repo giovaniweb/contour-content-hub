@@ -306,8 +306,9 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     const equipmentsList: Equipment[] = data.map(item => ({
       id: item.id,
       nome: item.nome,
-      descricao: item.descricao || '',  // Add default values for required fields
-      categoria: item.categoria || '',  // Add default values for required fields
+      // Add default values for required fields that might not exist in the database
+      descricao: item.descricao || '',
+      categoria: item.categoria || '',
       tecnologia: item.tecnologia || '',
       beneficios: item.beneficios || '',
       diferenciais: item.diferenciais || '',
