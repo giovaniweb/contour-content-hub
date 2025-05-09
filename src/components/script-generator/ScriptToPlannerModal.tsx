@@ -17,9 +17,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, Instagram, Youtube, TikTok } from "lucide-react";
+import { CalendarIcon, Check, Instagram, Youtube } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ContentPlannerStatus } from "@/types/content-planner";
+import { ContentDistribution, ContentPlannerStatus } from "@/types/content-planner";
 import { useToast } from "@/hooks/use-toast";
 import { useContentPlanner } from "@/hooks/useContentPlanner";
 
@@ -62,9 +62,15 @@ const ScriptToPlannerModal: React.FC<ScriptToPlannerModalProps> = ({
     if (platforms.youtube) distributionPlatforms.push("YouTube");
     if (platforms.tiktok) distributionPlatforms.push("TikTok");
 
-    const distribution = distributionPlatforms.length > 0 
-      ? distributionPlatforms.join(", ") 
-      : "Instagram";
+    // Convert to proper ContentDistribution type
+    let distribution: ContentDistribution = "Instagram";
+    
+    if (distributionPlatforms.length > 1) {
+      distribution = "Múltiplos";
+    } else if (distributionPlatforms.length === 1) {
+      // We're safe here since we're checking if it's one of our valid types
+      distribution = distributionPlatforms[0] as ContentDistribution;
+    }
 
     // Create tags based on content
     const tags = [];
@@ -231,7 +237,8 @@ const ScriptToPlannerModal: React.FC<ScriptToPlannerModalProps> = ({
                 )}
                 onClick={() => handlePlatformChange("tiktok")}
               >
-                <TikTok className="h-4 w-4" />
+                {/* Using a text label instead of an icon since TikTok icon isn't available in lucide-react */}
+                <span className="text-xs font-bold">TT</span>
                 TikTok
                 {platforms.tiktok && <Check className="h-3 w-3 ml-1" />}
               </Button>
