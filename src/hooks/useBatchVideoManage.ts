@@ -305,7 +305,6 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     const equipmentsList: Equipment[] = data.map(item => ({
       id: item.id,
       nome: item.nome || '',
-      // Add these missing properties with proper fallbacks
       descricao: item.descricao || '',
       categoria: item.categoria || '',
       tecnologia: item.tecnologia || '',
