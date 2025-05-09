@@ -70,7 +70,7 @@ const ThinkingAnimation: React.FC<ThinkingAnimationProps> = ({
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <h3 className="text-xl font-medium mb-2">{messages[currentMessage]}</h3>
+        <h3 className="text-xl font-medium mb-2 text-white">{messages[currentMessage]}</h3>
         <div className="flex gap-2 justify-center mt-3">
           <motion.div 
             className="h-2 w-2 rounded-full bg-fluida-blue"

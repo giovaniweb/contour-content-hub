@@ -99,7 +99,7 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
         <input
           ref={inputRef}
           type="text"
-          className="typing-input"
+          className="typing-input glow-effect"
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
           disabled={isSubmitting}

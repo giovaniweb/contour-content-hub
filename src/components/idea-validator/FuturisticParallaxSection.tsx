@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ParallaxPrompt from './ParallaxPrompt';
 import ThinkingAnimation from './ThinkingAnimation';
 import AIResponseBlock from './AIResponseBlock';
+import { slideVariants, fadeIn } from '@/lib/animations';
 
 interface FuturisticParallaxSectionProps {
   backgroundImage?: string;
@@ -64,7 +65,7 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
   };
   
   return (
-    <section className="parallax-section w-full min-h-[70vh] relative flex items-center justify-center">
+    <section className="parallax-section w-full min-h-[80vh] relative flex items-center justify-center">
       {/* Background with parallax effect */}
       <div 
         className="parallax-background absolute inset-0"
@@ -83,7 +84,7 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
         >
           {/* Title */}
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-white text-center mb-8"
+            className="text-3xl md:text-4xl font-bold text-white text-center mb-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.7 }}
