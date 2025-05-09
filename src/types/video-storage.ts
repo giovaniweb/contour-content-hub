@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // Define Zod schema for VideoMetadata
@@ -43,7 +44,9 @@ export interface StoredVideo {
   file_urls: {
     [key in VideoQuality]?: string;
   };
+  url?: string; // Add URL property for direct access
   public: boolean;
+  downloadable?: boolean; // Add downloadable property
   metadata?: VideoMetadata;
 }
 

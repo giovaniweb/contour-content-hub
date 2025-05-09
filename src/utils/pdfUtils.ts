@@ -50,11 +50,11 @@ export const validatePdfUrl = async (url: string): Promise<boolean> => {
 /**
  * Processa uma URL de PDF para garantir que ela é válida
  * @param url URL do PDF a ser processada
- * @returns URL processada ou null se inválida
+ * @returns Objeto contendo a URL processada ou null se inválida
  */
-export const processPdfUrl = (url: string | null | undefined): string | null => {
-  if (!url) return null;
-  return url.trim();
+export const processPdfUrl = (url: string | null | undefined): { processedUrl: string | null } => {
+  if (!url) return { processedUrl: null };
+  return { processedUrl: url.trim() };
 };
 
 /**

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -127,7 +126,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
       }
 
       // Usar nossa utilidade para abrir em nova aba
-      openPdfInNewTab(validUrl, document.titulo);
+      openPdfInNewTab(document.link_dropbox, document.titulo);
       
       toast("Download iniciado", {
         description: "O PDF está sendo baixado ou aberto em nova aba"

@@ -1,29 +1,38 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VideoPlayerControlsProps {
   isPlaying: boolean;
   isMuted: boolean;
-  showControls: boolean;
-  currentVideo: number;
-  totalVideos: number;
+  volume?: number;
+  currentTime?: number;
+  duration?: number;
+  progress?: number;
+  isBuffering?: boolean;
+  showControls?: boolean;
+  isFullscreen?: boolean;
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onToggleFullscreen: () => void;
+  onVolumeChange?: (volume: number) => void;
+  onSeek?: (position: number) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   isPlaying,
   isMuted,
-  showControls,
-  currentVideo,
-  totalVideos,
+  showControls = true,
+  isFullscreen = false,
   onTogglePlay,
   onToggleMute,
-  onToggleFullscreen
+  onToggleFullscreen,
+  onNext,
+  onPrevious
 }) => {
   return (
     <div className={cn(
@@ -39,7 +48,7 @@ export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
             className="text-white hover:bg-white/20"
             onClick={onToggleMute}
           >
-            {isMuted ? <VolumeX /> : <Volume2 />}
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </Button>
           
           <Button
@@ -48,14 +57,32 @@ export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
             className="text-white hover:bg-white/20"
             onClick={onToggleFullscreen}
           >
-            <Maximize />
+            <Maximize className="h-4 w-4" />
           </Button>
         </div>
         
-        <div className="flex items-center">
-          <span className="text-white text-sm">
-            {currentVideo + 1}/{totalVideos}
-          </span>
+        <div className="flex items-center gap-2">
+          {onPrevious && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={onPrevious}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {onNext && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={onNext}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
       

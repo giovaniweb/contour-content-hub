@@ -12,7 +12,7 @@ import { StoredVideo } from '@/types/video-storage';
 import { VideoProgressBar } from './VideoProgressBar';
 import { LoadingSpinner } from '@/components/ui/loading-states';
 import { cn } from '@/lib/utils';
-import { useVideoPlayer } from '@/hooks/use-video-player';
+import { useVideoControls } from '@/hooks/use-video-controls';
 import { VideoPlayerControls } from './VideoPlayerControls';
 import { VideoInfoOverlay } from './VideoInfoOverlay';
 
@@ -33,13 +33,11 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   onPrevious,
   showNavigation = false,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   
   const {
+    videoRef,
     isPlaying,
     progress,
     duration,
@@ -47,6 +45,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     volume,
     isMuted,
     isBuffering,
+    showControls,
     togglePlay,
     handleTimeUpdate,
     handleVideoEnded,
@@ -55,7 +54,10 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     toggleMute,
     handleSeek,
     handleVideoError,
-  } = useVideoPlayer(videoRef);
+    toggleFullscreen,
+    handleContainerClick,
+    isFullscreen
+  } = useVideoControls();
 
   // Reset state when video changes
   useEffect(() => {
@@ -82,14 +84,16 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     let timeout: NodeJS.Timeout;
     
     const handleMouseMove = () => {
-      setShowControls(true);
-      clearTimeout(timeout);
-      
-      timeout = setTimeout(() => {
-        if (isPlaying) {
-          setShowControls(false);
-        }
-      }, 3000);
+      if (isPlaying) {
+        clearTimeout(timeout);
+        
+        timeout = setTimeout(() => {
+          if (isPlaying) {
+            // This would normally update showControls state
+            // but we're handling it in the useVideoControls hook now
+          }
+        }, 3000);
+      }
     };
     
     if (open) {
@@ -101,29 +105,6 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       clearTimeout(timeout);
     };
   }, [isPlaying, open]);
-
-  // Handle fullscreen change events
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      const videoContainer = document.querySelector('.video-player-container');
-      if (videoContainer) {
-        videoContainer.requestFullscreen().catch(err => {
-          console.error('Error attempting to enable fullscreen:', err);
-        });
-      }
-    } else {
-      document.exitFullscreen();
-    }
-  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -138,8 +119,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             "video-player-container relative bg-black overflow-hidden",
             isFullscreen ? "h-full w-full" : "aspect-video"
           )}
-          onMouseEnter={() => setShowControls(true)}
-          onMouseLeave={() => isPlaying && setShowControls(false)}
+          onMouseEnter={handleContainerClick}
+          onMouseLeave={() => {}}
+          onClick={handleContainerClick}
         >
           {/* Close button - always visible */}
           <Button
@@ -154,7 +136,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           {/* Video element */}
           <video
             ref={videoRef}
-            src={video.url}
+            src={video.url || video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd}
             className="w-full h-full object-contain"
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
@@ -196,19 +178,13 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             <VideoPlayerControls
               isPlaying={isPlaying}
               isMuted={isMuted}
-              volume={volume}
-              currentTime={currentTime}
-              duration={duration}
-              progress={progress}
-              isBuffering={isBuffering}
+              showControls={showControls}
               onTogglePlay={togglePlay}
               onToggleMute={toggleMute}
-              onVolumeChange={handleVolumeChange}
-              onSeek={handleSeek}
               onToggleFullscreen={toggleFullscreen}
               isFullscreen={isFullscreen}
-              onNext={onNext && showNavigation ? onNext : undefined}
-              onPrevious={onPrevious && showNavigation ? onPrevious : undefined}
+              onNext={onNext}
+              onPrevious={onPrevious}
             />
           )}
           

@@ -64,12 +64,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ isOpen, onOpenChange, title, pdfU
   const openInNewTab = () => {
     try {
       if (finalUrl) {
-        openPdfInNewTab(finalUrl, title);
+        openPdfInNewTab(finalUrl);
         toast("Abrindo documento", {
           description: "O documento está sendo aberto em uma nova aba."
         });
       } else if (pdfUrl) {
-        openPdfInNewTab(pdfUrl, title);
+        openPdfInNewTab(pdfUrl);
         toast("Abrindo documento original", {
           description: "Abrindo a URL original em uma nova aba."
         });
