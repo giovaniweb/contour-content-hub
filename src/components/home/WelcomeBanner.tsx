@@ -4,11 +4,11 @@ import { useToast } from '@/hooks/use-toast';
 import ParallaxSection from '@/components/ui/parallax/ParallaxSection';
 
 interface WelcomeBannerProps {
-  title: string;
+  title?: string;
   phrases: string[];
 }
 
-const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ phrases }) => {
+const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ phrases = [] }) => {
   const { toast } = useToast();
   
   const handlePromptSubmit = (promptText: string) => {

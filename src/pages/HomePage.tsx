@@ -1,15 +1,15 @@
 
 import React from 'react';
 import Layout from '@/components/Layout';
-import { Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import HighlightBanner from '@/components/dashboard/HighlightBanner';
 import TrendingItems from '@/components/dashboard/TrendingItems';
 import RecommendationBlock from '@/components/dashboard/RecommendationBlock';
-import NotificationsDemo from '@/components/dashboard/NotificationsDemo';
 import QuickAccessGrid from '@/components/home/QuickAccessGrid';
 import InsightsSection from '@/components/home/InsightsSection';
 import AnimationStyles from '@/components/home/AnimationStyles';
+import NotificationsDemo from '@/components/dashboard/NotificationsDemo';
+import WelcomeBanner from '@/components/home/WelcomeBanner';
+import PopularContent from '@/components/dashboard/PopularContent';
 import ParallaxSection from '@/components/ui/parallax/ParallaxSection';
 import { mockItems } from '@/hooks/content-planner/initialState';
 
@@ -31,44 +31,11 @@ const HomePage: React.FC = () => {
     link: `/content-planner?id=${item.id}`
   }));
 
-  // Handle interactive prompt submission
-  const handlePromptSubmit = (promptText: string) => {
-    toast({
-      title: "Recebemos sua solicitação",
-      description: `"${promptText}" está sendo processado pelo sistema.`,
-      duration: 5000,
-    });
-    
-    // Here we would normally process the prompt with AI, but for now just show a toast
-    setTimeout(() => {
-      toast({
-        title: "Sugestão de Ação",
-        description: "Com base na sua solicitação, recomendamos acessar o Gerador de Scripts.",
-        action: (
-          <a href="/script-generator" className="px-3 py-2 bg-fluida-blue text-white rounded-md text-xs">
-            Acessar
-          </a>
-        ),
-        duration: 8000,
-      });
-    }, 2000);
-  };
-
   return (
     <Layout title="Página Inicial">
       <div className="space-y-12">
-        {/* Interactive Hero Section with Parallax */}
-        <ParallaxSection
-          backgroundImage="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
-          title=""
-          description=""
-          cards={[]}
-          interactive={true}
-          typingPhrases={typingPhrases}
-          onPromptSubmit={handlePromptSubmit}
-          darkOverlay={true}
-          className="bg-gradient-to-r from-purple-900 to-indigo-800"
-        />
+        {/* Welcome Banner with Interactive Prompt */}
+        <WelcomeBanner phrases={typingPhrases} />
         
         {/* ParallaxSection - Content Highlight */}
         <ParallaxSection
@@ -80,14 +47,19 @@ const HomePage: React.FC = () => {
           ctaLink="/media-library"
         />
         
+        {/* Quick access blocks */}
+        <QuickAccessGrid />
+        
         {/* Trending Content */}
         <TrendingItems />
         
+        {/* Popular Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <PopularContent />
+        </div>
+        
         {/* Recommendations */}
         <RecommendationBlock />
-
-        {/* Quick access blocks */}
-        <QuickAccessGrid />
         
         {/* Insights section */}
         <InsightsSection />
