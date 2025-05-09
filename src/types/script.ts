@@ -6,7 +6,13 @@ export type MarketingObjectiveType =
   | '🔁 Reativar Interesse' 
   | '✅ Fechar Agora'
   | 'emotion'
-  | 'sales';
+  | 'sales'
+  // Legacy values - kept for backward compatibility
+  | 'atrair_atencao'
+  | 'criar_conexao'
+  | 'fazer_comprar'
+  | 'reativar_interesse'
+  | 'fechar_agora';
 
 export interface FormData {
   idea: string;

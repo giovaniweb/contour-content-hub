@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +35,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
   const [purposes, setPurposes] = useState([]);
   const [tags, setTags] = useState('');
   const [instagramCaption, setInstagramCaption] = useState('');
-  const [marketingObjective, setMarketingObjective] = useState<MarketingObjectiveType>('atrair_atencao');
+  const [marketingObjective, setMarketingObjective] = useState<MarketingObjectiveType>('🟡 Atrair Atenção');
   
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +57,14 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
       setPurposes(videoData.finalidade || []);
       setTags(Array.isArray(videoData.tags) ? videoData.tags.join(', ') : videoData.tags || '');
       setInstagramCaption(videoData.legenda_instagram || '');
-      setMarketingObjective((videoData.objetivo_marketing as MarketingObjectiveType) || 'atrair_atencao');
+      // Convert legacy marketing objective values to new format if needed
+      let objective = videoData.objetivo_marketing;
+      if (objective === 'atrair_atencao') objective = '🟡 Atrair Atenção';
+      else if (objective === 'criar_conexao') objective = '🟢 Criar Conexão';
+      else if (objective === 'fazer_comprar') objective = '🔴 Fazer Comprar';
+      else if (objective === 'reativar_interesse') objective = '🔁 Reativar Interesse';
+      else if (objective === 'fechar_agora') objective = '✅ Fechar Agora';
+      setMarketingObjective(objective as MarketingObjectiveType || '🟡 Atrair Atenção');
     }
     
     // Load equipment list and body areas

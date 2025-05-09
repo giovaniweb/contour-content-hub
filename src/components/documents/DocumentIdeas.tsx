@@ -3,9 +3,10 @@ import React from 'react';
 
 interface DocumentIdeasProps {
   className?: string;
+  document?: any; // Allow document prop
 }
 
-const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className }) => {
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className, document }) => {
   return (
     <div className={className}>
       <h3 className="text-lg font-medium mb-4">Ideias Relacionadas</h3>

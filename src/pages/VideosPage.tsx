@@ -58,9 +58,14 @@ const VideosPage: React.FC = () => {
   };
 
   const getVideoUrl = (video: StoredVideo) => {
-    if (typeof video.file_urls === 'object' && video.file_urls !== null) {
-      return (video.file_urls as any).web_optimized || '';
+    if (!video.file_urls) return '';
+    
+    // Handle both string and object formats
+    if (typeof video.file_urls === 'object') {
+      const fileUrls = video.file_urls as Record<string, string>;
+      return fileUrls.web_optimized || '';
     }
+    
     return '';
   };
   

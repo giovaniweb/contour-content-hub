@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Eye, ThumbsUp, MoreVertical, Trash2, Edit, ExternalLink, MessageSquare, ShoppingCart, RefreshCcw, Phone } from "lucide-react";
 import {
@@ -44,14 +45,19 @@ const getNormalizedVideoUrl = (url: string): string => {
 // Get icon component based on marketing objective
 const getObjectiveIcon = (objective?: MarketingObjectiveType) => {
   switch (objective) {
+    case "🟡 Atrair Atenção":
     case "atrair_atencao":
       return <Eye className="h-4 w-4" />;
+    case "🟢 Criar Conexão":
     case "criar_conexao":
       return <MessageSquare className="h-4 w-4" />;
+    case "🔴 Fazer Comprar":
     case "fazer_comprar":
       return <ShoppingCart className="h-4 w-4" />;
+    case "🔁 Reativar Interesse":
     case "reativar_interesse":
       return <RefreshCcw className="h-4 w-4" />;
+    case "✅ Fechar Agora":
     case "fechar_agora":
       return <Phone className="h-4 w-4" />;
     default:
@@ -62,14 +68,19 @@ const getObjectiveIcon = (objective?: MarketingObjectiveType) => {
 // Get objective title
 const getObjectiveTitle = (objective?: MarketingObjectiveType): string => {
   switch (objective) {
+    case "🟡 Atrair Atenção":
     case "atrair_atencao":
       return "Atrair Atenção";
+    case "🟢 Criar Conexão":
     case "criar_conexao":
       return "Criar Conexão";
+    case "🔴 Fazer Comprar":
     case "fazer_comprar":
       return "Fazer Comprar";
+    case "🔁 Reativar Interesse":
     case "reativar_interesse":
       return "Reativar Interesse";
+    case "✅ Fechar Agora":
     case "fechar_agora":
       return "Fechar Agora";
     default:

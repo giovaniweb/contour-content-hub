@@ -16,9 +16,21 @@ const VideoObjectiveSelector: React.FC<VideoObjectiveSelectorProps> = ({
   onValueChange,
   className = ""
 }) => {
+  // Map legacy values to new emoji format if needed
+  const getDisplayValue = (val: MarketingObjectiveType): MarketingObjectiveType => {
+    switch(val) {
+      case 'atrair_atencao': return '🟡 Atrair Atenção';
+      case 'criar_conexao': return '🟢 Criar Conexão';
+      case 'fazer_comprar': return '🔴 Fazer Comprar';
+      case 'reativar_interesse': return '🔁 Reativar Interesse';
+      case 'fechar_agora': return '✅ Fechar Agora';
+      default: return val;
+    }
+  };
+
   return (
     <RadioGroup
-      value={value}
+      value={getDisplayValue(value)}
       onValueChange={(val) => onValueChange(val as MarketingObjectiveType)}
       className={`grid grid-cols-1 md:grid-cols-5 gap-3 ${className}`}
     >

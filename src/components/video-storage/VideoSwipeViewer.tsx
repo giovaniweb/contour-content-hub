@@ -12,6 +12,9 @@ interface VideoSwipeViewerProps {
   onClose: () => void;
   onNext: () => void;
   onPrevious: () => void;
+  onLike?: (video: StoredVideo) => void;
+  onSkip?: (video: StoredVideo) => void;
+  onEnd?: () => void;
 }
 
 const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
@@ -19,7 +22,10 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
   currentIndex,
   onClose,
   onNext,
-  onPrevious
+  onPrevious,
+  onLike,
+  onSkip,
+  onEnd
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -123,7 +129,19 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
     resetControlsTimeout();
   };
   
-  const videoUrl = currentVideo?.file_urls?.web_optimized || '';
+  const getVideoUrl = (video: StoredVideo): string => {
+    if (!video.file_urls) return '';
+    
+    // Handle both string and object formats
+    if (typeof video.file_urls === 'object') {
+      const fileUrls = video.file_urls as Record<string, string>;
+      return fileUrls.web_optimized || '';
+    }
+    
+    return '';
+  };
+  
+  const videoUrl = getVideoUrl(currentVideo);
   
   return (
     <div 

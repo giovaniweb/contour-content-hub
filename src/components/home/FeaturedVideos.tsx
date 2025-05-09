@@ -25,7 +25,9 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
     const fetchVideos = async () => {
       const result = await loadVideosData();
       if (result.success && result.data) {
-        setVideos(result.data as unknown as StoredVideo[]);
+        // Safely cast the data to StoredVideo[]
+        const typedVideos = result.data as unknown as StoredVideo[];
+        setVideos(typedVideos);
       } else {
         console.error("Failed to load videos:", result.error);
       }
@@ -34,8 +36,20 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
     fetchVideos();
   }, []);
 
+  const getVideoUrl = (video: StoredVideo): string => {
+    if (!video.file_urls) return '';
+    
+    // Handle both string and object formats
+    if (typeof video.file_urls === 'object') {
+      const fileUrls = video.file_urls as Record<string, string>;
+      return fileUrls.web_optimized || '';
+    }
+    
+    return '';
+  };
+
   const handleOpenVideo = (video: StoredVideo) => {
-    setSelectedVideoUrl(video.file_urls?.web_optimized || '');
+    setSelectedVideoUrl(getVideoUrl(video));
     setSelectedVideoTitle(video.title || null);
     setCurrentVideoIndex(videos.indexOf(video));
     setOpen(true);
@@ -44,14 +58,14 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
   const handleNextVideo = () => {
     setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
     const nextVideo = videos[(currentVideoIndex + 1) % videos.length];
-    setSelectedVideoUrl(nextVideo.file_urls?.web_optimized || '');
+    setSelectedVideoUrl(getVideoUrl(nextVideo));
     setSelectedVideoTitle(nextVideo.title || null);
   };
 
   const handlePreviousVideo = () => {
     setCurrentVideoIndex((prevIndex) => (prevIndex - 1 + videos.length) % videos.length);
     const prevVideo = videos[(currentVideoIndex - 1 + videos.length) % videos.length];
-    setSelectedVideoUrl(prevVideo.file_urls?.web_optimized || '');
+    setSelectedVideoUrl(getVideoUrl(prevVideo));
     setSelectedVideoTitle(prevVideo.title || null);
   };
 
