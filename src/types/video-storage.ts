@@ -1,8 +1,9 @@
+
 export interface VideoFile {
   original?: string;
   hd?: string;
   sd?: string;
-  web_optimized?: string; // Add this property
+  web_optimized?: string;
 }
 
 export interface VideoMetadata {
@@ -30,6 +31,7 @@ export interface VideoUploadProgress {
   progress?: number;
   message?: string;
   error?: string;
+  videoId?: string;
 }
 
 export interface VideoQueueItem {

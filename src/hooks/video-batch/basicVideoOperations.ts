@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { VideoMetadata, StoredVideo } from '@/types/video-storage';
+import { VideoMetadata, StoredVideo, VideoStatus } from '@/types/video-storage';
 import { loadVideosData } from './videoBatchOperations';
 
 // Re-export loadVideosData for backward compatibility
@@ -19,16 +19,16 @@ export const fetchVideos = async (): Promise<StoredVideo[]> => {
       throw error;
     }
 
-    // Convert the data to StoredVideo type
+    // Convert the data to StoredVideo type, ensuring status is a valid VideoStatus
     return data.map(video => ({
       id: video.id,
       title: video.title || '',
       description: video.description || '',
-      file_urls: video.file_urls as unknown as StoredVideo['file_urls'],
+      file_urls: video.file_urls as StoredVideo['file_urls'],
       thumbnail_url: video.thumbnail_url,
       created_at: video.created_at,
       updated_at: video.updated_at,
-      status: video.status,
+      status: (video.status as VideoStatus) || 'processing',
       metadata: video.metadata,
       tags: video.tags || [],
       public: video.public,

@@ -24,6 +24,8 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   
   const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
+    descricao: '',
+    categoria: '',
     tecnologia: '',
     indicacoes: [],
     beneficios: '',
@@ -31,7 +33,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     linguagem: '',
     ativo: true,
     image_url: '',
-    efeito: '' // This field is now properly defined in the types
+    efeito: ''
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -90,6 +92,8 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     setHasDraft(false);
     setEquipment({
       nome: '',
+      descricao: '',
+      categoria: '',
       tecnologia: '',
       indicacoes: [],
       beneficios: '',
@@ -230,15 +234,17 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       return;
     }
 
-    // Processar indicações para garantir que seja um array
+    // Process data for creating Equipment
     const processedEquipment: Equipment = {
-      id: 'new-' + Date.now(), // ID temporário para satisfazer o tipo
+      id: 'new-' + Date.now(), // Temporary ID to satisfy the type
       nome: equipment.nome,
-      tecnologia: equipment.tecnologia,
+      descricao: equipment.descricao || '',
+      categoria: equipment.categoria || '',
+      tecnologia: equipment.tecnologia || '',
       indicacoes: convertStringToArray(equipment.indicacoes),
-      beneficios: equipment.beneficios,
-      diferenciais: equipment.diferenciais,
-      linguagem: equipment.linguagem,
+      beneficios: equipment.beneficios || '',
+      diferenciais: equipment.diferenciais || '',
+      linguagem: equipment.linguagem || '',
       ativo: equipment.ativo !== undefined ? equipment.ativo : true,
       image_url: equipment.image_url || '',
       efeito: equipment.efeito || '',

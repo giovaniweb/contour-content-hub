@@ -22,9 +22,9 @@ export const useAuth = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Get user's role from the database
+          // Get user's role from the perfis table instead of users
           const { data: userData, error: roleError } = await supabase
-            .from('users')
+            .from('perfis')
             .select('role')
             .eq('id', session.user.id)
             .single();

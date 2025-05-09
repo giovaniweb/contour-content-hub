@@ -28,16 +28,17 @@ export const batchUpdateEquipment = async (
     }
 
     // For each video, update the metadata
-    const updates = videos.map(video => {
-      let currentMetadata: VideoMetadata = {};
+    for (const video of videos) {
+      // Create a proper typed metadata object
+      let typedMetadata: VideoMetadata = {};
       
-      // Handle different metadata formats
+      // If existing metadata is present, parse it safely
       if (video.metadata) {
         if (typeof video.metadata === 'object') {
-          currentMetadata = video.metadata as VideoMetadata;
+          typedMetadata = video.metadata as unknown as VideoMetadata;
         } else if (typeof video.metadata === 'string') {
           try {
-            currentMetadata = JSON.parse(video.metadata) as VideoMetadata;
+            typedMetadata = JSON.parse(video.metadata) as VideoMetadata;
           } catch (e) {
             console.error('Error parsing metadata string:', e);
           }
@@ -45,27 +46,20 @@ export const batchUpdateEquipment = async (
       }
 
       // Update equipment information
-      const updatedMetadata: VideoMetadata = {
-        ...currentMetadata,
+      const updatedMetadata: Record<string, any> = {
+        ...typedMetadata,
         equipment_id: equipmentId,
         equipment_name: equipmentName
       };
 
-      return {
-        id: video.id,
-        metadata: updatedMetadata
-      };
-    });
-
-    // Batch update all videos
-    for (const update of updates) {
+      // Update the database
       const { error } = await supabase
         .from('videos_storage')
-        .update({ metadata: update.metadata })
-        .eq('id', update.id);
+        .update({ metadata: updatedMetadata })
+        .eq('id', video.id);
 
       if (error) {
-        console.error(`Error updating video ${update.id} equipment:`, error);
+        console.error(`Error updating video ${video.id} equipment:`, error);
         toast({
           title: 'Erro ao atualizar equipamento',
           description: error.message,

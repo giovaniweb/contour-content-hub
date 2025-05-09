@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { StoredVideo } from '@/types/video-storage';
+import { StoredVideo, VideoStatus } from '@/types/video-storage';
 
 /**
  * Load videos data from storage
@@ -30,10 +30,10 @@ export const loadVideosData = async (): Promise<{
       title: video.title || '',
       description: video.description || '',
       thumbnail_url: video.thumbnail_url,
-      status: video.status,
+      status: video.status as VideoStatus, // Cast to VideoStatus
       created_at: video.created_at,
       updated_at: video.updated_at,
-      file_urls: video.file_urls as unknown as StoredVideo['file_urls'],
+      file_urls: video.file_urls as StoredVideo['file_urls'],
       metadata: video.metadata,
       tags: video.tags || [],
       public: video.public,
@@ -54,6 +54,7 @@ export const loadVideosData = async (): Promise<{
   }
 };
 
+// Export other operations but avoid duplicate exports
 export * from './basicVideoOperations';
 export * from './videoOperations';
 export * from './equipmentOperations';

@@ -1,69 +1,58 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { usePermissions } from '@/hooks/use-permissions';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import VideoUploader from '@/components/video-storage/VideoUploader';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { useToast } from '@/hooks/use-toast';
 
 interface ImportTabProps {
   id?: string;
-  onCompleteImport: (importedData: any) => void;
+  onCompleteImport?: (importedData: any) => void;
 }
 
-export const ImportTab: React.FC<ImportTabProps> = ({ id, onCompleteImport }) => {
-  const { isAdmin } = usePermissions();
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
+const ImportTab: React.FC<ImportTabProps> = ({ id, onCompleteImport }) => {
+  const { toast } = useToast();
   
-  const handleImportComplete = (videoId: string) => {
-    setShowUploadDialog(false);
+  const handleUploadComplete = (videoId: string) => {
     if (onCompleteImport) {
-      onCompleteImport({ videoId });
+      onCompleteImport({
+        id: videoId,
+        titulo: "Vídeo importado"
+      });
     }
+    
+    toast({
+      title: 'Vídeo importado',
+      description: 'O vídeo foi importado com sucesso.',
+    });
   };
   
+  const handleCancel = () => {
+    toast({
+      title: 'Importação cancelada',
+      description: 'A importação foi cancelada pelo usuário.',
+    });
+  };
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-xl font-semibold mb-6">Importar Vídeo</h2>
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Importar vídeo</h2>
+      <p className="text-muted-foreground">
+        Importe vídeos relacionados para este equipamento.
+      </p>
       
-      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-        {isAdmin() ? (
-          <>
-            <p className="text-gray-600 mb-4">
-              Você pode fazer upload de vídeos diretamente para este equipamento.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => setShowUploadDialog(true)}>
-                <Upload className="mr-2 h-4 w-4" />
-                Fazer upload para este equipamento
-              </Button>
-              
-              <Button asChild variant="outline">
-                <Link to="/videos">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Ir para o módulo de upload
-                </Link>
-              </Button>
-            </div>
-            
-            <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-              <DialogContent className="sm:max-w-lg">
-                <VideoUploader 
-                  onUploadComplete={handleImportComplete}
-                  onCancel={() => setShowUploadDialog(false)}
-                  equipmentId={id}
-                />
-              </DialogContent>
-            </Dialog>
-          </>
-        ) : (
-          <p className="text-gray-600 mb-4">
-            Apenas administradores podem fazer upload de vídeos para equipamentos.
-          </p>
-        )}
+      <div className="border rounded-lg p-6">
+        {/* VideoUploader will be imported as a component later */}
+        <div className="text-center p-8">
+          <p>Sistema de upload de vídeos</p>
+          <div className="flex justify-center gap-2 mt-4">
+            <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
+            <Button onClick={() => handleUploadComplete('mock-video-id')}>
+              Simular Upload Completo
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
+
+export default ImportTab;

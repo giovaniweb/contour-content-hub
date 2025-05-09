@@ -4,7 +4,7 @@ import { TechnicalDocument } from '@/types/document';
 
 export interface DocumentIdeasProps {
   className?: string;
-  document?: TechnicalDocument; 
+  document?: TechnicalDocument;
 }
 
 const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className, document }) => {

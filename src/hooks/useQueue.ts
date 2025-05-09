@@ -1,11 +1,13 @@
 
 import { useState, useCallback } from 'react';
+import { VideoUploadProgress } from '@/types/video-storage';
 
 interface QueueItem<T> {
   id: string;
   data: T;
   status: 'queued' | 'processing' | 'completed' | 'failed';
   error?: string;
+  progress?: VideoUploadProgress;
 }
 
 interface UseQueueReturn<T> {
@@ -16,6 +18,7 @@ interface UseQueueReturn<T> {
   clearQueue: () => void;
   getNextItem: () => QueueItem<T> | undefined;
   processQueue: (processor: (item: T) => Promise<void>) => Promise<void>;
+  updateVideoQueue: (id: string, progress: VideoUploadProgress) => void;
 }
 
 export function useQueue<T>(): UseQueueReturn<T> {
@@ -33,6 +36,14 @@ export function useQueue<T>(): UseQueueReturn<T> {
     setQueue(prev => 
       prev.map(item => 
         item.id === id ? { ...item, ...updates } : item
+      )
+    );
+  }, []);
+
+  const updateVideoQueue = useCallback((id: string, progress: VideoUploadProgress) => {
+    setQueue(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, progress } : item
       )
     );
   }, []);
@@ -68,7 +79,8 @@ export function useQueue<T>(): UseQueueReturn<T> {
     updateQueueItem,
     clearQueue,
     getNextItem,
-    processQueue
+    processQueue,
+    updateVideoQueue
   };
 }
 
