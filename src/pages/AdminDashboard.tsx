@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +10,8 @@ import {
   Users, Server, FileText, Activity, FileCheck2, 
   Clock, ArrowUpRight, Video, BookOpen, FileUp,
   BrainCircuit, TrendingUp, AlertTriangle, CheckCircle, 
-  AlertCircle, CheckCircle2
+  AlertCircle, CheckCircle2, Images, FileVideo, FilePlus2,
+  BookOpenCheck, FileImage, FileText2, Marketing
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -104,6 +106,14 @@ const AdminDashboard: React.FC = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Links para gerenciamento de conteúdo
+  const contentManagementLinks = [
+    { title: "Vídeos", description: "Gerenciar vídeos para download", icon: FileVideo, path: "/admin/content?tab=videos" },
+    { title: "Artigos Científicos", description: "Gerenciar artigos científicos", icon: BookOpenCheck, path: "/admin/content?tab=articles" },
+    { title: "Fotos & Imagens", description: "Gerenciar banco de imagens", icon: FileImage, path: "/admin/content?tab=images" },
+    { title: "Materiais de Marketing", description: "Gerenciar materiais promocionais", icon: FileText2, path: "/admin/content?tab=materials" }
+  ];
+
   return (
     <Layout title="Admin Dashboard">
       <div className="container mx-auto py-6">
@@ -171,6 +181,29 @@ const AdminDashboard: React.FC = () => {
               <p className="text-xs text-muted-foreground mt-1">3 minor alerts</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Content Management Quick Access */}
+        <h2 className="text-xl font-bold mb-4 mt-8">Gerenciamento de Conteúdo</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {contentManagementLinks.map((link, index) => (
+            <Card key={index} className="hover:shadow-md transition-all">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center gap-3 mb-4">
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <link.icon className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-center">{link.title}</h3>
+                  <p className="text-xs text-muted-foreground text-center">{link.description}</p>
+                </div>
+                <Button variant="outline" className="w-full" size="sm" asChild>
+                  <Link to={link.path}>
+                    Gerenciar <ArrowUpRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Content Trend Panels */}
