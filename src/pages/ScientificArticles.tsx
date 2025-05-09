@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Download, Search, Filter, Eye, Upload } from "lucide-react";
 import PDFViewerModal from "@/components/pdf/PDFViewerModal";
+import { toast } from "sonner";
+import { downloadPdf } from "@/utils/pdfUtils";
 
 const articles = [
   {
@@ -54,6 +56,7 @@ const ScientificArticles: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<typeof articles[0] | null>(null);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDownloading, setIsDownloading] = useState<Record<string, boolean>>({});
   
   const filteredArticles = articles.filter(article => 
     article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,6 +68,26 @@ const ScientificArticles: React.FC = () => {
   const handleViewPdf = (article: typeof articles[0]) => {
     setSelectedArticle(article);
     setPdfModalOpen(true);
+  };
+  
+  const handleDownloadPdf = async (article: typeof articles[0]) => {
+    try {
+      setIsDownloading({...isDownloading, [article.id]: true});
+      await downloadPdf(
+        article.pdfUrl, 
+        `${article.title.replace(/\s+/g, '_')}.pdf`
+      );
+      toast.success("Download iniciado", {
+        description: "O arquivo está sendo baixado"
+      });
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Erro ao baixar o arquivo", {
+        description: "Não foi possível iniciar o download"
+      });
+    } finally {
+      setIsDownloading({...isDownloading, [article.id]: false});
+    }
   };
   
   return (
@@ -126,9 +149,14 @@ const ScientificArticles: React.FC = () => {
                   <Eye className="h-4 w-4 mr-1" />
                   Visualizar PDF
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleDownloadPdf(article)}
+                  disabled={isDownloading[article.id]}
+                >
                   <Download className="h-4 w-4 mr-1" />
-                  Download
+                  {isDownloading[article.id] ? "Baixando..." : "Download"}
                 </Button>
               </CardFooter>
             </Card>
