@@ -57,6 +57,7 @@ const ValidationResponse: React.FC<ValidationResponseProps> = ({ ideaText, objec
   };
   
   const handleCreateScript = () => {
+    // Navigate to script generator with idea and objective data
     navigate('/script-generator', { 
       state: { 
         ideaText: ideaText,
