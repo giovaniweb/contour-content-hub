@@ -16,4 +16,13 @@ export interface ParallaxSectionProps {
   textAlignment?: 'left' | 'center';
   darkOverlay?: boolean;
   className?: string;
+  interactive?: boolean;
+  typingPhrases?: string[];
+  onPromptSubmit?: (prompt: string) => void;
+}
+
+export interface InteractivePromptProps {
+  phrases: string[];
+  onSubmit: (prompt: string) => void;
+  className?: string;
 }

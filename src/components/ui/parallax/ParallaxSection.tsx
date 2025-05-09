@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from '@/hooks/use-mobile';
 import FloatingCard from './FloatingCard';
+import InteractivePrompt from './InteractivePrompt';
 import { ParallaxSectionProps } from './types';
 import './parallax.css';
 
@@ -17,6 +18,9 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
   textAlignment = 'center',
   darkOverlay = true,
   className = '',
+  interactive = false,
+  typingPhrases = [],
+  onPromptSubmit,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [elementTop, setElementTop] = useState(0);
@@ -45,13 +49,25 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
     return () => window.removeEventListener('resize', setPosition);
   }, []);
 
+  // Handle prompt submission
+  const handlePromptSubmit = (prompt: string) => {
+    if (onPromptSubmit) {
+      onPromptSubmit(prompt);
+    } else {
+      console.log('Prompt submitted:', prompt);
+    }
+  };
+
   // Text alignment class
   const textAlignClass = textAlignment === 'center' ? 'text-center mx-auto' : 'text-left';
+
+  // Determine the height class based on whether it's the interactive hero section
+  const heightClass = interactive ? 'min-h-[90vh]' : 'min-h-[500px]';
 
   return (
     <div 
       ref={containerRef}
-      className={`parallax-section relative w-full overflow-hidden ${className}`}
+      className={`parallax-section relative w-full overflow-hidden ${heightClass} ${className}`}
     >
       {/* Background with parallax effect (disabled on mobile) */}
       {!isMobile ? (
@@ -77,19 +93,31 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
 
       {/* Optional dark overlay */}
       {darkOverlay && (
-        <div className="absolute inset-0 bg-black/40 -z-10" />
+        <div className="absolute inset-0 bg-black/50 -z-10" />
       )}
 
-      <div className="container mx-auto px-4 py-20 md:py-32 relative z-10">
-        {/* Text content */}
-        <div className={`max-w-3xl mb-12 ${textAlignClass}`}>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-4 text-white font-heading">
-            {title}
-          </h2>
-          <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto">
-            {description}
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-20 md:py-32 relative z-10 flex flex-col justify-center h-full">
+        {/* Interactive prompt for home page */}
+        {interactive && typingPhrases.length > 0 && (
+          <div className="mb-16">
+            <InteractivePrompt 
+              phrases={typingPhrases} 
+              onSubmit={handlePromptSubmit}
+            />
+          </div>
+        )}
+
+        {/* Text content (not shown when interactive is true) */}
+        {(!interactive || !typingPhrases.length) && (
+          <div className={`max-w-3xl mb-12 ${textAlignClass}`}>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light mb-4 text-white font-heading">
+              {title}
+            </h2>
+            <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto">
+              {description}
+            </p>
+          </div>
+        )}
 
         {/* Floating cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">

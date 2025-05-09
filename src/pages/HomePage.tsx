@@ -2,11 +2,11 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Lightbulb } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import HighlightBanner from '@/components/dashboard/HighlightBanner';
 import TrendingItems from '@/components/dashboard/TrendingItems';
 import RecommendationBlock from '@/components/dashboard/RecommendationBlock';
 import NotificationsDemo from '@/components/dashboard/NotificationsDemo';
-import WelcomeBanner from '@/components/home/WelcomeBanner';
 import QuickAccessGrid from '@/components/home/QuickAccessGrid';
 import InsightsSection from '@/components/home/InsightsSection';
 import AnimationStyles from '@/components/home/AnimationStyles';
@@ -14,10 +14,13 @@ import ParallaxSection from '@/components/ui/parallax/ParallaxSection';
 import { mockItems } from '@/hooks/content-planner/initialState';
 
 const HomePage: React.FC = () => {
+  const { toast } = useToast();
+  
   const typingPhrases = [
-    "Create a video script...",
-    "Explore trends...",
-    "Validate an idea..."
+    "What would you like to do today?",
+    "Generate a video idea...",
+    "Plan your content...",
+    "Validate a strategy..."
   ];
 
   // Create featured content cards from the mock content planner items
@@ -28,15 +31,46 @@ const HomePage: React.FC = () => {
     link: `/content-planner?id=${item.id}`
   }));
 
+  // Handle interactive prompt submission
+  const handlePromptSubmit = (promptText: string) => {
+    toast({
+      title: "Recebemos sua solicitação",
+      description: `"${promptText}" está sendo processado pelo sistema.`,
+      duration: 5000,
+    });
+    
+    // Here we would normally process the prompt with AI, but for now just show a toast
+    setTimeout(() => {
+      toast({
+        title: "Sugestão de Ação",
+        description: "Com base na sua solicitação, recomendamos acessar o Gerador de Scripts.",
+        action: (
+          <a href="/script-generator" className="px-3 py-2 bg-fluida-blue text-white rounded-md text-xs">
+            Acessar
+          </a>
+        ),
+        duration: 8000,
+      });
+    }, 2000);
+  };
+
   return (
     <Layout title="Página Inicial">
       <div className="space-y-12">
-        <WelcomeBanner 
-          title="O que você deseja fazer hoje?" 
-          phrases={typingPhrases} 
+        {/* Interactive Hero Section with Parallax */}
+        <ParallaxSection
+          backgroundImage="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
+          title=""
+          description=""
+          cards={[]}
+          interactive={true}
+          typingPhrases={typingPhrases}
+          onPromptSubmit={handlePromptSubmit}
+          darkOverlay={true}
+          className="bg-gradient-to-r from-purple-900 to-indigo-800"
         />
         
-        {/* ParallaxSection - Video Highlight Banner */}
+        {/* ParallaxSection - Content Highlight */}
         <ParallaxSection
           backgroundImage="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
           title="Conteúdo Premium para Especialistas em Estética"
@@ -46,20 +80,20 @@ const HomePage: React.FC = () => {
           ctaLink="/media-library"
         />
         
-        {/* Trending Content - Step 2 */}
+        {/* Trending Content */}
         <TrendingItems />
         
-        {/* Recommendations - Step 3 */}
+        {/* Recommendations */}
         <RecommendationBlock />
 
-        {/* Blocos de acesso rápido */}
+        {/* Quick access blocks */}
         <QuickAccessGrid />
         
-        {/* Seção de tendências e recomendações */}
+        {/* Insights section */}
         <InsightsSection />
       </div>
       
-      {/* Notifications Demo for Step 5 - for development purposes */}
+      {/* Notifications Demo for development purposes */}
       <NotificationsDemo />
       
       {/* Animation styles */}
