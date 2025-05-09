@@ -14,163 +14,28 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { 
-  LayoutDashboard, 
-  Kanban, 
-  CalendarPlus, 
-  FileText, 
-  Video, 
-  Images,
-  Settings, 
   Menu,
-  Lightbulb, 
-  BookText,
-  PenTool,
-  FilePlus,
-  Database,
-  LineChart,
-  BarChart3,
   Cog,
-  BrainCircuit,
-  PuzzleIcon,
-  Wrench
+  User,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { sidebarData, adminItems } from "./SidebarData";
 
 export default function Sidebar() {
   const { open, setOpen } = useSidebar();
   const location = useLocation();
   const { user } = useAuth();
-  
-  // Navigation structure with updated paths
-  const navigationGroups = [
-    {
-      label: "Main",
-      items: [
-        { 
-          name: 'Dashboard', 
-          path: '/dashboard', 
-          icon: LayoutDashboard 
-        },
-        { 
-          name: 'Planner', 
-          path: '/content-planner', 
-          icon: Kanban
-        },
-        { 
-          name: 'Idea Validator', 
-          path: '/content-ideas', 
-          icon: Lightbulb,
-          highlight: true
-        },
-        { 
-          name: 'Scripts', 
-          path: '/scripts', 
-          icon: PenTool 
-        },
-        { 
-          name: 'Content', 
-          path: '/content', 
-          icon: FileText 
-        },
-        { 
-          name: 'Reports', 
-          path: '/reports', 
-          icon: BarChart3,
-          highlight: true 
-        },
-      ]
-    },
-    {
-      label: "Library",
-      items: [
-        {
-          name: 'Videos',
-          path: '/videos',
-          icon: Video
-        },
-        {
-          name: 'Media Library',
-          path: '/media-library',
-          icon: Images,
-          highlight: true
-        },
-        {
-          name: 'Media Files',
-          path: '/media-files',
-          icon: FilePlus
-        }
-      ]
-    },
-    {
-      label: "Scientific",
-      items: [
-        {
-          name: 'Articles',
-          path: '/articles',
-          icon: BookText,
-          highlight: true
-        }
-      ]
-    },
-    {
-      label: "Strategy",
-      items: [
-        {
-          name: 'Strategy',
-          path: '/content-strategy',
-          icon: LineChart
-        },
-        {
-          name: 'Agenda',
-          path: '/agenda',
-          icon: CalendarPlus
-        },
-        {
-          name: 'Equipment',
-          path: '/equipment',
-          icon: Wrench
-        }
-      ]
-    }
-  ];
-  
-  // Admin navigation items with updated paths
-  const adminItems = [
-    { 
-      name: 'Admin Panel', 
-      path: '/admin', 
-      icon: LayoutDashboard 
-    },
-    { 
-      name: 'Integrations', 
-      path: '/integrations', 
-      icon: PuzzleIcon 
-    },
-    { 
-      name: 'System Diagnostics', 
-      path: '/diagnostics', 
-      icon: Database 
-    },
-    { 
-      name: 'AI Panel', 
-      path: '/ai-panel', 
-      icon: BrainCircuit 
-    },
-    { 
-      name: 'Settings', 
-      path: '/settings', 
-      icon: Cog 
-    },
-  ];
+  const isAdmin = user?.role === 'admin';
   
   // Check if the current path is active
   const isActive = (path: string) => {
     if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
       return true;
     }
-    return location.pathname === path;
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   return (
@@ -178,7 +43,7 @@ export default function Sidebar() {
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           {open && (
-            <div className="font-semibold text-xl fluida-gradient-text">
+            <div className="font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-[#0094fb] to-[#f300fc]">
               Fluida
             </div>
           )}
@@ -194,25 +59,26 @@ export default function Sidebar() {
       </SidebarHeader>
       
       <SidebarContent className="p-2 overflow-y-auto">
-        {navigationGroups.map((group) => (
-          <SidebarGroup key={group.label} className="mb-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only")}>
-              {group.label}
+        {sidebarData.map((group) => (
+          <SidebarGroup key={group.name} className="mb-4">
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
+              {group.icon && <group.icon className="mr-2 h-4 w-4" />}
+              {group.name}
             </SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map((item) => (
+              {group.links.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 
                     active={isActive(item.path)}
                     collapsible
-                    className={item.highlight ? "relative fluida-gradient-border z-10" : ""}
+                    className={item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""}
                   >
                     <Link to={item.path}>
                       <item.icon className="h-5 w-5" />
                       <span>{item.name}</span>
                       {item.highlight && open && (
-                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-fluida-pink animate-pulse" />
+                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[#f300fc] animate-pulse" />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -222,7 +88,7 @@ export default function Sidebar() {
           </SidebarGroup>
         ))}
         
-        {user?.role === 'admin' && (
+        {isAdmin && (
           <SidebarGroup className="mt-4">
             <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
               <Cog className="mr-2 h-4 w-4" /> Admin
@@ -249,8 +115,15 @@ export default function Sidebar() {
       
       <SidebarFooter className="border-t p-4">
         {open ? (
-          <div className="text-xs text-muted-foreground">
-            Fluida © {new Date().getFullYear()}
+          <div className="space-y-2">
+            <Link to="/profile" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <User className="h-4 w-4" />
+              <span className="text-sm">Profile</span>
+            </Link>
+            <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+              <HelpCircle className="h-4 w-4" />
+              <span className="text-sm">Help</span>
+            </Link>
           </div>
         ) : null}
       </SidebarFooter>
