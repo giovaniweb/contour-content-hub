@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayIcon } from '@radix-ui/react-icons';
+import { Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
 import { loadVideosData } from '@/hooks/video-batch/basicVideoOperations';
@@ -24,7 +25,7 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
     const fetchVideos = async () => {
       const result = await loadVideosData();
       if (result.success && result.data) {
-        setVideos(result.data);
+        setVideos(result.data as unknown as StoredVideo[]);
       } else {
         console.error("Failed to load videos:", result.error);
       }
@@ -34,7 +35,7 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
   }, []);
 
   const handleOpenVideo = (video: StoredVideo) => {
-    setSelectedVideoUrl(video.file_urls?.web_optimized || null);
+    setSelectedVideoUrl(video.file_urls?.web_optimized || '');
     setSelectedVideoTitle(video.title || null);
     setCurrentVideoIndex(videos.indexOf(video));
     setOpen(true);
@@ -42,14 +43,16 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
 
   const handleNextVideo = () => {
     setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-    setSelectedVideoUrl(videos[currentVideoIndex].file_urls?.web_optimized || null);
-    setSelectedVideoTitle(videos[currentVideoIndex].title || null);
+    const nextVideo = videos[(currentVideoIndex + 1) % videos.length];
+    setSelectedVideoUrl(nextVideo.file_urls?.web_optimized || '');
+    setSelectedVideoTitle(nextVideo.title || null);
   };
 
   const handlePreviousVideo = () => {
     setCurrentVideoIndex((prevIndex) => (prevIndex - 1 + videos.length) % videos.length);
-    setSelectedVideoUrl(videos[currentVideoIndex].file_urls?.web_optimized || null);
-    setSelectedVideoTitle(videos[currentVideoIndex].title || null);
+    const prevVideo = videos[(currentVideoIndex - 1 + videos.length) % videos.length];
+    setSelectedVideoUrl(prevVideo.file_urls?.web_optimized || '');
+    setSelectedVideoTitle(prevVideo.title || null);
   };
 
   return (
@@ -71,8 +74,8 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
               <div key={video.id} className="relative">
                 <div className="aspect-w-16 aspect-h-9">
                   <img
-                    src={video.thumbnail_url}
-                    alt={video.title}
+                    src={video.thumbnail_url || ''}
+                    alt={video.title || 'Video thumbnail'}
                     className="object-cover rounded-md cursor-pointer"
                     onClick={() => handleOpenVideo(video)}
                   />
@@ -86,7 +89,7 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
                   className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
                   onClick={() => handleOpenVideo(video)}
                 >
-                  <PlayIcon className="h-4 w-4" />
+                  <Play className="h-4 w-4" />
                 </Button>
               </div>
             ))}

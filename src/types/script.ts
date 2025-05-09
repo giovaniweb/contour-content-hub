@@ -1,5 +1,12 @@
 
-import { MarketingObjectiveType } from './script';
+export type MarketingObjectiveType = 
+  | '🟡 Atrair Atenção' 
+  | '🟢 Criar Conexão' 
+  | '🔴 Fazer Comprar' 
+  | '🔁 Reativar Interesse' 
+  | '✅ Fechar Agora'
+  | 'emotion'
+  | 'sales';
 
 export interface FormData {
   idea: string;

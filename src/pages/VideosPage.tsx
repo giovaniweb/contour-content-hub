@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +26,7 @@ const VideosPage: React.FC = () => {
       const result = await loadVideosData();
       
       if (result.success) {
-        setVideos(result.data as StoredVideo[]);
+        setVideos(result.data as unknown as StoredVideo[]);
       } else {
         setError(result.error || 'Failed to load videos.');
       }
@@ -55,6 +56,13 @@ const VideosPage: React.FC = () => {
       setSelectedVideoIndex((prevIndex) => (prevIndex! - 1 + videos.length) % videos.length);
     }
   };
+
+  const getVideoUrl = (video: StoredVideo) => {
+    if (typeof video.file_urls === 'object' && video.file_urls !== null) {
+      return (video.file_urls as any).web_optimized || '';
+    }
+    return '';
+  };
   
   return (
     <Layout title="Vídeos">
@@ -74,7 +82,7 @@ const VideosPage: React.FC = () => {
                   onClick={() => handleVideoClick(index)}
                 >
                   <img 
-                    src={video.thumbnail_url || video.file_urls?.web_optimized} 
+                    src={video.thumbnail_url || getVideoUrl(video)} 
                     alt={video.title || 'Vídeo'} 
                     className="w-full rounded-md aspect-video object-cover" 
                   />
