@@ -1,31 +1,44 @@
 
-export interface CalendarSuggestion {
+export interface CalendarEvent {
   id: string;
-  date: string;
   title: string;
-  description: string;
-  format: "video" | "story" | "image";
-  completed: boolean;
-  equipment: string;
-  purpose?: string;
-  hook?: string;
-  caption?: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+  resourceId?: string;
+  color?: string;
+  location?: string;
+  description?: string;
+  status?: 'confirmed' | 'tentative' | 'cancelled';
+  type?: string;
+}
+
+export interface CalendarResource {
+  id: string;
+  title: string;
+  color?: string;
+  subResources?: CalendarResource[];
 }
 
 export interface CalendarPreferences {
-  frequency: "daily" | "weekly" | "custom";
-  topics: string[];
-  equipment: string[];
+  defaultView: 'day' | 'week' | 'month' | 'agenda';
+  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  workingHours: {
+    start: string;
+    end: string;
+  };
+  timeZone: string;
+  showWeekends: boolean;
   autoGenerate: boolean;
-  formats?: ("video" | "image" | "story")[];
-  purpose?: string[];
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    desktop: boolean;
+  };
 }
 
-export interface NewCalendarEvent {
-  date: string;
-  title: string;
-  description: string;
-  format: "video" | "story" | "image";
-  completed: boolean;
-  equipment: string;
+export interface CalendarSettings {
+  preferences: CalendarPreferences;
+  resources: CalendarResource[];
 }

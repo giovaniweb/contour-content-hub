@@ -1,35 +1,20 @@
 
 import { create } from 'zustand';
-import { StoredVideo } from '@/types/video-storage';
-import { EditableVideo } from './types';
-import { transformStoredVideosToEditable } from './transformUtils';
+import { BatchVideoState } from './types';
 
-interface BatchVideoState {
-  videos: EditableVideo[];
-  loading: boolean;
-  error: string | null;
-  setVideos: (videos: StoredVideo[]) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  resetState: () => void;
-}
-
-export const batchVideoState = create<BatchVideoState>((set) => ({
+export const useBatchVideoStore = create<BatchVideoState>((set) => ({
   videos: [],
   loading: false,
   error: null,
-  setVideos: (videos: StoredVideo[]) => set({ 
-    videos: transformStoredVideosToEditable(videos),
-    loading: false,
-    error: null
-  }),
-  setLoading: (loading: boolean) => set({ loading }),
-  setError: (error: string | null) => set({ error, loading: false }),
-  resetState: () => set({
-    videos: [],
-    loading: false,
-    error: null
-  })
+  setVideos: (videos) => set({ videos }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
 }));
 
-export default batchVideoState;
+export const batchVideoState = {
+  initialState: {
+    videos: [],
+    loading: false,
+    error: null,
+  }
+};

@@ -6,12 +6,25 @@ import { useToast } from '@/hooks/use-toast';
 interface ImportTabProps {
   id?: string;
   onCompleteImport?: (importedData: any) => void;
+  onUploadComplete?: (videoId: string) => void;
+  onCancel?: () => void;
+  equipmentId?: string;
 }
 
-const ImportTab: React.FC<ImportTabProps> = ({ id, onCompleteImport }) => {
+const ImportTab: React.FC<ImportTabProps> = ({ 
+  id, 
+  onCompleteImport,
+  onUploadComplete,
+  onCancel: propOnCancel,
+  equipmentId
+}) => {
   const { toast } = useToast();
   
   const handleUploadComplete = (videoId: string) => {
+    if (onUploadComplete) {
+      onUploadComplete(videoId);
+    }
+    
     if (onCompleteImport) {
       onCompleteImport({
         id: videoId,
@@ -26,6 +39,10 @@ const ImportTab: React.FC<ImportTabProps> = ({ id, onCompleteImport }) => {
   };
   
   const handleCancel = () => {
+    if (propOnCancel) {
+      propOnCancel();
+    }
+    
     toast({
       title: 'Importação cancelada',
       description: 'A importação foi cancelada pelo usuário.',

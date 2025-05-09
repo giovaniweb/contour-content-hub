@@ -30,11 +30,11 @@ export const loadVideosData = async (): Promise<{
       title: video.title || '',
       description: video.description || '',
       thumbnail_url: video.thumbnail_url,
-      status: video.status as VideoStatus, // Cast to VideoStatus
+      status: (video.status as VideoStatus) || 'processing',
       created_at: video.created_at,
       updated_at: video.updated_at,
-      file_urls: video.file_urls as StoredVideo['file_urls'],
-      metadata: video.metadata,
+      file_urls: video.file_urls as unknown as StoredVideo['file_urls'],
+      metadata: video.metadata as unknown as StoredVideo['metadata'],
       tags: video.tags || [],
       public: video.public,
       duration: video.duration,
@@ -54,7 +54,6 @@ export const loadVideosData = async (): Promise<{
   }
 };
 
-// Export other operations but avoid duplicate exports
-export * from './basicVideoOperations';
-export * from './videoOperations';
-export * from './equipmentOperations';
+// Export other operations
+export { batchUpdateEquipment } from './equipmentOperations';
+export { batchDeleteVideos } from './videoOperations';

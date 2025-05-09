@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,8 +33,8 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
         throw error;
       }
 
-      // Transform the videos to our editable format
-      const editableVideos = transformStoredVideosToEditable(data || []);
+      // Transform the videos to our editable format with proper casting
+      const editableVideos = transformStoredVideosToEditable(data as any || []);
       setVideos(editableVideos);
     } catch (error) {
       console.error('Error loading videos:', error);
@@ -61,7 +60,25 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
         throw error;
       }
 
-      setEquipments(data || []);
+      // Transform supabase data to match the Equipment interface
+      const transformedEquipments: Equipment[] = (data || []).map(item => ({
+        id: item.id,
+        nome: item.nome,
+        descricao: item.descricao || '',
+        categoria: item.categoria || '',
+        tecnologia: item.tecnologia || '',
+        beneficios: item.beneficios || '',
+        diferenciais: item.diferenciais || '',
+        linguagem: item.linguagem || '',
+        indicacoes: Array.isArray(item.indicacoes) ? item.indicacoes : 
+                  typeof item.indicacoes === 'string' ? [item.indicacoes] : [],
+        ativo: item.ativo,
+        image_url: item.image_url,
+        data_cadastro: item.data_cadastro,
+        efeito: item.efeito,
+      }));
+
+      setEquipments(transformedEquipments);
     } catch (error) {
       console.error('Error loading equipments:', error);
     }

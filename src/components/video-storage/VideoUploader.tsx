@@ -30,17 +30,7 @@ import {
 import { useQueue } from '@/hooks/useQueue';
 import { Equipment } from '@/types/equipment';
 import { useEquipments } from '@/hooks/useEquipments';
-
-interface VideoUploadProgress {
-  loaded: number;
-  total: number;
-  percentage: number;
-  status?: "uploading" | "error" | "queued" | "complete";
-  fileName?: string;
-  progress?: number;
-  message?: string;
-  error?: string;
-}
+import { VideoUploadProgress } from '@/types/video-storage';
 
 const VideoUploader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -87,7 +77,9 @@ const VideoUploader: React.FC = () => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: 'video/*'
+    accept: {
+      'video/*': []
+    }
   });
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,10 +96,10 @@ const VideoUploader: React.FC = () => {
   };
 
   const handleSelectEquipment = (equipment: Equipment) => {
-  setSelectedEquipment(equipment);
-  formik.setFieldValue('equipmentId', equipment.id);
-  formik.setFieldValue('equipmentName', equipment.nome);
-};
+    setSelectedEquipment(equipment);
+    formik.setFieldValue('equipmentId', equipment.id);
+    formik.setFieldValue('equipmentName', equipment.nome);
+  };
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
@@ -214,7 +206,10 @@ const VideoUploader: React.FC = () => {
     updateVideoQueue(file.name, {
       status: 'complete',
       videoId,
-      progress: 100
+      progress: 100,
+      loaded: file.size,
+      total: file.size,
+      percentage: 100
     });
 
     toast({

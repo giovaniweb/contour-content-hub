@@ -4,7 +4,7 @@ import { VideoMetadata } from '@/types/video-storage';
 import { toast } from '@/hooks/use-toast';
 
 /**
- * Updates equipment association for multiple videos
+ * Updates equipment information for multiple videos
  */
 export const batchUpdateEquipment = async (
   videoIds: string[],
@@ -13,65 +13,63 @@ export const batchUpdateEquipment = async (
 ): Promise<boolean> => {
   try {
     if (!videoIds || videoIds.length === 0 || !equipmentId) {
+      toast({
+        variant: 'destructive',
+        title: 'Falha na atualização',
+        description: 'IDs de vídeos ou equipamento inválidos.',
+      });
       return false;
     }
 
-    // Fetch the current videos to update their metadata
-    const { data: videos, error: fetchError } = await supabase
-      .from('videos_storage')
-      .select('id, metadata')
-      .in('id', videoIds);
+    // For each video ID, we need to fetch the current metadata
+    for (const videoId of videoIds) {
+      const { data, error: fetchError } = await supabase
+        .from('videos_storage')
+        .select('metadata')
+        .eq('id', videoId)
+        .single();
 
-    if (fetchError) {
-      console.error('Error fetching videos for equipment update:', fetchError);
-      throw fetchError;
-    }
-
-    // For each video, update the metadata
-    for (const video of videos) {
-      // Create a proper typed metadata object
-      let typedMetadata: VideoMetadata = {};
-      
-      // If existing metadata is present, parse it safely
-      if (video.metadata) {
-        if (typeof video.metadata === 'object') {
-          typedMetadata = video.metadata as unknown as VideoMetadata;
-        } else if (typeof video.metadata === 'string') {
-          try {
-            typedMetadata = JSON.parse(video.metadata) as VideoMetadata;
-          } catch (e) {
-            console.error('Error parsing metadata string:', e);
-          }
-        }
+      if (fetchError) {
+        console.error('Error fetching video metadata:', fetchError);
+        continue;
       }
 
-      // Update equipment information
-      const updatedMetadata: Record<string, any> = {
-        ...typedMetadata,
+      // Prepare updated metadata
+      const currentMetadata = data.metadata || {};
+      const updatedMetadata = {
+        ...currentMetadata,
         equipment_id: equipmentId,
-        equipment_name: equipmentName
+        equipment_name: equipmentName || ''
       };
 
-      // Update the database
-      const { error } = await supabase
+      // Update the record
+      const { error: updateError } = await supabase
         .from('videos_storage')
-        .update({ metadata: updatedMetadata })
-        .eq('id', video.id);
+        .update({
+          metadata: updatedMetadata as any // Type assertion to satisfy Json type
+        })
+        .eq('id', videoId);
 
-      if (error) {
-        console.error(`Error updating video ${video.id} equipment:`, error);
+      if (updateError) {
+        console.error('Error updating video metadata:', updateError);
         toast({
-          title: 'Erro ao atualizar equipamento',
-          description: error.message,
           variant: 'destructive',
+          title: 'Erro ao atualizar vídeo',
+          description: `Não foi possível atualizar o vídeo ${videoId}.`,
         });
-        return false;
+        // Continue with other videos even if this one fails
       }
     }
 
+    // Return success if we got this far
     return true;
   } catch (error) {
     console.error('Error in batchUpdateEquipment:', error);
+    toast({
+      variant: 'destructive',
+      title: 'Erro ao atualizar vídeos',
+      description: 'Ocorreu um erro ao atualizar os equipamentos dos vídeos.',
+    });
     return false;
   }
 };

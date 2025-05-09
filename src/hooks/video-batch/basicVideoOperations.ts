@@ -19,17 +19,17 @@ export const fetchVideos = async (): Promise<StoredVideo[]> => {
       throw error;
     }
 
-    // Convert the data to StoredVideo type, ensuring status is a valid VideoStatus
+    // Convert the data to StoredVideo type with proper type casting
     return data.map(video => ({
       id: video.id,
       title: video.title || '',
       description: video.description || '',
-      file_urls: video.file_urls as StoredVideo['file_urls'],
+      file_urls: video.file_urls as unknown as StoredVideo['file_urls'],
       thumbnail_url: video.thumbnail_url,
       created_at: video.created_at,
       updated_at: video.updated_at,
-      status: (video.status as VideoStatus) || 'processing',
-      metadata: video.metadata,
+      status: (video.status || 'processing') as VideoStatus,
+      metadata: video.metadata as unknown as VideoMetadata,
       tags: video.tags || [],
       public: video.public,
       duration: video.duration,

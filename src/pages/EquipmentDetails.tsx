@@ -10,7 +10,7 @@ import { EquipmentDetailsTabsList } from '@/components/equipment-details/Equipme
 import { DetailsTab } from '@/components/equipment-details/tabs/DetailsTab';
 import { DocumentsTab } from '@/components/equipment-details/tabs/DocumentsTab';
 import { VideosTab } from '@/components/equipment-details/tabs/VideosTab';
-import { ImportTab } from '@/components/equipment-details/tabs/ImportTab';
+import ImportTab from '@/components/equipment-details/tabs/ImportTab';
 import { ContentTab } from '@/components/equipment-details/tabs/ContentTab';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';

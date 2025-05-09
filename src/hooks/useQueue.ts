@@ -1,87 +1,75 @@
 
-import { useState, useCallback } from 'react';
-import { VideoUploadProgress } from '@/types/video-storage';
+import { useState } from 'react';
+import { VideoQueueItem, VideoUploadProgress } from '@/types/video-storage';
 
-interface QueueItem<T> {
-  id: string;
-  data: T;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  error?: string;
-  progress?: VideoUploadProgress;
-}
-
-interface UseQueueReturn<T> {
-  queue: QueueItem<T>[];
-  addToQueue: (id: string, data: T) => void;
+export interface UseQueueReturn<T> {
+  queue: T[];
+  addToQueue: (item: T) => void;
   removeFromQueue: (id: string) => void;
-  updateQueueItem: (id: string, updates: Partial<QueueItem<T>>) => void;
   clearQueue: () => void;
-  getNextItem: () => QueueItem<T> | undefined;
-  processQueue: (processor: (item: T) => Promise<void>) => Promise<void>;
-  updateVideoQueue: (id: string, progress: VideoUploadProgress) => void;
+  isInQueue: (id: string) => boolean;
+  updateItem: (id: string, updates: Partial<T>) => void;
+  getItem: (id: string) => T | undefined;
+  updateVideoQueue: (fileName: string, updates: Partial<VideoUploadProgress>) => void;
 }
 
-export function useQueue<T>(): UseQueueReturn<T> {
-  const [queue, setQueue] = useState<QueueItem<T>[]>([]);
+export function useQueue<T extends { id: string }>(initialQueue: T[] = []): UseQueueReturn<T> {
+  const [queue, setQueue] = useState<T[]>(initialQueue);
 
-  const addToQueue = useCallback((id: string, data: T) => {
-    setQueue(prev => [...prev, { id, data, status: 'queued' }]);
-  }, []);
+  const addToQueue = (item: T) => {
+    setQueue(prev => [...prev, item]);
+  };
 
-  const removeFromQueue = useCallback((id: string) => {
+  const removeFromQueue = (id: string) => {
     setQueue(prev => prev.filter(item => item.id !== id));
-  }, []);
+  };
 
-  const updateQueueItem = useCallback((id: string, updates: Partial<QueueItem<T>>) => {
+  const clearQueue = () => {
+    setQueue([]);
+  };
+
+  const isInQueue = (id: string) => {
+    return queue.some(item => item.id === id);
+  };
+
+  const updateItem = (id: string, updates: Partial<T>) => {
     setQueue(prev => 
       prev.map(item => 
         item.id === id ? { ...item, ...updates } : item
       )
     );
-  }, []);
+  };
 
-  const updateVideoQueue = useCallback((id: string, progress: VideoUploadProgress) => {
+  const getItem = (id: string) => {
+    return queue.find(item => item.id === id);
+  };
+
+  // Update video queue item by filename
+  const updateVideoQueue = (fileName: string, updates: Partial<VideoUploadProgress>) => {
     setQueue(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, progress } : item
-      )
+      prev.map(item => {
+        if ((item as unknown as VideoQueueItem).file?.name === fileName) {
+          return {
+            ...item,
+            progress: {
+              ...(item as unknown as VideoQueueItem).progress,
+              ...updates
+            }
+          };
+        }
+        return item;
+      })
     );
-  }, []);
-
-  const clearQueue = useCallback(() => {
-    setQueue([]);
-  }, []);
-
-  const getNextItem = useCallback(() => {
-    return queue.find(item => item.status === 'queued');
-  }, [queue]);
-
-  const processQueue = useCallback(async (processor: (item: T) => Promise<void>) => {
-    const nextItem = getNextItem();
-    if (!nextItem) return;
-
-    try {
-      updateQueueItem(nextItem.id, { status: 'processing' });
-      await processor(nextItem.data);
-      updateQueueItem(nextItem.id, { status: 'completed' });
-    } catch (error) {
-      updateQueueItem(nextItem.id, { 
-        status: 'failed', 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      });
-    }
-  }, [getNextItem, updateQueueItem]);
+  };
 
   return {
     queue,
     addToQueue,
     removeFromQueue,
-    updateQueueItem,
     clearQueue,
-    getNextItem,
-    processQueue,
+    isInQueue,
+    updateItem,
+    getItem,
     updateVideoQueue
   };
 }
-
-export default useQueue;
