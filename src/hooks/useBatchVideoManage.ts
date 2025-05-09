@@ -316,12 +316,12 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
       indicacoes: Array.isArray(item.indicacoes) 
         ? item.indicacoes 
         : typeof item.indicacoes === 'string'
-          ? [item.indicacoes]
-          : [],  // Convert string to array or use empty array as default
-      ativo: item.ativo,
-      image_url: item.image_url,
-      data_cadastro: item.data_cadastro,
-      efeito: item.efeito
+          ? item.indicacoes.split(',').map(i => i.trim())
+          : [],
+      ativo: item.ativo ?? true,
+      image_url: item.image_url || '',
+      data_cadastro: item.data_cadastro || '',
+      efeito: item.efeito || ''
     }));
 
     return equipmentsList;

@@ -34,8 +34,10 @@ export const batchUpdateEquipment = async (
         continue;
       }
 
-      // Prepare updated metadata
-      const currentMetadata = data.metadata || {};
+      // Prepare updated metadata - ensure it's a valid object before spreading
+      const currentMetadata = data.metadata && typeof data.metadata === 'object' 
+        ? data.metadata 
+        : {};
       
       // Create a new object with the necessary equipment properties
       const updatedMetadata = {
