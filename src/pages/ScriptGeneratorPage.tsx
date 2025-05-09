@@ -54,9 +54,16 @@ const ScriptGeneratorPage: React.FC = () => {
     const state = location.state as ScriptGeneratorState | undefined;
     
     if (state?.ideaText) {
+      // Handle direct idea text from ValidationResponse
       setFormData({
         idea: state.ideaText,
         objective: state.objective || 'emotion',
+      });
+    } else if (state?.validatedIdea) {
+      // Handle validated idea from AIResponseBlock
+      setFormData({
+        idea: state.validatedIdea.topic,
+        objective: 'emotion', // Default to emotion if not specified
       });
     }
   }, [location.state]);

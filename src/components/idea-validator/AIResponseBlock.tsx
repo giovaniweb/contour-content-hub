@@ -145,7 +145,7 @@ const AIResponseBlock: React.FC<AIResponseProps> = ({
         </div>
       </motion.div>
       
-      {/* Call to Action Button */}
+      {/* Call to Action Button - Always show for any evaluation */}
       <motion.div 
         variants={item}
         className="text-center"
