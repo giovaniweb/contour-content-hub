@@ -1,9 +1,10 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { EditableVideo } from './types';
 import type { VideoMetadataSchema } from '@/types/video-storage';
 
-// Define as a constant object to use as value
-const VIDEO_METADATA_SCHEMA = {
+// Define VideoMetadataSchema constant for use in functions
+const videoMetadataSchema = {
   equipment_id: '',
   equipment_name: ''
 };
@@ -108,4 +109,44 @@ export const getEquipmentFromMetadata = (video: EditableVideo) => {
   };
 };
 
-// Additional utility functions for equipment operations can be added here
+// Additional function needed for video batch operations
+export const updateEquipmentAssociation = async (videoId: string, equipmentId: string) => {
+  try {
+    // Get equipment name
+    let equipmentName = '';
+    
+    if (equipmentId && equipmentId !== 'none') {
+      const { data: equipment, error: equipmentError } = await supabase
+        .from('equipamentos')
+        .select('nome')
+        .eq('id', equipmentId)
+        .single();
+        
+      if (!equipmentError && equipment) {
+        equipmentName = equipment.nome;
+      }
+    }
+    
+    // Update video metadata
+    const { error } = await supabase
+      .from('videos_storage')
+      .update({
+        metadata: {
+          ...videoMetadataSchema,
+          equipment_id: equipmentId,
+          equipment_name: equipmentName
+        }
+      })
+      .eq('id', videoId);
+      
+    if (error) {
+      console.error('Error updating equipment association:', error);
+      return { success: false, error: 'Failed to update equipment association' };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error in updateEquipmentAssociation:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+};

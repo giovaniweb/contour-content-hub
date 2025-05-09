@@ -1,245 +1,250 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { X, ThumbsUp, ThumbsDown, Share2, Download } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { StoredVideo } from '@/types/video-storage';
-import { VideoProgressBar } from './VideoProgressBar';
-import { LoadingSpinner } from '@/components/ui/loading-states';
 import { cn } from '@/lib/utils';
-import { useVideoControls } from '@/hooks/use-video-controls';
+import { Loader2 } from 'lucide-react';
+import VideoInfoOverlay from './VideoInfoOverlay';
 import { VideoPlayerControls } from './VideoPlayerControls';
-import { VideoInfoOverlay } from './VideoInfoOverlay';
 
 interface VideoPlayerModalProps {
-  video: StoredVideo;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  video: StoredVideo | null;
+  autoPlay?: boolean;
+  onLike?: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
-  showNavigation?: boolean;
+  currentIndex?: number;
+  totalVideos?: number;
 }
 
-export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
-  video,
+const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   open,
   onOpenChange,
+  video,
+  autoPlay = true,
+  onLike,
   onNext,
   onPrevious,
-  showNavigation = false,
+  currentIndex,
+  totalVideos
 }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(autoPlay);
+  const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  const {
-    videoRef,
-    isPlaying,
-    progress,
-    duration,
-    currentTime,
-    volume,
-    isMuted,
-    isBuffering,
-    showControls,
-    togglePlay,
-    handleTimeUpdate,
-    handleVideoEnded,
-    handleLoadedMetadata,
-    handleVolumeChange,
-    toggleMute,
-    handleSeek,
-    handleVideoError,
-    toggleFullscreen,
-    handleContainerClick,
-    isFullscreen
-  } = useVideoControls();
-
+  // Timer for hiding controls
+  const controlsTimerRef = useRef<number | null>(null);
+  
   // Reset state when video changes
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-    
-    // Auto-play when modal opens
     if (open && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Auto-play was prevented, do nothing
-      });
-    }
-    
-    // Auto-pause when modal closes
-    return () => {
-      if (videoRef.current) {
-        videoRef.current.pause();
+      setIsLoading(true);
+      setProgress(0);
+      
+      if (autoPlay) {
+        videoRef.current.play().catch(() => {
+          setIsPlaying(false);
+        });
       }
-    };
-  }, [video, open]);
-
-  // Handle controls visibility
+      
+      // Show controls initially
+      setShowControls(true);
+      startControlsTimer();
+    }
+  }, [open, video, autoPlay]);
+  
+  // Set up event listeners for fullscreen changes
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    
-    const handleMouseMove = () => {
-      if (isPlaying) {
-        clearTimeout(timeout);
-        
-        timeout = setTimeout(() => {
-          if (isPlaying) {
-            // This would normally update showControls state
-            // but we're handling it in the useVideoControls hook now
-          }
-        }, 3000);
-      }
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement !== null);
     };
     
-    if (open) {
-      window.addEventListener('mousemove', handleMouseMove);
-    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      clearTimeout(timeout);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
-  }, [isPlaying, open]);
+  }, []);
+  
+  // Clean up timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (controlsTimerRef.current !== null) {
+        window.clearTimeout(controlsTimerRef.current);
+      }
+    };
+  }, []);
+  
+  const startControlsTimer = () => {
+    if (controlsTimerRef.current !== null) {
+      window.clearTimeout(controlsTimerRef.current);
+    }
+    
+    if (isPlaying) {
+      controlsTimerRef.current = window.setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+  
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      setProgress(isNaN(progress) ? 0 : progress);
+    }
+  };
+  
+  const handleLoadedData = () => {
+    setIsLoading(false);
+  };
+  
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(() => {
+          console.error('Playback failed');
+        });
+      }
+      setIsPlaying(!isPlaying);
+    }
+    
+    // Reset controls timer
+    setShowControls(true);
+    startControlsTimer();
+  };
+  
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+    
+    // Reset controls timer
+    setShowControls(true);
+    startControlsTimer();
+  };
+  
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+    
+    // Reset controls timer
+    setShowControls(true);
+    startControlsTimer();
+  };
+  
+  const handleContainerClick = () => {
+    setShowControls(!showControls);
+    if (showControls) {
+      if (controlsTimerRef.current !== null) {
+        window.clearTimeout(controlsTimerRef.current);
+        controlsTimerRef.current = null;
+      }
+    } else {
+      startControlsTimer();
+    }
+  };
+  
+  const handleSeek = (percent: number) => {
+    if (videoRef.current) {
+      const seekTime = (percent / 100) * videoRef.current.duration;
+      videoRef.current.currentTime = seekTime;
+    }
+    
+    // Reset controls timer
+    setShowControls(true);
+    startControlsTimer();
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className={cn(
-          "max-w-5xl w-[90vw] p-0 gap-0 overflow-hidden", 
-          isFullscreen ? "fixed inset-0 w-full max-w-none h-full rounded-none" : ""
-        )}
-      >
+      <DialogContent className={cn(
+        "p-0 max-w-5xl w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]",
+        isFullscreen ? "fixed inset-0 z-50 max-w-none max-h-none w-screen h-screen" : ""
+      )}>
         <div 
+          ref={containerRef}
           className={cn(
-            "video-player-container relative bg-black overflow-hidden",
-            isFullscreen ? "h-full w-full" : "aspect-video"
+            "relative w-full h-full bg-black overflow-hidden",
+            isFullscreen ? "aspect-auto" : "aspect-video"
           )}
-          onMouseEnter={handleContainerClick}
-          onMouseLeave={() => {}}
           onClick={handleContainerClick}
         >
-          {/* Close button - always visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 z-50 bg-black/50 text-white hover:bg-black/70"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          
-          {/* Video element */}
-          <video
-            ref={videoRef}
-            src={video.url || video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd}
-            className="w-full h-full object-contain"
-            onLoadedMetadata={handleLoadedMetadata}
-            onTimeUpdate={handleTimeUpdate}
-            onEnded={handleVideoEnded}
-            onError={handleVideoError}
-            onCanPlay={() => setIsLoading(false)}
-            poster={video.thumbnail_url || undefined}
-            playsInline
-          />
-          
-          {/* Loading spinner */}
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <LoadingSpinner size="lg" />
+          {isLoading && video && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+              <Loader2 className="h-8 w-8 animate-spin text-white" />
             </div>
           )}
           
-          {/* Error message */}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white flex-col gap-4 p-4">
-              <p className="text-lg font-medium">Erro ao carregar o vídeo</p>
-              <p className="text-sm text-gray-400">{error}</p>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Fechar
-              </Button>
+          {video ? (
+            <video
+              ref={videoRef}
+              src={video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd}
+              className="w-full h-full"
+              autoPlay={autoPlay}
+              muted={isMuted}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedData={handleLoadedData}
+              onEnded={() => {
+                if (onNext) {
+                  onNext();
+                }
+              }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center">
+              <p className="text-white">Nenhum vídeo selecionado</p>
             </div>
           )}
           
-          {/* Video info overlay - visible when paused */}
-          {!isPlaying && !isLoading && !error && (
-            <VideoInfoOverlay
-              video={video}
-              isVisible={!isPlaying && showControls}
-            />
-          )}
-          
-          {/* Video controls */}
-          {showControls && !error && !isLoading && (
-            <VideoPlayerControls
-              isPlaying={isPlaying}
-              isMuted={isMuted}
-              showControls={showControls}
-              onTogglePlay={togglePlay}
-              onToggleMute={toggleMute}
-              onToggleFullscreen={toggleFullscreen}
-              isFullscreen={isFullscreen}
-              onNext={onNext}
-              onPrevious={onPrevious}
-            />
-          )}
-          
-          {/* Progress bar - always visible when not in loading/error state */}
-          {!isLoading && !error && (
-            <div className={cn(
-              "absolute bottom-0 left-0 right-0 transition-opacity duration-300",
-              showControls ? "opacity-100" : "opacity-0"
-            )}>
-              <VideoProgressBar
-                progress={progress}
+          {!isLoading && video && (
+            <>
+              <VideoInfoOverlay 
+                video={video} 
+                onLike={onLike} 
+                show={showControls} 
+              />
+              
+              <VideoPlayerControls 
+                isPlaying={isPlaying}
+                isMuted={isMuted}
+                showControls={showControls}
+                onTogglePlay={togglePlay}
+                onToggleMute={toggleMute}
+                onToggleFullscreen={toggleFullscreen}
+                isFullscreen={isFullscreen}
+                onNext={onNext}
+                onPrevious={onPrevious}
+                currentVideo={currentIndex}
+                totalVideos={totalVideos}
+                duration={videoRef.current?.duration}
+                currentTime={videoRef.current?.currentTime}
                 onSeek={handleSeek}
               />
-            </div>
+            </>
           )}
-        </div>
-        
-        {/* Video info and actions */}
-        <div className="p-4 space-y-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <DialogTitle className="text-xl font-medium line-clamp-2">
-                {video.title || "Vídeo sem título"}
-              </DialogTitle>
-              {video.description && (
-                <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
-                  {video.description}
-                </p>
-              )}
-            </div>
-          </div>
-          
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <ThumbsUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Gostei</span>
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <ThumbsDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Não gostei</span>
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Compartilhar</span>
-            </Button>
-            {video.downloadable !== false && (
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Download</span>
-              </Button>
-            )}
-          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+export default VideoPlayerModal;

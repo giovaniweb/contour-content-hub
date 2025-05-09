@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward, SkipBack } from 'lucide-react';
-import VideoProgressBar from './VideoProgressBar';
+import { VideoProgressBar } from './VideoProgressBar';
 
 export interface VideoPlayerControlsProps {
   isPlaying: boolean;
@@ -21,7 +21,7 @@ export interface VideoPlayerControlsProps {
   totalVideos?: number;
 }
 
-const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
+export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   isPlaying,
   isMuted,
   showControls,
@@ -46,7 +46,8 @@ const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
         <VideoProgressBar
           currentTime={currentTime}
           duration={duration}
-          onSeek={onSeek}
+          progress={(currentTime / duration) * 100}
+          onSeek={(percent) => onSeek((percent / 100) * duration)}
         />
       )}
       
@@ -115,4 +116,5 @@ const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   );
 };
 
+// Export as default for backward compatibility
 export default VideoPlayerControls;

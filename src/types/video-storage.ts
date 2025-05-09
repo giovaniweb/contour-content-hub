@@ -25,7 +25,7 @@ export interface VideoUploadProgress {
   loaded: number;
   total: number;
   percentage: number;
-  status?: "uploading" | "error" | "queued" | "complete";
+  status?: "uploading" | "error" | "queued" | "complete" | "processing" | "ready";
   fileName?: string;
   progress?: number;
   message?: string;
@@ -37,7 +37,7 @@ export interface VideoQueueItem {
   file: File;
   progress?: VideoUploadProgress;
   error?: string;
-  status: "queued" | "uploading" | "complete" | "error";
+  status: "queued" | "uploading" | "complete" | "error" | "pending";
   title?: string;
   description?: string;
   equipmentId?: string;
@@ -74,6 +74,9 @@ export type VideoFilterOptions = {
   search?: string;
   tags?: string[];
   status?: VideoStatus[];
+  startDate?: Date;
+  endDate?: Date;
+  owner?: string;
 };
 
 export type VideoSortOptions = {
