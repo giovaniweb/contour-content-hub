@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import type { Equipment } from '@/types/equipment'; 
+import { Equipment } from '@/types/equipment'; 
 
 export type { Equipment }; 
 
@@ -15,7 +15,11 @@ export const useEquipments = () => {
       beneficios: 'Resultados rápidos, Sem dor, Não invasivo',
       diferenciais: 'Único no mercado com tecnologia dupla',
       linguagem: 'técnica',
-      indicacoes: ['Indicação 1', 'Indicação 2']
+      indicacoes: ['Indicação 1', 'Indicação 2'],
+      ativo: true,
+      data_cadastro: new Date().toISOString(),
+      efeito: 'Efeito poderoso',
+      image_url: ''
     },
     { 
       id: 'eq2', 
@@ -26,7 +30,11 @@ export const useEquipments = () => {
       beneficios: 'Tratamento eficaz, Recuperação rápida',
       diferenciais: 'Máxima potência com segurança',
       linguagem: 'acessível',
-      indicacoes: ['Indicação 3', 'Indicação 4']
+      indicacoes: ['Indicação 3', 'Indicação 4'],
+      ativo: true,
+      data_cadastro: new Date().toISOString(),
+      efeito: 'Efeito suave',
+      image_url: ''
     },
     { 
       id: 'eq3', 
@@ -37,7 +45,11 @@ export const useEquipments = () => {
       beneficios: 'Resultados permanentes, Sem tempo de inatividade',
       diferenciais: 'Tratamento personalizado',
       linguagem: 'comercial',
-      indicacoes: ['Indicação 5', 'Indicação 6']
+      indicacoes: ['Indicação 5', 'Indicação 6'],
+      ativo: true,
+      data_cadastro: new Date().toISOString(),
+      efeito: 'Efeito profundo',
+      image_url: ''
     },
   ]);
   

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useBatchVideoManage } from '@/hooks/useBatchVideoManage';
+// Fix the import to use default import
+import useBatchVideoManage from '@/hooks/useBatchVideoManage';
 
 // Import our components
 import VideoSearch from '@/components/video-batch/VideoSearch';
