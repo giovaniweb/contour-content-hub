@@ -10,7 +10,7 @@ import AnimationStyles from '@/components/home/AnimationStyles';
 import WelcomeBanner from '@/components/home/WelcomeBanner';
 import PopularContent from '@/components/dashboard/PopularContent';
 import ParallaxSection from '@/components/ui/parallax/ParallaxSection';
-import { mockItems } from '@/hooks/content-planner/initialState';
+import FeaturedVideos from '@/components/home/FeaturedVideos';
 import { layouts } from '@/lib/design-system';
 
 const HomePage: React.FC = () => {  
@@ -61,6 +61,11 @@ const HomePage: React.FC = () => {
             ctaLink="/media-library"
           />
         </div>
+
+        {/* Featured Videos Section */}
+        <section className={layouts.sectionPadding}>
+          <FeaturedVideos />
+        </section>
         
         {/* Quick access blocks */}
         <section className={layouts.sectionPadding}>

@@ -1,24 +1,16 @@
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Download, File, Loader2 } from "lucide-react";
-import { openPdfInNewTab, downloadPdf } from "@/utils/pdfUtils";
-import { modalVariants } from "@/lib/animations";
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Download, ZoomIn, ZoomOut, RotateCw, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { downloadPdf, validatePdfUrl } from '@/utils/pdfUtils';
 
 interface PDFViewerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  pdfUrl: string | null;
-  title: string;
+  pdfUrl: string;
+  title?: string;
   filename?: string;
 }
 
@@ -26,116 +18,194 @@ const PDFViewerModal: React.FC<PDFViewerModalProps> = ({
   open,
   onOpenChange,
   pdfUrl,
-  title,
-  filename
+  title = "Visualizar PDF",
+  filename = "documento.pdf"
 }) => {
+  const [zoom, setZoom] = useState(100);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  
+  // Validar a URL do PDF quando o componente montar
+  useEffect(() => {
+    if (open && pdfUrl) {
+      const validateUrl = async () => {
+        try {
+          setIsLoading(true);
+          setHasError(false);
+          const isValid = await validatePdfUrl(pdfUrl);
+          if (!isValid) {
+            setHasError(true);
+            toast.error("Não foi possível carregar o PDF", {
+              description: "O arquivo pode não existir ou não é um PDF válido."
+            });
+          }
+        } catch (error) {
+          setHasError(true);
+          console.error("Erro ao validar PDF:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      validateUrl();
+    }
+  }, [open, pdfUrl]);
   
   const handleDownload = async () => {
-    if (!pdfUrl) return;
-    
     try {
-      await downloadPdf(pdfUrl, filename || `${title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-    } catch (err) {
-      console.error("Error downloading PDF:", err);
-      setError("Não foi possível fazer o download do documento. Por favor, tente novamente.");
+      await downloadPdf(pdfUrl, filename);
+      toast.success("Download iniciado", {
+        description: "O arquivo está sendo baixado"
+      });
+    } catch (error) {
+      toast.error("Erro ao baixar o arquivo", {
+        description: "Não foi possível baixar o PDF"
+      });
     }
   };
   
-  const handleOpenExternal = () => {
-    if (!pdfUrl) return;
-    
-    try {
-      openPdfInNewTab(pdfUrl, title);
-    } catch (err) {
-      console.error("Error opening PDF:", err);
-      setError("Não foi possível abrir o documento. Por favor, tente novamente.");
-    }
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 25, 200));
+  };
+  
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 25, 50));
+  };
+  
+  const handleZoomReset = () => {
+    setZoom(100);
+  };
+  
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+  
+  const handleIframeError = () => {
+    setIsLoading(false);
+    setHasError(true);
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col sm:max-h-[80vh]">
-        <motion.div 
-          className="flex flex-col h-full"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <File className="h-5 w-5" />
-              {title}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex-1 min-h-0 mt-4 bg-muted rounded-md overflow-hidden">
-            {pdfUrl ? (
-              <div className="w-full h-full relative">
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Carregando documento...</p>
-                    </div>
-                  </div>
-                )}
-                
-                <iframe 
-                  src={pdfUrl} 
-                  title={title}
-                  className="w-full h-full min-h-[500px]"
-                  onLoad={() => setIsLoading(false)}
-                  onError={() => {
-                    setIsLoading(false);
-                    setError("Não foi possível carregar o documento PDF.");
-                  }}
-                />
-                
-                {error && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/95">
-                    <div className="text-center max-w-xs">
-                      <p className="text-destructive">{error}</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-4" 
-                        onClick={handleOpenExternal}
-                      >
-                        Tentar abrir em uma nova janela
-                      </Button>
-                    </div>
-                  </div>
-                )}
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogHeader className="p-4 border-b sticky top-0 z-10 bg-background">
+          <div className="flex items-center justify-between w-full">
+            <DialogTitle className="truncate flex-1 mr-2">{title}</DialogTitle>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 50}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium w-12 text-center">{zoom}%</span>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 200}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleZoomReset}
+                  disabled={zoom === 100}
+                >
+                  <RotateCw className="h-4 w-4" />
+                </Button>
               </div>
-            ) : (
-              <div className="w-full h-full min-h-[500px] flex items-center justify-center">
-                <p className="text-muted-foreground">Nenhum documento disponível</p>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter className="mt-4">
-            <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleOpenExternal}
-                disabled={!pdfUrl || isLoading}
-              >
-                Abrir em nova aba
-              </Button>
-              <Button 
-                onClick={handleDownload}
-                disabled={!pdfUrl || isLoading}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" size="icon" onClick={handleDownload}>
                 <Download className="h-4 w-4" />
-                Download PDF
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+                <X className="h-4 w-4" />
               </Button>
             </div>
-          </DialogFooter>
-        </motion.div>
+          </div>
+        </DialogHeader>
+        
+        <div className="h-[70vh] overflow-auto bg-muted/30">
+          {isLoading && (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-sm text-muted-foreground">Carregando PDF...</p>
+              </div>
+            </div>
+          )}
+          
+          {hasError && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="bg-destructive/10 p-3 rounded-full mb-2">
+                <X className="h-6 w-6 text-destructive" />
+              </div>
+              <h3 className="font-medium">Erro ao carregar PDF</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Não foi possível exibir o documento
+              </p>
+              <Button variant="outline" className="mt-4" onClick={handleDownload}>
+                Tentar baixar mesmo assim
+              </Button>
+            </div>
+          )}
+          
+          {!hasError && (
+            <div 
+              style={{ 
+                height: '100%', 
+                display: isLoading ? 'none' : 'block',
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: 'top center',
+                transition: 'transform 0.2s ease'
+              }}
+            >
+              <iframe
+                src={`${pdfUrl}#toolbar=0`}
+                style={{ 
+                  width: '100%', 
+                  height: '100%',
+                  border: 'none'
+                }}
+                title={title}
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
+              ></iframe>
+            </div>
+          )}
+        </div>
+        
+        <div className="sm:hidden flex items-center justify-center gap-2 p-2 border-t">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleZoomOut}
+            disabled={zoom <= 50}
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium w-12 text-center">{zoom}%</span>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleZoomIn}
+            disabled={zoom >= 200}
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleZoomReset}
+            disabled={zoom === 100}
+          >
+            <RotateCw className="h-4 w-4" />
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
