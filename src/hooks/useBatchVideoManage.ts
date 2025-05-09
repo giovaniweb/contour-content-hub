@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { StoredVideo } from '@/types/video-storage';
 import type { Equipment } from '@/types/equipment';
@@ -305,7 +306,7 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     const equipmentsList: Equipment[] = data.map(item => ({
       id: item.id,
       nome: item.nome || '',
-      // Use explicit fallbacks for all required fields to prevent TypeScript errors
+      // Add these missing properties with proper fallbacks
       descricao: item.descricao || '',
       categoria: item.categoria || '',
       tecnologia: item.tecnologia || '',
