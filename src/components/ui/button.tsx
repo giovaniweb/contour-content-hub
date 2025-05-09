@@ -20,13 +20,16 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gradient: "bg-gradient-to-r from-fluida-blue to-fluida-pink text-white hover:from-fluida-blueDark hover:to-fluida-pinkDark",
-        contourline: "bg-contourline-mediumBlue text-white hover:bg-contourline-darkBlue"
+        contourline: "bg-contourline-mediumBlue text-white hover:bg-contourline-darkBlue",
+        action: "bg-green-500 hover:bg-green-600 text-white",
+        glass: "bg-white/20 backdrop-blur-sm border border-white/10 text-white hover:bg-white/30 transition-colors"
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        circle: "h-14 w-14 rounded-full p-0"
       },
     },
     defaultVariants: {
