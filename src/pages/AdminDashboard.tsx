@@ -11,7 +11,7 @@ import {
   Clock, ArrowUpRight, Video, BookOpen, FileUp,
   BrainCircuit, TrendingUp, AlertTriangle, CheckCircle, 
   AlertCircle, CheckCircle2, Images, FileVideo, FilePlus2,
-  BookOpenCheck, FileImage, FileText2, Marketing
+  BookOpenCheck, FileImage, FileText as FileTextIcon, BarChart4
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -111,7 +111,7 @@ const AdminDashboard: React.FC = () => {
     { title: "Vídeos", description: "Gerenciar vídeos para download", icon: FileVideo, path: "/admin/content?tab=videos" },
     { title: "Artigos Científicos", description: "Gerenciar artigos científicos", icon: BookOpenCheck, path: "/admin/content?tab=articles" },
     { title: "Fotos & Imagens", description: "Gerenciar banco de imagens", icon: FileImage, path: "/admin/content?tab=images" },
-    { title: "Materiais de Marketing", description: "Gerenciar materiais promocionais", icon: FileText2, path: "/admin/content?tab=materials" }
+    { title: "Materiais de Marketing", description: "Gerenciar materiais promocionais", icon: FileTextIcon, path: "/admin/content?tab=materials" }
   ];
 
   return (
@@ -488,13 +488,13 @@ const AdminDashboard: React.FC = () => {
                 {systemHealthData.aiModules.map((module, index) => (
                   <div key={index} className="flex justify-between items-center">
                     <span className="text-sm">{module.module}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
                       module.status === "active" 
                         ? "bg-green-100 text-green-700" 
                         : module.status === "inactive"
                           ? "bg-red-100 text-red-700"
                           : "bg-amber-100 text-amber-700"
-                    } flex items-center gap-1`}>
+                    }`}>
                       {module.status === "active" && <CheckCircle className="h-3 w-3" />}
                       {module.status === "inactive" && <AlertCircle className="h-3 w-3" />}
                       {module.status === "maintenance" && <Clock className="h-3 w-3" />}
