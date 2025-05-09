@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,12 +68,13 @@ const ScriptGenerator: React.FC = () => {
           id: `script-${Date.now()}`,
           title: topic,
           content: `# ${topic}\n\n## Introdução\nEste é um ${activeTab === 'videoScript' ? 'roteiro de vídeo' : activeTab === 'bigIdea' ? 'big idea' : 'script de vendas diárias'} sobre ${topic}${equipmentName ? ` usando ${equipmentName}` : ''}${bodyArea ? ` para a área do corpo: ${bodyArea}` : ''}.\n\n## Objetivo: ${marketingObjective}\n\n## Conteúdo Principal\n${additionalInfo ? `Considerando: ${additionalInfo}\n\n` : ''}Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel diam at nunc finibus tempor. Sed euismod, velit at congue tincidunt, nisl nunc aliquet nisl, nec tincidunt nisl velit at magna.\n\n## Conclusão\nChame para ação específica com foco no objetivo: ${marketingObjective}`,
-          type: activeTab as 'videoScript' | 'bigIdea' | 'dailySales',
           createdAt: new Date().toISOString(),
           suggestedVideos: [],
           captionTips: [],
           equipment: selectedEquipment,
-          marketingObjective: marketingObjective
+          objective: marketingObjective,
+          marketingObjective: marketingObjective,
+          type: activeTab
         };
         
         setGeneratedScript(mockResponse);

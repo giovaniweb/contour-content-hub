@@ -150,7 +150,8 @@ export async function batchUploadVideos(
     
     try {
       // Skip items that are already processed or failed
-      if (item.status === 'completed' || item.status === 'error') {
+      if (item.status === "complete" || item.status === "error") {
+        console.log("Item upload complete or error, not uploading again");
         continue;
       }
       

@@ -45,17 +45,20 @@ export const generateContent = async (
     
     // Create script response object if needed
     if (onScriptGenerated) {
+      const scriptTypeValue = request.tipo === 'roteiro' ? 'videoScript' : 
+                             request.tipo === 'bigIdea' ? 'bigIdea' : 'dailySales';
+                             
       const scriptResponse: ScriptResponse = {
         id: responseId,
         title: title,
         content: content,
-        type: request.tipo === 'roteiro' ? 'videoScript' : 
-              request.tipo === 'bigIdea' ? 'bigIdea' : 'dailySales',
         createdAt: new Date().toISOString(),
         suggestedVideos: [],
         captionTips: [],
         equipment: request.equipamento,
-        marketingObjective: request.marketingObjective,
+        objective: request.marketingObjective as MarketingObjectiveType,
+        marketingObjective: request.marketingObjective as MarketingObjectiveType,
+        type: scriptTypeValue
       };
       
       console.log("Script response object created:", scriptResponse.id);

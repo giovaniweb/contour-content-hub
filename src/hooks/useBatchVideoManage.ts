@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -9,7 +8,8 @@ import {
   loadVideosData, 
   saveVideoData, 
   deleteVideoData, 
-  batchUpdateEquipment 
+  batchUpdateEquipment, 
+  batchDeleteVideos 
 } from './video-batch/videoOperations';
 
 export const useBatchVideoManage = (): UseBatchVideoManageResult => {
@@ -164,50 +164,37 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     }
   };
   
-  const handleBatchDelete = async (): Promise<void> => {
+  const handleBatchDelete = async () => {
     if (selectedVideos.length === 0) return;
     
-    if (!confirm(`Tem certeza que deseja excluir ${selectedVideos.length} vídeos selecionados? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-    
     try {
-      let successCount = 0;
-      let failCount = 0;
+      setLoading(true);
+      const result = await batchDeleteVideos(selectedVideos);
       
-      // Process deletes sequentially to avoid rate limiting
-      for (const videoId of selectedVideos) {
-        try {
-          await deleteVideoData(videoId);
-          successCount++;
-        } catch (error) {
-          console.error(`Error deleting video ${videoId}:`, error);
-          failCount++;
-        }
-      }
-      
-      // Update state after all deletes
-      setVideos(videos.filter(v => !selectedVideos.includes(v.id)));
-      setSelectedVideos([]);
-      
-      if (failCount === 0) {
+      if (result.success) {
         toast({
           title: "Vídeos excluídos",
-          description: `${successCount} vídeos foram excluídos com sucesso.`
+          description: `${result.affectedCount || selectedVideos.length} vídeos foram excluídos com sucesso.`,
         });
       } else {
         toast({
-          variant: "default",
-          title: "Processo concluído com avisos",
-          description: `${successCount} vídeos excluídos, ${failCount} falhas.`
+          variant: "destructive",
+          title: "Erro ao excluir vídeos",
+          description: result.error || "Ocorreu um erro ao tentar excluir os vídeos."
         });
       }
-    } catch (error: any) {
+      
+      await loadVideos();
+      setSelectedVideos([]);
+    } catch (error) {
+      console.error("Error deleting videos:", error);
       toast({
         variant: "destructive",
-        title: "Erro na operação em lote",
-        description: error.message || "Ocorreu um erro durante o processamento."
+        title: "Erro ao excluir vídeos",
+        description: "Ocorreu um erro ao tentar excluir os vídeos."
       });
+    } finally {
+      setLoading(false);
     }
   };
   

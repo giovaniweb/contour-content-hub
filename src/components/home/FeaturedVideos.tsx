@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
-import { VideoPlayerModal } from '@/components/video-player/VideoPlayerModal';
+import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';
 import {
   Carousel,
   CarouselContent,

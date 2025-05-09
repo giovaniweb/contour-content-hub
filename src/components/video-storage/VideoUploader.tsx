@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -196,10 +195,13 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
 
     setIsUploading(true);
     setUploadProgress({
+      loaded: 0,
+      total: 0,
+      percentage: 0,
+      status: "uploading",
       fileName: file.name,
       progress: 0,
-      status: 'uploading',
-      message: 'Iniciando upload...'
+      message: "Iniciando upload..."
     });
 
     // Add equipment to tags if selected
@@ -212,6 +214,13 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
         videoTags.push(selectedEquipment.nome);
       }
     }
+
+    const metadata = JSON.stringify({
+      equipment_id: equipment?.id || "",
+      equipment_name: equipment?.nome || "",
+      original_filename: file.name,
+      // Include other metadata as needed
+    });
 
     const result = await uploadVideo(
       file, 

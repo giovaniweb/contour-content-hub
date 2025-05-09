@@ -1,29 +1,36 @@
 
 import React from 'react';
-import { TechnicalDocument } from '@/types/document';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
-import { LightbulbIcon } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 
 interface DocumentIdeasProps {
-  document: TechnicalDocument;
   className?: string;
 }
 
-const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document, className }) => {
-  // Placeholder component for document ideas
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className }) => {
+  // Mock data for document ideas
+  const ideas = [
+    "Como o equipamento X pode ajudar nos tratamentos Y?",
+    "Quais são os benefícios do equipamento X comparado com outros similares?",
+    "Como explicar o funcionamento do equipamento X para clientes?",
+    "Quais resultados podem ser esperados após N sessões?",
+    "Como combinar o equipamento X com outros tratamentos?"
+  ];
+
   return (
-    <ScrollArea className={`h-[calc(100vh-350px)] min-h-[400px] w-full rounded-md border ${className || ''}`}>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <LightbulbIcon className="h-12 w-12 text-yellow-500 mb-4" />
-          <h3 className="text-xl font-medium mb-2">Ideias para este documento</h3>
-          <p className="text-muted-foreground max-w-md">
-            Aqui serão exibidas ideias e sugestões geradas com base no conteúdo deste documento.
-          </p>
-        </div>
+    <div className={className}>
+      <h3 className="text-lg font-medium mb-4">Ideias para Conteúdo</h3>
+      <div className="space-y-3">
+        {ideas.map((idea, index) => (
+          <Card key={index} className="border-l-4 border-l-blue-500">
+            <CardContent className="p-4 flex items-start gap-3">
+              <Lightbulb className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm">{idea}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 

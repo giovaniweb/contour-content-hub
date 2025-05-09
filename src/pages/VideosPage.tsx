@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { staggerChildren, itemVariants, fadeIn } from "@/lib/animations";
 import { StoredVideo } from '@/types/video-storage';
-import { VideoPlayerModal } from '@/components/video-player/VideoPlayerModal';
+import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';
 import { useSearchParams } from "react-router-dom";
 import { getVideos } from '@/services/videoStorageService';
 

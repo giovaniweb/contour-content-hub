@@ -1,41 +1,52 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { EditableVideo, BatchActionResult } from './types';
-import { updateEquipmentInfo } from './equipmentOperations';
+import type { EditableVideo } from './types';
 
-export const saveVideoChanges = async (video: EditableVideo): Promise<BatchActionResult> => {
+export const loadVideosData = async () => {
   try {
-    // Update basic video properties
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('videos_storage')
-      .update({
-        title: video.editTitle,
-        description: video.editDescription,
-        tags: video.editTags
-      })
-      .eq('id', video.id);
+      .select('*')
+      .order('created_at', { ascending: false });
       
     if (error) {
-      console.error('Error updating video:', error);
-      return { success: false, error: 'Falha ao atualizar informações do vídeo.' };
+      throw error;
     }
     
-    // If equipment changed, update metadata
-    if (video.editEquipmentId !== video.originalEquipmentId) {
-      const result = await updateEquipmentInfo(video.id, video.editEquipmentId);
-      if (!result.success) {
-        return { success: false, error: result.error };
-      }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error loading videos:", error);
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+export const saveVideoData = async (videoId: string, updates: Partial<EditableVideo>) => {
+  try {
+    // Extract only updatable fields
+    const { title, description, tags, metadata } = updates;
+    
+    const { error } = await supabase
+      .from('videos_storage')
+      .update({ 
+        title, 
+        description, 
+        tags,
+        metadata
+      })
+      .eq('id', videoId);
+      
+    if (error) {
+      throw error;
     }
     
     return { success: true };
   } catch (error) {
-    console.error('Error in saveVideoChanges:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado ao salvar mudanças.' };
+    console.error("Error saving video:", error);
+    return { success: false, error: (error as Error).message };
   }
 };
 
-export const deleteVideo = async (videoId: string): Promise<BatchActionResult> => {
+export const deleteVideo = async (videoId: string) => {
   try {
     const { error } = await supabase
       .from('videos_storage')
@@ -43,35 +54,15 @@ export const deleteVideo = async (videoId: string): Promise<BatchActionResult> =
       .eq('id', videoId);
       
     if (error) {
-      console.error('Error deleting video:', error);
-      return { success: false, error: 'Falha ao excluir vídeo.' };
+      throw error;
     }
     
     return { success: true };
   } catch (error) {
-    console.error('Error in deleteVideo:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado ao excluir vídeo.' };
+    console.error("Error deleting video:", error);
+    return { success: false, error: (error as Error).message };
   }
 };
 
-export const deleteVideos = async (videoIds: string[]): Promise<BatchActionResult> => {
-  try {
-    const { error, count } = await supabase
-      .from('videos_storage')
-      .delete({ count: 'exact' })
-      .in('id', videoIds);
-      
-    if (error) {
-      console.error('Error batch deleting videos:', error);
-      return { success: false, error: 'Falha ao excluir vídeos.' };
-    }
-    
-    return { 
-      success: true, 
-      affectedCount: count || 0 
-    };
-  } catch (error) {
-    console.error('Error in deleteVideos:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado ao excluir vídeos em lote.' };
-  }
-};
+// Alias for backward compatibility
+export const deleteVideoData = deleteVideo;

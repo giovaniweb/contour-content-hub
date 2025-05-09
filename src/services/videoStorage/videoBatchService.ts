@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { VideoQueueItem } from '@/types/video-storage';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +19,8 @@ export const batchUploadVideos = async (
     
     try {
       // Skip items that are already processed
-      if (item.status === 'complete' || item.status === 'error') {
+      if (item.status === "complete" || item.status === "error") {
+        console.log(`Skipping item ${item.id} because it's already ${item.status}`);
         continue;
       }
       
@@ -71,19 +71,14 @@ export const batchUploadVideos = async (
       }
       
       // Upload the file with progress tracking
-      const { error: uploadError } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('videos')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: ({ loaded, total }) => {
-            const progress = (loaded / total) * 100;
-            onProgress(i, progress);
-          },
         });
       
-      if (uploadError) {
-        throw new Error(`Error uploading file: ${uploadError.message}`);
+      if (error) {
+        throw new Error(`Error uploading file: ${error.message}`);
       }
       
       // Get URL to the uploaded file

@@ -247,4 +247,6 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   );
 };
 
+// Export as default and named export for backward compatibility
 export default VideoPlayerModal;
+export { VideoPlayerModal };

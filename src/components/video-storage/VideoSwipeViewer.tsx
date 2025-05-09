@@ -1,10 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ThumbsUp, X } from 'lucide-react';
 import { StoredVideo } from '@/types/video-storage';
-import { useVideoSwipePlayer } from '@/hooks/use-video-swipe-player';
+import { cn } from '@/lib/utils';
+import { ThumbsDown, ThumbsUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { VideoPlayerControls } from '@/components/video-player/VideoPlayerControls';
 
 interface VideoSwipeViewerProps {
@@ -28,6 +26,7 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
     progress,
     showControls,
     videoRef,
+    containerRef,
     handleTimeUpdate,
     handleVideoEnded,
     togglePlay,
@@ -50,6 +49,41 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
       </div>
     );
   }
+
+  const handleTogglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(error => {
+          console.error('Error playing video:', error);
+        });
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleToggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleToggleFullscreen = () => {
+    if (!containerRef.current) return;
+    
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+    
+    // Need to update the isFullscreen state based on document.fullscreenElement
+    setIsFullscreen(!isFullscreen);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -78,17 +112,10 @@ const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
                   isPlaying={isPlaying}
                   isMuted={isMuted}
                   showControls={showControls}
-                  currentVideo={currentIndex}
-                  totalVideos={videos.length}
-                  onTogglePlay={togglePlay}
-                  onToggleMute={toggleMute}
-                  onToggleFullscreen={toggleFullscreen}
-                  onNext={() => handleSkip(currentVideo)}
-                  onPrevious={() => {
-                    if (currentIndex > 0) {
-                      // Logic to go to previous video would be here
-                    }
-                  }}
+                  isFullscreen={isFullscreen}
+                  onTogglePlay={handleTogglePlay}
+                  onToggleMute={handleToggleMute}
+                  onToggleFullscreen={handleToggleFullscreen}
                 />
               )}
             </div>
