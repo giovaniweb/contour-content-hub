@@ -119,15 +119,16 @@ export const itemVariants: Variants = {
   }
 };
 
-export const staggerChildren: Variants = {
+// Function to create staggerChildren variants with customizable delay
+export const staggerChildren = (delay: number = 0.1): Variants => ({
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: delay
     }
   }
-};
+});
 
 // New animation for the idea validator
 export const glowingContainerVariants: Variants = {

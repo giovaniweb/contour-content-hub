@@ -157,7 +157,8 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
         </motion.div>
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         .parallax-section {
           background: linear-gradient(45deg, rgba(0,148,251,0.1), rgba(243,0,252,0.1));
           overflow: hidden;
@@ -170,7 +171,8 @@ const FuturisticParallaxSection: React.FC<FuturisticParallaxSectionProps> = ({
           will-change: transform;
           transition: transform 0.1s ease-out;
         }
-      `}</style>
+        `}
+      </style>
     </section>
   );
 };

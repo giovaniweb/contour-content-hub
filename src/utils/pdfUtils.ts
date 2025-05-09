@@ -1,123 +1,105 @@
 
 /**
- * Utilidades para trabalhar com arquivos PDF
+ * Utility functions for handling PDF files
  */
 
+interface ProcessedUrl {
+  processedUrl: string;
+  isValid: boolean;
+}
+
 /**
- * Verifica se uma URL é um PDF válido
- * @param url URL para verificar
- * @returns boolean indicando se a URL parece ser um PDF válido
+ * Processes a PDF URL to ensure it's in the correct format for display
  */
-export const isPdfUrlValid = (url?: string): boolean => {
+export const processPdfUrl = (url: string): ProcessedUrl => {
+  if (!url) {
+    return { processedUrl: '', isValid: false };
+  }
+
+  try {
+    // Check if URL is already a PDF viewer URL
+    if (url.includes('docs.google.com/viewer') || url.includes('mozilla.github.io/pdf.js')) {
+      return { processedUrl: url, isValid: true };
+    }
+
+    // If it's a direct PDF link, wrap it in Google Docs Viewer
+    if (url.toLowerCase().endsWith('.pdf') || url.includes('application/pdf')) {
+      // Use Google Docs Viewer as fallback
+      const processedUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+      return { processedUrl, isValid: true };
+    }
+
+    // If it doesn't look like a PDF link, return as is
+    return { processedUrl: url, isValid: true };
+  } catch (error) {
+    console.error('Error processing PDF URL:', error);
+    return { processedUrl: '', isValid: false };
+  }
+};
+
+/**
+ * Checks if a URL is a valid PDF URL
+ */
+export const isPdfUrlValid = (url: string): boolean => {
   if (!url) return false;
   
-  // Verificar se a string é uma URL válida
   try {
-    new URL(url);
-  } catch (e) {
+    if (url.toLowerCase().endsWith('.pdf')) return true;
+    if (url.includes('application/pdf')) return true;
+    if (url.includes('docs.google.com/viewer') && url.includes('.pdf')) return true;
+    
+    return false;
+  } catch (error) {
+    console.error('Error validating PDF URL:', error);
     return false;
   }
-  
-  // Verificar se parece ser uma URL de PDF (termina com .pdf ou tem application/pdf no path)
-  return url.toLowerCase().endsWith('.pdf') || 
-         url.toLowerCase().includes('application/pdf') || 
-         url.toLowerCase().includes('pdf=true') ||
-         url.toLowerCase().includes('pdf/');
 };
 
 /**
- * Processa uma URL de PDF para garantir que ela seja exibível
- * @param url URL original do PDF
- * @returns Um objeto com a URL processada
+ * Opens a PDF in a new tab
  */
-export const processPdfUrl = (url?: string) => {
+export const openPdfInNewTab = (url: string, title?: string): void => {
   if (!url) {
-    return { processedUrl: null };
+    throw new Error('URL é obrigatória');
   }
-  
-  // Verificar se é uma URL válida
-  let processedUrl;
-  try {
-    // Criar um objeto URL para validar
-    const urlObj = new URL(url);
-    
-    // Verificar se é um serviço que requer tratamento especial
-    if (urlObj.hostname.includes('dropbox.com')) {
-      // Para Dropbox, trocar dl=0 por dl=1 para forçar download/visualização direta
-      processedUrl = url.replace(/dl=0/g, 'dl=1');
-      
-      // Se não tiver dl= na URL, adicionar
-      if (!processedUrl.includes('dl=')) {
-        processedUrl += processedUrl.includes('?') ? '&dl=1' : '?dl=1';
-      }
-    } else if (urlObj.hostname.includes('drive.google.com') && url.includes('view')) {
-      // Para Google Drive, modificar para formato de visualização de PDF
-      processedUrl = url.replace('/view', '/preview');
-    } else {
-      // Para outras URLs, manter como está
-      processedUrl = url;
-    }
-    
-    return { processedUrl };
-  } catch (error) {
-    console.error("URL inválida:", url, error);
-    return { processedUrl: null };
-  }
-};
 
-/**
- * Abre o PDF em uma nova aba do navegador
- * @param url URL do arquivo PDF
- * @param title Título da página
- */
-export const openPdfInNewTab = (url: string, title: string): void => {
-  // Abrir em uma nova aba
   const newWindow = window.open(url, '_blank');
   
-  // Verificar se o navegador bloqueou a abertura da janela/aba
-  if (newWindow === null) {
-    console.error("O navegador bloqueou a abertura da janela/aba");
-    throw new Error("O navegador bloqueou a abertura da nova janela. Por favor, permita popups para este site.");
+  if (!newWindow) {
+    throw new Error('Não foi possível abrir uma nova aba. Verifique se o navegador está bloqueando pop-ups.');
   }
-  
-  // Definir o título da página se a janela foi aberta
-  if (newWindow) {
+
+  if (newWindow && title) {
     newWindow.document.title = title;
   }
 };
 
 /**
- * Faz o download do arquivo PDF
- * @param url URL do arquivo PDF
- * @param filename Nome do arquivo para download
+ * Downloads a PDF file
  */
-export const downloadPdf = async (url: string, filename: string): Promise<void> => {
+export const downloadPdf = async (url: string, filename?: string): Promise<void> => {
+  if (!url) {
+    throw new Error('URL é obrigatória');
+  }
+
   try {
-    // Fazer o fetch do arquivo
     const response = await fetch(url);
-    
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    // Converter para blob
     const blob = await response.blob();
-    
-    // Criar um URL para o blob
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    // Criar um link temporário e disparar o download
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    
-    // Limpar
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(blobUrl);
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = downloadUrl;
+    a.download = filename || 'document.pdf';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(a);
   } catch (error) {
-    console.error('Erro ao baixar o PDF:', error);
-    throw error;
+    console.error('Error downloading PDF:', error);
+    throw new Error('Não foi possível fazer o download do arquivo.');
   }
 };

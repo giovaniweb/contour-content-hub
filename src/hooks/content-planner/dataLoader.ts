@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { ContentPlannerColumn, ContentPlannerFilter } from '@/types/content-planner';
+import { ContentPlannerColumn, ContentPlannerFilter, ContentPlannerItem } from '@/types/content-planner';
 import { mockItems } from './initialState';
 
 export function useDataLoader(

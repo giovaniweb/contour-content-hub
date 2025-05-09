@@ -1,5 +1,5 @@
 
-import { ContentPlannerState } from "@/types/content-planner";
+import { ContentPlannerState, ContentPlannerItem } from "@/types/content-planner";
 
 // Initial state for the content planner
 export const initialState: ContentPlannerState = {
@@ -27,17 +27,25 @@ export const initialColumns = [
   { id: 'done', title: 'Concluído' }
 ];
 
-// Mock items for development and testing
-export const mockItems = [
+// Updated mock items to match ContentPlannerItem interface
+export const mockItems: ContentPlannerItem[] = [
   {
     id: '1',
     title: 'Post sobre tratamento facial',
     description: 'Explicação sobre o novo tratamento de rejuvenescimento',
     date: '2023-10-15',
-    status: 'scheduled',
+    status: 'idea',
     type: 'post',
     tags: ['facial', 'rejuvenescimento'],
     assignedTo: 'Dr. Silva',
+    format: 'vídeo',
+    objective: 'Educacional',
+    distribution: 'Instagram',
+    authorId: 'user1',
+    authorName: 'Dr. Silva',
+    createdAt: '2023-10-01',
+    updatedAt: '2023-10-01',
+    aiGenerated: false,
     media: [
       {
         type: 'image',
@@ -51,10 +59,18 @@ export const mockItems = [
     title: 'Vídeo demonstrativo de preenchimento',
     description: 'Vídeo curto mostrando a técnica de preenchimento labial',
     date: '2023-10-18',
-    status: 'draft',
+    status: 'script_generated',
     type: 'video',
     tags: ['preenchimento', 'labial', 'técnica'],
     assignedTo: 'Dra. Oliveira',
+    format: 'vídeo',
+    objective: 'Tutorial',
+    distribution: 'YouTube',
+    authorId: 'user2',
+    authorName: 'Dra. Oliveira',
+    createdAt: '2023-10-05',
+    updatedAt: '2023-10-10',
+    aiGenerated: true,
     media: [
       {
         type: 'video',
@@ -68,10 +84,18 @@ export const mockItems = [
     title: 'Promoção de Botox',
     description: 'Anúncio da promoção mensal de Botox',
     date: '2023-10-25',
-    status: 'published',
+    status: 'approved',
     type: 'promotion',
     tags: ['botox', 'promoção', 'desconto'],
     assignedTo: 'Marketing',
+    format: 'carrossel',
+    objective: 'Promocional',
+    distribution: 'Múltiplos',
+    authorId: 'user3',
+    authorName: 'Equipe de Marketing',
+    createdAt: '2023-10-12',
+    updatedAt: '2023-10-15',
+    aiGenerated: false,
     media: [
       {
         type: 'image',
@@ -89,6 +113,14 @@ export const mockItems = [
     type: 'live',
     tags: ['cuidados', 'pós-procedimento', 'instagram'],
     assignedTo: 'Dra. Costa',
+    format: 'vídeo',
+    objective: 'Educacional',
+    distribution: 'Instagram',
+    authorId: 'user4',
+    authorName: 'Dra. Costa',
+    createdAt: '2023-10-20',
+    updatedAt: '2023-10-25',
+    aiGenerated: false,
     media: []
   },
   {
@@ -96,10 +128,18 @@ export const mockItems = [
     title: 'Artigo sobre novas tecnologias',
     description: 'Artigo para o blog sobre as novas tecnologias em estética',
     date: '2023-11-10',
-    status: 'draft',
+    status: 'published',
     type: 'article',
     tags: ['tecnologia', 'inovação', 'estética'],
     assignedTo: 'Dr. Mendes',
+    format: 'texto',
+    objective: 'Informativo',
+    distribution: 'Blog',
+    authorId: 'user5',
+    authorName: 'Dr. Mendes',
+    createdAt: '2023-10-25',
+    updatedAt: '2023-11-05',
+    aiGenerated: true,
     media: []
   }
 ];

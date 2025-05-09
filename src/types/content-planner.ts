@@ -49,3 +49,20 @@ export interface ContentPlannerFilter {
     to?: Date;
   };
 }
+
+export interface ContentPlannerState {
+  items: ContentPlannerItem[];
+  loading: boolean;
+  error: null | string;
+  selectedItem: null | ContentPlannerItem;
+  selectedDate: null | Date;
+  view: string;
+  filters: {
+    status: string;
+    type: string;
+    search: string;
+  };
+  isModalOpen: boolean;
+  modalType: null | string;
+  modalData: null | any;
+}

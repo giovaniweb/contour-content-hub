@@ -119,7 +119,8 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
         </Button>
       </form>
 
-      <style jsx>{`
+      <style>
+        {`
         .typing-input {
           width: 100%;
           padding: 1.2rem 1.5rem;
@@ -169,7 +170,8 @@ const ParallaxPrompt: React.FC<ParallaxPromptProps> = ({ onSubmit, isSubmitting 
           opacity: 0.5;
           cursor: not-allowed;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
