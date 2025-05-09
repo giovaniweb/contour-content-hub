@@ -37,7 +37,7 @@ export const batchUpdateEquipment = async (
       // Prepare updated metadata
       const currentMetadata = data.metadata || {};
       const updatedMetadata = {
-        ...currentMetadata,
+        ...Object.assign({}, currentMetadata), // Use Object.assign to handle different types
         equipment_id: equipmentId,
         equipment_name: equipmentName || ''
       };
@@ -46,7 +46,7 @@ export const batchUpdateEquipment = async (
       const { error: updateError } = await supabase
         .from('videos_storage')
         .update({
-          metadata: updatedMetadata as any // Type assertion to satisfy Json type
+          metadata: updatedMetadata
         })
         .eq('id', videoId);
 

@@ -1,95 +1,94 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { EditableVideo, UseBatchVideoManageResult } from './video-batch/types';
-import { transformStoredVideosToEditable } from './video-batch/transformUtils';
-import { batchDeleteVideos } from './video-batch/videoOperations';
-import { batchUpdateEquipment } from './video-batch/equipmentOperations';
+import { StoredVideo } from '@/types/video-storage';
 import { Equipment } from '@/types/equipment';
+import { useBatchVideoStore } from './video-batch/videoBatchStore';
+import { loadVideosData, batchUpdateEquipment } from './video-batch/videoBatchOperations';
+import { batchDeleteVideos } from './video-batch/videoOperations';
+import { EditableVideo } from './video-batch/types';
+import { useAuth } from './useAuth';
+import { useToast } from './use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface UseBatchVideoManageResult {
+  videos: EditableVideo[];
+  loading: boolean;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedVideos: string[];
+  setSelectedVideos: (ids: string[]) => void;
+  batchEquipmentId: string;
+  setBatchEquipmentId: (id: string) => void;
+  showBatchEditDialog: boolean;
+  setShowBatchEditDialog: (show: boolean) => void;
+  loadVideos: () => Promise<void>;
+  handleSelectAll: () => void;
+  handleSelect: (videoId: string) => void;
+  handleEdit: (videoId: string) => void;
+  handleUpdate: (index: number, updates: Partial<EditableVideo>) => void;
+  handleSave: (videoId: string) => Promise<void>;
+  handleCancel: (videoId: string) => void;
+  handleDelete: (videoId: string) => Promise<void>;
+  handleBatchDelete: () => Promise<void>;
+  handleBatchEquipmentUpdate: () => Promise<void>;
+  isAdmin: () => boolean;
+  equipments: Equipment[];
+}
 
 export const useBatchVideoManage = (): UseBatchVideoManageResult => {
-  const [videos, setVideos] = useState<EditableVideo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [batchEquipmentId, setBatchEquipmentId] = useState('');
   const [showBatchEditDialog, setShowBatchEditDialog] = useState(false);
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
-
+  const { videos, loading, setVideos, setLoading, setError } = useBatchVideoStore();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const loadVideos = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from('videos_storage')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
+      const result = await loadVideosData();
+      if (result.success && result.data) {
+        const editableVideos = result.data.map(video => ({
+          id: video.id,
+          title: video.title,
+          description: video.description,
+          status: video.status,
+          tags: video.tags,
+          isEditing: false,
+          editTitle: video.title,
+          editDescription: video.description || '',
+          editEquipmentId: video.metadata?.equipment_id || '',
+          editTags: video.tags,
+          originalEquipmentId: video.metadata?.equipment_id,
+          metadata: video.metadata,
+          url: video.file_urls?.original
+        }));
+        setVideos(editableVideos);
+      } else {
+        setError(result.error || 'Failed to load videos');
+        toast({
+          title: "Erro ao carregar vídeos",
+          description: result.error || 'Failed to load videos',
+          variant: "destructive"
+        });
       }
-
-      // Transform the videos to our editable format with proper casting
-      const editableVideos = transformStoredVideosToEditable(data as any || []);
-      setVideos(editableVideos);
-    } catch (error) {
-      console.error('Error loading videos:', error);
+    } catch (error: any) {
+      setError(error.message || 'An unexpected error occurred');
       toast({
-        variant: 'destructive',
-        title: 'Erro ao carregar vídeos',
-        description: 'Não foi possível carregar os vídeos. Tente novamente mais tarde.'
+        title: "Erro inesperado",
+        description: error.message || 'An unexpected error occurred',
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
-
-  // Load equipments for the dropdown
-  const loadEquipments = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('equipamentos')
-        .select('*')
-        .order('nome');
-
-      if (error) {
-        throw error;
-      }
-
-      // Transform supabase data to match the Equipment interface
-      const transformedEquipments: Equipment[] = (data || []).map(item => ({
-        id: item.id,
-        nome: item.nome,
-        descricao: item.descricao || '',
-        categoria: item.categoria || '',
-        tecnologia: item.tecnologia || '',
-        beneficios: item.beneficios || '',
-        diferenciais: item.diferenciais || '',
-        linguagem: item.linguagem || '',
-        indicacoes: Array.isArray(item.indicacoes) ? item.indicacoes : 
-                  typeof item.indicacoes === 'string' ? [item.indicacoes] : [],
-        ativo: item.ativo,
-        image_url: item.image_url,
-        data_cadastro: item.data_cadastro,
-        efeito: item.efeito,
-      }));
-
-      setEquipments(transformedEquipments);
-    } catch (error) {
-      console.error('Error loading equipments:', error);
-    }
-  }, []);
+  }, [setLoading, setVideos, setError, toast]);
 
   useEffect(() => {
     loadVideos();
-    loadEquipments();
-  }, [loadVideos, loadEquipments]);
+  }, [loadVideos]);
 
-  // Video selection handlers
   const handleSelectAll = () => {
     if (selectedVideos.length === videos.length) {
       setSelectedVideos([]);
@@ -99,200 +98,238 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
   };
 
   const handleSelect = (videoId: string) => {
-    setSelectedVideos(prev => 
-      prev.includes(videoId) 
-        ? prev.filter(id => id !== videoId) 
-        : [...prev, videoId]
-    );
+    if (selectedVideos.includes(videoId)) {
+      setSelectedVideos(selectedVideos.filter(id => id !== videoId));
+    } else {
+      setSelectedVideos([...selectedVideos, videoId]);
+    }
   };
 
-  // Video editing handlers
   const handleEdit = (videoId: string) => {
-    setVideos(prev => 
-      prev.map(video => 
-        video.id === videoId 
-          ? { ...video, isEditing: true } 
-          : video
+    setVideos(prevVideos =>
+      prevVideos.map(video =>
+        video.id === videoId ? { ...video, isEditing: true } : video
       )
     );
   };
 
   const handleUpdate = (index: number, updates: Partial<EditableVideo>) => {
-    setVideos(prev => {
-      const newVideos = [...prev];
+    setVideos(prevVideos => {
+      const newVideos = [...prevVideos];
       newVideos[index] = { ...newVideos[index], ...updates };
       return newVideos;
     });
   };
 
   const handleSave = async (videoId: string) => {
+    setLoading(true);
     try {
-      const videoIndex = videos.findIndex(v => v.id === videoId);
-      if (videoIndex === -1) return;
+      const videoIndex = videos.findIndex(video => video.id === videoId);
+      if (videoIndex === -1) {
+        throw new Error('Video not found');
+      }
 
-      const video = videos[videoIndex];
+      const videoToUpdate = videos[videoIndex];
+      const updatedMetadata = {
+        ...videoToUpdate.metadata,
+        equipment_id: videoToUpdate.editEquipmentId,
+      };
+
       const { error } = await supabase
         .from('videos_storage')
         .update({
-          title: video.editTitle,
-          description: video.editDescription,
-          tags: video.editTags,
-          metadata: {
-            ...video.metadata,
-            equipment_id: video.editEquipmentId
-          }
+          title: videoToUpdate.editTitle,
+          description: videoToUpdate.editDescription,
+          tags: videoToUpdate.editTags,
+          metadata: updatedMetadata,
         })
         .eq('id', videoId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating video:', error);
+        toast({
+          title: "Erro ao salvar vídeo",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
 
-      setVideos(prev => 
-        prev.map(v => 
-          v.id === videoId 
-            ? { 
-                ...v, 
-                title: v.editTitle, 
-                description: v.editDescription,
-                tags: v.editTags,
+      setVideos(prevVideos =>
+        prevVideos.map(video =>
+          video.id === videoId
+            ? {
+                ...video,
+                title: video.editTitle,
+                description: video.editDescription,
+                tags: video.editTags,
                 isEditing: false,
-                metadata: {
-                  ...v.metadata,
-                  equipment_id: v.editEquipmentId
-                }
-              } 
-            : v
+                metadata: updatedMetadata,
+                originalEquipmentId: videoToUpdate.editEquipmentId,
+              }
+            : video
         )
       );
-
       toast({
-        title: 'Vídeo atualizado',
-        description: 'As alterações foram salvas com sucesso.',
+        title: "Vídeo atualizado",
+        description: "Vídeo atualizado com sucesso!",
       });
-    } catch (error) {
-      console.error('Error saving video:', error);
+    } catch (error: any) {
+      console.error('Error updating video:', error);
       toast({
-        variant: 'destructive',
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar as alterações. Tente novamente.'
+        title: "Erro ao atualizar vídeo",
+        description: error.message,
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = (videoId: string) => {
-    setVideos(prev => 
-      prev.map(video => 
-        video.id === videoId 
-          ? { ...video, isEditing: false, editTitle: video.title, editDescription: video.description || '', editTags: video.tags || [], editEquipmentId: video.originalEquipmentId || '' } 
-          : video
+    setVideos(prevVideos =>
+      prevVideos.map(video =>
+        video.id === videoId ? {
+          ...video,
+          isEditing: false,
+          editTitle: video.title,
+          editDescription: video.description || '',
+          editEquipmentId: video.originalEquipmentId || '',
+          editTags: video.tags,
+        } : video
       )
     );
   };
 
   const handleDelete = async (videoId: string) => {
+    setLoading(true);
     try {
-      const success = await batchDeleteVideos([videoId]);
-
-      if (!success) {
-        throw new Error('Failed to delete video');
-      }
-
-      setVideos(prev => prev.filter(video => video.id !== videoId));
+      await batchDeleteVideos([videoId]);
+      setVideos(prevVideos => prevVideos.filter(video => video.id !== videoId));
+      setSelectedVideos(prevSelected => prevSelected.filter(id => id !== videoId));
       toast({
-        title: 'Vídeo excluído',
-        description: 'O vídeo foi excluído com sucesso.',
+        title: "Vídeo excluído",
+        description: "Vídeo excluído com sucesso!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting video:', error);
       toast({
-        variant: 'destructive',
-        title: 'Erro ao excluir',
-        description: 'Não foi possível excluir o vídeo. Tente novamente.'
+        title: "Erro ao excluir vídeo",
+        description: error.message,
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleBatchDelete = async () => {
-    if (selectedVideos.length === 0) return;
-
+    setLoading(true);
     try {
-      const success = await batchDeleteVideos(selectedVideos);
-
-      if (!success) {
-        throw new Error('Failed to delete videos');
-      }
-
-      setVideos(prev => prev.filter(video => !selectedVideos.includes(video.id)));
+      await batchDeleteVideos(selectedVideos);
+      setVideos(prevVideos => prevVideos.filter(video => !selectedVideos.includes(video.id)));
       setSelectedVideos([]);
       toast({
-        title: 'Vídeos excluídos',
-        description: `${selectedVideos.length} vídeos foram excluídos com sucesso.`,
+        title: "Vídeos excluídos",
+        description: "Vídeos excluídos com sucesso!",
       });
-    } catch (error) {
-      console.error('Error batch deleting videos:', error);
+    } catch (error: any) {
+      console.error('Error deleting videos:', error);
       toast({
-        variant: 'destructive',
-        title: 'Erro ao excluir',
-        description: 'Não foi possível excluir os vídeos. Tente novamente.'
+        title: "Erro ao excluir vídeos",
+        description: error.message,
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleBatchEquipmentUpdate = async () => {
-    if (selectedVideos.length === 0 || !batchEquipmentId) return;
-
+    setLoading(true);
     try {
-      // Find equipment name from equipments list
-      const equipment = equipments.find(eq => eq.id === batchEquipmentId);
-      const equipmentName = equipment?.nome;
-
-      const success = await batchUpdateEquipment(
-        selectedVideos, 
-        batchEquipmentId,
-        equipmentName
-      );
-
-      if (!success) {
-        throw new Error('Failed to update videos');
+      const success = await batchUpdateEquipment(selectedVideos, batchEquipmentId);
+      if (success) {
+        setVideos(prevVideos =>
+          prevVideos.map(video =>
+            selectedVideos.includes(video.id) ? {
+              ...video,
+              metadata: {
+                ...video.metadata,
+                equipment_id: batchEquipmentId,
+              },
+              originalEquipmentId: batchEquipmentId,
+              editEquipmentId: batchEquipmentId,
+            } : video
+          )
+        );
+        setShowBatchEditDialog(false);
+        setSelectedVideos([]);
+        toast({
+          title: "Equipamentos atualizados",
+          description: "Equipamentos atualizados com sucesso!",
+        });
+      } else {
+        toast({
+          title: "Erro ao atualizar equipamentos",
+          description: "Ocorreu um erro ao atualizar os equipamentos.",
+          variant: "destructive"
+        });
       }
-
-      // Update local state
-      setVideos(prev => 
-        prev.map(video => 
-          selectedVideos.includes(video.id) 
-            ? { 
-                ...video, 
-                editEquipmentId: batchEquipmentId,
-                originalEquipmentId: batchEquipmentId,
-                metadata: {
-                  ...video.metadata,
-                  equipment_id: batchEquipmentId,
-                  equipment_name: equipmentName
-                }
-              } 
-            : video
-        )
-      );
-      
-      setShowBatchEditDialog(false);
+    } catch (error: any) {
+      console.error('Error updating equipment:', error);
       toast({
-        title: 'Equipamentos atualizados',
-        description: `${selectedVideos.length} vídeos foram atualizados com sucesso.`,
+        title: "Erro ao atualizar equipamentos",
+        description: error.message,
+        variant: "destructive"
       });
-    } catch (error) {
-      console.error('Error batch updating videos:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao atualizar',
-        description: 'Não foi possível atualizar os vídeos. Tente novamente.'
-      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const isAdmin = () => {
-    // Simple admin check based on user email
-    return user?.email?.endsWith('@admin.com') || true; // For demo purposes, all users are admins
+  // Fetch equipments with types based on your specific schema
+  const fetchEquipments = async (): Promise<Equipment[]> => {
+    const { data, error } = await supabase
+      .from('equipamentos')
+      .select('*')
+      .order('nome');
+      
+    if (error) {
+      console.error('Error fetching equipments:', error);
+      return [];
+    }
+
+    // Transform the data to match the Equipment type
+    const equipmentsList: Equipment[] = data.map(item => ({
+      id: item.id,
+      nome: item.nome,
+      descricao: item.descricao || '',  // Provide default values for required fields
+      categoria: item.categoria || '',   // Provide default values for required fields
+      tecnologia: item.tecnologia,
+      beneficios: item.beneficios,
+      diferenciais: item.diferenciais,
+      linguagem: item.linguagem,
+      indicacoes: Array.isArray(item.indicacoes) 
+        ? item.indicacoes 
+        : typeof item.indicacoes === 'string'
+          ? [item.indicacoes]
+          : [],  // Convert string to array or use empty array as default
+      ativo: item.ativo,
+      image_url: item.image_url,
+      data_cadastro: item.data_cadastro,
+      efeito: item.efeito
+    }));
+
+    return equipmentsList;
   };
 
+  // Use the fetchEquipments function in your useQuery
+  const { data: equipments = [] } = useQuery({
+    queryKey: ['equipments'],
+    queryFn: fetchEquipments
+  });
+  
   return {
     videos,
     loading,

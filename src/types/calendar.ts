@@ -42,3 +42,11 @@ export interface CalendarSettings {
   preferences: CalendarPreferences;
   resources: CalendarResource[];
 }
+
+export interface CalendarSuggestion {
+  id: string;
+  title: string;
+  format: 'video' | 'story' | 'image';
+  completed: boolean;
+  date?: Date;
+}

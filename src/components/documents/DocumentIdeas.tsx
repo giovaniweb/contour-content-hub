@@ -2,20 +2,19 @@
 import React from 'react';
 import { TechnicalDocument } from '@/types/document';
 
-export interface DocumentIdeasProps {
+interface DocumentIdeasProps {
+  document: TechnicalDocument;
   className?: string;
-  document?: TechnicalDocument;
 }
 
-const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className, document }) => {
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document, className }) => {
   return (
     <div className={className}>
-      <h3 className="text-lg font-medium mb-4">Ideias Relacionadas</h3>
-      <div className="space-y-3">
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Nenhuma ideia relacionada encontrada para este documento.
-        </p>
-      </div>
+      <h3 className="text-lg font-semibold mb-4">Ideias geradas para este documento</h3>
+      <p className="text-muted-foreground">
+        As ideias para este documento ainda estão sendo geradas. 
+        Volte mais tarde para ver sugestões de conteúdo baseado neste documento.
+      </p>
     </div>
   );
 };
