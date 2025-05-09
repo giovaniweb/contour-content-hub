@@ -1,9 +1,9 @@
 
 export interface ParallaxCard {
-  image: string;
   title: string;
   description: string;
-  link?: string;
+  image: string;
+  link: string;
 }
 
 export interface ParallaxSectionProps {
@@ -13,7 +13,7 @@ export interface ParallaxSectionProps {
   cards: ParallaxCard[];
   ctaText?: string;
   ctaLink?: string;
-  textAlignment?: 'left' | 'center';
+  textAlignment?: 'left' | 'center' | 'right';
   darkOverlay?: boolean;
   className?: string;
   interactive?: boolean;
@@ -21,8 +21,10 @@ export interface ParallaxSectionProps {
   onPromptSubmit?: (prompt: string) => void;
 }
 
-export interface InteractivePromptProps {
-  phrases: string[];
-  onSubmit: (prompt: string) => void;
-  className?: string;
+export interface FloatingCardProps {
+  image: string;
+  title: string;
+  description: string;
+  link: string;
+  delay?: number;
 }

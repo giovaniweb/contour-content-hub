@@ -18,10 +18,10 @@ export const colors = {
     glassmorphism: "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
   },
   state: {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    warning: "bg-amber-500",
-    info: "bg-fluida-blue"
+    success: "bg-green-500 text-white",
+    error: "bg-red-500 text-white",
+    warning: "bg-amber-500 text-white",
+    info: "bg-fluida-blue text-white"
   }
 };
 
@@ -67,3 +67,29 @@ export const responsive = {
   container: "container mx-auto px-4 sm:px-6 lg:px-8"
 };
 
+// Animation presets
+export const animations = {
+  fadeIn: "animate-fade-in",
+  scaleIn: "animate-scale-in",
+  hover: "transition-all duration-200 hover:-translate-y-1 hover:shadow-md",
+  active: "active:scale-95 transition-transform",
+  pulse: "animate-pulse"
+};
+
+// Media breakpoints for consistent responsive design
+export const breakpoints = {
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1280px',
+  '2xl': '1536px',
+};
+
+// Common layout patterns
+export const layouts = {
+  sectionPadding: "py-8 px-4 sm:py-12 sm:px-6 lg:py-16",
+  cardGrid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6",
+  flexBetween: "flex items-center justify-between",
+  flexCenter: "flex items-center justify-center",
+  flexColumn: "flex flex-col",
+};

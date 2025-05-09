@@ -1,68 +1,49 @@
 
 import React from 'react';
+import { FileVideo, BookOpen, BookOpenCheck, FileText, Images } from 'lucide-react';
 import QuickAccessCard from './QuickAccessCard';
-import { FileText, Video, ListTodo, Settings, CalendarDays, Film, Lightbulb } from 'lucide-react';
+import { layouts } from '@/lib/design-system';
 
 const QuickAccessGrid: React.FC = () => {
   const quickAccessItems = [
     {
-      title: 'Roteiros',
-      description: 'Crie e gerencie roteiros personalizados para seus vídeos',
+      title: "Biblioteca de Vídeos",
+      description: "Acesse demonstrações, tutoriais e casos reais de tratamentos",
+      icon: FileVideo,
+      iconColor: "text-blue-600",
+      linkTo: "/videos",
+      linkText: "Ver Vídeos"
+    },
+    {
+      title: "Artigos Científicos",
+      description: "Estudos, papers e evidências sobre tratamentos e tecnologias",
+      icon: BookOpenCheck,
+      iconColor: "text-green-600",
+      linkTo: "/articles",
+      linkText: "Ler Artigos"
+    },
+    {
+      title: "Gerador de Roteiros",
+      description: "Crie facilmente roteiros para seus vídeos de conteúdo",
       icon: FileText,
-      iconColor: 'text-blue-500',
-      linkTo: '/custom-gpt',
-      linkText: 'Acessar Roteiros'
+      iconColor: "text-purple-600",
+      linkTo: "/script-generator",
+      linkText: "Criar Roteiro"
     },
     {
-      title: 'Biblioteca de Vídeos',
-      description: 'Acesse sua coleção de vídeos e gerencie seu conteúdo',
-      icon: Video,
-      iconColor: 'text-purple-500',
-      linkTo: '/video-storage',
-      linkText: 'Acessar Vídeos'
-    },
-    {
-      title: 'Estratégia de Conteúdo',
-      description: 'Planeje e organize suas estratégias de marketing',
-      icon: ListTodo,
-      iconColor: 'text-green-500',
-      linkTo: '/content-strategy',
-      linkText: 'Acessar Estratégias'
-    },
-    {
-      title: 'Equipamentos',
-      description: 'Gerencie seus equipamentos e tecnologias',
-      icon: Settings,
-      iconColor: 'text-amber-500',
-      linkTo: '/equipments',
-      linkText: 'Gerenciar Equipamentos'
-    },
-    {
-      title: 'Agenda',
-      description: 'Gerencie seu calendário e agendamentos',
-      icon: CalendarDays,
-      iconColor: 'text-red-500',
-      linkTo: '/calendar',
-      linkText: 'Acessar Agenda'
-    },
-    {
-      title: 'Mídia',
-      description: 'Gerencie sua biblioteca de mídia e arquivos',
-      icon: Film,
-      iconColor: 'text-indigo-500',
-      linkTo: '/media',
-      linkText: 'Acessar Mídia'
+      title: "Banco de Imagens",
+      description: "Imagens profissionais para usar em suas publicações",
+      icon: Images,
+      iconColor: "text-amber-600",
+      linkTo: "/media-library",
+      linkText: "Explorar Imagens"
     }
   ];
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Lightbulb className="h-6 w-6 text-amber-500" />
-        Acesso rápido
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="container mx-auto">
+      <h2 className="text-2xl font-bold mb-6">Acesso Rápido</h2>
+      <div className={layouts.cardGrid}>
         {quickAccessItems.map((item, index) => (
           <QuickAccessCard
             key={index}

@@ -1,209 +1,294 @@
 
 import React from "react";
 import Layout from "@/components/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Video, Image as ImageIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import ParallaxSection from "@/components/ui/parallax/ParallaxSection";
-import { isPdfUrlValid, openPdfInNewTab, downloadPdf } from "@/utils/pdfUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileVideo, BookOpen, FileImage, ArrowUpRight } from "lucide-react";
+import { LazyImage } from "@/components/ui/lazy-image";
+import { layouts } from "@/lib/design-system";
+
+// Real-looking content for the media library
+const featuredVideos = [
+  {
+    id: "vid1",
+    title: "Demonstração da Tecnologia Adella",
+    description: "Veja como utilizar o laser Adella em tratamentos faciais",
+    thumbnailUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+    viewCount: 567
+  },
+  {
+    id: "vid2",
+    title: "Tutorial de Ultralift para Iniciantes",
+    description: "Aprenda todos os passos para tratamentos com Ultralift",
+    thumbnailUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    viewCount: 423
+  },
+  {
+    id: "vid3",
+    title: "Resultados Antes e Depois: Hipro",
+    description: "Demonstração de casos reais com resultados impressionantes",
+    thumbnailUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+    viewCount: 389
+  }
+];
+
+const popularDocuments = [
+  {
+    id: "doc1",
+    title: "Guia de Protocolos para Adella",
+    description: "Protocolos completos para diferentes tratamentos",
+    thumbnailUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    downloadCount: 218
+  },
+  {
+    id: "doc2",
+    title: "Manual Técnico do Ultralift",
+    description: "Especificações e instruções detalhadas",
+    thumbnailUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    downloadCount: 176
+  },
+  {
+    id: "doc3",
+    title: "Formulário de Consentimento",
+    description: "Modelo para uso com pacientes",
+    thumbnailUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+    downloadCount: 145
+  }
+];
+
+const beforeAfterImages = [
+  {
+    id: "img1",
+    title: "Rejuvenescimento Facial",
+    description: "Resultado após 3 sessões com Adella",
+    thumbnailUrl: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21",
+    downloadCount: 132
+  },
+  {
+    id: "img2",
+    title: "Tratamento para Rugas",
+    description: "Resultado após 5 sessões com Hipro",
+    thumbnailUrl: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843",
+    downloadCount: 97
+  },
+  {
+    id: "img3",
+    title: "Redução de Olheiras",
+    description: "Resultado após protocolo combinado",
+    thumbnailUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    downloadCount: 85
+  }
+];
 
 const MediaLibraryPage: React.FC = () => {
-  const [selectedDocument, setSelectedDocument] = React.useState<{ title: string; url: string } | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-
-  const handlePreviewPdf = (title: string, url: string) => {
-    if (isPdfUrlValid(url)) {
-      setSelectedDocument({ title, url });
-      setIsDialogOpen(true);
-    } else {
-      console.error("URL de PDF inválida:", url);
-    }
-  };
-
-  const handleDownloadPdf = (title: string, url: string) => {
-    if (isPdfUrlValid(url)) {
-      downloadPdf(url, `${title}.pdf`)
-        .then(() => console.log("Download iniciado com sucesso"))
-        .catch(error => console.error("Erro ao baixar PDF:", error));
-    } else {
-      console.error("URL de PDF inválida para download:", url);
-    }
-  };
-
-  // Example video cards for the parallax section
-  const videoCards = [
-    {
-      title: "Técnicas Avançadas de Tratamento Facial",
-      description: "Aprenda as técnicas mais recentes para tratamentos faciais profissionais",
-      image: "/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png",
-      link: "/videos/facial-treatment"
-    },
-    {
-      title: "Workshop de Harmonização Facial",
-      description: "Workshop completo sobre técnicas de harmonização e preenchimento",
-      image: "/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png",
-      link: "/videos/facial-harmony"
-    },
-    {
-      title: "Recursos Estéticos Corporais",
-      description: "Conheça os principais equipamentos e procedimentos para estética corporal",
-      image: "/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png",
-      link: "/videos/body-aesthetics"
-    }
-  ];
+  const navigate = useNavigate();
   
+  const handleNavigateToDetailed = (type: string) => {
+    navigate(`/media-library?type=${type}`);
+  };
+
   return (
     <Layout title="Biblioteca de Mídia">
-      <div className="container mx-auto py-6 space-y-6">
-        <h1 className="text-2xl font-bold">Biblioteca de Mídia</h1>
+      <div className="container mx-auto py-8">
+        {/* Hero section */}
+        <section className="rounded-2xl overflow-hidden bg-gradient-to-r from-fluida-blue to-fluida-pink relative mb-12">
+          <div className="absolute inset-0 bg-black/50 z-0"></div>
+          <div className="relative z-10 p-8 sm:p-12 text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4">Biblioteca de Mídia Fluida</h1>
+            <p className="text-lg sm:text-xl max-w-2xl mb-8">
+              Acesse vídeos profissionais, imagens de alta qualidade e documentos exclusivos para impulsionar sua presença online e aumentar a confiança de seus pacientes.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" variant="default" className="bg-white text-fluida-blue hover:bg-white/90">
+                Explorar Conteúdo
+              </Button>
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                Como Utilizar
+              </Button>
+            </div>
+          </div>
+        </section>
         
-        {/* Parallax Section for Videos Highlight */}
-        <ParallaxSection
-          backgroundImage="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
-          title="Vídeos Educacionais Premium"
-          description="Acesse nossa coleção exclusiva de vídeos técnicos e tutoriais para profissionais de estética"
-          cards={videoCards}
-          ctaText="Ver Todos os Vídeos"
-          ctaLink="#videos"
-          className="mb-8"
-        />
-        
-        <Tabs defaultValue="videos" id="videos">
-          <TabsList>
-            <TabsTrigger value="videos" className="flex items-center gap-2">
-              <Video className="h-4 w-4" />
-              <span>Vídeos</span>
-            </TabsTrigger>
-            <TabsTrigger value="images" className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              <span>Imagens</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span>Documentos</span>
-            </TabsTrigger>
+        {/* Content categories */}
+        <Tabs defaultValue="videos" className="mb-12">
+          <TabsList className="mb-8">
+            <TabsTrigger value="videos" className="px-6 py-3">Vídeos</TabsTrigger>
+            <TabsTrigger value="images" className="px-6 py-3">Imagens</TabsTrigger>
+            <TabsTrigger value="documents" className="px-6 py-3">Documentos</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="videos" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 9 }).map((_, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden">
-                      <div className="aspect-video bg-muted relative">
-                        <img 
-                          src={`/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png`}
-                          alt={`Video ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-                            <Video className="h-6 w-6 text-primary" />
-                          </div>
-                        </div>
+          <TabsContent value="videos" className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold">Vídeos em Destaque</h2>
+                <p className="text-muted-foreground">
+                  Demonstrações profissionais e tutoriais detalhados
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => handleNavigateToDetailed('videos')}
+                className="flex items-center gap-1"
+              >
+                Ver Todos <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className={layouts.cardGrid}>
+              {featuredVideos.map((video) => (
+                <Card key={video.id} className="hover-lift overflow-hidden">
+                  <LazyImage 
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    aspectRatio="video"
+                    className="w-full h-48 object-cover"
+                    fallbackSrc="https://images.unsplash.com/photo-1615729947596-a598e5de0ab3"
+                  />
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-2">
+                      <div className="p-2 rounded-full bg-blue-100">
+                        <FileVideo className="h-4 w-4 text-blue-500" />
                       </div>
-                      <div className="p-3">
-                        <h3 className="font-medium text-sm">Vídeo de Tratamento Facial {index + 1}</h3>
-                        <p className="text-xs text-muted-foreground">Duração: 2:45 • Adicionado: 12/05/2025</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="images" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {Array.from({ length: 12 }).map((_, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden group cursor-pointer">
-                      <div className="aspect-square bg-muted relative">
-                        <img 
-                          src={`/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png`}
-                          alt={`Image ${index + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <div className="p-2">
-                        <p className="text-xs truncate">imagem_{index + 1}.png</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="documents" className="mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="border rounded-lg p-4 flex gap-3 hover:bg-muted/50 transition-colors">
-                      <FileText className="h-10 w-10 text-blue-500 flex-shrink-0" />
                       <div>
-                        <h3 className="font-medium">Documento {index + 1}</h3>
-                        <p className="text-xs text-muted-foreground">PDF • 2.4MB • Adicionado: 10/05/2025</p>
-                        <div className="flex gap-2 mt-2">
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Relatório</span>
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Cliente</span>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handlePreviewPdf(`Documento ${index + 1}`, `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`)}
-                          >
-                            Visualizar
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDownloadPdf(`Documento ${index + 1}`, `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`)}
-                          >
-                            Download
-                          </Button>
-                        </div>
+                        <h3 className="font-medium line-clamp-1">{video.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{video.description}</p>
+                        <div className="text-xs text-muted-foreground">{video.viewCount} visualizações</div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="images" className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold">Imagens Antes e Depois</h2>
+                <p className="text-muted-foreground">
+                  Resultados comprovados para compartilhar com seus pacientes
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => handleNavigateToDetailed('images')}
+                className="flex items-center gap-1"
+              >
+                Ver Todas <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className={layouts.cardGrid}>
+              {beforeAfterImages.map((image) => (
+                <Card key={image.id} className="hover-lift overflow-hidden">
+                  <LazyImage 
+                    src={image.thumbnailUrl}
+                    alt={image.title}
+                    aspectRatio="video"
+                    className="w-full h-48 object-cover"
+                    fallbackSrc="https://images.unsplash.com/photo-1615729947596-a598e5de0ab3"
+                  />
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-2">
+                      <div className="p-2 rounded-full bg-purple-100">
+                        <FileImage className="h-4 w-4 text-purple-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium line-clamp-1">{image.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{image.description}</p>
+                        <div className="text-xs text-muted-foreground">{image.downloadCount} downloads</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="documents" className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold">Documentos Populares</h2>
+                <p className="text-muted-foreground">
+                  Guias, protocolos e materiais técnicos para download
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => handleNavigateToDetailed('documents')}
+                className="flex items-center gap-1"
+              >
+                Ver Todos <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className={layouts.cardGrid}>
+              {popularDocuments.map((doc) => (
+                <Card key={doc.id} className="hover-lift overflow-hidden">
+                  <LazyImage 
+                    src={doc.thumbnailUrl}
+                    alt={doc.title}
+                    aspectRatio="video"
+                    className="w-full h-48 object-cover"
+                    fallbackSrc="https://images.unsplash.com/photo-1615729947596-a598e5de0ab3"
+                  />
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-2">
+                      <div className="p-2 rounded-full bg-amber-100">
+                        <BookOpen className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium line-clamp-1">{doc.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{doc.description}</p>
+                        <div className="text-xs text-muted-foreground">{doc.downloadCount} downloads</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Content creation guidance */}
+        <section className="bg-muted rounded-xl p-6 mb-12">
+          <h2 className="text-2xl font-bold mb-4">Como Utilizar este Conteúdo</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                  <span className="text-blue-600 font-bold text-lg">1</span>
+                </div>
+                <CardTitle>Escolha o Material</CardTitle>
+                <CardDescription>Navegue pelos vídeos, imagens e documentos disponíveis</CardDescription>
+              </CardHeader>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                  <span className="text-purple-600 font-bold text-lg">2</span>
+                </div>
+                <CardTitle>Faça o Download</CardTitle>
+                <CardDescription>Baixe o conteúdo para usar em suas mídias</CardDescription>
+              </CardHeader>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                  <span className="text-green-600 font-bold text-lg">3</span>
+                </div>
+                <CardTitle>Compartilhe</CardTitle>
+                <CardDescription>Publique nas redes sociais ou envie para seus pacientes</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
       </div>
-
-      {/* PDF Preview Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>{selectedDocument?.title}</DialogTitle>
-            <DialogDescription>
-              <div className="flex justify-end mb-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => selectedDocument && openPdfInNewTab(selectedDocument.url, selectedDocument.title)}
-                >
-                  Abrir em Nova Aba
-                </Button>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          {selectedDocument && (
-            <iframe
-              src={selectedDocument.url}
-              className="w-full h-full border-0"
-              title={selectedDocument.title}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };
