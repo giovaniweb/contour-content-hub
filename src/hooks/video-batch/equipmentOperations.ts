@@ -1,134 +1,121 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { EditableVideo } from './types';
-import { VideoMetadataSchema } from '@/types/video-storage';
 
-// Create a VideoMetadataSchema constant since it should be a value, not just a type
-const VideoMetadataSchemaValue = {
-  equipment_id: "",
-  equipment_name: ""
-};
+interface Equipment {
+  id: string;
+  nome: string;
+}
 
-export const updateEquipmentAssociationForVideo = async (videoId: string, equipmentId: string, equipmentName: string) => {
+export const saveVideoEquipment = async (videoId: string, equipmentId: string | null) => {
   try {
-    // Get current video data to extract existing metadata
+    // Get existing video data
     const { data: videoData, error: fetchError } = await supabase
-      .from('videos_storage')
+      .from('videos')
       .select('metadata')
       .eq('id', videoId)
       .single();
-      
+    
     if (fetchError) {
       throw fetchError;
     }
     
-    // Create updated metadata
-    const existingMetadata = videoData?.metadata || {};
-    const updatedMetadata = {
-      ...existingMetadata,
-      equipment_id: equipmentId,
-      equipment_name: equipmentName
-    };
+    // Parse existing metadata or create new
+    let metadata = videoData?.metadata ? 
+      (typeof videoData.metadata === 'string' ? JSON.parse(videoData.metadata) : videoData.metadata) : 
+      {};
     
-    // Update video with new metadata
-    const { error: updateError } = await supabase
-      .from('videos_storage')
-      .update({ metadata: updatedMetadata })
-      .eq('id', videoId);
+    if (equipmentId) {
+      // Get equipment details
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from('equipamentos')
+        .select('id, nome')
+        .eq('id', equipmentId)
+        .single();
       
-    if (updateError) {
-      throw updateError;
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating equipment association:", error);
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-export const removeEquipmentAssociationFromVideo = async (videoId: string) => {
-  try {
-    // Get current video data to extract existing metadata
-    const { data: videoData, error: fetchError } = await supabase
-      .from('videos_storage')
-      .select('metadata')
-      .eq('id', videoId)
-      .single();
+      if (equipmentError) {
+        throw equipmentError;
+      }
       
-    if (fetchError) {
-      throw fetchError;
-    }
-    
-    // Create updated metadata without equipment info
-    const existingMetadata = videoData?.metadata || {};
-    const { equipment_id, equipment_name, ...restMetadata } = existingMetadata;
-    
-    // Update video with new metadata
-    const { error: updateError } = await supabase
-      .from('videos_storage')
-      .update({ metadata: restMetadata })
-      .eq('id', videoId);
-      
-    if (updateError) {
-      throw updateError;
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Error removing equipment association:", error);
-    return { success: false, error: (error as Error).message };
-  }
-};
-
-export const updateEquipmentAssociation = async (videoId: string, equipmentId: string, equipmentName: string) => {
-  // Check if we're removing equipment
-  if (!equipmentId) {
-    return removeEquipmentAssociationFromVideo(videoId);
-  }
-  
-  // Otherwise update with new equipment
-  return updateEquipmentAssociationForVideo(videoId, equipmentId, equipmentName);
-};
-
-export const batchUpdateEquipmentAssociation = async (videoIds: string[], equipmentId: string, equipmentName: string) => {
-  try {
-    let successCount = 0;
-    let failCount = 0;
-    
-    // Process each video one by one
-    for (const videoId of videoIds) {
-      const result = await updateEquipmentAssociation(videoId, equipmentId, equipmentName);
-      
-      if (result.success) {
-        successCount++;
-      } else {
-        failCount++;
-        console.error(`Failed to update equipment for video ${videoId}:`, result.error);
+      // Update metadata with equipment info
+      metadata = {
+        ...metadata,
+        equipment_id: equipmentData.id,
+        equipment_name: equipmentData.nome
+      };
+    } else {
+      // Remove equipment info if null
+      if (metadata && typeof metadata === 'object') {
+        const { equipment_id, equipment_name, ...rest } = metadata as any;
+        metadata = rest;
       }
     }
     
-    return {
-      success: failCount === 0,
-      error: failCount > 0 ? `Failed to update ${failCount} videos` : undefined,
-      successCount,
-      failCount,
-      affectedCount: successCount
-    };
-  } catch (error) {
-    console.error("Error in batch equipment update:", error);
-    return {
-      success: false,
-      error: (error as Error).message,
-      successCount: 0,
-      failCount: videoIds.length,
-      affectedCount: 0
-    };
+    // Update video with new metadata
+    const { error: updateError } = await supabase
+      .from('videos')
+      .update({ equipment_id: equipmentId, metadata })
+      .eq('id', videoId);
+    
+    if (updateError) {
+      throw updateError;
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error saving equipment:', error);
+    return { success: false, error: error.message };
   }
 };
 
-export const getEquipmentFromVideo = (video: EditableVideo) => {
-  return {
-    id: video.metadata?.equipment_id || '',
-    name: video.metadata?.equipment_name || ''
-  };
+export const batchUpdateEquipment = async (
+  videoIds: string[], 
+  equipmentId: string, 
+  equipments: Equipment[]
+): Promise<{ successCount: number, failCount: number }> => {
+  let successCount = 0;
+  let failCount = 0;
+  
+  // Find the equipment name
+  const equipment = equipments.find(e => e.id === equipmentId);
+  
+  // Process each video
+  for (const videoId of videoIds) {
+    try {
+      // Get the current video data
+      const { data: videoData, error: getError } = await supabase
+        .from('videos')
+        .select('*')
+        .eq('id', videoId)
+        .single();
+        
+      if (getError) {
+        failCount++;
+        continue;
+      }
+      
+      // Update the video
+      const { error: updateError } = await supabase
+        .from('videos')
+        .update({ 
+          equipment_id: equipmentId === 'none' ? null : equipmentId,
+          metadata: {
+            ...(typeof videoData.metadata === 'object' ? videoData.metadata : {}),
+            equipment_id: equipmentId === 'none' ? null : equipmentId,
+            equipment_name: equipment?.nome || null
+          }
+        })
+        .eq('id', videoId);
+      
+      if (updateError) {
+        failCount++;
+      } else {
+        successCount++;
+      }
+    } catch (error) {
+      failCount++;
+    }
+  }
+  
+  return { successCount, failCount };
 };

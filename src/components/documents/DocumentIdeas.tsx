@@ -1,9 +1,10 @@
 
 import React from 'react';
+import { TechnicalDocument } from '@/types/document';
 
 interface DocumentIdeasProps {
   className?: string;
-  document?: any; // Allow document prop
+  document?: TechnicalDocument; 
 }
 
 const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className, document }) => {

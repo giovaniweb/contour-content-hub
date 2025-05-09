@@ -1,6 +1,6 @@
 
-import { StoredVideo } from '@/types/video-storage';
-import type { VideoMetadata } from '@/types/video-storage';
+import { MarketingObjectiveType } from '@/types/script';
+import { Equipment } from '@/types/equipment';
 
 export interface EditableVideo {
   id: string;
@@ -14,33 +14,9 @@ export interface EditableVideo {
   editEquipmentId: string;
   editTags: string[];
   originalEquipmentId?: string;
-  metadata?: VideoMetadata;
-}
-
-export interface Equipment {
-  id: string;
-  nome: string;
-}
-
-export interface VideoListProps {
-  videos: EditableVideo[];
-  selectedVideos: string[];
-  equipments: Equipment[];
-  onSelect: (videoId: string) => void;
-  onSelectAll: () => void;
-  onEdit: (videoId: string) => void;
-  onSave: (videoId: string) => Promise<void>;
-  onCancel: (videoId: string) => void;
-  onDelete: (videoId: string) => void;
-  onUpdateVideo: (index: number, updates: Partial<EditableVideo>) => void;
-}
-
-export interface BatchActionResult {
-  success: boolean;
-  error?: string;
-  affectedCount?: number;
-  successCount?: number;
-  failCount?: number;
+  metadata?: any;
+  url?: string;
+  marketingObjective?: MarketingObjectiveType;
 }
 
 export interface UseBatchVideoManageResult {
@@ -65,15 +41,5 @@ export interface UseBatchVideoManageResult {
   handleBatchDelete: () => Promise<void>;
   handleBatchEquipmentUpdate: () => Promise<void>;
   isAdmin: () => boolean;
-  equipments: Equipment[];
-}
-
-// Additional types needed for state management
-export interface BatchVideoState {
-  videos: EditableVideo[];
-  filteredVideos: EditableVideo[];
-  searchQuery: string;
-  loading: boolean;
-  selectedVideos: string[];
   equipments: Equipment[];
 }

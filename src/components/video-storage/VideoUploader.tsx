@@ -22,6 +22,12 @@ import { Navigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define an interface for equipment
+interface Equipment {
+  id: string;
+  nome: string;
+}
+
 interface VideoUploaderProps {
   onUploadComplete?: (videoId: string) => void;
   onCancel?: () => void;
@@ -42,7 +48,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [equipment, setEquipment] = useState<string>(equipmentId || 'none');
-  const [equipmentOptions, setEquipmentOptions] = useState<{ id: string; nome: string }[]>([]);
+  const [equipmentOptions, setEquipmentOptions] = useState<Equipment[]>([]);
 
   // Fetch equipment options
   useEffect(() => {
@@ -206,21 +212,25 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
 
     // Add equipment to tags if selected
     let videoTags = [...tags];
-    let equipmentId = equipment === 'none' ? null : equipment;
+    let selectedEquipmentId = equipment === 'none' ? null : equipment;
     
-    if (equipmentId) {
-      const selectedEquipment = equipmentOptions.find(eq => eq.id === equipmentId);
+    if (selectedEquipmentId) {
+      const selectedEquipment = equipmentOptions.find(eq => eq.id === selectedEquipmentId);
       if (selectedEquipment && !videoTags.includes(selectedEquipment.nome)) {
         videoTags.push(selectedEquipment.nome);
       }
     }
 
-    const metadata = JSON.stringify({
-      equipment_id: equipment?.id || "",
-      equipment_name: equipment?.nome || "",
-      original_filename: file.name,
+    // Create metadata object that matches Json type requirements
+    const metadataObj = {
+      equipment_id: selectedEquipmentId || "",
+      equipment_name: equipmentOptions.find(eq => eq.id === selectedEquipmentId)?.nome || "",
+      original_filename: file.name
       // Include other metadata as needed
-    });
+    };
+
+    // Convert to string for storage (Json type often requires string serialization)
+    const metadata = JSON.stringify(metadataObj);
 
     const result = await uploadVideo(
       file, 
@@ -234,7 +244,8 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
           message: `Enviando arquivo: ${Math.round(progress)}%`
         }));
       },
-      isPublic
+      isPublic,
+      metadata // Pass the serialized metadata
     );
 
     if (result.success && result.videoId) {
@@ -247,15 +258,12 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({ onUploadComplete, onCance
       }));
       
       // If we have an equipment ID, link the video to it
-      if (equipmentId) {
+      if (selectedEquipmentId) {
         try {
           // Update the videos_storage record to include equipment info
           await supabase.from('videos_storage')
             .update({ 
-              metadata: { 
-                ...result.metadata,
-                equipment_id: equipmentId 
-              } 
+              metadata: metadataObj // Use the metadata object
             })
             .eq('id', result.videoId);
         } catch (error) {

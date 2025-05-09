@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -8,7 +9,7 @@ import {
   loadVideosData, 
   saveVideoData, 
   deleteVideoData, 
-  batchUpdateEquipment, 
+  batchUpdateEquipment,
   batchDeleteVideos 
 } from './video-batch/videoOperations';
 
@@ -40,6 +41,7 @@ export const useBatchVideoManage = (): UseBatchVideoManageResult => {
     try {
       setLoading(true);
       const editableVideos = await loadVideosData();
+      // Fixed: Ensure we're getting EditableVideo[] type
       setVideos(editableVideos);
     } catch (error: any) {
       toast({

@@ -1,8 +1,8 @@
-
 export interface VideoFile {
   original?: string;
   hd?: string;
   sd?: string;
+  web_optimized?: string; // Add this property
 }
 
 export interface VideoMetadata {

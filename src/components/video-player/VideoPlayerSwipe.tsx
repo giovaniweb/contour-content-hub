@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import VideoSwipeViewer from '@/components/video-storage/VideoSwipeViewer';
@@ -18,6 +18,26 @@ export const VideoPlayerSwipe: React.FC<VideoPlayerSwipeProps> = ({
   onSkip, 
   onEnd 
 }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const handleNext = () => {
+    if (currentIndex < videos.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      onEnd();
+    }
+  };
+  
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+  
+  const handleClose = () => {
+    onEnd();
+  };
+  
   return (
     <Layout>
       <div className="container mx-auto py-6">
@@ -31,12 +51,20 @@ export const VideoPlayerSwipe: React.FC<VideoPlayerSwipeProps> = ({
         <div className="h-[70vh] w-full max-w-3xl mx-auto overflow-hidden bg-black rounded-xl">
           <VideoSwipeViewer 
             videos={videos}
-            onLike={onLike}
-            onSkip={onSkip}
-            onEnd={onEnd}
+            currentIndex={currentIndex}
+            onClose={handleClose}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            // Custom handlers for this component
+            customHandlers={{
+              onLike,
+              onSkip
+            }}
           />
         </div>
       </div>
     </Layout>
   );
 };
+
+export default VideoPlayerSwipe;

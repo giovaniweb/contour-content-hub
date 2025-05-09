@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import {
   Card,
@@ -23,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { TechnicalDocument } from '@/types/document';
 import { downloadPdfFile } from '@/services/documentService';
+import DocumentIdeas from './DocumentIdeas'; // Import DocumentIdeas component
 
 interface DocumentContentProps {
   document: TechnicalDocument;
@@ -145,7 +145,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
           </div>
         </ScrollArea>
       ) : (
-        <DocumentIdeas document={document} />
+        <DocumentIdeas document={document} className="p-6" />
       )}
     </Card>
   );
