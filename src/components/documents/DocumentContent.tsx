@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import {
   Card,
@@ -153,6 +154,7 @@ const DocumentContent: React.FC<DocumentContentProps> = ({ document }) => {
 
 export default DocumentContent;
 
+// Define the Check component since it's used in the original file
 const Check = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

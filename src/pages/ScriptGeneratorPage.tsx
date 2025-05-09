@@ -15,6 +15,10 @@ import ScriptToPlannerModal from '@/components/script-generator/ScriptToPlannerM
 interface ScriptGeneratorState {
   ideaText?: string;
   objective?: 'emotion' | 'sales';
+  validatedIdea?: {
+    topic: string;
+    validationScore: number;
+  };
 }
 
 interface FormData {

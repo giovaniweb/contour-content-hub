@@ -55,7 +55,6 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        // Use custom icons without the incorrect IconLeft/IconRight properties
         IconNext: () => <ChevronRight className="h-4 w-4" />,
         IconPrev: () => <ChevronLeft className="h-4 w-4" />,
       }}
