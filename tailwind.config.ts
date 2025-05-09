@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -87,7 +86,10 @@ export default {
 					white: '#FFFFFF',
 					// Accent (from Fluida)
 					accent: '#f300fc',
-				}
+				},
+				// Add these to the theme.extend.colors section
+				'fluida-blue': '#0094FB',
+				'fluida-pink': '#F300FC',
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],

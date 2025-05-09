@@ -20,6 +20,7 @@ import MediaLibraryPage from '@/pages/MediaLibraryPage';
 import MediaFilesPage from '@/pages/MediaFilesPage';
 import ContentPage from '@/pages/ContentPage';
 import ScriptGenerator from '@/pages/ScriptGenerator';
+import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
 
 // Admin Pages
 import AdminDashboard from '@/pages/AdminDashboard';
@@ -101,7 +102,7 @@ function App() {
           path="/script-generator" 
           element={
             <PageLoader>
-              <ScriptGenerator />
+              <ScriptGeneratorPage />
             </PageLoader>
           } 
         />

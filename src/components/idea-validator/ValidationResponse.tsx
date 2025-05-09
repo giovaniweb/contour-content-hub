@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MessageSquare } from 'lucide-react';
+import { ArrowRight, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -105,7 +105,8 @@ const ValidationResponse: React.FC<ValidationResponseProps> = ({ ideaText, objec
                   onClick={handleCreateScript}
                   className="bg-gradient-to-r from-fluida-blue to-fluida-pink hover:opacity-90 text-white px-6 py-6 rounded-full text-lg font-medium flex items-center gap-2"
                 >
-                  Criar roteiro agora
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Criar roteiro com Fluida
                   <ArrowRight className="ml-1 h-5 w-5" />
                 </Button>
               </div>
