@@ -5,9 +5,10 @@ import { Lightbulb } from 'lucide-react';
 
 interface DocumentIdeasProps {
   className?: string;
+  document?: any; // Adding document prop since it's being passed in DocumentContent
 }
 
-const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className }) => {
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ className, document }) => {
   // Mock data for document ideas
   const ideas = [
     "Como o equipamento X pode ajudar nos tratamentos Y?",

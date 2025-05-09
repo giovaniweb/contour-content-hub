@@ -1,19 +1,15 @@
+
 import * as React from "react"
-import { Calendar as CalendarPrimitive } from "react-day-picker"
+import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 
-export type CalendarProps = React.ComponentProps<typeof CalendarPrimitive>
+export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
   ({ className, classNames, showOutsideDays = true, ...props }, ref) => {
-    const customComponents: Partial<CalendarPrimitive.Components> = {
-      // Remove IconLeft and IconNext which are causing TypeScript errors
-      // Just pass the necessary components that are accepted by the date-picker
-    }
-
     return (
-      <CalendarPrimitive
+      <DayPicker
         ref={ref}
         className={cn(
           "p-3",

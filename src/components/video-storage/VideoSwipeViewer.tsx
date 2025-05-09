@@ -1,153 +1,185 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { StoredVideo } from '@/types/video-storage';
-import { cn } from '@/lib/utils';
-import { ThumbsDown, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { X } from 'lucide-react';
+import { StoredVideo } from '@/types/video-storage';
 import { VideoPlayerControls } from '@/components/video-player/VideoPlayerControls';
 
 interface VideoSwipeViewerProps {
   videos: StoredVideo[];
-  onLike?: (video: StoredVideo) => void;
-  onSkip?: (video: StoredVideo) => void;
-  onEnd?: () => void;
+  currentIndex: number;
+  onClose: () => void;
+  onNext: () => void;
+  onPrevious: () => void;
 }
 
-const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({ 
-  videos, 
-  onLike, 
-  onSkip,
-  onEnd
+const VideoSwipeViewer: React.FC<VideoSwipeViewerProps> = ({
+  videos,
+  currentIndex,
+  onClose,
+  onNext,
+  onPrevious
 }) => {
-  const {
-    currentIndex,
-    currentVideo,
-    isPlaying,
-    isMuted,
-    progress,
-    showControls,
-    videoRef,
-    containerRef,
-    handleTimeUpdate,
-    handleVideoEnded,
-    togglePlay,
-    toggleMute,
-    toggleFullscreen,
-    handleLike,
-    handleSkip,
-    handleContainerClick
-  } = useVideoSwipePlayer(videos, {
-    onLike,
-    onSkip,
-    onEnd,
-    autoPlay: true
-  });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const currentVideo = videos[currentIndex];
 
-  if (!videos.length) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <p>Nenhum vídeo disponível.</p>
-      </div>
-    );
-  }
-
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.addEventListener('timeupdate', handleTimeUpdate);
+      videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+      videoRef.current.addEventListener('play', () => setIsPlaying(true));
+      videoRef.current.addEventListener('pause', () => setIsPlaying(false));
+    }
+    
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+        videoRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      }
+    };
+  }, [videoRef.current]);
+  
+  useEffect(() => {
+    resetControlsTimeout();
+    if (videoRef.current) {
+      setIsPlaying(false);
+    }
+  }, [currentIndex]);
+  
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+  
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+  
   const handleTogglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play().catch(error => {
-          console.error('Error playing video:', error);
-        });
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying);
     }
   };
-
+  
   const handleToggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
   };
-
+  
   const handleToggleFullscreen = () => {
-    if (!containerRef.current) return;
-    
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+  
+  const handleSeek = (percent: number) => {
+    if (videoRef.current && duration) {
+      const seekTime = duration * percent;
+      videoRef.current.currentTime = seekTime;
+    }
+  };
+  
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
     }
     
-    // Need to update the isFullscreen state based on document.fullscreenElement
-    setIsFullscreen(!isFullscreen);
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
-
+  
+  const handleMouseMove = () => {
+    resetControlsTimeout();
+  };
+  
+  const videoUrl = currentVideo?.file_urls?.web_optimized || '';
+  
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 relative bg-black">
-        {videos.map((video, index) => (
-          <div
-            key={video.id}
-            className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${
-              index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-            }`}
-            onClick={index === currentIndex ? handleContainerClick : undefined}
-          >
-            <div className="relative w-full h-full">
-              <video
-                ref={index === currentIndex ? videoRef : undefined}
-                src={video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd}
-                className="w-full h-full object-contain"
-                poster={video.thumbnail_url}
-                muted={isMuted}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleVideoEnded}
-              />
-              
-              {index === currentIndex && (
-                <VideoPlayerControls 
-                  isPlaying={isPlaying}
-                  isMuted={isMuted}
-                  showControls={showControls}
-                  isFullscreen={isFullscreen}
-                  onTogglePlay={handleTogglePlay}
-                  onToggleMute={handleToggleMute}
-                  onToggleFullscreen={handleToggleFullscreen}
-                />
-              )}
-            </div>
-          </div>
-        ))}
+    <div 
+      className="fixed inset-0 bg-black z-50 flex flex-col"
+      onMouseMove={handleMouseMove}
+      ref={containerRef}
+    >
+      <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 right-0 z-10">
+        <h3 className="text-white text-lg font-medium truncate">{currentVideo?.title}</h3>
+        <Button 
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="text-white"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
-
-      {currentVideo && (
-        <Card className="p-4 mt-4">
-          <h2 className="font-bold text-xl">{currentVideo.title}</h2>
-          <p className="text-muted-foreground mt-1">{currentVideo.description || "Sem descrição."}</p>
-          
-          <div className="flex gap-2 mt-4">
-            <Button 
-              variant="default" 
-              onClick={() => handleLike(currentVideo)}
-              className="flex-1"
-            >
-              <ThumbsUp className="mr-2 h-4 w-4" />
-              Curtir
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={() => handleSkip(currentVideo)}
-              className="flex-1"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Pular
-            </Button>
+      
+      <div className="flex-1 flex items-center justify-center">
+        {videoUrl ? (
+          <div className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-contain"
+              onClick={handleTogglePlay}
+              playsInline
+              autoPlay={false}
+            />
+            
+            <VideoPlayerControls 
+              isPlaying={isPlaying}
+              isMuted={isMuted}
+              showControls={showControls}
+              isFullscreen={isFullscreen}
+              duration={duration}
+              currentTime={currentTime}
+              onTogglePlay={handleTogglePlay}
+              onToggleMute={handleToggleMute}
+              onToggleFullscreen={handleToggleFullscreen}
+              onNext={onNext}
+              onPrevious={onPrevious}
+              onSeek={handleSeek}
+              currentVideo={currentIndex}
+              totalVideos={videos.length}
+            />
           </div>
-        </Card>
-      )}
+        ) : (
+          <Card className="w-full max-w-lg mx-auto">
+            <CardContent className="p-8 text-center">
+              <p>O vídeo não pode ser carregado. URL inválida ou acesso restrito.</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

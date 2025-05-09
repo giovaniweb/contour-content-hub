@@ -20,7 +20,6 @@ export interface ScriptResponse {
   objective?: MarketingObjectiveType;
   suggestedVideos: any[];
   status?: string;
-  // Add missing properties
   pdf_url?: string;
   type?: string;
   marketingObjective?: MarketingObjectiveType;

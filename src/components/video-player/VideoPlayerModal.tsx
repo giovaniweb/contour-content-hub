@@ -1,252 +1,260 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { StoredVideo } from '@/types/video-storage';
-import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
-import VideoInfoOverlay from './VideoInfoOverlay';
-import { VideoPlayerControls } from './VideoPlayerControls';
+import { VideoPlayerControlsProps } from './VideoPlayerControls';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface VideoPlayerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  video: StoredVideo | null;
-  autoPlay?: boolean;
-  onLike?: () => void;
+  videoUrl: string;
+  title?: string;
   onNext?: () => void;
   onPrevious?: () => void;
-  currentIndex?: number;
+  currentVideo?: number;
   totalVideos?: number;
 }
 
 const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   open,
   onOpenChange,
-  video,
-  autoPlay = true,
-  onLike,
+  videoUrl,
+  title,
   onNext,
   onPrevious,
-  currentIndex,
+  currentVideo,
   totalVideos
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [showControls, setShowControls] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(false);
+  const [showControls, setShowControls] = React.useState(true);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
   
-  // Timer for hiding controls
-  const controlsTimerRef = useRef<number | null>(null);
+  const controlsTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   
-  // Reset state when video changes
-  useEffect(() => {
-    if (open && videoRef.current) {
-      setIsLoading(true);
-      setProgress(0);
-      
-      if (autoPlay) {
-        videoRef.current.play().catch(() => {
-          setIsPlaying(false);
-        });
-      }
-      
-      // Show controls initially
-      setShowControls(true);
-      startControlsTimer();
+  React.useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.addEventListener('timeupdate', handleTimeUpdate);
+      videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+      videoRef.current.addEventListener('play', () => setIsPlaying(true));
+      videoRef.current.addEventListener('pause', () => setIsPlaying(false));
     }
-  }, [open, video, autoPlay]);
-  
-  // Set up event listeners for fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement !== null);
-    };
-    
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
     
     return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-  
-  // Clean up timer when component unmounts
-  useEffect(() => {
-    return () => {
-      if (controlsTimerRef.current !== null) {
-        window.clearTimeout(controlsTimerRef.current);
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+        videoRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
       }
     };
-  }, []);
+  }, [videoRef.current]);
   
-  const startControlsTimer = () => {
-    if (controlsTimerRef.current !== null) {
-      window.clearTimeout(controlsTimerRef.current);
+  React.useEffect(() => {
+    if (open) {
+      resetControlsTimeout();
     }
-    
-    if (isPlaying) {
-      controlsTimerRef.current = window.setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
-    }
-  };
+  }, [open]);
   
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-      setProgress(isNaN(progress) ? 0 : progress);
+      setCurrentTime(videoRef.current.currentTime);
     }
   };
   
-  const handleLoadedData = () => {
-    setIsLoading(false);
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
   };
   
-  const togglePlay = () => {
+  const handleTogglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play().catch(() => {
-          console.error('Playback failed');
-        });
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying);
     }
-    
-    // Reset controls timer
-    setShowControls(true);
-    startControlsTimer();
   };
   
-  const toggleMute = () => {
+  const handleToggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
+      videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
-    
-    // Reset controls timer
-    setShowControls(true);
-    startControlsTimer();
   };
   
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-    
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-    
-    // Reset controls timer
-    setShowControls(true);
-    startControlsTimer();
-  };
-  
-  const handleContainerClick = () => {
-    setShowControls(!showControls);
-    if (showControls) {
-      if (controlsTimerRef.current !== null) {
-        window.clearTimeout(controlsTimerRef.current);
-        controlsTimerRef.current = null;
-      }
-    } else {
-      startControlsTimer();
-    }
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
   
   const handleSeek = (percent: number) => {
-    if (videoRef.current) {
-      const seekTime = (percent / 100) * videoRef.current.duration;
+    if (videoRef.current && duration) {
+      const seekTime = duration * percent;
       videoRef.current.currentTime = seekTime;
     }
-    
-    // Reset controls timer
+  };
+  
+  const resetControlsTimeout = () => {
     setShowControls(true);
-    startControlsTimer();
+    
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  };
+  
+  const handleMouseMove = () => {
+    resetControlsTimeout();
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(
-        "p-0 max-w-5xl w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]",
-        isFullscreen ? "fixed inset-0 z-50 max-w-none max-h-none w-screen h-screen" : ""
-      )}>
-        <div 
-          ref={containerRef}
-          className={cn(
-            "relative w-full h-full bg-black overflow-hidden",
-            isFullscreen ? "aspect-auto" : "aspect-video"
-          )}
-          onClick={handleContainerClick}
-        >
-          {isLoading && video && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
-            </div>
-          )}
+      <DialogContent 
+        className="max-w-4xl p-0 overflow-hidden bg-black"
+        onMouseMove={handleMouseMove}
+      >
+        <div className="relative">
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="w-full"
+            onClick={handleTogglePlay}
+            playsInline
+            autoPlay={false}
+          />
           
-          {video ? (
-            <video
-              ref={videoRef}
-              src={video.file_urls?.original || video.file_urls?.hd || video.file_urls?.sd}
-              className="w-full h-full"
-              autoPlay={autoPlay}
-              muted={isMuted}
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedData={handleLoadedData}
-              onEnded={() => {
-                if (onNext) {
-                  onNext();
-                }
-              }}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center">
-              <p className="text-white">Nenhum vídeo selecionado</p>
+          <div className={`absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="flex justify-between items-center">
+              <h3 className="text-white font-medium truncate pr-4">{title}</h3>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/20"
+                onClick={() => onOpenChange(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-          )}
+          </div>
           
-          {!isLoading && video && (
-            <>
-              <VideoInfoOverlay 
-                video={video} 
-                onLike={onLike} 
-                show={showControls} 
-              />
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}">
+            <div className="w-full">
+              <div 
+                className="h-1 bg-gray-600 rounded-full overflow-hidden cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const percent = (e.clientX - rect.left) / rect.width;
+                  handleSeek(percent);
+                }}
+              >
+                <div 
+                  className="h-full bg-white" 
+                  style={{ width: `${(currentTime / duration) * 100}%` }}
+                />
+              </div>
               
-              <VideoPlayerControls 
-                isPlaying={isPlaying}
-                isMuted={isMuted}
-                showControls={showControls}
-                onTogglePlay={togglePlay}
-                onToggleMute={toggleMute}
-                onToggleFullscreen={toggleFullscreen}
-                isFullscreen={isFullscreen}
-                onNext={onNext}
-                onPrevious={onPrevious}
-                currentVideo={currentIndex}
-                totalVideos={totalVideos}
-                duration={videoRef.current?.duration}
-                currentTime={videoRef.current?.currentTime}
-                onSeek={handleSeek}
-              />
-            </>
-          )}
+              {currentTime != null && duration != null && (
+                <div className="flex justify-between text-xs text-white mt-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center space-x-2">
+                {onPrevious && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white hover:bg-white/20"
+                    onClick={onPrevious}
+                    disabled={!onPrevious || (currentVideo !== undefined && currentVideo <= 0)}
+                  >
+                    <span className="sr-only">Previous</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                  </Button>
+                )}
+                
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-white/20"
+                  onClick={handleTogglePlay}
+                >
+                  {isPlaying ? (
+                    <>
+                      <span className="sr-only">Pause</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sr-only">Play</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </>
+                  )}
+                </Button>
+                
+                {onNext && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white hover:bg-white/20"
+                    onClick={onNext}
+                    disabled={!onNext || (currentVideo !== undefined && totalVideos !== undefined && currentVideo >= totalVideos - 1)}
+                  >
+                    <span className="sr-only">Next</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                  </Button>
+                )}
+                
+                {currentVideo !== undefined && totalVideos !== undefined && totalVideos > 0 && (
+                  <span className="text-xs text-white/80">
+                    {currentVideo + 1}/{totalVideos}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-white/20"
+                  onClick={handleToggleMute}
+                >
+                  {isMuted ? (
+                    <>
+                      <span className="sr-only">Unmute</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sr-only">Mute</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-// Export as default and named export for backward compatibility
+// Helper function to format time
+const formatTime = (timeInSeconds: number): string => {
+  const minutes = Math.floor(timeInSeconds / 60);
+  const seconds = Math.floor(timeInSeconds % 60);
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
 export default VideoPlayerModal;
-export { VideoPlayerModal };

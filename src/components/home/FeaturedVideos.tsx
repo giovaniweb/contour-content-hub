@@ -1,123 +1,109 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
+import { PlayIcon } from '@radix-ui/react-icons';
+import { Link } from 'react-router-dom';
 import { StoredVideo } from '@/types/video-storage';
+import { loadVideosData } from '@/hooks/video-batch/basicVideoOperations';
+
+// Fix the import from named to default
 import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { useVideoFeatured } from '@/hooks/use-video-featured';
 
-const FeaturedVideos: React.FC = () => {
-  const [selectedVideo, setSelectedVideo] = useState<StoredVideo | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { videos, isLoading, error } = useVideoFeatured();
-  const navigate = useNavigate();
+interface FeaturedVideosProps {
+  className?: string;
+}
 
-  const handlePlayVideo = (video: StoredVideo) => {
-    setSelectedVideo(video);
-    setIsModalOpen(true);
+const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
+  const [videos, setVideos] = useState<StoredVideo[]>([]);
+  const [open, setOpen] = useState(false);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+  const [selectedVideoTitle, setSelectedVideoTitle] = useState<string | null>(null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      const result = await loadVideosData();
+      if (result.success && result.data) {
+        setVideos(result.data);
+      } else {
+        console.error("Failed to load videos:", result.error);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  const handleOpenVideo = (video: StoredVideo) => {
+    setSelectedVideoUrl(video.file_urls?.web_optimized || null);
+    setSelectedVideoTitle(video.title || null);
+    setCurrentVideoIndex(videos.indexOf(video));
+    setOpen(true);
   };
 
-  const handleViewAllVideos = () => {
-    navigate('/videos');
+  const handleNextVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+    setSelectedVideoUrl(videos[currentVideoIndex].file_urls?.web_optimized || null);
+    setSelectedVideoTitle(videos[currentVideoIndex].title || null);
   };
 
-  if (isLoading) {
-    return (
-      <div className="container space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Vídeos em Destaque</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-[220px] bg-muted rounded-lg"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !videos || videos.length === 0) {
-    return (
-      <div className="container space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Vídeos em Destaque</h2>
-          <Button variant="outline" onClick={handleViewAllVideos}>Ver todos</Button>
-        </div>
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Nenhum vídeo em destaque disponível no momento.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handlePreviousVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex - 1 + videos.length) % videos.length);
+    setSelectedVideoUrl(videos[currentVideoIndex].file_urls?.web_optimized || null);
+    setSelectedVideoTitle(videos[currentVideoIndex].title || null);
+  };
 
   return (
-    <div className="container space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Vídeos em Destaque</h2>
-        <Button variant="outline" onClick={handleViewAllVideos}>Ver todos</Button>
-      </div>
-
-      <Carousel
-        opts={{ loop: true }}
-        className="w-full"
-      >
-        <CarouselContent>
-          {videos.map((video) => (
-            <CarouselItem key={video.id} className="md:basis-1/2 lg:basis-1/3">
-              <div className="p-1">
-                <Card className="overflow-hidden group cursor-pointer border-0 shadow-md hover:shadow-lg transition-all">
-                  <div 
-                    className="relative aspect-video bg-muted"
-                    onClick={() => handlePlayVideo(video)}
-                  >
-                    <img 
-                      src={video.thumbnail_url || '/assets/images/video-placeholder.jpg'} 
-                      alt={video.title} 
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white h-12 w-12"
-                      >
-                        <Play className="h-6 w-6 fill-current" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">{video.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                      {video.description || 'Sem descrição'}
-                    </p>
-                  </CardContent>
-                </Card>
+    <div className={className}>
+      <Card className="border border-gray-100 shadow-sm">
+        <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
+          <CardTitle className="text-lg font-semibold flex items-center text-contourline-darkBlue">
+            Vídeos em Destaque
+          </CardTitle>
+          <Link to="/videos">
+            <Button variant="ghost" size="sm" className="text-contourline-mediumBlue">
+              Ver todos
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent className="pl-4 pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {videos.slice(0, 3).map((video) => (
+              <div key={video.id} className="relative">
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src={video.thumbnail_url}
+                    alt={video.title}
+                    className="object-cover rounded-md cursor-pointer"
+                    onClick={() => handleOpenVideo(video)}
+                  />
+                </div>
+                <div className="absolute bottom-2 left-2 right-2">
+                  <h4 className="text-sm font-medium text-white truncate">{video.title}</h4>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
+                  onClick={() => handleOpenVideo(video)}
+                >
+                  <PlayIcon className="h-4 w-4" />
+                </Button>
               </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="hidden md:flex left-2" />
-        <CarouselNext className="hidden md:flex right-2" />
-      </Carousel>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {selectedVideo && (
-        <VideoPlayerModal 
-          video={selectedVideo}
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-        />
-      )}
+      <VideoPlayerModal
+        open={open}
+        onOpenChange={setOpen}
+        videoUrl={selectedVideoUrl || ''}
+        title={selectedVideoTitle || ''}
+        onNext={videos.length > 1 ? handleNextVideo : undefined}
+        onPrevious={videos.length > 1 ? handlePreviousVideo : undefined}
+        currentVideo={currentVideoIndex}
+        totalVideos={videos.length}
+      />
     </div>
   );
 };
