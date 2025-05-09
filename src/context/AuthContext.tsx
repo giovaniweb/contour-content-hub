@@ -25,8 +25,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Make sure useAuthState is called inside this functional component
-  const authState = useAuthState();
-  const { user, isLoading, isAuthenticated } = authState;
+  const { user, isLoading, isAuthenticated } = useAuthState();
   const { toast } = useToast();
   
   console.log("AuthProvider state:", { 
@@ -51,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Login bem-sucedido",
-        description: "Bem-vindo ao ReelLine!",
+        description: "Bem-vindo ao Fluida!",
       });
       
     } catch (error: any) {
@@ -69,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Registro bem-sucedido",
-        description: "Bem-vindo ao ReelLine!",
+        description: "Bem-vindo ao Fluida!",
       });
       
     } catch (error: any) {
@@ -171,7 +170,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updatePassword
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 // Create a safer hook that throws helpful error if used outside provider

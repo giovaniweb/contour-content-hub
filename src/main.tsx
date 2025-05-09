@@ -8,7 +8,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/toaster';
 import App from './App.tsx';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import './index.css';
 
 // Create a client with correct configuration

@@ -10,6 +10,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 // Page imports
 import Dashboard from '@/pages/Dashboard';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ResetPassword from '@/pages/ResetPassword';
 import ContentPlannerPage from '@/pages/ContentPlannerPage'; 
 import ContentStrategy from '@/pages/ContentStrategy';
 import ScientificArticles from '@/pages/ScientificArticles'; 
@@ -105,6 +108,12 @@ function App() {
           variants={pageTransition}
         >
           <Routes location={location}>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            {/* Main Routes */}
             <Route 
               path="/" 
               element={
@@ -263,6 +272,8 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            
+            {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
