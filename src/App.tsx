@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -40,6 +41,14 @@ const PageLoader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   >
     {children}
   </Suspense>
+);
+
+// Mock page component for routes not yet implemented
+const MockPage: React.FC<{ title: string }> = ({ title }) => (
+  <div className="flex flex-col items-center justify-center min-h-screen">
+    <h1 className="text-2xl font-bold mb-4">{title}</h1>
+    <p className="text-muted-foreground">Esta página ainda está em desenvolvimento.</p>
+  </div>
 );
 
 function App() {

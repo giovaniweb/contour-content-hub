@@ -40,7 +40,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { motion } from "framer-motion";
 import { modalVariants } from "@/lib/animations";
-import { ContentPlannerItem } from "@/types/content-planner";
+import { ContentPlannerItem, ContentFormat, ContentDistribution } from "@/types/content-planner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -237,7 +237,7 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                       <Label htmlFor="format">Formato</Label>
                       <Select 
                         value={editedItem.format} 
-                        onValueChange={(value) => setEditedItem({...editedItem, format: value})}
+                        onValueChange={(value) => setEditedItem({...editedItem, format: value as ContentFormat})}
                       >
                         <SelectTrigger id="format">
                           <SelectValue placeholder="Selecione o formato" />
@@ -245,13 +245,12 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Formatos</SelectLabel>
-                            <SelectItem value="Reels">Reels</SelectItem>
-                            <SelectItem value="Feed">Post de Feed</SelectItem>
-                            <SelectItem value="Story">Story</SelectItem>
-                            <SelectItem value="IGTV">IGTV</SelectItem>
-                            <SelectItem value="YouTube">YouTube</SelectItem>
-                            <SelectItem value="TikTok">TikTok</SelectItem>
-                            <SelectItem value="Blog">Blog</SelectItem>
+                            <SelectItem value="vídeo">Reels</SelectItem>
+                            <SelectItem value="story">Post de Feed</SelectItem>
+                            <SelectItem value="carrossel">Story</SelectItem>
+                            <SelectItem value="reels">IGTV</SelectItem>
+                            <SelectItem value="texto">YouTube</SelectItem>
+                            <SelectItem value="outro">TikTok</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -301,20 +300,18 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                       <Label htmlFor="distribution">Canal de Distribuição</Label>
                       <Select 
                         value={editedItem.distribution || ''} 
-                        onValueChange={(value) => setEditedItem({...editedItem, distribution: value})}
+                        onValueChange={(value) => setEditedItem({...editedItem, distribution: value as ContentDistribution})}
                       >
                         <SelectTrigger id="distribution">
                           <SelectValue placeholder="Selecione o canal" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Instagram">Instagram</SelectItem>
-                          <SelectItem value="Facebook">Facebook</SelectItem>
-                          <SelectItem value="YouTube">YouTube</SelectItem>
-                          <SelectItem value="TikTok">TikTok</SelectItem>
-                          <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                          <SelectItem value="Twitter">Twitter</SelectItem>
-                          <SelectItem value="Blog">Blog</SelectItem>
-                          <SelectItem value="Email">Email</SelectItem>
+                          <SelectItem value="YouTube">Facebook</SelectItem>
+                          <SelectItem value="TikTok">YouTube</SelectItem>
+                          <SelectItem value="Blog">TikTok</SelectItem>
+                          <SelectItem value="Múltiplos">LinkedIn</SelectItem>
+                          <SelectItem value="Outro">Twitter</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -528,20 +525,18 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                     <Label className="mb-2 block">Canal de Distribuição</Label>
                     <Select 
                       value={editedItem.distribution || ''} 
-                      onValueChange={(value) => setEditedItem({...editedItem, distribution: value})}
+                      onValueChange={(value) => setEditedItem({...editedItem, distribution: value as ContentDistribution})}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o canal" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Instagram">Instagram</SelectItem>
-                        <SelectItem value="Facebook">Facebook</SelectItem>
-                        <SelectItem value="YouTube">YouTube</SelectItem>
-                        <SelectItem value="TikTok">TikTok</SelectItem>
-                        <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                        <SelectItem value="Twitter">Twitter</SelectItem>
-                        <SelectItem value="Blog">Blog</SelectItem>
-                        <SelectItem value="Email">Email</SelectItem>
+                        <SelectItem value="YouTube">Facebook</SelectItem>
+                        <SelectItem value="TikTok">YouTube</SelectItem>
+                        <SelectItem value="Blog">TikTok</SelectItem>
+                        <SelectItem value="Múltiplos">LinkedIn</SelectItem>
+                        <SelectItem value="Outro">Twitter</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -660,7 +655,7 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                 </Button>
               )}
               
-              {onGenerateScript && (editedItem.status === "idea" || editedItem.status === "validated") && (
+              {onGenerateScript && (editedItem.status === "idea" || editedItem.status === "script_generated") && (
                 <Button 
                   variant="outline" 
                   size="sm"

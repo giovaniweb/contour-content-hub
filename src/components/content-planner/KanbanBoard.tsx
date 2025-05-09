@@ -87,7 +87,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onValidate 
 }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { columns, items, updateItemStatus, updateItem, removeItem, addItem } = useContentPlanner();
+  const { columns, items, moveItem, updateItem, removeItem, addItem } = useContentPlanner();
   
   const handleDragEnd = (result: any) => {
     const { destination, source, draggableId } = result;
@@ -108,7 +108,15 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     if (!item) return;
     
     // Update the status based on the destination column
-    updateItemStatus(draggableId, destination.droppableId as any);
+    moveItem(draggableId, destination.droppableId as any);
+  };
+  
+  const handleEditItem = (item: ContentPlannerItem) => {
+    updateItem(item.id, item);
+  };
+  
+  const handleDeleteItem = (id: string) => {
+    removeItem(id);
   };
   
   return (
@@ -125,16 +133,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {columns.map((column) => (
               <KanbanColumn
                 key={column.id}
-                title={column.name}
+                title={column.title}
                 items={items.filter(item => item.status === column.id)}
                 columnId={column.id}
-                onEdit={updateItem}
-                onDelete={removeItem}
+                onEdit={handleEditItem}
+                onDelete={handleDeleteItem}
                 onGenerateScript={onGenerateScript}
                 onValidate={onValidate}
                 onSchedule={(item) => {
                   // Update status to scheduled
-                  updateItem({
+                  updateItem(item.id, {
                     ...item,
                     status: "scheduled",
                     scheduledDate: new Date().toISOString()

@@ -63,6 +63,14 @@ const ContentPlanner: React.FC = () => {
     });
   };
 
+  const handleUpdateItem = (item: ContentPlannerItem) => {
+    updateItem(item.id, item);
+  };
+
+  const handleDeleteItem = (id: string) => {
+    removeItem(id);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
@@ -171,8 +179,8 @@ const ContentPlanner: React.FC = () => {
         open={detailModalOpen}
         onOpenChange={setDetailModalOpen}
         item={selectedItem}
-        onUpdate={updateItem}
-        onDelete={removeItem}
+        onUpdate={handleUpdateItem}
+        onDelete={handleDeleteItem}
         onGenerateScript={handleGenerateScript}
         onValidate={handleValidateItem}
       />
