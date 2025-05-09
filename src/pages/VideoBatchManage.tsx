@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Layout from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,22 @@ import VideoSearch from '@/components/video-batch/VideoSearch';
 import BatchActionBar from '@/components/video-batch/BatchActionBar';
 import VideoList from '@/components/video-batch/VideoList';
 import BatchEditDialog from '@/components/video-batch/BatchEditDialog';
+
+// Define EditableVideo type locally to resolve type conflicts
+interface EditableVideo {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  tags: string[];
+  isEditing: boolean;
+  editTitle: string;
+  editDescription: string;
+  editEquipmentId: string;
+  editTags: string[];
+  originalEquipmentId?: string;
+  metadata?: any;
+}
 
 const VideoBatchManage: React.FC = () => {
   const { toast } = useToast();
@@ -113,7 +130,7 @@ const VideoBatchManage: React.FC = () => {
             
             {/* Videos list */}
             <VideoList 
-              videos={videos}
+              videos={videos as any[]}
               selectedVideos={selectedVideos}
               equipments={equipments}
               onSelect={handleSelect}

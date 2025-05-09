@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,9 +17,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, Check, Trash2, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/hooks/use-permissions';
-import { VideoQueueItem, VideoUploadProgress } from '@/types/video-storage';
+import { VideoQueueItem } from '@/types/video-storage';
 import { batchUploadVideos } from '@/services/videoStorageService';
 import { Textarea } from '@/components/ui/textarea';
+import { v4 as uuidv4 } from 'uuid';
 
 interface BatchVideoUploaderProps {
   onUploadComplete?: () => void;
@@ -85,12 +87,13 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
           .join(' ');
           
         return {
+          id: uuidv4(),
           file,
           title: formattedName,
           description: '',
           tags: [],
           equipmentId: defaultEquipmentId,
-          status: 'pending'
+          status: 'queued'
         };
       });
       
@@ -151,21 +154,33 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
           setUploadProgress(progress);
           updateQueueItem(index, { 
             status: 'uploading',
-            progress
+            progress: {
+              loaded: 0,
+              total: 100,
+              percentage: progress
+            }
           });
         },
         (index, success, videoId, error) => {
           if (success) {
             updateQueueItem(index, { 
-              status: 'completed',
+              status: 'complete',
               videoId,
-              progress: 100
+              progress: {
+                loaded: 100,
+                total: 100,
+                percentage: 100
+              }
             });
           } else {
             updateQueueItem(index, { 
               status: 'error',
               error: error || 'Erro desconhecido no upload',
-              progress: 0
+              progress: {
+                loaded: 0,
+                total: 100,
+                percentage: 0
+              }
             });
           }
         }
@@ -173,7 +188,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
       
       toast({
         title: "Uploads concluídos",
-        description: `${uploadQueue.filter(item => item.status === 'completed').length} de ${uploadQueue.length} vídeos enviados com sucesso.`
+        description: `${uploadQueue.filter(item => item.status === 'complete').length} de ${uploadQueue.length} vídeos enviados com sucesso.`
       });
       
       if (onUploadComplete) {
@@ -205,7 +220,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
 
   const getStatusBadgeVariant = (status: string) => {
     switch(status) {
-      case 'completed': return 'success';
+      case 'complete': return 'success';
       case 'error': return 'destructive';
       case 'uploading': return 'default';
       default: return 'secondary';
@@ -214,7 +229,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
 
   const getStatusLabel = (status: string) => {
     switch(status) {
-      case 'completed': return 'Concluído';
+      case 'complete': return 'Concluído';
       case 'error': return 'Erro';
       case 'uploading': return 'Enviando';
       default: return 'Pendente';
@@ -371,10 +386,10 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
                       {item.file.name} ({(item.file.size / (1024 * 1024)).toFixed(2)} MB)
                     </span>
                     
-                    {item.status === 'uploading' && item.progress !== undefined && (
+                    {item.status === 'uploading' && item.progress && (
                       <div className="flex items-center gap-2">
-                        <span>{Math.round(item.progress)}%</span>
-                        <Progress value={item.progress} className="w-20 h-1" />
+                        <span>{Math.round(item.progress.percentage)}%</span>
+                        <Progress value={item.progress.percentage} className="w-20 h-1" />
                       </div>
                     )}
                     
@@ -385,7 +400,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
                       </span>
                     )}
                     
-                    {item.status === 'completed' && (
+                    {item.status === 'complete' && (
                       <span className="text-success flex items-center">
                         <Check className="h-3 w-3 mr-1" />
                         Concluído

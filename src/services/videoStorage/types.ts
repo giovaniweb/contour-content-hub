@@ -1,11 +1,11 @@
 // Re-export video types to keep them accessible
-import { VideoMetadataSchema } from '@/types/video-storage';
+import type { VideoMetadataSchema } from '@/types/video-storage';
 import { Json } from '@/types/supabase';
 
 export type { 
   VideoStatus, 
   VideoQuality, 
-  VideoQueueStatus,
+  VideoStatus as VideoQueueStatus,
   VideoMetadata,
   StoredVideo,
   VideoDownloadLog,
@@ -15,7 +15,7 @@ export type {
   VideoSortOptions 
 } from '@/types/video-storage';
 
-export { VideoMetadataSchema };
+export type { VideoMetadataSchema };
 
 // Common constants for video services
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB

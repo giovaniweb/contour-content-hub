@@ -138,7 +138,7 @@ const VideoList: React.FC<VideoListProps> = ({
   const checkVideoFilesAndUpdate = async (video: StoredVideo) => {
     try {
       // Extrair o nome do arquivo do metadata ou file_urls
-      const fileName = video.metadata?.original_filename 
+      const fileName = video.metadata && video.metadata.original_filename 
         ? `${video.id}/original_${video.metadata.original_filename.replace(/[^a-zA-Z0-9.-]/g, '_')}` 
         : null;
       
@@ -192,7 +192,7 @@ const VideoList: React.FC<VideoListProps> = ({
       // Verificar se existe um nome de arquivo
       let fileName = '';
       
-      if (video.metadata?.original_filename) {
+      if (video.metadata && video.metadata.original_filename) {
         fileName = `${video.id}/original_${video.metadata.original_filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       } else if (video.file_urls?.original) {
         // Tentar extrair o nome do arquivo da URL

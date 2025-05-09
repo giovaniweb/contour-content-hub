@@ -15,6 +15,7 @@ export interface VideoMetadata {
     width: number;
     height: number;
   };
+  original_filename?: string;
 }
 
 export type VideoStatus = "processing" | "ready" | "failed" | "uploading" | "error";
@@ -24,6 +25,11 @@ export interface VideoUploadProgress {
   loaded: number;
   total: number;
   percentage: number;
+  status?: "uploading" | "error" | "queued" | "complete";
+  fileName?: string;
+  progress?: number;
+  message?: string;
+  error?: string;
 }
 
 export interface VideoQueueItem {
@@ -32,6 +38,11 @@ export interface VideoQueueItem {
   progress?: VideoUploadProgress;
   error?: string;
   status: "queued" | "uploading" | "complete" | "error";
+  title?: string;
+  description?: string;
+  equipmentId?: string;
+  tags?: string[];
+  videoId?: string;
 }
 
 export interface VideoMetadataSchema {
@@ -56,4 +67,24 @@ export interface StoredVideo {
   public?: boolean;
   duration?: string;
   size?: number;
+}
+
+// Additional types needed for services
+export type VideoFilterOptions = {
+  search?: string;
+  tags?: string[];
+  status?: VideoStatus[];
+};
+
+export type VideoSortOptions = {
+  field: string;
+  direction: 'asc' | 'desc';
+};
+
+export interface VideoDownloadLog {
+  id: string;
+  videoId: string;
+  userId: string;
+  quality: VideoQuality;
+  downloadedAt: string;
 }

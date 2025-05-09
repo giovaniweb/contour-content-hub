@@ -7,12 +7,13 @@ import { LightbulbIcon } from 'lucide-react';
 
 interface DocumentIdeasProps {
   document: TechnicalDocument;
+  className?: string;
 }
 
-const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document }) => {
+const DocumentIdeas: React.FC<DocumentIdeasProps> = ({ document, className }) => {
   // Placeholder component for document ideas
   return (
-    <ScrollArea className="h-[calc(100vh-350px)] min-h-[400px] w-full rounded-md border">
+    <ScrollArea className={`h-[calc(100vh-350px)] min-h-[400px] w-full rounded-md border ${className || ''}`}>
       <div className="p-6 space-y-6">
         <div className="flex flex-col items-center justify-center p-12 text-center">
           <LightbulbIcon className="h-12 w-12 text-yellow-500 mb-4" />

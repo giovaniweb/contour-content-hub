@@ -1,112 +1,118 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  Minimize,
-  SkipBack, 
-  SkipForward 
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward, SkipBack } from 'lucide-react';
+import VideoProgressBar from './VideoProgressBar';
 
 export interface VideoPlayerControlsProps {
   isPlaying: boolean;
   isMuted: boolean;
   showControls: boolean;
-  isFullscreen?: boolean;
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onToggleFullscreen: () => void;
+  isFullscreen?: boolean;
+  duration?: number;
+  currentTime?: number;
+  onSeek?: (time: number) => void;
   onNext?: () => void;
   onPrevious?: () => void;
+  currentVideo?: number;
+  totalVideos?: number;
 }
 
-export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
+const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   isPlaying,
   isMuted,
   showControls,
-  isFullscreen = false,
   onTogglePlay,
   onToggleMute,
   onToggleFullscreen,
+  isFullscreen = false,
+  duration,
+  currentTime,
+  onSeek,
   onNext,
   onPrevious,
+  currentVideo,
+  totalVideos
 }) => {
+  if (!showControls) return null;
+  
   return (
-    <div className={cn(
-      "absolute bottom-12 left-0 right-0 p-4 transition-opacity duration-300",
-      showControls ? "opacity-100" : "opacity-0",
-    )}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-4">
+      {/* Optional Progress Bar */}
+      {typeof currentTime !== 'undefined' && typeof duration !== 'undefined' && onSeek && (
+        <VideoProgressBar
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={onSeek}
+        />
+      )}
+      
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center space-x-2">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+            className="text-white hover:bg-white/20"
             onClick={onTogglePlay}
           >
-            {isPlaying ? (
-              <Pause className="h-5 w-5" />
-            ) : (
-              <Play className="h-5 w-5" />
-            )}
+            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
           </Button>
           
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+            className="text-white hover:bg-white/20"
             onClick={onToggleMute}
           >
-            {isMuted ? (
-              <VolumeX className="h-5 w-5" />
-            ) : (
-              <Volume2 className="h-5 w-5" />
-            )}
+            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
           </Button>
+          
+          {/* Navigation controls for swipe viewer */}
+          {onPrevious && onNext && (
+            <div className="flex items-center space-x-2 ml-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20"
+                onClick={onPrevious}
+              >
+                <SkipBack className="h-5 w-5" />
+              </Button>
+              
+              {currentVideo !== undefined && totalVideos !== undefined && (
+                <span className="text-xs text-white">
+                  {currentVideo + 1}/{totalVideos}
+                </span>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20"
+                onClick={onNext}
+              >
+                <SkipForward className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
         
-        <div className="flex items-center gap-2">
-          {onPrevious && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full bg-black/70 text-white hover:bg-black/90"
-              onClick={onPrevious}
-            >
-              <SkipBack className="h-5 w-5" />
-            </Button>
-          )}
-          
-          {onNext && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full bg-black/70 text-white hover:bg-black/90"
-              onClick={onNext}
-            >
-              <SkipForward className="h-5 w-5" />
-            </Button>
-          )}
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full bg-black/70 text-white hover:bg-black/90"
+        <div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20"
             onClick={onToggleFullscreen}
           >
-            {isFullscreen ? (
-              <Minimize className="h-5 w-5" />
-            ) : (
-              <Maximize className="h-5 w-5" />
-            )}
+            <Maximize className="h-5 w-5" />
           </Button>
         </div>
       </div>
     </div>
   );
 };
+
+export default VideoPlayerControls;

@@ -1,93 +1,128 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { VideoQueueItem } from '@/types/video-storage';
-import { uploadVideo } from './videoUploadService';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Upload multiple videos in batch
+ * Upload multiple videos in sequence
+ * @param queue Array of video queue items
+ * @param onProgress Callback for progress updates
+ * @param onComplete Callback when a video upload completes
  */
-export async function batchUploadVideos(
+export const batchUploadVideos = async (
   queue: VideoQueueItem[],
   onProgress: (index: number, progress: number) => void,
-  onItemComplete: (index: number, success: boolean, videoId?: string, error?: string) => void
-): Promise<{success: boolean, completed: number, failed: number}> {
-  let completed = 0;
-  let failed = 0;
-  
-  // Process videos sequentially to avoid overloading the server
+  onComplete: (index: number, success: boolean, videoId?: string, error?: string) => void
+) => {
+  // Process each video in sequence
   for (let i = 0; i < queue.length; i++) {
     const item = queue[i];
     
     try {
-      // Skip items that are already processed or failed
-      if (item.status === 'completed' || item.status === 'error') {
+      // Skip items that are already processed
+      if (item.status === 'complete' || item.status === 'error') {
         continue;
       }
       
-      // Generate tags based on equipment if selected
-      let tags: string[] = [];
-      let equipmentId = item.equipmentId === 'none' ? null : item.equipmentId;
+      // Generate unique ID for the video if not provided
+      const videoId = item.id || uuidv4();
+      const file = item.file;
+      const title = item.title || file.name.replace(/\.[^/.]+$/, "");
+      const metadata: any = {};
       
-      // Only fetch equipment info if equipment ID is provided
-      if (equipmentId) {
-        try {
-          const { data: equipmentData, error } = await supabase
-            .from('equipamentos')
-            .select('nome')
-            .eq('id', equipmentId)
-            .single();
-            
-          if (!error && equipmentData) {
-            tags.push(equipmentData.nome);
-          }
-        } catch (error) {
-          console.error('Error fetching equipment info:', error);
-        }
-      }
-      
-      // Upload the video
-      const result = await uploadVideo(
-        item.file,
-        item.title,
-        item.description,
-        tags,
-        (progress) => onProgress(i, progress),
-        false // Default to private videos in batch upload
-      );
-      
-      if (result.success && result.videoId) {
-        // If equipment ID was provided, link the video to it
-        if (equipmentId) {
-          try {
-            await supabase.from('videos_storage')
-              .update({ 
-                metadata: { 
-                  equipment_id: equipmentId,
-                  original_filename: item.file.name
-                } 
-              })
-              .eq('id', result.videoId);
-          } catch (error) {
-            console.error('Error linking video to equipment:', error);
-          }
-        }
+      // Add equipment info if available
+      if (item.equipmentId && item.equipmentId !== 'none') {
+        const { data: equipment } = await supabase
+          .from('equipamentos')
+          .select('nome')
+          .eq('id', item.equipmentId)
+          .single();
         
-        completed++;
-        onItemComplete(i, true, result.videoId);
-      } else {
-        failed++;
-        onItemComplete(i, false, undefined, result.error);
+        if (equipment) {
+          metadata.equipment_id = item.equipmentId;
+          metadata.equipment_name = equipment.nome;
+        }
       }
+      
+      // File path in storage
+      const filePath = `${videoId}/original_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      
+      // Add file info to metadata
+      metadata.original_filename = file.name;
+      metadata.fileSize = file.size;
+      
+      // Create the video record first
+      const { error: createError } = await supabase
+        .from('videos_storage')
+        .insert({
+          id: videoId,
+          title: title,
+          description: item.description || '',
+          status: 'uploading',
+          public: true,
+          size: file.size,
+          owner_id: (await supabase.auth.getUser()).data.user?.id,
+          tags: item.tags || [],
+          metadata
+        });
+      
+      if (createError) {
+        throw new Error(`Error creating video: ${createError.message}`);
+      }
+      
+      // Upload the file with progress tracking
+      const { error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          onUploadProgress: ({ loaded, total }) => {
+            const progress = (loaded / total) * 100;
+            onProgress(i, progress);
+          },
+        });
+      
+      if (uploadError) {
+        throw new Error(`Error uploading file: ${uploadError.message}`);
+      }
+      
+      // Get URL to the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('videos')
+        .getPublicUrl(filePath);
+      
+      // Update video record with file URL
+      const { error: updateError } = await supabase
+        .from('videos_storage')
+        .update({
+          file_urls: {
+            original: urlData.publicUrl
+          },
+          status: 'processing'
+        })
+        .eq('id', videoId);
+      
+      if (updateError) {
+        throw new Error(`Error updating video: ${updateError.message}`);
+      }
+      
+      // Trigger processing function (if your app has one)
+      try {
+        await supabase.functions.invoke('process-video', {
+          body: { videoId, fileName: filePath }
+        });
+      } catch (error) {
+        console.warn('Error invoking process function:', error);
+        // Continue even if processing function fails
+        // The video is still uploaded and can be manually processed later
+      }
+      
+      // Call success callback
+      onComplete(i, true, videoId);
+      
     } catch (error) {
-      console.error(`Error processing item ${i}:`, error);
-      failed++;
-      onItemComplete(i, false, undefined, 'Erro inesperado no processamento');
+      console.error('Error in batchUploadVideos:', error);
+      onComplete(i, false, undefined, error.message);
     }
   }
-  
-  return {
-    success: failed === 0,
-    completed,
-    failed
-  };
-}
+};
