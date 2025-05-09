@@ -1,0 +1,36 @@
+
+.parallax-section {
+  position: relative;
+  min-height: 500px;
+}
+
+.parallax-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Glassmorphism effect for cards within parallax sections */
+.parallax-section .glass {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .parallax-section .glass {
+  background: rgba(30, 30, 30, 0.85);
+}
+
+/* Text styling within parallax */
+.parallax-section h2 {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.parallax-section p {
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+}

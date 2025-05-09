@@ -10,6 +10,8 @@ import WelcomeBanner from '@/components/home/WelcomeBanner';
 import QuickAccessGrid from '@/components/home/QuickAccessGrid';
 import InsightsSection from '@/components/home/InsightsSection';
 import AnimationStyles from '@/components/home/AnimationStyles';
+import ParallaxSection from '@/components/ui/parallax/ParallaxSection';
+import { mockItems } from '@/hooks/content-planner/initialState';
 
 const HomePage: React.FC = () => {
   const typingPhrases = [
@@ -17,6 +19,14 @@ const HomePage: React.FC = () => {
     "Explore trends...",
     "Validate an idea..."
   ];
+
+  // Create featured content cards from the mock content planner items
+  const featuredCards = mockItems.map(item => ({
+    title: item.title,
+    description: item.description || 'Conteúdo exclusivo para profissionais de estética',
+    image: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
+    link: `/content-planner?id=${item.id}`
+  }));
 
   return (
     <Layout title="Página Inicial">
@@ -26,13 +36,14 @@ const HomePage: React.FC = () => {
           phrases={typingPhrases} 
         />
         
-        {/* Featured Banner - Step 1 */}
-        <HighlightBanner 
-          title="Crie conteúdo impactante"
-          description="Utilize nossa plataforma para criar scripts, vídeos e estratégias de conteúdo que engajam seu público."
-          ctaText="Começar agora"
-          ctaLink="/custom-gpt"
-          imageUrl="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
+        {/* ParallaxSection - Video Highlight Banner */}
+        <ParallaxSection
+          backgroundImage="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png"
+          title="Conteúdo Premium para Especialistas em Estética"
+          description="Explore nossa biblioteca de conteúdo exclusivo, vídeos educacionais e ferramentas para impulsionar sua presença online."
+          cards={featuredCards.slice(0, 3)}
+          ctaText="Explorar Biblioteca"
+          ctaLink="/media-library"
         />
         
         {/* Trending Content - Step 2 */}
