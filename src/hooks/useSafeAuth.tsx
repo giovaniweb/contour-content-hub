@@ -58,7 +58,7 @@ export const useSafeAuth = () => {
     }
   }, []);
   
-  // Cria objeto de fallback para funções de autenticação
+  // Cria objeto de fallback para funções de autenticação, verificando se existem no auth
   const signIn = auth?.signIn || (async () => ({ user: null, error: new Error('Context not available') }));
   const signOut = auth?.signOut || (async () => ({ error: null }));
   const signUp = auth?.signUp || (async () => ({ user: null, error: new Error('Context not available') }));
