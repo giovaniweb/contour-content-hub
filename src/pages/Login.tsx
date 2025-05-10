@@ -1,138 +1,153 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { 
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage 
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { LoadingSpinner } from "@/components/ui/loading-states";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+
+const loginFormSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória")
+});
+
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get the redirect path from location state, or default to "/"
+  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Verificar se temos um redirecionamento
   const from = location.state?.from || "/";
-
-  useEffect(() => {
-    // If user is already authenticated, redirect to the intended page
-    if (isAuthenticated) {
-      navigate(from, { replace: true });
+  
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: ""
     }
-  }, [isAuthenticated, navigate, from]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
+  });
+  
+  const onSubmit = async (values: LoginFormValues) => {
+    try {
+      await login(values.email, values.password);
+      navigate(from, { replace: true });
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo(a) de volta!"
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos"
+        title: "Erro ao fazer login",
+        description: error?.message || "Email ou senha incorretos"
       });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      await login(email, password);
-      // No need to redirect here, the useEffect will handle it when isAuthenticated changes
-    } catch (error) {
-      console.error("Erro ao fazer login:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
-
-  // Show loading while checking authentication
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" message="Carregando..." />
-      </div>
-    );
-  }
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-2">
-          <div className="text-center">
-            <div className="mb-4 text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0094fb] to-[#f300fc]">
-              Fluida
-            </div>
-          </div>
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
-          <CardDescription className="text-center">
-            Entre com seu email e senha para acessar a plataforma
-          </CardDescription>
-        </CardHeader>
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
         
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="seuemail@exemplo.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-            </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        placeholder="seu@email.com" 
+                        type="email" 
+                        {...field} 
+                        className="pl-10"
+                      />
+                      <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Senha</Label>
-                <Link to="/reset-password" className="text-sm text-primary hover:underline">
-                  Esqueceu a senha?
-                </Link>
-              </div>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-            </div>
-          </CardContent>
-          
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 transition-opacity"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <span className="flex items-center">
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  Entrando...
-                </span>
-              ) : "Entrar"}
-            </Button>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        placeholder="******" 
+                        type={showPassword ? "text" : "password"} 
+                        {...field} 
+                        className="pl-10 pr-10"
+                      />
+                      <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-2.5"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <p className="text-center text-sm">
-              Ainda não tem uma conta?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
-                Criar conta
+            <div className="flex items-center justify-end">
+              <Link to="/reset-password" className="text-sm text-primary hover:underline">
+                Esqueceu a senha?
               </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+            </div>
+            
+            <div className="pt-2">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Entrando..." : "Entrar"}
+              </Button>
+            </div>
+            
+            <div className="text-center text-sm mt-4">
+              <span className="text-muted-foreground">Não tem uma conta? </span>
+              <Link to="/signup" className="text-primary hover:underline">
+                Cadastre-se
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };
