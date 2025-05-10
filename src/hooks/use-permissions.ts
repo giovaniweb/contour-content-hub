@@ -10,7 +10,7 @@ export function usePermissions() {
   };
   
   const isAdmin = () => {
-    return user?.role === 'admin' || user?.role === 'superadmin';
+    return user?.role === 'admin' || isSuperAdmin();
   };
   
   const isGerente = () => {
@@ -25,7 +25,7 @@ export function usePermissions() {
     return user?.role === 'consultor';
   };
   
-  // Modified to check for various role hierarchies
+  // Helper to check if a user has a specific role or higher in the hierarchy
   const hasPermission = (requiredRole: UserRole) => {
     if (!user) return false;
     
@@ -36,13 +36,13 @@ export function usePermissions() {
       case 'superadmin':
         return user.role === 'superadmin';
       case 'admin':
-        return user.role === 'admin' || user.role === 'superadmin';
+        return ['admin', 'superadmin'].includes(user.role);
       case 'gerente':
-        return user.role === 'gerente' || user.role === 'admin' || user.role === 'superadmin';
+        return ['gerente', 'admin', 'superadmin'].includes(user.role);
       case 'operador':
-        return user.role === 'operador' || user.role === 'gerente' || user.role === 'admin' || user.role === 'superadmin';
+        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       case 'consultor':
-        return user.role === 'consultor' || user.role === 'superadmin';
+        return ['consultor', 'superadmin'].includes(user.role);
       default:
         return false;
     }
@@ -69,6 +69,10 @@ export function usePermissions() {
     return isGerente() || isAdmin();
   };
   
+  const canViewConsultantPanel = () => {
+    return isConsultor() || isSuperAdmin();
+  };
+  
   return {
     isSuperAdmin,
     isAdmin,
@@ -80,6 +84,7 @@ export function usePermissions() {
     canManageUsers,
     canViewAnalytics,
     canCreateContent,
-    canApproveContent
+    canApproveContent,
+    canViewConsultantPanel
   };
 }

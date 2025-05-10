@@ -1,285 +1,115 @@
 
-import React, { Suspense, useEffect } from 'react';
-import { Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { SlideNotificationProvider } from '@/components/notifications/SlideNotificationProvider';
-import { LoadingSpinner } from '@/components/ui/loading-states';
-import { useAuth } from '@/context/AuthContext';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { AnimatePresence, motion } from 'framer-motion';
-
-// Page imports
-import Dashboard from '@/pages/Dashboard';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ResetPassword from '@/pages/ResetPassword';
-import ContentPlannerPage from '@/pages/ContentPlannerPage'; 
-import ContentStrategy from '@/pages/ContentStrategy';
-import ScientificArticles from '@/pages/ScientificArticles'; 
-import ReportsPage from '@/pages/ReportsPage';
-import Settings from '@/pages/Settings';
-import Calendar from '@/pages/Calendar';
-import CustomGpt from '@/pages/CustomGpt';
-import IdeaValidatorPage from '@/pages/IdeaValidatorPage';
-import VideosPage from '@/pages/VideosPage';
-import MediaLibraryPage from '@/pages/MediaLibraryPage';
-import MediaFilesPage from '@/pages/MediaFilesPage';
-import ContentPage from '@/pages/ContentPage';
-import ScriptGenerator from '@/pages/ScriptGenerator';
-import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
-
-// Admin Pages
-import AdminDashboard from '@/pages/AdminDashboard';
-import AdminContent from '@/pages/AdminContent';
-import AdminVimeoSettings from '@/pages/AdminVimeoSettings';
-import AdminEquipments from '@/pages/AdminEquipments';
-import AdminSystemDiagnostics from '@/pages/AdminSystemDiagnostics';
-import AdminSystemIntelligence from '@/pages/AdminSystemIntelligence';
-import AdminIntegrations from '@/pages/AdminIntegrations';
-
-// Define routes that don't require authentication
-const publicRoutes = [
-  '/login',
-  '/signup',
-  '/reset-password',
-];
-
-// Page loading wrapper with error boundary
-const PageLoader = ({ children }: { children: React.ReactNode }) => (
-  <ErrorBoundary>
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner size="lg" message="Carregando..." />
-        </div>
-      }
-    >
-      {children}
-    </Suspense>
-  </ErrorBoundary>
-);
-
-// Route guard component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && !publicRoutes.includes(location.pathname)) {
-      navigate('/login', { state: { from: location.pathname } });
-    }
-  }, [isAuthenticated, isLoading, location, navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" message="Verificando autenticação..." />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated && !publicRoutes.includes(location.pathname)) {
-    return null; // Will redirect in useEffect
-  }
-
-  return <>{children}</>;
-};
-
-// Page transition animation
-const pageTransition = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
-  transition: { duration: 0.2 }
-};
+import { Routes, Route } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./config/queryClient";
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "./components/ui/toaster";
+import { AuthProvider } from "./context/AuthContext";
+import HomePage from "./pages/HomePage";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import CustomGpt from "./pages/CustomGpt";
+import ScriptGenerator from "./pages/ScriptGenerator";
+import AdminAIPanel from "./pages/AdminAIPanel";
+import Profile from "./pages/Profile";
+import PrivateRoute from "./components/PrivateRoute";
+import ContentPlannerPage from "./pages/ContentPlannerPage";
+import EquipmentDetailsPage from "./pages/EquipmentDetailsPage";
+import ContentStrategy from "./pages/ContentStrategy";
+import { ErrorBoundaryGeneric } from "./components/ErrorBoundary";
+import "./App.css";
+import VideoPlayer from "./pages/VideoPlayer";
+import VideoSwipe from "./pages/VideoSwipe";
+import ContentPage from "./pages/ContentPage";
+import MediaLibraryPage from "./pages/MediaLibraryPage";
+import VideoStorage from "./pages/VideoStorage";
+import VideoBatchImport from "./pages/VideoBatchImport";
+import VideoBatchManage from "./pages/VideoBatchManage";
+import VimeoSettings from "./pages/VimeoSettings";
+import VimeoCallback from "./pages/auth/VimeoCallback";
+import AdminRoute from "./components/AdminRoute";
+import AdminEquipments from "./pages/AdminEquipments";
+import AdminContent from "./pages/AdminContent";
+import AdminIntegrations from "./pages/AdminIntegrations";
+import TechnicalDocuments from "./pages/TechnicalDocuments";
+import DocumentDetail from "./pages/DocumentDetail";
+import ScientificArticles from "./pages/ScientificArticles";
+import IdeaValidatorPage from "./pages/IdeaValidatorPage";
+import NotFound from "./pages/NotFound";
+import SystemIntelligence from "./pages/SystemIntelligence";
+import SystemDiagnostics from "./pages/SystemDiagnostics";
+import ConsultantPanel from "./pages/consultant/ConsultantPanel";
+import MarketingConsultant from "./pages/MarketingConsultant";
+import SellerDashboard from "./pages/seller/SellerDashboard";
+import ClientList from "./pages/seller/ClientList";
+import ClientDetail from "./pages/seller/ClientDetail";
+import ReportsPage from "./pages/ReportsPage";
 
 function App() {
-  const location = useLocation();
-
   return (
-    <SlideNotificationProvider>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={location.pathname}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={pageTransition}
-        >
-          <Routes location={location}>
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Register />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            
-            {/* Main Routes */}
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <Dashboard />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Strategy Group */}
-            <Route 
-              path="/content-ideas" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <IdeaValidatorPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/marketing-consultant" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <ContentStrategy />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/content-planner" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <ContentPlannerPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/script-generator" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <ScriptGeneratorPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="fluida-theme">
+          <ErrorBoundaryGeneric>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Downloads Group */}
-            <Route 
-              path="/templates" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <ContentPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/videos" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <VideosPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/photos" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <MediaFilesPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/files" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <MediaFilesPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/articles" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <ScientificArticles />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/gpt" element={<PrivateRoute><CustomGpt /></PrivateRoute>} />
+              <Route path="/content" element={<PrivateRoute><ContentPage /></PrivateRoute>} />
+              <Route path="/content-ideas" element={<PrivateRoute><IdeaValidatorPage /></PrivateRoute>} />
+              <Route path="/content-planner" element={<PrivateRoute><ContentPlannerPage /></PrivateRoute>} />
+              <Route path="/content-strategy" element={<PrivateRoute><ContentStrategy /></PrivateRoute>} />
+              <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/scripts" element={<PrivateRoute><ScriptGenerator /></PrivateRoute>} />
+              <Route path="/videos" element={<PrivateRoute><VideoPlayer /></PrivateRoute>} />
+              <Route path="/video-swipe" element={<PrivateRoute><VideoSwipe /></PrivateRoute>} />
+              <Route path="/media" element={<PrivateRoute><MediaLibraryPage /></PrivateRoute>} />
+              <Route path="/video-storage" element={<PrivateRoute><VideoStorage /></PrivateRoute>} />
+              <Route path="/vimeo-settings" element={<PrivateRoute><VimeoSettings /></PrivateRoute>} />
+              <Route path="/vimeo-callback" element={<VimeoCallback />} />
+              <Route path="/video-batch-import" element={<PrivateRoute><VideoBatchImport /></PrivateRoute>} />
+              <Route path="/video-batch-manage" element={<PrivateRoute><VideoBatchManage /></PrivateRoute>} />
+              <Route path="/documents" element={<PrivateRoute><TechnicalDocuments /></PrivateRoute>} />
+              <Route path="/documents/:id" element={<PrivateRoute><DocumentDetail /></PrivateRoute>} />
+              <Route path="/articles" element={<PrivateRoute><ScientificArticles /></PrivateRoute>} />
+              <Route path="/equipment/:id" element={<PrivateRoute><EquipmentDetailsPage /></PrivateRoute>} />
+              <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />
+              <Route path="/reports" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
+              
+              {/* Consultant Routes */}
+              <Route path="/consultant" element={<PrivateRoute><ConsultantPanel /></PrivateRoute>} />
+              
+              {/* Seller Routes */}
+              <Route path="/seller" element={<PrivateRoute><SellerDashboard /></PrivateRoute>} />
+              <Route path="/seller/clients" element={<PrivateRoute><ClientList /></PrivateRoute>} />
+              <Route path="/seller/clients/:id" element={<PrivateRoute><ClientDetail /></PrivateRoute>} />
 
-            {/* Equipment Group */}
-            <Route 
-              path="/equipments" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <MediaFilesPage />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin routes */}
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <AdminDashboard />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/content" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <AdminContent />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/equipment" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <AdminEquipments />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <PageLoader>
-                    <Settings />
-                  </PageLoader>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
-      <Toaster />
-    </SlideNotificationProvider>
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminRoute><AdminAIPanel /></AdminRoute>} />
+              <Route path="/admin/equipments" element={<AdminRoute><AdminEquipments /></AdminRoute>} />
+              <Route path="/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
+              <Route path="/admin/integrations" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
+              <Route path="/admin/intelligence" element={<AdminRoute><SystemIntelligence /></AdminRoute>} />
+              <Route path="/admin/diagnostics" element={<AdminRoute><SystemDiagnostics /></AdminRoute>} />
+
+              {/* 404 Not Found */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundaryGeneric>
+          <Toaster />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -14,7 +14,8 @@ import {
   Kanban,
   Lightbulb,
   PenTool,
-  BarChart3
+  BarChart3,
+  Users
 } from "lucide-react";
 
 interface MainNavigationProps {
@@ -22,7 +23,7 @@ interface MainNavigationProps {
 }
 
 export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated }) => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, canViewConsultantPanel } = usePermissions();
   const location = useLocation();
   
   if (!isAuthenticated) return null;
@@ -36,6 +37,9 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
       <NavLink to="/scripts" icon={<PenTool size={16} />} label="Scripts" />
       <NavLink to="/videos" icon={<VideoIcon size={16} />} label="Videos" />
       <NavLink to="/reports" icon={<BarChart3 size={16} />} label="Reports" />
+      {canViewConsultantPanel() && (
+        <NavLink to="/consultant" icon={<Users size={16} />} label="Clientes" />
+      )}
       {isAdmin() && (
         <NavLink to="/admin" icon={<Cog size={16} />} label="Admin" />
       )}
