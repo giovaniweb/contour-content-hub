@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile, UserProfile } from '@/services/userProfileService';
 
 // Tipos para o processador de intenções
 export interface UserContext {
@@ -36,10 +37,23 @@ export function useIntentProcessor() {
     setLoading(true);
     
     try {
+      // Tenta obter o perfil do usuário do banco de dados
+      const userProfile = await getUserProfile();
+      
+      // Combina o contexto fornecido com o perfil do usuário (se existir)
+      const enrichedContext: UserContext = {
+        ...context,
+        estilo_preferido: context.estilo_preferido || userProfile?.estilo_preferido || undefined,
+        tipos_conteudo_validados: context.tipos_conteudo_validados || userProfile?.tipos_conteudo_validados || undefined,
+        foco_comunicacao: context.foco_comunicacao || userProfile?.foco_comunicacao || undefined,
+        perfil_comportamental: context.perfil_comportamental || userProfile?.perfil_comportamental || undefined,
+        insights_performance: context.insights_performance || userProfile?.insights_performance || undefined,
+      };
+
       // Em uma implementação real, isso enviaria os dados para uma API ou função edge
       // Por enquanto, vamos simular o processamento baseado em regras simples
       
-      const userMessage = context.mensagem_usuario?.toLowerCase() || '';
+      const userMessage = enrichedContext.mensagem_usuario?.toLowerCase() || '';
       let result: IntentProcessorResult;
       
       // Análise baseada em palavras-chave para determinar intenção
@@ -49,7 +63,7 @@ export function useIntentProcessor() {
           categoria: "conteudo",
           direcionamento_estrategico: userMessage.includes('venda') ? 'venda' : 'educacao',
           acao_recomendada: "script_generator",
-          prompt_personalizado: `Gere um roteiro para vídeo sobre ${userMessage}, focando em ${context.foco_comunicacao || 'benefícios'} para ${context.procedimentos?.join(', ') || 'tratamentos estéticos'}.`,
+          prompt_personalizado: `Gere um roteiro para vídeo sobre ${userMessage}, focando em ${enrichedContext.foco_comunicacao || 'benefícios'} para ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'}.`,
           explicacao: "O usuário demonstrou interesse em criar conteúdo em vídeo, que é um dos formatos mais eficientes para comunicação em saúde estética.",
           proximo_passo: "Redirecionar para o gerador de roteiros com o prompt pré-preenchido"
         };
@@ -60,7 +74,7 @@ export function useIntentProcessor() {
           categoria: "marketing",
           direcionamento_estrategico: "branding",
           acao_recomendada: "marketing_consultant",
-          prompt_personalizado: `Desenvolva uma estratégia de marketing para ${context.procedimentos?.join(', ') || 'uma clínica de estética'} focada em ${context.foco_comunicacao || 'diferenciação'}.`,
+          prompt_personalizado: `Desenvolva uma estratégia de marketing para ${enrichedContext.procedimentos?.join(', ') || 'uma clínica de estética'} focada em ${enrichedContext.foco_comunicacao || 'diferenciação'}.`,
           explicacao: "O usuário está buscando orientações estratégicas para melhorar seu posicionamento e crescer no mercado.",
           proximo_passo: "Iniciar consultor de marketing com foco em estratégia"
         };
@@ -71,7 +85,7 @@ export function useIntentProcessor() {
           categoria: "vendas",
           direcionamento_estrategico: "venda",
           acao_recomendada: "sales_script_generator",
-          prompt_personalizado: `Crie um script de vendas persuasivo para ${context.procedimentos?.join(', ') || 'tratamentos estéticos'} considerando o perfil ${context.perfil_comportamental?.join(', ') || 'do cliente'}.`,
+          prompt_personalizado: `Crie um script de vendas persuasivo para ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'} considerando o perfil ${enrichedContext.perfil_comportamental?.join(', ') || 'do cliente'}.`,
           explicacao: "O foco do usuário está em converter leads em clientes pagantes, indicando necessidade de material com foco em vendas.",
           proximo_passo: "Apresentar gerador de scripts de vendas com argumentos personalizados"
         };
@@ -82,7 +96,7 @@ export function useIntentProcessor() {
           categoria: "ciencia",
           direcionamento_estrategico: "educacao",
           acao_recomendada: "scientific_content",
-          prompt_personalizado: `Busque estudos científicos relevantes sobre ${context.procedimentos?.join(', ') || 'tratamentos estéticos'} e prepare um resumo com pontos-chave.`,
+          prompt_personalizado: `Busque estudos científicos relevantes sobre ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'} e prepare um resumo com pontos-chave.`,
           explicacao: "O usuário busca fundamentação científica para seus procedimentos, demonstrando interesse em comunicação baseada em evidências.",
           proximo_passo: "Mostrar pesquisas científicas relacionadas aos procedimentos"
         };
@@ -94,7 +108,7 @@ export function useIntentProcessor() {
           categoria: "conteudo",
           direcionamento_estrategico: "educacao",
           acao_recomendada: "content_explorer",
-          prompt_personalizado: `Sugira ideias de conteúdo sobre ${context.procedimentos?.join(', ') || 'estética'} no formato ${context.estilo_preferido || 'mais engajante'} para educação do público.`,
+          prompt_personalizado: `Sugira ideias de conteúdo sobre ${enrichedContext.procedimentos?.join(', ') || 'estética'} no formato ${enrichedContext.estilo_preferido || 'mais engajante'} para educação do público.`,
           explicacao: "Baseado no histórico do usuário, conteúdo educativo tem sido sua abordagem mais bem-sucedida.",
           proximo_passo: "Apresentar explorador de conteúdo com sugestões personalizadas"
         };

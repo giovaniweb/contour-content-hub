@@ -669,6 +669,47 @@ export type Database = {
           },
         ]
       }
+      script_feedback: {
+        Row: {
+          criado_em: string | null
+          estilo_detectado: string | null
+          feedback_tipo: string | null
+          formato: string | null
+          id: string
+          script_id: string | null
+          tema_principal: string | null
+          user_id: string | null
+        }
+        Insert: {
+          criado_em?: string | null
+          estilo_detectado?: string | null
+          feedback_tipo?: string | null
+          formato?: string | null
+          id?: string
+          script_id?: string | null
+          tema_principal?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          criado_em?: string | null
+          estilo_detectado?: string | null
+          feedback_tipo?: string | null
+          formato?: string | null
+          id?: string
+          script_id?: string | null
+          tema_principal?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_feedback_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       script_validations: {
         Row: {
           created_at: string
@@ -806,6 +847,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profile: {
+        Row: {
+          atualizado_em: string | null
+          estilo_preferido: string | null
+          foco_comunicacao: string | null
+          insights_performance: string[] | null
+          perfil_comportamental: string[] | null
+          tipos_conteudo_validados: string[] | null
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          estilo_preferido?: string | null
+          foco_comunicacao?: string | null
+          insights_performance?: string[] | null
+          perfil_comportamental?: string[] | null
+          tipos_conteudo_validados?: string[] | null
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          estilo_preferido?: string | null
+          foco_comunicacao?: string | null
+          insights_performance?: string[] | null
+          perfil_comportamental?: string[] | null
+          tipos_conteudo_validados?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_usage: {
         Row: {
           ai_generations_used: number | null
@@ -892,6 +963,66 @@ export type Database = {
           scope?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      validated_articles: {
+        Row: {
+          article_link: string | null
+          foco: string | null
+          id: string
+          interagido_em: string | null
+          tema: string | null
+          tipo_interacao: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_link?: string | null
+          foco?: string | null
+          id?: string
+          interagido_em?: string | null
+          tema?: string | null
+          tipo_interacao?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_link?: string | null
+          foco?: string | null
+          id?: string
+          interagido_em?: string | null
+          tema?: string | null
+          tipo_interacao?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      validated_ideas: {
+        Row: {
+          formato: string | null
+          id: string
+          origem_ideia: string | null
+          tema: string | null
+          tipo_validacao: string | null
+          user_id: string | null
+          validado_em: string | null
+        }
+        Insert: {
+          formato?: string | null
+          id?: string
+          origem_ideia?: string | null
+          tema?: string | null
+          tipo_validacao?: string | null
+          user_id?: string | null
+          validado_em?: string | null
+        }
+        Update: {
+          formato?: string | null
+          id?: string
+          origem_ideia?: string | null
+          tema?: string | null
+          tipo_validacao?: string | null
+          user_id?: string | null
+          validado_em?: string | null
         }
         Relationships: []
       }

@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { useIntentProcessor, UserContext, IntentProcessorResult } from '@/hooks/useIntentProcessor';
 import { useNavigate } from 'react-router-dom';
+import { getUserProfile, upsertUserProfile } from '@/services/userProfileService';
 
 interface IntentProcessorProps {
   initialContext?: UserContext;
@@ -20,6 +21,26 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
   const [userContext, setUserContext] = useState<UserContext>(initialContext);
   const { processIntent, loading, result } = useIntentProcessor();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Carregar o perfil do usuário ao montar o componente
+    const loadUserProfile = async () => {
+      const profile = await getUserProfile();
+      if (profile) {
+        // Mesclar dados do perfil com o contexto inicial
+        setUserContext(prevContext => ({
+          ...prevContext,
+          estilo_preferido: prevContext.estilo_preferido || profile.estilo_preferido || undefined,
+          tipos_conteudo_validados: prevContext.tipos_conteudo_validados || profile.tipos_conteudo_validados || undefined,
+          foco_comunicacao: prevContext.foco_comunicacao || profile.foco_comunicacao || undefined,
+          perfil_comportamental: prevContext.perfil_comportamental || profile.perfil_comportamental || undefined,
+          insights_performance: prevContext.insights_performance || profile.insights_performance || undefined,
+        }));
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
