@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_creative_performance: {
+        Row: {
+          campanha_nome: string | null
+          copy_usada: string | null
+          creative_id: string | null
+          data_referencia: string | null
+          id: string
+          link_midia: string | null
+          metrica_chave: string | null
+          objetivo: string | null
+          resultado: string | null
+          tipo_conteudo: string | null
+          user_id: string | null
+          valor_metrica: number | null
+        }
+        Insert: {
+          campanha_nome?: string | null
+          copy_usada?: string | null
+          creative_id?: string | null
+          data_referencia?: string | null
+          id?: string
+          link_midia?: string | null
+          metrica_chave?: string | null
+          objetivo?: string | null
+          resultado?: string | null
+          tipo_conteudo?: string | null
+          user_id?: string | null
+          valor_metrica?: number | null
+        }
+        Update: {
+          campanha_nome?: string | null
+          copy_usada?: string | null
+          creative_id?: string | null
+          data_referencia?: string | null
+          id?: string
+          link_midia?: string | null
+          metrica_chave?: string | null
+          objetivo?: string | null
+          resultado?: string | null
+          tipo_conteudo?: string | null
+          user_id?: string | null
+          valor_metrica?: number | null
+        }
+        Relationships: []
+      }
       agenda: {
         Row: {
           data: string | null
