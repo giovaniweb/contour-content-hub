@@ -8,6 +8,7 @@ import { useIntentProcessor, UserContext, IntentProcessorResult } from '@/hooks/
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile, upsertUserProfile } from '@/services/userProfileService';
 import { supabase } from '@/integrations/supabase/client';
+import IntentResponseConversation from './IntentResponseConversation';
 
 interface IntentProcessorProps {
   initialContext?: UserContext;
@@ -79,26 +80,43 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
     // Navega para a página apropriada ou executa a ação recomendada
     switch (result.acao_recomendada) {
       case 'script_generator':
-        navigate('/script-generator', { state: { ideaText: userMessage } });
+        navigate('/script-generator', { 
+          state: { 
+            ideaText: userMessage,
+            promptPersonalizado: result.prompt_personalizado
+          } 
+        });
         break;
       case 'marketing_consultant':
-        navigate('/marketing-consultant');
+        navigate('/marketing-consultant', {
+          state: {
+            promptPersonalizado: result.prompt_personalizado
+          }
+        });
         break;
       case 'content_explorer':
       case 'scientific_content':
-        navigate('/content-planner');
+        navigate('/content-planner', {
+          state: {
+            promptPersonalizado: result.prompt_personalizado
+          }
+        });
         break;
-      case 'sales_script_generator':
-        // Assumindo que há ou haverá uma página específica para scripts de vendas
+      case 'sales_script':
         navigate('/script-generator', { 
           state: { 
             ideaText: userMessage, 
-            objective: 'sales' 
+            objective: 'sales',
+            promptPersonalizado: result.prompt_personalizado
           } 
         });
         break;
       default:
-        navigate('/dashboard');
+        navigate('/dashboard', {
+          state: {
+            promptPersonalizado: result.prompt_personalizado
+          }
+        });
     }
   };
 
@@ -124,24 +142,11 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
           />
           
           {result && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <h3 className="font-medium mb-2">Análise da Fluida Intelligence:</h3>
-              <p className="text-sm text-muted-foreground mb-2">{result.explicacao}</p>
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div className="text-xs">
-                  <span className="font-semibold">Estratégia: </span>
-                  <span className="bg-primary/20 px-2 py-0.5 rounded text-primary-foreground">
-                    {result.direcionamento_estrategico === 'branding' ? 'Fortalecimento de marca' : 
-                     result.direcionamento_estrategico === 'venda' ? 'Vendas' : 'Educação'}
-                  </span>
-                </div>
-                <div className="text-xs">
-                  <span className="font-semibold">Categoria: </span>
-                  <span className="bg-secondary/20 px-2 py-0.5 rounded">
-                    {result.categoria}
-                  </span>
-                </div>
-              </div>
+            <div className="mt-4">
+              <IntentResponseConversation 
+                result={result}
+                onAction={handleActionClick}
+              />
             </div>
           )}
         </CardContent>
@@ -165,16 +170,7 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
                 </>
               )}
             </Button>
-          ) : (
-            <Button onClick={handleActionClick} variant="default">
-              {result.acao_recomendada === 'script_generator' ? 'Criar roteiro' : 
-               result.acao_recomendada === 'marketing_consultant' ? 'Consultor de marketing' : 
-               result.acao_recomendada === 'content_explorer' ? 'Explorar conteúdo' :
-               result.acao_recomendada === 'scientific_content' ? 'Ver pesquisas' :
-               'Próximo passo'}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
+          ) : null}
         </CardFooter>
       </form>
     </Card>
