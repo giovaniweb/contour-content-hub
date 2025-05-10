@@ -2,7 +2,7 @@
 import React, { createContext, useContext } from "react";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
-import { AuthContextType, UserProfile } from "@/types/auth";
+import { AuthContextType, UserProfile, UserRole } from "@/types/auth";
 import { 
   loginWithEmailAndPassword, 
   logoutUser, 
@@ -24,7 +24,6 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Make sure useAuthState is called inside this functional component
   const { user, isLoading, isAuthenticated } = useAuthState();
   const { toast } = useToast();
   
@@ -62,9 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged" | "role"> & { password: string }) => {
+  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged" | "role"> & { password: string; role?: UserRole }) => {
     try {
-      await registerUser(userData);
+      await registerUser({
+        ...userData,
+        role: userData.role
+      });
       
       toast({
         title: "Registro bem-sucedido",
@@ -123,9 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         return;
       }
-      
-      // Update local state
-      // Note: The local state will be updated by the auth listener
       
       toast({
         title: "Perfil atualizado",
