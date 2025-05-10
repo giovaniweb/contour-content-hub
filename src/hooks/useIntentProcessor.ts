@@ -42,7 +42,7 @@ export function useIntentProcessor() {
       const userMessage = context.mensagem_usuario?.toLowerCase() || '';
       let result: IntentProcessorResult;
       
-      // Análise básica de intenção baseada em palavras-chave
+      // Análise baseada em palavras-chave para determinar intenção
       if (userMessage.includes('roteiro') || userMessage.includes('vídeo') || userMessage.includes('gravar')) {
         result = {
           intencao: "Criar roteiro para vídeo",
