@@ -503,6 +503,33 @@ export type Database = {
         }
         Relationships: []
       }
+      intent_history: {
+        Row: {
+          acao_executada: string | null
+          data: string | null
+          id: string
+          intencao_detectada: string | null
+          mensagem_usuario: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao_executada?: string | null
+          data?: string | null
+          id?: string
+          intencao_detectada?: string | null
+          mensagem_usuario?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao_executada?: string | null
+          data?: string | null
+          id?: string
+          intencao_detectada?: string | null
+          mensagem_usuario?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       logs_uso: {
         Row: {
           acao: string | null
