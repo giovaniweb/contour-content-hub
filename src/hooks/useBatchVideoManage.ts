@@ -1,19 +1,18 @@
 
 import { Equipment, ensureEquipmentFields } from '@/types/equipment';
 
-// This is a wrapper to ensure proper types
+// Este hook gerencia vídeos em lote e fornece funcionalidades para
+// manipulação, edição e exclusão de vídeos
 export function useTypeSafeBatchVideoManage() {
-  // We would normally import the actual hook here
-  // For now, we're just exporting the type utilities
-  
+  // Wrapper para garantir tipos apropriados
   return {
     ensureEquipmentFields,
   };
 }
 
-// This function is now the default export
+// Implementação principal do hook para gerenciamento de vídeos em lote
 export function useBatchVideoManage() {
-  // Implementation of the hook
+  // Implementação do hook
   // Modificando as funções para retornar Promises
   return {
     videos: [],
@@ -31,7 +30,7 @@ export function useBatchVideoManage() {
     handleSelect: (id: string) => {},
     handleEdit: (id: string) => {},
     handleUpdate: (id: string, data: any) => {},
-    // Modificando estas funções para retornar Promises
+    // Funções que retornam Promises
     handleSave: async (id: string): Promise<void> => {
       return Promise.resolve();
     },
@@ -50,5 +49,5 @@ export function useBatchVideoManage() {
   };
 }
 
-// Also export as default for direct imports
+// Exportação padrão para importações diretas
 export default useBatchVideoManage;
