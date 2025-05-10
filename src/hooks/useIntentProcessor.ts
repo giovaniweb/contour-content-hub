@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { getUserProfile, UserProfile } from '@/services/userProfileService';
 
 // Tipos para o processador de intenções
@@ -40,6 +41,10 @@ export function useIntentProcessor() {
       // Tenta obter o perfil do usuário do banco de dados
       const userProfile = await getUserProfile();
       
+      // Obter a sessão atual
+      const { data: { session } } = await supabase.auth.getSession();
+      const user_id = session?.user?.id;
+      
       // Combina o contexto fornecido com o perfil do usuário (se existir)
       const enrichedContext: UserContext = {
         ...context,
@@ -50,72 +55,31 @@ export function useIntentProcessor() {
         insights_performance: context.insights_performance || userProfile?.insights_performance || undefined,
       };
 
-      // Em uma implementação real, isso enviaria os dados para uma API ou função edge
-      // Por enquanto, vamos simular o processamento baseado em regras simples
+      // Preparar dados para a requisição
+      const requestData = {
+        mensagem_usuario: enrichedContext.mensagem_usuario,
+        user_id: user_id,
+        dados_usuario: {
+          procedimentos: enrichedContext.procedimentos,
+          nivel_digital: "médio" // Valor padrão
+        }
+      };
+
+      // Chamar a função edge intent-core
+      const { data, error } = await supabase.functions.invoke("intent-core", {
+        body: requestData,
+      });
+
+      if (error) {
+        console.error("Erro ao chamar intent-core:", error);
+        throw new Error(`Erro ao processar intenção: ${error.message}`);
+      }
+
+      // Processar e validar resposta
+      const intentResult = data as IntentProcessorResult;
+      setResult(intentResult);
       
-      const userMessage = enrichedContext.mensagem_usuario?.toLowerCase() || '';
-      let result: IntentProcessorResult;
-      
-      // Análise baseada em palavras-chave para determinar intenção
-      if (userMessage.includes('roteiro') || userMessage.includes('vídeo') || userMessage.includes('gravar')) {
-        result = {
-          intencao: "Criar roteiro para vídeo",
-          categoria: "conteudo",
-          direcionamento_estrategico: userMessage.includes('venda') ? 'venda' : 'educacao',
-          acao_recomendada: "script_generator",
-          prompt_personalizado: `Gere um roteiro para vídeo sobre ${userMessage}, focando em ${enrichedContext.foco_comunicacao || 'benefícios'} para ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'}.`,
-          explicacao: "O usuário demonstrou interesse em criar conteúdo em vídeo, que é um dos formatos mais eficientes para comunicação em saúde estética.",
-          proximo_passo: "Redirecionar para o gerador de roteiros com o prompt pré-preenchido"
-        };
-      }
-      else if (userMessage.includes('estratégia') || userMessage.includes('plano') || userMessage.includes('marketing')) {
-        result = {
-          intencao: "Desenvolver estratégia de marketing",
-          categoria: "marketing",
-          direcionamento_estrategico: "branding",
-          acao_recomendada: "marketing_consultant",
-          prompt_personalizado: `Desenvolva uma estratégia de marketing para ${enrichedContext.procedimentos?.join(', ') || 'uma clínica de estética'} focada em ${enrichedContext.foco_comunicacao || 'diferenciação'}.`,
-          explicacao: "O usuário está buscando orientações estratégicas para melhorar seu posicionamento e crescer no mercado.",
-          proximo_passo: "Iniciar consultor de marketing com foco em estratégia"
-        };
-      }
-      else if (userMessage.includes('vendas') || userMessage.includes('converter') || userMessage.includes('cliente')) {
-        result = {
-          intencao: "Aumentar conversão de vendas",
-          categoria: "vendas",
-          direcionamento_estrategico: "venda",
-          acao_recomendada: "sales_script_generator",
-          prompt_personalizado: `Crie um script de vendas persuasivo para ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'} considerando o perfil ${enrichedContext.perfil_comportamental?.join(', ') || 'do cliente'}.`,
-          explicacao: "O foco do usuário está em converter leads em clientes pagantes, indicando necessidade de material com foco em vendas.",
-          proximo_passo: "Apresentar gerador de scripts de vendas com argumentos personalizados"
-        };
-      }
-      else if (userMessage.includes('ciência') || userMessage.includes('estudo') || userMessage.includes('pesquisa')) {
-        result = {
-          intencao: "Obter embasamento científico",
-          categoria: "ciencia",
-          direcionamento_estrategico: "educacao",
-          acao_recomendada: "scientific_content",
-          prompt_personalizado: `Busque estudos científicos relevantes sobre ${enrichedContext.procedimentos?.join(', ') || 'tratamentos estéticos'} e prepare um resumo com pontos-chave.`,
-          explicacao: "O usuário busca fundamentação científica para seus procedimentos, demonstrando interesse em comunicação baseada em evidências.",
-          proximo_passo: "Mostrar pesquisas científicas relacionadas aos procedimentos"
-        };
-      }
-      else {
-        // Caso padrão quando não conseguimos identificar claramente a intenção
-        result = {
-          intencao: "Explorar conteúdo",
-          categoria: "conteudo",
-          direcionamento_estrategico: "educacao",
-          acao_recomendada: "content_explorer",
-          prompt_personalizado: `Sugira ideias de conteúdo sobre ${enrichedContext.procedimentos?.join(', ') || 'estética'} no formato ${enrichedContext.estilo_preferido || 'mais engajante'} para educação do público.`,
-          explicacao: "Baseado no histórico do usuário, conteúdo educativo tem sido sua abordagem mais bem-sucedida.",
-          proximo_passo: "Apresentar explorador de conteúdo com sugestões personalizadas"
-        };
-      }
-      
-      setResult(result);
-      return result;
+      return intentResult;
       
     } catch (error) {
       console.error('Erro ao processar intenção:', error);

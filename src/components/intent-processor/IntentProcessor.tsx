@@ -7,6 +7,7 @@ import { Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { useIntentProcessor, UserContext, IntentProcessorResult } from '@/hooks/useIntentProcessor';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile, upsertUserProfile } from '@/services/userProfileService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface IntentProcessorProps {
   initialContext?: UserContext;
@@ -19,10 +20,19 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
 }) => {
   const [userMessage, setUserMessage] = useState(initialContext.mensagem_usuario || '');
   const [userContext, setUserContext] = useState<UserContext>(initialContext);
+  const [userId, setUserId] = useState<string | null>(null);
   const { processIntent, loading, result } = useIntentProcessor();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar se o usuário está autenticado
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+      }
+    };
+
     // Carregar o perfil do usuário ao montar o componente
     const loadUserProfile = async () => {
       const profile = await getUserProfile();
@@ -39,6 +49,7 @@ const IntentProcessor: React.FC<IntentProcessorProps> = ({
       }
     };
 
+    checkAuth();
     loadUserProfile();
   }, []);
 
