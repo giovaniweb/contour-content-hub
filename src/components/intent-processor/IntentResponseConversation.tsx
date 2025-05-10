@@ -36,6 +36,33 @@ const IntentResponseConversation: React.FC<IntentResponseConversationProps> = ({
     return humanized;
   };
 
+  // Função para obter resposta naturalizada com base no tipo de ação
+  const getNaturalizedResponse = (action: string): string => {
+    switch (action) {
+      case 'script_generator':
+        return "Vamos transformar sua ideia em um vídeo poderoso. Preparei um roteiro com o estilo que mais combina com você, pronto para ser ajustado e publicado.";
+      case 'custom-gpt':
+        return "Ótimo ponto! Aqui está um conteúdo feito sob medida para você usar em postagens, emails ou legendas. Simples, direto e com a sua cara.";
+      case 'generate-plan':
+      case 'content_explorer':
+        return "Você quer clareza e direção? Acabei de montar um plano com ideias organizadas para sua clínica crescer com consistência. Bora colocar em prática?";
+      case 'scientific_content':
+        return "Encontrei um artigo que responde exatamente ao que você está procurando. Ele é confiável, recente e direto ao ponto. Vale a leitura.";
+      case 'generate-content-description':
+        return "Vamos atrair mais pacientes? Preparei uma ideia de criativo com foco em conversão rápida. Pode usar direto em campanhas ou adaptar pro seu estilo.";
+      case 'validate-script':
+        return "Analisei seu conteúdo com olhos de especialista. Aqui está o que ficou ótimo e o que pode ser ajustado pra gerar ainda mais resultado.";
+      case 'improve-script':
+        return "Seu conteúdo já é bom — agora ficou excelente. Ajustei o tom, o CTA e a fluidez pra deixar tudo no ponto certo.";
+      case 'sales_script':
+        return "Notei que você está explorando bastante conteúdos sobre este tema. Um equipamento como este pode turbinar ainda mais seus resultados. Quer ver mais sobre ele?";
+      case 'marketing_consultant':
+        return "Vamos melhorar sua estratégia de marketing? Preparei algumas dicas práticas baseadas na sua situação atual. Vamos implementar juntos?";
+      default:
+        return humanizeExplanation(result.explicacao);
+    }
+  };
+
   // Função para determinar o texto do botão baseado na ação recomendada
   const getButtonText = (action: string): string => {
     switch (action) {
@@ -49,6 +76,16 @@ const IntentResponseConversation: React.FC<IntentResponseConversationProps> = ({
         return 'Ver pesquisas científicas';
       case 'sales_script':
         return 'Criar script de vendas';
+      case 'custom-gpt':
+        return 'Criar conteúdo';
+      case 'generate-plan':
+        return 'Ver plano estratégico';
+      case 'generate-content-description':
+        return 'Ver ideia de criativo';
+      case 'validate-script':
+        return 'Ver análise';
+      case 'improve-script':
+        return 'Ver conteúdo refinado';
       default:
         return 'Continuar';
     }
@@ -63,7 +100,7 @@ const IntentResponseConversation: React.FC<IntentResponseConversationProps> = ({
             <AvatarFallback>AI</AvatarFallback>
           </Avatar>
           <div className="bg-muted p-4 rounded-lg rounded-tl-none max-w-[90%]">
-            <p className="text-base">{humanizeExplanation(result.explicacao)}</p>
+            <p className="text-base">{getNaturalizedResponse(result.acao_recomendada)}</p>
             <p className="text-sm text-muted-foreground mt-2">{result.proximo_passo}</p>
           </div>
         </div>
