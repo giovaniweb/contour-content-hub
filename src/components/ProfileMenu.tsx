@@ -1,143 +1,132 @@
 
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom"; 
+import { User, Settings, LogOut, UserPlus, Users } from "lucide-react";
+
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Settings, LogOut, User, Shield, Users, BrainCircuit, LineChart } from "lucide-react";
 
-const ProfileMenu: React.FC = () => {
+export function ProfileMenu() {
   const { user, logout } = useAuth();
-  const { isAdmin, isOperator, isSeller } = usePermissions();
+  const { toast } = useToast();
+  const { isAdmin, canManageWorkspace, canViewConsultantPanel } = usePermissions();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  if (!user) return null;
-
-  const userInitials = user.name
-    .split(" ")
-    .map(word => word[0])
-    .join("")
-    .toUpperCase();
-
-  const getUserRoleBadge = () => {
-    if (isAdmin()) {
-      return <Badge variant="outline" className="bg-contourline-darkBlue/10 border-contourline-darkBlue/20 text-contourline-darkBlue">Administrador</Badge>;
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso."
+      });
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Erro ao fazer logout",
+        description: "Não foi possível desconectar. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoggingOut(false);
     }
-    if (isOperator()) {
-      return <Badge variant="outline" className="bg-contourline-mediumBlue/10 border-contourline-mediumBlue/20 text-contourline-mediumBlue">Operador</Badge>;
-    }
-    if (isSeller()) {
-      return <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500">Vendedor</Badge>;
-    }
-    return null;
   };
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    const nameParts = name.split(" ");
+    if (nameParts.length === 1) return nameParts[0][0]?.toUpperCase() || "U";
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
+
+  const userInitials = getInitials(user?.name || "");
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border border-contourline-lightBlue/30">
-            <AvatarImage 
-              src={user.profilePhotoUrl} 
-              alt={user.name} 
-              className="object-cover"
-            />
-            <AvatarFallback className="bg-contourline-mediumBlue text-white">
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={user?.profilePhotoUrl || ""} />
+            <AvatarFallback className="bg-primary text-primary-foreground">
               {userInitials}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel>
+        <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-            {getUserRoleBadge() && <div className="mt-1">{getUserRoleBadge()}</div>}
+            <p className="text-sm font-medium leading-none">{user?.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user?.email}
+            </p>
+            {user?.role && (
+              <p className="text-xs leading-none text-primary bg-primary/10 rounded px-1 py-0.5 mt-1 inline-block max-w-max">
+                {user.role}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="flex items-center cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            <span>Perfil</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/settings" className="flex items-center cursor-pointer">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações</span>
-          </Link>
-        </DropdownMenuItem>
-        
-        {isAdmin() && (
-          <>
-            <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link to="/profile">
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </Link>
+          </DropdownMenuItem>
+          
+          {canManageWorkspace() && (
             <DropdownMenuItem asChild>
-              <Link to="/admin/dashboard" className="flex items-center cursor-pointer">
-                <Shield className="mr-2 h-4 w-4" />
-                <span>Painel Admin</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/admin/integrations" className="flex items-center cursor-pointer">
-                <BrainCircuit className="mr-2 h-4 w-4" />
-                <span>Integrações</span>
-              </Link>
-            </DropdownMenuItem>
-          </>
-        )}
-        
-        {isOperator() && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/operator/dashboard" className="flex items-center cursor-pointer">
+              <Link to="/workspace-settings">
                 <Users className="mr-2 h-4 w-4" />
-                <span>Área do Operador</span>
+                <span>Gerenciar Workspace</span>
               </Link>
             </DropdownMenuItem>
-          </>
-        )}
-        
-        {isSeller() && (
-          <>
-            <DropdownMenuSeparator />
+          )}
+          
+          {canViewConsultantPanel() && (
             <DropdownMenuItem asChild>
-              <Link to="/seller/clients" className="flex items-center cursor-pointer">
-                <Users className="mr-2 h-4 w-4" />
-                <span>Clientes</span>
+              <Link to="/consultant">
+                <UserPlus className="mr-2 h-4 w-4" />
+                <span>Painel de Consultoria</span>
               </Link>
             </DropdownMenuItem>
+          )}
+          
+          {isAdmin() && (
             <DropdownMenuItem asChild>
-              <Link to="/seller/dashboard" className="flex items-center cursor-pointer">
-                <LineChart className="mr-2 h-4 w-4" />
-                <span>Desempenho</span>
+              <Link to="/admin">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Administração</span>
               </Link>
             </DropdownMenuItem>
-          </>
-        )}
-        
+          )}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          onClick={() => logout()}
-          className="text-red-600 focus:text-red-600 cursor-pointer"
+          onClick={handleLogout} 
+          disabled={isLoggingOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Sair</span>
+          <span>{isLoggingOut ? "Saindo..." : "Sair"}</span>
+          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
-
-export default ProfileMenu;
+}

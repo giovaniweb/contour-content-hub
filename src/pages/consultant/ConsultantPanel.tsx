@@ -1,517 +1,308 @@
 
-import React, { useState, useEffect } from "react";
-import { usePermissions } from "@/hooks/use-permissions";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import {
-  BarChart3,
-  Users,
-  Search,
-  Activity,
-  TrendingUp,
-  Check,
-  Package,
-  Send,
-  Lightbulb,
-  Calendar
-} from "lucide-react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import Layout from "@/components/Layout";
+import React, { useState, useEffect } from 'react';
+import { Layout } from '@/components/Layout';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Workspace } from '@/types/auth';
 
-interface Workspace {
+interface WorkspaceWithAdmin {
   id: string;
   nome: string;
   plano: string;
   criado_em: string;
-  admin_nome?: string;
-  ultimo_acesso?: string;
+  admin: {
+    nome: string | null;
+    email: string;
+  } | null;
 }
 
-interface WorkspaceDetail {
+interface RecentActivity {
   id: string;
-  nome: string;
-  plano: string;
-  admin_nome?: string;
-  ultimo_acesso?: string;
-  roteiros_recentes?: {
-    id: string;
-    titulo: string;
-    data_criacao: string;
-  }[];
-  conteudos_validados?: {
-    id: string;
-    titulo: string;
-    data_validacao: string;
-  }[];
-  artigos_acessados?: {
-    id: string;
-    titulo: string;
-    data_acesso: string;
-  }[];
-  estilo_preferido?: string;
-  tema_mais_frequente?: string;
-  canal_mais_usado?: string;
-  engajamento_estimado?: "alto" | "médio" | "baixo";
-  perfil_sugerido?: string;
+  title: string;
+  type: string;
+  date: string;
+}
+
+interface ClientProfile {
+  stylePreference?: string;
+  frequentTheme?: string;
+  preferredChannel?: string;
+  estimatedEngagement?: string;
+  suggestedProfile?: string;
 }
 
 const ConsultantPanel: React.FC = () => {
-  const { canViewConsultantPanel } = usePermissions();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [workspaces, setWorkspaces] = useState<WorkspaceWithAdmin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceDetail | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sheetOpen, setSheetOpen] = useState(false);
-  
+  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceWithAdmin | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [clientProfile, setClientProfile] = useState<ClientProfile>({});
+
   useEffect(() => {
-    if (!canViewConsultantPanel()) {
-      toast.error("Acesso não autorizado", {
-        description: "Você não tem permissão para acessar esta página."
-      });
-      navigate("/");
-      return;
-    }
-    
     fetchWorkspaces();
-  }, [canViewConsultantPanel, navigate]);
-  
+  }, []);
+
   const fetchWorkspaces = async () => {
     try {
       setLoading(true);
       
-      // Buscar todos os workspaces
+      // Fetch all workspaces available to the consultant
       const { data: workspacesData, error: workspacesError } = await supabase
         .from('workspaces')
         .select('*');
       
       if (workspacesError) throw workspacesError;
       
-      // Para cada workspace, buscar o admin
-      const enrichedWorkspaces = await Promise.all((workspacesData || []).map(async (workspace) => {
-        // Buscar o admin do workspace
-        const { data: adminData } = await supabase
+      // For each workspace, find the admin user
+      const workspacesWithAdmins: WorkspaceWithAdmin[] = [];
+      
+      for (const workspace of workspacesData || []) {
+        const { data: adminData, error: adminError } = await supabase
           .from('users')
-          .select('nome, criado_em')
+          .select('nome, email')
           .eq('workspace_id', workspace.id)
           .eq('role', 'admin')
           .single();
+          
+        if (adminError && adminError.code !== 'PGRST116') {
+          console.error('Error fetching admin for workspace', workspace.id, adminError);
+        }
         
-        // Buscar registro de último acesso
-        const { data: usageData } = await supabase
-          .from('user_usage')
-          .select('last_activity')
-          .eq('user_id', adminData?.id)
-          .order('last_activity', { ascending: false })
-          .limit(1)
-          .single();
-        
-        return {
+        workspacesWithAdmins.push({
           ...workspace,
-          admin_nome: adminData?.nome || 'Sem admin',
-          ultimo_acesso: usageData?.last_activity || workspace.criado_em
-        };
-      }));
+          admin: adminData || null
+        });
+      }
       
-      setWorkspaces(enrichedWorkspaces);
+      setWorkspaces(workspacesWithAdmins);
     } catch (error) {
-      console.error('Erro ao buscar workspaces:', error);
-      toast.error("Erro", {
-        description: "Não foi possível carregar a lista de workspaces."
+      console.error('Error loading workspaces:', error);
+      toast({
+        title: 'Erro ao carregar clínicas',
+        description: 'Não foi possível carregar a lista de clínicas.',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
     }
   };
-  
-  const fetchWorkspaceDetails = async (workspaceId: string) => {
+
+  const handleViewDetails = (workspace: WorkspaceWithAdmin) => {
+    setSelectedWorkspace(workspace);
+    fetchClientData(workspace.id);
+    setIsSheetOpen(true);
+  };
+
+  const fetchClientData = async (workspaceId: string) => {
     try {
-      // Buscar dados básicos do workspace
-      const { data: workspaceData } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('id', workspaceId)
-        .single();
+      // Fetch recent activities
+      // This is a mock - you would replace with actual queries to your tables
+      setRecentActivities([
+        { id: '1', title: 'Roteiro: Rejuvenescimento facial', type: 'script', date: '2025-04-25' },
+        { id: '2', title: 'Validação: Corporal redução', type: 'validation', date: '2025-04-24' },
+        { id: '3', title: 'Artigo: Novas técnicas de lifting', type: 'article', date: '2025-04-22' }
+      ]);
       
-      // Buscar o admin do workspace
-      const { data: adminData } = await supabase
+      // Fetch user profile data
+      const { data: adminUser } = await supabase
         .from('users')
-        .select('nome, criado_em')
+        .select('id')
         .eq('workspace_id', workspaceId)
         .eq('role', 'admin')
         .single();
       
-      // Mock de dados que viriam do backend real
-      const workspaceDetail: WorkspaceDetail = {
-        id: workspaceData.id,
-        nome: workspaceData.nome,
-        plano: workspaceData.plano,
-        admin_nome: adminData?.nome || 'Sem admin',
-        ultimo_acesso: adminData?.criado_em || workspaceData.criado_em,
-        roteiros_recentes: [
-          { id: '1', titulo: 'Divulgação de nova tecnologia', data_criacao: '2025-05-08' },
-          { id: '2', titulo: 'Tratamento para rejuvenescimento', data_criacao: '2025-05-05' },
-        ],
-        conteudos_validados: [
-          { id: '1', titulo: 'Tratamentos faciais modernos', data_validacao: '2025-05-07' },
-          { id: '2', titulo: 'Equipamentos de radiofrequência', data_validacao: '2025-05-03' },
-        ],
-        artigos_acessados: [
-          { id: '1', titulo: 'Novas tecnologias estéticas', data_acesso: '2025-05-06' },
-          { id: '2', titulo: 'Comparativo de procedimentos', data_acesso: '2025-05-02' },
-        ],
-        estilo_preferido: 'emocional',
-        tema_mais_frequente: 'rejuvenescimento',
-        canal_mais_usado: 'Instagram',
-        engajamento_estimado: 'médio',
-        perfil_sugerido: 'potencial comprador',
-      };
-      
-      setSelectedWorkspace(workspaceDetail);
-      setSheetOpen(true);
+      if (adminUser) {
+        const { data: profileData } = await supabase
+          .from('user_profile')
+          .select('*')
+          .eq('user_id', adminUser.id)
+          .single();
+          
+        if (profileData) {
+          setClientProfile({
+            stylePreference: profileData.estilo_preferido || 'emocional',
+            frequentTheme: 'rejuvenescimento',
+            preferredChannel: 'Instagram',
+            estimatedEngagement: 'médio',
+            suggestedProfile: 'foco em autoridade'
+          });
+        }
+      }
     } catch (error) {
-      console.error('Erro ao buscar detalhes do workspace:', error);
-      toast.error("Erro", {
-        description: "Não foi possível carregar os detalhes do workspace."
-      });
+      console.error('Error fetching client data:', error);
     }
   };
-  
-  const handleMarkAsOpportunity = (workspaceId: string) => {
-    toast.success("Oportunidade marcada", {
-      description: "O cliente foi marcado como uma oportunidade comercial."
+
+  const handleMarkOpportunity = () => {
+    toast({
+      title: 'Marcado como oportunidade',
+      description: 'O cliente foi marcado como oportunidade de negócio.'
     });
   };
-  
-  const handleSuggestEquipment = (workspaceId: string) => {
-    toast.success("Equipamento sugerido", {
-      description: "Suas sugestões de equipamento foram enviadas."
+
+  const handleSuggestEquipment = () => {
+    toast({
+      title: 'Sugestão enviada',
+      description: 'A sugestão de equipamento foi enviada para a equipe comercial.'
     });
   };
-  
-  const handleSendInsight = (workspaceId: string) => {
-    toast.success("Insight enviado", {
-      description: "O insight estratégico foi enviado ao cliente."
+
+  const handleSendInsight = () => {
+    toast({
+      title: 'Insight enviado',
+      description: 'O insight estratégico foi enviado para o cliente.'
     });
   };
-  
-  const filteredWorkspaces = workspaces.filter(workspace =>
-    workspace.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    workspace.admin_nome?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    workspace.plano.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  const getEngagementBadge = (level?: string) => {
-    switch (level) {
-      case 'alto':
-        return <Badge variant="default" className="bg-green-500">Alto</Badge>;
-      case 'médio':
-        return <Badge variant="default" className="bg-yellow-500">Médio</Badge>;
-      case 'baixo':
-        return <Badge variant="default" className="bg-red-500">Baixo</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
-    }
-  };
-  
+
   return (
     <Layout>
       <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Painel do Consultor</h1>
-            <p className="text-muted-foreground">
-              Visão estratégica dos clientes e seus comportamentos
-            </p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <Users className="mr-2 h-5 w-5" />
-                Total de Clientes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{workspaces.length}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <Activity className="mr-2 h-5 w-5" />
-                Clientes Ativos
-              </CardTitle>
-              <CardDescription>Últimos 30 dias</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {workspaces.filter(workspace => 
-                  workspace.ultimo_acesso && 
-                  new Date(workspace.ultimo_acesso) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                ).length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <BarChart3 className="mr-2 h-5 w-5" />
-                Oportunidades Identificadas
-              </CardTitle>
-              <CardDescription>Este mês</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">0</div>
-            </CardContent>
-          </Card>
-        </div>
+        <h1 className="text-3xl font-bold mb-6">Painel do Consultor</h1>
         
         <Card>
           <CardHeader>
-            <CardTitle>Seus Clientes</CardTitle>
-            <div className="flex w-full max-w-sm items-center space-x-2 mt-2">
-              <Input 
-                type="text"
-                placeholder="Buscar clientes..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-              <Button type="submit" size="icon" variant="ghost">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
+            <CardTitle>Clínicas Atendidas</CardTitle>
+            <CardDescription>
+              Gerencie as clínicas sob sua consultoria e acompanhe seu desempenho
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="flex items-center space-x-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-[250px]" />
-                      <Skeleton className="h-4 w-[200px]" />
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-10">Carregando clínicas...</div>
+            ) : workspaces.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-muted-foreground">Nenhuma clínica encontrada</p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Clínica</TableHead>
-                      <TableHead>Dono</TableHead>
-                      <TableHead>Plano</TableHead>
-                      <TableHead>Último acesso</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredWorkspaces.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
-                          Nenhum cliente encontrado
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredWorkspaces.map(workspace => (
-                        <TableRow key={workspace.id}>
-                          <TableCell className="font-medium">{workspace.nome}</TableCell>
-                          <TableCell>{workspace.admin_nome}</TableCell>
-                          <TableCell>
-                            <Badge variant={workspace.plano === 'free' ? 'outline' : 'default'}>
-                              {workspace.plano.charAt(0).toUpperCase() + workspace.plano.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(workspace.ultimo_acesso || "").toLocaleString()}</TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => fetchWorkspaceDetails(workspace.id)}
-                            >
-                              Ver Detalhes
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Nome da Clínica</th>
+                      <th className="text-left py-3 px-4">Dono</th>
+                      <th className="text-left py-3 px-4">Plano Ativo</th>
+                      <th className="text-left py-3 px-4">Criado em</th>
+                      <th className="text-right py-3 px-4">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {workspaces.map((workspace) => (
+                      <tr key={workspace.id} className="border-b hover:bg-muted/50">
+                        <td className="py-3 px-4">{workspace.nome}</td>
+                        <td className="py-3 px-4">
+                          {workspace.admin ? workspace.admin.nome || workspace.admin.email : 'N/A'}
+                        </td>
+                        <td className="py-3 px-4 capitalize">{workspace.plano}</td>
+                        <td className="py-3 px-4">
+                          {new Date(workspace.criado_em).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Button onClick={() => handleViewDetails(workspace)}>
+                            Ver Detalhes
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
         </Card>
-        
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          {selectedWorkspace && (
-            <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto">
-              <SheetHeader className="pb-5">
-                <SheetTitle className="text-2xl">{selectedWorkspace.nome}</SheetTitle>
-                <SheetDescription>
-                  <div className="flex items-center justify-between">
-                    <Badge variant={selectedWorkspace.plano === 'free' ? 'outline' : 'default'}>
-                      {selectedWorkspace.plano.charAt(0).toUpperCase() + selectedWorkspace.plano.slice(1)}
-                    </Badge>
-                    <span className="text-sm">Admin: {selectedWorkspace.admin_nome}</span>
-                  </div>
-                </SheetDescription>
-              </SheetHeader>
+      </div>
+      
+      {/* Painel lateral de detalhes */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
+              {selectedWorkspace?.nome || 'Detalhes da Clínica'}
+            </SheetTitle>
+            <SheetDescription>
+              Analisando comportamento e padrões de uso
+            </SheetDescription>
+          </SheetHeader>
+          
+          <Tabs defaultValue="activities" className="mt-6">
+            <TabsList className="w-full">
+              <TabsTrigger value="activities" className="flex-1">Atividades Recentes</TabsTrigger>
+              <TabsTrigger value="patterns" className="flex-1">Padrões Detectados</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="activities" className="mt-4 space-y-4">
+              <h3 className="font-medium text-lg">Últimas Atividades</h3>
               
-              <div className="space-y-6">
-                {/* Sessão: Atividades Recentes */}
-                <div>
-                  <h2 className="text-lg font-semibold mb-2 flex items-center">
-                    <Activity className="mr-2 h-5 w-5" />
-                    Atividades Recentes
-                  </h2>
-                  
-                  {/* Roteiros recentes */}
-                  <Card className="mb-3">
-                    <CardHeader className="py-2 px-3">
-                      <CardTitle className="text-sm">Roteiros Recentes</CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-2 px-3">
-                      <ul className="space-y-1 text-sm">
-                        {selectedWorkspace.roteiros_recentes?.map(roteiro => (
-                          <li key={roteiro.id} className="flex justify-between">
-                            <span>{roteiro.titulo}</span>
-                            <span className="text-muted-foreground">{new Date(roteiro.data_criacao).toLocaleDateString()}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Conteúdos validados */}
-                  <Card className="mb-3">
-                    <CardHeader className="py-2 px-3">
-                      <CardTitle className="text-sm">Conteúdos Mais Validados</CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-2 px-3">
-                      <ul className="space-y-1 text-sm">
-                        {selectedWorkspace.conteudos_validados?.map(conteudo => (
-                          <li key={conteudo.id} className="flex justify-between">
-                            <span>{conteudo.titulo}</span>
-                            <span className="text-muted-foreground">{new Date(conteudo.data_validacao).toLocaleDateString()}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Artigos acessados */}
-                  <Card>
-                    <CardHeader className="py-2 px-3">
-                      <CardTitle className="text-sm">Artigos Acessados Recentemente</CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-2 px-3">
-                      <ul className="space-y-1 text-sm">
-                        {selectedWorkspace.artigos_acessados?.map(artigo => (
-                          <li key={artigo.id} className="flex justify-between">
-                            <span>{artigo.titulo}</span>
-                            <span className="text-muted-foreground">{new Date(artigo.data_acesso).toLocaleDateString()}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Sessão: Padrões Detectados */}
-                <div>
-                  <h2 className="text-lg font-semibold mb-2 flex items-center">
-                    <TrendingUp className="mr-2 h-5 w-5" />
-                    Padrões Detectados
-                  </h2>
-                  
-                  <Card className="mb-4">
-                    <CardContent className="py-3 px-4">
-                      <dl className="grid grid-cols-1 gap-y-2">
-                        <div className="flex justify-between">
-                          <dt className="text-sm font-medium">Estilo preferido:</dt>
-                          <dd className="text-sm">{selectedWorkspace.estilo_preferido}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-sm font-medium">Tema mais frequente:</dt>
-                          <dd className="text-sm">{selectedWorkspace.tema_mais_frequente}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-sm font-medium">Canal mais usado:</dt>
-                          <dd className="text-sm">{selectedWorkspace.canal_mais_usado}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-sm font-medium">Engajamento estimado:</dt>
-                          <dd className="text-sm">{getEngagementBadge(selectedWorkspace.engajamento_estimado)}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-sm font-medium">Perfil sugerido:</dt>
-                          <dd className="text-sm">{selectedWorkspace.perfil_sugerido}</dd>
-                        </div>
-                      </dl>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Ações do consultor */}
-                <div className="space-y-2">
-                  <h2 className="text-lg font-semibold mb-2">Ações</h2>
-                  
-                  <div className="grid grid-cols-1 gap-2">
-                    <Button className="w-full" onClick={() => handleMarkAsOpportunity(selectedWorkspace.id)}>
-                      <Check className="mr-2 h-4 w-4" />
-                      Marcar como oportunidade
-                    </Button>
-                    <Button className="w-full" variant="outline" onClick={() => handleSuggestEquipment(selectedWorkspace.id)}>
-                      <Package className="mr-2 h-4 w-4" />
-                      Sugerir equipamento
-                    </Button>
-                    <Button className="w-full" variant="secondary" onClick={() => handleSendInsight(selectedWorkspace.id)}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Enviar insight estratégico
-                    </Button>
+              <div className="space-y-2">
+                {recentActivities.map(activity => (
+                  <div key={activity.id} className="p-3 border rounded-md">
+                    <div className="flex justify-between">
+                      <div className="font-medium">{activity.title}</div>
+                      <div className="text-sm text-muted-foreground">{activity.date}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground capitalize">{activity.type}</div>
                   </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="patterns" className="mt-4">
+              <h3 className="font-medium text-lg mb-4">Padrões Detectados</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm font-medium text-muted-foreground">Estilo preferido</div>
+                    <div className="font-medium mt-1 capitalize">{clientProfile.stylePreference || 'N/A'}</div>
+                  </div>
+                  
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm font-medium text-muted-foreground">Tema mais frequente</div>
+                    <div className="font-medium mt-1 capitalize">{clientProfile.frequentTheme || 'N/A'}</div>
+                  </div>
+                  
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm font-medium text-muted-foreground">Canal mais usado</div>
+                    <div className="font-medium mt-1">{clientProfile.preferredChannel || 'N/A'}</div>
+                  </div>
+                  
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm font-medium text-muted-foreground">Engajamento estimado</div>
+                    <div className="font-medium mt-1 capitalize">{clientProfile.estimatedEngagement || 'N/A'}</div>
+                  </div>
+                </div>
+                
+                <div className="p-4 border rounded-md bg-muted/50">
+                  <div className="text-sm font-medium mb-2">Perfil IA sugerido:</div>
+                  <div className="font-medium">{clientProfile.suggestedProfile || 'Dados insuficientes'}</div>
                 </div>
               </div>
-            </SheetContent>
-          )}
-        </Sheet>
-      </div>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="mt-8 space-y-3">
+            <h3 className="font-medium text-lg">Ações Disponíveis</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button onClick={handleMarkOpportunity} variant="outline" className="w-full">
+                Marcar como oportunidade
+              </Button>
+              <Button onClick={handleSuggestEquipment} variant="outline" className="w-full">
+                Sugerir equipamento
+              </Button>
+              <Button onClick={handleSendInsight} variant="outline" className="w-full">
+                Enviar insight
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </Layout>
   );
 };

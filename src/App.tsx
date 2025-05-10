@@ -19,7 +19,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import ContentPlannerPage from "./pages/ContentPlannerPage";
 import EquipmentDetailsPage from "./pages/EquipmentDetailsPage";
 import ContentStrategy from "./pages/ContentStrategy";
-import { ErrorBoundaryGeneric } from "./components/ErrorBoundary";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./App.css";
 import VideoPlayer from "./pages/VideoPlayer";
 import VideoSwipe from "./pages/VideoSwipe";
@@ -47,13 +47,15 @@ import SellerDashboard from "./pages/seller/SellerDashboard";
 import ClientList from "./pages/seller/ClientList";
 import ClientDetail from "./pages/seller/ClientDetail";
 import ReportsPage from "./pages/ReportsPage";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
+import InvitesPage from "./pages/InvitesPage";
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider defaultTheme="light" storageKey="fluida-theme">
-          <ErrorBoundaryGeneric>
+          <ErrorBoundary>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
@@ -85,6 +87,8 @@ function App() {
               <Route path="/equipment/:id" element={<PrivateRoute><EquipmentDetailsPage /></PrivateRoute>} />
               <Route path="/marketing-consultant" element={<PrivateRoute><MarketingConsultant /></PrivateRoute>} />
               <Route path="/reports" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
+              <Route path="/workspace-settings" element={<PrivateRoute><WorkspaceSettings /></PrivateRoute>} />
+              <Route path="/invites" element={<PrivateRoute><InvitesPage /></PrivateRoute>} />
               
               {/* Consultant Routes */}
               <Route path="/consultant" element={<PrivateRoute><ConsultantPanel /></PrivateRoute>} />
@@ -105,7 +109,7 @@ function App() {
               {/* 404 Not Found */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </ErrorBoundaryGeneric>
+          </ErrorBoundary>
           <Toaster />
         </ThemeProvider>
       </AuthProvider>
