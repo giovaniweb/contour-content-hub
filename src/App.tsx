@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -39,11 +39,6 @@ import WorkspaceSettings from '@/pages/WorkspaceSettings';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
 
 import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/context/AuthContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/config/queryClient';
-import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorBoundaryGeneric from '@/components/ErrorBoundaryGeneric';
 
@@ -57,73 +52,63 @@ import { SlideNotificationProvider } from '@/components/notifications/SlideNotif
 function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryGeneric}>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="light" storageKey="theme">
-            <BrowserRouter>
-              <SlideNotificationProvider>
-                <AuthProvider>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/vimeo/callback" element={<VimeoCallback />} />
-                    
-                    {/* Protected Routes */}
-                    <Route element={<PrivateRoute />}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/content-strategy" element={<ContentStrategy />} />
-                      <Route path="/content-planner" element={<ContentPlannerPage />} />
-                      <Route path="/equipments" element={<EquipmentsPage />} />
-                      <Route path="/media" element={<MediaLibraryPage />} />
-                      <Route path="/script-generator" element={<ScriptGeneratorPage />} />
-                      <Route path="/video-storage" element={<VideoStorage />} />
-                      <Route path="/video-batch" element={<VideoBatchManage />} />
-                      <Route path="/equipment/:id" element={<EquipmentDetailsPage />} />
-                      <Route path="/script-validation" element={<ScriptValidationPage />} />
-                      <Route path="/documents" element={<TechnicalDocuments />} />
-                      <Route path="/document/:id" element={<DocumentDetail />} />
-                      <Route path="/reports" element={<ReportsPage />} />
-                      <Route path="/idea-validator" element={<IdeaValidatorPage />} />
-                      <Route path="/vimeo-settings" element={<VimeoSettings />} />
-                      <Route path="/vimeo-import" element={<VideoBatchImport />} />
-                      <Route path="/video-swipe" element={<VideoSwipe />} />
-                      <Route path="/marketing-consultant" element={<MarketingConsultant />} />
-                      <Route path="/scientific-articles" element={<ScientificArticles />} />
-                      <Route path="/video-player" element={<VideoPlayer />} />
-                      <Route path="/invites" element={<InvitesPage />} />
-                      <Route path="/workspace-settings" element={<WorkspaceSettings />} />
-                    </Route>
+      <SlideNotificationProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/vimeo/callback" element={<VimeoCallback />} />
+          
+          {/* Protected Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/content-strategy" element={<ContentStrategy />} />
+            <Route path="/content-planner" element={<ContentPlannerPage />} />
+            <Route path="/equipments" element={<EquipmentsPage />} />
+            <Route path="/media" element={<MediaLibraryPage />} />
+            <Route path="/script-generator" element={<ScriptGeneratorPage />} />
+            <Route path="/video-storage" element={<VideoStorage />} />
+            <Route path="/video-batch" element={<VideoBatchManage />} />
+            <Route path="/equipment/:id" element={<EquipmentDetailsPage />} />
+            <Route path="/script-validation" element={<ScriptValidationPage />} />
+            <Route path="/documents" element={<TechnicalDocuments />} />
+            <Route path="/document/:id" element={<DocumentDetail />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/idea-validator" element={<IdeaValidatorPage />} />
+            <Route path="/vimeo-settings" element={<VimeoSettings />} />
+            <Route path="/vimeo-import" element={<VideoBatchImport />} />
+            <Route path="/video-swipe" element={<VideoSwipe />} />
+            <Route path="/marketing-consultant" element={<MarketingConsultant />} />
+            <Route path="/scientific-articles" element={<ScientificArticles />} />
+            <Route path="/video-player" element={<VideoPlayer />} />
+            <Route path="/invites" element={<InvitesPage />} />
+            <Route path="/workspace-settings" element={<WorkspaceSettings />} />
+          </Route>
 
-                    {/* Consultant Routes */}
-                    <Route path="/consultant" element={<PrivateRoute requiredRole="consultor" />}>
-                      <Route index element={<ConsultantPanel />} />
-                    </Route>
-                    
-                    {/* Admin Routes */}
-                    <Route path="/admin" element={<AdminRoute />}>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="equipments" element={<AdminEquipments />} />
-                      <Route path="content" element={<AdminContent />} />
-                      <Route path="ai" element={<AdminAIPanel />} />
-                      <Route path="system-diagnostics" element={<SystemDiagnostics />} />
-                      <Route path="system-intelligence" element={<SystemIntelligence />} />
-                    </Route>
-                    
-                    {/* 404 Route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AuthProvider>
-              </SlideNotificationProvider>
-            </BrowserRouter>
-          </ThemeProvider>
-          <Toaster />
-        </QueryClientProvider>
-      </HelmetProvider>
+          {/* Consultant Routes */}
+          <Route path="/consultant" element={<PrivateRoute requiredRole="consultor" />}>
+            <Route index element={<ConsultantPanel />} />
+          </Route>
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="equipments" element={<AdminEquipments />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="ai" element={<AdminAIPanel />} />
+            <Route path="system-diagnostics" element={<SystemDiagnostics />} />
+            <Route path="system-intelligence" element={<SystemIntelligence />} />
+          </Route>
+          
+          {/* 404 Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </SlideNotificationProvider>
     </ErrorBoundary>
   );
 }

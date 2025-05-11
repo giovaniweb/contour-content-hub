@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
-import { Toaster } from './components/ui/toaster';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import './index.css';
@@ -41,7 +40,6 @@ createRoot(rootElement).render(
             <BrowserRouter>
               <AuthProvider>
                 <App />
-                <Toaster />
               </AuthProvider>
             </BrowserRouter>
           </QueryClientProvider>

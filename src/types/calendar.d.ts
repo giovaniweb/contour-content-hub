@@ -5,6 +5,18 @@ export interface CalendarPreferences {
   showWeekends: boolean;
   autoScheduleSuggestions: boolean;
   reminderTime: '30m' | '1h' | '3h' | '1d';
+  workingHours?: {
+    start: string;
+    end: string;
+  };
+  theme?: string;
+  timeZone?: string;
+  notifications?: {
+    email: boolean;
+    push: boolean;
+    desktop: boolean;
+  };
+  autoGenerate?: boolean;
 }
 
 export interface CalendarEvent {

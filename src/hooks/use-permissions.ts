@@ -26,7 +26,7 @@ export function usePermissions() {
   };
   
   // Helper to check if a user has a specific role or higher in the hierarchy
-  const hasPermission = (requiredRole: UserRole | string) => {
+  const hasPermission = (requiredRole: UserRole | 'editAllContent') => {
     if (!user) return false;
     
     // Superadmin tem todas as permissões
@@ -36,15 +36,15 @@ export function usePermissions() {
       case 'superadmin':
         return user.role === 'superadmin';
       case 'admin':
-        return ['admin', 'superadmin'].includes(user.role as string);
+        return ['admin', 'superadmin'].includes(user.role);
       case 'gerente':
-        return ['gerente', 'admin', 'superadmin'].includes(user.role as string);
+        return ['gerente', 'admin', 'superadmin'].includes(user.role);
       case 'operador':
-        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role as string);
+        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       case 'consultor':
-        return ['consultor', 'superadmin'].includes(user.role as string);
+        return ['consultor', 'superadmin'].includes(user.role);
       case 'editAllContent':
-        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role as string);
+        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       default:
         return false;
     }
