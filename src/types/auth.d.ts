@@ -45,7 +45,7 @@ export interface UserProfile {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
-  name?: string; // Added this field to fix the error
+  name?: string; // Added this field for backwards compatibility
 }
 
 export interface AuthContextType {
