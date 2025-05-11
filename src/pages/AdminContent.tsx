@@ -41,7 +41,7 @@ const AdminContent: React.FC = () => {
   }, [location.search]);
   
   // Only users with admin or operator roles can access this page
-  if (!hasPermission("editAllContent")) {
+  if (!hasPermission('editAllContent')) {
     toast({
       variant: "destructive",
       title: "Acesso Negado",

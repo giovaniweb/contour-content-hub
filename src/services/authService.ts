@@ -19,9 +19,12 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
 
     // Type guard to ensure role is one of the allowed values
     const validateRole = (role: string): UserRole => {
-      if (role === 'admin' || role === 'gerente' || role === 'operador' || 
-          role === 'consultor' || role === 'superadmin' || role === 'cliente' ||
-          role === 'viewSales' || role === 'manageClients' || role === 'editAllContent') {
+      const validRoles: UserRole[] = [
+        'admin', 'gerente', 'operador', 'consultor', 'superadmin', 'cliente',
+        'viewSales', 'manageClients', 'editAllContent'
+      ];
+      
+      if (validRoles.includes(role as UserRole)) {
         return role as UserRole;
       }
       return 'operador'; // Default to 'operador' if an invalid role is found

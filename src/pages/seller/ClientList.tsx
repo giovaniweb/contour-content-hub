@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,15 +39,12 @@ const ClientList = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Check if user has permission to manage clients
+  if (!hasPermission('manageClients')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
   useEffect(() => {
-    // Verificar permissões
-    if (!hasPermission('manageClients')) {
-      toast("Acesso negado", {
-        description: "Você não tem permissão para acessar esta página."
-      });
-      return;
-    }
-    
     fetchClients();
   }, [hasPermission]);
   
