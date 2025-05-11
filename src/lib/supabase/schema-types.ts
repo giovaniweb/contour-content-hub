@@ -4,7 +4,6 @@ export interface DbPerfil {
   nome?: string;
   email: string;
   role: string;
-  workspace_id?: string;
   cidade?: string;
   clinica?: string;
   telefone?: string;

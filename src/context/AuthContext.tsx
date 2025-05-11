@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  loading: true,
+  error: null,
   isLoading: true,
   isAuthenticated: false,
   login: async () => { throw new Error('Not implemented') },
@@ -16,12 +18,15 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => { throw new Error('Not implemented') },
   updateUser: async () => { throw new Error('Not implemented') },
   updatePassword: async () => false,
+  resetPassword: async () => { throw new Error('Not implemented') },
+  refreshAuth: async () => { throw new Error('Not implemented') },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      setError(null);
       const { data, error } = await loginWithEmailAndPassword(email, password);
       
       if (error) throw error;
@@ -99,27 +105,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     } catch (error: any) {
       console.error('Login error:', error);
+      setError(error.message || 'Error logging in');
       throw error;
     }
   };
 
   const logout = async () => {
     try {
+      setError(null);
       await logoutUser();
       navigate('/login');
     } catch (error: any) {
       console.error('Logout error:', error);
+      setError(error.message || 'Error logging out');
       throw error;
     }
   };
 
-  const register = async (userData: Omit<UserProfile, "id" | "passwordChanged" | "role"> & { password: string; role?: typeof user.role }) => {
+  const register = async (userData: { 
+    email: string; 
+    password: string; 
+    name?: string;
+    role?: UserProfile["role"];
+    clinic?: string;
+    city?: string;
+    phone?: string;
+    equipment?: string[];
+    language?: "PT" | "EN" | "ES";
+  }) => {
     try {
+      setError(null);
       await registerUserService(userData);
       // After registration, redirect to login
       navigate('/login');
     } catch (error: any) {
       console.error('Register error:', error);
+      setError(error.message || 'Error registering user');
       throw error;
     }
   };
@@ -134,29 +155,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (error: any) {
       console.error('Update user error:', error);
+      setError(error.message || 'Error updating user');
       throw error;
     }
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
+      setError(null);
       await updateUserPasswordService(newPassword);
       return true;
     } catch (error: any) {
       console.error('Update password error:', error);
+      setError(error.message || 'Error updating password');
       return false;
+    }
+  };
+  
+  const resetPassword = async (email: string): Promise<void> => {
+    try {
+      setError(null);
+      // This would be implemented in authService.ts
+      // await resetPasswordEmail(email);
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      setError(error.message || 'Error resetting password');
+      throw error;
+    }
+  };
+  
+  const refreshAuth = async (): Promise<void> => {
+    try {
+      setError(null);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const userProfile = await fetchUserProfile(session.user.id);
+        setUser(userProfile);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error: any) {
+      console.error('Refresh auth error:', error);
+      setError(error.message || 'Error refreshing authentication');
+      throw error;
     }
   };
 
   const value = {
     user,
+    loading: isLoading,
     isLoading,
     isAuthenticated,
+    error,
     login,
     logout,
     register,
     updateUser,
     updatePassword,
+    resetPassword,
+    refreshAuth,
   };
 
   return (

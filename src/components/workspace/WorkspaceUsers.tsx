@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -6,15 +7,7 @@ import { Button } from '@/components/ui/button';
 import { fetchWorkspaceUsers } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { WorkspaceUser } from '@/lib/supabase/schema-types';
-
-interface WorkspaceUser {
-  id: string;
-  nome: string;
-  email: string;
-  role: string;
-  last_sign_in_at: string | null;
-}
+import { WorkspaceUser as WorkspaceUserType } from '@/lib/supabase/schema-types';
 
 interface WorkspaceUsersProps {
   workspaceId?: string;
@@ -22,7 +15,7 @@ interface WorkspaceUsersProps {
 }
 
 const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUser }) => {
-  const [users, setUsers] = useState<WorkspaceUser[]>([]);
+  const [users, setUsers] = useState<WorkspaceUserType[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -37,8 +30,7 @@ const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUs
     try {
       setLoading(true);
       const usersData = await fetchWorkspaceUsers(workspaceId || user?.workspace_id || '');
-      // Use type assertion for now since we know the structure matches WorkspaceUser
-      setUsers(usersData as WorkspaceUser[]);
+      setUsers(usersData as WorkspaceUserType[]);
     } catch (error) {
       console.error('Error loading users:', error);
       toast({

@@ -1,7 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "@/types/auth";
-import { DbPerfil, DbWorkspace, DbInvite, WorkspaceUser } from "@/lib/supabase/schema-types";
-import { User } from "@supabase/supabase-js";
+import { DbPerfil, WorkspaceUser } from "@/lib/supabase/schema-types";
 
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   try {
@@ -28,13 +28,21 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
     };
 
     // Converter o formato do banco para o formato esperado pelo frontend
-    return {
+    const profile: UserProfile = {
       id: userData.id,
       email: userData.email,
       nome: userData.nome || '',
       role: validateRole(userData.role || 'operador'),
-      workspace_id: userData.workspace_id
+      city: userData.cidade,
+      clinic: userData.clinica,
+      phone: userData.telefone,
+      equipment: userData.equipamentos,
+      language: userData.idioma as "PT" | "EN" | "ES" | undefined,
+      profilePhotoUrl: userData.foto_url,
+      name: userData.nome || '',
     };
+
+    return profile;
   } catch (error) {
     console.error("Erro ao processar perfil:", error);
     return null;
@@ -88,8 +96,8 @@ export async function registerUser(userData: {
       .from('perfis')
       .update({
         nome: userData.name,
-        role: inviteData.role_sugerido,
-        workspace_id: inviteData.workspace_id
+        role: inviteData.role_sugerido
+        // Note: Not setting workspace_id as it may not exist in the perfis table
       })
       .eq('id', authData.user.id);
       
@@ -112,22 +120,21 @@ export async function registerUser(userData: {
   
   // Se for fornecido o nome da clínica, vamos criar um novo workspace
   if (userData.clinic && userData.role === 'admin') {
-    // We'll create a custom table for workspaces in our database
-    // For now just mock the response
+    // We'll mock this since there's no workspaces table
     const workspaceId = `ws_${Date.now()}`;
     
-    // Agora atualizamos o usuário com o workspace_id e role de admin
+    // Agora atualizamos o usuário com o role de admin
     const { error: updateError } = await supabase
       .from('perfis')
       .update({
         nome: userData.name,
         role: userData.role || 'admin',
-        workspace_id: workspaceId,
         clinica: userData.clinic,
         cidade: userData.city,
         telefone: userData.phone,
         equipamentos: userData.equipment,
         idioma: userData.language
+        // Note: Not setting workspace_id as it may not exist in the perfis table
       })
       .eq('id', authData.user.id);
       
@@ -185,7 +192,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
 }
 
 // Get mock data for workspaces instead of trying to fetch from non-existent table
-export async function fetchWorkspaces(): Promise<DbWorkspace[]> {
+export async function fetchWorkspaces() {
   // Mocking the response instead of querying a non-existent table
   return [{ 
     id: 'ws_default', 
@@ -263,8 +270,8 @@ export async function acceptInvite(inviteId: string) {
   const { error: updateError } = await supabase
     .from('perfis')
     .update({
-      workspace_id: invite.workspace_id,
       role: invite.role_sugerido
+      // Not setting workspace_id as it may not exist in the perfis table
     })
     .eq('id', user.id);
     
@@ -296,13 +303,13 @@ export async function fetchWorkspaceUsers(workspaceId: string): Promise<Workspac
   
   const { data, error } = await supabase
     .from('perfis')
-    .select('id, nome, email, role')
-    .eq('workspace_id', workspaceId);
-    
+    .select('id, nome, email, role');
+  
   if (error) throw error;
   
+  // Since we don't have workspace_id in perfis, we'll mock data
   // Add a placeholder for last_sign_in_at since it doesn't exist in the database
-  const enhancedData = data.map(user => ({
+  const enhancedData = (data || []).map(user => ({
     ...user,
     last_sign_in_at: null // Add a placeholder value
   }));

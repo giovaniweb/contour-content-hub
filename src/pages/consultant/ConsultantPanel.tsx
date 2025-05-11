@@ -20,10 +20,10 @@ const TabContent: React.FC<TabContentProps> = ({ children }) => (
 );
 
 interface ConsultantPanelProps {
-  title?: string;
+  headerTitle?: string;
 }
 
-const ConsultantPanel: React.FC<ConsultantPanelProps> = ({ title = "Área do Consultor" }) => {
+const ConsultantPanel: React.FC<ConsultantPanelProps> = ({ headerTitle = "Área do Consultor" }) => {
   const { user } = useAuth();
   const { canViewConsultantPanel } = usePermissions();
   
@@ -45,7 +45,7 @@ const ConsultantPanel: React.FC<ConsultantPanelProps> = ({ title = "Área do Con
   
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">{title}</h1>
+      <h1 className="text-2xl font-bold mb-6">{headerTitle}</h1>
       
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid grid-cols-3 mb-4">

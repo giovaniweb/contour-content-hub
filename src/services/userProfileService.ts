@@ -66,22 +66,20 @@ export async function updateUserProfileSettings(params: UserProfileUpdateParams)
       
     } else {
       // If profile doesn't exist, create it
-      const newProfileData: any = {
+      const newProfileData = {
         user_id: userId,
-        atualizado_em: new Date().toISOString()
+        atualizado_em: new Date().toISOString(),
+        estilo_preferido: stylePreference,
+        foco_comunicacao: communicationFocus,
+        tipos_conteudo_validados: procedures
       };
       
-      if (stylePreference) {
-        newProfileData.estilo_preferido = stylePreference;
-      }
-      
-      if (communicationFocus) {
-        newProfileData.foco_comunicacao = communicationFocus;
-      }
-      
-      if (procedures && procedures.length > 0) {
-        newProfileData.tipos_conteudo_validados = procedures;
-      }
+      // Remove undefined fields to avoid type errors
+      Object.keys(newProfileData).forEach(key => {
+        if (newProfileData[key as keyof typeof newProfileData] === undefined) {
+          delete newProfileData[key as keyof typeof newProfileData];
+        }
+      });
       
       const { error: insertError } = await supabase
         .from('user_profile')
@@ -140,17 +138,8 @@ export async function getUserProfile(userId?: string) {
 /**
  * Update or insert user profile
  */
-export async function upsertUserProfile(profile: Partial<UserProfile>) {
+export async function upsertUserProfile(profile: Partial<UserProfile> & { user_id: string }) {
   try {
-    if (!profile.user_id) {
-      // Get current user id if not provided
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        throw new Error('User ID is required');
-      }
-      profile.user_id = session.user.id;
-    }
-    
     const { data: existingProfile } = await supabase
       .from('user_profile')
       .select('user_id')

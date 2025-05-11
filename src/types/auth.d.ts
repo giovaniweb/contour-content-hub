@@ -45,10 +45,11 @@ export interface UserProfile {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
+  name?: string; // Add this for backward compatibility
 }
 
 export interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
@@ -65,7 +66,9 @@ export interface AuthContextType {
     language?: "PT" | "EN" | "ES";
   }) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updatePassword: (password: string) => Promise<void>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   refreshAuth: () => Promise<void>;
   isLoading: boolean;
+  updateUser: (data: Partial<UserProfile>) => Promise<void>;
+  isAuthenticated?: boolean;
 }

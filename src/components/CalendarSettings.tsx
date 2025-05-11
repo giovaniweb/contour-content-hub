@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -35,6 +36,8 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
         push: preferences.notifications?.push !== undefined ? preferences.notifications.push : false,
         desktop: preferences.notifications?.desktop !== undefined ? preferences.notifications.desktop : false,
       },
+      timeZone: preferences.timeZone || 'UTC',
+      theme: preferences.theme || 'light',
     };
     
     onSave(completePreferences);
@@ -47,7 +50,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
           <Label htmlFor="defaultView">Visualização Padrão</Label>
           <Select 
             value={preferences.defaultView || 'week'} 
-            onValueChange={(value) => onPreferencesChange('defaultView', value)}
+            onValueChange={(value: any) => onPreferencesChange('defaultView', value)}
           >
             <SelectTrigger id="defaultView">
               <SelectValue placeholder="Selecione a visualização padrão" />
@@ -56,6 +59,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
               <SelectItem value="day">Dia</SelectItem>
               <SelectItem value="week">Semana</SelectItem>
               <SelectItem value="month">Mês</SelectItem>
+              <SelectItem value="agenda">Agenda</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -166,6 +170,33 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
               />
             </div>
           </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="timeZone">Fuso Horário</Label>
+          <Input 
+            id="timeZone"
+            value={preferences.timeZone || 'UTC'}
+            onChange={(e) => onPreferencesChange('timeZone', e.target.value)}
+            placeholder="UTC"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="theme">Tema</Label>
+          <Select 
+            value={preferences.theme || 'light'} 
+            onValueChange={(value) => onPreferencesChange('theme', value)}
+          >
+            <SelectTrigger id="theme">
+              <SelectValue placeholder="Selecione o tema" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">Claro</SelectItem>
+              <SelectItem value="dark">Escuro</SelectItem>
+              <SelectItem value="system">Sistema</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
