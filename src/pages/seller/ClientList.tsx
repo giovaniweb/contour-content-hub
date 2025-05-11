@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Users, Search, Plus, Calendar, FileText, BarChart, UserPlus, User as UserIcon } from "lucide-react";
+import { UserRole } from "@/types/auth";
 
 interface Client {
   id: string;

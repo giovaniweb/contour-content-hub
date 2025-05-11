@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { AreaChart, BarChart3, Calendar, FileText, User, Clock, BarChartIcon, CheckSquare, UploadCloud, Users } from "lucide-react";
 import { SubscriptionPlan, ClientEngagement, ClientAnalytics } from "@/utils/validation/types";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { UserRole } from "@/types/auth";
 
 interface ClientDetails {
   id: string;

@@ -6,8 +6,8 @@ export type UserRole =
   | 'consultor'
   | 'superadmin'
   | 'cliente'
-  | 'viewSales'
-  | 'manageClients'
+  | 'viewSales' 
+  | 'manageClients' 
   | 'editAllContent';
 
 export type WorkspaceRole = 
