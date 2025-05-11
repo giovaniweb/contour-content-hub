@@ -34,7 +34,7 @@ export interface User {
 
 export interface UserProfile {
   id: string;
-  nome: string;
+  nome?: string;
   email: string;
   role: UserRole;
   workspace_id?: string;

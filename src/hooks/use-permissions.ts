@@ -40,21 +40,21 @@ export function usePermissions() {
       case 'superadmin':
         return user.role === 'superadmin';
       case 'admin':
-        return ['admin', 'superadmin'].includes(user.role as string);
+        return ['admin', 'superadmin'].includes(user.role);
       case 'gerente':
-        return ['gerente', 'admin', 'superadmin'].includes(user.role as string);
+        return ['gerente', 'admin', 'superadmin'].includes(user.role);
       case 'operador':
-        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role as string);
+        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       case 'consultor':
-        return ['consultor', 'superadmin'].includes(user.role as string);
+        return ['consultor', 'superadmin'].includes(user.role);
       case 'cliente':
-        return ['cliente', 'superadmin'].includes(user.role as string);
+        return ['cliente', 'superadmin'].includes(user.role);
       case 'editAllContent':
-        return ['operador', 'gerente', 'admin', 'superadmin', 'editAllContent'].includes(user.role as string);
+        return ['operador', 'gerente', 'admin', 'superadmin', 'editAllContent'].includes(user.role);
       case 'manageClients':
-        return ['gerente', 'admin', 'superadmin', 'manageClients'].includes(user.role as string);
+        return ['gerente', 'admin', 'superadmin', 'manageClients'].includes(user.role);
       case 'viewSales':
-        return ['gerente', 'admin', 'superadmin', 'viewSales'].includes(user.role as string);
+        return ['gerente', 'admin', 'superadmin', 'viewSales'].includes(user.role);
       default:
         return false;
     }
