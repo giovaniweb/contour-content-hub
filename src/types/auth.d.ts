@@ -1,4 +1,5 @@
 
+
 export type UserRole = 
   | 'admin' 
   | 'gerente' 
@@ -45,7 +46,7 @@ export interface UserProfile {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
-  name?: string; // Added this field for backwards compatibility
+  name?: string; // Adicionado o campo name para compatibilidade
 }
 
 export interface AuthContextType {
@@ -72,3 +73,4 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated?: boolean;
 }
+

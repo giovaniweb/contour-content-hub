@@ -42,7 +42,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       equipment: userData.equipamentos,
       language: userData.idioma as "PT" | "EN" | "ES" | undefined,
       profilePhotoUrl: userData.foto_url,
-      name: userData.nome || '' // Use nome as name for backward compatibility
+      name: userData.nome || '' // Usar nome como name para compatibilidade
     };
 
     return profile;
