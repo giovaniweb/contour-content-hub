@@ -3,8 +3,7 @@ export interface CalendarPreferences {
   defaultView: 'day' | 'week' | 'month';
   firstDayOfWeek: number; // 0 for Sunday, 1 for Monday
   showWeekends: boolean;
-  autoScheduleSuggestions: boolean;
-  reminderTime: '30m' | '1h' | '3h' | '1d';
+  autoGenerate?: boolean;
   workingHours?: {
     start: string;
     end: string;
@@ -16,7 +15,6 @@ export interface CalendarPreferences {
     push: boolean;
     desktop: boolean;
   };
-  autoGenerate?: boolean;
 }
 
 export interface CalendarEvent {

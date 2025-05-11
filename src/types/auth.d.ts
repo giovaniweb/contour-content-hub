@@ -4,7 +4,8 @@ export type UserRole =
   | 'gerente' 
   | 'operador' 
   | 'consultor'
-  | 'superadmin';
+  | 'superadmin'
+  | 'cliente';
 
 export type WorkspaceRole = 
   | 'admin' 

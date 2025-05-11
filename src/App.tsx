@@ -37,6 +37,7 @@ import VideoPlayer from '@/pages/VideoPlayer';
 import InvitesPage from '@/pages/InvitesPage';
 import WorkspaceSettings from '@/pages/WorkspaceSettings';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
+import Calendar from '@/pages/Calendar';
 
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -69,6 +70,7 @@ function App() {
             <Route path="/content-strategy" element={<ContentStrategy />} />
             <Route path="/content-planner" element={<ContentPlannerPage />} />
             <Route path="/equipments" element={<EquipmentsPage />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/media" element={<MediaLibraryPage />} />
             <Route path="/script-generator" element={<ScriptGeneratorPage />} />
             <Route path="/video-storage" element={<VideoStorage />} />

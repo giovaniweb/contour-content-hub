@@ -39,6 +39,9 @@ const Layout: React.FC<LayoutProps> = ({
             <Link to="/script-generator" className="text-sm font-medium">
               Roteiros
             </Link>
+            <Link to="/calendar" className="text-sm font-medium">
+              Agenda
+            </Link>
             {canViewConsultantPanel() && (
               <Link to="/consultant" className="text-sm font-medium">
                 Painel Consultor

@@ -25,6 +25,10 @@ export function usePermissions() {
     return user?.role === 'consultor';
   };
   
+  const isCliente = () => {
+    return user?.role === 'cliente';
+  };
+  
   // Helper to check if a user has a specific role or higher in the hierarchy
   const hasPermission = (requiredRole: UserRole | 'editAllContent') => {
     if (!user) return false;
@@ -43,6 +47,8 @@ export function usePermissions() {
         return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       case 'consultor':
         return ['consultor', 'superadmin'].includes(user.role);
+      case 'cliente':
+        return ['cliente', 'superadmin'].includes(user.role);
       case 'editAllContent':
         return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
       default:
@@ -81,6 +87,7 @@ export function usePermissions() {
     isGerente,
     isOperator,
     isConsultor,
+    isCliente,
     hasPermission,
     canManageWorkspace,
     canManageUsers,
