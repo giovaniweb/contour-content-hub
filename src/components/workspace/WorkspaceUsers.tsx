@@ -1,36 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import InviteUserModal from './InviteUserModal';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { UserRole } from '@/types/auth';
+import { AlertTriangle, CheckCircle, Clock, X } from 'lucide-react';
 
+// Define types for users and pending invites
 interface WorkspaceUser {
   id: string;
-  nome: string | null;
+  nome: string;
   email: string;
-  role: string;
+  role: UserRole;
+  last_sign_in_at?: string;
 }
 
 interface PendingInvite {
   id: string;
   email_convidado: string;
-  role_sugerido: string;
-  status: string;
+  role_sugerido: UserRole;
+  status: 'pendente' | 'aceito' | 'rejeitado';
   criado_em: string;
 }
 
@@ -39,188 +35,231 @@ const WorkspaceUsers: React.FC = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<WorkspaceUser[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    if (user?.workspace_id) {
-      fetchWorkspaceUsers();
-      fetchPendingInvites();
-    }
-  }, [user?.workspace_id]);
-  
-  const fetchWorkspaceUsers = async () => {
-    if (!user?.workspace_id) return;
-    
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, nome, email, role')
-        .eq('workspace_id', user.workspace_id);
-      
-      if (error) throw error;
-      
-      setUsers(data || []);
-    } catch (error) {
-      console.error('Erro ao carregar usuários:', error);
-      toast({
-        title: 'Erro ao carregar usuários',
-        description: 'Não foi possível carregar a lista de usuários.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const fetchPendingInvites = async () => {
-    if (!user?.workspace_id) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_invites')
-        .select('id, email_convidado, role_sugerido, status, criado_em')
-        .eq('workspace_id', user.workspace_id)
-        .eq('status', 'pendente');
-      
-      if (error) throw error;
-      
-      setPendingInvites(data || []);
-    } catch (error) {
-      console.error('Erro ao carregar convites pendentes:', error);
-    }
-  };
-  
+    const fetchWorkspaceUsers = async () => {
+      if (!user?.workspace_id) return;
+
+      try {
+        setIsLoading(true);
+
+        // Fetch workspace users from perfis table
+        const { data: workspaceUsers, error } = await supabase
+          .from('perfis')
+          .select('id, nome, email, role')
+          .eq('workspace_id', user.workspace_id);
+
+        if (error) throw error;
+
+        // Only set users if data is available
+        if (workspaceUsers) {
+          setUsers(workspaceUsers as WorkspaceUser[]);
+        }
+
+        // Fetch pending invites
+        await fetchPendingInvites();
+      } catch (error) {
+        console.error('Error fetching workspace users:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os usuários do workspace',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchPendingInvites = async () => {
+      if (!user?.workspace_id) return;
+
+      try {
+        // Certifique-se de que a tabela 'user_invites' existe no seu banco de dados
+        const { data: invites, error } = await supabase
+          .from('user_invites')
+          .select('id, email_convidado, role_sugerido, status, criado_em')
+          .eq('workspace_id', user.workspace_id);
+
+        if (error) {
+          console.error('Error fetching invites:', error);
+          return;
+        }
+
+        if (invites) {
+          setPendingInvites(invites as PendingInvite[]);
+        }
+      } catch (error) {
+        console.error('Error fetching pending invites:', error);
+      }
+    };
+
+    fetchWorkspaceUsers();
+  }, [user, toast]);
+
   const cancelInvite = async (inviteId: string) => {
     try {
       const { error } = await supabase
         .from('user_invites')
         .delete()
         .eq('id', inviteId);
-      
+
       if (error) throw error;
-      
-      setPendingInvites(pendingInvites.filter(invite => invite.id !== inviteId));
-      
+
+      setPendingInvites((prev) => prev.filter((invite) => invite.id !== inviteId));
+
       toast({
         title: 'Convite cancelado',
-        description: 'O convite foi cancelado com sucesso.',
+        description: 'O convite foi cancelado com sucesso',
       });
     } catch (error) {
-      console.error('Erro ao cancelar convite:', error);
+      console.error('Error canceling invite:', error);
       toast({
-        title: 'Erro ao cancelar convite',
-        description: 'Não foi possível cancelar o convite.',
+        title: 'Erro',
+        description: 'Não foi possível cancelar o convite',
         variant: 'destructive',
       });
     }
   };
-  
-  const handleInviteSent = () => {
-    fetchPendingInvites();
+
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    const nameParts = name.split(' ');
+    if (nameParts.length === 1) return nameParts[0][0]?.toUpperCase() || 'U';
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
   };
-  
+
+  const getRoleBadgeColor = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800';
+      case 'gerente':
+        return 'bg-blue-100 text-blue-800';
+      case 'operador':
+        return 'bg-green-100 text-green-800';
+      case 'consultor':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRoleLabel = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'Admin';
+      case 'gerente':
+        return 'Gerente';
+      case 'operador':
+        return 'Operador';
+      case 'consultor':
+        return 'Consultor';
+      case 'superadmin':
+        return 'Super Admin';
+      default:
+        return role;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Usuários do Workspace</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center p-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gerenciar Equipe</h2>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle>Usuários do Workspace</CardTitle>
+          <CardDescription>Gerencie os usuários com acesso ao seu workspace</CardDescription>
+        </div>
         <InviteUserModal />
-      </div>
-      
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Usuários do Workspace</CardTitle>
-            <CardDescription>
-              Usuários que fazem parte da sua equipe
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="py-4 text-center">Carregando usuários...</div>
-            ) : users.length === 0 ? (
-              <div className="py-4 text-center text-muted-foreground">
-                Nenhum usuário encontrado
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {users.map(user => (
-                  <div
-                    key={user.id}
-                    className="p-3 border rounded-md flex justify-between items-center"
-                  >
-                    <div>
-                      <div className="font-medium">{user.nome || user.email}</div>
-                      <div className="text-sm text-muted-foreground">{user.email}</div>
-                      <div className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full inline-block mt-1 capitalize">
-                        {user.role}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Convites Pendentes</CardTitle>
-            <CardDescription>
-              Convites enviados que estão aguardando aceitação
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pendingInvites.length === 0 ? (
-              <div className="py-4 text-center text-muted-foreground">
-                Nenhum convite pendente
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {pendingInvites.map(invite => (
-                  <div
-                    key={invite.id}
-                    className="p-3 border rounded-md flex justify-between items-center"
-                  >
+      </CardHeader>
+      <CardContent>
+        {pendingInvites.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3">Convites Pendentes</h3>
+            <div className="space-y-2">
+              {pendingInvites.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="font-medium">{invite.email_convidado}</div>
-                      <div className="text-xs bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded-full inline-block mt-1 capitalize">
-                        {invite.role_sugerido}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Enviado em {new Date(invite.criado_em).toLocaleDateString()}
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Badge
+                          variant="outline"
+                          className={getRoleBadgeColor(invite.role_sugerido)}
+                        >
+                          {getRoleLabel(invite.role_sugerido)}
+                        </Badge>
+                        <span className="ml-2">
+                          Enviado em {new Date(invite.criado_em).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancelar convite?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. Isso cancelará permanentemente o convite enviado para {invite.email_convidado}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => cancelInvite(invite.id)}>
-                            Confirmar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
-                ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => cancelInvite(invite.id)}
+                    className="text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Cancelar convite</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-4" />
+          </div>
+        )}
+
+        {users.length > 0 ? (
+          <div className="space-y-3">
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-3 hover:bg-accent/20 rounded-lg transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarFallback>{getInitials(user.nome)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{user.nome}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className={getRoleBadgeColor(user.role)}>
+                  {getRoleLabel(user.role)}
+                </Badge>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
+            ))}
+          </div>
+        ) : (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Nenhum usuário encontrado. Convide colaboradores para o seu workspace.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

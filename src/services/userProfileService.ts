@@ -1,6 +1,18 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Define the UserProfile type to match what's expected in the app
+export type UserProfile = {
+  id?: string;
+  user_id: string;
+  estilo_preferido?: string;
+  foco_comunicacao?: string;
+  tipos_conteudo_validados?: string[];
+  perfil_comportamental?: string[];
+  insights_performance?: string[];
+  atualizado_em?: string;
+};
+
 interface UserProfileUpdateParams {
   userId: string;
   stylePreference?: string;
@@ -103,6 +115,74 @@ export async function getUserProfileData(userId: string) {
     return data || null;
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get user profile - implementation for the hook
+ * This is used by the intent processor
+ */
+export async function getUserProfile(userId?: string) {
+  if (!userId) {
+    // If no userId is provided, try to get it from the current session
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id;
+    
+    if (!userId) {
+      return null;
+    }
+  }
+  
+  return getUserProfileData(userId);
+}
+
+/**
+ * Update or insert user profile
+ */
+export async function upsertUserProfile(profile: Partial<UserProfile>) {
+  try {
+    if (!profile.user_id) {
+      // Get current user id if not provided
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        throw new Error('User ID is required');
+      }
+      profile.user_id = session.user.id;
+    }
+    
+    const { data: existingProfile } = await supabase
+      .from('user_profile')
+      .select('user_id')
+      .eq('user_id', profile.user_id)
+      .single();
+    
+    if (existingProfile) {
+      // Update existing profile
+      const { error } = await supabase
+        .from('user_profile')
+        .update({
+          ...profile,
+          atualizado_em: new Date().toISOString()
+        })
+        .eq('user_id', profile.user_id);
+      
+      if (error) throw error;
+    } else {
+      // Create new profile
+      const { error } = await supabase
+        .from('user_profile')
+        .insert({
+          ...profile,
+          atualizado_em: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error upserting user profile:', error);
     throw error;
   }
 }

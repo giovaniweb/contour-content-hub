@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getUserProfile, UserProfile } from '@/services/userProfileService';
+import { getUserProfileData, UserProfile } from '@/services/userProfileService';
 
 // Tipos para o processador de intenções
 export interface UserContext {
@@ -38,12 +38,12 @@ export function useIntentProcessor() {
     setLoading(true);
     
     try {
-      // Tenta obter o perfil do usuário do banco de dados
-      const userProfile = await getUserProfile();
-      
       // Obter a sessão atual
       const { data: { session } } = await supabase.auth.getSession();
       const user_id = session?.user?.id;
+      
+      // Tenta obter o perfil do usuário do banco de dados
+      const userProfile = user_id ? await getUserProfileData(user_id) : null;
       
       // Combina o contexto fornecido com o perfil do usuário (se existir)
       const enrichedContext: UserContext = {
@@ -103,7 +103,7 @@ export function useIntentProcessor() {
       setResult(errorResult);
       return errorResult;
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
