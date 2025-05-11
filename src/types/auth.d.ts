@@ -6,9 +6,9 @@ export type UserRole =
   | 'consultor'
   | 'superadmin'
   | 'cliente'
-  | 'viewSales' 
-  | 'manageClients' 
-  | 'editAllContent';
+  | 'editAllContent'
+  | 'manageClients'
+  | 'viewSales';
 
 export type WorkspaceRole = 
   | 'admin' 

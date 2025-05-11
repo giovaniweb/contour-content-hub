@@ -7,7 +7,7 @@ import { DbPerfil } from "@/lib/supabase/schema-types";
 export function validateRole(role: string): UserRole {
   const validRoles: string[] = [
     'admin', 'gerente', 'operador', 'consultor', 'superadmin', 'cliente',
-    'viewSales', 'manageClients', 'editAllContent'
+    'editAllContent', 'manageClients', 'viewSales'
   ];
   
   if (validRoles.includes(role)) {
