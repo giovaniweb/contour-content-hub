@@ -40,13 +40,13 @@ const ClientList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
   // Check if user has permission to manage clients
-  if (!hasPermission('manageClients')) {
+  if (!hasPermission('manageClients' as UserRole)) {
     return <Navigate to="/dashboard" replace />;
   }
   
   useEffect(() => {
     fetchClients();
-  }, [hasPermission]);
+  }, []);
   
   const fetchClients = async () => {
     try {

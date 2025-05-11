@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +7,7 @@ import MaterialContentManager from "@/components/admin/MaterialContentManager";
 import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
 import VideoContentManager from "@/components/admin/VideoContentManager";
 import { useToast } from "@/hooks/use-toast";
+import { UserRole } from "@/types/auth";
 import { 
   BookOpen, 
   FileText, 
@@ -41,7 +41,7 @@ const AdminContent: React.FC = () => {
   }, [location.search]);
   
   // Only users with admin or operator roles can access this page
-  if (!hasPermission('editAllContent')) {
+  if (!hasPermission('editAllContent' as UserRole)) {
     toast({
       variant: "destructive",
       title: "Acesso Negado",

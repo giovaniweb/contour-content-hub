@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Users, FileText, BarChart, LineChart, PieChart, Calendar, Activity } from "lucide-react";
+import { UserRole } from "@/types/auth";
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -37,11 +39,12 @@ const SellerDashboard = () => {
   
   useEffect(() => {
     // Verificar permissões
-    if (!hasPermission('viewSales')) {
-      return <Navigate to="/dashboard" replace />;
+    if (!hasPermission('viewSales' as UserRole)) {
+      return;
     }
     
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasPermission]);
   
   const fetchDashboardData = async () => {

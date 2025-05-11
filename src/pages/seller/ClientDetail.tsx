@@ -43,8 +43,8 @@ const ClientDetail = () => {
   
   useEffect(() => {
     // Verificar permissões
-    if (!hasPermission('manageClients')) {
-      return <Navigate to="/dashboard" replace />;
+    if (!hasPermission('manageClients' as UserRole)) {
+      return;
     }
     
     if (clientId) {
@@ -53,6 +53,7 @@ const ClientDetail = () => {
       fetchClientEngagement();
       fetchAvailablePlans();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, hasPermission]);
 
   const fetchClientDetails = async () => {
