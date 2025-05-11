@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { fetchWorkspaceUsers } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 interface WorkspaceUser {
   id: string;
@@ -16,23 +17,26 @@ interface WorkspaceUser {
 }
 
 interface WorkspaceUsersProps {
-  workspaceId: string;
-  onInviteUser: () => void;
+  workspaceId?: string;
+  onInviteUser?: () => void;
 }
 
 const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUser }) => {
   const [users, setUsers] = useState<WorkspaceUser[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   useEffect(() => {
-    loadUsers();
-  }, [workspaceId]);
+    if (workspaceId || user?.workspace_id) {
+      loadUsers();
+    }
+  }, [workspaceId, user?.workspace_id]);
   
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const usersData = await fetchWorkspaceUsers(workspaceId);
+      const usersData = await fetchWorkspaceUsers(workspaceId || user?.workspace_id || '');
       setUsers(usersData as WorkspaceUser[]);
     } catch (error) {
       console.error('Error loading users:', error);
@@ -78,7 +82,9 @@ const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUs
             <CardTitle>Usuários</CardTitle>
             <CardDescription>Gerencie os usuários do workspace</CardDescription>
           </div>
-          <Button onClick={onInviteUser}>Convidar Usuário</Button>
+          {onInviteUser && (
+            <Button onClick={onInviteUser}>Convidar Usuário</Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -90,9 +96,11 @@ const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUs
         ) : users.length === 0 ? (
           <div className="text-center py-8 border rounded-lg">
             <p className="text-muted-foreground">Nenhum usuário encontrado</p>
-            <Button variant="outline" className="mt-2" onClick={onInviteUser}>
-              Convidar Usuários
-            </Button>
+            {onInviteUser && (
+              <Button variant="outline" className="mt-2" onClick={onInviteUser}>
+                Convidar Usuários
+              </Button>
+            )}
           </div>
         ) : (
           <div className="divide-y">

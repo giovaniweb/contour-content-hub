@@ -15,7 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isLoading } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   
@@ -35,8 +35,8 @@ const Profile = () => {
     if (user) {
       setName(user.nome || '');
       setEmail(user.email || '');
+      setClinic(user.clinic || '');
       // For these fields, we would typically fetch from a profile service
-      setClinic('');
       setPhone('');
       setCity('');
     }
@@ -107,7 +107,7 @@ const Profile = () => {
     }
   };
   
-  if (loading) {
+  if (loading || isLoading) {
     return <Layout title="Perfil">Carregando...</Layout>;
   }
   

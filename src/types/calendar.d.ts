@@ -1,38 +1,26 @@
 
 export interface CalendarPreferences {
-  defaultView: 'day' | 'week' | 'month';
-  firstDayOfWeek: number; // 0 for Sunday, 1 for Monday
+  defaultView: "day" | "week" | "month";
+  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   showWeekends: boolean;
-  autoGenerate?: boolean;
-  workingHours?: {
+  autoGenerate: boolean;
+  workingHours: {
     start: string;
     end: string;
   };
-  theme?: string;
-  timeZone?: string;
-  notifications?: {
+  notifications: {
     email: boolean;
     push: boolean;
     desktop: boolean;
   };
 }
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  start: Date | string;
-  end: Date | string;
-  allDay?: boolean;
-  type: 'post' | 'story' | 'video' | 'reminder' | 'other';
-  status: 'draft' | 'scheduled' | 'published' | 'cancelled';
-}
-
 export interface CalendarSuggestion {
   id: string;
   title: string;
-  suggestedDate: Date;
-  confidence: number; // 0-100
-  type: 'post' | 'story' | 'video';
-  reason: string;
+  date: Date;
+  type: string;
+  priority: "low" | "medium" | "high";
+  description?: string;
+  tags?: string[];
 }

@@ -26,6 +26,7 @@ export interface User {
   email: string;
   workspace_id?: string;
   role: UserRole;
+  clinic?: string;
 }
 
 export interface UserProfile {
@@ -35,6 +36,7 @@ export interface UserProfile {
   role: UserRole;
   workspace_id?: string;
   passwordChanged?: boolean;
+  clinic?: string;
 }
 
 export interface AuthContextType {

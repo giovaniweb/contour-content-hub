@@ -76,8 +76,15 @@ const Register: React.FC = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await registerUser({
-        ...values,
-        equipment: [] // Equipamentos serão adicionados depois
+        email: values.email,
+        password: values.password,
+        name: values.name,
+        role: values.role,
+        clinic: values.clinic,
+        city: values.city,
+        phone: values.phone,
+        language: values.language,
+        equipment: []
       });
       
       toast({

@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import WorkspaceUsers from '@/components/workspace/WorkspaceUsers';
 import { updateUserProfileSettings } from '@/services/userProfileService';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const communicationSettingsSchema = z.object({
   stylePreference: z.string({
@@ -54,6 +55,7 @@ const WorkspaceSettings: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   
   const communicationForm = useForm<CommunicationSettingsValues>({
     resolver: zodResolver(communicationSettingsSchema),
@@ -93,6 +95,10 @@ const WorkspaceSettings: React.FC = () => {
     }
   };
   
+  const handleInviteUser = () => {
+    setInviteDialogOpen(true);
+  };
+  
   return (
     <Layout>
       <div className="container mx-auto py-6">
@@ -106,7 +112,10 @@ const WorkspaceSettings: React.FC = () => {
           </TabsList>
           
           <TabsContent value="users">
-            <WorkspaceUsers />
+            <WorkspaceUsers 
+              workspaceId={user?.workspace_id} 
+              onInviteUser={handleInviteUser}
+            />
           </TabsContent>
           
           <TabsContent value="communication">
@@ -255,6 +264,19 @@ const WorkspaceSettings: React.FC = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        {/* Placeholder for invite user dialog */}
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Convidar Usuário</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>Formulário de convite será implementado aqui.</p>
+            </div>
+            <Button onClick={() => setInviteDialogOpen(false)}>Fechar</Button>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
