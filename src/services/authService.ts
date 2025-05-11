@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "@/types/auth";
 import { DbPerfil, WorkspaceUser } from "@/lib/supabase/schema-types";
