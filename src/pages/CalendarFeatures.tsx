@@ -16,11 +16,31 @@ const CalendarFeatures: React.FC<CalendarFeaturesProps> = ({ events = [] }) => {
   const [date, setDate] = useState<Date>(new Date());
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [newEventOpen, setNewEventOpen] = useState<boolean>(false);
+  const [preferences, setPreferences] = useState<Partial<CalendarPreferences>>({
+    defaultView: 'week',
+    firstDayOfWeek: 0,
+    showWeekends: true,
+    autoGenerate: false,
+    workingHours: {
+      start: '09:00',
+      end: '18:00'
+    },
+    notifications: {
+      email: true,
+      push: false,
+      desktop: false
+    }
+  });
   
-  const handleSavePreferences = async (preferences: CalendarPreferences) => {
+  const handlePreferenceChange = (key: keyof CalendarPreferences, value: any) => {
+    setPreferences(prev => ({ ...prev, [key]: value }));
+  };
+  
+  const handleSavePreferences = async (updatedPreferences: CalendarPreferences) => {
     try {
       // Here you would normally save the preferences to your backend
-      console.log('Saving calendar preferences:', preferences);
+      console.log('Saving calendar preferences:', updatedPreferences);
+      setPreferences(updatedPreferences);
       setSettingsOpen(false);
     } catch (error) {
       console.error('Error saving calendar preferences:', error);
@@ -106,6 +126,8 @@ const CalendarFeatures: React.FC<CalendarFeaturesProps> = ({ events = [] }) => {
             <DialogTitle>Preferências de Calendário</DialogTitle>
           </DialogHeader>
           <CalendarSettings 
+            preferences={preferences}
+            onPreferencesChange={handlePreferenceChange}
             onSave={handleSavePreferences}
             onCancel={() => setSettingsOpen(false)}
           />

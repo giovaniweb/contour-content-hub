@@ -17,21 +17,9 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       return null;
     }
 
-    // Buscar dados do workspace se existir
-    let workspaceData = null;
-    if (userData.workspace_id) {
-      const { data: workspace } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('id', userData.workspace_id)
-        .single();
-      
-      workspaceData = workspace;
-    }
-
     // Type guard to ensure role is one of the allowed values
     const validateRole = (role: string): UserRole => {
-      if (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'consultor' || role === 'superadmin') {
+      if (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'consultor' || role === 'superadmin' || role === 'cliente') {
         return role as UserRole;
       }
       return 'operador'; // Default to 'operador' if an invalid role is found
@@ -40,17 +28,10 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
     // Converter o formato do banco para o formato esperado pelo frontend
     return {
       id: userData.id,
-      name: userData.nome || '',
+      nome: userData.nome || '',
       email: userData.email,
-      clinic: workspaceData?.nome || '',
-      city: '',
-      phone: '',
-      equipment: [],
-      language: "PT",
-      profilePhotoUrl: '',
-      passwordChanged: true,
       role: validateRole(userData.role || 'operador'),
-      workspace_id: userData.workspace_id || undefined
+      workspace_id: userData.workspace_id
     };
   } catch (error) {
     console.error("Erro ao processar perfil:", error);
@@ -94,7 +75,7 @@ export async function registerUser(userData: {
   // Verificar se existe algum convite para o e-mail
   const { data: inviteData } = await supabase
     .from('user_invites')
-    .select('*, workspaces(*)')
+    .select('*, workspace_id')
     .eq('email_convidado', userData.email)
     .eq('status', 'pendente')
     .single();
@@ -190,7 +171,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
   // Converter do formato frontend para o formato do banco
   const userData: any = {};
   
-  if (data.name) userData.nome = data.name;
+  if (data.nome) userData.nome = data.nome;
   if (data.role) userData.role = data.role;
   
   return await supabase
@@ -251,17 +232,36 @@ export async function fetchUserInvites() {
       role_sugerido, 
       status, 
       criado_em,
-      workspaces (
-        id,
-        nome,
-        plano
-      )
+      workspace_id
     `)
     .eq('email_convidado', user.email)
     .eq('status', 'pendente');
     
   if (error) throw error;
-  return data;
+  
+  // Enhance the data with workspace information
+  const enhancedData = await Promise.all(data.map(async (invite) => {
+    try {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('id, nome, plano')
+        .eq('id', invite.workspace_id)
+        .single();
+      
+      return {
+        ...invite,
+        workspaces: workspace || { id: 'unknown', nome: 'Unknown Workspace', plano: 'unknown' }
+      };
+    } catch (err) {
+      console.error("Error fetching workspace:", err);
+      return {
+        ...invite,
+        workspaces: { id: 'unknown', nome: 'Unknown Workspace', plano: 'unknown' }
+      };
+    }
+  }));
+    
+  return enhancedData;
 }
 
 export async function acceptInvite(inviteId: string) {
@@ -309,11 +309,19 @@ export async function rejectInvite(inviteId: string) {
 }
 
 export async function fetchWorkspaceUsers(workspaceId: string) {
+  // We need to modify this query to handle the issue with last_sign_in_at not existing
   const { data, error } = await supabase
     .from('perfis')
-    .select('id, nome, email, role, last_sign_in_at')
+    .select('id, nome, email, role')
     .eq('workspace_id', workspaceId);
     
   if (error) throw error;
-  return data;
+  
+  // Add a placeholder for last_sign_in_at since it doesn't exist in the database
+  const enhancedData = data.map(user => ({
+    ...user,
+    last_sign_in_at: null // Add a placeholder value
+  }));
+  
+  return enhancedData;
 }

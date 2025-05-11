@@ -10,29 +10,46 @@ import { toast } from "@/components/ui/use-toast";
 import { CalendarPreferences } from '@/types/calendar';
 
 interface CalendarSettingsProps {
-  preferences: Partial<CalendarPreferences>;
-  onPreferencesChange: (key: keyof CalendarPreferences, value: any) => void;
-  onSavePreferences: () => void;
+  preferences?: Partial<CalendarPreferences>;
+  onPreferencesChange?: (key: keyof CalendarPreferences, value: any) => void;
+  onSavePreferences?: () => void;
+  onSave?: (preferences: CalendarPreferences) => Promise<void>;
+  onCancel?: () => void;
 }
 
 const CalendarSettings: React.FC<CalendarSettingsProps> = ({ 
-  preferences, 
+  preferences = {}, 
   onPreferencesChange,
-  onSavePreferences
+  onSavePreferences,
+  onSave,
+  onCancel
 }) => {
   const [localPreferences, setLocalPreferences] = useState<Partial<CalendarPreferences>>(preferences);
 
   const handleChange = (key: keyof CalendarPreferences, value: any) => {
     setLocalPreferences(prev => ({ ...prev, [key]: value }));
-    onPreferencesChange(key, value);
+    if (onPreferencesChange) {
+      onPreferencesChange(key, value);
+    }
   };
   
-  const handleSave = () => {
-    onSavePreferences();
+  const handleSave = async () => {
+    if (onSave) {
+      await onSave(localPreferences as CalendarPreferences);
+    } else if (onSavePreferences) {
+      onSavePreferences();
+    }
+    
     toast({
       title: "Preferências salvas",
       description: "Suas configurações de calendário foram atualizadas com sucesso."
     });
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   return (
@@ -188,7 +205,10 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-end gap-2">
+        {onCancel && (
+          <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
+        )}
         <Button onClick={handleSave}>Salvar configurações</Button>
       </CardFooter>
     </Card>

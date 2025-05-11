@@ -1,250 +1,175 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import Layout from "@/components/Layout";
-import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/use-permissions";
-import { toast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import React, { useEffect, useState } from 'react';
+import Layout from '@/components/Layout';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePermissions } from '@/hooks/use-permissions';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { UserProfile } from '@/types/auth';
 
-interface ClientProfile {
-  id: string;
-  nome: string;
-  email: string;
-  role: string;
-}
+const CONSULTANT_MENUS = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'clients', label: 'Clientes' },
+  { id: 'content', label: 'Conteúdos' },
+  { id: 'analytics', label: 'Análises' },
+];
 
 const ConsultantPanel: React.FC = () => {
   const { user } = useAuth();
   const { canViewConsultantPanel } = usePermissions();
-  const [clients, setClients] = useState<ClientProfile[]>([]);
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
-  const fetchClients = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('perfis')
-        .select('id, nome, email, role')
-        .eq('role', 'cliente');
-      
-      if (error) {
-        toast({
-          title: "Erro ao carregar clientes",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (data) {
-        setClients(data as ClientProfile[]);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar clientes:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+
   useEffect(() => {
-    if (canViewConsultantPanel()) {
-      fetchClients();
-    } else {
-      toast({
-        title: "Acesso negado",
-        description: "Você não tem permissão para acessar o painel de consultor.",
-        variant: "destructive"
-      });
+    if (!canViewConsultantPanel()) {
+      navigate('/dashboard');
     }
-  }, [user]);
-  
+
+    // Simulate loading the consultant profile
+    const timer = setTimeout(() => {
+      if (user) {
+        setProfile({
+          id: user.id,
+          nome: user.nome || 'Consultor',
+          email: user.email,
+          role: user.role,
+          workspace_id: user.workspace_id,
+        });
+      }
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [canViewConsultantPanel, navigate, user]);
+
+  if (loading) {
+    return (
+      <Layout title="Painel do Consultor">
+        <div className="container mx-auto py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title="Painel do Consultor">
-      <div className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
-            <TabsTrigger value="calendar">Agenda</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="dashboard" className="space-y-4">
-            <div className="grid md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Clientes Ativos</CardTitle>
-                  <CardDescription>Total de clientes gerenciados</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{clients.length}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Consultas Agendadas</CardTitle>
-                  <CardDescription>Próximos 7 dias</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">5</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Desempenho</CardTitle>
-                  <CardDescription>Média de satisfação</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">4.8/5</p>
-                </CardContent>
-              </Card>
-            </div>
-            
+      <div className="container mx-auto py-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-1/4">
             <Card>
               <CardHeader>
-                <CardTitle>Atividades Recentes</CardTitle>
-                <CardDescription>Últimas interações com clientes</CardDescription>
+                <CardTitle>Consultor</CardTitle>
+                <CardDescription>
+                  {profile?.nome}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <p>Carregando atividades...</p>
-                ) : (
-                  <ul className="space-y-2">
-                    <li className="flex justify-between items-center border-b pb-2">
-                      <div>
-                        <p className="font-medium">Análise de Performance</p>
-                        <p className="text-sm text-muted-foreground">Cliente: Clínica Derma</p>
-                      </div>
-                      <Badge>Ontem</Badge>
-                    </li>
-                    <li className="flex justify-between items-center border-b pb-2">
-                      <div>
-                        <p className="font-medium">Estratégia de Conteúdo</p>
-                        <p className="text-sm text-muted-foreground">Cliente: Dr. Ana Silva</p>
-                      </div>
-                      <Badge>3 dias atrás</Badge>
-                    </li>
-                  </ul>
-                )}
+                <nav className="space-y-2">
+                  {CONSULTANT_MENUS.map((menu) => (
+                    <Button
+                      key={menu.id}
+                      variant={activeTab === menu.id ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab(menu.id)}
+                    >
+                      {menu.label}
+                    </Button>
+                  ))}
+                </nav>
               </CardContent>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="clients">
-            <Card>
-              <CardHeader>
-                <CardTitle>Meus Clientes</CardTitle>
-                <CardDescription>Gerenciar clientes atribuídos</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p>Carregando clientes...</p>
-                ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {clients.map((client) => (
-                      <Card key={client.id} className="overflow-hidden">
-                        <CardHeader className="bg-primary/10 pb-2">
-                          <CardTitle className="text-lg">{client.nome || 'Cliente sem nome'}</CardTitle>
-                          <CardDescription>{client.email}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                          <p className="text-sm">Última interação: 5 dias atrás</p>
-                          <p className="text-sm">Equipamentos: 3</p>
-                        </CardContent>
-                        <CardFooter className="flex justify-between">
-                          <Button variant="outline" size="sm">Ver perfil</Button>
-                          <Button size="sm">Agendar</Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+          </div>
+
+          <div className="md:w-3/4">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-4 mb-4">
+                {CONSULTANT_MENUS.map((menu) => (
+                  <TabsTrigger key={menu.id} value={menu.id}>
+                    {menu.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="dashboard">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dashboard do Consultor</CardTitle>
+                    <CardDescription>
+                      Visão geral das atividades e métricas
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p>Aqui você encontra os principais indicadores dos seus clientes.</p>
                     
-                    {clients.length === 0 && (
-                      <div className="col-span-full text-center py-8">
-                        <p className="text-muted-foreground">Nenhum cliente encontrado</p>
-                        <Button className="mt-4" variant="outline">
-                          Solicitar atribuição de clientes
-                        </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-muted p-4 rounded-lg">
+                        <h3 className="font-medium mb-2">Clientes Ativos</h3>
+                        <p className="text-2xl font-bold">8</p>
                       </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="calendar">
-            <Card>
-              <CardHeader>
-                <CardTitle>Agenda de Consultorias</CardTitle>
-                <CardDescription>Gerencie suas consultas agendadas</CardDescription>
-              </CardHeader>
-              <CardContent className="pb-0">
-                <div className="grid md:grid-cols-7 gap-4">
-                  <div className="md:col-span-5">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Card>
-                      <CardHeader className="py-3">
-                        <CardTitle className="text-base">
-                          {selectedDate?.toLocaleDateString('pt-BR', { 
-                            weekday: 'long', 
-                            day: 'numeric',
-                            month: 'long'
-                          })}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="rounded-md bg-secondary p-2">
-                            <p className="text-sm font-medium">09:00 - Clínica Derma</p>
-                            <p className="text-xs text-muted-foreground">Revisão de estratégia</p>
-                          </div>
-                          <div className="rounded-md bg-secondary p-2">
-                            <p className="text-sm font-medium">14:00 - Dr. Roberto</p>
-                            <p className="text-xs text-muted-foreground">Aprovação de conteúdo</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between mt-4">
-                <Button variant="outline">Consultoria remota</Button>
-                <Button>Agendar nova consulta</Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios de Performance</CardTitle>
-                <CardDescription>Análise de desempenho dos conteúdos dos clientes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Os relatórios detalhados estarão disponíveis em breve.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      <div className="bg-muted p-4 rounded-lg">
+                        <h3 className="font-medium mb-2">Conteúdos Criados</h3>
+                        <p className="text-2xl font-bold">27</p>
+                      </div>
+                      <div className="bg-muted p-4 rounded-lg">
+                        <h3 className="font-medium mb-2">Agendamentos</h3>
+                        <p className="text-2xl font-bold">12</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="clients">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gerenciamento de Clientes</CardTitle>
+                    <CardDescription>
+                      Visualize e gerencie seus clientes
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Lista de clientes em breve...</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="content">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Conteúdos</CardTitle>
+                    <CardDescription>
+                      Gerencie os conteúdos de seus clientes
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Conteúdos em breve...</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="analytics">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Análises</CardTitle>
+                    <CardDescription>
+                      Métricas e desempenho dos conteúdos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Análises em breve...</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </Layout>
   );

@@ -8,17 +8,20 @@ import { fetchUserInvites, acceptInvite, rejectInvite } from '@/services/authSer
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/types/auth';
 
+interface Workspace {
+  id: string;
+  nome: string;
+  plano: string;
+}
+
 interface Invite {
   id: string;
   email_convidado: string;
   role_sugerido: UserRole;
   status: string;
   criado_em: string;
-  workspaces?: {
-    id: string;
-    nome: string;
-    plano: string;
-  };
+  workspace_id: string;
+  workspaces?: Workspace;
 }
 
 const InvitesPage: React.FC = () => {
@@ -41,14 +44,11 @@ const InvitesPage: React.FC = () => {
       const processedInvites: Invite[] = (invitesData as any[]).map(invite => ({
         id: invite.id,
         email_convidado: invite.email_convidado,
-        role_sugerido: invite.role_sugerido,
+        role_sugerido: invite.role_sugerido as UserRole,
         status: invite.status,
         criado_em: invite.criado_em,
-        workspaces: invite.workspaces && !invite.workspaces.error ? invite.workspaces : {
-          id: 'unknown',
-          nome: 'Unknown Workspace',
-          plano: 'unknown'
-        }
+        workspace_id: invite.workspace_id,
+        workspaces: invite.workspaces as Workspace
       }));
       
       setInvites(processedInvites);
@@ -113,7 +113,7 @@ const InvitesPage: React.FC = () => {
   };
   
   return (
-    <Layout>
+    <Layout title="Seus Convites">
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Seus Convites</h1>
         
