@@ -1,4 +1,5 @@
 
+
 export type UserRole = 
   | 'admin' 
   | 'gerente' 
@@ -72,3 +73,4 @@ export interface AuthContextType {
   updateUser: (data: Partial<UserProfile>) => Promise<void>;
   isAuthenticated?: boolean;
 }
+
