@@ -1,177 +1,87 @@
 
-import React, { useEffect, useState } from 'react';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { ReactNode } from 'react';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePermissions } from '@/hooks/use-permissions';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { UserProfile } from '@/types/auth';
+import { usePermissions } from '@/hooks/use-permissions';
 
-const CONSULTANT_MENUS = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'clients', label: 'Clientes' },
-  { id: 'content', label: 'Conteúdos' },
-  { id: 'analytics', label: 'Análises' },
-];
+interface TabContentProps {
+  children: ReactNode;
+}
 
-const ConsultantPanel: React.FC = () => {
+const TabContent: React.FC<TabContentProps> = ({ children }) => (
+  <div className="p-4">{children}</div>
+);
+
+interface ConsultantPanelProps {
+  title?: string;
+}
+
+const ConsultantPanel: React.FC<ConsultantPanelProps> = ({ title = "Área do Consultor" }) => {
   const { user } = useAuth();
   const { canViewConsultantPanel } = usePermissions();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!canViewConsultantPanel()) {
-      navigate('/dashboard');
-    }
-
-    // Simulate loading the consultant profile
-    const timer = setTimeout(() => {
-      if (user) {
-        setProfile({
-          id: user.id,
-          nome: user.nome || 'Consultor',
-          email: user.email,
-          role: user.role,
-          workspace_id: user.workspace_id,
-        });
-      }
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [canViewConsultantPanel, navigate, user]);
-
-  if (loading) {
+  
+  if (!canViewConsultantPanel()) {
     return (
-      <Layout title="Painel do Consultor">
-        <div className="container mx-auto py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </Layout>
+      <Card>
+        <CardContent className="p-6 text-center">
+          <h2 className="text-lg font-semibold mb-2">Acesso Restrito</h2>
+          <p className="text-muted-foreground mb-4">
+            Você não tem permissão para acessar a área do consultor.
+          </p>
+          <Button variant="outline" onClick={() => window.history.back()}>
+            Voltar
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
-
+  
   return (
-    <Layout title="Painel do Consultor">
-      <div className="container mx-auto py-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="md:w-1/4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Consultor</CardTitle>
-                <CardDescription>
-                  {profile?.nome}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <nav className="space-y-2">
-                  {CONSULTANT_MENUS.map((menu) => (
-                    <Button
-                      key={menu.id}
-                      variant={activeTab === menu.id ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setActiveTab(menu.id)}
-                    >
-                      {menu.label}
-                    </Button>
-                  ))}
-                </nav>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="md:w-3/4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 mb-4">
-                {CONSULTANT_MENUS.map((menu) => (
-                  <TabsTrigger key={menu.id} value={menu.id}>
-                    {menu.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="dashboard">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Dashboard do Consultor</CardTitle>
-                    <CardDescription>
-                      Visão geral das atividades e métricas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p>Aqui você encontra os principais indicadores dos seus clientes.</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-muted p-4 rounded-lg">
-                        <h3 className="font-medium mb-2">Clientes Ativos</h3>
-                        <p className="text-2xl font-bold">8</p>
-                      </div>
-                      <div className="bg-muted p-4 rounded-lg">
-                        <h3 className="font-medium mb-2">Conteúdos Criados</h3>
-                        <p className="text-2xl font-bold">27</p>
-                      </div>
-                      <div className="bg-muted p-4 rounded-lg">
-                        <h3 className="font-medium mb-2">Agendamentos</h3>
-                        <p className="text-2xl font-bold">12</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="clients">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gerenciamento de Clientes</CardTitle>
-                    <CardDescription>
-                      Visualize e gerencie seus clientes
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Lista de clientes em breve...</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="content">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Conteúdos</CardTitle>
-                    <CardDescription>
-                      Gerencie os conteúdos de seus clientes
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Conteúdos em breve...</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="analytics">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Análises</CardTitle>
-                    <CardDescription>
-                      Métricas e desempenho dos conteúdos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Análises em breve...</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
-    </Layout>
+    <div className="container mx-auto py-6">
+      <h1 className="text-2xl font-bold mb-6">{title}</h1>
+      
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid grid-cols-3 mb-4">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="reports">Relatórios</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview">
+          <TabContent>
+            <h2 className="text-xl font-medium mb-4">Bem-vindo, {user?.nome || 'Consultor'}</h2>
+            <p className="text-muted-foreground mb-4">
+              Esta é sua central de consultor onde você pode visualizar seus clientes e relatórios.
+            </p>
+          </TabContent>
+        </TabsContent>
+        
+        <TabsContent value="clients">
+          <TabContent>
+            <h2 className="text-xl font-medium mb-4">Seus Clientes</h2>
+            <div className="text-center py-8 border rounded-lg">
+              <p className="text-muted-foreground">Nenhum cliente encontrado</p>
+            </div>
+          </TabContent>
+        </TabsContent>
+        
+        <TabsContent value="reports">
+          <TabContent>
+            <h2 className="text-xl font-medium mb-4">Relatórios</h2>
+            <div className="text-center py-8 border rounded-lg">
+              <p className="text-muted-foreground">Nenhum relatório disponível</p>
+            </div>
+          </TabContent>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

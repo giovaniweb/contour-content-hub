@@ -77,6 +77,7 @@ const CalendarFeatures: React.FC<CalendarFeaturesProps> = ({ events = [] }) => {
             </Button>
           </div>
         </CardHeader>
+        
         <CardContent className="pt-4">
           <div className="grid md:grid-cols-7 gap-6">
             <div className="md:col-span-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -112,6 +113,7 @@ const CalendarFeatures: React.FC<CalendarFeaturesProps> = ({ events = [] }) => {
             </div>
           </div>
         </CardContent>
+        
         <CardFooter>
           <p className="text-xs text-muted-foreground">
             Você pode agendar conteúdos, criar campanhas e organizar sua estratégia social.

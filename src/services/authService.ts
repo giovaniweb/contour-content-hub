@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "@/types/auth";
-import { DbPerfil, DbWorkspace, DbInvite } from "@/lib/supabase/schema-types";
+import { DbPerfil, DbWorkspace, DbInvite, WorkspaceUser } from "@/lib/supabase/schema-types";
 import { User } from "@supabase/supabase-js";
 
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
@@ -20,7 +19,9 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
 
     // Type guard to ensure role is one of the allowed values
     const validateRole = (role: string): UserRole => {
-      if (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'consultor' || role === 'superadmin' || role === 'cliente') {
+      if (role === 'admin' || role === 'gerente' || role === 'operador' || 
+          role === 'consultor' || role === 'superadmin' || role === 'cliente' ||
+          role === 'viewSales' || role === 'manageClients' || role === 'editAllContent') {
         return role as UserRole;
       }
       return 'operador'; // Default to 'operador' if an invalid role is found
@@ -121,7 +122,12 @@ export async function registerUser(userData: {
       .update({
         nome: userData.name,
         role: userData.role || 'admin',
-        workspace_id: workspaceId
+        workspace_id: workspaceId,
+        clinica: userData.clinic,
+        cidade: userData.city,
+        telefone: userData.phone,
+        equipamentos: userData.equipment,
+        idioma: userData.language
       })
       .eq('id', authData.user.id);
       
@@ -135,7 +141,12 @@ export async function registerUser(userData: {
       .from('perfis')
       .update({
         nome: userData.name,
-        role: userData.role || 'operador'
+        role: userData.role || 'operador',
+        clinica: userData.clinic,
+        cidade: userData.city,
+        telefone: userData.phone,
+        equipamentos: userData.equipment,
+        idioma: userData.language
       })
       .eq('id', authData.user.id);
       
@@ -164,6 +175,8 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
   
   if (data.nome) userData.nome = data.nome;
   if (data.role) userData.role = data.role;
+  if (data.clinic) userData.clinica = data.clinic;
+  if (data.city) userData.cidade = data.city;
   
   return await supabase
     .from('perfis')
@@ -171,16 +184,15 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
     .eq('id', userId);
 }
 
-// Funções específicas para gerenciamento de workspaces e usuários
-export async function createWorkspace(nome: string, plano: string = 'free') {
-  // Mock the workspace creation since we don't have actual workspaces table
-  const workspaceId = `ws_${Date.now()}`;
-  return { id: workspaceId, nome, plano, criado_em: new Date().toISOString() };
-}
-
-export async function fetchWorkspaces() {
-  // Mock the workspace fetch since we don't have actual workspaces table
-  return [{ id: 'ws_default', nome: 'Default Workspace', plano: 'free', criado_em: new Date().toISOString() }];
+// Get mock data for workspaces instead of trying to fetch from non-existent table
+export async function fetchWorkspaces(): Promise<DbWorkspace[]> {
+  // Mocking the response instead of querying a non-existent table
+  return [{ 
+    id: 'ws_default', 
+    nome: 'Default Workspace', 
+    plano: 'free', 
+    criado_em: new Date().toISOString() 
+  }];
 }
 
 export async function inviteUserToWorkspace(
@@ -279,7 +291,7 @@ export async function rejectInvite(inviteId: string) {
   return true;
 }
 
-export async function fetchWorkspaceUsers(workspaceId: string) {
+export async function fetchWorkspaceUsers(workspaceId: string): Promise<WorkspaceUser[]> {
   if (!workspaceId) return [];
   
   const { data, error } = await supabase
@@ -295,5 +307,5 @@ export async function fetchWorkspaceUsers(workspaceId: string) {
     last_sign_in_at: null // Add a placeholder value
   }));
   
-  return enhancedData;
+  return enhancedData as WorkspaceUser[];
 }

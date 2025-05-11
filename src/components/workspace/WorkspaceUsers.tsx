@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { fetchWorkspaceUsers } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { WorkspaceUser } from '@/lib/supabase/schema-types';
 
 interface WorkspaceUser {
   id: string;
@@ -37,6 +37,7 @@ const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUs
     try {
       setLoading(true);
       const usersData = await fetchWorkspaceUsers(workspaceId || user?.workspace_id || '');
+      // Use type assertion for now since we know the structure matches WorkspaceUser
       setUsers(usersData as WorkspaceUser[]);
     } catch (error) {
       console.error('Error loading users:', error);

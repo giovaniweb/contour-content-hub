@@ -5,7 +5,10 @@ export type UserRole =
   | 'operador' 
   | 'consultor'
   | 'superadmin'
-  | 'cliente';
+  | 'cliente'
+  | 'viewSales'
+  | 'manageClients'
+  | 'editAllContent';
 
 export type WorkspaceRole = 
   | 'admin' 
@@ -37,6 +40,11 @@ export interface UserProfile {
   workspace_id?: string;
   passwordChanged?: boolean;
   clinic?: string;
+  city?: string;
+  phone?: string;
+  equipment?: string[];
+  language?: "PT" | "EN" | "ES";
+  profilePhotoUrl?: string;
 }
 
 export interface AuthContextType {
@@ -45,7 +53,17 @@ export interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (profile: UserProfile & { password: string }) => Promise<void>;
+  register: (userData: { 
+    email: string; 
+    password: string; 
+    name?: string;
+    role?: UserRole;
+    clinic?: string;
+    city?: string;
+    phone?: string;
+    equipment?: string[];
+    language?: "PT" | "EN" | "ES";
+  }) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   refreshAuth: () => Promise<void>;

@@ -1,10 +1,18 @@
+
 export interface DbPerfil {
   id: string;
   nome?: string;
   email: string;
   role: string;
   workspace_id?: string;
-  // ... other fields that might be in the database but we don't use in the frontend
+  cidade?: string;
+  clinica?: string;
+  telefone?: string;
+  foto_url?: string;
+  data_criacao?: string;
+  equipamentos?: string[];
+  idioma?: string;
+  observacoes_conteudo?: string;
 }
 
 export interface DbWorkspace {
@@ -32,4 +40,12 @@ export interface DbUserProfile {
   perfil_comportamental?: string[];
   insights_performance?: string[];
   atualizado_em?: string;
+}
+
+export interface WorkspaceUser {
+  id: string;
+  nome: string;
+  email: string;
+  role: string;
+  last_sign_in_at?: string | null;
 }
