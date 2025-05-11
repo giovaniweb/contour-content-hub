@@ -27,12 +27,16 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserRole } from "@/types/auth";
 
+// Definindo os roles permitidos durante registro
+const allowedRegisterRoles = ['admin', 'operador', 'consultor'] as const;
+type RegisterRole = typeof allowedRegisterRoles[number];
+
 // Criando o esquema de validação com Zod
 const registerFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  role: z.enum(["admin", "operador", "consultor"]).default("operador"),
+  role: z.enum(allowedRegisterRoles).default("operador"),
   clinic: z.string().optional(),
   city: z.string().optional(),
   phone: z.string().optional(),
@@ -46,7 +50,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = React.useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>("operador");
+  const [selectedRole, setSelectedRole] = useState<RegisterRole>("operador");
   
   // Formulário com react-hook-form + zod
   const form = useForm<RegisterFormValues>({
@@ -64,7 +68,7 @@ const Register: React.FC = () => {
   });
 
   // Handler para atualizar o selectedRole quando o valor do campo role mudar
-  const handleRoleChange = (value: UserRole) => {
+  const handleRoleChange = (value: RegisterRole) => {
     setSelectedRole(value);
     form.setValue("role", value);
   };
@@ -187,7 +191,7 @@ const Register: React.FC = () => {
                   <FormItem>
                     <FormLabel>Tipo de Conta</FormLabel>
                     <Select 
-                      onValueChange={(value: UserRole) => handleRoleChange(value)} 
+                      onValueChange={(value) => handleRoleChange(value as RegisterRole)} 
                       defaultValue={field.value}
                     >
                       <FormControl>

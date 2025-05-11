@@ -103,7 +103,7 @@ export function useIntentProcessor() {
       setResult(errorResult);
       return errorResult;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 

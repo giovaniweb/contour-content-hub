@@ -7,7 +7,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
   try {
     // Buscar perfil do usuário no Supabase
     const { data: userData, error: userError } = await supabase
-      .from('users')
+      .from('perfis')
       .select('*')
       .eq('id', userId)
       .single();
@@ -91,12 +91,49 @@ export async function registerUser(userData: {
     throw authError;
   }
 
+  // Verificar se existe algum convite para o e-mail
+  const { data: inviteData } = await supabase
+    .from('user_invites')
+    .select('*, workspaces(*)')
+    .eq('email_convidado', userData.email)
+    .eq('status', 'pendente')
+    .single();
+
+  if (inviteData) {
+    // Se existe um convite, atualizar com o workspace_id e role do convite
+    const { error: updateError } = await supabase
+      .from('perfis')
+      .update({
+        nome: userData.name,
+        role: inviteData.role_sugerido,
+        workspace_id: inviteData.workspace_id
+      })
+      .eq('id', authData.user.id);
+      
+    if (updateError) {
+      console.error("Erro ao atualizar usuário com convite:", updateError);
+      throw updateError;
+    }
+
+    // Atualizar o status do convite
+    await supabase
+      .from('user_invites')
+      .update({ 
+        status: 'aceito',
+        atualizado_em: new Date().toISOString() 
+      })
+      .eq('id', inviteData.id);
+
+    return authData;
+  }
+  
   // Se for fornecido o nome da clínica, vamos criar um novo workspace
   if (userData.clinic && userData.role === 'admin') {
     const { data: workspaceData, error: workspaceError } = await supabase
       .from('workspaces')
       .insert({
-        nome: userData.clinic
+        nome: userData.clinic,
+        plano: 'free' // plano padrão
       })
       .select()
       .single();
@@ -108,7 +145,7 @@ export async function registerUser(userData: {
 
     // Agora atualizamos o usuário com o workspace_id e role de admin
     const { error: updateError } = await supabase
-      .from('users')
+      .from('perfis')
       .update({
         nome: userData.name,
         role: userData.role || 'admin',
@@ -123,7 +160,7 @@ export async function registerUser(userData: {
   } else {
     // Se não for um admin com clínica, apenas atualizamos o perfil básico
     const { error: updateError } = await supabase
-      .from('users')
+      .from('perfis')
       .update({
         nome: userData.name,
         role: userData.role || 'operador'
@@ -157,7 +194,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
   if (data.role) userData.role = data.role;
   
   return await supabase
-    .from('users')
+    .from('perfis')
     .update(userData)
     .eq('id', userId);
 }
@@ -193,7 +230,8 @@ export async function inviteUserToWorkspace(
     .insert({
       workspace_id: workspaceId,
       email_convidado: emailConvidado,
-      role_sugerido: roleSugerido
+      role_sugerido: roleSugerido,
+      status: 'pendente'
     })
     .select();
     
@@ -207,7 +245,18 @@ export async function fetchUserInvites() {
   
   const { data, error } = await supabase
     .from('user_invites')
-    .select('*, workspaces(*)')
+    .select(`
+      id,
+      email_convidado, 
+      role_sugerido, 
+      status, 
+      criado_em,
+      workspaces (
+        id,
+        nome,
+        plano
+      )
+    `)
     .eq('email_convidado', user.email)
     .eq('status', 'pendente');
     
@@ -229,7 +278,7 @@ export async function acceptInvite(inviteId: string) {
   
   // Atualizar o usuário com o workspace e função sugeridos
   const { error: updateError } = await supabase
-    .from('users')
+    .from('perfis')
     .update({
       workspace_id: invite.workspace_id,
       role: invite.role_sugerido
@@ -261,8 +310,8 @@ export async function rejectInvite(inviteId: string) {
 
 export async function fetchWorkspaceUsers(workspaceId: string) {
   const { data, error } = await supabase
-    .from('users')
-    .select('*')
+    .from('perfis')
+    .select('id, nome, email, role, last_sign_in_at')
     .eq('workspace_id', workspaceId);
     
   if (error) throw error;

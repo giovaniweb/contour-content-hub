@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import InviteUserModal from './InviteUserModal';
 import { UserRole } from '@/types/auth';
 import { AlertTriangle, CheckCircle, Clock, X } from 'lucide-react';
+import { fetchWorkspaceUsers } from '@/services/authService';
 
 // Define types for users and pending invites
 interface WorkspaceUser {
@@ -38,24 +39,15 @@ const WorkspaceUsers: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWorkspaceUsers = async () => {
+    const fetchWorkspaceData = async () => {
       if (!user?.workspace_id) return;
 
       try {
         setIsLoading(true);
 
-        // Fetch workspace users from perfis table
-        const { data: workspaceUsers, error } = await supabase
-          .from('perfis')
-          .select('id, nome, email, role')
-          .eq('workspace_id', user.workspace_id);
-
-        if (error) throw error;
-
-        // Only set users if data is available
-        if (workspaceUsers) {
-          setUsers(workspaceUsers as WorkspaceUser[]);
-        }
+        // Fetch workspace users
+        const workspaceUsers = await fetchWorkspaceUsers(user.workspace_id);
+        setUsers(workspaceUsers as WorkspaceUser[]);
 
         // Fetch pending invites
         await fetchPendingInvites();
@@ -75,26 +67,30 @@ const WorkspaceUsers: React.FC = () => {
       if (!user?.workspace_id) return;
 
       try {
-        // Certifique-se de que a tabela 'user_invites' existe no seu banco de dados
         const { data: invites, error } = await supabase
           .from('user_invites')
-          .select('id, email_convidado, role_sugerido, status, criado_em')
-          .eq('workspace_id', user.workspace_id);
+          .select(`
+            id, 
+            email_convidado,
+            role_sugerido,
+            status,
+            criado_em
+          `)
+          .eq('workspace_id', user.workspace_id)
+          .eq('status', 'pendente');
 
         if (error) {
           console.error('Error fetching invites:', error);
           return;
         }
 
-        if (invites) {
-          setPendingInvites(invites as PendingInvite[]);
-        }
+        setPendingInvites(invites as PendingInvite[]);
       } catch (error) {
         console.error('Error fetching pending invites:', error);
       }
     };
 
-    fetchWorkspaceUsers();
+    fetchWorkspaceData();
   }, [user, toast]);
 
   const cancelInvite = async (inviteId: string) => {

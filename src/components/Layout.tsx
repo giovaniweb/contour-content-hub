@@ -1,100 +1,62 @@
 
-import React from "react";
-import Navbar from "./Navbar";
-import { useAuth } from "@/context/AuthContext";
-import { Footer } from "./footer/Footer";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Sidebar from "@/components/sidebar/Sidebar";
-import MobileBottomNav from "@/components/mobile/MobileBottomNav";
-import { AnimatePresence, motion } from "framer-motion";
-import { slideVariants } from "@/lib/animations";
-import CollapsibleHeader from "./header/CollapsibleHeader";
+import React from 'react';
+import { Toaster } from './ui/toaster';
+import { Link } from 'react-router-dom';
+import { usePermissions } from '@/hooks/use-permissions';
+import { useAuth } from '@/context/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
-  fullWidth?: boolean;
-  title?: string;
-  showBack?: boolean;
-  hideNav?: boolean;
-  transparentHeader?: boolean;
-  headerActions?: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ 
-  children, 
-  fullWidth = false, 
-  title,
-  showBack = false,
-  hideNav = false,
-  transparentHeader = false,
-  headerActions
-}) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuth();
-  const isAuthenticated = !!user;
-
-  // Update document title if title prop is provided
-  React.useEffect(() => {
-    if (title) {
-      document.title = `${title} | Fluida`;
-    } else {
-      document.title = "Fluida";
-    }
-  }, [title]);
+  const { canViewConsultantPanel } = usePermissions();
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-background">
-      {isAuthenticated ? (
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <Sidebar />
-            <div className="flex flex-1 flex-col">
-              {!hideNav && (
-                <CollapsibleHeader 
-                  title={title} 
-                  showBack={showBack}
-                  transparent={transparentHeader}
-                  actions={headerActions}
-                />
-              )}
-              
-              <AnimatePresence mode="wait">
-                <motion.main 
-                  key={title || "main"}
-                  className={`flex-1 ${!fullWidth && "container"} pb-16 md:pb-0`}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  variants={slideVariants}
-                  transition={{ duration: 0.3 }}
-                >
-                  {children}
-                </motion.main>
-              </AnimatePresence>
-              
-              <Footer />
-              <MobileBottomNav />
-            </div>
-          </div>
-        </SidebarProvider>
-      ) : (
-        <>
-          <Navbar />
-          <AnimatePresence mode="wait">
-            <motion.main 
-              key={title || "main"}
-              className={`flex-1 ${!fullWidth && "container"}`}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={slideVariants}
-              transition={{ duration: 0.3 }}
-            >
-              {children}
-            </motion.main>
-          </AnimatePresence>
-          <Footer />
-        </>
-      )}
+    <div className="flex flex-col min-h-screen">
+      <header className="w-full border-b">
+        <div className="container mx-auto py-3 flex justify-between items-center">
+          <Link to="/dashboard" className="font-bold text-xl">
+            Fluida
+          </Link>
+          
+          <nav className="space-x-4">
+            <Link to="/dashboard" className="text-sm font-medium">
+              Dashboard
+            </Link>
+            <Link to="/content-strategy" className="text-sm font-medium">
+              Estratégia
+            </Link>
+            <Link to="/script-generator" className="text-sm font-medium">
+              Roteiros
+            </Link>
+            {canViewConsultantPanel() && (
+              <Link to="/consultant" className="text-sm font-medium">
+                Painel Consultor
+              </Link>
+            )}
+            <Link to="/profile" className="text-sm font-medium">
+              Perfil
+            </Link>
+            <Link to="/workspace-settings" className="text-sm font-medium">
+              Configurações
+            </Link>
+          </nav>
+        </div>
+      </header>
+      
+      <main className="flex-1">
+        {children}
+      </main>
+      
+      <footer className="border-t py-4">
+        <div className="container mx-auto text-center text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} Fluida AI
+        </div>
+      </footer>
+      
+      <Toaster />
     </div>
   );
 };

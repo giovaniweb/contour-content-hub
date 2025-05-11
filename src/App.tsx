@@ -45,7 +45,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ErrorBoundaryGeneric } from '@/components/ErrorBoundaryGeneric';
+import ErrorBoundaryGeneric from '@/components/ErrorBoundaryGeneric';
 
 // Routes
 import PrivateRoute from '@/components/PrivateRoute';
@@ -100,43 +100,19 @@ function App() {
                     </Route>
 
                     {/* Consultant Routes */}
-                    <Route path="/consultant" element={
-                      <PrivateRoute requiredRole="consultor">
-                        <ConsultantPanel />
-                      </PrivateRoute>
-                    } />
+                    <Route path="/consultant" element={<PrivateRoute requiredRole="consultor" />}>
+                      <Route index element={<ConsultantPanel />} />
+                    </Route>
                     
                     {/* Admin Routes */}
-                    <Route path="/admin" element={
-                      <AdminRoute>
-                        <AdminDashboard />
-                      </AdminRoute>
-                    } />
-                    <Route path="/admin/equipments" element={
-                      <AdminRoute>
-                        <AdminEquipments />
-                      </AdminRoute>
-                    } />
-                    <Route path="/admin/content" element={
-                      <AdminRoute>
-                        <AdminContent />
-                      </AdminRoute>
-                    } />
-                    <Route path="/admin/ai" element={
-                      <AdminRoute>
-                        <AdminAIPanel />
-                      </AdminRoute>
-                    } />
-                    <Route path="/admin/system-diagnostics" element={
-                      <AdminRoute>
-                        <SystemDiagnostics />
-                      </AdminRoute>
-                    } />
-                    <Route path="/admin/system-intelligence" element={
-                      <AdminRoute>
-                        <SystemIntelligence />
-                      </AdminRoute>
-                    } />
+                    <Route path="/admin" element={<AdminRoute />}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="equipments" element={<AdminEquipments />} />
+                      <Route path="content" element={<AdminContent />} />
+                      <Route path="ai" element={<AdminAIPanel />} />
+                      <Route path="system-diagnostics" element={<SystemDiagnostics />} />
+                      <Route path="system-intelligence" element={<SystemIntelligence />} />
+                    </Route>
                     
                     {/* 404 Route */}
                     <Route path="*" element={<NotFound />} />

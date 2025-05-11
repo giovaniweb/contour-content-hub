@@ -919,6 +919,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invites: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          email_convidado: string
+          id: string
+          role_sugerido: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          email_convidado: string
+          id?: string
+          role_sugerido: string
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          email_convidado?: string
+          id?: string
+          role_sugerido?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       user_profile: {
         Row: {
           atualizado_em: string | null

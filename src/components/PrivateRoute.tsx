@@ -1,62 +1,40 @@
 
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/hooks/use-permissions';
+import { UserRole } from '@/types/auth';
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const location = useLocation();
+interface PrivateRouteProps {
+  children?: React.ReactNode;
+  requiredRole?: UserRole;
+}
 
-  console.log("PrivateRoute - Auth State:", { 
-    isAuthenticated, 
-    isLoading, 
-    userExists: !!user, 
-    path: location.pathname 
-  });
-
-  // Show loading state while checking authentication
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
+  const { user, isLoading } = useAuth();
+  const { hasPermission } = usePermissions();
+  
+  // If auth is still loading, show loading indicator
   if (isLoading) {
-    console.log("PrivateRoute - Still loading authentication state");
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner 
-          message="Verificando autenticação..." 
-          submessage="Aguarde um momento..." 
-        />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated || !user) {
-    console.log("PrivateRoute - Not authenticated, redirecting to login");
-    // Preserve the attempted URL for redirect after login
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  // If no user or not authenticated, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
-
-  console.log("PrivateRoute - User authenticated, rendering protected content");
-  // Only render children when we're certain the user is authenticated
-  // and the user object is available
-  try {
-    return <>{children}</>;
-  } catch (error) {
-    console.error("Error rendering protected route:", error);
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center p-6 bg-red-50 rounded-lg">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Erro ao renderizar conteúdo</h2>
-          <p className="text-gray-600">Ocorreu um erro ao carregar esta página.</p>
-          <button 
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
-            onClick={() => window.location.reload()}
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
+  
+  // If a role is required and the user doesn't have it, redirect to dashboard
+  if (requiredRole && !hasPermission(requiredRole)) {
+    return <Navigate to="/dashboard" replace />;
   }
+  
+  // If there are children, render them, otherwise render the outlet
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default PrivateRoute;

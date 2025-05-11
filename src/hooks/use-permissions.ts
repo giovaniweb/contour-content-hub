@@ -36,13 +36,13 @@ export function usePermissions() {
       case 'superadmin':
         return user.role === 'superadmin';
       case 'admin':
-        return ['admin', 'superadmin'].includes(user.role);
+        return ['admin', 'superadmin'].includes(user.role as string);
       case 'gerente':
-        return ['gerente', 'admin', 'superadmin'].includes(user.role);
+        return ['gerente', 'admin', 'superadmin'].includes(user.role as string);
       case 'operador':
-        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role);
+        return ['operador', 'gerente', 'admin', 'superadmin'].includes(user.role as string);
       case 'consultor':
-        return ['consultor', 'superadmin'].includes(user.role);
+        return ['consultor', 'superadmin'].includes(user.role as string);
       default:
         return false;
     }

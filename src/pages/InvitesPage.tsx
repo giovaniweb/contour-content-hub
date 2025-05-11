@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { fetchUserInvites, acceptInvite, rejectInvite } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
+import { UserRole } from '@/types/auth';
 
 interface Invite {
   id: string;
   email_convidado: string;
-  role_sugerido: string;
+  role_sugerido: UserRole;
   status: string;
   criado_em: string;
   workspaces: {
