@@ -14,7 +14,7 @@ interface Invite {
   role_sugerido: UserRole;
   status: string;
   criado_em: string;
-  workspaces: {
+  workspaces?: {
     id: string;
     nome: string;
     plano: string;
@@ -36,7 +36,22 @@ const InvitesPage: React.FC = () => {
     try {
       setLoading(true);
       const invitesData = await fetchUserInvites();
-      setInvites(invitesData as Invite[]);
+      
+      // Make sure we handle the possible type mismatch
+      const processedInvites: Invite[] = (invitesData as any[]).map(invite => ({
+        id: invite.id,
+        email_convidado: invite.email_convidado,
+        role_sugerido: invite.role_sugerido,
+        status: invite.status,
+        criado_em: invite.criado_em,
+        workspaces: invite.workspaces && !invite.workspaces.error ? invite.workspaces : {
+          id: 'unknown',
+          nome: 'Unknown Workspace',
+          plano: 'unknown'
+        }
+      }));
+      
+      setInvites(processedInvites);
     } catch (error) {
       console.error('Erro ao carregar convites:', error);
       toast({
@@ -121,7 +136,7 @@ const InvitesPage: React.FC = () => {
             {invites.map(invite => (
               <Card key={invite.id}>
                 <CardHeader>
-                  <CardTitle>{invite.workspaces.nome}</CardTitle>
+                  <CardTitle>{invite.workspaces?.nome || 'Workspace'}</CardTitle>
                   <CardDescription>
                     Você foi convidado para se juntar a este workspace
                   </CardDescription>
@@ -138,7 +153,7 @@ const InvitesPage: React.FC = () => {
                     </div>
                     <div className="text-sm">
                       <span className="font-medium">Plano do workspace:</span>{' '}
-                      <span className="capitalize">{invite.workspaces.plano}</span>
+                      <span className="capitalize">{invite.workspaces?.plano || 'Desconhecido'}</span>
                     </div>
                   </div>
                 </CardContent>

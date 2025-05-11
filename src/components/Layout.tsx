@@ -7,16 +7,24 @@ import { useAuth } from '@/context/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
+  title?: string;
+  fullWidth?: boolean;
+  transparentHeader?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ 
+  children, 
+  title, 
+  fullWidth = false,
+  transparentHeader = false
+}) => {
   const { user } = useAuth();
   const { canViewConsultantPanel } = usePermissions();
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="w-full border-b">
-        <div className="container mx-auto py-3 flex justify-between items-center">
+      <header className={`w-full border-b ${transparentHeader ? 'bg-transparent border-transparent' : ''}`}>
+        <div className={`${fullWidth ? 'w-full px-4' : 'container mx-auto'} py-3 flex justify-between items-center`}>
           <Link to="/dashboard" className="font-bold text-xl">
             Fluida
           </Link>

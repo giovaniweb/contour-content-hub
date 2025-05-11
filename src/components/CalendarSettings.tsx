@@ -1,199 +1,184 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarPreferences } from '@/types/calendar';
-
-// Re-export the type properly
-export type { CalendarPreferences };
+import { useForm } from 'react-hook-form';
 
 interface CalendarSettingsProps {
   onSave: (preferences: CalendarPreferences) => Promise<void>;
   onCancel: () => void;
-  initialPreferences?: Partial<CalendarPreferences>;
+  initialValues?: Partial<CalendarPreferences>;
 }
 
 const CalendarSettings: React.FC<CalendarSettingsProps> = ({
   onSave,
   onCancel,
-  initialPreferences
+  initialValues = {}
 }) => {
-  const [preferences, setPreferences] = useState<CalendarPreferences>({
-    defaultView: initialPreferences?.defaultView || 'month',
-    firstDayOfWeek: initialPreferences?.firstDayOfWeek || 0,
-    workingHours: initialPreferences?.workingHours || {
-      start: '08:00',
-      end: '18:00'
-    },
-    timeZone: initialPreferences?.timeZone || 'America/Sao_Paulo',
-    showWeekends: initialPreferences?.showWeekends !== undefined ? initialPreferences.showWeekends : true,
-    autoGenerate: initialPreferences?.autoGenerate !== undefined ? initialPreferences.autoGenerate : false,
-    theme: initialPreferences?.theme || 'system',
-    notifications: initialPreferences?.notifications || {
-      email: true,
-      push: true,
-      desktop: true
-    }
-  });
-
-  const handleSave = async () => {
-    await onSave(preferences);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const defaultValues: CalendarPreferences = {
+    defaultView: initialValues.defaultView || 'month',
+    firstDayOfWeek: initialValues.firstDayOfWeek || 0,
+    showWeekends: initialValues.showWeekends !== false,
+    autoScheduleSuggestions: initialValues.autoScheduleSuggestions !== false,
+    reminderTime: initialValues.reminderTime || '1h',
   };
-
+  
+  const form = useForm<CalendarPreferences>({
+    defaultValues
+  });
+  
+  const handleSubmit = async (values: CalendarPreferences) => {
+    try {
+      setIsSaving(true);
+      await onSave(values);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="defaultView">Visualização Padrão</Label>
-          <Select 
-            value={preferences.defaultView}
-            onValueChange={(value: any) => setPreferences({ ...preferences, defaultView: value })}
-          >
-            <SelectTrigger id="defaultView">
-              <SelectValue placeholder="Selecione uma visualização" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Dia</SelectItem>
-              <SelectItem value="week">Semana</SelectItem>
-              <SelectItem value="month">Mês</SelectItem>
-              <SelectItem value="agenda">Agenda</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="defaultView"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Visualização Padrão</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha uma visualização" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="day">Dia</SelectItem>
+                  <SelectItem value="week">Semana</SelectItem>
+                  <SelectItem value="month">Mês</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Como o calendário será exibido quando você abrir a página
+              </FormDescription>
+            </FormItem>
+          )}
+        />
         
-        <div className="space-y-2">
-          <Label htmlFor="firstDayOfWeek">Primeiro Dia da Semana</Label>
-          <Select 
-            value={preferences.firstDayOfWeek.toString()}
-            onValueChange={(value) => setPreferences({ ...preferences, firstDayOfWeek: parseInt(value) as 0 | 1 | 2 | 3 | 4 | 5 | 6 })}
+        <FormField
+          control={form.control}
+          name="firstDayOfWeek"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primeiro Dia da Semana</FormLabel>
+              <RadioGroup
+                onValueChange={(value) => field.onChange(parseInt(value))}
+                defaultValue={field.value.toString()}
+                className="flex space-x-4"
+              >
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="0" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Domingo</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="1" />
+                  </FormControl>
+                  <FormLabel className="font-normal">Segunda</FormLabel>
+                </FormItem>
+              </RadioGroup>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="showWeekends"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <FormLabel>Mostrar Fins de Semana</FormLabel>
+                <FormDescription>
+                  Exibir sábados e domingos no calendário
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="autoScheduleSuggestions"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <FormLabel>Sugestões Automáticas</FormLabel>
+                <FormDescription>
+                  Receber sugestões de agendamento baseadas em padrões de conteúdo
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="reminderTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tempo de Lembretes</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tempo antes do evento" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="30m">30 minutos antes</SelectItem>
+                  <SelectItem value="1h">1 hora antes</SelectItem>
+                  <SelectItem value="3h">3 horas antes</SelectItem>
+                  <SelectItem value="1d">1 dia antes</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+        
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSaving}
           >
-            <SelectTrigger id="firstDayOfWeek">
-              <SelectValue placeholder="Selecione o primeiro dia" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">Domingo</SelectItem>
-              <SelectItem value="1">Segunda-feira</SelectItem>
-              <SelectItem value="2">Terça-feira</SelectItem>
-              <SelectItem value="3">Quarta-feira</SelectItem>
-              <SelectItem value="4">Quinta-feira</SelectItem>
-              <SelectItem value="5">Sexta-feira</SelectItem>
-              <SelectItem value="6">Sábado</SelectItem>
-            </SelectContent>
-          </Select>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? 'Salvando...' : 'Salvar Preferências'}
+          </Button>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="theme">Tema</Label>
-          <Select 
-            value={preferences.theme}
-            onValueChange={(value: any) => setPreferences({ ...preferences, theme: value })}
-          >
-            <SelectTrigger id="theme">
-              <SelectValue placeholder="Selecione um tema" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Claro</SelectItem>
-              <SelectItem value="dark">Escuro</SelectItem>
-              <SelectItem value="system">Sistema</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="timeZone">Fuso Horário</Label>
-          <Select 
-            value={preferences.timeZone}
-            onValueChange={(value) => setPreferences({ ...preferences, timeZone: value })}
-          >
-            <SelectTrigger id="timeZone">
-              <SelectValue placeholder="Selecione o fuso horário" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="America/Sao_Paulo">Horário de Brasília (GMT-3)</SelectItem>
-              <SelectItem value="America/Manaus">Horário do Amazonas (GMT-4)</SelectItem>
-              <SelectItem value="America/Rio_Branco">Horário do Acre (GMT-5)</SelectItem>
-              <SelectItem value="America/Noronha">Horário de Fernando de Noronha (GMT-2)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="showWeekends">Mostrar Finais de Semana</Label>
-          <Switch 
-            id="showWeekends" 
-            checked={preferences.showWeekends}
-            onCheckedChange={(checked) => setPreferences({ ...preferences, showWeekends: checked })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="autoGenerate">Gerar Conteúdo Automaticamente</Label>
-          <Switch 
-            id="autoGenerate" 
-            checked={preferences.autoGenerate}
-            onCheckedChange={(checked) => setPreferences({ ...preferences, autoGenerate: checked })}
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium">Notificações</h3>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between space-x-2">
-            <Label htmlFor="emailNotifications">E-mail</Label>
-            <Switch 
-              id="emailNotifications" 
-              checked={preferences.notifications.email}
-              onCheckedChange={(checked) => 
-                setPreferences({ 
-                  ...preferences, 
-                  notifications: { ...preferences.notifications, email: checked } 
-                })
-              }
-            />
-          </div>
-          
-          <div className="flex items-center justify-between space-x-2">
-            <Label htmlFor="pushNotifications">Push</Label>
-            <Switch 
-              id="pushNotifications" 
-              checked={preferences.notifications.push}
-              onCheckedChange={(checked) => 
-                setPreferences({ 
-                  ...preferences, 
-                  notifications: { ...preferences.notifications, push: checked } 
-                })
-              }
-            />
-          </div>
-          
-          <div className="flex items-center justify-between space-x-2">
-            <Label htmlFor="desktopNotifications">Desktop</Label>
-            <Switch 
-              id="desktopNotifications" 
-              checked={preferences.notifications.desktop}
-              onCheckedChange={(checked) => 
-                setPreferences({ 
-                  ...preferences, 
-                  notifications: { ...preferences.notifications, desktop: checked } 
-                })
-              }
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSave}>
-          Salvar Preferências
-        </Button>
-      </div>
-    </div>
+      </form>
+    </Form>
   );
 };
 
