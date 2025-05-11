@@ -1,5 +1,4 @@
 
-
 export type UserRole = 
   | 'admin' 
   | 'gerente' 
@@ -46,7 +45,7 @@ export interface UserProfile {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
-  name: string; // Added explicitly as a required field
+  name: string; // This is needed as some components reference this field
 }
 
 export interface AuthContextType {
@@ -69,8 +68,7 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   refreshAuth: () => Promise<void>;
-  isLoading: boolean;
   updateUser: (data: Partial<UserProfile>) => Promise<void>;
+  isLoading: boolean;
   isAuthenticated?: boolean;
 }
-

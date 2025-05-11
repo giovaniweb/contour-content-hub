@@ -10,7 +10,7 @@ const Dashboard = () => {
     <Layout title="Dashboard">
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">
-          Bem-vindo, {user?.nome || user?.name || 'Usuário'}!
+          Bem-vindo, {user?.name || user?.nome || 'Usuário'}!
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
