@@ -7,7 +7,7 @@ const Calendar: React.FC = () => {
   console.log("Calendar - Rendering agenda page");
   
   return (
-    <Layout title="Agenda de Conteúdo">
+    <Layout>
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
