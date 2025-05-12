@@ -40,9 +40,8 @@ const NotFound = () => {
               size="lg" 
               variant="outline" 
               className="gap-2 border-fluida-blue text-fluida-blue hover:bg-fluida-blue/10"
-              onClick={() => window.history.back()}
             >
-              <button>
+              <button onClick={() => window.history.back()}>
                 <ArrowLeft className="h-5 w-5" />
                 <span>Voltar</span>
               </button>

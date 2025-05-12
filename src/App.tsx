@@ -26,6 +26,12 @@ import VideoBatchImport from './pages/videos/VideoBatchImport';
 import VideoSwipe from './pages/videos/VideoSwipe';
 import VideoStorage from './pages/videos/VideoStorage';
 import NotFound from '@/pages/NotFound';
+import ContentScripts from '@/pages/ContentScripts';
+import AdminVimeoSettings from '@/pages/admin/VimeoSettings';
+import AdminSystemDiagnostics from '@/pages/admin/SystemDiagnostics';
+import AdminSystemIntelligence from '@/pages/admin/SystemIntelligence';
+import AdminContent from '@/pages/admin/AdminContent';
+import AdminWorkspace from '@/pages/admin/WorkspaceSettings';
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -87,7 +93,27 @@ const router = createBrowserRouter([
   },
   {
     path: ROUTES.CONTENT.SCRIPTS.ROOT,
-    element: <ContentStrategy />, // Temporariamente redirecionando para ContentStrategy até termos a página de scripts
+    element: <ContentScripts />,
+  },
+  {
+    path: ROUTES.ADMIN.VIMEO.SETTINGS,
+    element: <AdminVimeoSettings />,
+  },
+  {
+    path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS,
+    element: <AdminSystemDiagnostics />,
+  },
+  {
+    path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE,
+    element: <AdminSystemIntelligence />,
+  },
+  {
+    path: ROUTES.ADMIN.CONTENT,
+    element: <AdminContent />,
+  },
+  {
+    path: ROUTES.ADMIN.WORKSPACE,
+    element: <AdminWorkspace />,
   },
   {
     path: "*",
