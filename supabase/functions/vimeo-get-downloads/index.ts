@@ -11,18 +11,13 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-// Função para mapear a qualidade do vídeo do Vimeo para nosso tipo VideoFile
-const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
-  const videoFile: {
-    original?: string;
-    hd?: string;
-    sd?: string;
-    web_optimized?: string;
-  } = {};
+// Função para mapear a qualidade do vídeo do Vimeo para nosso formato VideoDownloadFile[]
+const mapVimeoQualityToDownloadFiles = (downloadItems: any[]) => {
+  const downloadFiles: Array<{ quality: string, link: string }> = [];
 
   if (!downloadItems || !Array.isArray(downloadItems) || downloadItems.length === 0) {
     console.log("Sem itens de download disponíveis");
-    return videoFile;
+    return downloadFiles;
   }
 
   // Ordenamos por tamanho para garantir que pegamos o maior arquivo para cada qualidade
@@ -33,16 +28,100 @@ const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
   // Log para debug
   console.log(`Processando ${downloadItems.length} opções de download`);
   
+  // Processa a qualidade original
+  const original = sortedItems.find(item => item.quality === "source");
+  if (original) {
+    downloadFiles.push({
+      quality: "Original",
+      link: original.link
+    });
+    console.log("Definido link original");
+  }
+  
+  // Processa HD (720p ou maior)
+  const hdItem = sortedItems.find(item => 
+    item.quality === "hd" || 
+    item.rendition === "1080p" || 
+    item.rendition === "720p" ||
+    (item.width && item.width >= 1280)
+  );
+  
+  if (hdItem) {
+    downloadFiles.push({
+      quality: "HD (720p)",
+      link: hdItem.link
+    });
+    console.log(`Definido link HD: ${hdItem.rendition || hdItem.quality}`);
+  }
+  
+  // Processa SD (540p ou 480p)
+  const sdItem = sortedItems.find(item => 
+    item.quality === "sd" || 
+    item.rendition === "540p" || 
+    item.rendition === "480p" ||
+    (item.width && item.width >= 640 && item.width < 1280)
+  );
+  
+  if (sdItem) {
+    downloadFiles.push({
+      quality: "SD (480p)",
+      link: sdItem.link
+    });
+    console.log(`Definido link SD: ${sdItem.rendition || sdItem.quality}`);
+  }
+  
+  // Processa web otimizado (360p ou menor)
+  const webItem = sortedItems.find(item => 
+    item.quality === "mobile" || 
+    item.rendition === "360p" || 
+    item.rendition === "240p" ||
+    (item.width && item.width < 640)
+  );
+  
+  if (webItem) {
+    downloadFiles.push({
+      quality: "Web (Otimizado)",
+      link: webItem.link
+    });
+    console.log(`Definido link web_optimized: ${webItem.rendition || webItem.quality}`);
+  }
+
+  // Garantir que temos pelo menos algum link
+  if (downloadFiles.length === 0 && sortedItems.length > 0) {
+    downloadFiles.push({
+      quality: "Original",
+      link: sortedItems[0].link
+    });
+    console.log("Usando primeiro item como original por falta de opções melhores");
+  }
+
+  return downloadFiles;
+};
+
+// Para compatibilidade com o formato antigo
+const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
+  const videoFile: {
+    original?: string;
+    hd?: string;
+    sd?: string;
+    web_optimized?: string;
+  } = {};
+
+  if (!downloadItems || !Array.isArray(downloadItems) || downloadItems.length === 0) {
+    return videoFile;
+  }
+
+  // Ordenamos por tamanho para garantir que pegamos o maior arquivo para cada qualidade
+  const sortedItems = [...downloadItems].sort((a, b) => 
+    (b.size || 0) - (a.size || 0)
+  );
+  
   for (const item of sortedItems) {
-    const { quality, link, type, rendition, width, height } = item;
-    
-    // Adicionando logs para debug
-    console.log(`Analisando item: quality=${quality}, rendition=${rendition}, width=${width}, height=${height}`);
+    const { quality, link, rendition, width } = item;
     
     // Original (maior qualidade)
     if (!videoFile.original && quality === "source") {
       videoFile.original = link;
-      console.log("Definido link original");
       continue;
     }
     
@@ -54,7 +133,6 @@ const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
       (width && width >= 1280)
     )) {
       videoFile.hd = link;
-      console.log(`Definido link HD: ${rendition || quality}`);
       continue;
     }
     
@@ -66,7 +144,6 @@ const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
       (width && width >= 640 && width < 1280)
     )) {
       videoFile.sd = link;
-      console.log(`Definido link SD: ${rendition || quality}`);
       continue;
     }
     
@@ -78,7 +155,6 @@ const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
       (width && width < 640)
     )) {
       videoFile.web_optimized = link;
-      console.log(`Definido link web_optimized: ${rendition || quality}`);
       continue;
     }
   }
@@ -88,7 +164,6 @@ const mapVimeoQualityToVideoFile = (downloadItems: any[]) => {
     // Se não encontramos nenhuma qualidade específica, use o primeiro item
     if (sortedItems.length > 0) {
       videoFile.original = sortedItems[0].link;
-      console.log("Usando primeiro item como original por falta de opções melhores");
     }
   }
 
@@ -163,7 +238,8 @@ serve(async (req) => {
           description: vimeoData.description,
           thumbnail_url: vimeoData.pictures?.sizes?.[0]?.link,
           video_url: `https://vimeo.com/${vimeoId}`,
-          file_urls: {}
+          file_urls: {},
+          download_files: []
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -172,6 +248,7 @@ serve(async (req) => {
     
     // Extrair metadados básicos e links de download em diferentes qualidades
     const videoFile = mapVimeoQualityToVideoFile(vimeoData.download);
+    const downloadFiles = mapVimeoQualityToDownloadFiles(vimeoData.download);
     
     // Construir resposta com todas as informações
     const response = {
@@ -182,7 +259,8 @@ serve(async (req) => {
         description: vimeoData.description,
         url: `https://vimeo.com/${vimeoId}`,
         thumbnail_url: vimeoData.pictures?.sizes?.[vimeoData.pictures?.sizes?.length - 1]?.link,
-        file_urls: videoFile,
+        file_urls: videoFile, // Formato antigo
+        download_files: downloadFiles, // Novo formato
         duration_seconds: vimeoData.duration,
         duration: (() => {
           const minutes = Math.floor(vimeoData.duration / 60);

@@ -69,8 +69,19 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
   // Prepare download options if we have URLs available
   const downloadOptions = [];
   
-  // Validar se file_urls existe e tem formato correto
-  if (video.file_urls && typeof video.file_urls === 'object') {
+  // Verificar se temos download_files disponíveis
+  if (video.download_files && Array.isArray(video.download_files)) {
+    video.download_files.forEach(file => {
+      if (file.quality && file.link) {
+        downloadOptions.push({
+          quality: file.quality,
+          link: file.link
+        });
+      }
+    });
+  }
+  // Compatibilidade com a estrutura antiga file_urls (caso ainda exista)
+  else if (video.file_urls && typeof video.file_urls === 'object') {
     if (video.file_urls.original) {
       downloadOptions.push({
         quality: "Original",

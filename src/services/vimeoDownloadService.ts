@@ -114,8 +114,28 @@ export const updateVideoWithDownloadLinks = async (
       updated_at: new Date().toISOString()
     };
     
+    // Formatar os dados para o campo download_files
     if (data.file_urls) {
-      updateData.file_urls = data.file_urls;
+      // Converter o objeto file_urls para um array de objetos {quality, link}
+      const downloadFiles = [];
+      
+      if (data.file_urls.original) {
+        downloadFiles.push({ quality: 'Original', link: data.file_urls.original });
+      }
+      
+      if (data.file_urls.hd) {
+        downloadFiles.push({ quality: 'HD (720p)', link: data.file_urls.hd });
+      }
+      
+      if (data.file_urls.sd) {
+        downloadFiles.push({ quality: 'SD (480p)', link: data.file_urls.sd });
+      }
+      
+      if (data.file_urls.web_optimized) {
+        downloadFiles.push({ quality: 'Web (Otimizado)', link: data.file_urls.web_optimized });
+      }
+      
+      updateData.download_files = downloadFiles;
     }
     
     const { error: updateError } = await supabase
@@ -162,7 +182,7 @@ export const checkVideoDownloadLinks = async (): Promise<{
   try {
     const { data: videos, error } = await supabase
       .from('videos_storage')
-      .select('id, title, file_urls, url')
+      .select('id, title, download_files')
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -192,27 +212,28 @@ export const checkVideoDownloadLinks = async (): Promise<{
       }[]
     };
     
-    videos.forEach(video => {
+    type VideoStorageRow = {
+      id: string;
+      title: string;
+      download_files?: {
+        quality: string;
+        link: string;
+      }[];
+    };
+    
+    videos.forEach((video: VideoStorageRow) => {
       const linkTypes: string[] = [];
       let hasLinks = false;
       
-      if (video.file_urls) {
-        if (video.file_urls.original) {
-          linkTypes.push('original');
-          hasLinks = true;
-        }
-        if (video.file_urls.hd) {
-          linkTypes.push('hd');
-          hasLinks = true;
-        }
-        if (video.file_urls.sd) {
-          linkTypes.push('sd');
-          hasLinks = true;
-        }
-        if (video.file_urls.web_optimized) {
-          linkTypes.push('web_optimized');
-          hasLinks = true;
-        }
+      if (video.download_files && Array.isArray(video.download_files) && video.download_files.length > 0) {
+        hasLinks = true;
+        
+        // Extract all the quality types from the download_files array
+        video.download_files.forEach(file => {
+          if (file.quality && file.link) {
+            linkTypes.push(file.quality);
+          }
+        });
       }
       
       if (hasLinks) {

@@ -52,12 +52,18 @@ export interface VideoMetadataSchema {
   equipment_name?: string;
 }
 
+export interface VideoDownloadFile {
+  quality: string;
+  link: string;
+}
+
 export interface StoredVideo {
   id: string;
   title?: string;
   description?: string;
   url?: string;
   file_urls?: VideoFile;
+  download_files?: VideoDownloadFile[];
   thumbnail_url?: string;
   created_at?: string;
   updated_at?: string;
