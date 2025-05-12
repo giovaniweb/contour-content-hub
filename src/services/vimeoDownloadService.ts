@@ -165,6 +165,18 @@ export const updateVideoWithDownloadLinks = async (
 };
 
 /**
+ * Interface para o resultado da consulta de vídeos no Supabase
+ */
+export type VideoStorageRow = {
+  id: string;
+  title: string;
+  download_files?: {
+    quality: string;
+    link: string;
+  }[];
+};
+
+/**
  * Verifica se os vídeos no banco de dados possuem links de download configurados corretamente
  * @returns Estatísticas sobre os vídeos e seus links de download
  */
@@ -182,8 +194,7 @@ export const checkVideoDownloadLinks = async (): Promise<{
   try {
     const { data: videos, error } = await supabase
       .from('videos_storage')
-      .select('id, title, download_files')
-      .order('created_at', { ascending: false });
+      .select('id, title, download_files');
       
     if (error) {
       console.error('Erro ao buscar vídeos:', error);
@@ -212,16 +223,8 @@ export const checkVideoDownloadLinks = async (): Promise<{
       }[]
     };
     
-    type VideoStorageRow = {
-      id: string;
-      title: string;
-      download_files?: {
-        quality: string;
-        link: string;
-      }[];
-    };
-    
-    videos.forEach((video: VideoStorageRow) => {
+    // Tratamos cada vídeo como VideoStorageRow
+    (videos as VideoStorageRow[]).forEach(video => {
       const linkTypes: string[] = [];
       let hasLinks = false;
       
