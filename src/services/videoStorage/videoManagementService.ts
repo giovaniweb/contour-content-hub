@@ -1,10 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   StoredVideo, 
   VideoFilterOptions, 
   VideoSortOptions 
 } from '@/types/video-storage';
+import { Json } from '@/types/supabase';
 
 /**
  * Get videos with optional filtering and sorting
@@ -144,10 +144,22 @@ export async function getMyVideos(
  */
 export async function updateVideo(id: string, updates: Partial<StoredVideo>): Promise<{ success: boolean; error?: string }> {
   try {
+    // Remove properties that don't match the database schema
+    const { file_urls, download_files, url, ...validUpdates } = updates;
+    
+    // Handle file_urls separately if it exists
+    let fileUrlsUpdate = {};
+    if (file_urls) {
+      fileUrlsUpdate = {
+        file_urls: file_urls as unknown as Json
+      };
+    }
+    
     const { error } = await supabase
       .from('videos_storage')
       .update({
-        ...updates,
+        ...validUpdates,
+        ...fileUrlsUpdate,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

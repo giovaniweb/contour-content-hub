@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
@@ -477,8 +476,9 @@ const VideoBatchImport: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row justify-between items-center border-t pt-4">
               <Pagination 
+                totalItems={totalVideos} 
+                itemsPerPage={12} 
                 currentPage={currentPage} 
-                totalPages={totalPages} 
                 onPageChange={handlePageChange}
               />
               

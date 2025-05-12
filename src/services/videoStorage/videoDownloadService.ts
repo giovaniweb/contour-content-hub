@@ -1,16 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/types/supabase';
 
 /**
  * Log a video download event
  */
 export async function downloadVideo(videoId: string, quality: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // Get current user (if logged in)
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from('video_downloads')
       .insert({
         video_id: videoId,
         quality: quality,
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Anonymous user ID for non-logged in users
         user_agent: navigator.userAgent,
       });
 
@@ -47,8 +52,12 @@ export async function generateDownloadUrl(videoId: string): Promise<{
     }
     
     // Get the highest quality URL available
-    const fileUrls = video.file_urls || {};
-    const downloadUrl = fileUrls.original || fileUrls.hd || fileUrls.sd || fileUrls.web_optimized;
+    const fileUrls = video.file_urls as Record<string, string> || {};
+    
+    const downloadUrl = fileUrls.original || 
+                        fileUrls.hd || 
+                        fileUrls.sd || 
+                        fileUrls.web_optimized;
     
     if (!downloadUrl) {
       throw new Error('No download URL available for this video');
