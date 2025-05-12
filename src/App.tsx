@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 // Pages
 import HomePage from "@/pages/HomePage";
 import AdminVideosPage from './pages/admin/videos';
+import VideoBatchManage from './pages/videos/VideoBatchManage';
 
 // Create router configuration
 const routes = [
@@ -21,6 +22,10 @@ const routes = [
   {
     path: ROUTES.ADMIN_VIDEOS,
     element: <AdminVideosPage />
+  },
+  {
+    path: "/video-batch",
+    element: <VideoBatchManage />
   },
   // Add other routes as they become available
 ];
