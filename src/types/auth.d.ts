@@ -45,7 +45,7 @@ export interface UserProfile {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
   profilePhotoUrl?: string;
-  name?: string; // Ensure name field is included
+  name: string; // Changed from optional to required to fix error
 }
 
 export interface AuthContextType {

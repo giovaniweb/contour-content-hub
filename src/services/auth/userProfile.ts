@@ -42,7 +42,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       equipment: userData.equipamentos,
       language: userData.idioma as "PT" | "EN" | "ES" | undefined,
       profilePhotoUrl: userData.foto_url,
-      name: userData.nome || '' // Usar nome como name para compatibilidade
+      name: userData.nome || '' // Use nome as name for compatibility
     };
 
     return profile;
@@ -64,6 +64,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
   if (data.equipment) userData.equipamentos = data.equipment;
   if (data.language) userData.idioma = data.language;
   if (data.profilePhotoUrl) userData.foto_url = data.profilePhotoUrl;
+  if (data.name) userData.nome = data.name; // Update nome field when name is provided
   
   return await supabase
     .from('perfis')
