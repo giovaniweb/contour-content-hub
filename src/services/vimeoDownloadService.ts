@@ -170,14 +170,29 @@ export const checkVideoDownloadLinks = async (): Promise<{
       throw error;
     }
     
+    // Se não houver vídeos ou erro, retornamos estatísticas vazias
+    if (!videos || videos.length === 0) {
+      return {
+        total: 0,
+        withLinks: 0,
+        missingLinks: 0,
+        videos: []
+      };
+    }
+    
     const stats = {
-      total: videos?.length || 0,
+      total: videos.length,
       withLinks: 0,
       missingLinks: 0,
-      videos: []
+      videos: [] as {
+        id: string;
+        title: string;
+        hasLinks: boolean;
+        linkTypes: string[];
+      }[]
     };
     
-    videos?.forEach(video => {
+    videos.forEach(video => {
       const linkTypes: string[] = [];
       let hasLinks = false;
       
