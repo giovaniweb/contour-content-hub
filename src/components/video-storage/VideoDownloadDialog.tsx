@@ -5,30 +5,37 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from 'lucide-react';
-import { VideoFile } from '@/types/video-storage';
+import { VideoFile, StoredVideo } from '@/types/video-storage';
 import { getVimeoDownloadLinks, extractVimeoId } from '@/services/vimeoDownloadService';
 import { useToast } from '@/hooks/use-toast';
 
 interface VideoDownloadDialogProps {
+  video?: StoredVideo;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  videoTitle: string;
-  videoUrl: string;
+  videoTitle?: string;
+  videoUrl?: string;
   existingDownloadLinks?: VideoFile;
 }
 
 const VideoDownloadDialog: React.FC<VideoDownloadDialogProps> = ({
   open,
   onOpenChange,
+  video,
   videoTitle,
   videoUrl,
   existingDownloadLinks
 }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [downloadLinks, setDownloadLinks] = useState<VideoFile | undefined>(existingDownloadLinks);
+  const [downloadLinks, setDownloadLinks] = useState<VideoFile | undefined>(
+    video?.file_urls || existingDownloadLinks
+  );
   const [selectedQuality, setSelectedQuality] = useState<'original' | 'hd' | 'sd' | 'web_optimized'>('hd');
   const [error, setError] = useState<string | null>(null);
+
+  const title = videoTitle || video?.title || 'Vídeo sem título';
+  const url = videoUrl || video?.url || '';
 
   // Carregar links de download se ainda não estiverem disponíveis
   const fetchDownloadLinks = async () => {
@@ -38,7 +45,7 @@ const VideoDownloadDialog: React.FC<VideoDownloadDialogProps> = ({
     setError(null);
     
     try {
-      const vimeoId = extractVimeoId(videoUrl);
+      const vimeoId = extractVimeoId(url);
       
       if (!vimeoId) {
         throw new Error('URL do vídeo inválida ou não é do Vimeo');
@@ -132,7 +139,7 @@ const VideoDownloadDialog: React.FC<VideoDownloadDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Download do Vídeo</DialogTitle>
           <DialogDescription>
-            Selecione a qualidade desejada para baixar "{videoTitle}"
+            Selecione a qualidade desejada para baixar "{title}"
           </DialogDescription>
         </DialogHeader>
         

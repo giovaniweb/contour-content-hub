@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, Download, Loader2, AlertTriangle, RefreshCcw } from 'lucide-react';
@@ -247,6 +246,7 @@ const VideoList: React.FC<VideoListProps> = ({
     loadVideos();
   };
   
+  // Handle opening the download dialog
   const handleDownloadClick = (video: StoredVideo) => {
     setSelectedVideo(video);
     setIsDownloadDialogOpen(true);
@@ -358,9 +358,9 @@ const VideoList: React.FC<VideoListProps> = ({
       {/* Diálogo de download */}
       {selectedVideo && (
         <VideoDownloadDialog
-          video={selectedVideo}
-          isOpen={isDownloadDialogOpen}
+          open={isDownloadDialogOpen}
           onOpenChange={setIsDownloadDialogOpen}
+          video={selectedVideo}
         />
       )}
     </div>

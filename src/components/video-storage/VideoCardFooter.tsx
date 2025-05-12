@@ -8,8 +8,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { VideoCardDeleteDialog } from './VideoCardDeleteDialog';
-import { VideoEditDialog } from './VideoEditDialog';
+import VideoCardDeleteDialog from './VideoCardDeleteDialog';
+import VideoEditDialog from './VideoEditDialog';
 import VideoDownloadDialog from './VideoDownloadDialog';
 import { StoredVideo } from '@/types/video-storage';
 

@@ -7,7 +7,7 @@ import { VideoCardProps } from './types';
 
 import VideoCardThumbnail from './VideoCardThumbnail';
 import VideoCardContent from './VideoCardContent';
-import VideoCardFooter from './VideoCardFooter';
+import { VideoCardFooter } from './VideoCardFooter';
 import VideoCardDeleteDialog from './VideoCardDeleteDialog';
 
 const VideoCard: React.FC<VideoCardProps> = ({ 
