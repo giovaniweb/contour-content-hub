@@ -231,8 +231,9 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
         </div>
       )}
 
-      {/* Add CSS for neon text effect */}
-      <style jsx global>{`
+      {/* Add CSS for neon text effect - Fix: using standard style attribute */}
+      <style>
+        {`
         .neon-text {
           text-shadow: 0 0 5px rgba(0, 148, 251, 0.3), 
                        0 0 10px rgba(0, 148, 251, 0.2), 
@@ -252,7 +253,8 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
                          0 0 30px rgba(243, 0, 252, 0.2);
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
