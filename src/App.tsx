@@ -16,37 +16,30 @@ import VideosPage from "@/pages/VideosPage";
 import ContentStrategy from "@/pages/ContentStrategy";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
 import VideoPlayer from "@/pages/VideoPlayer";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminVideosPage from './pages/admin/videos';
 import AdminEquipments from "@/pages/admin/AdminEquipments";
 import VideoBatchManage from './pages/videos/VideoBatchManage';
 import VideoBatchImport from './pages/videos/VideoBatchImport';
+import VideoSwipe from './pages/videos/VideoSwipe';
+import VideoStorage from './pages/videos/VideoStorage';
 import NotFound from '@/pages/NotFound';
 
-// Layout Components
-import AppLayout from "@/components/layout/AppLayout";
-import AdminLayout from "@/components/layout/AdminLayout";
-
-// Create router configuration with layouts
-const routes = [
+// Create router configuration
+const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
     element: <HomePage />,
   },
   {
     path: ROUTES.VIDEOS.ROOT,
-    element: 
-      <AppLayout>
-        <VideosPage />
-      </AppLayout>,
+    element: <VideosPage />,
   },
   {
     path: ROUTES.CONTENT.STRATEGY,
-    element: 
-      <AppLayout>
-        <ContentStrategy />
-      </AppLayout>,
+    element: <ContentStrategy />,
   },
   {
     path: ROUTES.LOGIN,
@@ -57,55 +50,50 @@ const routes = [
     element: <Register />,
   },
   {
+    path: ROUTES.FORGOT_PASSWORD,
+    element: <ForgotPassword />,
+  },
+  {
     path: ROUTES.VIDEOS.PLAYER + "/:id",
-    element: 
-      <AppLayout>
-        <VideoPlayer />
-      </AppLayout>,
+    element: <VideoPlayer />,
   },
   {
     path: ROUTES.ADMIN.ROOT,
-    element: 
-      <AdminLayout>
-        <AdminDashboard />
-      </AdminLayout>,
+    element: <AdminDashboard />,
   },
   {
     path: ROUTES.ADMIN_VIDEOS,
-    element: 
-      <AdminLayout>
-        <AdminVideosPage />
-      </AdminLayout>,
+    element: <AdminVideosPage />,
   },
   {
     path: ROUTES.ADMIN.EQUIPMENT,
-    element: 
-      <AdminLayout>
-        <AdminEquipments />
-      </AdminLayout>,
+    element: <AdminEquipments />,
   },
   {
     path: ROUTES.VIDEOS.BATCH,
-    element: 
-      <AdminLayout>
-        <VideoBatchManage />
-      </AdminLayout>,
+    element: <VideoBatchManage />,
   },
   {
     path: ROUTES.VIDEOS.IMPORT,
-    element: 
-      <AdminLayout>
-        <VideoBatchImport />
-      </AdminLayout>,
+    element: <VideoBatchImport />,
+  },
+  {
+    path: ROUTES.VIDEOS.SWIPE,
+    element: <VideoSwipe />,
+  },
+  {
+    path: ROUTES.VIDEOS.STORAGE,
+    element: <VideoStorage />,
+  },
+  {
+    path: ROUTES.CONTENT.SCRIPTS.ROOT,
+    element: <ContentStrategy />, // Temporariamente redirecionando para ContentStrategy até termos a página de scripts
   },
   {
     path: "*",
     element: <NotFound />,
   }
-];
-
-// Create router instance
-const router = createBrowserRouter(routes);
+]);
 
 function App() {
   return (
