@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   StoredVideo, 
@@ -145,7 +146,7 @@ export async function getMyVideos(
 export async function updateVideo(id: string, updates: Partial<StoredVideo>): Promise<{ success: boolean; error?: string }> {
   try {
     // Remove properties that don't match the database schema
-    const { file_urls, download_files, url, ...validUpdates } = updates;
+    const { file_urls, download_files, url, metadata, ...validUpdates } = updates;
     
     // Handle file_urls separately if it exists
     let fileUrlsUpdate = {};
@@ -155,11 +156,20 @@ export async function updateVideo(id: string, updates: Partial<StoredVideo>): Pr
       };
     }
     
+    // Handle metadata separately if it exists
+    let metadataUpdate = {};
+    if (metadata) {
+      metadataUpdate = {
+        metadata: metadata as unknown as Json
+      };
+    }
+    
     const { error } = await supabase
       .from('videos_storage')
       .update({
         ...validUpdates,
         ...fileUrlsUpdate,
+        ...metadataUpdate,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

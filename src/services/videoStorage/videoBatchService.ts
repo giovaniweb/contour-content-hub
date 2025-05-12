@@ -64,7 +64,7 @@ export async function updateVideoMetadata(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Remove properties that don't match the database schema
-    const { file_urls, download_files, url, ...validUpdates } = updates;
+    const { file_urls, download_files, url, metadata, ...validUpdates } = updates;
     
     // Handle file_urls separately if it exists
     let fileUrlsUpdate = {};
@@ -74,11 +74,20 @@ export async function updateVideoMetadata(
       };
     }
     
+    // Handle metadata separately if it exists
+    let metadataUpdate = {};
+    if (metadata) {
+      metadataUpdate = {
+        metadata: metadata as unknown as Json
+      };
+    }
+    
     const { error } = await supabase
       .from('videos_storage')
       .update({
         ...validUpdates,
         ...fileUrlsUpdate,
+        ...metadataUpdate,
         updated_at: new Date().toISOString()
       })
       .eq('id', videoId);
@@ -103,13 +112,21 @@ export async function batchUpdateVideos(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Remove properties that don't match the database schema
-    const { file_urls, download_files, url, ...validUpdates } = updates;
+    const { file_urls, download_files, url, metadata, ...validUpdates } = updates;
     
     // Handle file_urls separately if it exists
     let fileUrlsUpdate = {};
     if (file_urls) {
       fileUrlsUpdate = {
         file_urls: file_urls as unknown as Json
+      };
+    }
+    
+    // Handle metadata separately if it exists
+    let metadataUpdate = {};
+    if (metadata) {
+      metadataUpdate = {
+        metadata: metadata as unknown as Json
       };
     }
     
@@ -120,6 +137,7 @@ export async function batchUpdateVideos(
         .update({
           ...validUpdates,
           ...fileUrlsUpdate,
+          ...metadataUpdate,
           updated_at: new Date().toISOString()
         })
         .eq('id', videoId);

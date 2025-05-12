@@ -1,4 +1,3 @@
-
 // Export all relevant video storage services
 export {
   downloadVideo,
@@ -80,3 +79,34 @@ export async function reimportFromVimeo(videoId: string): Promise<{ success: boo
 
 // Import Supabase client for the functions above
 import { supabase } from '@/integrations/supabase/client';
+import { StoredVideo } from '@/types/video-storage';
+import { getVideoById } from './videoStorage/videoManagementService';
+
+/**
+ * Play a video by its ID
+ */
+export async function playVideo(id: string): Promise<{ url: string | null; error?: string }> {
+  try {
+    const { video, error } = await getVideoById(id);
+    
+    if (error || !video) {
+      throw new Error(error || 'Video not found');
+    }
+    
+    // Get video URL based on available formats
+    const fileUrls = video.file_urls || {};
+    const playUrl = fileUrls.web_optimized || fileUrls.sd || fileUrls.hd || '';
+    
+    if (!playUrl) {
+      throw new Error('No playable URL found for this video');
+    }
+    
+    return { url: playUrl };
+  } catch (error) {
+    console.error(`Error preparing video ${id} for playback:`, error);
+    return { 
+      url: null, 
+      error: 'Failed to load video for playback. Please try again.' 
+    };
+  }
+}
