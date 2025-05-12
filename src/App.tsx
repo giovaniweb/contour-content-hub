@@ -12,7 +12,8 @@ import { Toaster } from "sonner";
 import HomePage from "@/pages/HomePage";
 import AdminVideosPage from './pages/admin/videos';
 
-const router = createBrowserRouter([
+// Create router configuration
+const routes = [
   {
     path: ROUTES.HOME,
     element: <HomePage />,
@@ -22,14 +23,17 @@ const router = createBrowserRouter([
     element: <AdminVideosPage />
   },
   // Add other routes as they become available
-]);
+];
+
+// Create router instance
+const router = createBrowserRouter(routes);
 
 function App() {
   return (
-    <AuthProvider>
+    <>
       <Toaster position="top-right" />
       <RouterProvider router={router} />
-    </AuthProvider>
+    </>
   );
 }
 

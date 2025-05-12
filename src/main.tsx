@@ -3,7 +3,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';

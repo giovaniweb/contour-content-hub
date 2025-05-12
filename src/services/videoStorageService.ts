@@ -1,3 +1,4 @@
+
 // Export all relevant video storage services
 export {
   downloadVideo,
@@ -53,7 +54,8 @@ export async function reimportFromVimeo(videoId: string): Promise<{ success: boo
     }
     
     // Check if this video has a vimeo_id in its metadata
-    const vimeoId = video.metadata?.vimeo_id;
+    const metadata = video.metadata as any; // Cast to any to avoid TypeScript errors
+    const vimeoId = metadata?.vimeo_id;
     
     if (!vimeoId) {
       return { success: false, error: 'This video is not linked to Vimeo' };

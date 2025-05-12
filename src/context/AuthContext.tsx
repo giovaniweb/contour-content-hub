@@ -1,11 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { fetchUserProfile, loginWithEmailAndPassword, logoutUser, registerUser as registerUserService, updateUserPassword as updateUserPasswordService, updateUserProfile as updateUserProfileService, fetchUserInvites } from '@/services/authService';
 import { UserProfile, AuthContextType } from '@/types/auth';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -27,8 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     const setupAuth = async () => {
@@ -48,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   title: 'Convites pendentes',
                   description: 'Você tem convites pendentes para se juntar a workspaces',
                 });
-                navigate('/invites');
+                // We'll handle navigation in the component that consumes this context
               }
             } catch (error) {
               console.error('Error checking invites:', error);
@@ -75,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               title: 'Convites pendentes',
               description: 'Você tem convites pendentes para se juntar a workspaces',
             });
-            setTimeout(() => navigate('/invites'), 500);
+            // Navigation will be handled in components using this context
           }
         } catch (error) {
           console.error('Error checking invites:', error);
@@ -92,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setupAuth();
-  }, [navigate, toast]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -114,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await logoutUser();
-      navigate('/login');
+      // Navigation will be handled by the component that uses this context
     } catch (error: any) {
       console.error('Logout error:', error);
       setError(error.message || 'Error logging out');
@@ -136,8 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await registerUserService(userData);
-      // After registration, redirect to login
-      navigate('/login');
+      // Navigation will be handled by the component that uses this context
     } catch (error: any) {
       console.error('Register error:', error);
       setError(error.message || 'Error registering user');

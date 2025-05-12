@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
 import { UserRole } from '@/types/auth';
@@ -13,6 +13,7 @@ interface PrivateRouteProps {
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
   const { user, isLoading } = useAuth();
   const { hasPermission } = usePermissions();
+  const location = useLocation();
   
   // If auth is still loading, show loading indicator
   if (isLoading) {
@@ -25,7 +26,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
 
   // If no user or not authenticated, redirect to login
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   // If a role is required and the user doesn't have it, redirect to dashboard
