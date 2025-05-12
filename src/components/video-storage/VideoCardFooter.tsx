@@ -6,7 +6,7 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger
+  DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import VideoCardDeleteDialog from './VideoCardDeleteDialog';
 import VideoEditDialog from './VideoEditDialog';
@@ -63,12 +63,14 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
     }
   };
 
-  // Don't show download button for processing videos
+  // Não mostrar botão de download para vídeos em processamento
   const showDownloadButton = !isProcessing && hasFileUrl;
 
   // Prepare download options if we have URLs available
   const downloadOptions = [];
-  if (video.file_urls) {
+  
+  // Validar se file_urls existe e tem formato correto
+  if (video.file_urls && typeof video.file_urls === 'object') {
     if (video.file_urls.original) {
       downloadOptions.push({
         quality: "Original",
@@ -95,6 +97,8 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
     }
   }
 
+  const hasDownloadOptions = downloadOptions.length > 0;
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -111,7 +115,7 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
 
         <div className="flex space-x-1">
           {showDownloadButton && (
-            downloadOptions.length > 0 ? (
+            hasDownloadOptions ? (
               <VideoDownloadMenu downloads={downloadOptions} />
             ) : (
               <Button 

@@ -143,3 +143,80 @@ export const updateVideoWithDownloadLinks = async (
     };
   }
 };
+
+/**
+ * Verifica se os vídeos no banco de dados possuem links de download configurados corretamente
+ * @returns Estatísticas sobre os vídeos e seus links de download
+ */
+export const checkVideoDownloadLinks = async (): Promise<{
+  total: number;
+  withLinks: number;
+  missingLinks: number;
+  videos: {
+    id: string;
+    title: string;
+    hasLinks: boolean;
+    linkTypes: string[];
+  }[];
+}> => {
+  try {
+    const { data: videos, error } = await supabase
+      .from('videos_storage')
+      .select('id, title, file_urls, url')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Erro ao buscar vídeos:', error);
+      throw error;
+    }
+    
+    const stats = {
+      total: videos?.length || 0,
+      withLinks: 0,
+      missingLinks: 0,
+      videos: []
+    };
+    
+    videos?.forEach(video => {
+      const linkTypes: string[] = [];
+      let hasLinks = false;
+      
+      if (video.file_urls) {
+        if (video.file_urls.original) {
+          linkTypes.push('original');
+          hasLinks = true;
+        }
+        if (video.file_urls.hd) {
+          linkTypes.push('hd');
+          hasLinks = true;
+        }
+        if (video.file_urls.sd) {
+          linkTypes.push('sd');
+          hasLinks = true;
+        }
+        if (video.file_urls.web_optimized) {
+          linkTypes.push('web_optimized');
+          hasLinks = true;
+        }
+      }
+      
+      if (hasLinks) {
+        stats.withLinks++;
+      } else {
+        stats.missingLinks++;
+      }
+      
+      stats.videos.push({
+        id: video.id,
+        title: video.title || 'Sem título',
+        hasLinks,
+        linkTypes
+      });
+    });
+    
+    return stats;
+  } catch (error) {
+    console.error('Erro ao verificar links de download:', error);
+    throw error;
+  }
+};

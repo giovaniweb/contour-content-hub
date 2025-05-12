@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { DownloadCloud } from "lucide-react";
+import { DownloadCloud, AlertCircle, Check } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface DownloadOption {
   quality: string;
@@ -32,11 +34,21 @@ const VideoDownloadMenu: React.FC<VideoDownloadMenuProps> = ({
     return null;
   }
 
-  const handleDownload = (e: React.MouseEvent, link: string) => {
+  const handleDownload = (e: React.MouseEvent, link: string, quality: string) => {
     // Prevent dropdown from closing immediately
     e.stopPropagation();
     
+    if (!link) {
+      toast.error("Link indisponível", {
+        description: `O link de download para ${quality} não está disponível.`
+      });
+      return;
+    }
+    
     // Open the link in a new tab/window
+    toast.success("Download iniciado", {
+      description: `Iniciando download em ${quality}`
+    });
     window.open(link, '_blank');
   };
 
@@ -53,15 +65,32 @@ const VideoDownloadMenu: React.FC<VideoDownloadMenuProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-background">
-        {downloads.map((option, index) => (
-          <DropdownMenuItem 
-            key={index}
-            onClick={(e) => handleDownload(e, option.link)}
-            className="cursor-pointer"
-          >
-            {option.quality}
+        {downloads.length > 0 ? (
+          <>
+            {downloads.map((option, index) => (
+              <DropdownMenuItem 
+                key={index}
+                onClick={(e) => handleDownload(e, option.link, option.quality)}
+                className="cursor-pointer flex items-center justify-between"
+              >
+                <span>{option.quality}</span>
+                <Check size={16} className="ml-2 text-green-500" />
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-xs text-muted-foreground"
+              disabled
+            >
+              {downloads.length} opções disponíveis
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <DropdownMenuItem disabled className="flex items-center">
+            <AlertCircle size={14} className="mr-2 text-yellow-500" />
+            <span>Sem opções de download</span>
           </DropdownMenuItem>
-        ))}
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
