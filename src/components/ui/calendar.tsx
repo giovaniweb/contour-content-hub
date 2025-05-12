@@ -53,13 +53,12 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron({ ...props }) {
-          return props.className?.includes('nav_button_previous') ? (
-            <ChevronLeft className="h-4 w-4" />
+        Chevron: ({ direction, ...props }) =>
+          direction === "left" ? (
+            <ChevronLeft className="h-4 w-4" {...props} />
           ) : (
-            <ChevronRight className="h-4 w-4" />
-          )
-        },
+            <ChevronRight className="h-4 w-4" {...props} />
+          ),
       }}
       {...props}
     />
