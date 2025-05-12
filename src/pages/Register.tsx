@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserRole } from "@/types/auth";
+import { Input } from "@/components/ui/input";
 
 // Definindo os roles permitidos durante registro
 const allowedRegisterRoles = ['admin', 'operador', 'consultor'] as const;
@@ -221,12 +222,11 @@ const Register: React.FC = () => {
                       <FormLabel>Nome da Clínica ou Empresa</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input 
-                            placeholder="Nome da clínica ou empresa" 
+                          <FluidaInput 
                             {...field}
-                            className="pl-10" 
+                            placeholder="Nome da clínica ou empresa" 
+                            iconRight={<Building className="h-5 w-5" />}
                           />
-                          <Building className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                         </div>
                       </FormControl>
                       <FormMessage />
