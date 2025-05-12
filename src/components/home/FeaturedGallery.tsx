@@ -79,6 +79,19 @@ const FeaturedGallery: React.FC = () => {
 
   return (
     <div className="relative">
+      {/* CSS styles for hiding scrollbar - moved to an inline style */}
+      <style>
+        {`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}
+      </style>
+      
       {/* Botão de navegação esquerdo */}
       <Button
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 p-2 shadow-md hover:bg-white"
@@ -96,16 +109,6 @@ const FeaturedGallery: React.FC = () => {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onScroll={(e) => setScrollPosition(e.currentTarget.scrollLeft)}
       >
-        <style jsx>{`
-          .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-          .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}</style>
-        
         {galleryItems.map((item) => (
           <motion.div 
             key={item.id}
