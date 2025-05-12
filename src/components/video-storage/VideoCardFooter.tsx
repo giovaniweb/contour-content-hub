@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { DownloadCloud, Eye, MoreHorizontal } from "lucide-react";
@@ -18,10 +17,10 @@ interface VideoCardFooterProps {
   onRefresh: () => void;
   onPreview?: () => void;
   onDownload?: () => void;
-  onOpenDeleteDialog?: () => void;  // Added this prop to match VideoCard usage
-  isProcessing?: boolean;           // Added this prop to match VideoCard usage
-  hasFileUrl?: boolean;             // Added this prop to match VideoCard usage
-  onViewVideo?: () => void;         // Added this prop to match VideoCard usage
+  onOpenDeleteDialog?: () => void;  
+  isProcessing?: boolean;           
+  hasFileUrl?: boolean;             
+  onViewVideo?: () => void;         
 }
 
 export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
@@ -110,8 +109,9 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
         </div>
       </div>
       
-      {/* Modais */}
+      {/* Fixed: Added the required 'video' prop */}
       <VideoCardDeleteDialog
+        video={video}
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         videoId={video.id}
