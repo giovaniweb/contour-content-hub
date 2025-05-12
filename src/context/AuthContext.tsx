@@ -40,8 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               const invites = await fetchUserInvites();
               if (invites && invites.length > 0) {
-                toast({
-                  title: 'Convites pendentes',
+                toast('Convites pendentes', {
                   description: 'Você tem convites pendentes para se juntar a workspaces',
                 });
                 // We'll handle navigation in the component that consumes this context
@@ -67,8 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const invites = await fetchUserInvites();
           if (invites && invites.length > 0) {
-            toast({
-              title: 'Convites pendentes',
+            toast('Convites pendentes', {
               description: 'Você tem convites pendentes para se juntar a workspaces',
             });
             // Navigation will be handled in components using this context
