@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { DownloadCloud, Eye, MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,6 +11,7 @@ import {
 import VideoCardDeleteDialog from './VideoCardDeleteDialog';
 import VideoEditDialog from './VideoEditDialog';
 import VideoDownloadDialog from './VideoDownloadDialog';
+import VideoDownloadMenu from './VideoDownloadMenu';
 import { StoredVideo } from '@/types/video-storage';
 
 interface VideoCardFooterProps {
@@ -64,6 +66,35 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
   // Don't show download button for processing videos
   const showDownloadButton = !isProcessing && hasFileUrl;
 
+  // Prepare download options if we have URLs available
+  const downloadOptions = [];
+  if (video.file_urls) {
+    if (video.file_urls.original) {
+      downloadOptions.push({
+        quality: "Original",
+        link: video.file_urls.original
+      });
+    }
+    if (video.file_urls.hd) {
+      downloadOptions.push({
+        quality: "HD (720p)",
+        link: video.file_urls.hd
+      });
+    }
+    if (video.file_urls.sd) {
+      downloadOptions.push({
+        quality: "SD (480p)",
+        link: video.file_urls.sd
+      });
+    }
+    if (video.file_urls.web_optimized) {
+      downloadOptions.push({
+        quality: "Web (Otimizado)",
+        link: video.file_urls.web_optimized
+      });
+    }
+  }
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -80,15 +111,18 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
 
         <div className="flex space-x-1">
           {showDownloadButton && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-1"
-              onClick={handleOpenDownload}
-            >
-              <DownloadCloud size={16} />
-              <span>Download</span>
-            </Button>
+            downloadOptions.length > 0 ? (
+              <VideoDownloadMenu downloads={downloadOptions} />
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-1"
+                onClick={handleOpenDownload}
+              >
+                <span>Download</span>
+              </Button>
+            )
           )}
           
           <DropdownMenu>
@@ -109,7 +143,6 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
         </div>
       </div>
       
-      {/* Fixed: Added the required 'video' prop */}
       <VideoCardDeleteDialog
         video={video}
         isOpen={isDeleteDialogOpen}
