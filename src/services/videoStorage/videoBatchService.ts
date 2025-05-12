@@ -1,123 +1,176 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { VideoQueueItem } from '@/types/video-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { StoredVideo } from '@/types/video-storage';
 
 /**
- * Upload multiple videos in sequence
- * @param queue Array of video queue items
- * @param onProgress Callback for progress updates
- * @param onComplete Callback when a video upload completes
+ * Import a batch of videos from external sources (like Vimeo)
  */
-export const batchUploadVideos = async (
-  queue: VideoQueueItem[],
-  onProgress: (index: number, progress: number) => void,
-  onComplete: (index: number, success: boolean, videoId?: string, error?: string) => void
-) => {
-  // Process each video in sequence
-  for (let i = 0; i < queue.length; i++) {
-    const item = queue[i];
-    
-    try {
-      // Skip items that are already processed
-      if (item.status === "complete" || item.status === "error") {
-        console.log(`Skipping item ${item.id} because it's already ${item.status}`);
-        continue;
-      }
-      
-      // Generate unique ID for the video if not provided
-      const videoId = item.id || uuidv4();
-      const file = item.file;
-      const title = item.title || file.name.replace(/\.[^/.]+$/, "");
-      const metadata: any = {};
-      
-      // Add equipment info if available
-      if (item.equipmentId && item.equipmentId !== 'none') {
-        const { data: equipment } = await supabase
-          .from('equipamentos')
-          .select('nome')
-          .eq('id', item.equipmentId)
-          .single();
-        
-        if (equipment) {
-          metadata.equipment_id = item.equipmentId;
-          metadata.equipment_name = equipment.nome;
+export async function batchImportVideos(
+  source: 'vimeo' | 'youtube',
+  options?: {
+    tags?: string[];
+    public?: boolean;
+  }
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  try {
+    // Call the appropriate batch import function based on source
+    if (source === 'vimeo') {
+      const { error } = await supabase.functions.invoke('vimeo-batch-import', {
+        body: { 
+          tags: options?.tags || [],
+          makePublic: options?.public || false
         }
-      }
-      
-      // File path in storage
-      const filePath = `${videoId}/original_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      
-      // Add file info to metadata
-      metadata.original_filename = file.name;
-      metadata.fileSize = file.size;
-      
-      // Create the video record first
-      const { error: createError } = await supabase
-        .from('videos_storage')
-        .insert({
-          id: videoId,
-          title: title,
-          description: item.description || '',
-          status: 'uploading',
-          public: true,
-          size: file.size,
-          owner_id: (await supabase.auth.getUser()).data.user?.id,
-          tags: item.tags || [],
-          metadata
-        });
-      
-      if (createError) {
-        throw new Error(`Error creating video: ${createError.message}`);
-      }
-      
-      // Upload the file with progress tracking
-      const { data, error } = await supabase.storage
-        .from('videos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-        });
+      });
       
       if (error) {
-        throw new Error(`Error uploading file: ${error.message}`);
+        throw error;
       }
       
-      // Get URL to the uploaded file
-      const { data: urlData } = supabase.storage
-        .from('videos')
-        .getPublicUrl(filePath);
-      
-      // Update video record with file URL
-      const { error: updateError } = await supabase
-        .from('videos_storage')
-        .update({
-          file_urls: {
-            original: urlData.publicUrl
-          },
-          status: 'processing'
-        })
-        .eq('id', videoId);
-      
-      if (updateError) {
-        throw new Error(`Error updating video: ${updateError.message}`);
-      }
-      
-      // Trigger processing function (if your app has one)
-      try {
-        await supabase.functions.invoke('process-video', {
-          body: { videoId, fileName: filePath }
-        });
-      } catch (error) {
-        console.warn('Error invoking process function:', error);
-        // Continue even if processing function fails
-        // The video is still uploaded and can be manually processed later
-      }
-      
-      // Call success callback
-      onComplete(i, true, videoId);
-      
-    } catch (error) {
-      console.error('Error in batchUploadVideos:', error);
-      onComplete(i, false, undefined, error.message);
+      return { success: true };
+    } else {
+      return { 
+        success: false,
+        error: `Import from ${source} is not supported yet` 
+      };
     }
+  } catch (error) {
+    console.error(`Error batch importing from ${source}:`, error);
+    return { 
+      success: false,
+      error: `Failed to import videos: ${error.message || 'Unknown error'}` 
+    };
   }
-};
+}
+
+/**
+ * Delete multiple videos at once
+ */
+export async function bulkDeleteVideos(
+  videoIds: string[]
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  try {
+    // Verify user has permission to delete these videos
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      return { success: false, error: 'Authentication required' };
+    }
+    
+    let successCount = 0;
+    let errors = [];
+    
+    // Delete each video individually to ensure proper cleanup
+    for (const videoId of videoIds) {
+      try {
+        // First check if user owns this video
+        const { data, error: checkError } = await supabase
+          .from('videos_storage')
+          .select('id')
+          .eq('id', videoId)
+          .eq('owner_id', user.user.id)
+          .single();
+          
+        if (checkError || !data) {
+          errors.push(`No permission to delete video ${videoId}`);
+          continue;
+        }
+        
+        // Now attempt to delete the video
+        // 1. Remove files from storage
+        const { data: files } = await supabase.storage
+          .from('videos')
+          .list(videoId);
+          
+        if (files && files.length > 0) {
+          const filePaths = files.map(file => `${videoId}/${file.name}`);
+          await supabase.storage.from('videos').remove(filePaths);
+        }
+        
+        // 2. Delete database record
+        const { error: deleteError } = await supabase
+          .from('videos_storage')
+          .delete()
+          .eq('id', videoId);
+          
+        if (deleteError) {
+          errors.push(`Error deleting video ${videoId}: ${deleteError.message}`);
+          continue;
+        }
+        
+        successCount++;
+      } catch (e) {
+        errors.push(`Error processing video ${videoId}: ${e.message}`);
+      }
+    }
+    
+    return { 
+      success: errors.length === 0,
+      count: successCount,
+      error: errors.length > 0 ? `Deleted ${successCount} of ${videoIds.length} videos. Errors: ${errors.join('; ')}` : undefined
+    };
+    
+  } catch (error) {
+    console.error('Error bulk deleting videos:', error);
+    return { 
+      success: false,
+      error: `Failed to bulk delete videos: ${error.message || 'Unknown error'}` 
+    };
+  }
+}
+
+/**
+ * Update metadata for multiple videos at once
+ */
+export async function bulkUpdateVideos(
+  videoIds: string[],
+  updates: {
+    title?: string;
+    description?: string;
+    tags?: string[];
+    public?: boolean;
+  }
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  try {
+    // Verify user has permission
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      return { success: false, error: 'Authentication required' };
+    }
+    
+    // Check if there's anything to update
+    if (!updates.title && !updates.description && !updates.tags && updates.public === undefined) {
+      return { success: false, error: 'No update fields specified' };
+    }
+    
+    // Prepare update object with only provided fields
+    const updateData = {};
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.public !== undefined) updateData.public = updates.public;
+    
+    // Add updated_at timestamp
+    updateData.updated_at = new Date().toISOString();
+    
+    // Update all videos that match the IDs and are owned by the user
+    const { data, error } = await supabase
+      .from('videos_storage')
+      .update(updateData)
+      .in('id', videoIds)
+      .eq('owner_id', user.user.id);
+      
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    
+    return { 
+      success: true,
+      count: videoIds.length // Assuming all were updated
+    };
+  } catch (error) {
+    console.error('Error bulk updating videos:', error);
+    return { 
+      success: false,
+      error: `Failed to bulk update videos: ${error.message || 'Unknown error'}` 
+    };
+  }
+}

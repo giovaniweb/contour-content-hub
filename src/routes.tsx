@@ -125,7 +125,10 @@ export const ROUTES = {
   },
   
   // Error
-  NOT_FOUND: "*"
+  NOT_FOUND: "*",
+  
+  // Admin videos
+  ADMIN_VIDEOS: '/admin/videos'
 };
 
 // Route configuration for React Router
