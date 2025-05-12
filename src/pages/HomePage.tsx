@@ -12,7 +12,7 @@ import { fadeIn } from '@/lib/animations';
 const HomePage: React.FC = () => {
   return (
     <Layout fullWidth={true} transparentHeader={true}>
-      {/* Hero Section with Parallax */}
+      {/* Hero Section with Parallax and Intelligent Input */}
       <HeroSection />
       
       {/* Main Content Area */}
