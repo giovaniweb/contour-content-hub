@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FeatureBanner } from '@/components/media-library/FeatureBanner';
+import FeatureBanner from '@/components/media-library/FeatureBanner';
 import MediaActionCards from '@/components/media-library/MediaActionCards';
 import Layout from '@/components/Layout';
 
