@@ -169,6 +169,8 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
       
       <VideoEditDialog 
         video={video}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onUpdate={onRefresh}
       />
@@ -176,10 +178,10 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
       <VideoDownloadDialog
         open={isDownloadDialogOpen}
         onOpenChange={setIsDownloadDialogOpen}
-        videoTitle={video.title || 'Vídeo sem título'}
-        videoUrl={video.url || ''}
-        existingDownloadLinks={video.file_urls}
+        video={video}
       />
     </>
   );
 };
+
+export default VideoCardFooter;

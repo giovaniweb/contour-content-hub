@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { downloadVideo } from '@/services/videoStorage';
+import { downloadVideo } from '@/services/videoStorage/videoDownloadService';
 import { useToast } from '@/hooks/use-toast';
 
 interface VideoDownloadDialogProps {

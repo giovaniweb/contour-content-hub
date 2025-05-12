@@ -11,7 +11,7 @@ import { Download, Share2, ThumbsUp } from "lucide-react";
 import VideoStatusBadge from "./VideoStatusBadge";
 import { StoredVideo } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
-import { generateDownloadUrl } from '@/services/videoStorageService';
+import { generateDownloadUrl } from '@/services/videoStorage/videoDownloadService';
 
 interface VideoPreviewDialogProps {
   video: StoredVideo | null;

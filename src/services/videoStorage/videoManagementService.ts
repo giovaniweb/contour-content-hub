@@ -3,230 +3,189 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   StoredVideo, 
   VideoFilterOptions, 
-  VideoSortOptions, 
-  VideoStatus 
+  VideoSortOptions 
 } from '@/types/video-storage';
 
 /**
- * Fetch videos with optional filtering and sorting
+ * Get videos with optional filtering and sorting
  */
 export async function getVideos(
-  filter?: VideoFilterOptions,
+  filters?: VideoFilterOptions,
   sort?: VideoSortOptions,
   page: number = 1,
-  pageSize: number = 20
+  pageSize: number = 10
 ): Promise<{ videos: StoredVideo[]; total: number; error?: string }> {
   try {
-    let query = supabase.from('videos_storage').select('*', { count: 'exact' });
-
-    // Aplicar filtros
-    if (filter) {
-      if (filter.search) {
-        query = query.ilike('title', `%${filter.search}%`);
+    let query = supabase
+      .from('videos_storage')
+      .select('*', { count: 'exact' });
+    
+    // Apply filters
+    if (filters) {
+      if (filters.search && filters.search.trim() !== '') {
+        query = query.ilike('title', `%${filters.search}%`);
       }
       
-      if (filter.tags && filter.tags.length > 0) {
-        query = query.contains('tags', filter.tags);
+      if (filters.tags && filters.tags.length > 0) {
+        query = query.contains('tags', filters.tags);
       }
       
-      if (filter.status && filter.status.length > 0) {
-        query = query.in('status', filter.status);
+      if (filters.status && filters.status.length > 0) {
+        query = query.in('status', filters.status);
       }
       
-      if (filter.startDate) {
-        query = query.gte('created_at', filter.startDate.toISOString());
+      if (filters.startDate) {
+        query = query.gte('created_at', filters.startDate.toISOString());
       }
       
-      if (filter.endDate) {
-        query = query.lte('created_at', filter.endDate.toISOString());
+      if (filters.endDate) {
+        query = query.lte('created_at', filters.endDate.toISOString());
       }
       
-      if (filter.owner) {
-        query = query.eq('owner_id', filter.owner);
+      if (filters.owner) {
+        query = query.eq('owner_id', filters.owner);
       }
     }
-
-    // Aplicar ordenação
+    
+    // Apply sorting
     if (sort) {
       query = query.order(sort.field, { ascending: sort.direction === 'asc' });
     } else {
       query = query.order('created_at', { ascending: false });
     }
-
-    // Paginação
+    
+    // Apply pagination
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
     query = query.range(from, to);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error('Erro ao buscar vídeos:', error);
-      return { videos: [], total: 0, error: 'Falha ao carregar vídeos.' };
-    }
-
-    return { 
-      videos: data as unknown as StoredVideo[], 
-      total: count || 0 
-    };
     
+    const { data, error, count } = await query;
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      videos: data as StoredVideo[],
+      total: count || 0
+    };
   } catch (error) {
-    console.error('Erro ao carregar vídeos:', error);
-    return { videos: [], total: 0, error: 'Ocorreu um erro inesperado. Por favor, tente novamente.' };
+    console.error('Error fetching videos:', error);
+    return {
+      videos: [],
+      total: 0,
+      error: 'Failed to fetch videos. Please try again.'
+    };
   }
 }
 
 /**
- * Fetch videos owned by the current user
+ * Get a specific video by ID
  */
-export async function getMyVideos(
-  filter?: VideoFilterOptions,
-  sort?: VideoSortOptions,
-  page: number = 1,
-  pageSize: number = 20
-): Promise<{ videos: StoredVideo[]; total: number; error?: string }> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  
-  if (!userId) {
-    return { videos: [], total: 0, error: 'Usuário não autenticado.' };
-  }
-  
-  return getVideos(
-    { ...filter, owner: userId },
-    sort,
-    page,
-    pageSize
-  );
-}
-
-/**
- * Fetch a single video by ID
- */
-export async function getVideoById(videoId: string): Promise<{ video?: StoredVideo; error?: string }> {
+export async function getVideoById(id: string): Promise<{ video: StoredVideo | null; error?: string }> {
   try {
     const { data, error } = await supabase
       .from('videos_storage')
       .select('*')
-      .eq('id', videoId)
+      .eq('id', id)
       .single();
-
-    if (error) {
-      console.error('Erro ao buscar vídeo:', error);
-      return { error: 'Vídeo não encontrado.' };
-    }
-
-    return { video: data as unknown as StoredVideo };
     
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      video: data as StoredVideo
+    };
   } catch (error) {
-    console.error('Erro ao carregar detalhes do vídeo:', error);
-    return { error: 'Ocorreu um erro inesperado. Por favor, tente novamente.' };
+    console.error(`Error fetching video with ID ${id}:`, error);
+    return {
+      video: null,
+      error: 'Failed to fetch video details. Please try again.'
+    };
   }
 }
 
 /**
- * Update a video's metadata
+ * Get videos owned by the current user
  */
-export async function updateVideo(
-  videoId: string, 
-  data: {
-    title?: string;
-    description?: string;
-    tags?: string[];
-    public?: boolean;
-  }
-): Promise<{ success: boolean; error?: string }> {
+export async function getMyVideos(
+  filters?: VideoFilterOptions,
+  sort?: VideoSortOptions,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<{ videos: StoredVideo[]; total: number; error?: string }> {
   try {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const { data: user, error: userError } = await supabase.auth.getUser();
     
-    if (!userId) {
-      return { success: false, error: 'Usuário não autenticado.' };
+    if (userError || !user) {
+      throw new Error('User not authenticated');
     }
+    
+    // Add owner filter to get only user's videos
+    const userFilters: VideoFilterOptions = {
+      ...filters,
+      owner: user.user.id
+    };
+    
+    return getVideos(userFilters, sort, page, pageSize);
+  } catch (error) {
+    console.error('Error fetching user videos:', error);
+    return {
+      videos: [],
+      total: 0,
+      error: 'Failed to fetch your videos. Please try again.'
+    };
+  }
+}
 
-    // Verificar se o vídeo existe e pertence ao usuário
-    const { data: video, error: videoError } = await supabase
-      .from('videos_storage')
-      .select('*')
-      .eq('id', videoId)
-      .eq('owner_id', userId)
-      .single();
-
-    if (videoError || !video) {
-      return { success: false, error: 'Vídeo não encontrado ou você não tem permissão para editá-lo.' };
-    }
-
-    // Atualizar dados
-    const { error: updateError } = await supabase
+/**
+ * Update video metadata
+ */
+export async function updateVideo(id: string, updates: Partial<StoredVideo>): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
       .from('videos_storage')
       .update({
-        title: data.title,
-        description: data.description,
-        tags: data.tags,
-        public: data.public,
+        ...updates,
         updated_at: new Date().toISOString()
       })
-      .eq('id', videoId);
-
-    if (updateError) {
-      console.error('Erro ao atualizar vídeo:', updateError);
-      return { success: false, error: 'Erro ao atualizar vídeo. Tente novamente.' };
-    }
-
-    return { success: true };
+      .eq('id', id);
     
+    if (error) {
+      throw error;
+    }
+    
+    return { success: true };
   } catch (error) {
-    console.error('Erro ao atualizar vídeo:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado. Por favor, tente novamente.' };
+    console.error(`Error updating video with ID ${id}:`, error);
+    return {
+      success: false,
+      error: 'Failed to update video. Please try again.'
+    };
   }
 }
 
 /**
- * Delete a video and its associated files
+ * Delete a video
  */
-export async function deleteVideo(videoId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteVideo(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    
-    if (!userId) {
-      return { success: false, error: 'Usuário não autenticado.' };
-    }
-
-    // 1. Verificar se o vídeo existe e pertence ao usuário
-    const { data: video, error: videoError } = await supabase
-      .from('videos_storage')
-      .select('*')
-      .eq('id', videoId)
-      .eq('owner_id', userId)
-      .single();
-
-    if (videoError || !video) {
-      return { success: false, error: 'Vídeo não encontrado ou você não tem permissão para excluí-lo.' };
-    }
-
-    // 2. Excluir arquivos do storage
-    const { data: files, error: listError } = await supabase.storage
-      .from('videos')
-      .list(videoId);
-
-    if (!listError && files && files.length > 0) {
-      const filePaths = files.map(file => `${videoId}/${file.name}`);
-      await supabase.storage.from('videos').remove(filePaths);
-    }
-
-    // 3. Excluir registro do banco de dados
-    const { error: deleteError } = await supabase
+    const { error } = await supabase
       .from('videos_storage')
       .delete()
-      .eq('id', videoId);
-
-    if (deleteError) {
-      console.error('Erro ao excluir vídeo do banco:', deleteError);
-      return { success: false, error: 'Erro ao excluir vídeo. Tente novamente.' };
-    }
-
-    return { success: true };
+      .eq('id', id);
     
+    if (error) {
+      throw error;
+    }
+    
+    return { success: true };
   } catch (error) {
-    console.error('Erro ao excluir vídeo:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado. Por favor, tente novamente.' };
+    console.error(`Error deleting video with ID ${id}:`, error);
+    return {
+      success: false,
+      error: 'Failed to delete video. Please try again.'
+    };
   }
 }

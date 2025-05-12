@@ -1,65 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { VideoQuality } from '@/types/video-storage';
 
 /**
- * Generate a download URL for a video with the specified quality
+ * Log a video download event
  */
-export async function generateDownloadUrl(
-  videoId: string, 
-  quality: VideoQuality = 'original'
-): Promise<{ url?: string; filename?: string; error?: string }> {
+export async function downloadVideo(videoId: string, quality: string): Promise<{ success: boolean; error?: string }> {
   try {
-    // 1. Verificar se o vídeo existe e o usuário tem acesso
+    const { error } = await supabase
+      .from('video_downloads')
+      .insert({
+        video_id: videoId,
+        quality: quality,
+        user_agent: navigator.userAgent,
+      });
+
+    if (error) {
+      console.error('Error logging download:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error logging download:', error);
+    return { success: false, error: 'Unknown error occurred' };
+  }
+}
+
+/**
+ * Generate a download URL for a video
+ */
+export async function generateDownloadUrl(videoId: string): Promise<{ 
+  url?: string; 
+  filename?: string; 
+  error?: string 
+}> {
+  try {
+    // Get the video details first
     const { data: video, error: videoError } = await supabase
       .from('videos_storage')
       .select('*')
       .eq('id', videoId)
       .single();
-
+    
     if (videoError || !video) {
-      return { error: 'Vídeo não encontrado ou acesso negado.' };
+      throw new Error(videoError?.message || 'Video not found');
     }
-
-    // 2. Determinar o path do arquivo baseado na qualidade
-    const fileUrls = video.file_urls as Record<VideoQuality, string>;
-    const qualityUrl = fileUrls[quality];
     
-    if (!qualityUrl) {
-      return { error: `Versão ${quality} do vídeo não está disponível.` };
+    // Get the highest quality URL available
+    const fileUrls = video.file_urls || {};
+    const downloadUrl = fileUrls.original || fileUrls.hd || fileUrls.sd || fileUrls.web_optimized;
+    
+    if (!downloadUrl) {
+      throw new Error('No download URL available for this video');
     }
-
-    // Extrair o path do storage a partir da URL pública
-    const storageUrl = supabase.storage.from('videos').getPublicUrl('').data.publicUrl;
-    const path = qualityUrl.replace(storageUrl, '');
-
-    // 3. Gerar URL assinada para download
-    const { data: signedUrlData, error: signUrlError } = await supabase.storage
-      .from('videos')
-      .createSignedUrl(path, 60, {
-        download: video.title
-      });
-
-    if (signUrlError) {
-      console.error('Erro ao gerar URL assinada:', signUrlError);
-      return { error: 'Não foi possível gerar o link de download.' };
-    }
-
-    // 4. Registrar log de download
-    await supabase.from('video_downloads').insert({
-      video_id: videoId,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      quality: quality,
-      user_agent: navigator.userAgent
-    });
-
+    
+    // Create a filename from the video title or use a default
+    const filename = `${video.title || 'video'}-${Date.now()}.mp4`;
+    
+    // Log the download
+    await downloadVideo(videoId, 'download');
+    
     return { 
-      url: signedUrlData.signedUrl,
-      filename: `${video.title.replace(/[^a-zA-Z0-9]/g, '_')}_${quality}.mp4`
+      url: downloadUrl, 
+      filename 
     };
-    
   } catch (error) {
-    console.error('Erro ao gerar URL de download:', error);
-    return { error: 'Ocorreu um erro inesperado. Por favor, tente novamente.' };
+    console.error('Error generating download URL:', error);
+    return { error: error.message || 'Failed to generate download URL' };
   }
 }

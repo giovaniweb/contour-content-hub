@@ -1,61 +1,74 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { VideoStatus } from '@/types/video-storage';
-import { Loader, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Loader, AlertCircle, Check, Upload } from 'lucide-react';
 
 interface VideoStatusBadgeProps {
-  status: VideoStatus;
+  status?: string;
   className?: string;
   timeout?: boolean;
 }
 
 const VideoStatusBadge: React.FC<VideoStatusBadgeProps> = ({ 
   status, 
-  className,
+  className = "",
   timeout = false
 }) => {
-  switch (status) {
-    case 'uploading':
-      return (
-        <Badge variant="outline" className={cn("bg-muted text-muted-foreground", className)}>
-          <Loader className="h-3 w-3 mr-1 animate-spin" /> 
-          {timeout ? "Upload demorado" : "Enviando"}
-        </Badge>
-      );
+  const getVariantAndIcon = () => {
+    if (timeout && status === 'processing') {
+      return {
+        variant: 'destructive',
+        label: 'Stuck',
+        icon: <AlertCircle className="h-3 w-3 mr-1" />
+      };
+    }
     
-    case 'processing':
-      return (
-        <Badge variant={timeout ? "destructive" : "secondary"} className={className}>
-          {timeout ? (
-            <AlertTriangle className="h-3 w-3 mr-1" />
-          ) : (
-            <Loader className="h-3 w-3 mr-1 animate-spin" />
-          )}
-          {timeout ? "Processamento lento" : "Processando"}
-        </Badge>
-      );
-    
-    case 'ready':
-      return (
-        <Badge variant="default" className={className}>
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Pronto
-        </Badge>
-      );
-    
-    case 'error':
-      return (
-        <Badge variant="destructive" className={className}>
-          <AlertCircle className="h-3 w-3 mr-1" />
-          Erro
-        </Badge>
-      );
-    
-    default:
-      return null;
-  }
+    switch(status) {
+      case 'ready':
+        return {
+          variant: 'success',
+          label: 'Ready',
+          icon: <Check className="h-3 w-3 mr-1" />
+        };
+      case 'processing':
+        return {
+          variant: 'default',
+          label: 'Processing',
+          icon: <Loader className="h-3 w-3 mr-1 animate-spin" />
+        };
+      case 'uploading':
+        return {
+          variant: 'secondary',
+          label: 'Uploading',
+          icon: <Upload className="h-3 w-3 mr-1" />
+        };
+      case 'error':
+      case 'failed':
+        return {
+          variant: 'destructive',
+          label: 'Error',
+          icon: <AlertCircle className="h-3 w-3 mr-1" />
+        };
+      default:
+        return {
+          variant: 'outline',
+          label: status || 'Unknown',
+          icon: null
+        };
+    }
+  };
+  
+  const { variant, label, icon } = getVariantAndIcon();
+
+  return (
+    <Badge 
+      variant={variant as any} 
+      className={`flex items-center ${className}`}
+    >
+      {icon}
+      {label}
+    </Badge>
+  );
 };
 
 export default VideoStatusBadge;

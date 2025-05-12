@@ -1,119 +1,110 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
+  totalItems: number;
+  itemsPerPage: number;
   currentPage: number;
-  totalPages: number;
   onPageChange: (page: number) => void;
+  maxVisiblePages?: number;
 }
 
-export const Pagination: React.FC<PaginationProps> = ({ 
-  currentPage, 
-  totalPages,
-  onPageChange
-}) => {
-  if (totalPages <= 1) return null;
+export function Pagination({
+  totalItems,
+  itemsPerPage,
+  currentPage,
+  onPageChange,
+  maxVisiblePages = 5
+}: PaginationProps) {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
-  };
-
-  // Gerar os números de página a serem exibidos
-  const getPageNumbers = () => {
-    const pages = [];
-    
-    // Se tivermos menos de 8 páginas, mostrar tudo
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-      return pages;
-    }
-    
-    // Sempre mostrar a primeira página
-    pages.push(1);
-    
-    // Se a página atual está próxima do início
-    if (currentPage < 5) {
-      for (let i = 2; i <= 5; i++) {
-        pages.push(i);
-      }
-      pages.push("ellipsis");
-      pages.push(totalPages);
-    } 
-    // Se a página atual está próxima do final
-    else if (currentPage > totalPages - 4) {
-      pages.push("ellipsis");
-      for (let i = totalPages - 4; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } 
-    // Se a página atual está no meio
-    else {
-      pages.push("ellipsis");
-      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-        pages.push(i);
-      }
-      pages.push("ellipsis");
-      pages.push(totalPages);
-    }
-    
-    return pages;
-  };
-
+  // If there's only one page, don't show pagination
+  if (totalPages <= 1) {
+    return null;
+  }
+  
+  // Calculate visible page range
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  
+  // Adjust start page if end page is at maximum
+  if (endPage === totalPages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+  
+  // Generate page numbers to display
+  const pageNumbers = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
+  
   return (
-    <div className="flex items-center justify-center space-x-2 mt-4">
-      <Button 
-        variant="outline" 
+    <div className="flex items-center justify-center space-x-1 my-6">
+      {/* Previous button */}
+      <Button
+        variant="outline"
         size="icon"
-        onClick={handlePrevious}
+        onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
         <ChevronLeft className="h-4 w-4" />
-        <span className="sr-only">Anterior</span>
       </Button>
       
-      {getPageNumbers().map((page, index) => {
-        if (page === "ellipsis") {
-          return (
-            <span key={`ellipsis-${index}`} className="flex items-center justify-center">
-              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-            </span>
-          );
-        }
-        
-        return (
-          <Button 
-            key={`page-${page}`}
-            variant={currentPage === page ? "default" : "outline"}
-            size="icon"
-            onClick={() => onPageChange(page as number)}
-            className="w-8 h-8"
+      {/* Show ellipsis if not starting from page 1 */}
+      {startPage > 1 && (
+        <>
+          <Button
+            variant={currentPage === 1 ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(1)}
           >
-            {page}
+            1
           </Button>
-        );
-      })}
+          {startPage > 2 && (
+            <span className="px-2 text-muted-foreground">...</span>
+          )}
+        </>
+      )}
       
-      <Button 
-        variant="outline" 
+      {/* Page numbers */}
+      {pageNumbers.map((pageNumber) => (
+        <Button
+          key={pageNumber}
+          variant={pageNumber === currentPage ? "default" : "outline"}
+          size="sm"
+          onClick={() => onPageChange(pageNumber)}
+        >
+          {pageNumber}
+        </Button>
+      ))}
+      
+      {/* Show ellipsis if not ending at last page */}
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && (
+            <span className="px-2 text-muted-foreground">...</span>
+          )}
+          <Button
+            variant={currentPage === totalPages ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(totalPages)}
+          >
+            {totalPages}
+          </Button>
+        </>
+      )}
+      
+      {/* Next button */}
+      <Button
+        variant="outline"
         size="icon"
-        onClick={handleNext}
+        onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
         <ChevronRight className="h-4 w-4" />
-        <span className="sr-only">Próximo</span>
       </Button>
     </div>
   );
-};
+}

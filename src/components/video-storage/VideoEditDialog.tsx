@@ -1,238 +1,129 @@
 
-import React, { useState, useEffect } from 'react';
-import { StoredVideo } from '@/types/video-storage';
-import { updateVideo } from '@/services/videoStorageService';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { X, Loader, Save } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { StoredVideo } from '@/types/video-storage';
+import { updateVideo } from '@/services/videoStorage/videoManagementService';
 
 interface VideoEditDialogProps {
   video: StoredVideo;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onClose: () => void;
   onUpdate: () => void;
-  open?: boolean;             // Added for backward compatibility
-  onOpenChange?: (open: boolean) => void; // Added for backward compatibility
-  onSaved?: () => void;       // Added for backward compatibility
 }
 
-const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ 
-  video, 
-  onClose, 
-  onUpdate,
-  open, 
+const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
+  video,
+  open,
   onOpenChange,
-  onSaved
+  onClose,
+  onUpdate,
 }) => {
   const { toast } = useToast();
   const [title, setTitle] = useState(video.title || '');
   const [description, setDescription] = useState(video.description || '');
-  const [tags, setTags] = useState<string[]>(video.tags || []);
-  const [tagInput, setTagInput] = useState('');
-  const [isPublic, setIsPublic] = useState(video.public || false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(open !== undefined ? open : true);
-
-  // Handle open state from props if provided
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsDialogOpen(open);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      setTitle(video.title || '');
+      setDescription(video.description || '');
     }
-  }, [open]);
-
-  // Handle dialog close
-  const handleOpenChange = (newOpen: boolean) => {
-    setIsDialogOpen(newOpen);
-    if (onOpenChange) {
-      onOpenChange(newOpen);
-    }
-    if (!newOpen) {
-      onClose();
-    }
-  };
-
-  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag();
-    }
-  };
-
-  const addTag = () => {
-    const trimmedTag = tagInput.trim();
-    if (trimmedTag && !tags.includes(trimmedTag)) {
-      setTags([...tags, trimmedTag]);
-      setTagInput('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleSave = async () => {
-    if (!title.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Título obrigatório",
-        description: "Por favor, insira um título para o vídeo."
-      });
-      return;
-    }
-
-    setIsSaving(true);
+  }, [open, video]);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
     try {
-      const result = await updateVideo(video.id, {
+      const { success, error } = await updateVideo(video.id, {
         title,
-        description,
-        tags,
-        public: isPublic
+        description
       });
-
-      if (result.success) {
-        toast({
-          title: "Vídeo atualizado",
-          description: "As informações do vídeo foram atualizadas com sucesso."
-        });
-        onUpdate();
-        if (onSaved) onSaved(); // Support both callback methods
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro ao atualizar",
-          description: result.error || "Não foi possível atualizar o vídeo."
-        });
+      
+      if (!success) {
+        throw new Error(error || 'Failed to update video');
       }
+      
+      toast({
+        title: "Video updated",
+        description: "Video details have been updated successfully."
+      });
+      
+      onUpdate();
+      onOpenChange(false);
     } catch (error) {
-      console.error('Erro ao atualizar vídeo:', error);
+      console.error('Error updating video:', error);
       toast({
         variant: "destructive",
-        title: "Erro inesperado",
-        description: "Ocorreu um erro ao salvar as alterações."
+        title: "Update failed",
+        description: "There was a problem updating this video. Please try again."
       });
     } finally {
-      setIsSaving(false);
-      handleOpenChange(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-lg">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar Vídeo</DialogTitle>
-          <DialogDescription>
-            Atualize as informações do seu vídeo.
-          </DialogDescription>
+          <DialogTitle>Edit Video</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-title">Título</Label>
-            <Input
-              id="edit-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Digite o título do vídeo"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">Descrição</Label>
-            <Textarea
-              id="edit-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Adicione uma descrição para o vídeo"
-              rows={4}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="edit-tags">Tags</Label>
-            <div className="flex items-center gap-2">
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="title" className="text-sm font-medium">
+                Title
+              </label>
               <Input
-                id="edit-tags"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagInputKeyDown}
-                onBlur={addTag}
-                placeholder="Adicione tags (pressione Enter)"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Video title"
+                required
               />
-              <Button 
-                type="button"
-                onClick={addTag}
-              >
-                Adicionar
-              </Button>
             </div>
             
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map(tag => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
+            <div>
+              <label htmlFor="description" className="text-sm font-medium">
+                Description
+              </label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Video description"
+                rows={4}
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="edit-isPublic"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="edit-isPublic">Disponibilizar para todos os usuários</Label>
-          </div>
-        </div>
-        
-        <DialogFooter className="sm:justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving || !title.trim()}
-          >
-            {isSaving ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" /> Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" /> Salvar
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save changes'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -1,248 +1,242 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Eye, Download, Loader2, AlertTriangle, RefreshCcw } from 'lucide-react';
-import { getVideos, getMyVideos } from '@/services/videoStorageService';
-import VideoStatusBadge from './VideoStatusBadge';
-import { StoredVideo, VideoStatus, VideoFilterOptions } from '@/types/video-storage';
 import { useToast } from '@/hooks/use-toast';
-import VideoCard from './VideoCard';
-import VideoDownloadDialog from './VideoDownloadDialog';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import VideoCard from '@/components/video-storage/VideoCard';
+import VideoDownloadDialog from '@/components/video-storage/VideoDownloadDialog';
+import VideoPlayer from '@/components/video-storage/VideoPlayer';
+import { StoredVideo, VideoFilterOptions } from '@/types/video-storage';
+import { getVideos, processVideo, reimportFromVimeo } from '@/services/videoStorageService';
+import { timeAgo } from '@/utils/time';
 
 interface VideoListProps {
-  filters?: VideoFilterOptions;
-  page?: number;
-  pageSize?: number;
-  viewMode?: 'grid' | 'list';
-  onPageChange?: (page: number) => void;
-  onlyMine?: boolean;
-  emptyStateMessage?: React.ReactNode | string;
+  filters: VideoFilterOptions;
+  page: number;
+  pageSize: number;
+  viewMode: 'grid' | 'list';
+  onPageChange: (page: number) => void;
 }
 
-const VideoList: React.FC<VideoListProps> = ({ 
+const VideoList: React.FC<VideoListProps> = ({
   filters,
-  page = 1,
-  pageSize = 12,
-  viewMode = 'grid',
-  onPageChange,
-  onlyMine = false,
-  emptyStateMessage = "No videos found"
+  page,
+  pageSize,
+  viewMode,
+  onPageChange
 }) => {
-  const [videos, setVideos] = useState<StoredVideo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [totalVideos, setTotalVideos] = useState(0);
   const { toast } = useToast();
-  
-  // State for download dialog
+  const [videos, setVideos] = useState<StoredVideo[]>([]);
+  const [totalVideos, setTotalVideos] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<StoredVideo | null>(null);
-  const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
-  
-  // State for monitoring video processing timeouts
-  const [processingTimeouts, setProcessingTimeouts] = useState<Record<string, boolean>>({});
-  
-  // State for controlling reprocessing
-  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [processingVideos, setProcessingVideos] = useState<Record<string, boolean>>({});
+  const [reprocessingVideos, setReprocessingVideos] = useState<Record<string, boolean>>({});
 
+  // Processing timeout detection (videos stuck in processing)
+  const processingTimeoutMinutes = 30; // Consider a video stuck after 30 minutes
+
+  // Load videos
   useEffect(() => {
     loadVideos();
-    
-    // Set up interval to check processing videos
-    const interval = setInterval(() => {
-      checkProcessingVideos();
-    }, 15000); // Check every 15 seconds
-    
-    return () => clearInterval(interval);
-  }, [filters, page, pageSize, onlyMine]);
+  }, [filters, page, pageSize]);
 
   const loadVideos = async () => {
     setIsLoading(true);
     try {
-      // Get videos with filters
-      const result = onlyMine
-        ? await getMyVideos(filters, { field: 'created_at', direction: 'desc' }, page, pageSize)
-        : await getVideos(filters, { field: 'created_at', direction: 'desc' }, page, pageSize);
+      const { videos, total, error } = await getVideos(
+        filters,
+        { field: 'created_at', direction: 'desc' },
+        page,
+        pageSize
+      );
       
-      if (result.error) {
-        throw new Error(result.error);
+      if (error) {
+        throw new Error(error);
       }
       
-      setVideos(result.videos);
-      setTotalVideos(result.total);
-      
-      // Check for videos in processing state for too long
-      checkProcessingVideos(result.videos);
+      setVideos(videos);
+      setTotalVideos(total);
     } catch (error) {
-      console.error('Error loading videos:', error);
+      console.error('Failed to load videos:', error);
       toast({
         variant: "destructive",
-        title: "Error loading videos",
-        description: "There was a problem fetching the video data."
+        title: "Error",
+        description: "Failed to load videos. Please try again."
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Check videos that have been in processing state for too long
-  const checkProcessingVideos = (videosToCheck = videos) => {
-    const processingVideos = videosToCheck.filter(v => 
-      v.status === 'processing' || v.status === 'uploading'
-    );
+
+  // Check for processing timeouts
+  const checkProcessingTimeout = (video: StoredVideo) => {
+    if (video.status !== 'processing') return false;
     
-    if (processingVideos.length === 0) return;
+    const uploadTime = new Date(video.created_at || Date.now()).getTime();
+    const currentTime = Date.now();
+    const minutesPassed = (currentTime - uploadTime) / (1000 * 60);
     
-    const newTimeouts = { ...processingTimeouts };
-    
-    processingVideos.forEach(video => {
-      const createdAt = new Date(video.created_at).getTime();
-      const now = Date.now();
-      const processingTime = now - createdAt;
-      
-      // If processing for more than 5 minutes, mark as timeout
-      if (processingTime > 5 * 60 * 1000 && !newTimeouts[video.id]) {
-        newTimeouts[video.id] = true;
-        
-        toast({
-          title: "Processing delay",
-          description: `Video "${video.title}" is taking longer than expected to process.`,
-          variant: "destructive"
-        });
-      }
-    });
-    
-    setProcessingTimeouts(newTimeouts);
+    return minutesPassed > processingTimeoutMinutes;
   };
 
-  const handleRefresh = () => {
-    loadVideos();
-  };
-  
-  const handleDownloadClick = (video: StoredVideo) => {
+  // Handle video preview
+  const handlePreviewVideo = (video: StoredVideo) => {
     setSelectedVideo(video);
-    setIsDownloadDialogOpen(true);
+    setIsPlayerOpen(true);
   };
-  
-  const handleReprocessVideo = async (video: StoredVideo) => {
-    // Implementation for reprocessing would go here
-    // This would typically call a function from your video service
-    setReprocessingId(video.id);
-    
-    setTimeout(() => {
-      setReprocessingId(null);
-      loadVideos();
+
+  // Handle video download
+  const handleDownloadVideo = (video: StoredVideo) => {
+    setSelectedVideo(video);
+    setIsDownloadOpen(true);
+  };
+
+  // Handle video reprocessing
+  const handleReprocess = async (video: StoredVideo) => {
+    setReprocessingVideos(prev => ({ ...prev, [video.id]: true }));
+    try {
+      let fileName = '';
+      
+      // Try to get the original filename from metadata
+      if (video.metadata && video.metadata.original_filename) {
+        fileName = video.metadata.original_filename;
+      } else {
+        // Use the video ID as fallback
+        fileName = `${video.id}.mp4`;
+      }
+      
+      const { success, error } = await processVideo(video.id, fileName);
+      
+      if (!success || error) {
+        throw new Error(error || 'Failed to reprocess video');
+      }
       
       toast({
-        title: "Reprocessing complete",
-        description: `Video "${video.title}" has been reprocessed.`
+        title: "Processing started",
+        description: "Video processing has been initiated."
       });
-    }, 2000);
-  };
-  
-  // Function to get time since upload
-  const getTimeSinceUpload = (dateString: string): string => {
-    const uploadDate = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - uploadDate.getTime();
-    
-    const minutes = Math.floor(diffMs / 60000);
-    if (minutes < 60) {
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+      
+      // Refresh video list to show updated status
+      loadVideos();
+    } catch (error) {
+      console.error('Error reprocessing video:', error);
+      toast({
+        variant: "destructive",
+        title: "Processing failed",
+        description: error.message || "Failed to reprocess video"
+      });
+    } finally {
+      setReprocessingVideos(prev => ({ ...prev, [video.id]: false }));
     }
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-    }
-    
-    const days = Math.floor(hours / 24);
-    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
   };
 
-  // Render empty state
-  if (!isLoading && videos.length === 0) {
+  // Handle Vimeo reimport
+  const handleReimportVimeo = async (video: StoredVideo) => {
+    setProcessingVideos(prev => ({ ...prev, [video.id]: true }));
+    try {
+      const { success, error } = await reimportFromVimeo(video.id);
+      
+      if (!success || error) {
+        throw new Error(error || 'Failed to reimport from Vimeo');
+      }
+      
+      toast({
+        title: "Reimport successful",
+        description: "Video metadata has been updated from Vimeo."
+      });
+      
+      // Refresh video list to show updated metadata
+      loadVideos();
+    } catch (error) {
+      console.error('Error reimporting from Vimeo:', error);
+      toast({
+        variant: "destructive",
+        title: "Reimport failed",
+        description: error.message || "Failed to reimport video from Vimeo"
+      });
+    } finally {
+      setProcessingVideos(prev => ({ ...prev, [video.id]: false }));
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground">Loading videos...</p>
+      </div>
+    );
+  }
+
+  // No videos found
+  if (videos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        {typeof emptyStateMessage === 'string' ? (
-          <p className="text-muted-foreground">{emptyStateMessage}</p>
-        ) : (
-          emptyStateMessage
-        )}
+        <p className="text-muted-foreground">No videos found matching your criteria.</p>
+        <Button 
+          variant="outline" 
+          onClick={loadVideos} 
+          className="mt-4"
+        >
+          Refresh
+        </Button>
       </div>
     );
   }
 
   return (
-    <div>
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-muted-foreground">Loading videos...</span>
-        </div>
-      ) : (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Videos ({totalVideos})</h2>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCcw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Videos grid */}
+      <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+        {videos.map((video) => {
+          const processingTimeout = checkProcessingTimeout(video);
+          const isReprocessing = reprocessingVideos[video.id] || false;
+          const isProcessing = processingVideos[video.id] || false;
+          const uploadTime = timeAgo(video.created_at || new Date());
           
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-            : "space-y-4"
-          }>
-            {videos.map(video => (
-              <VideoCard
-                key={video.id}
-                video={video}
-                onRefresh={handleRefresh}
-                onDownload={() => handleDownloadClick(video)}
-                processingTimeout={processingTimeouts[video.id]}
-                timeSinceUpload={getTimeSinceUpload(video.created_at)}
-                onReprocess={processingTimeouts[video.id] ? () => handleReprocessVideo(video) : undefined}
-                isReprocessing={reprocessingId === video.id}
-              />
-            ))}
-          </div>
-          
-          {/* Pagination */}
-          {totalVideos > pageSize && (
-            <div className="flex justify-center mt-8">
-              <div className="flex space-x-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange && onPageChange(page - 1)}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <div className="flex items-center justify-center px-3 py-2 bg-muted rounded-md">
-                  <span className="text-sm font-medium">
-                    Page {page} of {Math.ceil(totalVideos / pageSize)}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange && onPageChange(page + 1)}
-                  disabled={page >= Math.ceil(totalVideos / pageSize)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+          return (
+            <VideoCard
+              key={video.id}
+              video={video}
+              onRefresh={loadVideos}
+              onDownload={() => handleDownloadVideo(video)}
+              processingTimeout={processingTimeout}
+              timeSinceUpload={uploadTime}
+              onReprocess={() => handleReprocess(video)}
+              isReprocessing={isReprocessing || isProcessing}
+            />
+          );
+        })}
+      </div>
+      
+      {/* Pagination */}
+      {totalVideos > pageSize && (
+        <Pagination
+          totalItems={totalVideos}
+          itemsPerPage={pageSize}
+          currentPage={page}
+          onPageChange={onPageChange}
+        />
+      )}
+      
+      {/* Video Player Dialog */}
+      {selectedVideo && (
+        <VideoPlayer
+          open={isPlayerOpen}
+          onOpenChange={setIsPlayerOpen}
+          video={selectedVideo}
+        />
       )}
       
       {/* Download Dialog */}
       {selectedVideo && (
         <VideoDownloadDialog
-          open={isDownloadDialogOpen}
-          onOpenChange={setIsDownloadDialogOpen}
+          open={isDownloadOpen}
+          onOpenChange={setIsDownloadOpen}
           video={selectedVideo}
         />
       )}
