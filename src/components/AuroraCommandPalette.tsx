@@ -149,14 +149,27 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
               onKeyDown={handleKeyDown}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              className="flex-grow bg-transparent text-foreground p-3 outline-none placeholder:text-muted-foreground text-lg"
+              className="flex-grow bg-transparent text-foreground p-3 outline-none placeholder:text-muted-foreground text-lg neon-text"
             />
             <motion.button
               type="submit"
               whileTap={{ scale: 0.95 }}
-              className="bg-fluida-pink hover:bg-fluida-pink/80 text-white p-3 rounded-full transition-colors"
+              className="relative bg-fluida-pink hover:bg-fluida-pink/80 text-white p-3 rounded-full transition-colors"
             >
               <Send className="h-5 w-5" />
+              {/* Pulsing neon effect around button */}
+              <motion.div
+                className="absolute inset-0 rounded-full z-[-1]"
+                animate={{ 
+                  boxShadow: ['0 0 0px rgba(255, 153, 204, 0.4)', '0 0 10px rgba(255, 153, 204, 0.8)', '0 0 0px rgba(255, 153, 204, 0.4)'],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
+              />
             </motion.button>
           </div>
 
@@ -217,6 +230,29 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
           </AnimatePresence>
         </div>
       )}
+
+      {/* Add CSS for neon text effect */}
+      <style jsx global>{`
+        .neon-text {
+          text-shadow: 0 0 5px rgba(0, 148, 251, 0.3), 
+                       0 0 10px rgba(0, 148, 251, 0.2), 
+                       0 0 15px rgba(243, 0, 252, 0.1);
+          animation: neon-pulse 2s infinite alternate;
+        }
+
+        @keyframes neon-pulse {
+          from {
+            text-shadow: 0 0 5px rgba(0, 148, 251, 0.3), 
+                         0 0 10px rgba(0, 148, 251, 0.2), 
+                         0 0 15px rgba(243, 0, 252, 0.1);
+          }
+          to {
+            text-shadow: 0 0 10px rgba(0, 148, 251, 0.5), 
+                         0 0 20px rgba(0, 148, 251, 0.3), 
+                         0 0 30px rgba(243, 0, 252, 0.2);
+          }
+        }
+      `}</style>
     </div>
   );
 };
