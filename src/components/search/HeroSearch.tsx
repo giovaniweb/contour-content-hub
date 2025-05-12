@@ -133,30 +133,44 @@ const HeroSearch: React.FC<HeroSearchProps> = ({
         </form>
       </motion.div>
       
-      {/* Suggestions */}
-      <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        <AnimatePresence>
-          {suggestions.map((suggestion, index) => (
-            <motion.div
-              key={suggestion}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSuggestionClick(suggestion)}
-            >
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer py-2 px-3 bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 font-montserrat"
-              >
-                {suggestion}
-              </Badge>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {/* Suggestions - Only show when user is typing */}
+      {query.length > 0 && (
+        <motion.div 
+          className="mt-4 p-4 rounded-xl relative"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          {/* Gradient border effect */}
+          <div className="absolute inset-0 rounded-xl border border-transparent bg-gradient-to-r from-fluida-blue/30 to-fluida-pink/30 p-0.5">
+            <div className="absolute inset-0 rounded-[calc(0.75rem-1px)] bg-white/95"></div>
+          </div>
+          
+          <div className="relative flex flex-wrap gap-2 justify-center">
+            <AnimatePresence>
+              {suggestions.map((suggestion, index) => (
+                <motion.div
+                  key={suggestion}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer py-2 px-3 bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 font-montserrat"
+                  >
+                    {suggestion}
+                  </Badge>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
       
       {/* Custom styling */}
       <style>
