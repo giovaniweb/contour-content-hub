@@ -29,19 +29,25 @@ import {
   BarChart3,
   PuzzleIcon,
   PenTool,
-  Settings
+  Settings,
+  Globe,
+  LogOut
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface MobileNavMenuProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   isAuthenticated: boolean;
+  onLogout?: () => void;
 }
 
 export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
   isOpen,
   setIsOpen,
   isAuthenticated,
+  onLogout,
 }) => {
   const { isAdmin } = usePermissions();
 
@@ -53,147 +59,163 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
         <SheetHeader className="p-4 border-b">
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col p-4 space-y-2">
-          <Link
-            to={ROUTES.DASHBOARD}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Dashboard</span>
-          </Link>
-          <Link
-            to={ROUTES.CONTENT.PLANNER}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <FileText className="h-5 w-5" />
-            <span>Planner</span>
-          </Link>
-          <Link
-            to={ROUTES.CONTENT.IDEAS}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Lightbulb className="h-5 w-5" />
-            <span>Idea Validator</span>
-          </Link>
-          <Link
-            to={ROUTES.CONTENT.SCRIPTS.ROOT}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <PenTool className="h-5 w-5" />
-            <span>Scripts</span>
-          </Link>
-          <Link
-            to={ROUTES.VIDEOS.ROOT}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <VideoIcon className="h-5 w-5" />
-            <span>Videos</span>
-          </Link>
-          <Link
-            to={ROUTES.MEDIA}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Images className="h-5 w-5" />
-            <span>Media Library</span>
-          </Link>
-          <Link
-            to="/media-files"
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <FilePlus className="h-5 w-5" />
-            <span>Media Files</span>
-          </Link>
-          <Link
-            to={ROUTES.CONTENT.STRATEGY}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <LineChart className="h-5 w-5" />
-            <span>Strategy</span>
-          </Link>
-          <Link
-            to={ROUTES.SCIENTIFIC_ARTICLES}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <BookText className="h-5 w-5" />
-            <span>Articles</span>
-          </Link>
-          <Link
-            to={ROUTES.MARKETING.REPORTS}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <BarChart3 className="h-5 w-5" />
-            <span>Reports</span>
-          </Link>
-          <Link
-            to={ROUTES.CONTENT.CALENDAR}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Calendar className="h-5 w-5" />
-            <span>Agenda</span>
-          </Link>
-          <Link
-            to={ROUTES.EQUIPMENT.LIST}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Wrench className="h-5 w-5" />
-            <span>Equipment</span>
-          </Link>
-          {isAdmin() && (
-            <>
-              <Link
-                to={ROUTES.ADMIN.ROOT}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted mt-4 border-t pt-4"
-                onClick={() => setIsOpen(false)}
-              >
-                <Cog className="h-5 w-5" />
-                <span>Admin</span>
-              </Link>
-              <Link
-                to={ROUTES.ADMIN.SYSTEM.DIAGNOSTICS}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-                onClick={() => setIsOpen(false)}
-              >
-                <Activity className="h-5 w-5" />
-                <span>Diagnostics</span>
-              </Link>
-              <Link
-                to={ROUTES.ADMIN.AI}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-                onClick={() => setIsOpen(false)}
-              >
-                <BrainCircuit className="h-5 w-5" />
-                <span>AI Panel</span>
-              </Link>
-              <Link
-                to="/integrations"
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-                onClick={() => setIsOpen(false)}
-              >
-                <PuzzleIcon className="h-5 w-5" />
-                <span>Integrations</span>
-              </Link>
-              <Link
-                to={ROUTES.WORKSPACE_SETTINGS}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </Link>
-            </>
-          )}
+        <div className="flex flex-col p-4 overflow-y-auto h-full">
+          <div className="flex-1 space-y-2">
+            <Link
+              to={ROUTES.DASHBOARD}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <LayoutDashboard className="h-5 w-5" />
+              <span>Dashboard</span>
+            </Link>
+            <Link
+              to={ROUTES.VIDEOS.ROOT}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <VideoIcon className="h-5 w-5" />
+              <span>Vídeos</span>
+            </Link>
+            <Link
+              to={ROUTES.CONTENT.STRATEGY}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <LineChart className="h-5 w-5" />
+              <span>Estratégia</span>
+            </Link>
+            <Link
+              to={ROUTES.CONTENT.PLANNER}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <FileText className="h-5 w-5" />
+              <span>Planner</span>
+            </Link>
+            <Link
+              to={ROUTES.CONTENT.IDEAS}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <Lightbulb className="h-5 w-5" />
+              <span>Ideias</span>
+            </Link>
+            <Link
+              to={ROUTES.CONTENT.SCRIPTS.ROOT}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <PenTool className="h-5 w-5" />
+              <span>Roteiros</span>
+            </Link>
+            <Link
+              to={ROUTES.MEDIA}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <Images className="h-5 w-5" />
+              <span>Biblioteca de Mídia</span>
+            </Link>
+            <Link
+              to={ROUTES.CONTENT.CALENDAR}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <Calendar className="h-5 w-5" />
+              <span>Agenda</span>
+            </Link>
+            <Link
+              to={ROUTES.EQUIPMENT.LIST}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <Wrench className="h-5 w-5" />
+              <span>Equipamentos</span>
+            </Link>
+            
+            {isAdmin() && (
+              <>
+                <Separator className="my-2" />
+                <Link
+                  to={ROUTES.ADMIN.ROOT}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Cog className="h-5 w-5" />
+                  <span>Administração</span>
+                </Link>
+                <Link
+                  to={ROUTES.ADMIN_VIDEOS}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <VideoIcon className="h-5 w-5" />
+                  <span>Gerenciar Vídeos</span>
+                </Link>
+                <Link
+                  to={ROUTES.VIDEOS.BATCH}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <FilePlus className="h-5 w-5" />
+                  <span>Lote de Vídeos</span>
+                </Link>
+                <Link
+                  to={ROUTES.VIDEOS.IMPORT}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Database className="h-5 w-5" />
+                  <span>Importar Vídeos</span>
+                </Link>
+              </>
+            )}
+          </div>
+          
+          <div className="mt-auto space-y-2 pt-4 border-t">
+            <div className="p-2">
+              <div className="text-sm font-medium mb-2">Idioma</div>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 p-2 h-auto"
+                >
+                  <span className="text-lg">🇧🇷</span>
+                  <span className="text-xs">PT</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 p-2 h-auto"
+                >
+                  <span className="text-lg">🇺🇸</span>
+                  <span className="text-xs">EN</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 p-2 h-auto"
+                >
+                  <span className="text-lg">🇪🇸</span>
+                  <span className="text-xs">ES</span>
+                </Button>
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              className="flex w-full items-center gap-3 p-2 justify-start"
+              onClick={() => {
+                setIsOpen(false);
+                onLogout && onLogout();
+              }}
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sair</span>
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

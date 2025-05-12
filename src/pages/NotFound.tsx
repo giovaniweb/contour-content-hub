@@ -2,9 +2,10 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, Library } from "lucide-react";
+import { Home, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/navbar";
+import { ROUTES } from "@/routes";
 
 const NotFound = () => {
   const location = useLocation();
@@ -18,30 +19,34 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-white to-contourline-lightGray/20">
-        <div className="text-center max-w-md px-4">
-          <h1 className="text-6xl font-bold text-contourline-mediumBlue mb-6">404</h1>
-          <p className="text-2xl text-gray-700 mb-4">Oops! Página não encontrada</p>
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-white to-blue-50">
+        <div className="text-center max-w-xl px-4">
+          <h1 className="text-9xl font-light text-fluida-blue mb-6">404</h1>
+          <p className="text-3xl font-light text-gray-700 mb-4">Página não encontrada</p>
           <p className="text-gray-500 mb-8">
             A página que você está procurando não existe ou foi movida.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild size="lg" className="gap-2">
-              <Link to={isAuthenticated ? "/dashboard" : "/"}>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button asChild size="lg" className="gap-2 bg-fluida-blue hover:bg-fluida-blue-dark">
+              <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME}>
                 <Home className="h-5 w-5" />
                 <span>Página Inicial</span>
               </Link>
             </Button>
-            {isAuthenticated && (
-              <Button asChild size="lg" variant="outline" className="gap-2">
-                <Link to="/media">
-                  <Library className="h-5 w-5" />
-                  <span>Biblioteca de Mídia</span>
-                </Link>
-              </Button>
-            )}
+            <Button 
+              asChild 
+              size="lg" 
+              variant="outline" 
+              className="gap-2 border-fluida-blue text-fluida-blue hover:bg-fluida-blue/10"
+              onClick={() => window.history.back()}
+            >
+              <button>
+                <ArrowLeft className="h-5 w-5" />
+                <span>Voltar</span>
+              </button>
+            </Button>
           </div>
         </div>
       </div>

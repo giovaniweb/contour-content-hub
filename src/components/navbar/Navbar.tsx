@@ -11,8 +11,9 @@ import { MainNavigation } from "./MainNavigation";
 import { MobileNavMenu } from "./MobileNavMenu";
 import { AuthButtons } from "./AuthButtons";
 import NotificationsMenu from "../notifications/NotificationsMenu";
+import { ProfileMenu } from "../ProfileMenu";
 
-export const Navbar: React.FC = () => {
+export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -21,7 +22,7 @@ export const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const { setTheme } = useTheme();
 
-  // Detecta rolagem para aplicar efeito visual na navbar
+  // Detect scroll to apply visual effect to navbar
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -62,7 +63,7 @@ export const Navbar: React.FC = () => {
       )}
     >
       <nav className="container mx-auto px-4 flex h-16 items-center justify-between" aria-label="Navegação principal">
-        {/* Logo e título */}
+        {/* Logo and title */}
         <div className="flex items-center">
           <Link 
             to={isAuthenticated ? "/dashboard" : "/"} 
@@ -76,17 +77,17 @@ export const Navbar: React.FC = () => {
           </Link>
         </div>
 
-        {/* Links principais - visíveis em telas maiores */}
+        {/* Main links - visible on larger screens */}
         <div className="hidden md:flex items-center">
           <MainNavigation isAuthenticated={isAuthenticated} />
         </div>
 
-        {/* Menu de perfil e botão para menu mobile */}
+        {/* Profile menu and mobile menu button */}
         <div className="flex items-center gap-2">
           {/* Notification Bell */}
           {isAuthenticated && <NotificationsMenu />}
 
-          {/* Menu mobile (hambúrguer) */}
+          {/* Mobile menu (hamburger) */}
           <div className="md:hidden">
             <Button 
               variant="ghost" 
@@ -101,16 +102,21 @@ export const Navbar: React.FC = () => {
               isOpen={isMobileMenuOpen} 
               setIsOpen={setIsMobileMenuOpen} 
               isAuthenticated={isAuthenticated} 
+              onLogout={handleLogout}
             />
           </div>
 
-          {/* Menu de autenticação */}
-          <AuthButtons isAuthenticated={isAuthenticated} user={user} />
+          {/* Auth menu */}
+          {isAuthenticated ? (
+            <ProfileMenu />
+          ) : (
+            <AuthButtons isAuthenticated={isAuthenticated} user={user} logout={handleLogout} />
+          )}
         </div>
       </nav>
     </header>
   );
 };
 
-// Add default export to fix the import issue
+// Add default export
 export default Navbar;
