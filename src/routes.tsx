@@ -1,4 +1,3 @@
-
 import React from "react";
 import { RouteObject } from "react-router-dom";
 
@@ -9,7 +8,7 @@ import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
-import Dashboard from "@/pages/dashboard";
+import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import ContentStrategy from "@/pages/ContentStrategy";
 import ContentPlannerPage from "@/pages/ContentPlannerPage";

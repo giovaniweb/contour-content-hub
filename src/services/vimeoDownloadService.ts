@@ -223,8 +223,9 @@ export const checkVideoDownloadLinks = async (): Promise<{
       }[]
     };
     
-    // Transformamos os resultados para garantir que sejam do tipo VideoStorageRow
-    const typedVideos = videos as VideoStorageRow[];
+    // Use explicit type assertion with unknown intermediate step
+    // to safely handle the response data
+    const typedVideos = videos as unknown as VideoStorageRow[];
     
     typedVideos.forEach(video => {
       const linkTypes: string[] = [];
