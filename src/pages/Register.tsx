@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 const Register: React.FC = () => {
   const { register } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -25,10 +26,15 @@ const Register: React.FC = () => {
     
     setIsLoading(true);
     try {
-      await register(email, password);
+      await register({
+        email,
+        password,
+      });
       toast("Conta criada com sucesso", {
         description: "Você será redirecionado para a página de login."
       });
+      // Redirect to login page after successful registration
+      navigate('/login');
     } catch (error) {
       toast("Erro ao criar conta", {
         description: "Não foi possível criar sua conta. Tente novamente."
