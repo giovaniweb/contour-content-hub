@@ -1,5 +1,6 @@
 
 import React from "react";
+import { motion } from "framer-motion";
 
 interface FeatureCardProps {
   title: string;
@@ -9,11 +10,16 @@ interface FeatureCardProps {
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon }) => {
   return (
-    <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6 shadow-sm hover:shadow-[0_0_15px_rgba(0,148,251,0.15)] transition-all hover:-translate-y-1">
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <motion.div 
+      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+      whileHover={{ y: -5 }}
+    >
+      <div className="text-4xl mb-5 group-hover:animate-bounce-light transform transition-all duration-300 ease-in-out">
+        {icon}
+      </div>
+      <h3 className="text-xl font-medium mb-3 text-gray-800">{title}</h3>
       <p className="text-gray-600">{description}</p>
-    </div>
+    </motion.div>
   );
 };
 
@@ -37,9 +43,11 @@ const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-white py-20">
-      <div className="container mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Recursos poderosos para criadores de conteúdo</h2>
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl md:text-4xl font-light text-center mb-16 tracking-wide text-gray-800">
+          Recursos poderosos para criadores de conteúdo
+        </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (

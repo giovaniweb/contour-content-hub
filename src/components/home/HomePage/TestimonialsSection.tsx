@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 interface Testimonial {
   name: string;
@@ -15,22 +16,25 @@ interface TestimonialCardProps {
 
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ testimonial }) => {
   return (
-    <Card className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-      <p className="italic text-gray-700 mb-4">"{testimonial.quote}"</p>
-      <div className="flex items-center">
-        <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-          <img 
-            src={testimonial.avatar} 
-            alt={testimonial.name}
-            className="w-full h-full object-cover"
-          />
+    <motion.div
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-gray-100">
+            <img 
+              src={testimonial.avatar} 
+              alt={testimonial.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <p className="italic text-gray-600 mb-4 text-sm">"{testimonial.quote}"</p>
+          <h4 className="font-medium text-gray-800">{testimonial.name}</h4>
+          <p className="text-xs text-gray-500">{testimonial.role}</p>
         </div>
-        <div>
-          <h4 className="font-medium">{testimonial.name}</h4>
-          <p className="text-sm text-gray-600">{testimonial.role}</p>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -57,11 +61,13 @@ const TestimonialsSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-gray-50 py-20">
-      <div className="container mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">O que nossos usuários dizem</h2>
+    <section className="bg-gray-50 py-24">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl md:text-4xl font-light text-center mb-16 tracking-wide text-gray-800">
+          O que nossos usuários dizem
+        </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {testimonials.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} />
           ))}

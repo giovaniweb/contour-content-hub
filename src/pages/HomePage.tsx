@@ -15,7 +15,7 @@ import Footer from "@/components/home/HomePage/Footer";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import NeonTextEffect from "@/components/home/HomePage/NeonTextEffect";
 
-// Importando novos componentes
+// Importando componentes
 import FeaturedVideo from "@/components/home/FeaturedVideo";
 import FeaturedGallery from "@/components/home/FeaturedGallery";
 import FeaturedIcons from "@/components/home/FeaturedIcons";
@@ -41,20 +41,23 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col font-sans bg-white">
       <AnimationStyles />
       <NeonTextEffect />
       
       <Header />
 
       <main className="flex-grow">
-        {/* Hero Section - Mantida como está */}
+        {/* Hero Section com layout refinado */}
         <HeroSection />
         
-        {/* Nova seção - Vídeo em destaque */}
-        <section className="py-16 bg-gradient-to-b from-indigo-900 to-purple-900">
+        {/* Recursos principais do sistema */}
+        <FeaturesSection />
+        
+        {/* Seção - Vídeo em destaque */}
+        <section className="py-24 bg-gray-50">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white neon-text">
+            <h2 className="text-3xl md:text-4xl font-light text-center mb-16 tracking-wide text-gray-800">
               Vídeo em destaque
             </h2>
             <div className="max-w-4xl mx-auto">
@@ -63,26 +66,23 @@ const HomePage: React.FC = () => {
           </div>
         </section>
         
-        {/* Recursos principais do sistema */}
-        <FeaturesSection />
+        {/* Banner interativo */}
+        <WelcomeBanner phrases={welcomePhrases} />
         
-        {/* Nova seção - Fotos e artes em destaque */}
-        <section className="py-16 bg-gradient-to-b from-purple-900 to-indigo-900">
+        {/* Seção - Fotos e artes em destaque */}
+        <section className="py-24 bg-white">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white neon-text">
+            <h2 className="text-3xl md:text-4xl font-light text-center mb-16 tracking-wide text-gray-800">
               Fotos e artes em destaque
             </h2>
             <FeaturedGallery />
           </div>
         </section>
         
-        {/* Banner interativo */}
-        <WelcomeBanner phrases={welcomePhrases} />
-        
-        {/* Nova seção - Painel de funcionalidades com ícones */}
-        <section className="py-16 bg-gradient-to-b from-indigo-900 to-purple-900">
+        {/* Seção - Painel de funcionalidades com ícones */}
+        <section className="py-24 bg-gray-50">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white neon-text">
+            <h2 className="text-3xl md:text-4xl font-light text-center mb-16 tracking-wide text-gray-800">
               Acesso Rápido
             </h2>
             <FeaturedIcons />

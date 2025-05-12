@@ -3,25 +3,32 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/routes";
+import { motion } from "framer-motion";
 
 const CtaSection: React.FC = () => {
   const navigate = useNavigate();
   
   return (
-    <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-      <div className="container mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para transformar sua produção de conteúdo?</h2>
-        <p className="text-xl mb-8 max-w-2xl mx-auto">
+    <section className="bg-lavender-gradient text-gray-800 py-24">
+      <div className="container mx-auto text-center px-4">
+        <h2 className="text-3xl md:text-4xl font-light mb-6">
+          Pronto para transformar sua produção de conteúdo?
+        </h2>
+        <p className="text-xl mb-10 max-w-2xl mx-auto text-gray-600">
           Junte-se a milhares de criadores que já estão economizando tempo e criando conteúdo de maior qualidade.
         </p>
-        <Button 
-          size="lg"
-          variant="secondary" 
-          onClick={() => navigate(ROUTES.REGISTER)}
-          className="text-lg px-8 bg-white text-blue-600 hover:bg-blue-50"
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          Começar agora
-        </Button>
+          <Button 
+            size="lg"
+            onClick={() => navigate(ROUTES.REGISTER)}
+            className="text-lg px-10 py-6 bg-fluida-blue hover:bg-fluida-blueDark text-white shadow-md hover:shadow-lg"
+          >
+            Começar agora
+          </Button>
+        </motion.div>
       </div>
     </section>
   );

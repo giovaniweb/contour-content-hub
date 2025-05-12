@@ -17,6 +17,7 @@ const FeaturedIcons: React.FC = () => {
     description: string;
     icon: React.ReactNode;
     color: string;
+    bgColor: string;
     link: string;
     isAdmin?: boolean;
   }
@@ -26,29 +27,33 @@ const FeaturedIcons: React.FC = () => {
     {
       title: "Vídeos",
       description: "Conteúdo em vídeo para suas redes",
-      icon: <Video className="h-8 w-8 text-blue-400" />,
-      color: "bg-blue-100/20 hover:bg-blue-100/30 group-hover:shadow-blue-400/40",
+      icon: <Video className="h-8 w-8 text-blue-500" />,
+      color: "text-blue-500",
+      bgColor: "bg-blue-50",
       link: ROUTES.VIDEOS.ROOT
     },
     {
       title: "Fotos",
       description: "Banco de imagens profissionais",
-      icon: <FileImage className="h-8 w-8 text-purple-400" />,
-      color: "bg-purple-100/20 hover:bg-purple-100/30 group-hover:shadow-purple-400/40",
+      icon: <FileImage className="h-8 w-8 text-purple-500" />,
+      color: "text-purple-500",
+      bgColor: "bg-purple-50",
       link: "/fotos"
     },
     {
       title: "Ilustrações",
       description: "Artes digitais para publicações",
-      icon: <Pen className="h-8 w-8 text-pink-400" />,
-      color: "bg-pink-100/20 hover:bg-pink-100/30 group-hover:shadow-pink-400/40",
+      icon: <Pen className="h-8 w-8 text-pink-500" />,
+      color: "text-pink-500",
+      bgColor: "bg-pink-50",
       link: "/ilustracoes"
     },
     {
       title: "Vetores",
       description: "Gráficos e elementos vetoriais",
-      icon: <Image className="h-8 w-8 text-green-400" />,
-      color: "bg-green-100/20 hover:bg-green-100/30 group-hover:shadow-green-400/40",
+      icon: <Image className="h-8 w-8 text-green-500" />,
+      color: "text-green-500",
+      bgColor: "bg-green-50",
       link: "/vetores"
     }
   ];
@@ -58,24 +63,27 @@ const FeaturedIcons: React.FC = () => {
     {
       title: "Importar vídeos",
       description: "Adicionar novos conteúdos",
-      icon: <Import className="h-8 w-8 text-amber-400" />,
-      color: "bg-amber-100/20 hover:bg-amber-100/30 border-amber-400/30 group-hover:shadow-amber-400/40",
+      icon: <Import className="h-8 w-8 text-amber-500" />,
+      color: "text-amber-500",
+      bgColor: "bg-amber-50",
       link: ROUTES.VIDEOS.IMPORT,
       isAdmin: true
     },
     {
       title: "Gerenciar usuários",
       description: "Controle de acesso",
-      icon: <Users className="h-8 w-8 text-cyan-400" />,
-      color: "bg-cyan-100/20 hover:bg-cyan-100/30 border-cyan-400/30 group-hover:shadow-cyan-400/40",
+      icon: <Users className="h-8 w-8 text-cyan-500" />,
+      color: "text-cyan-500",
+      bgColor: "bg-cyan-50",
       link: ROUTES.WORKSPACE_SETTINGS,
       isAdmin: true
     },
     {
       title: "Relatórios de uso",
       description: "Análise de performance",
-      icon: <BarChart2 className="h-8 w-8 text-rose-400" />,
-      color: "bg-rose-100/20 hover:bg-rose-100/30 border-rose-400/30 group-hover:shadow-rose-400/40",
+      icon: <BarChart2 className="h-8 w-8 text-rose-500" />,
+      color: "text-rose-500",
+      bgColor: "bg-rose-50",
       link: ROUTES.MARKETING.REPORTS,
       isAdmin: true
     }
@@ -101,7 +109,7 @@ const FeaturedIcons: React.FC = () => {
 
   return (
     <motion.div 
-      className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -112,24 +120,25 @@ const FeaturedIcons: React.FC = () => {
           <Link 
             to={iconData.link} 
             className={`
-              block group p-5 rounded-xl border border-white/10 
-              transition-all duration-300 hover:-translate-y-1 
-              ${iconData.color}
-              ${iconData.isAdmin ? 'border-dashed border-2' : ''}
-              hover:shadow-lg backdrop-blur-sm
+              block p-6 rounded-xl border border-gray-100 bg-white
+              transition-all duration-300 hover:-translate-y-2 hover:shadow-md
+              ${iconData.isAdmin ? 'border-dashed border' : ''}
             `}
           >
             <div className="flex flex-col items-center text-center">
-              <div className="mb-3 flex items-center justify-center bg-white/10 w-16 h-16 rounded-full">
+              <motion.div 
+                className={`mb-4 flex items-center justify-center w-16 h-16 rounded-full ${iconData.bgColor}`}
+                whileHover={{ scale: 1.05, rotate: 5 }}
+              >
                 {iconData.icon}
-              </div>
-              <h3 className="font-semibold text-white">{iconData.title}</h3>
-              <p className="text-xs text-white/70 mt-1">
+              </motion.div>
+              <h3 className="font-medium text-gray-800">{iconData.title}</h3>
+              <p className="text-xs text-gray-500 mt-1">
                 {iconData.description}
               </p>
               
               {iconData.isAdmin && (
-                <span className="mt-2 px-2 py-0.5 text-xs bg-white/20 rounded-full text-white">
+                <span className="mt-2 px-2 py-0.5 text-xs bg-gray-100 rounded-full text-gray-600">
                   Admin
                 </span>
               )}

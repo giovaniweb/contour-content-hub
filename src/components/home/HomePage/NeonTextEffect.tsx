@@ -6,49 +6,43 @@ const NeonTextEffect: React.FC = () => {
     <style>
       {`
         .neon-text {
-          color: #FFFFFF;
-          text-shadow: 0 0 5px rgba(30, 174, 219, 0.5), 
-                       0 0 10px rgba(30, 174, 219, 0.4), 
-                       0 0 15px rgba(30, 174, 219, 0.3),
-                       0 0 20px rgba(30, 174, 219, 0.2);
-          animation: neon-pulse 2s infinite alternate;
+          color: #121212;
+          text-shadow: 0 0 1px rgba(91, 140, 247, 0.2), 
+                       0 0 2px rgba(91, 140, 247, 0.1);
+          letter-spacing: 0.5px;
+          font-weight: 300;
         }
 
-        @keyframes neon-pulse {
-          from {
-            text-shadow: 0 0 5px rgba(30, 174, 219, 0.5), 
-                         0 0 10px rgba(30, 174, 219, 0.4), 
-                         0 0 15px rgba(30, 174, 219, 0.3),
-                         0 0 20px rgba(30, 174, 219, 0.2);
-          }
-          to {
-            text-shadow: 0 0 10px rgba(30, 174, 219, 0.7), 
-                         0 0 20px rgba(30, 174, 219, 0.6), 
-                         0 0 30px rgba(30, 174, 219, 0.5),
-                         0 0 40px rgba(30, 174, 219, 0.4);
-          }
-        }
-
-        /* Adicional: efeito para destacar palavras-chave */
+        /* Efeito sutil para destacar palavras-chave */
         .neon-highlight {
-          color: #FFFFFF;
-          text-shadow: 0 0 5px rgba(217, 70, 239, 0.5), 
-                       0 0 10px rgba(217, 70, 239, 0.4), 
-                       0 0 15px rgba(217, 70, 239, 0.3);
-          animation: highlight-pulse 2s infinite alternate;
+          color: #3A6CCC;
+          font-weight: 500;
         }
 
-        @keyframes highlight-pulse {
+        /* Efeito de pulse para elementos interativos */
+        .pulse-glow {
+          animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
           from {
-            text-shadow: 0 0 5px rgba(217, 70, 239, 0.5), 
-                         0 0 10px rgba(217, 70, 239, 0.4), 
-                         0 0 15px rgba(217, 70, 239, 0.3);
+            box-shadow: 0 0 5px rgba(91, 140, 247, 0.2), 
+                        0 0 10px rgba(91, 140, 247, 0.1);
           }
           to {
-            text-shadow: 0 0 10px rgba(217, 70, 239, 0.7), 
-                         0 0 20px rgba(217, 70, 239, 0.6), 
-                         0 0 30px rgba(217, 70, 239, 0.5);
+            box-shadow: 0 0 15px rgba(91, 140, 247, 0.3), 
+                        0 0 20px rgba(91, 140, 247, 0.2);
           }
+        }
+
+        /* Hover glow para elementos interativos */
+        .hover-glow {
+          transition: all 0.3s ease;
+        }
+
+        .hover-glow:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 5px 15px rgba(91, 140, 247, 0.2);
         }
       `}
     </style>

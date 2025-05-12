@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Montserrat', 'Inter', 'sans-serif'],
+				heading: ['Montserrat', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -62,38 +66,28 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Fluida brand colors
+				// Fluida brand colors - updated with softer tones
 				fluida: {
-					blue: '#0094fb',    // Primary color
-					pink: '#f300fc',    // Accent color
-					blueDark: '#0077c8', // Darker shade for hover states
-					pinkDark: '#c200ca', // Darker pink for hover states
-					gradient: 'linear-gradient(to right, #0094fb, #f300fc)'
+					blue: '#5B8CF7',    // Softer blue
+					pink: '#C98FEF',    // Softer pink
+					blueDark: '#3A6CCC', // Darker shade for hover states
+					pinkDark: '#A36CC8', // Darker pink for hover states
+					lightGray: '#F4F0FF', // Light lavender background
+					gradient: 'linear-gradient(to right, #5B8CF7, #C98FEF)'
 				},
-				// Nova paleta de cores personalizada - Contourline
+				// Nova paleta de cores personalizada - Contourline (keeping but softening)
 				contourline: {
-					// Azul Escuro - #162C45 | RGB 20 44 70
-					darkBlue: '#162C45',
-					// Azul Médio - #2672B8 | RGB 23 114 185
-					mediumBlue: '#0094fb', // Updated to Fluida blue
-					// Azul Claro - #91B0DC | RGB 145 176 221
-					lightBlue: '#91B0DC',
-					// Cinza Claro - #E7E7E6 | RGB 232 231 231
-					lightGray: '#E7E7E6',
-					// Preto (para texto) - #202020
-					black: '#202020',
-					// Branco (para fundos) - #FFFFFF
+					darkBlue: '#3A567A', // Softer dark blue
+					mediumBlue: '#5B8CF7', // Updated to softer Fluida blue
+					lightBlue: '#B3CBEE', // Softer light blue
+					lightGray: '#F4F0FF', // Light lavender for backgrounds
+					black: '#121212', // Text color
 					white: '#FFFFFF',
-					// Accent (from Fluida)
-					accent: '#f300fc',
+					accent: '#C98FEF', // Softer accent
 				},
 				// Add these to the theme.extend.colors section
-				'fluida-blue': '#0094FB',
-				'fluida-pink': '#F300FC',
-			},
-			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				heading: ['Montserrat', 'sans-serif'],
+				'fluida-blue': '#5B8CF7',
+				'fluida-pink': '#C98FEF',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -124,6 +118,18 @@ export default {
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-10px)' }
+				},
+				'pulse-light': {
+					'0%, 100%': { 
+						boxShadow: '0 0 5px rgba(91, 140, 247, 0.2), 0 0 10px rgba(91, 140, 247, 0.1)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 15px rgba(91, 140, 247, 0.3), 0 0 20px rgba(91, 140, 247, 0.2)' 
+					}
+				},
+				'bounce-light': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
 				}
 			},
 			animation: {
@@ -132,12 +138,15 @@ export default {
 				'fade-in': 'fade-in 0.3s ease-out',
 				'fade-out': 'fade-out 0.3s ease-out',
 				'scale-in': 'scale-in 0.2s ease-out',
-				'float': 'float 6s ease-in-out infinite'
+				'float': 'float 6s ease-in-out infinite',
+				'pulse-light': 'pulse-light 2s infinite ease-in-out',
+				'bounce-light': 'bounce-light 2s infinite ease-in-out'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-				'fluida-gradient': 'linear-gradient(to right, #0094fb, #f300fc)',
+				'fluida-gradient': 'linear-gradient(to right, #5B8CF7, #C98FEF)',
+				'lavender-gradient': 'linear-gradient(to bottom, #F4F0FF, #E8F0FF)',
 			},
 		}
 	},
