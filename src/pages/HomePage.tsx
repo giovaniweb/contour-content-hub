@@ -70,13 +70,13 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-b from-white via-gray-50 to-white py-16">
+        {/* Hero Section - Updated with purple gradient */}
+        <section className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 py-16">
           <div className="container mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-fluida-blue to-fluida-pink bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
               Seu estúdio criativo em um clique
             </h1>
-            <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
+            <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-200">
               Crie roteiros, estratégias e conteúdos para mídias digitais com inteligência artificial
             </p>
             
@@ -90,6 +90,7 @@ const HomePage: React.FC = () => {
                 "Ideias para promover tratamento de criolipólise",
                 "Como criar conteúdo para atrair clientes de procedimentos estéticos",
               ]}
+              showHistory={false}
             />
           </div>
         </section>

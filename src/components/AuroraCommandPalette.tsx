@@ -38,6 +38,7 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
   const [isFocused, setIsFocused] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Animation for typing effect
   useEffect(() => {
@@ -77,6 +78,7 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
       }
       
       setInputValue("");
+      setShowSuggestions(false);
     }
   };
 
@@ -88,6 +90,18 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
 
   const handleSuggestionClick = (suggestion: string) => {
     setInputValue(suggestion);
+    setShowSuggestions(false);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setShowSuggestions(true);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    // Delay hiding suggestions to allow for suggestion clicks
+    setTimeout(() => setShowSuggestions(false), 200);
   };
 
   const displayPlaceholder = !inputValue && !isFocused ? typingText : placeholder;
@@ -133,8 +147,8 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={displayPlaceholder}
               onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               className="flex-grow bg-transparent text-foreground p-3 outline-none placeholder:text-muted-foreground text-lg"
             />
             <motion.button
@@ -174,33 +188,35 @@ const AuroraCommandPalette: React.FC<AuroraCommandPaletteProps> = ({
         </form>
       </motion.div>
 
-      {/* Suggestions/History */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <AnimatePresence>
-          {(showHistory && history.length > 0 ? 
-            [...new Set([...history, ...suggestions.filter(s => !history.includes(s)).slice(0, 5 - history.length)])]:
-            suggestions.slice(0, 5)
-          ).map((item, index) => (
-            <motion.div
-              key={item}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSuggestionClick(item)}
-            >
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer py-2 px-3 bg-white/10 backdrop-blur border-white/20 hover:bg-white/20"
+      {/* Suggestions/History - Only show when focused or explicitly shown */}
+      {showSuggestions && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <AnimatePresence>
+            {(showHistory && history.length > 0 ? 
+              [...new Set([...history, ...suggestions.filter(s => !history.includes(s)).slice(0, 5 - history.length)])]:
+              suggestions.slice(0, 5)
+            ).map((item, index) => (
+              <motion.div
+                key={item}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSuggestionClick(item)}
               >
-                {item}
-              </Badge>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                <Badge 
+                  variant="outline" 
+                  className="cursor-pointer py-2 px-3 bg-white/10 backdrop-blur border-white/20 hover:bg-white/20"
+                >
+                  {item}
+                </Badge>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };
