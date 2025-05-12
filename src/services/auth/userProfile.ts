@@ -35,6 +35,25 @@ export function formatUserProfile(userData: any): UserProfile {
   };
 }
 
+// Helper function to ensure UserProfile object has all required fields
+export function ensureUserProfile(user: Partial<UserProfile>): UserProfile {
+  return {
+    id: user.id || '',
+    email: user.email || '',
+    role: user.role || 'cliente',
+    name: user.name || user.nome || 'Usuário',
+    nome: user.nome || user.name || '',
+    clinic: user.clinic,
+    city: user.city,
+    phone: user.phone,
+    equipment: user.equipment,
+    language: user.language,
+    profilePhotoUrl: user.profilePhotoUrl,
+    passwordChanged: user.passwordChanged,
+    workspace_id: user.workspace_id
+  };
+}
+
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   try {
     // Buscar perfil do usuário no Supabase
@@ -59,11 +78,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
 
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>) {
   // Garantindo que name e nome estejam sincronizados
-  if (data.nome && !data.name) {
-    data.name = data.nome;
-  } else if (data.name && !data.nome) {
-    data.nome = data.name;
-  }
+  const safeData = ensureUserProfile(data);
   
   // Converter do formato frontend para o formato do banco
   const userData: any = {};

@@ -1,7 +1,16 @@
 
 import { User } from "@supabase/supabase-js";
 
-export type UserRole = 'admin' | 'gerente' | 'operador' | 'consultor' | 'superadmin' | 'cliente';
+export type UserRole = 
+  | 'admin' 
+  | 'gerente' 
+  | 'operador' 
+  | 'consultor' 
+  | 'superadmin' 
+  | 'cliente' 
+  | 'editAllContent'
+  | 'manageClients'
+  | 'viewSales';
 
 export type Workspace = {
   id: string;
@@ -23,6 +32,7 @@ export type UserProfile = {
   passwordChanged?: boolean;
   role: UserRole;
   workspace_id?: string;
+  name: string; // Campo obrigatório para compatibilidade no frontend
 };
 
 export type AuthContextType = {
