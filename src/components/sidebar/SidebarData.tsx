@@ -1,4 +1,5 @@
 
+import { ROUTES } from "@/routes";
 import {
   BarChart3,
   FileText,
@@ -36,7 +37,7 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Dashboard",
         icon: LayoutDashboard,
-        path: "/dashboard",
+        path: ROUTES.DASHBOARD,
       },
     ]
   },
@@ -47,23 +48,23 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Idea Validator",
         icon: Lightbulb,
-        path: "/content-ideas",
+        path: ROUTES.CONTENT.IDEAS,
         highlight: true
       },
       {
         name: "Marketing AI",
         icon: BarChart3,
-        path: "/marketing-consultant",
+        path: ROUTES.MARKETING.CONSULTANT,
       },
       {
         name: "Content Planner",
         icon: Calendar,
-        path: "/content-planner",
+        path: ROUTES.CONTENT.PLANNER,
       },
       {
         name: "Script Generator",
         icon: PencilLine,
-        path: "/script-generator",
+        path: ROUTES.CONTENT.SCRIPTS.GENERATOR,
       }
     ],
   },
@@ -79,7 +80,7 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Videos",
         icon: PlaySquare,
-        path: "/videos",
+        path: ROUTES.VIDEOS.ROOT,
       },
       {
         name: "Photos",
@@ -94,7 +95,7 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Scientific Articles",
         icon: BookOpen,
-        path: "/articles",
+        path: ROUTES.SCIENTIFIC_ARTICLES,
         highlight: true
       }
     ],
@@ -106,7 +107,7 @@ export const sidebarData: SidebarGroup[] = [
       {
         name: "Equipment Catalog",
         icon: Wrench,
-        path: "/equipments",
+        path: ROUTES.EQUIPMENT.LIST,
       },
     ],
   },
@@ -117,21 +118,23 @@ export const adminItems = [
   { 
     name: 'Admin Panel', 
     icon: LayoutDashboard,
-    path: '/admin'
+    path: ROUTES.ADMIN.ROOT
   },
   { 
     name: 'Content Management', 
     icon: FileText,
-    path: '/admin/content'
+    path: ROUTES.ADMIN.CONTENT
   },
   { 
     name: 'Equipment Management', 
     icon: Wrench,
-    path: '/admin/equipment'
+    path: ROUTES.ADMIN.EQUIPMENT
   },
   { 
     name: 'System Settings', 
     icon: Calendar,
-    path: '/settings'
+    path: ROUTES.WORKSPACE_SETTINGS
   },
 ];
+
+export default { sidebarData, adminItems };

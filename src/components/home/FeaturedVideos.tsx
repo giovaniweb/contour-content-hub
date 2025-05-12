@@ -4,10 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 import { StoredVideo } from '@/types/video-storage';
 import { loadVideosData } from '@/hooks/video-batch/videoBatchOperations';
-
-// Fix the import from named to default
 import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';
 
 interface FeaturedVideosProps {
@@ -76,7 +75,7 @@ const FeaturedVideos: React.FC<FeaturedVideosProps> = ({ className }) => {
           <CardTitle className="text-lg font-semibold flex items-center text-contourline-darkBlue">
             Vídeos em Destaque
           </CardTitle>
-          <Link to="/videos">
+          <Link to={ROUTES.VIDEOS.ROOT}>
             <Button variant="ghost" size="sm" className="text-contourline-mediumBlue">
               Ver todos
             </Button>

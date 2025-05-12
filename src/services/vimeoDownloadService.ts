@@ -223,8 +223,10 @@ export const checkVideoDownloadLinks = async (): Promise<{
       }[]
     };
     
-    // Tratamos cada vídeo como VideoStorageRow
-    (videos as VideoStorageRow[]).forEach(video => {
+    // Transformamos os resultados para garantir que sejam do tipo VideoStorageRow
+    const typedVideos = videos as VideoStorageRow[];
+    
+    typedVideos.forEach(video => {
       const linkTypes: string[] = [];
       let hasLinks = false;
       

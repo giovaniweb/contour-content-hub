@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 
 const FeaturedCarousel: React.FC = () => {
   // Mock data for featured content
@@ -15,7 +16,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Como criar vídeos educativos sobre procedimentos estéticos',
       type: 'video',
       image: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
-      link: '/video-player?id=1',
+      link: `${ROUTES.VIDEOS.PLAYER}?id=1`,
       badge: 'Em alta'
     },
     {
@@ -23,7 +24,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Roteiro para demonstração completa de equipamento facial',
       type: 'script',
       image: '/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png',
-      link: '/script-generator?template=2',
+      link: `${ROUTES.CONTENT.SCRIPTS.GENERATOR}?template=2`,
       badge: 'Novo'
     },
     {
@@ -31,7 +32,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Dicas para criar antes & depois de procedimentos estéticos',
       type: 'article',
       image: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
-      link: '/articles/3',
+      link: `${ROUTES.SCIENTIFIC_ARTICLES}/3`,
       badge: 'Popular'
     },
     {
@@ -39,7 +40,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Galeria de mídias para tratamentos corporais',
       type: 'media',
       image: '/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png',
-      link: '/media?category=4',
+      link: `${ROUTES.MEDIA}?category=4`,
       badge: 'Recomendado'
     },
     {
@@ -47,7 +48,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Roteiro: Benefícios comprovados do laser fracionado',
       type: 'script',
       image: '/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png',
-      link: '/script-generator?template=5',
+      link: `${ROUTES.CONTENT.SCRIPTS.GENERATOR}?template=5`,
       badge: 'Científico'
     },
     {
@@ -55,7 +56,7 @@ const FeaturedCarousel: React.FC = () => {
       title: 'Tendências em rejuvenescimento facial para 2025',
       type: 'article',
       image: '/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png',
-      link: '/articles/6',
+      link: `${ROUTES.SCIENTIFIC_ARTICLES}/6`,
       badge: 'Tendência'
     },
   ];

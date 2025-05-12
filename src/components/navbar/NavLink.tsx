@@ -2,7 +2,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 
 interface NavLinkProps {
@@ -37,3 +36,5 @@ export const NavLink: React.FC<NavLinkProps> = ({
     </Link>
   );
 };
+
+export default NavLink;

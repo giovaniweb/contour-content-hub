@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { ROUTES } from "@/routes";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +35,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   
   // Verificar se temos um redirecionamento
-  const from = location.state?.from || "/";
+  const from = location.state?.from || ROUTES.DASHBOARD;
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -131,7 +132,7 @@ const Login: React.FC = () => {
               />
               
               <div className="flex items-center justify-end">
-                <Link to="/reset-password" className="text-sm text-primary hover:underline">
+                <Link to={ROUTES.RESET_PASSWORD} className="text-sm text-primary hover:underline">
                   Esqueceu a senha?
                 </Link>
               </div>
@@ -148,7 +149,7 @@ const Login: React.FC = () => {
               
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">Não tem uma conta? </span>
-                <Link to="/signup" className="text-primary hover:underline">
+                <Link to={ROUTES.REGISTER} className="text-primary hover:underline">
                   Cadastre-se
                 </Link>
               </div>

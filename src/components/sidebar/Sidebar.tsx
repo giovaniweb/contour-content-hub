@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { ROUTES } from '@/routes';
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -32,7 +33,7 @@ export default function Sidebar() {
   
   // Check if the current path is active
   const isActive = (path: string) => {
-    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
+    if (path === ROUTES.DASHBOARD && (location.pathname === '/' || location.pathname === ROUTES.DASHBOARD)) {
       return true;
     }
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -116,7 +117,7 @@ export default function Sidebar() {
       <SidebarFooter className="border-t p-4">
         {open ? (
           <div className="space-y-2">
-            <Link to="/profile" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+            <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
               <User className="h-4 w-4" />
               <span className="text-sm">Profile</span>
             </Link>

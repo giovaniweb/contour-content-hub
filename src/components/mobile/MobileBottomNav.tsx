@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
+import { ROUTES } from "@/routes";
 import { 
   LayoutDashboard, 
   Kanban, 
@@ -20,17 +21,17 @@ export default function MobileBottomNav() {
   };
   
   const isActive = (path: string) => {
-    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
+    if (path === ROUTES.DASHBOARD && (location.pathname === '/' || location.pathname === ROUTES.DASHBOARD)) {
       return true;
     }
     return location.pathname === path;
   };
   
   const menuItems = [
-    { icon: LayoutDashboard, path: '/dashboard', label: 'Home' },
-    { icon: Kanban, path: '/content-planner', label: 'Planner' },
-    { icon: Lightbulb, path: '/content-ideas', label: 'Ideas' },
-    { icon: FileText, path: '/scripts', label: 'Scripts' },
+    { icon: LayoutDashboard, path: ROUTES.DASHBOARD, label: 'Home' },
+    { icon: Kanban, path: ROUTES.CONTENT.PLANNER, label: 'Planner' },
+    { icon: Lightbulb, path: ROUTES.CONTENT.IDEAS, label: 'Ideas' },
+    { icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, label: 'Scripts' },
   ];
 
   return (

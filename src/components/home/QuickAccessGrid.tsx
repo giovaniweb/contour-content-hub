@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FileVideo, BookOpenCheck, FileText, Images, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 import { Card, CardContent } from '@/components/ui/card';
 
 const QuickAccessGrid: React.FC = () => {
@@ -11,35 +12,35 @@ const QuickAccessGrid: React.FC = () => {
       title: "Vídeos populares",
       description: "Acesse demonstrações, tutoriais e casos reais",
       icon: <FileVideo className="h-6 w-6 text-fluida-blue" />,
-      link: "/video-storage",
+      link: ROUTES.VIDEOS.ROOT,
       color: "bg-blue-50 group-hover:bg-blue-100"
     },
     {
       title: "Roteiros em alta",
       description: "Os tópicos mais requisitados do momento",
       icon: <TrendingUp className="h-6 w-6 text-green-600" />,
-      link: "/script-generator",
+      link: ROUTES.CONTENT.SCRIPTS.GENERATOR,
       color: "bg-green-50 group-hover:bg-green-100"
     },
     {
       title: "Templates prontos",
       description: "Comece rapidamente com modelos profissionais",
       icon: <FileText className="h-6 w-6 text-purple-600" />,
-      link: "/content-planner",
+      link: ROUTES.CONTENT.PLANNER,
       color: "bg-purple-50 group-hover:bg-purple-100"
     },
     {
       title: "Artigos científicos",
       description: "Evidências e pesquisas para embasar conteúdos",
       icon: <BookOpenCheck className="h-6 w-6 text-amber-600" />,
-      link: "/scientific-articles",
+      link: ROUTES.SCIENTIFIC_ARTICLES,
       color: "bg-amber-50 group-hover:bg-amber-100"
     },
     {
       title: "Arquivos e fotos",
       description: "Imagens profissionais para suas publicações",
       icon: <Images className="h-6 w-6 text-rose-600" />,
-      link: "/media",
+      link: ROUTES.MEDIA,
       color: "bg-rose-50 group-hover:bg-rose-100"
     }
   ];

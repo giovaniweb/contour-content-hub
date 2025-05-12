@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ROUTES } from "@/routes";
 import {
   Sheet,
   SheetContent,
@@ -54,7 +55,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
         </SheetHeader>
         <div className="flex flex-col p-4 space-y-2">
           <Link
-            to="/dashboard"
+            to={ROUTES.DASHBOARD}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -62,7 +63,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Dashboard</span>
           </Link>
           <Link
-            to="/content-planner"
+            to={ROUTES.CONTENT.PLANNER}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -70,7 +71,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Planner</span>
           </Link>
           <Link
-            to="/content-ideas"
+            to={ROUTES.CONTENT.IDEAS}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -78,7 +79,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Idea Validator</span>
           </Link>
           <Link
-            to="/scripts"
+            to={ROUTES.CONTENT.SCRIPTS.ROOT}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -86,7 +87,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Scripts</span>
           </Link>
           <Link
-            to="/videos"
+            to={ROUTES.VIDEOS.ROOT}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -94,7 +95,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Videos</span>
           </Link>
           <Link
-            to="/media-library"
+            to={ROUTES.MEDIA}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -110,7 +111,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Media Files</span>
           </Link>
           <Link
-            to="/content-strategy"
+            to={ROUTES.CONTENT.STRATEGY}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -118,7 +119,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Strategy</span>
           </Link>
           <Link
-            to="/articles"
+            to={ROUTES.SCIENTIFIC_ARTICLES}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -126,7 +127,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Articles</span>
           </Link>
           <Link
-            to="/reports"
+            to={ROUTES.MARKETING.REPORTS}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -134,7 +135,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Reports</span>
           </Link>
           <Link
-            to="/agenda"
+            to={ROUTES.CONTENT.CALENDAR}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -142,7 +143,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
             <span>Agenda</span>
           </Link>
           <Link
-            to="/equipment"
+            to={ROUTES.EQUIPMENT.LIST}
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
@@ -152,7 +153,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
           {isAdmin() && (
             <>
               <Link
-                to="/admin"
+                to={ROUTES.ADMIN.ROOT}
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted mt-4 border-t pt-4"
                 onClick={() => setIsOpen(false)}
               >
@@ -160,7 +161,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                 <span>Admin</span>
               </Link>
               <Link
-                to="/diagnostics"
+                to={ROUTES.ADMIN.SYSTEM.DIAGNOSTICS}
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
@@ -168,7 +169,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                 <span>Diagnostics</span>
               </Link>
               <Link
-                to="/ai-panel"
+                to={ROUTES.ADMIN.AI}
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
@@ -184,7 +185,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                 <span>Integrations</span>
               </Link>
               <Link
-                to="/settings"
+                to={ROUTES.WORKSPACE_SETTINGS}
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                 onClick={() => setIsOpen(false)}
               >
@@ -198,3 +199,5 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
     </Sheet>
   );
 };
+
+export default MobileNavMenu;
