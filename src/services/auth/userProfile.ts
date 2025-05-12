@@ -16,6 +16,25 @@ export function validateRole(role: string): UserRole {
   return 'operador'; // Default to 'operador' if an invalid role is found
 }
 
+// Helper function to format user profile data consistently
+export function formatUserProfile(userData: any): UserProfile {
+  return {
+    id: userData.id,
+    email: userData.email,
+    nome: userData.nome || '',
+    role: validateRole(userData.role || 'operador'),
+    city: userData.cidade,
+    clinic: userData.clinica,
+    phone: userData.telefone,
+    equipment: userData.equipamentos,
+    language: userData.idioma as "PT" | "EN" | "ES" | undefined,
+    profilePhotoUrl: userData.foto_url,
+    name: userData.nome || '', // Definir name com base em nome para compatibilidade
+    passwordChanged: userData.password_changed,
+    workspace_id: userData.workspace_id
+  };
+}
+
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   try {
     // Buscar perfil do usuário no Supabase
@@ -30,22 +49,8 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       return null;
     }
 
-    // Converter o formato do banco para o formato esperado pelo frontend
-    const profile: UserProfile = {
-      id: userData.id,
-      email: userData.email,
-      nome: userData.nome || '',
-      role: validateRole(userData.role || 'operador'),
-      city: userData.cidade,
-      clinic: userData.clinica,
-      phone: userData.telefone,
-      equipment: userData.equipamentos,
-      language: userData.idioma as "PT" | "EN" | "ES" | undefined,
-      profilePhotoUrl: userData.foto_url,
-      name: userData.nome || '' // Definir name com base em nome para compatibilidade
-    };
-
-    return profile;
+    // Converter o formato do banco para o formato esperado pelo frontend usando o formatador
+    return formatUserProfile(userData);
   } catch (error) {
     console.error("Erro ao processar perfil:", error);
     return null;
@@ -53,6 +58,13 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
 }
 
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>) {
+  // Garantindo que name e nome estejam sincronizados
+  if (data.nome && !data.name) {
+    data.name = data.nome;
+  } else if (data.name && !data.nome) {
+    data.nome = data.name;
+  }
+  
   // Converter do formato frontend para o formato do banco
   const userData: any = {};
   
