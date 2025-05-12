@@ -1,10 +1,9 @@
 
-
 export type UserRole = 
   | 'admin' 
   | 'gerente' 
   | 'operador' 
-  | 'consultor'
+  | 'consultor' 
   | 'superadmin'
   | 'cliente'
   | 'editAllContent'

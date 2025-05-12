@@ -2,10 +2,12 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
+import { ensureUserProfile } from '@/services/auth/userProfile';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const userName = user?.name || user?.nome || 'Usuário';
+  const userProfile = user ? ensureUserProfile(user) : null;
+  const userName = userProfile ? userProfile.name : 'Usuário';
   
   return (
     <Layout title="Dashboard">
