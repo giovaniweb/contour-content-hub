@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import AuroraCommandPalette from "@/components/AuroraCommandPalette";
 
 const Index: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -41,6 +42,10 @@ const Index: React.FC = () => {
     }
   };
 
+  const handleCommandSubmit = (command: string) => {
+    navigate("/dashboard", { state: { query: command } });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="py-6 border-b bg-white">
@@ -55,7 +60,21 @@ const Index: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-grow flex items-center justify-center p-4 bg-gradient-to-b from-white to-gray-50">
+      <main className="flex-grow flex flex-col items-center justify-center p-4 bg-gradient-to-b from-white to-gray-50">
+        <div className="w-full max-w-3xl mb-8">
+          <AuroraCommandPalette
+            onSubmit={handleCommandSubmit}
+            placeholder="Experimente nossa IA assistente..."
+            suggestions={[
+              "O que posso fazer aqui?",
+              "Como criar um roteiro para video?",
+              "Ideias para conteúdo de Instagram",
+              "Estratégias para mídias sociais",
+              "Sugestões de conteúdo para clínica estética"
+            ]}
+          />
+        </div>
+        
         <div className="container max-w-md">
           <Card className="shadow-lg border-0">
             <CardHeader className="space-y-1">

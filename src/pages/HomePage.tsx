@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes";
@@ -7,7 +6,7 @@ import HeroSection from "@/components/home/HeroSection";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import { useAuth } from "@/context/AuthContext";
 import AnimationStyles from "@/components/home/AnimationStyles";
-import IntelligentIntentProcessor from "@/components/home/IntelligentIntentProcessor";
+import AuroraCommandPalette from "@/components/AuroraCommandPalette";
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -28,6 +27,11 @@ const HomePage: React.FC = () => {
     "Otimize seu tempo na criação de conteúdo",
     "Aumente seus resultados com conteúdo estratégico"
   ];
+
+  const handleCommandSubmit = (command: string) => {
+    // Handle the command submission - for now just navigate to dashboard with query
+    navigate(ROUTES.DASHBOARD, { state: { query: command } });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -66,13 +70,27 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        {/* Hero Section with intent processor */}
-        <HeroSection />
-        
-        {/* Intent processor */}
-        <section className="bg-white py-10">
-          <div className="container mx-auto">
-            <IntelligentIntentProcessor />
+        {/* Hero Section */}
+        <section className="bg-gradient-to-b from-white via-gray-50 to-white py-16">
+          <div className="container mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-fluida-blue to-fluida-pink bg-clip-text text-transparent">
+              Seu estúdio criativo em um clique
+            </h1>
+            <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
+              Crie roteiros, estratégias e conteúdos para mídias digitais com inteligência artificial
+            </p>
+            
+            {/* Add the Aurora Command Palette */}
+            <AuroraCommandPalette 
+              onSubmit={handleCommandSubmit}
+              suggestions={[
+                "Crie roteiro para vídeo sobre rejuvenescimento facial",
+                "Estratégias para Instagram sobre estética avançada",
+                "Conteúdo para profissionais da medicina estética",
+                "Ideias para promover tratamento de criolipólise",
+                "Como criar conteúdo para atrair clientes de procedimentos estéticos",
+              ]}
+            />
           </div>
         </section>
         
