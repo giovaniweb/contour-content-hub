@@ -1,6 +1,4 @@
 
-
-
 export type UserRole = 
   | 'admin' 
   | 'gerente' 
@@ -11,12 +9,6 @@ export type UserRole =
   | 'editAllContent'
   | 'manageClients'
   | 'viewSales';
-
-export type WorkspaceRole = 
-  | 'admin' 
-  | 'gerente' 
-  | 'operador' 
-  | 'consultor';
 
 export interface Workspace {
   id: string;
