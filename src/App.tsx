@@ -32,12 +32,18 @@ import AdminSystemDiagnostics from '@/pages/admin/SystemDiagnostics';
 import AdminSystemIntelligence from '@/pages/admin/SystemIntelligence';
 import AdminContent from '@/pages/admin/AdminContent';
 import AdminWorkspace from '@/pages/admin/WorkspaceSettings';
+import ReportsPage from '@/pages/reports/ReportsPage';
+import Dashboard from '@/pages/Dashboard';
 
 // Create router configuration
 const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
     element: <HomePage />,
+  },
+  {
+    path: ROUTES.DASHBOARD,
+    element: <Dashboard />,
   },
   {
     path: ROUTES.VIDEOS.ROOT,
@@ -114,6 +120,10 @@ const router = createBrowserRouter([
   {
     path: ROUTES.ADMIN.WORKSPACE,
     element: <AdminWorkspace />,
+  },
+  {
+    path: ROUTES.MARKETING.REPORTS,
+    element: <ReportsPage />,
   },
   {
     path: "*",

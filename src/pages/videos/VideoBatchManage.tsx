@@ -1,168 +1,164 @@
+
 import React from 'react';
 import Layout from '@/components/Layout';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import useBatchVideoManage from '@/hooks/useBatchVideoManage';
-import { ROUTES } from '@/routes';
-
-// Import our components
-import VideoSearch from '@/components/video-batch/VideoSearch';
-import BatchActionBar from '@/components/video-batch/BatchActionBar';
-import VideoList from '@/components/video-batch/VideoList';
-import BatchEditDialog from '@/components/video-batch/BatchEditDialog';
-
-// Define EditableVideo type locally to resolve type conflicts
-interface EditableVideo {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  tags: string[];
-  isEditing: boolean;
-  editTitle: string;
-  editDescription: string;
-  editEquipmentId: string;
-  editTags: string[];
-  originalEquipmentId?: string;
-  metadata?: any;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileEdit, Trash2, Video, Filter, SortAsc } from 'lucide-react';
 
 const VideoBatchManage: React.FC = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const {
-    videos,
-    loading,
-    searchQuery,
-    setSearchQuery,
-    selectedVideos,
-    setSelectedVideos,
-    batchEquipmentId,
-    setBatchEquipmentId,
-    showBatchEditDialog,
-    setShowBatchEditDialog,
-    loadVideos,
-    handleSelectAll,
-    handleSelect,
-    handleEdit,
-    handleUpdate,
-    handleSave,
-    handleCancel,
-    handleDelete,
-    handleBatchDelete,
-    handleBatchEquipmentUpdate,
-    isAdmin,
-    equipments
-  } = useBatchVideoManage();
-
-  // Check for admin permissions
-  React.useEffect(() => {
-    if (!isAdmin()) {
-      toast({
-        title: "Acesso Restrito",
-        description: "Apenas administradores podem acessar esta página",
-        variant: "destructive"
-      });
-      navigate(ROUTES.VIDEOS.ROOT);
-    }
-  }, [isAdmin, navigate, toast]);
-
-  if (!isAdmin()) {
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-6 space-y-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Gerenciamento em Lote</h1>
-            <Button variant="outline" onClick={() => navigate(ROUTES.VIDEOS.ROOT)}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Carregando vídeos...</p>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-  
   return (
     <Layout>
       <div className="container mx-auto py-6 space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gerenciamento em Lote</h1>
-          <Button variant="outline" onClick={() => navigate(ROUTES.VIDEOS.ROOT)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-          </Button>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Gerenciar Vídeos em Lote</h1>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filtrar
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <SortAsc className="h-4 w-4" />
+              Ordenar
+            </Button>
+          </div>
         </div>
+        
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="w-full max-w-md grid grid-cols-3 mb-6">
+            <TabsTrigger value="all">Todos os Vídeos</TabsTrigger>
+            <TabsTrigger value="flagged">Marcados</TabsTrigger>
+            <TabsTrigger value="published">Publicados</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all" className="space-y-4">
+            <Card>
+              <CardHeader className="bg-muted/20 pb-2">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Video className="h-5 w-5 text-blue-600" />
+                    Gerenciamento em Lote
+                  </span>
+                  <span className="text-sm font-normal text-muted-foreground">42 vídeos</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/20 transition-colors">
+                    <div>
+                      <h3 className="font-medium">Como utilizar a Fluida</h3>
+                      <p className="text-sm text-muted-foreground">Adicionado em 12/05/2025</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon">
+                        <FileEdit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/20 transition-colors">
+                    <div>
+                      <h3 className="font-medium">Tutorial de Marketing Digital</h3>
+                      <p className="text-sm text-muted-foreground">Adicionado em 10/05/2025</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon">
+                        <FileEdit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/20 transition-colors">
+                    <div>
+                      <h3 className="font-medium">Estratégias para Instagram</h3>
+                      <p className="text-sm text-muted-foreground">Adicionado em 05/05/2025</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon">
+                        <FileEdit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between border-t pt-6">
+                <Button variant="outline">Selecionar Todos</Button>
+                <div className="space-x-2">
+                  <Button variant="outline">Categorizar</Button>
+                  <Button>Aplicar Mudanças</Button>
+                </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="flagged" className="space-y-4">
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Nenhum vídeo marcado.</p>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="published" className="space-y-4">
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Nenhum vídeo publicado ainda.</p>
+            </Card>
+          </TabsContent>
+        </Tabs>
         
         <Card>
           <CardHeader>
-            <CardTitle>Gerenciar Vídeos</CardTitle>
-            <CardDescription>Edite, exclua ou gerencie múltiplos vídeos</CardDescription>
+            <CardTitle>Operações em Lote</CardTitle>
+            <CardDescription>
+              Realize operações em múltiplos vídeos simultaneamente para uma gestão mais eficiente.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Search and filters */}
-            <VideoSearch
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onRefresh={loadVideos}
-            />
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Categorizar</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Atribua categorias a múltiplos vídeos ao mesmo tempo.
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">Categorizar</Button>
+              </CardFooter>
+            </Card>
             
-            {/* Batch actions */}
-            <BatchActionBar 
-              selectedCount={selectedVideos.length}
-              onClearSelection={() => setSelectedVideos([])}
-              onShowEditDialog={() => setShowBatchEditDialog(true)}
-              onDelete={() => handleBatchDelete().catch(err => console.error(err))}
-            />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Definir Metadados</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Aplique tags e descrições padronizadas em lote.
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">Metadados</Button>
+              </CardFooter>
+            </Card>
             
-            {/* Videos list */}
-            <VideoList 
-              videos={videos as any[]}
-              selectedVideos={selectedVideos}
-              equipments={equipments}
-              onSelect={handleSelect}
-              onSelectAll={handleSelectAll}
-              onEdit={handleEdit}
-              onSave={(videoId) => handleSave(videoId).catch(err => console.error(err))}
-              onCancel={handleCancel}
-              onDelete={(videoId) => handleDelete(videoId).catch(err => console.error(err))}
-              onUpdateVideo={(index, updates) => {
-                // Convert index to string if needed by the underlying implementation
-                const id = typeof index === 'number' ? videos[index].id : index;
-                handleUpdate(id, updates);
-              }}
-            />
-            
-            {videos.length > 0 && (
-              <div className="mt-4 text-sm text-muted-foreground text-right">
-                Total: {videos.length} vídeos
-              </div>
-            )}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Exportar Dados</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Exporte informações de múltiplos vídeos para análise.
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">Exportar</Button>
+              </CardFooter>
+            </Card>
           </CardContent>
         </Card>
-        
-        <BatchEditDialog 
-          isOpen={showBatchEditDialog}
-          onOpenChange={setShowBatchEditDialog}
-          equipmentOptions={equipments}
-          batchEquipmentId={batchEquipmentId}
-          setBatchEquipmentId={setBatchEquipmentId}
-          selectedCount={selectedVideos.length}
-          onApply={() => handleBatchEquipmentUpdate().catch(err => console.error(err))}
-        />
       </div>
     </Layout>
   );
