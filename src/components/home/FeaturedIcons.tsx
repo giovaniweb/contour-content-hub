@@ -5,13 +5,24 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Video, Image, Pen, FileImage, Users, BarChart2, Import } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const FeaturedIcons: React.FC = () => {
   const { user, isLoading } = useUser();
-  const isAdmin = user?.app_metadata?.role === 'admin';
+  const { isAdmin } = usePermissions();
+  
+  // Define an interface for our icon items to ensure type safety
+  interface IconItem {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    color: string;
+    link: string;
+    isAdmin?: boolean;
+  }
   
   // Ícones principais disponíveis para todos os usuários
-  const mainIcons = [
+  const mainIcons: IconItem[] = [
     {
       title: "Vídeos",
       description: "Conteúdo em vídeo para suas redes",
@@ -43,13 +54,13 @@ const FeaturedIcons: React.FC = () => {
   ];
   
   // Ícones específicos para administradores
-  const adminIcons = [
+  const adminIcons: IconItem[] = [
     {
       title: "Importar vídeos",
       description: "Adicionar novos conteúdos",
       icon: <Import className="h-8 w-8 text-amber-400" />,
       color: "bg-amber-100/20 hover:bg-amber-100/30 border-amber-400/30 group-hover:shadow-amber-400/40",
-      link: ROUTES.VIDEOS.BATCH_IMPORT,
+      link: ROUTES.VIDEOS.IMPORT,
       isAdmin: true
     },
     {
@@ -65,13 +76,13 @@ const FeaturedIcons: React.FC = () => {
       description: "Análise de performance",
       icon: <BarChart2 className="h-8 w-8 text-rose-400" />,
       color: "bg-rose-100/20 hover:bg-rose-100/30 border-rose-400/30 group-hover:shadow-rose-400/40",
-      link: ROUTES.REPORTS,
+      link: ROUTES.MARKETING.REPORTS,
       isAdmin: true
     }
   ];
   
   // Escolher quais ícones exibir com base no papel do usuário
-  const icons = [...mainIcons, ...(isAdmin ? adminIcons : [])];
+  const icons = [...mainIcons, ...(isAdmin() ? adminIcons : [])];
   
   const container = {
     hidden: { opacity: 0 },
