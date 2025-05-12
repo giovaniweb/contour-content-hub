@@ -53,12 +53,16 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: ({ direction, ...props }) =>
-          direction === "left" ? (
-            <ChevronLeft className="h-4 w-4" {...props} />
+        Chevron({ ...props }) {
+          // Check if there's a direction prop specifically
+          // If not, fallback to checking className for navigation direction
+          const isLeft = props.className?.includes('nav_button_previous');
+          return isLeft ? (
+            <ChevronLeft className="h-4 w-4" />
           ) : (
-            <ChevronRight className="h-4 w-4" {...props} />
-          ),
+            <ChevronRight className="h-4 w-4" />
+          );
+        },
       }}
       {...props}
     />

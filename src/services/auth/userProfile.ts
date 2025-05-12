@@ -64,7 +64,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
   if (data.equipment) userData.equipamentos = data.equipment;
   if (data.language) userData.idioma = data.language;
   if (data.profilePhotoUrl) userData.foto_url = data.profilePhotoUrl;
-  if (data.name) userData.nome = data.name; // Update nome field when name is provided
+  if (data.name) userData.nome = data.name; // Map name to nome field
   
   return await supabase
     .from('perfis')
