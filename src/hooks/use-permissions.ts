@@ -40,7 +40,7 @@ export function usePermissions() {
     
     switch (requiredRole) {
       case 'superadmin':
-        return profile.role === 'superadmin';
+        return ['superadmin'].includes(profile.role);
       case 'admin':
         return ['admin', 'superadmin'].includes(profile.role);
       case 'gerente':
