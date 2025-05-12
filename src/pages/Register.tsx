@@ -17,9 +17,7 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Senhas não conferem",
+      toast("Senhas não conferem", {
         description: "A senha e a confirmação de senha precisam ser iguais."
       });
       return;
@@ -28,14 +26,11 @@ const Register: React.FC = () => {
     setIsLoading(true);
     try {
       await register(email, password);
-      toast({
-        title: "Conta criada com sucesso",
+      toast("Conta criada com sucesso", {
         description: "Você será redirecionado para a página de login."
       });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar conta",
+      toast("Erro ao criar conta", {
         description: "Não foi possível criar sua conta. Tente novamente."
       });
     } finally {
