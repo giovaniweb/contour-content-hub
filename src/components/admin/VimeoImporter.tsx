@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FluidaInput } from "@/components/ui/fluida-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,7 +24,7 @@ import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEquipments } from "@/hooks/useEquipments";
 import { Equipment } from '@/types/equipment';
@@ -181,7 +180,10 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
             <FormItem>
               <FormLabel>Título do Vídeo</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Demonstração Hipro" {...field} />
+                <FluidaInput 
+                  {...field} 
+                  animatedPlaceholder={["Ex: Demonstração Hipro", "Tutorial de uso do equipamento", "Vídeo institucional"]}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -194,10 +196,12 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
             <FormItem>
               <FormLabel>Descrição</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Ex: Demonstração do equipamento Hipro"
-                  className="resize-none"
+                <FluidaInput
+                  multiline
+                  rows={4}
                   {...field}
+                  animatedPlaceholder={["Ex: Demonstração do equipamento Hipro", "Explicação detalhada das funcionalidades", "Vídeo mostrando resultados"]}
+                  className="resize-none"
                 />
               </FormControl>
               <FormMessage />
@@ -211,7 +215,11 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
             <FormItem>
               <FormLabel>URL do Vídeo no Vimeo</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: https://vimeo.com/123456789" {...field} />
+                <FluidaInput 
+                  {...field} 
+                  animatedPlaceholder={["Ex: https://vimeo.com/123456789"]} 
+                  iconRight={<LinkIcon className="h-5 w-5" />}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -225,7 +233,7 @@ const VimeoImporter: React.FC<VimeoImporterProps> = ({ onCompleteImport, selecte
               <FormLabel>Equipamento</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md border border-white/20 hover:shadow-[0_0_10px_rgba(0,148,251,0.2)]">
                     <SelectValue placeholder="Selecione um equipamento" />
                   </SelectTrigger>
                 </FormControl>

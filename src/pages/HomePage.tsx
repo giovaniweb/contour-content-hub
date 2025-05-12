@@ -7,6 +7,7 @@ import HeroSection from "@/components/home/HeroSection";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import { useAuth } from "@/context/AuthContext";
 import AnimationStyles from "@/components/home/AnimationStyles";
+import IntelligentIntentProcessor from "@/components/home/IntelligentIntentProcessor";
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -65,8 +66,15 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="flex-grow pt-16">
-        {/* Hero Section com processamento de intenção */}
+        {/* Hero Section with intent processor */}
         <HeroSection />
+        
+        {/* Intent processor */}
+        <section className="bg-white py-10">
+          <div className="container mx-auto">
+            <IntelligentIntentProcessor />
+          </div>
+        </section>
         
         {/* Seção de recursos */}
         <section className="bg-white py-20">
@@ -93,7 +101,7 @@ const HomePage: React.FC = () => {
               ].map((feature, index) => (
                 <div 
                   key={index}
-                  className="bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6 shadow-sm hover:shadow-[0_0_15px_rgba(0,148,251,0.15)] transition-all hover:-translate-y-1"
                 >
                   <div className="text-4xl mb-4">{feature.icon}</div>
                   <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
@@ -137,7 +145,7 @@ const HomePage: React.FC = () => {
               ].map((testimonial, index) => (
                 <div 
                   key={index}
-                  className="bg-white p-6 rounded-lg shadow-md"
+                  className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
                 >
                   <p className="italic text-gray-700 mb-4">"{testimonial.quote}"</p>
                   <div className="flex items-center">
@@ -170,7 +178,7 @@ const HomePage: React.FC = () => {
               size="lg"
               variant="secondary" 
               onClick={() => navigate(ROUTES.REGISTER)}
-              className="text-lg px-8"
+              className="text-lg px-8 bg-white text-blue-600 hover:bg-blue-50"
             >
               Começar agora
             </Button>

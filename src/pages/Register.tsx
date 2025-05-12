@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FluidaInput } from "@/components/ui/fluida-input";
 import { 
   Form,
   FormControl,
@@ -121,14 +121,11 @@ const Register: React.FC = () => {
                   <FormItem>
                     <FormLabel>Nome completo</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input 
-                          placeholder="Seu nome completo" 
-                          {...field}
-                          className="pl-10" 
-                        />
-                        <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                      </div>
+                      <FluidaInput 
+                        {...field}
+                        animatedPlaceholder={["Seu nome completo", "Ex: João da Silva"]}
+                        iconRight={<User className="h-5 w-5" />}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -142,15 +139,12 @@ const Register: React.FC = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input 
-                          placeholder="seu@email.com" 
-                          type="email" 
-                          {...field} 
-                          className="pl-10"
-                        />
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                      </div>
+                      <FluidaInput 
+                        {...field}
+                        type="email"
+                        animatedPlaceholder={["seu@email.com", "contato@empresa.com.br"]} 
+                        iconRight={<Mail className="h-5 w-5" />}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -165,24 +159,23 @@ const Register: React.FC = () => {
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input 
-                          placeholder="******" 
-                          type={showPassword ? "text" : "password"} 
+                        <FluidaInput 
                           {...field}
-                          className="pl-10 pr-10"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="******"
+                          iconRight={
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          }
                         />
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-2.5"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </button>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -250,14 +243,11 @@ const Register: React.FC = () => {
                     <FormItem>
                       <FormLabel>Cidade (opcional)</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input 
-                            placeholder="Sua cidade" 
-                            {...field}
-                            className="pl-10" 
-                          />
-                          <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        </div>
+                        <FluidaInput 
+                          {...field}
+                          animatedPlaceholder={["Sua cidade", "Ex: São Paulo"]} 
+                          iconRight={<MapPin className="h-5 w-5" />}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -271,14 +261,11 @@ const Register: React.FC = () => {
                     <FormItem>
                       <FormLabel>Telefone (opcional)</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input 
-                            placeholder="(00) 00000-0000" 
-                            {...field}
-                            className="pl-10" 
-                          />
-                          <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        </div>
+                        <FluidaInput 
+                          {...field}
+                          animatedPlaceholder={["(00) 00000-0000", "(11) 98765-4321"]} 
+                          iconRight={<Phone className="h-5 w-5" />}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

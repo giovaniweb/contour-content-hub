@@ -1,82 +1,67 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import IntelligentIntentProcessor from './IntelligentIntentProcessor';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/routes";
+import { FluidaInput } from "@/components/ui/fluida-input";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+  const [inputValue, setInputValue] = useState("");
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      navigate(ROUTES.DASHBOARD, { state: { query: inputValue } });
+    }
+  };
+  
+  const animatedPlaceholders = [
+    "Crie estratégias para Instagram...",
+    "Como criar conteúdo sobre emagrecimento...",
+    "Roteiro para vídeo de 3 minutos...",
+    "Ideias para campanha de lançamento...",
+  ];
+  
   return (
-    <section className="relative h-[85vh] flex items-center justify-center overflow-hidden text-white">
-      {/* Background Video/Animation */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-purple-900/80 z-10" />
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source src="/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png" type="video/mp4" />
-        </video>
-        {/* Fallback image if video doesn't load */}
-        <img
-          src="/lovable-uploads/e96c0d46-8a86-4d83-bea8-bc63b46b1fea.png"
-          alt="Background"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+    <section className="relative bg-gradient-to-b from-purple-900 to-blue-900 py-20 md:py-32 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden opacity-30">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-fluida-blue rounded-full filter blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-fluida-pink rounded-full filter blur-3xl"></div>
       </div>
       
-      {/* Hero Content */}
-      <div className="container mx-auto px-6 relative z-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center max-w-3xl mx-auto"
-        >
-          <motion.h1
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-          >
-            Conte sua ideia. A gente transforma em conteúdo estratégico.
-          </motion.h1>
-          
-          <motion.div
-            className="mt-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-          >
-            <IntelligentIntentProcessor />
-          </motion.div>
-          
-          <motion.p
-            className="mt-6 text-lg text-white/80"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
-            Deixe a IA criar roteiros, ideias e estratégias personalizadas para você
-          </motion.p>
-        </motion.div>
-      </div>
-      
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 1.5 }}
-      >
-        <div className="w-8 h-12 border-2 border-white rounded-full flex justify-center">
-          <motion.div
-            className="w-1.5 h-3 bg-white rounded-full mt-2"
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
+      <div className="container relative z-10 mx-auto px-4 text-center">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+          Transforme suas <span className="text-gradient">ideias</span> em conteúdo <br className="hidden md:block" />
+          com o poder da <span className="text-gradient">Inteligência Artificial</span>
+        </h1>
+        
+        <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto">
+          Crie roteiros, estratégias e materiais para suas redes sociais em minutos.
+          Economize tempo e potencialize seus resultados.
+        </p>
+        
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto relative">
+          <FluidaInput 
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            animatedPlaceholder={animatedPlaceholders}
+            className="py-6 px-6 text-lg shadow-xl"
+            iconRight={
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-10 w-10 p-0 rounded-full bg-fluida-pink hover:bg-fluida-pink/80 text-white"
+                onClick={handleSubmit}
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            }
           />
-        </div>
-      </motion.div>
+        </form>
+      </div>
     </section>
   );
 };
