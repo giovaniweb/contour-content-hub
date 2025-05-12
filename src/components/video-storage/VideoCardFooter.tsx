@@ -1,89 +1,108 @@
 
-import React from 'react';
-import { CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Eye, Download, Trash2 } from 'lucide-react';
-import { usePermissions } from '@/hooks/use-permissions';
-import { VideoCardProps } from './types';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { DownloadCloud, Eye, MoreHorizontal } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { VideoCardDeleteDialog } from './VideoCardDeleteDialog';
+import { VideoEditDialog } from './VideoEditDialog';
+import VideoDownloadDialog from './VideoDownloadDialog';
 import { StoredVideo } from '@/types/video-storage';
-import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface VideoCardFooterProps {
   video: StoredVideo;
-  onOpenDeleteDialog: () => void;
-  onDownload: () => void;
-  onViewVideo: () => void;
-  isProcessing: boolean;
-  hasFileUrl: boolean;
+  onRefresh: () => void;
+  onPreview?: () => void;
+  onDownload?: () => void;
 }
 
-const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
+export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
   video,
-  onOpenDeleteDialog,
+  onRefresh,
+  onPreview,
   onDownload,
-  onViewVideo,
-  isProcessing,
-  hasFileUrl
 }) => {
-  const { isAdmin } = usePermissions();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   
+  const handleOpenDownload = () => {
+    if (onDownload) {
+      onDownload();
+    } else {
+      setIsDownloadDialogOpen(true);
+    }
+  };
+
   return (
-    <CardFooter className="p-4 pt-0 border-t mt-auto flex justify-between">
-      <TooltipProvider>
-        <div className="flex items-center space-x-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                disabled={(isProcessing && !hasFileUrl) || video.status === 'error'}
-                onClick={onViewVideo}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Ver vídeo</p>
-            </TooltipContent>
-          </Tooltip>
+    <>
+      <div className="flex justify-between items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1"
+          onClick={onPreview}
+        >
+          <Eye size={16} />
+          <span>Preview</span>
+        </Button>
+
+        <div className="flex space-x-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1"
+            onClick={handleOpenDownload}
+          >
+            <DownloadCloud size={16} />
+            <span>Download</span>
+          </Button>
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                disabled={(isProcessing && !hasFileUrl) || video.status === 'error'}
-                onClick={onDownload}
-              >
-                <Download className="h-4 w-4" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal size={16} />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Download</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          {isAdmin() && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={onOpenDeleteDialog}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Excluir</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </TooltipProvider>
-    </CardFooter>
+      </div>
+      
+      {/* Modais */}
+      <VideoCardDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        videoId={video.id}
+        videoTitle={video.title || 'Vídeo sem título'}
+        onDeleted={onRefresh}
+      />
+      
+      <VideoEditDialog 
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        video={video}
+        onSaved={onRefresh}
+      />
+      
+      <VideoDownloadDialog
+        open={isDownloadDialogOpen}
+        onOpenChange={setIsDownloadDialogOpen}
+        videoTitle={video.title || 'Vídeo sem título'}
+        videoUrl={video.url || ''}
+        existingDownloadLinks={video.file_urls}
+      />
+    </>
   );
 };
-
-export default VideoCardFooter;
