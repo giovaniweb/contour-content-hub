@@ -20,6 +20,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const { isAuthenticated, user, isLoading } = useAuth();
   const isAdmin = user?.role === 'admin';
 
+  // Adicionar console log para debug
+  console.log('AppLayout rendering', { isAuthenticated, isAdmin, isLoading, requireAuth, requireAdmin });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -30,11 +33,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   // Handle authentication requirement
   if (requireAuth && !isAuthenticated) {
+    console.log('Redirecting to login: not authenticated');
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
   // Handle admin requirement
   if (requireAdmin && (!isAuthenticated || !isAdmin)) {
+    console.log('Redirecting to dashboard: not admin');
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 

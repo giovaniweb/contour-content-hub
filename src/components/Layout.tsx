@@ -8,16 +8,21 @@ interface LayoutProps {
   title?: string;
   fullWidth?: boolean;
   transparentHeader?: boolean;
+  requireAuth?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
   title,
   fullWidth = false,
-  transparentHeader = false
+  transparentHeader = false,
+  requireAuth = true
 }) => {
+  // Adicionar log para debug
+  console.log('Layout rendering', { title, fullWidth, transparentHeader });
+  
   return (
-    <AppLayout>
+    <AppLayout requireAuth={requireAuth}>
       <div className={`${fullWidth ? 'w-full' : 'container mx-auto'} py-4`}>
         {title && (
           <div className="mb-6">

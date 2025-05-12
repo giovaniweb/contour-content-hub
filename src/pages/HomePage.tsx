@@ -25,9 +25,13 @@ const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
+  // Log para debug
+  console.log('HomePage rendering', { isAuthenticated });
+  
   // Redirecionar para o dashboard se já estiver autenticado
   React.useEffect(() => {
     if (isAuthenticated) {
+      console.log('HomePage redirecting to dashboard');
       navigate(ROUTES.DASHBOARD);
     }
   }, [isAuthenticated, navigate]);

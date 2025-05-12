@@ -34,7 +34,8 @@ import AdminContent from '@/pages/admin/AdminContent';
 import AdminWorkspace from '@/pages/admin/WorkspaceSettings';
 import ReportsPage from '@/pages/reports/ReportsPage';
 import Dashboard from '@/pages/Dashboard';
-import AdminRoute from '@/components/AdminRoute';
+
+console.log('App initialization');
 
 // Create router configuration with error boundaries and proper layouts
 const router = createBrowserRouter([
@@ -98,7 +99,7 @@ const router = createBrowserRouter([
     element: <ReportsPage />,
   },
   
-  // Admin routes with AdminRoute wrapper for protection
+  // Admin routes
   {
     path: ROUTES.ADMIN.ROOT,
     element: <AdminDashboard />,

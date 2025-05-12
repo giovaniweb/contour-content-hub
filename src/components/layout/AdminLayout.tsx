@@ -7,9 +7,14 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  // Adicionando log para debug
+  console.log('AdminLayout rendering');
+  
   return (
     <AppLayout requireAdmin={true}>
-      {children}
+      <div className="admin-container">
+        {children}
+      </div>
     </AppLayout>
   );
 };

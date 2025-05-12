@@ -8,6 +8,8 @@ import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import './index.css';
 
+console.log('Application starting...');
+
 // Create a client with correct configuration
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,7 +27,12 @@ const queryClient = new QueryClient({
 });
 
 const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Root element not found');
+if (!rootElement) {
+  console.error('Root element not found');
+  throw new Error('Root element not found');
+}
+
+console.log('Mounting React application');
 
 // Root error boundary that wraps the whole application
 // All providers are inside the error boundary
@@ -42,3 +49,5 @@ createRoot(rootElement).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+console.log('React application mounted');
