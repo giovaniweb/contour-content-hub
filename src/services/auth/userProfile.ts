@@ -1,5 +1,4 @@
 
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "@/types/auth";
 import { DbPerfil } from "@/lib/supabase/schema-types";
@@ -72,4 +71,3 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
     .update(userData)
     .eq('id', userId);
 }
-
