@@ -19,6 +19,7 @@ import NeonTextEffect from "@/components/home/HomePage/NeonTextEffect";
 import FeaturedVideo from "@/components/home/FeaturedVideo";
 import FeaturedGallery from "@/components/home/FeaturedGallery";
 import FeaturedIcons from "@/components/home/FeaturedIcons";
+import ConsultantBanner from "@/components/home/ConsultantBanner";
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -53,6 +54,9 @@ const HomePage: React.FC = () => {
         
         {/* Recursos principais do sistema */}
         <FeaturesSection />
+        
+        {/* Consultor de Marketing Banner */}
+        <ConsultantBanner />
         
         {/* Seção - Vídeo em destaque */}
         <section className="py-24 bg-gray-50">
