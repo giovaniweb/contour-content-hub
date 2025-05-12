@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { VideoFile, StoredVideo } from "@/types/video-storage";
 
@@ -108,13 +109,13 @@ export const updateVideoWithDownloadLinks = async (
     }
     
     // Atualizar o vídeo no banco de dados com os links de download
-    const updateData = {
+    const updateData: any = {
       downloadable: true,
       updated_at: new Date().toISOString()
     };
     
     if (data.file_urls) {
-      updateData['file_urls'] = data.file_urls;
+      updateData.file_urls = data.file_urls;
     }
     
     const { error: updateError } = await supabase

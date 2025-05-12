@@ -18,6 +18,10 @@ interface VideoCardFooterProps {
   onRefresh: () => void;
   onPreview?: () => void;
   onDownload?: () => void;
+  onOpenDeleteDialog?: () => void;  // Added this prop to match VideoCard usage
+  isProcessing?: boolean;           // Added this prop to match VideoCard usage
+  hasFileUrl?: boolean;             // Added this prop to match VideoCard usage
+  onViewVideo?: () => void;         // Added this prop to match VideoCard usage
 }
 
 export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
@@ -25,6 +29,10 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
   onRefresh,
   onPreview,
   onDownload,
+  onOpenDeleteDialog,
+  onViewVideo,
+  isProcessing,
+  hasFileUrl,
 }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -38,6 +46,25 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
     }
   };
 
+  const handlePreview = () => {
+    if (onViewVideo) {
+      onViewVideo();
+    } else if (onPreview) {
+      onPreview();
+    }
+  };
+
+  const handleOpenDeleteDialog = () => {
+    if (onOpenDeleteDialog) {
+      onOpenDeleteDialog();
+    } else {
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  // Don't show download button for processing videos
+  const showDownloadButton = !isProcessing && hasFileUrl;
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -45,22 +72,25 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
           variant="ghost"
           size="sm"
           className="gap-1"
-          onClick={onPreview}
+          onClick={handlePreview}
+          disabled={isProcessing || !hasFileUrl}
         >
           <Eye size={16} />
           <span>Preview</span>
         </Button>
 
         <div className="flex space-x-1">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="gap-1"
-            onClick={handleOpenDownload}
-          >
-            <DownloadCloud size={16} />
-            <span>Download</span>
-          </Button>
+          {showDownloadButton && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1"
+              onClick={handleOpenDownload}
+            >
+              <DownloadCloud size={16} />
+              <span>Download</span>
+            </Button>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -72,7 +102,7 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
               <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+              <DropdownMenuItem onClick={handleOpenDeleteDialog}>
                 Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -82,18 +112,17 @@ export const VideoCardFooter: React.FC<VideoCardFooterProps> = ({
       
       {/* Modais */}
       <VideoCardDeleteDialog
-        open={isDeleteDialogOpen}
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         videoId={video.id}
         videoTitle={video.title || 'Vídeo sem título'}
-        onDeleted={onRefresh}
+        onDelete={onRefresh}
       />
       
       <VideoEditDialog 
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
         video={video}
-        onSaved={onRefresh}
+        onClose={() => setIsEditDialogOpen(false)}
+        onUpdate={onRefresh}
       />
       
       <VideoDownloadDialog

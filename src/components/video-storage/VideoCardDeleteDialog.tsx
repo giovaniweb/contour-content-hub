@@ -17,7 +17,9 @@ interface VideoCardDeleteDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onDelete: () => void;
-  isDeleting: boolean;
+  isDeleting?: boolean;
+  videoId?: string;      // Added for backward compatibility
+  videoTitle?: string;   // Added for backward compatibility
 }
 
 const VideoCardDeleteDialog: React.FC<VideoCardDeleteDialogProps> = ({
@@ -25,15 +27,20 @@ const VideoCardDeleteDialog: React.FC<VideoCardDeleteDialogProps> = ({
   isOpen,
   onOpenChange,
   onDelete,
-  isDeleting
+  isDeleting = false,
+  videoId,
+  videoTitle
 }) => {
+  // Use video object properties if available, otherwise fall back to direct props
+  const title = videoTitle || video?.title || 'Vídeo sem título';
+  
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir vídeo</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir o vídeo "{video.title}"? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir o vídeo "{title}"? Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

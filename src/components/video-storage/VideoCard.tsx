@@ -85,9 +85,10 @@ const VideoCard: React.FC<VideoCardProps> = ({
       
       <VideoCardFooter 
         video={video}
-        onOpenDeleteDialog={() => setIsDeleteDialogOpen(true)}
+        onRefresh={onRefresh}
         onDownload={onDownload}
         onViewVideo={handleViewVideo}
+        onOpenDeleteDialog={() => setIsDeleteDialogOpen(true)}
         isProcessing={isProcessing}
         hasFileUrl={hasFileUrl}
       />

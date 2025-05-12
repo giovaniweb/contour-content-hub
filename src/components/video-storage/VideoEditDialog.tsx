@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StoredVideo } from '@/types/video-storage';
 import { updateVideo } from '@/services/videoStorageService';
 import { useToast } from '@/hooks/use-toast';
@@ -22,16 +22,45 @@ interface VideoEditDialogProps {
   video: StoredVideo;
   onClose: () => void;
   onUpdate: () => void;
+  open?: boolean;             // Added for backward compatibility
+  onOpenChange?: (open: boolean) => void; // Added for backward compatibility
+  onSaved?: () => void;       // Added for backward compatibility
 }
 
-const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ video, onClose, onUpdate }) => {
+const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ 
+  video, 
+  onClose, 
+  onUpdate,
+  open, 
+  onOpenChange,
+  onSaved
+}) => {
   const { toast } = useToast();
-  const [title, setTitle] = useState(video.title);
+  const [title, setTitle] = useState(video.title || '');
   const [description, setDescription] = useState(video.description || '');
   const [tags, setTags] = useState<string[]>(video.tags || []);
   const [tagInput, setTagInput] = useState('');
   const [isPublic, setIsPublic] = useState(video.public || false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(open !== undefined ? open : true);
+
+  // Handle open state from props if provided
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsDialogOpen(open);
+    }
+  }, [open]);
+
+  // Handle dialog close
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsDialogOpen(newOpen);
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    }
+    if (!newOpen) {
+      onClose();
+    }
+  };
 
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -77,6 +106,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ video, onClose, onUpd
           description: "As informações do vídeo foram atualizadas com sucesso."
         });
         onUpdate();
+        if (onSaved) onSaved(); // Support both callback methods
       } else {
         toast({
           variant: "destructive",
@@ -93,11 +123,12 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ video, onClose, onUpd
       });
     } finally {
       setIsSaving(false);
+      handleOpenChange(false);
     }
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-lg">
         <DialogHeader>
           <DialogTitle>Editar Vídeo</DialogTitle>
@@ -182,7 +213,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({ video, onClose, onUpd
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={() => handleOpenChange(false)}
           >
             Cancelar
           </Button>
