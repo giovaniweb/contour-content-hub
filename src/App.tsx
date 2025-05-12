@@ -12,8 +12,16 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 // Pages
 import HomePage from "@/pages/HomePage";
+import VideosPage from "@/pages/VideosPage";
+import ContentStrategy from "@/pages/ContentStrategy";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import VideoPlayer from "@/pages/VideoPlayer";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminVideosPage from './pages/admin/videos';
+import AdminEquipments from "@/pages/admin/AdminEquipments";
 import VideoBatchManage from './pages/videos/VideoBatchManage';
+import VideoBatchImport from './pages/videos/VideoBatchImport';
 import NotFound from '@/pages/NotFound';
 
 // Layout Components

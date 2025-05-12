@@ -1,7 +1,7 @@
 
-// Import the Navbar component first
-import { Navbar } from "./Navbar";
+// First import the Navbar component
+import { Navbar as NavbarComponent } from "./Navbar";
 
 // Then export it
-export { Navbar };
-export default Navbar;
+export const Navbar = NavbarComponent;
+export default NavbarComponent;

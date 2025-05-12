@@ -5,7 +5,17 @@ import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
 
+// Create and export the context
+export const ThemeProviderContext = React.createContext({
+  theme: "light" as string | undefined,
+  setTheme: (theme: string) => {},
+});
+
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  const [theme, setTheme] = React.useState<string | undefined>(
+    props.defaultTheme || "light"
+  );
+
   React.useEffect(() => {
     // Add Montserrat font to the document
     const link = document.createElement('link');
@@ -16,10 +26,23 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     // Update font in tailwind
     document.documentElement.style.setProperty('--font-sans', '"Montserrat", sans-serif');
   }, []);
+
+  // Set up the context value
+  const contextValue = React.useMemo(
+    () => ({
+      theme,
+      setTheme: (newTheme: string) => {
+        setTheme(newTheme);
+      },
+    }),
+    [theme]
+  );
   
   return (
-    <NextThemesProvider {...props}>
-      {children}
-    </NextThemesProvider>
-  )
+    <ThemeProviderContext.Provider value={contextValue}>
+      <NextThemesProvider {...props} enableSystem={true} defaultTheme={theme}>
+        {children}
+      </NextThemesProvider>
+    </ThemeProviderContext.Provider>
+  );
 }
