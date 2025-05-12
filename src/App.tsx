@@ -22,7 +22,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminVideosPage from './pages/admin/videos';
 import AdminEquipments from "@/pages/admin/AdminEquipments";
 import VideoBatchManage from './pages/videos/VideoBatchManage';
-import VideoBatchImport from './pages/videos/VideoBatchImport';
+import VideoImportPage from './pages/videos/VideoImportPage';
 import VideoSwipe from './pages/videos/VideoSwipe';
 import VideoStorage from './pages/videos/VideoStorage';
 import NotFound from '@/pages/NotFound';
@@ -81,7 +81,7 @@ const router = createBrowserRouter([
   },
   {
     path: ROUTES.VIDEOS.IMPORT,
-    element: <VideoBatchImport />,
+    element: <VideoImportPage />,
   },
   {
     path: ROUTES.VIDEOS.SWIPE,
