@@ -2,14 +2,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes";
-import AuroraCommandPalette from "@/components/AuroraCommandPalette";
-import NeonTextEffect from "./NeonTextEffect";
+import HeroSearch from "@/components/search/HeroSearch";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   
-  const handleCommandSubmit = (command: string) => {
-    navigate(ROUTES.DASHBOARD, { state: { query: command } });
+  const handleSearch = (query: string) => {
+    navigate(ROUTES.DASHBOARD, { state: { query } });
   };
   
   return (
@@ -28,9 +27,9 @@ const HeroSection: React.FC = () => {
           Crie roteiros, estratégias e conteúdos para mídias digitais com inteligência artificial
         </p>
         
-        <div className="max-w-2xl mx-auto hover-glow">
-          <AuroraCommandPalette 
-            onSubmit={handleCommandSubmit}
+        <div className="max-w-2xl mx-auto">
+          <HeroSearch 
+            onSearch={handleSearch}
             suggestions={[
               "Crie roteiro para vídeo sobre rejuvenescimento facial",
               "Estratégias para Instagram sobre estética avançada",
@@ -38,7 +37,6 @@ const HeroSection: React.FC = () => {
               "Ideias para promover tratamento de criolipólise",
               "Como criar conteúdo para atrair clientes de procedimentos estéticos",
             ]}
-            showHistory={false}
           />
         </div>
       </div>

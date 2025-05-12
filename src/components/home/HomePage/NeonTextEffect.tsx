@@ -44,6 +44,11 @@ const NeonTextEffect: React.FC = () => {
           transform: translateY(-3px);
           box-shadow: 0 5px 15px rgba(91, 140, 247, 0.2);
         }
+        
+        /* Background gradient */
+        .bg-lavender-gradient {
+          background: linear-gradient(to right, #F4F0FF, #EDF5FF);
+        }
       `}
     </style>
   );
