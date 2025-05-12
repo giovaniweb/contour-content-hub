@@ -1,4 +1,5 @@
 
+
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "@/types/auth";
 import { DbPerfil } from "@/lib/supabase/schema-types";
@@ -42,7 +43,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
       equipment: userData.equipamentos,
       language: userData.idioma as "PT" | "EN" | "ES" | undefined,
       profilePhotoUrl: userData.foto_url,
-      name: userData.nome || '' // Use nome as name for compatibility
+      name: userData.nome || '' // Definir name com base em nome para compatibilidade
     };
 
     return profile;
@@ -71,3 +72,4 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
     .update(userData)
     .eq('id', userId);
 }
+
