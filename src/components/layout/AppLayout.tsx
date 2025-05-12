@@ -8,10 +8,17 @@ import { ROUTES } from '@/routes';
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
+  requireAdmin?: boolean;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+const AppLayout: React.FC<AppLayoutProps> = ({ 
+  children, 
+  requireAuth = true,
+  requireAdmin = false
+}) => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   if (isLoading) {
     return (
@@ -21,8 +28,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  // Handle authentication requirement
+  if (requireAuth && !isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  // Handle admin requirement
+  if (requireAdmin && (!isAuthenticated || !isAdmin)) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
   return (

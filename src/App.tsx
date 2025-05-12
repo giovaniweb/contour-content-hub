@@ -34,24 +34,14 @@ import AdminContent from '@/pages/admin/AdminContent';
 import AdminWorkspace from '@/pages/admin/WorkspaceSettings';
 import ReportsPage from '@/pages/reports/ReportsPage';
 import Dashboard from '@/pages/Dashboard';
+import AdminRoute from '@/components/AdminRoute';
 
-// Create router configuration
+// Create router configuration with error boundaries and proper layouts
 const router = createBrowserRouter([
+  // Public routes
   {
     path: ROUTES.HOME,
     element: <HomePage />,
-  },
-  {
-    path: ROUTES.DASHBOARD,
-    element: <Dashboard />,
-  },
-  {
-    path: ROUTES.VIDEOS.ROOT,
-    element: <VideosPage />,
-  },
-  {
-    path: ROUTES.CONTENT.STRATEGY,
-    element: <ContentStrategy />,
   },
   {
     path: ROUTES.LOGIN,
@@ -65,21 +55,23 @@ const router = createBrowserRouter([
     path: ROUTES.FORGOT_PASSWORD,
     element: <ForgotPassword />,
   },
+  
+  // Protected routes
+  {
+    path: ROUTES.DASHBOARD,
+    element: <Dashboard />,
+  },
+  {
+    path: ROUTES.VIDEOS.ROOT,
+    element: <VideosPage />,
+  },
+  {
+    path: ROUTES.CONTENT.STRATEGY,
+    element: <ContentStrategy />,
+  },
   {
     path: ROUTES.VIDEOS.PLAYER + "/:id",
     element: <VideoPlayer />,
-  },
-  {
-    path: ROUTES.ADMIN.ROOT,
-    element: <AdminDashboard />,
-  },
-  {
-    path: ROUTES.ADMIN_VIDEOS,
-    element: <AdminVideosPage />,
-  },
-  {
-    path: ROUTES.ADMIN.EQUIPMENT,
-    element: <AdminEquipments />,
   },
   {
     path: ROUTES.VIDEOS.BATCH,
@@ -102,6 +94,24 @@ const router = createBrowserRouter([
     element: <ContentScripts />,
   },
   {
+    path: ROUTES.MARKETING.REPORTS,
+    element: <ReportsPage />,
+  },
+  
+  // Admin routes with AdminRoute wrapper for protection
+  {
+    path: ROUTES.ADMIN.ROOT,
+    element: <AdminDashboard />,
+  },
+  {
+    path: ROUTES.ADMIN_VIDEOS,
+    element: <AdminVideosPage />,
+  },
+  {
+    path: ROUTES.ADMIN.EQUIPMENT,
+    element: <AdminEquipments />,
+  },
+  {
     path: ROUTES.ADMIN.VIMEO.SETTINGS,
     element: <AdminVimeoSettings />,
   },
@@ -121,10 +131,8 @@ const router = createBrowserRouter([
     path: ROUTES.ADMIN.WORKSPACE,
     element: <AdminWorkspace />,
   },
-  {
-    path: ROUTES.MARKETING.REPORTS,
-    element: <ReportsPage />,
-  },
+  
+  // Catch all route - 404
   {
     path: "*",
     element: <NotFound />,
