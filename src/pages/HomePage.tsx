@@ -1,75 +1,60 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import WelcomeBanner from '@/components/home/WelcomeBanner';
-import IntentProcessor from '@/components/intent-processor/IntentProcessor';
-import IntelligentSuggestionButton from '@/components/intent-processor/IntelligentSuggestionButton';
-import IntelligentResponse from '@/components/intent-processor/IntelligentResponse';
-
-// Frases para o banner de boas-vindas
-const welcomePhrases = [
-  "Que tipo de conteúdo você precisa criar hoje?",
-  "Como podemos impulsionar seus resultados?",
-  "Qual desafio de marketing você está enfrentando?",
-  "O que seus pacientes precisam saber sobre seus tratamentos?"
-];
+import HeroSection from '@/components/home/HeroSection';
+import QuickAccessGrid from '@/components/home/QuickAccessGrid';
+import FeaturedCarousel from '@/components/home/FeaturedCarousel';
+import PersonalizedSuggestions from '@/components/home/PersonalizedSuggestions';
+import ConsultantBanner from '@/components/home/ConsultantBanner';
+import { fadeIn } from '@/lib/animations';
 
 const HomePage: React.FC = () => {
-  const [intelligentSuggestion, setIntelligentSuggestion] = useState<any>(null);
-  
-  // Mock do contexto do usuário para demonstração
-  const userContext = {
-    procedimentos: ['Botox', 'Preenchimento', 'Laser'],
-    estilo_preferido: 'Educacional com toque emocional',
-    tipos_conteudo_validados: ['Vídeos curtos', 'Stories', 'Posts informativos'],
-    foco_comunicacao: 'Resultados e segurança',
-    perfil_comportamental: ['Técnico', 'Educador'],
-    insights_performance: ['Conteúdos sobre mitos e verdades tiveram 2x mais engajamento']
-  };
-
-  const handleSuggestionReceived = (data: any) => {
-    setIntelligentSuggestion(data);
-  };
-
   return (
-    <Layout>
-      <WelcomeBanner phrases={welcomePhrases} />
+    <Layout fullWidth={true} transparentHeader={true}>
+      {/* Hero Section with Parallax */}
+      <HeroSection />
       
-      <div className="container mx-auto mt-8 mb-16">
-        <div className="max-w-3xl mx-auto">
-          {!intelligentSuggestion ? (
-            <>
-              <div className="flex justify-center mb-4">
-                <IntelligentSuggestionButton 
-                  onSuggestionReceived={handleSuggestionReceived}
-                  userContext={userContext}
-                  className="mb-6"
-                />
-              </div>
-              <IntentProcessor initialContext={userContext} />
-            </>
-          ) : (
-            <>
-              <div className="mb-8">
-                <IntelligentResponse data={intelligentSuggestion} />
-              </div>
-              <div className="flex justify-center">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIntelligentSuggestion(null)}
-                >
-                  Voltar ao processador
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
+      {/* Main Content Area */}
+      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Quick Access Cards */}
+        <motion.section 
+          className="py-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <QuickAccessGrid />
+        </motion.section>
         
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Aqui iriam outros componentes da homepage como cards de módulos, estatísticas, etc. */}
-        </div>
+        {/* Featured Content Carousel */}
+        <motion.section 
+          className="py-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeIn}
+        >
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">Destaques da Semana</h2>
+          <FeaturedCarousel />
+        </motion.section>
+        
+        {/* Personalized Recommendations */}
+        <motion.section 
+          className="py-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeIn}
+        >
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">Recomendado para Você</h2>
+          <PersonalizedSuggestions />
+        </motion.section>
       </div>
+      
+      {/* Consultant Banner */}
+      <ConsultantBanner />
     </Layout>
   );
 };
