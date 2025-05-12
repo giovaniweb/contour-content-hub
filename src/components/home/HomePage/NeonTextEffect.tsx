@@ -13,10 +13,13 @@ const NeonTextEffect: React.FC = () => {
           font-weight: 300;
         }
 
-        /* Efeito sutil para destacar palavras-chave */
+        /* Efeito de gradiente para palavras-chave destacadas */
         .neon-highlight {
-          color: #3A6CCC;
-          font-weight: 500;
+          background: linear-gradient(to right, #5B8CF7, #C98FEF);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          font-weight: 900;
         }
 
         /* Efeito de pulse para elementos interativos */
