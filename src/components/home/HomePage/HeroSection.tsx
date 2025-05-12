@@ -15,10 +15,10 @@ const HeroSection: React.FC = () => {
   return (
     <section className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 py-16">
       <div className="container mx-auto text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white hero-neon-text">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white neon-text">
           Seu estúdio criativo em um clique
         </h1>
-        <p className="text-xl mb-8 max-w-2xl mx-auto text-white hero-neon-text">
+        <p className="text-xl mb-8 max-w-2xl mx-auto text-white neon-text">
           Crie roteiros, estratégias e conteúdos para mídias digitais com inteligência artificial
         </p>
         
