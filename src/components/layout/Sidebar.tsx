@@ -1,18 +1,7 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from '@/routes';
-import {
-  Sidebar as SidebarComponent,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  useSidebar
-} from "@/components/ui/sidebar";
 import { 
   Menu,
   Cog,
@@ -31,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import GlassContainer from "../ui/GlassContainer";
 
 interface SidebarLinkProps {
   path: string;
@@ -95,7 +83,7 @@ const adminItems: SidebarLinkProps[] = [
 ];
 
 export default function Sidebar() {
-  const { open, setOpen } = useSidebar();
+  const [open, setOpen] = React.useState(true);
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
