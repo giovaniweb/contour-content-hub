@@ -2,91 +2,70 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from '@/routes';
+import {
+  Sidebar as SidebarComponent,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar
+} from "@/components/ui/sidebar";
 import { 
   Menu,
-  Cog,
-  User,
-  HelpCircle,
-  Video,
-  LayoutDashboard,
+  Home,
   FileText,
-  Calendar,
+  Check,
+  Film,
+  Book,
   BarChart3,
-  MessageSquare,
+  Box,
+  LayoutDashboard,
   Settings,
-  PlusCircle,
-  Home
+  File,
+  Upload,
+  Link as LinkIcon,
+  Video,
+  Brain,
+  TestTube,
+  User,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
-interface SidebarLinkProps {
-  path: string;
-  name: string;
-  icon: React.ElementType;
-  highlight?: boolean;
-}
-
-interface SidebarGroupProps {
-  name: string;
-  icon: React.ElementType;
-  links: SidebarLinkProps[];
-}
-
-// Sidebar navigation data
-const sidebarData: SidebarGroupProps[] = [
-  {
-    name: "Principal",
-    icon: Home,
-    links: [
-      { path: ROUTES.DASHBOARD, name: "Dashboard", icon: LayoutDashboard },
-      { path: ROUTES.PROFILE, name: "Meu Perfil", icon: User }
-    ]
-  },
-  {
-    name: "Conteúdo",
-    icon: FileText,
-    links: [
-      { path: ROUTES.CONTENT.STRATEGY, name: "Estratégias", icon: BarChart3 },
-      { path: ROUTES.CONTENT.PLANNER, name: "Planejamento", icon: Calendar },
-      { path: ROUTES.CONTENT.IDEAS, name: "Ideias", icon: MessageSquare },
-      { path: ROUTES.CONTENT.SCRIPTS.ROOT, name: "Scripts", icon: FileText }
-    ]
-  },
-  {
-    name: "Downloads",
-    icon: Video,
-    links: [
-      { path: ROUTES.VIDEOS.ROOT, name: "Vídeos", icon: Video },
-      { path: ROUTES.VIDEOS.STORAGE, name: "Armazenamento", icon: Video, highlight: true },
-      { path: ROUTES.VIDEOS.BATCH, name: "Lote", icon: Video },
-      { path: ROUTES.VIDEOS.SWIPE, name: "Swipe", icon: Video }
-    ]
-  },
-  {
-    name: "Configurações",
-    icon: Settings,
-    links: [
-      { path: ROUTES.WORKSPACE_SETTINGS, name: "Workspace", icon: Settings },
-      { path: ROUTES.INVITES, name: "Convites", icon: User }
-    ]
-  }
-];
-
-// Admin items
-const adminItems: SidebarLinkProps[] = [
-  { path: ROUTES.ADMIN.ROOT, name: "Admin", icon: Cog },
-  { path: ROUTES.ADMIN.EQUIPMENT, name: "Equipamentos", icon: Settings },
-  { path: ROUTES.ADMIN.CONTENT, name: "Conteúdo", icon: FileText },
-  { path: ROUTES.ADMIN.VIMEO.SETTINGS, name: "Vimeo", icon: Video }
-];
-
 export default function Sidebar() {
-  const [open, setOpen] = React.useState(true);
+  const { open, setOpen } = useSidebar();
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+
+  // Main menu structure
+  const mainMenu = [
+    { name: "Início", icon: Home, path: ROUTES.DASHBOARD },
+    { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT },
+    { name: "Validador", icon: Check, path: ROUTES.CONTENT.IDEAS },
+    { name: "Mídia", icon: Film, path: ROUTES.VIDEOS.ROOT },
+    { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES },
+    { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY },
+    { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST }
+  ];
+
+  // Admin menu structure
+  const adminMenu = [
+    { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT },
+    { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT },
+    { name: "Conteúdo", icon: File, path: ROUTES.ADMIN.CONTENT },
+    { name: "Importar Vídeos", icon: Upload, path: ROUTES.VIDEOS.IMPORT },
+    { name: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE },
+    { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS },
+    { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI },
+    { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS }
+  ];
   
   // Check if the current path is active
   const isActive = (path: string) => {
@@ -97,8 +76,8 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={cn("border-r bg-background flex flex-col transition-all duration-300", open ? "w-64" : "w-16")}>
-      <div className="border-b p-4">
+    <SidebarComponent collapsible="icon">
+      <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           {open && (
             <div className="font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-[#0094fb] to-[#f300fc]">
@@ -114,93 +93,68 @@ export default function Sidebar() {
             <Menu className="h-5 w-5" />
           </Button>
         </div>
-      </div>
+      </SidebarHeader>
       
-      <div className="flex-1 overflow-y-auto p-2">
-        {sidebarData.map((group) => (
-          <div key={group.name} className="mb-4">
-            <div className={cn(!open && "sr-only", "mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center")}>
-              <group.icon className="mr-2 h-4 w-4" />
-              {group.name}
-            </div>
-            <div className="space-y-1">
-              {group.links.map((item) => (
-                <div key={item.name}>
-                  <Link 
-                    to={item.path}
-                    className={cn(
-                      "group inline-flex h-9 w-full items-center rounded-md px-3 text-sm font-medium transition-colors",
-                      isActive(item.path) ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                      item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""
-                    )}
-                  >
-                    <item.icon className="h-5 w-5 mr-2" />
-                    {open && (
-                      <>
-                        <span>{item.name}</span>
-                        {item.highlight && (
-                          <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[#f300fc] animate-pulse" />
-                        )}
-                      </>
-                    )}
+      <SidebarContent className="p-2 overflow-y-auto">
+        {/* Main Menu */}
+        <SidebarGroup className="mb-4">
+          <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
+            Menu Principal
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {mainMenu.map((item) => (
+              <SidebarMenuItem key={item.name}>
+                <SidebarMenuButton 
+                  asChild 
+                  active={isActive(item.path)}
+                  collapsible
+                >
+                  <Link to={item.path}>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
                   </Link>
-                </div>
-              ))}
-
-              {/* Link para criar vídeo quando estiver no grupo de vídeos */}
-              {group.name === "Downloads" && (
-                <div>
-                  <Link 
-                    to={ROUTES.VIDEOS.CREATE}
-                    className={cn(
-                      "group inline-flex h-9 w-full items-center rounded-md px-3 text-sm font-medium transition-colors text-blue-500 hover:text-blue-600",
-                      isActive(ROUTES.VIDEOS.CREATE) ? "bg-secondary" : "hover:bg-secondary"
-                    )}
-                  >
-                    <PlusCircle className="h-5 w-5 mr-2" />
-                    {open && <span>Criar Vídeo</span>}
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
         
+        {/* Admin Menu */}
         {isAdmin && (
-          <div className="mt-4">
-            <div className={cn(!open && "sr-only", "mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center")}>
-              <Cog className="mr-2 h-4 w-4" /> Admin
-            </div>
-            <div className="space-y-1">
-              {adminItems.map((item) => (
-                <div key={item.name}>
-                  <Link 
-                    to={item.path}
-                    className={cn(
-                      "group inline-flex h-9 w-full items-center rounded-md px-3 text-sm font-medium transition-colors",
-                      isActive(item.path) ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    )}
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
+              Administração
+            </SidebarGroupLabel>
+            <SidebarMenu>
+              {adminMenu.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton 
+                    asChild 
+                    active={isActive(item.path)}
+                    collapsible
                   >
-                    <item.icon className="h-5 w-5 mr-2" />
-                    {open && <span>{item.name}</span>}
-                  </Link>
-                </div>
+                    <Link to={item.path}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
-            </div>
-          </div>
+            </SidebarMenu>
+          </SidebarGroup>
         )}
-      </div>
+      </SidebarContent>
       
-      <div className="border-t p-4">
+      <SidebarFooter className="border-t p-4">
         {open ? (
           <div className="space-y-2">
             <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
               <User className="h-4 w-4" />
-              <span className="text-sm">Profile</span>
+              <span className="text-sm">Perfil</span>
             </Link>
             <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
               <HelpCircle className="h-4 w-4" />
-              <span className="text-sm">Help</span>
+              <span className="text-sm">Ajuda</span>
             </Link>
           </div>
         ) : (
@@ -213,7 +167,7 @@ export default function Sidebar() {
             </Link>
           </div>
         )}
-      </div>
-    </div>
+      </SidebarFooter>
+    </SidebarComponent>
   );
 }
