@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from '@/routes';
-import { 
+import {
   Sidebar as SidebarComponent,
   SidebarContent,
   SidebarFooter,
@@ -195,7 +195,7 @@ export default function Sidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              )}
+              ))}
             </SidebarMenu>
           </SidebarGroup>
         )}
