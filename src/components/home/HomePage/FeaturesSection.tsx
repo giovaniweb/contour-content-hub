@@ -1,24 +1,30 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import GlassContainer from "@/components/ui/GlassContainer";
+import { FileText, Video, BarChart3 } from "lucide-react";
 
 interface FeatureCardProps {
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon }) => {
   return (
     <motion.div 
-      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
       whileHover={{ y: -5 }}
+      className="transition-all duration-300"
     >
-      <div className="text-4xl mb-5 group-hover:animate-bounce-light transform transition-all duration-300 ease-in-out">
-        {icon}
-      </div>
-      <h3 className="text-xl font-medium mb-3 text-gray-800">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+      <GlassContainer className="h-full">
+        <div className="flex flex-col gap-2 p-4">
+          <div className="text-4xl mb-3 text-primary flex items-center">
+            {icon}
+          </div>
+          <h3 className="text-xl font-medium mb-2 text-gray-800">{title}</h3>
+          <p className="text-gray-600 text-sm">{description}</p>
+        </div>
+      </GlassContainer>
     </motion.div>
   );
 };
@@ -28,17 +34,17 @@ const FeaturesSection: React.FC = () => {
     {
       title: "Gerador de Roteiros",
       description: "Crie roteiros profissionais para seus vídeos em minutos, com sugestões inteligentes baseadas no seu objetivo.",
-      icon: "✍️"
+      icon: <FileText className="h-8 w-8 text-primary" />
     },
     {
       title: "Biblioteca de Vídeos",
       description: "Organize e acesse facilmente todos os seus vídeos e materiais de referência em um só lugar.",
-      icon: "🎬"
+      icon: <Video className="h-8 w-8 text-primary" />
     },
     {
       title: "Estratégia de Conteúdo",
       description: "Desenvolva estratégias completas de conteúdo com sugestões personalizadas para seu público.",
-      icon: "📊"
+      icon: <BarChart3 className="h-8 w-8 text-primary" />
     }
   ];
 
