@@ -1,51 +1,20 @@
 
-import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import { ROUTES } from "@/routes";
 
 const NotFound = () => {
-  const location = useLocation();
-  const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center max-w-xl px-4">
-          <h1 className="text-9xl font-light text-blue-500 mb-6">404</h1>
-          <p className="text-3xl font-light text-gray-700 mb-4">Página não encontrada</p>
-          <p className="text-gray-500 mb-8">
-            A página que você está procurando não existe ou foi movida.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button asChild size="lg" className="gap-2">
-              <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME}>
-                <Home className="h-5 w-5" />
-                <span>Página Inicial</span>
-              </Link>
-            </Button>
-            <Button 
-              asChild 
-              size="lg" 
-              variant="outline" 
-              className="gap-2"
-            >
-              <button onClick={() => window.history.back()}>
-                <ArrowLeft className="h-5 w-5" />
-                <span>Voltar</span>
-              </button>
-            </Button>
-          </div>
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-white to-zinc-50 p-4 text-center">
+      <div className="max-w-md">
+        <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
+        <p className="text-2xl font-medium text-gray-800 mb-6">Página não encontrada</p>
+        <p className="text-gray-600 mb-8">
+          A página que você está procurando pode ter sido removida, renomeada ou está temporariamente indisponível.
+        </p>
+        <Button asChild className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white">
+          <Link to={ROUTES.HOME}>Voltar para a página inicial</Link>
+        </Button>
       </div>
     </div>
   );
