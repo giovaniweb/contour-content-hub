@@ -44,7 +44,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  // Main menu structure
+  // Main menu structure - Updated with correct routes
   const mainMenu = [
     { name: "Início", icon: Home, path: ROUTES.DASHBOARD },
     { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT },
@@ -55,7 +55,7 @@ export default function Sidebar() {
     { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST }
   ];
 
-  // Admin menu structure
+  // Admin menu structure - Updated with correct routes
   const adminMenu = [
     { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT },
     { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT },
