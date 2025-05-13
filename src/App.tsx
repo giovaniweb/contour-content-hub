@@ -25,6 +25,7 @@ import VideoBatchManage from './pages/videos/VideoBatchManage';
 import VideoImportPage from './pages/videos/VideoImportPage';
 import VideoSwipe from './pages/videos/VideoSwipe';
 import VideoStorage from './pages/videos/VideoStorage';
+import VideoCreatePage from './pages/videos/VideoCreatePage';  // Importando a nova página
 import NotFound from '@/pages/NotFound';
 import ContentScripts from '@/pages/ContentScripts';
 import AdminVimeoSettings from '@/pages/admin/VimeoSettings';
@@ -89,6 +90,10 @@ const router = createBrowserRouter([
   {
     path: ROUTES.VIDEOS.STORAGE,
     element: <VideoStorage />,
+  },
+  {
+    path: ROUTES.VIDEOS.CREATE,  // Nova rota para criar vídeos
+    element: <VideoCreatePage />,
   },
   {
     path: ROUTES.CONTENT.SCRIPTS.ROOT,

@@ -18,7 +18,8 @@ import {
   Menu,
   Cog,
   User,
-  HelpCircle
+  HelpCircle,
+  PlusCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -85,6 +86,22 @@ export default function Sidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Link para criar vídeo quando estiver no grupo de vídeos */}
+              {group.name === "Downloads" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    active={isActive("/videos/create")}
+                    collapsible
+                  >
+                    <Link to="/videos/create" className="text-blue-500 hover:text-blue-600">
+                      <PlusCircle className="h-5 w-5" />
+                      <span>Criar Vídeo</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroup>
         ))}

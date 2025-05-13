@@ -42,7 +42,8 @@ export const ROUTES = {
     BATCH: "/video-batch",
     IMPORT: "/video-import",
     SWIPE: "/video-swipe",
-    PLAYER: "/video"
+    PLAYER: "/video",
+    CREATE: "/videos/create"  // Nova rota para criação de vídeos
   },
   
   // Equipment & Media
