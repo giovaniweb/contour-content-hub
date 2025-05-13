@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ContentLayout from '@/components/layout/ContentLayout';
 import GlassContainer from '@/components/ui/GlassContainer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Share } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Download, Share, ThumbsUp } from 'lucide-react';
 import { ROUTES } from '@/routes';
+import { toast } from 'sonner';
 
 const VideoPlayer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +42,18 @@ const VideoPlayer: React.FC = () => {
 
   const handleBack = () => {
     navigate(ROUTES.VIDEOS.ROOT);
+  };
+  
+  const handleLike = () => {
+    toast.success("Vídeo curtido!");
+  };
+  
+  const handleShare = () => {
+    toast.success("Link copiado para a área de transferência!");
+  };
+  
+  const handleDownload = () => {
+    toast.success("Download iniciado!");
   };
 
   return (
@@ -81,14 +93,18 @@ const VideoPlayer: React.FC = () => {
           </div>
           <p className="text-gray-700">{videoData.description}</p>
           
-          <div className="flex gap-2 mt-6">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Baixar
+          <div className="flex gap-3 mt-6">
+            <Button variant="outline" size="sm" onClick={handleLike}>
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Curtir
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleShare}>
               <Share className="mr-2 h-4 w-4" />
               Compartilhar
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <Download className="mr-2 h-4 w-4" />
+              Baixar
             </Button>
           </div>
         </GlassContainer>

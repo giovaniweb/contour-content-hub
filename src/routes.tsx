@@ -24,7 +24,7 @@ export const ROUTES = {
   
   // Content
   CONTENT: {
-    STRATEGY: "/estrategias",
+    STRATEGY: "/content-strategy",
     PLANNER: "/content-planner",
     IDEAS: "/content-ideas",
     SCRIPTS: {
@@ -38,24 +38,22 @@ export const ROUTES = {
   // Videos
   VIDEOS: {
     ROOT: "/videos",
-    STORAGE: "/video-storage",
-    BATCH: "/video-batch",
-    IMPORT: "/video-import",
-    SWIPE: "/video-swipe",
-    PLAYER: "/video",
-    CREATE: "/videos/create"  // Nova rota para criação de vídeos
+    STORAGE: "/videos/storage",
+    BATCH: "/videos/batch",
+    IMPORT: "/videos/import",
+    SWIPE: "/videos/swipe",
+    PLAYER: "/video-player",
+    CREATE: "/videos/create"
   },
   
-  // Equipment & Media
+  // Knowledge Base
   EQUIPMENT: {
     LIST: "/equipments",
     DETAILS: (id: string = ":id") => `/equipment/${id}`
   },
   MEDIA: "/media",
-  
-  // Documentation
   DOCUMENTS: {
-    ROOT: "/documents",
+    ROOT: "/docs",
     DETAILS: (id: string = ":id") => `/document/${id}`
   },
   SCIENTIFIC_ARTICLES: "/scientific-articles",
@@ -68,7 +66,7 @@ export const ROUTES = {
   
   // Consultant
   CONSULTANT: {
-    PANEL: "/consultant"
+    PANEL: "/consultant-panel"
   },
   
   // Admin routes
@@ -86,9 +84,6 @@ export const ROUTES = {
     },
     WORKSPACE: "/admin/workspace"
   },
-  
-  // Error
-  NOT_FOUND: "*",
   
   // Admin videos
   ADMIN_VIDEOS: '/admin/videos'
