@@ -18,12 +18,11 @@ const Layout: React.FC<LayoutProps> = ({
   transparentHeader = false,
   requireAuth = true
 }) => {
-  // Adicionar log para debug
   console.log('Layout rendering', { title, fullWidth, transparentHeader });
   
   return (
     <AppLayout requireAuth={requireAuth}>
-      <div className={`${fullWidth ? 'w-full' : 'container mx-auto'} py-4`}>
+      <div className={`${fullWidth ? 'w-full' : 'container mx-auto'} py-4 px-4`}>
         {title && (
           <div className="mb-6">
             <h1 className="text-2xl font-bold">{title}</h1>

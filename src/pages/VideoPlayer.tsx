@@ -22,6 +22,14 @@ const VideoPlayer: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!id) {
+      toast.error("ID do vídeo não fornecido.");
+      navigate(ROUTES.VIDEOS.ROOT);
+      return;
+    }
+
+    console.log(`Carregando vídeo com ID: ${id}`);
+    
     // Simulate loading video data
     const timer = setTimeout(() => {
       setLoading(false);
@@ -30,7 +38,7 @@ const VideoPlayer: React.FC = () => {
         description: 'Aprenda as melhores técnicas para um contorno facial perfeito utilizando produtos disponíveis no mercado.',
         views: 3244,
         likes: 278,
-        date: '18 de Abril, 2025',
+        date: '18 de Maio, 2025',
       });
       
       // Placeholder video URL - in a real app, this would come from your backend
@@ -38,7 +46,7 @@ const VideoPlayer: React.FC = () => {
     }, 1500);
     
     return () => clearTimeout(timer);
-  }, [id]);
+  }, [id, navigate]);
 
   const handleBack = () => {
     navigate(ROUTES.VIDEOS.ROOT);
@@ -93,7 +101,7 @@ const VideoPlayer: React.FC = () => {
           </div>
           <p className="text-gray-700">{videoData.description}</p>
           
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             <Button variant="outline" size="sm" onClick={handleLike}>
               <ThumbsUp className="mr-2 h-4 w-4" />
               Curtir

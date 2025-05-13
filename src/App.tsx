@@ -1,8 +1,10 @@
+
 import React from "react";
 import {
   createBrowserRouter,
   RouterProvider,
-  Navigate
+  Navigate,
+  RouteObject
 } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { AuthProvider } from "@/context/AuthContext";
@@ -64,8 +66,8 @@ import NotFound from '@/pages/NotFound';
 
 console.log('App initialization');
 
-// Create router configuration with proper layouts and error boundaries
-const router = createBrowserRouter([
+// Define routes with better organization
+const routes: RouteObject[] = [
   // Public routes
   {
     path: ROUTES.HOME,
@@ -269,14 +271,17 @@ const router = createBrowserRouter([
     path: "*",
     element: <NotFound />,
   }
-]);
+];
+
+// Create router with routes
+const router = createBrowserRouter(routes);
 
 function App() {
   return (
     <ThemeProvider defaultTheme="light">
       <AuthProvider>
         <SidebarProvider>
-          <Toaster position="top-right" />
+          <Toaster position="top-right" richColors />
           <RouterProvider router={router} />
         </SidebarProvider>
       </AuthProvider>

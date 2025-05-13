@@ -33,7 +33,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
                 )}
               </div>
               {actions && (
-                <div className="mt-4 md:mt-0">
+                <div className="mt-4 md:mt-0 w-full md:w-auto">
                   {actions}
                 </div>
               )}
@@ -42,10 +42,10 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         )}
 
         {noContainer ? (
-          children
+          <div className="px-4">{children}</div>
         ) : (
           <div className="container mx-auto px-4 pb-8">
-            <GlassContainer className="p-6">
+            <GlassContainer className="p-4 md:p-6">
               {children}
             </GlassContainer>
           </div>
