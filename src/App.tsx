@@ -1,15 +1,14 @@
+
 import React from "react";
 import {
   createBrowserRouter,
-  RouterProvider,
-  Link
+  RouterProvider
 } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 
 // Pages
 import HomePage from "@/pages/HomePage";
