@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/routes';
+import { generateVideoMeta } from '@/services/ai/generateVideoMeta';
 
 // Components
 import Layout from '@/components/Layout';
@@ -33,7 +34,17 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { LazyImage } from '@/components/ui/lazy-image';
-import { AlertTriangle, Upload, ImagePlus, CheckCircle, Loader2, Video } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  Upload, 
+  ImagePlus, 
+  CheckCircle, 
+  Loader2, 
+  Video, 
+  Wand2, 
+  Brain 
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 // Schema de validação do formulário
 const formSchema = z.object({
@@ -56,6 +67,7 @@ const VideoCreatePage: React.FC = () => {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isGeneratingMeta, setIsGeneratingMeta] = useState(false);
 
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -108,6 +120,46 @@ const VideoCreatePage: React.FC = () => {
       bannerInputRef.current.click();
     }
   }, []);
+
+  // Nova função para gerar metadados com base no nome do arquivo
+  const handleGenerateMetadata = async () => {
+    if (!videoFile) {
+      toast({
+        variant: 'destructive',
+        title: 'Nenhum arquivo selecionado',
+        description: 'Por favor, selecione um arquivo de vídeo primeiro.',
+      });
+      return;
+    }
+    
+    try {
+      setIsGeneratingMeta(true);
+      
+      const result = await generateVideoMeta(videoFile.name);
+      
+      if (result.title) {
+        form.setValue('title', result.title);
+      }
+      
+      if (result.description) {
+        form.setValue('description', result.description);
+      }
+      
+      toast({
+        title: 'Metadados gerados com sucesso',
+        description: 'Título e descrição foram gerados pela IA.',
+      });
+    } catch (error) {
+      console.error('Error generating metadata:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao gerar metadados',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro ao gerar o título e descrição.',
+      });
+    } finally {
+      setIsGeneratingMeta(false);
+    }
+  };
 
   // Função para fazer upload de arquivos para o bucket correto
   const uploadFileToBucket = async (file: File, bucket: string, fileName: string): Promise<string | null> => {
@@ -302,6 +354,35 @@ const VideoCreatePage: React.FC = () => {
                   </TabsList>
                   
                   <TabsContent value="details" className="space-y-4">
+                    {/* Novo botão para gerar metadados com IA */}
+                    {videoFile && (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGenerateMetadata}
+                          disabled={isGeneratingMeta || !videoFile}
+                          className="flex items-center gap-2"
+                        >
+                          {isGeneratingMeta ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Gerando...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="h-4 w-4" />
+                              Auto-completar com IA
+                            </>
+                          )}
+                        </Button>
+                        <Badge variant="secondary" className="ml-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center">
+                          <Brain className="h-3 w-3 mr-1" />
+                          IA
+                        </Badge>
+                      </div>
+                    )}
+                    
                     <FormField
                       control={form.control}
                       name="title"
