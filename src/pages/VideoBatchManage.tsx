@@ -1,19 +1,16 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
-import { useToast } from '@/hooks/use-toast';
+import ContentLayout from '@/components/layout/ContentLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// Fix the import to use default import
-import useBatchVideoManage from '@/hooks/useBatchVideoManage';
-
+import { ROUTES } from '@/routes';
 // Import our components
 import VideoSearch from '@/components/video-batch/VideoSearch';
 import BatchActionBar from '@/components/video-batch/BatchActionBar';
 import VideoList from '@/components/video-batch/VideoList';
 import BatchEditDialog from '@/components/video-batch/BatchEditDialog';
+import useBatchVideoManage from '@/hooks/useBatchVideoManage';
 
 // Define EditableVideo type locally to resolve type conflicts
 interface EditableVideo {
@@ -32,7 +29,6 @@ interface EditableVideo {
 }
 
 const VideoBatchManage: React.FC = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const {
@@ -60,100 +56,64 @@ const VideoBatchManage: React.FC = () => {
     equipments
   } = useBatchVideoManage();
 
-  // Check for admin permissions
-  React.useEffect(() => {
-    if (!isAdmin()) {
-      toast({
-        title: "Acesso Restrito",
-        description: "Apenas administradores podem acessar esta página",
-        variant: "destructive"
-      });
-      navigate('/videos');
-    }
-  }, [isAdmin, navigate, toast]);
-
-  if (!isAdmin()) {
-    return null;
-  }
-
   if (loading) {
     return (
-      <Layout>
-        <div className="container mx-auto py-6 space-y-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Gerenciamento em Lote</h1>
-            <Button variant="outline" onClick={() => navigate('/videos')}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Carregando vídeos...</p>
-            </div>
-          </div>
+      <ContentLayout title="Gerenciamento em Lote" subtitle="Carregando...">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          <p className="ml-2 text-muted-foreground">Carregando vídeos...</p>
         </div>
-      </Layout>
+      </ContentLayout>
     );
   }
   
   return (
-    <Layout>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gerenciamento em Lote</h1>
-          <Button variant="outline" onClick={() => navigate('/videos')}>
+    <ContentLayout title="Gerenciamento em Lote" subtitle="Edite, exclua ou gerencie múltiplos vídeos">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={() => navigate(ROUTES.VIDEOS.ROOT)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
           </Button>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Gerenciar Vídeos</CardTitle>
-            <CardDescription>Edite, exclua ou gerencie múltiplos vídeos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Search and filters */}
-            <VideoSearch
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onRefresh={loadVideos}
-            />
-            
-            {/* Batch actions */}
-            <BatchActionBar 
-              selectedCount={selectedVideos.length}
-              onClearSelection={() => setSelectedVideos([])}
-              onShowEditDialog={() => setShowBatchEditDialog(true)}
-              onDelete={() => handleBatchDelete().catch(err => console.error(err))}
-            />
-            
-            {/* Videos list */}
-            <VideoList 
-              videos={videos as any[]}
-              selectedVideos={selectedVideos}
-              equipments={equipments}
-              onSelect={handleSelect}
-              onSelectAll={handleSelectAll}
-              onEdit={handleEdit}
-              onSave={(videoId) => handleSave(videoId).catch(err => console.error(err))}
-              onCancel={handleCancel}
-              onDelete={(videoId) => handleDelete(videoId).catch(err => console.error(err))}
-              onUpdateVideo={(index, updates) => {
-                // Convert index to string if needed by the underlying implementation
-                const id = typeof index === 'number' ? videos[index].id : index;
-                handleUpdate(id, updates);
-              }}
-            />
-            
-            {videos.length > 0 && (
-              <div className="mt-4 text-sm text-muted-foreground text-right">
-                Total: {videos.length} vídeos
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Search and filters */}
+        <VideoSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onRefresh={loadVideos}
+        />
+        
+        {/* Batch actions */}
+        <BatchActionBar 
+          selectedCount={selectedVideos.length}
+          onClearSelection={() => setSelectedVideos([])}
+          onShowEditDialog={() => setShowBatchEditDialog(true)}
+          onDelete={() => handleBatchDelete().catch(err => console.error(err))}
+        />
+        
+        {/* Videos list */}
+        <VideoList 
+          videos={videos as any[]}
+          selectedVideos={selectedVideos}
+          equipments={equipments}
+          onSelect={handleSelect}
+          onSelectAll={handleSelectAll}
+          onEdit={handleEdit}
+          onSave={(videoId) => handleSave(videoId).catch(err => console.error(err))}
+          onCancel={handleCancel}
+          onDelete={(videoId) => handleDelete(videoId).catch(err => console.error(err))}
+          onUpdateVideo={(index, updates) => {
+            // Convert index to string if needed by the underlying implementation
+            const id = typeof index === 'number' ? videos[index].id : index;
+            handleUpdate(id, updates);
+          }}
+        />
+        
+        {videos.length > 0 && (
+          <div className="mt-4 text-sm text-muted-foreground text-right">
+            Total: {videos.length} vídeos
+          </div>
+        )}
         
         <BatchEditDialog 
           isOpen={showBatchEditDialog}
@@ -165,7 +125,7 @@ const VideoBatchManage: React.FC = () => {
           onApply={() => handleBatchEquipmentUpdate().catch(err => console.error(err))}
         />
       </div>
-    </Layout>
+    </ContentLayout>
   );
 };
 

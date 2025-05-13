@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminRouteProps {
   children?: React.ReactNode;
@@ -11,7 +13,16 @@ interface AdminRouteProps {
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
   const { isAdmin } = usePermissions();
+  const navigate = useNavigate();
   
+  useEffect(() => {
+    // If auth has loaded and user isn't admin, show toast and redirect
+    if (!isLoading && user && !isAdmin()) {
+      toast.error("Acesso restrito: apenas administradores podem acessar esta área");
+      navigate('/dashboard');
+    }
+  }, [isLoading, user, isAdmin, navigate]);
+
   // If auth is still loading, show loading indicator
   if (isLoading) {
     return (
@@ -21,9 +32,14 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  // If no user or not admin, redirect
-  if (!user || !isAdmin()) {
-    return <Navigate to="/dashboard" replace />;
+  // If no user, redirect
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If not admin, already handled by useEffect
+  if (!isAdmin()) {
+    return null;
   }
   
   // If there are children, render them, otherwise render the outlet

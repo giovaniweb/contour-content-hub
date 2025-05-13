@@ -1,15 +1,17 @@
 
 import React from 'react';
-import { AuthProvider } from '@/context/AuthContext';
-import VideoBatchManage from '@/pages/VideoBatchManage';
+import ContentLayout from '@/components/layout/ContentLayout';
+import VideoContentManager from '@/components/admin/VideoContentManager';
 
-// This is a wrapper component that ensures the VideoBatchManage component
-// receives the auth context
 const AdminVideosPage: React.FC = () => {
   return (
-    <AuthProvider>
-      <VideoBatchManage />
-    </AuthProvider>
+    <ContentLayout 
+      title="Gerenciamento de Vídeos"
+      subtitle="Gerencie todos os vídeos do sistema"
+      fullWidth
+    >
+      <VideoContentManager />
+    </ContentLayout>
   );
 };
 
