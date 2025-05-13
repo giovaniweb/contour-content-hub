@@ -3,12 +3,14 @@ import React from "react";
 import {
   createBrowserRouter,
   RouterProvider,
+  Link
 } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button"; // Add Button import
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -169,7 +171,7 @@ function App() {
 
 export default App;
 
-// Adicionar o componente NotFound
+// NotFound component
 import { Link } from "react-router-dom";
 
 function NotFound() {
