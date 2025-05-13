@@ -1,185 +1,175 @@
 
-import React, { useState } from "react";
-import ContentLayout from "@/components/layout/ContentLayout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FileText, Download, Search, Filter, Eye, Upload } from "lucide-react";
-import PDFViewerModal from "@/components/pdf/PDFViewerModal";
-import { toast } from "sonner";
-import { downloadPdf } from "@/utils/pdfUtils";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Book, Search, Filter, BookOpen, Plus, Calendar, User } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import ContentLayout from '@/components/layout/ContentLayout';
+import GlassContainer from '@/components/ui/GlassContainer';
 
-const articles = [
+// Mock data para artigos
+const mockArticles = [
   {
-    id: "1",
-    title: "Eficácia do Tratamento X no Rejuvenescimento Facial: Um Estudo Clínico",
-    authors: "Silva, M.; Pereira, J.; Santos, L.",
-    journal: "Revista Brasileira de Dermatologia",
-    year: 2025,
-    abstract: "Este estudo analisa os efeitos do Tratamento X em pacientes com sinais de envelhecimento facial, demonstrando uma melhora significativa em 87% dos casos após 4 semanas de tratamento.",
-    tags: ["rejuvenescimento", "estudo clínico", "dermatologia"],
-    pdfUrl: "https://example.com/article1.pdf"
+    id: "article-1",
+    title: "Análise comparativa de ingredientes em hidratantes faciais",
+    author: "Dra. Maria Santos",
+    date: "2025-04-12",
+    journal: "Journal of Cosmetic Dermatology",
+    categories: ["Skincare", "Pesquisa"]
   },
   {
-    id: "2",
-    title: "Análise Comparativa entre Procedimentos não Invasivos para Flacidez Facial",
-    authors: "Oliveira, A.; Costa, R.",
-    journal: "Journal of Clinical Aesthetics",
-    year: 2024,
-    abstract: "Uma comparação abrangente entre cinco procedimentos não invasivos para tratamento de flacidez facial, evidenciando vantagens e desvantagens de cada método.",
-    tags: ["flacidez", "não invasivo", "comparativo"],
-    pdfUrl: "https://example.com/article2.pdf"
+    id: "article-2",
+    title: "Eficácia de antioxidantes na prevenção do envelhecimento cutâneo",
+    author: "Dr. Carlos Oliveira",
+    date: "2025-04-05",
+    journal: "Dermatology Science Review",
+    categories: ["Anti-idade", "Clínico"]
   },
   {
-    id: "3",
-    title: "Efeitos Colaterais em Procedimentos Estéticos com Ácido Hialurônico",
-    authors: "Martins, P.; Rodrigues, T.; Alves, V.",
-    journal: "Aesthetic Medicine Research",
-    year: 2025,
-    abstract: "Investigação sobre os efeitos colaterais mais comuns em procedimentos que utilizam ácido hialurônico e métodos para mitigar riscos.",
-    tags: ["ácido hialurônico", "efeitos colaterais", "segurança"],
-    pdfUrl: "https://example.com/article3.pdf"
+    id: "article-3",
+    title: "Impacto de formulações naturais nos tratamentos de hiperpigmentação",
+    author: "Dra. Amanda Ferreira",
+    date: "2025-03-28",
+    journal: "Natural Cosmetics Research",
+    categories: ["Natural", "Pigmentação"]
   },
   {
-    id: "4",
-    title: "Protocolos de Tratamento para Hiperpigmentação Pós-Inflamatória",
-    authors: "Carvalho, F.; Lima, S.",
-    journal: "International Journal of Dermatology",
-    year: 2024,
-    abstract: "Este artigo propõe protocolos de tratamento para hiperpigmentação pós-inflamatória em diferentes fototipos de pele, com resultados documentados em 120 pacientes.",
-    tags: ["hiperpigmentação", "protocolos", "pós-inflamatória"],
-    pdfUrl: "https://example.com/article4.pdf"
+    id: "article-4",
+    title: "Efeitos da exposição solar controlada na produção de vitamina D",
+    author: "Dr. Roberto Mendes",
+    date: "2025-03-20",
+    journal: "Sun Exposure Health Journal",
+    categories: ["Proteção Solar", "Saúde"]
   }
 ];
 
 const ScientificArticles: React.FC = () => {
-  const [selectedArticle, setSelectedArticle] = useState<typeof articles[0] | null>(null);
-  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDownloading, setIsDownloading] = useState<Record<string, boolean>>({});
-  
-  const filteredArticles = articles.filter(article => 
+  const [activeTab, setActiveTab] = useState("all");
+
+  // Filter articles based on search term
+  const filteredArticles = mockArticles.filter(article => 
     article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    article.authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    article.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    article.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    article.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    article.journal.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  const handleViewPdf = (article: typeof articles[0]) => {
-    setSelectedArticle(article);
-    setPdfModalOpen(true);
-  };
-  
-  const handleDownloadPdf = async (article: typeof articles[0]) => {
-    try {
-      setIsDownloading({...isDownloading, [article.id]: true});
-      await downloadPdf(
-        article.pdfUrl, 
-        `${article.title.replace(/\s+/g, '_')}.pdf`
-      );
-      toast.success("Download iniciado", {
-        description: "O arquivo está sendo baixado"
-      });
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      toast.error("Erro ao baixar o arquivo", {
-        description: "Não foi possível iniciar o download"
-      });
-    } finally {
-      setIsDownloading({...isDownloading, [article.id]: false});
-    }
+
+  // Filter by category
+  const getArticlesByTab = () => {
+    if (activeTab === "all") return filteredArticles;
+    return filteredArticles.filter(article => 
+      article.categories.some(cat => cat.toLowerCase() === activeTab.toLowerCase())
+    );
   };
 
-  // Actions for the header
-  const headerActions = (
-    <div className="flex gap-2">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Buscar artigos..."
-          className="pl-9 min-w-[250px]"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      <Button variant="outline" size="icon">
-        <Filter className="h-4 w-4" />
-      </Button>
-      <Button>
-        <Upload className="h-4 w-4 mr-2" />
-        Novo Artigo
-      </Button>
-    </div>
-  );
-  
+  const displayArticles = getArticlesByTab();
+
+  // Handle view article
+  const handleViewArticle = (id: string) => {
+    // Navigate to article detail page (to be implemented)
+    console.log(`Viewing article ${id}`);
+  };
+
+  // Handle create article
+  const handleCreateArticle = () => {
+    // Navigate to article creation page (to be implemented)
+    console.log("Creating new article");
+  };
+
   return (
-    <ContentLayout 
-      title="Artigos Científicos" 
-      subtitle="Base de conhecimento científico para embasar seus tratamentos"
-      actions={headerActions}
+    <ContentLayout
+      title="Artigos Científicos"
+      subtitle="Base de conhecimento para embasar seus conteúdos"
+      actions={
+        <Button 
+          onClick={handleCreateArticle}
+          className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Artigo
+        </Button>
+      }
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredArticles.map((article) => (
-          <Card key={article.id} className="overflow-hidden bg-white/80 backdrop-blur-sm border-white/20 shadow-sm hover:shadow">
-            <CardHeader>
-              <CardTitle>{article.title}</CardTitle>
-              <CardDescription>
-                {article.authors} • {article.journal}, {article.year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {article.abstract}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-4">
-                {article.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="ghost" size="sm" onClick={() => handleViewPdf(article)}>
-                <Eye className="h-4 w-4 mr-1" />
-                Visualizar PDF
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleDownloadPdf(article)}
-                disabled={isDownloading[article.id]}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                {isDownloading[article.id] ? "Baixando..." : "Download"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-      
-      {filteredArticles.length === 0 && (
-        <div className="flex flex-col items-center justify-center p-10">
-          <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-lg font-medium">Nenhum artigo encontrado</h2>
-          <p className="text-muted-foreground">
-            Tente alterar seus termos de busca ou filtros
-          </p>
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <TabsList>
+            <TabsTrigger value="all">Todos</TabsTrigger>
+            <TabsTrigger value="skincare">Skincare</TabsTrigger>
+            <TabsTrigger value="pesquisa">Pesquisa</TabsTrigger>
+            <TabsTrigger value="clínico">Clínico</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex items-center gap-2 mt-4 md:mt-0">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar artigos..."
+                className="pl-9 w-[200px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      )}
+      </Tabs>
       
-      {selectedArticle && (
-        <PDFViewerModal
-          open={pdfModalOpen}
-          onOpenChange={setPdfModalOpen}
-          pdfUrl={selectedArticle.pdfUrl}
-          title={selectedArticle.title}
-          filename={`${selectedArticle.title.replace(/\s+/g, '_')}.pdf`}
-        />
+      {displayArticles.length > 0 ? (
+        <div className="space-y-4">
+          {displayArticles.map((article) => (
+            <GlassContainer 
+              key={article.id} 
+              className="hover:shadow-md transition-all cursor-pointer"
+              onClick={() => handleViewArticle(article.id)}
+            >
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="flex items-start md:items-center">
+                  <div className="p-2 bg-purple-50 rounded-full mr-4">
+                    <Book className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-base md:text-lg">{article.title}</h3>
+                    <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground mt-1 gap-y-1 md:gap-x-4">
+                      <span className="flex items-center">
+                        <User className="h-3.5 w-3.5 mr-1" />
+                        {article.author}
+                      </span>
+                      <span className="flex items-center">
+                        <Calendar className="h-3.5 w-3.5 mr-1" />
+                        {new Date(article.date).toLocaleDateString('pt-BR')}
+                      </span>
+                      <span className="italic">{article.journal}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
+                  {article.categories.map((category, idx) => (
+                    <Badge key={idx} variant="secondary">{category}</Badge>
+                  ))}
+                </div>
+              </div>
+            </GlassContainer>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+            <BookOpen className="h-8 w-8 text-slate-400" />
+          </div>
+          <h2 className="text-lg font-medium">Nenhum artigo encontrado</h2>
+          <p className="text-muted-foreground text-center">
+            Não encontramos artigos correspondentes à sua busca.
+          </p>
+          <Button variant="outline" className="mt-6" onClick={handleCreateArticle}>
+            Adicionar novo artigo
+          </Button>
+        </div>
       )}
     </ContentLayout>
   );

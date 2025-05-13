@@ -1,228 +1,180 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ContentLayout from '@/components/layout/ContentLayout';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Search, Filter, PlusCircle, Edit, Eye, Trash2, ArrowUpRight } from "lucide-react";
+import { FileText, Plus, Search, Filter, FileEdit, Clock } from 'lucide-react';
 import { ROUTES } from '@/routes';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ContentLayout from '@/components/layout/ContentLayout';
+import GlassContainer from '@/components/ui/GlassContainer';
 
-// Mock script data
-const scripts = [
+// Mock data para scripts
+const mockScripts = [
   {
-    id: "1",
-    title: "Como preparar a pele antes da maquiagem",
-    category: "Tutorial",
+    id: "script-1",
+    title: "Roteiro: Aplicação de base líquida",
+    date: "2025-05-10",
     status: "published",
-    views: 1245,
-    engagement: 8.7,
-    updatedAt: "2025-05-01",
-    thumbnail: "https://example.com/thumbs/skincare.jpg"
+    author: "Carla Mendes"
   },
   {
-    id: "2",
-    title: "5 dicas para cuidados com cabelo no verão",
-    category: "Dicas",
+    id: "script-2",
+    title: "Roteiro: Cuidados noturnos para pele oleosa",
+    date: "2025-05-08",
     status: "draft",
-    views: 0,
-    engagement: 0,
-    updatedAt: "2025-04-28",
-    thumbnail: "https://example.com/thumbs/hair.jpg"
+    author: "Ana Silva"
   },
   {
-    id: "3",
-    title: "Demonstração do novo produto X para hidratação",
-    category: "Produto",
+    id: "script-3",
+    title: "Roteiro: Contorno facial avançado",
+    date: "2025-05-05",
     status: "published",
-    views: 879,
-    engagement: 6.2,
-    updatedAt: "2025-04-15",
-    thumbnail: "https://example.com/thumbs/product.jpg"
+    author: "Carla Mendes"
   },
   {
-    id: "4",
-    title: "Tendências de maquiagem para o inverno",
-    category: "Tendências",
+    id: "script-4",
+    title: "Roteiro: Hidratação profunda para cabelos",
+    date: "2025-05-02",
     status: "review",
-    views: 0,
-    engagement: 0,
-    updatedAt: "2025-05-10",
-    thumbnail: "https://example.com/thumbs/makeup.jpg"
+    author: "Beatriz Costa"
+  },
+  {
+    id: "script-5",
+    title: "Roteiro: Maquiagem para eventos",
+    date: "2025-04-28",
+    status: "published",
+    author: "Ana Silva"
   }
 ];
 
 const ContentScripts: React.FC = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  
-  const filteredScripts = scripts.filter(script => {
-    const matchesSearch = script.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          script.category.toLowerCase().includes(searchTerm.toLowerCase());
-                          
-    const matchesTab = activeTab === "all" || 
-                      (activeTab === "published" && script.status === "published") ||
-                      (activeTab === "drafts" && script.status === "draft") ||
-                      (activeTab === "review" && script.status === "review");
-                      
-    return matchesSearch && matchesTab;
-  });
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter scripts based on search term
+  const filteredScripts = mockScripts.filter(script => 
+    script.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Get scripts for the active tab
+  const getScriptsByTab = () => {
+    if (activeTab === "all") return filteredScripts;
+    if (activeTab === "published") return filteredScripts.filter(s => s.status === "published");
+    if (activeTab === "drafts") return filteredScripts.filter(s => s.status === "draft");
+    if (activeTab === "review") return filteredScripts.filter(s => s.status === "review");
+    return filteredScripts;
+  };
+
+  const displayScripts = getScriptsByTab();
+
+  // Handler to open script generator
   const handleCreateScript = () => {
     navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR);
   };
-  
-  const handleEditScript = (id: string) => {
-    navigate(`${ROUTES.CONTENT.SCRIPTS.ROOT}/${id}/edit`);
-  };
-  
+
+  // Handler to view a script
   const handleViewScript = (id: string) => {
     navigate(`${ROUTES.CONTENT.SCRIPTS.ROOT}/${id}`);
   };
-  
-  const handleDeleteScript = (id: string) => {
-    // In a real app, this would make an API call to delete the script
-    console.log('Delete script:', id);
-  };
-  
-  const getStatusBadgeClass = (status: string) => {
-    switch(status) {
-      case 'published': return 'bg-green-100 text-green-800 border-green-200';
-      case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'review': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-  
-  const getStatusLabel = (status: string) => {
-    switch(status) {
-      case 'published': return 'Publicado';
-      case 'draft': return 'Rascunho';
-      case 'review': return 'Em revisão';
-      default: return status;
-    }
-  };
-  
+
   return (
     <ContentLayout
       title="Roteiros"
       subtitle="Crie e gerencie roteiros para seus vídeos"
       actions={
-        <Button onClick={handleCreateScript} className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white">
-          <PlusCircle className="mr-2 h-4 w-4" />
+        <Button 
+          onClick={handleCreateScript}
+          className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white"
+        >
+          <Plus className="mr-2 h-4 w-4" />
           Novo Roteiro
         </Button>
       }
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <TabsList>
             <TabsTrigger value="all">Todos</TabsTrigger>
             <TabsTrigger value="published">Publicados</TabsTrigger>
             <TabsTrigger value="drafts">Rascunhos</TabsTrigger>
             <TabsTrigger value="review">Em revisão</TabsTrigger>
           </TabsList>
-        </Tabs>
-        
-        <div className="flex items-center space-x-2 mt-4 md:mt-0 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar roteiros..."
-              className="pl-9 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          
+          <div className="flex items-center gap-2 mt-4 md:mt-0">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar roteiros..."
+                className="pl-9 w-[200px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
+      </Tabs>
       
-      {filteredScripts.length === 0 ? (
+      {displayScripts.length > 0 ? (
+        <div className="space-y-4">
+          {displayScripts.map((script) => (
+            <GlassContainer 
+              key={script.id} 
+              className="hover:shadow-md transition-all cursor-pointer"
+              onClick={() => handleViewScript(script.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-2 bg-blue-50 rounded-full mr-4">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{script.title}</h3>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <span className="flex items-center mr-4">
+                        <Clock className="h-3.5 w-3.5 mr-1" />
+                        {new Date(script.date).toLocaleDateString('pt-BR')}
+                      </span>
+                      <span>{script.author}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    script.status === 'published' 
+                      ? 'bg-green-100 text-green-700' 
+                      : script.status === 'draft'
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {script.status === 'published' 
+                      ? 'Publicado' 
+                      : script.status === 'draft'
+                        ? 'Rascunho'
+                        : 'Em revisão'}
+                  </span>
+                </div>
+              </div>
+            </GlassContainer>
+          ))}
+        </div>
+      ) : (
         <div className="flex flex-col items-center justify-center py-16">
-          <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+          <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+            <FileEdit className="h-8 w-8 text-slate-400" />
+          </div>
           <h2 className="text-lg font-medium">Nenhum roteiro encontrado</h2>
           <p className="text-muted-foreground text-center">
-            {activeTab !== 'all' 
-              ? `Não há roteiros na categoria "${activeTab}". Tente mudar o filtro.` 
-              : 'Não encontramos roteiros correspondentes à sua busca.'}
+            Não encontramos roteiros correspondentes à sua busca.
           </p>
           <Button variant="outline" className="mt-6" onClick={handleCreateScript}>
             Criar novo roteiro
           </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredScripts.map((script) => (
-            <Card key={script.id} className="overflow-hidden bg-white/80 backdrop-blur-sm border-white/20 shadow-sm hover:shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className={`text-xs px-2 py-0.5 rounded border ${getStatusBadgeClass(script.status)}`}>
-                      {getStatusLabel(script.status)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {script.category}
-                    </span>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleViewScript(script.id)} 
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardTitle className="text-lg leading-tight">{script.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="py-2">
-                {script.status === 'published' && (
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-muted-foreground">Visualizações:</span>
-                    <span className="font-medium">{script.views.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Última atualização:</span>
-                  <span>{new Date(script.updatedAt).toLocaleDateString('pt-BR')}</span>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-3 flex justify-between">
-                <div className="flex space-x-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleEditScript(script.id)}
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleViewScript(script.id)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    Ver
-                  </Button>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => handleDeleteScript(script.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
         </div>
       )}
     </ContentLayout>

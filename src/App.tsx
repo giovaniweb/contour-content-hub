@@ -24,10 +24,11 @@ import AdminEquipments from "@/pages/admin/AdminEquipments";
 import VideoBatchManage from './pages/videos/VideoBatchManage';
 import VideoImportPage from './pages/videos/VideoImportPage';
 import VideoSwipe from './pages/videos/VideoSwipe';
-import VideoStorage from './pages/videos/VideoStorage';
-import VideoCreatePage from './pages/videos/VideoCreatePage';  // Importando a nova página
-import NotFound from '@/pages/NotFound';
+import VideoStorage from './pages/VideoStorage';
+import VideoCreatePage from './pages/videos/VideoCreatePage';
 import ContentScripts from '@/pages/ContentScripts';
+import ScientificArticles from '@/pages/ScientificArticles';
+import EquipmentList from '@/pages/EquipmentList';
 import AdminVimeoSettings from '@/pages/admin/VimeoSettings';
 import AdminSystemDiagnostics from '@/pages/admin/SystemDiagnostics';
 import AdminSystemIntelligence from '@/pages/admin/SystemIntelligence';
@@ -92,12 +93,20 @@ const router = createBrowserRouter([
     element: <VideoStorage />,
   },
   {
-    path: ROUTES.VIDEOS.CREATE,  // Nova rota para criar vídeos
+    path: ROUTES.VIDEOS.CREATE,
     element: <VideoCreatePage />,
   },
   {
     path: ROUTES.CONTENT.SCRIPTS.ROOT,
     element: <ContentScripts />,
+  },
+  {
+    path: ROUTES.SCIENTIFIC_ARTICLES,
+    element: <ScientificArticles />,
+  },
+  {
+    path: ROUTES.EQUIPMENT.LIST,
+    element: <EquipmentList />,
   },
   {
     path: ROUTES.MARKETING.REPORTS,
@@ -159,3 +168,23 @@ function App() {
 }
 
 export default App;
+
+// Adicionar o componente NotFound
+import { Link } from "react-router-dom";
+
+function NotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-white to-zinc-50 p-4 text-center">
+      <div className="max-w-md">
+        <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
+        <p className="text-2xl font-medium text-gray-800 mb-6">Página não encontrada</p>
+        <p className="text-gray-600 mb-8">
+          A página que você está procurando pode ter sido removida, renomeada ou está temporariamente indisponível.
+        </p>
+        <Button asChild className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white">
+          <Link to={ROUTES.HOME}>Voltar para a página inicial</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}

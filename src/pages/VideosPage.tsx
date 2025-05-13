@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ContentLayout from '@/components/layout/ContentLayout';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PlusCircle, Search, Filter, Grid, LayoutList } from "lucide-react";
 import { ROUTES } from '@/routes';
+import GlassContainer from '@/components/ui/GlassContainer';
 
 // Mock videos data
 const videos = [
@@ -136,65 +136,69 @@ const VideosPage: React.FC = () => {
         </div>
       </Tabs>
       
-      <div className={view === 'grid' 
-        ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' 
-        : 'space-y-4'}>
-        {filteredVideos.map((video) => (
-          view === 'grid' ? (
-            <Card 
-              key={video.id} 
-              className="overflow-hidden bg-white/80 backdrop-blur-sm border-white/20 shadow-sm hover:shadow cursor-pointer"
-              onClick={() => handleViewVideo(video.id)}
-            >
-              <div className="aspect-video bg-muted relative">
-                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
-                  {video.duration}
+      {filteredVideos.length > 0 ? (
+        <div className={view === 'grid' 
+          ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' 
+          : 'space-y-4'}>
+          {filteredVideos.map((video) => (
+            view === 'grid' ? (
+              <GlassContainer 
+                key={video.id} 
+                className="overflow-hidden hover:shadow-md cursor-pointer"
+                onClick={() => handleViewVideo(video.id)}
+              >
+                <div className="aspect-video bg-muted relative">
+                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                    {video.duration}
+                  </div>
                 </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-medium text-sm line-clamp-2">{video.title}</h3>
-                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{video.views.toLocaleString()} views</span>
-                  <span>{new Date(video.date).toLocaleDateString('pt-BR')}</span>
+                <div className="p-4">
+                  <h3 className="font-medium text-sm line-clamp-2">{video.title}</h3>
+                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                    <span>{video.views.toLocaleString()} views</span>
+                    <span>{new Date(video.date).toLocaleDateString('pt-BR')}</span>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div 
-              key={video.id}
-              className="flex gap-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer"
-              onClick={() => handleViewVideo(video.id)}
-            >
-              <div className="relative w-36 h-20 bg-muted rounded">
-                <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
-                  {video.duration}
+              </GlassContainer>
+            ) : (
+              <GlassContainer 
+                key={video.id}
+                className="hover:shadow-md cursor-pointer"
+                onClick={() => handleViewVideo(video.id)}
+              >
+                <div className="flex gap-4">
+                  <div className="relative w-36 h-20 bg-muted rounded">
+                    <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                      {video.duration}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium line-clamp-2">{video.title}</h3>
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>{video.views.toLocaleString()} views</span>
+                      <span>{new Date(video.date).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium line-clamp-2">{video.title}</h3>
-                <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                  <span>{video.views.toLocaleString()} views</span>
-                  <span>{new Date(video.date).toLocaleDateString('pt-BR')}</span>
-                </div>
-              </div>
-            </div>
-          )
-        ))}
-      </div>
-      
-      {filteredVideos.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <Search className="h-8 w-8 text-slate-400" />
-          </div>
-          <h2 className="text-lg font-medium">Nenhum vídeo encontrado</h2>
-          <p className="text-muted-foreground text-center">
-            Não encontramos vídeos correspondentes à sua busca.
-          </p>
-          <Button variant="outline" className="mt-6" onClick={handleCreateVideo}>
-            Criar novo vídeo
-          </Button>
+              </GlassContainer>
+            )
+          ))}
         </div>
+      ) : (
+        <GlassContainer className="py-16">
+          <div className="flex flex-col items-center justify-center">
+            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <Search className="h-8 w-8 text-slate-400" />
+            </div>
+            <h2 className="text-lg font-medium">Nenhum vídeo encontrado</h2>
+            <p className="text-muted-foreground text-center">
+              Não encontramos vídeos correspondentes à sua busca.
+            </p>
+            <Button variant="outline" className="mt-6" onClick={handleCreateVideo}>
+              Criar novo vídeo
+            </Button>
+          </div>
+        </GlassContainer>
       )}
     </ContentLayout>
   );
