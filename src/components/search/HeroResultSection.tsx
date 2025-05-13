@@ -5,7 +5,7 @@ import { ROUTES } from "@/routes";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { FileText, ArrowRight, Loader2 } from "lucide-react";
-import { Markdown } from "react-markdown/lib/react-markdown";
+import Markdown from "react-markdown";
 
 interface HeroResultSectionProps {
   query: string;
