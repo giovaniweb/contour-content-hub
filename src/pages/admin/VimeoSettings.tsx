@@ -1,20 +1,30 @@
 
-import React from 'react';
-import Layout from '@/components/Layout';
+import React, { useState } from 'react';
+import ContentLayout from '@/components/layout/ContentLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import GlassContainer from '@/components/ui/GlassContainer';
+import { usePermissions } from '@/hooks/use-permissions';
+import { Navigate } from 'react-router-dom';
 
 const AdminVimeoSettings: React.FC = () => {
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [accessToken, setAccessToken] = React.useState('');
-  const [clientId, setClientId] = React.useState('');
-  const [clientSecret, setClientSecret] = React.useState('');
-  const [autoSync, setAutoSync] = React.useState(false);
+  const { isAdmin } = usePermissions();
+  const [isConnected, setIsConnected] = useState(false);
+  const [accessToken, setAccessToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [autoSync, setAutoSync] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // If not admin, redirect to dashboard
+  if (!isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleConnect = () => {
     // Simulação de conexão
@@ -28,11 +38,19 @@ const AdminVimeoSettings: React.FC = () => {
     setAccessToken('');
   };
 
+  const handleSyncNow = () => {
+    setIsSyncing(true);
+    // Simulate sync process
+    setTimeout(() => setIsSyncing(false), 2000);
+  };
+
   return (
-    <Layout>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Configurações do Vimeo</h1>
+    <ContentLayout 
+      title="Configurações do Vimeo"
+      subtitle="Configure a integração do sistema com sua conta do Vimeo para importar e gerenciar vídeos"
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between mb-4">
           {isConnected ? (
             <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200 px-3 py-1">
               <CheckCircle2 className="h-4 w-4" />
@@ -46,14 +64,8 @@ const AdminVimeoSettings: React.FC = () => {
           )}
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Integração com Vimeo</CardTitle>
-            <CardDescription>
-              Configure a integração do sistema com sua conta do Vimeo para importar e gerenciar vídeos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <GlassContainer>
+          <div className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="client-id">Client ID</Label>
@@ -115,60 +127,70 @@ const AdminVimeoSettings: React.FC = () => {
                 </div>
                 
                 <div className="pt-4">
-                  <Button variant="outline">Sincronizar agora</Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSyncNow} 
+                    disabled={isSyncing}
+                  >
+                    {isSyncing ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Sincronizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Sincronizar agora
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassContainer>
         
         {isConnected && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <GlassContainer>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
                   Vídeos Sincronizados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
                 <div className="text-2xl font-bold">42</div>
                 <p className="text-xs text-muted-foreground">
                   Última sincronização: há 2 dias
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassContainer>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
+            <GlassContainer>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
                   Espaço Utilizado
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
                 <div className="text-2xl font-bold">17.8 GB</div>
                 <p className="text-xs text-muted-foreground">
                   De 35 GB disponíveis
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassContainer>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
+            <GlassContainer>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
                   Status da Conta
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
                 <div className="text-2xl font-bold">Pro</div>
                 <p className="text-xs text-muted-foreground">
                   Válido até 15/12/2025
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </GlassContainer>
           </div>
         )}
       </div>
-    </Layout>
+    </ContentLayout>
   );
 };
 

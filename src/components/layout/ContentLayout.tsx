@@ -25,7 +25,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       <div className="bg-gradient-to-br from-white to-zinc-50 min-h-[calc(100vh-4rem)]">
         {title && (
           <div className="container mx-auto px-4 pt-6 pb-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-light tracking-wide text-gray-800">{title}</h1>
                 {subtitle && (
@@ -33,7 +33,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
                 )}
               </div>
               {actions && (
-                <div className="mt-4 md:mt-0 w-full md:w-auto">
+                <div className="mt-2 md:mt-0 w-full md:w-auto">
                   {actions}
                 </div>
               )}

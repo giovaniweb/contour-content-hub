@@ -93,84 +93,88 @@ const ScientificArticles: React.FC = () => {
         </Button>
       }
     >
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <TabsList>
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="skincare">Skincare</TabsTrigger>
-            <TabsTrigger value="pesquisa">Pesquisa</TabsTrigger>
-            <TabsTrigger value="clínico">Clínico</TabsTrigger>
-          </TabsList>
-          
-          <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar artigos..."
-                className="pl-9 w-[200px]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      <div className="space-y-6">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="skincare">Skincare</TabsTrigger>
+              <TabsTrigger value="pesquisa">Pesquisa</TabsTrigger>
+              <TabsTrigger value="clínico">Clínico</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex items-center gap-2 mt-4 md:mt-0">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar artigos..."
+                  className="pl-9 w-[200px]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      </Tabs>
-      
-      {displayArticles.length > 0 ? (
-        <div className="space-y-4">
-          {displayArticles.map((article) => (
-            <GlassContainer 
-              key={article.id} 
-              className="hover:shadow-md transition-all cursor-pointer"
-              onClick={() => handleViewArticle(article.id)}
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start md:items-center">
-                  <div className="p-2 bg-purple-50 rounded-full mr-4">
-                    <Book className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-base md:text-lg">{article.title}</h3>
-                    <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground mt-1 gap-y-1 md:gap-x-4">
-                      <span className="flex items-center">
-                        <User className="h-3.5 w-3.5 mr-1" />
-                        {article.author}
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar className="h-3.5 w-3.5 mr-1" />
-                        {new Date(article.date).toLocaleDateString('pt-BR')}
-                      </span>
-                      <span className="italic">{article.journal}</span>
+        </Tabs>
+        
+        {displayArticles.length > 0 ? (
+          <div className="space-y-4">
+            {displayArticles.map((article) => (
+              <GlassContainer 
+                key={article.id} 
+                className="hover:shadow-md transition-all cursor-pointer"
+                onClick={() => handleViewArticle(article.id)}
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start md:items-center">
+                    <div className="p-2 bg-purple-50 rounded-full mr-4">
+                      <Book className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-base md:text-lg">{article.title}</h3>
+                      <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground mt-1 gap-y-1 md:gap-x-4">
+                        <span className="flex items-center">
+                          <User className="h-3.5 w-3.5 mr-1" />
+                          {article.author}
+                        </span>
+                        <span className="flex items-center">
+                          <Calendar className="h-3.5 w-3.5 mr-1" />
+                          {new Date(article.date).toLocaleDateString('pt-BR')}
+                        </span>
+                        <span className="italic">{article.journal}</span>
+                      </div>
                     </div>
                   </div>
+                  <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
+                    {article.categories.map((category, idx) => (
+                      <Badge key={idx} variant="secondary">{category}</Badge>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-                  {article.categories.map((category, idx) => (
-                    <Badge key={idx} variant="secondary">{category}</Badge>
-                  ))}
-                </div>
-              </div>
-            </GlassContainer>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <BookOpen className="h-8 w-8 text-slate-400" />
+              </GlassContainer>
+            ))}
           </div>
-          <h2 className="text-lg font-medium">Nenhum artigo encontrado</h2>
-          <p className="text-muted-foreground text-center">
-            Não encontramos artigos correspondentes à sua busca.
-          </p>
-          <Button variant="outline" className="mt-6" onClick={handleCreateArticle}>
-            Adicionar novo artigo
-          </Button>
-        </div>
-      )}
+        ) : (
+          <GlassContainer>
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                <BookOpen className="h-8 w-8 text-slate-400" />
+              </div>
+              <h2 className="text-lg font-medium">Nenhum artigo encontrado</h2>
+              <p className="text-muted-foreground text-center">
+                Não encontramos artigos correspondentes à sua busca.
+              </p>
+              <Button variant="outline" className="mt-6" onClick={handleCreateArticle}>
+                Adicionar novo artigo
+              </Button>
+            </div>
+          </GlassContainer>
+        )}
+      </div>
     </ContentLayout>
   );
 };
