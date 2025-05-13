@@ -1,6 +1,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/routes";
 import GlassContainer from "@/components/ui/GlassContainer";
 import { FileText, Video, BarChart3 } from "lucide-react";
 
@@ -8,13 +10,21 @@ interface FeatureCardProps {
   title: string;
   description: string;
   icon: React.ReactNode;
+  path: string;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon }) => {
+const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon, path }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(path);
+  };
+
   return (
     <motion.div 
       whileHover={{ y: -5 }}
-      className="transition-all duration-300"
+      className="transition-all duration-300 cursor-pointer"
+      onClick={handleClick}
     >
       <GlassContainer className="h-full">
         <div className="flex flex-col gap-2 p-4">
@@ -34,17 +44,20 @@ const FeaturesSection: React.FC = () => {
     {
       title: "Gerador de Roteiros",
       description: "Crie roteiros profissionais para seus vídeos em minutos, com sugestões inteligentes baseadas no seu objetivo.",
-      icon: <FileText className="h-8 w-8 text-primary" />
+      icon: <FileText className="h-8 w-8 text-primary" />,
+      path: ROUTES.CONTENT.SCRIPTS.GENERATOR
     },
     {
       title: "Biblioteca de Vídeos",
       description: "Organize e acesse facilmente todos os seus vídeos e materiais de referência em um só lugar.",
-      icon: <Video className="h-8 w-8 text-primary" />
+      icon: <Video className="h-8 w-8 text-primary" />,
+      path: ROUTES.VIDEOS.ROOT
     },
     {
       title: "Estratégia de Conteúdo",
       description: "Desenvolva estratégias completas de conteúdo com sugestões personalizadas para seu público.",
-      icon: <BarChart3 className="h-8 w-8 text-primary" />
+      icon: <BarChart3 className="h-8 w-8 text-primary" />,
+      path: ROUTES.CONTENT.STRATEGY
     }
   ];
 
@@ -62,6 +75,7 @@ const FeaturesSection: React.FC = () => {
               title={feature.title}
               description={feature.description}
               icon={feature.icon}
+              path={feature.path}
             />
           ))}
         </div>
