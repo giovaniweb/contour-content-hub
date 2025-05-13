@@ -74,7 +74,7 @@ const router = createBrowserRouter([
     element: <ContentStrategy />,
   },
   {
-    path: ROUTES.VIDEOS.PLAYER + "/:id",
+    path: `${ROUTES.VIDEOS.PLAYER}/:id`,
     element: <VideoPlayer />,
   },
   {
