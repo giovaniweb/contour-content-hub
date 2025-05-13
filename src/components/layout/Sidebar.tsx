@@ -16,56 +16,20 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   Menu,
-  Home,
-  FileText,
-  Check,
-  Film,
-  Book,
-  BarChart3,
-  Box,
-  LayoutDashboard,
-  Settings,
-  File,
-  Upload,
-  Link as LinkIcon,
-  Video,
-  Brain,
-  TestTube,
   User,
-  HelpCircle
+  HelpCircle,
+  PlusCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { sidebarData, adminItems } from "../sidebar/SidebarData";
 
 export default function Sidebar() {
   const { open, setOpen } = useSidebar();
   const location = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-
-  // Main menu structure - Updated with correct routes
-  const mainMenu = [
-    { name: "Início", icon: Home, path: ROUTES.DASHBOARD },
-    { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT },
-    { name: "Validador", icon: Check, path: ROUTES.CONTENT.IDEAS },
-    { name: "Mídia", icon: Film, path: ROUTES.VIDEOS.ROOT },
-    { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES },
-    { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY },
-    { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST }
-  ];
-
-  // Admin menu structure - Updated with correct routes
-  const adminMenu = [
-    { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT },
-    { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT },
-    { name: "Conteúdo", icon: File, path: ROUTES.ADMIN.CONTENT },
-    { name: "Importar Vídeos", icon: Upload, path: ROUTES.VIDEOS.IMPORT },
-    { name: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE },
-    { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS },
-    { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI },
-    { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS }
-  ];
   
   // Check if the current path is active
   const isActive = (path: string) => {
@@ -76,7 +40,7 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent collapsible="icon">
+    <SidebarComponent collapsible="icon" className="bg-gradient-to-b from-white/80 to-zinc-100/70 backdrop-blur-sm border-r">
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           {open && (
@@ -96,37 +60,60 @@ export default function Sidebar() {
       </SidebarHeader>
       
       <SidebarContent className="p-2 overflow-y-auto">
-        {/* Main Menu */}
-        <SidebarGroup className="mb-4">
-          <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
-            Menu Principal
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {mainMenu.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton 
-                  asChild 
-                  active={isActive(item.path)}
-                  collapsible
-                >
-                  <Link to={item.path}>
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {/* Display all sidebar groups from our data */}
+        {sidebarData.map((group) => (
+          <SidebarGroup key={group.name} className="mb-4">
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-muted-foreground")}>
+              {group.icon && <group.icon className="mr-2 h-4 w-4" />}
+              {group.name}
+            </SidebarGroupLabel>
+            <SidebarMenu>
+              {group.links.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton 
+                    asChild 
+                    active={isActive(item.path)}
+                    collapsible
+                    className={item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""}
+                  >
+                    <Link to={item.path}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                      {item.highlight && open && (
+                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[#f300fc] animate-pulse" />
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* Only add Create Video button to the Videos group */}
+              {group.name === "Downloads" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    active={isActive(ROUTES.VIDEOS.CREATE)}
+                    collapsible
+                  >
+                    <Link to={ROUTES.VIDEOS.CREATE} className="text-blue-500 hover:text-blue-600">
+                      <PlusCircle className="h-5 w-5" />
+                      <span>Criar Vídeo</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
         
-        {/* Admin Menu */}
+        {/* Admin menu */}
         {isAdmin && (
           <SidebarGroup className="mt-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center")}>
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-muted-foreground")}>
               Administração
             </SidebarGroupLabel>
             <SidebarMenu>
-              {adminMenu.map((item) => (
+              {adminItems.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 

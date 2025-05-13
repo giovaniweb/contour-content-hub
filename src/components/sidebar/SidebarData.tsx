@@ -1,140 +1,57 @@
 
-import { ROUTES } from "@/routes";
-import {
-  BarChart3,
-  FileText,
-  FolderOpen,
+import { 
   Home,
-  PlaySquare,
-  User,
-  Calendar,
-  PencilLine,
-  Wrench,
-  Lightbulb,
-  Download,
-  FileImage,
-  BookOpen,
-  LayoutDashboard
+  FileText,
+  Check,
+  Film,
+  Book,
+  BarChart3,
+  Box,
+  LayoutDashboard,
+  Settings,
+  File,
+  Upload,
+  Link as LinkIcon,
+  Video,
+  Brain,
+  TestTube,
 } from "lucide-react";
+import { ROUTES } from '@/routes';
 
-export interface SidebarLink {
-  name: string;
-  icon: any;
-  path: string;
-  highlight?: boolean;
-}
-
-export interface SidebarGroup {
-  name: string;
-  icon?: any;
-  links: SidebarLink[];
-}
-
-export const sidebarData: SidebarGroup[] = [
+// Main menu sidebar structure
+export const sidebarData = [
   {
-    name: "Main",
+    name: "Menu Principal",
+    icon: Home,
     links: [
-      {
-        name: "Dashboard",
-        icon: LayoutDashboard,
-        path: ROUTES.DASHBOARD,
-      },
+      { name: "Início", icon: Home, path: ROUTES.DASHBOARD, highlight: false },
+      { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, highlight: false },
+      { name: "Validador", icon: Check, path: ROUTES.CONTENT.IDEAS, highlight: false },
+      { name: "Mídia", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
+      { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
+      { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY, highlight: false },
+      { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST, highlight: false }
     ]
   },
   {
-    name: "Strategy",
-    icon: Lightbulb,
-    links: [
-      {
-        name: "Idea Validator",
-        icon: Lightbulb,
-        path: ROUTES.CONTENT.IDEAS,
-        highlight: true
-      },
-      {
-        name: "Marketing AI",
-        icon: BarChart3,
-        path: ROUTES.MARKETING.CONSULTANT,
-      },
-      {
-        name: "Content Planner",
-        icon: Calendar,
-        path: ROUTES.CONTENT.PLANNER,
-      },
-      {
-        name: "Script Generator",
-        icon: PencilLine,
-        path: ROUTES.CONTENT.SCRIPTS.GENERATOR,
-      }
-    ],
-  },
-  {
     name: "Downloads",
-    icon: Download,
+    icon: Film,
     links: [
-      {
-        name: "Templates",
-        icon: FileText,
-        path: "/templates",
-      },
-      {
-        name: "Videos",
-        icon: PlaySquare,
-        path: ROUTES.VIDEOS.ROOT,
-      },
-      {
-        name: "Photos",
-        icon: FileImage,
-        path: "/photos",
-      },
-      {
-        name: "Files",
-        icon: FolderOpen,
-        path: "/files",
-      },
-      {
-        name: "Scientific Articles",
-        icon: BookOpen,
-        path: ROUTES.SCIENTIFIC_ARTICLES,
-        highlight: true
-      }
-    ],
-  },
-  {
-    name: "Equipment",
-    icon: Wrench,
-    links: [
-      {
-        name: "Equipment Catalog",
-        icon: Wrench,
-        path: ROUTES.EQUIPMENT.LIST,
-      },
-    ],
-  },
+      { name: "Vídeos", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
+      { name: "Importar", icon: Upload, path: ROUTES.VIDEOS.IMPORT, highlight: false },
+      { name: "Biblioteca", icon: Video, path: ROUTES.VIDEOS.STORAGE, highlight: true }
+    ]
+  }
 ];
 
-// Admin items kept separate for conditional rendering
+// Admin menu structure
 export const adminItems = [
-  { 
-    name: 'Admin Panel', 
-    icon: LayoutDashboard,
-    path: ROUTES.ADMIN.ROOT
-  },
-  { 
-    name: 'Content Management', 
-    icon: FileText,
-    path: ROUTES.ADMIN.CONTENT
-  },
-  { 
-    name: 'Equipment Management', 
-    icon: Wrench,
-    path: ROUTES.ADMIN.EQUIPMENT
-  },
-  { 
-    name: 'System Settings', 
-    icon: Calendar,
-    path: ROUTES.WORKSPACE_SETTINGS
-  },
+  { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT, highlight: false },
+  { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT, highlight: false },
+  { name: "Conteúdo", icon: File, path: ROUTES.ADMIN.CONTENT, highlight: false },
+  { name: "Importar Vídeos", icon: Upload, path: ROUTES.VIDEOS.IMPORT, highlight: false },
+  { name: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE, highlight: false },
+  { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS, highlight: false },
+  { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI, highlight: false },
+  { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS, highlight: false }
 ];
-
-export default { sidebarData, adminItems };
