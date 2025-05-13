@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Navbar } from '@/components/navbar';
-import Sidebar from '@/components/sidebar/Sidebar';
+import Sidebar from '@/components/layout/Sidebar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/routes';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -44,15 +45,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   }
 
   return (
-    <div className="flex h-screen w-full">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-auto p-4">
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        <Sidebar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-auto p-4 bg-gradient-to-br from-white to-gray-50">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
