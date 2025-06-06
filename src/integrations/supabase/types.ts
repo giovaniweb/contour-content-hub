@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      about_page: {
+        Row: {
+          brands: Json | null
+          created_at: string | null
+          id: string
+          mission_description: string
+          mission_image: string | null
+          mission_title: string
+          partner_brands_description: string | null
+          partner_brands_title: string | null
+          updated_at: string | null
+          values: Json
+          values_images: Json | null
+        }
+        Insert: {
+          brands?: Json | null
+          created_at?: string | null
+          id: string
+          mission_description: string
+          mission_image?: string | null
+          mission_title: string
+          partner_brands_description?: string | null
+          partner_brands_title?: string | null
+          updated_at?: string | null
+          values?: Json
+          values_images?: Json | null
+        }
+        Update: {
+          brands?: Json | null
+          created_at?: string | null
+          id?: string
+          mission_description?: string
+          mission_image?: string | null
+          mission_title?: string
+          partner_brands_description?: string | null
+          partner_brands_title?: string | null
+          updated_at?: string | null
+          values?: Json
+          values_images?: Json | null
+        }
+        Relationships: []
+      }
       ad_creative_performance: {
         Row: {
           campanha_nome: string | null
@@ -196,6 +238,177 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      blog_posts: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          date: string
+          equipment_benefits: string[] | null
+          equipment_description: string | null
+          equipment_detail_image: string | null
+          equipment_name: string | null
+          equipment_video: string | null
+          gallery_images: string[] | null
+          id: string
+          image: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          date?: string
+          equipment_benefits?: string[] | null
+          equipment_description?: string | null
+          equipment_detail_image?: string | null
+          equipment_name?: string | null
+          equipment_video?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          image?: string | null
+          status: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          date?: string
+          equipment_benefits?: string[] | null
+          equipment_description?: string | null
+          equipment_detail_image?: string | null
+          equipment_name?: string | null
+          equipment_video?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          image?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          banner_url: string | null
+          content: string | null
+          country: string | null
+          created_at: string | null
+          cta_text: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          logo_url: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          content?: string | null
+          country?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          logo_url?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          content?: string | null
+          country?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          logo_url?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contact_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_settings: {
+        Row: {
+          address: string
+          consumer_code: string | null
+          created_at: string
+          email: string
+          external_form_code: string | null
+          form_recipient: string
+          id: string
+          nif: string | null
+          phone: string
+          social_media: Json
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          consumer_code?: string | null
+          created_at?: string
+          email?: string
+          external_form_code?: string | null
+          form_recipient?: string
+          id?: string
+          nif?: string | null
+          phone?: string
+          social_media?: Json
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          consumer_code?: string | null
+          created_at?: string
+          email?: string
+          external_form_code?: string | null
+          form_recipient?: string
+          id?: string
+          nif?: string | null
+          phone?: string
+          social_media?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       content_feedback_history: {
         Row: {
@@ -639,6 +852,134 @@ export type Database = {
           telefone?: string | null
         }
         Relationships: []
+      }
+      products: {
+        Row: {
+          active: boolean | null
+          applicators: Json | null
+          banner_image: string | null
+          bannerimage: string | null
+          before_after_images: string[] | null
+          beforeafterimages: Json | null
+          brand: string
+          brand_id: string | null
+          category: string
+          created_at: string
+          deadline: string
+          featured: boolean | null
+          features: Json | null
+          features_benefits_icon: string | null
+          full_description: string | null
+          fulldescription: string | null
+          id: string
+          images: string[] | null
+          indications: string[] | null
+          investment: string | null
+          medical_indications_icon: string | null
+          medicalindications: Json | null
+          name: string
+          parallax_image: string | null
+          pdf_url: string | null
+          short_description: string | null
+          shortdescription: string
+          specifications: Json | null
+          status: string
+          strategic_differentials_icon: string | null
+          strategicdifferentials: Json | null
+          technologies: string[] | null
+          thumb_image: string | null
+          updated_at: string
+          video_url: string | null
+          videourl: string | null
+          whatisequipment: Json | null
+        }
+        Insert: {
+          active?: boolean | null
+          applicators?: Json | null
+          banner_image?: string | null
+          bannerimage?: string | null
+          before_after_images?: string[] | null
+          beforeafterimages?: Json | null
+          brand: string
+          brand_id?: string | null
+          category: string
+          created_at?: string
+          deadline: string
+          featured?: boolean | null
+          features?: Json | null
+          features_benefits_icon?: string | null
+          full_description?: string | null
+          fulldescription?: string | null
+          id?: string
+          images?: string[] | null
+          indications?: string[] | null
+          investment?: string | null
+          medical_indications_icon?: string | null
+          medicalindications?: Json | null
+          name: string
+          parallax_image?: string | null
+          pdf_url?: string | null
+          short_description?: string | null
+          shortdescription: string
+          specifications?: Json | null
+          status: string
+          strategic_differentials_icon?: string | null
+          strategicdifferentials?: Json | null
+          technologies?: string[] | null
+          thumb_image?: string | null
+          updated_at?: string
+          video_url?: string | null
+          videourl?: string | null
+          whatisequipment?: Json | null
+        }
+        Update: {
+          active?: boolean | null
+          applicators?: Json | null
+          banner_image?: string | null
+          bannerimage?: string | null
+          before_after_images?: string[] | null
+          beforeafterimages?: Json | null
+          brand?: string
+          brand_id?: string | null
+          category?: string
+          created_at?: string
+          deadline?: string
+          featured?: boolean | null
+          features?: Json | null
+          features_benefits_icon?: string | null
+          full_description?: string | null
+          fulldescription?: string | null
+          id?: string
+          images?: string[] | null
+          indications?: string[] | null
+          investment?: string | null
+          medical_indications_icon?: string | null
+          medicalindications?: Json | null
+          name?: string
+          parallax_image?: string | null
+          pdf_url?: string | null
+          short_description?: string | null
+          shortdescription?: string
+          specifications?: Json | null
+          status?: string
+          strategic_differentials_icon?: string | null
+          strategicdifferentials?: Json | null
+          technologies?: string[] | null
+          thumb_image?: string | null
+          updated_at?: string
+          video_url?: string | null
+          videourl?: string | null
+          whatisequipment?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roteiro_validacoes: {
         Row: {

@@ -11,11 +11,11 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const { hasPermission } = usePermissions();
   const location = useLocation();
   
-  // If auth is still loading, show loading indicator
+  // Show loading while auth is being determined
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,8 +24,8 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
     );
   }
 
-  // If no user or not authenticated, redirect to login
-  if (!user) {
+  // If not authenticated, redirect to login
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
@@ -34,7 +34,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
     return <Navigate to="/dashboard" replace />;
   }
   
-  // If there are children, render them, otherwise render the outlet
+  // Render children or outlet
   return children ? <>{children}</> : <Outlet />;
 };
 

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   createBrowserRouter,
@@ -11,9 +10,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import PrivateRoute from "@/components/PrivateRoute";
 
 // Public Pages
-import HomePage from "@/pages/HomePage";
+import HomePage from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -90,199 +90,168 @@ const routes: RouteObject[] = [
     element: <ResetPassword />,
   },
   
-  // Protected routes - Main
+  // Protected routes wrapper
   {
-    path: ROUTES.DASHBOARD,
-    element: <Dashboard />,
-  },
-  {
-    path: ROUTES.PROFILE,
-    element: <Profile />,
-  },
-  {
-    path: ROUTES.WORKSPACE_SETTINGS,
-    element: <WorkspaceSettings />,
-  },
-  
-  // Scripts & Content Strategy
-  {
-    path: ROUTES.CONTENT.SCRIPTS.ROOT,
-    element: <ContentScripts />,
-  },
-  {
-    path: ROUTES.CONTENT.SCRIPTS.GENERATOR,
-    element: <ScriptGenerator />,
-  },
-  {
-    path: ROUTES.CONTENT.SCRIPTS.VALIDATION,
-    element: <ScriptValidation />,
-  },
-  {
-    path: ROUTES.CONTENT.PLANNER,
-    element: <ContentPlanner />,
-  },
-  {
-    path: ROUTES.CONTENT.STRATEGY,
-    element: <ContentStrategy />,
-  },
-  {
-    path: ROUTES.CONTENT.IDEAS,
-    element: <ContentIdeas />,
-  },
-  {
-    path: ROUTES.CONTENT.CALENDAR,
-    element: <Calendar />,
-  },
-  
-  // Videos
-  {
-    path: ROUTES.VIDEOS.ROOT,
-    element: <VideosPage />,
-  },
-  {
-    path: `${ROUTES.VIDEOS.PLAYER}/:id`,
-    element: <VideoPlayer />,
-  },
-  {
-    path: ROUTES.VIDEOS.CREATE,
-    element: <VideoCreatePage />,
-  },
-  {
-    path: ROUTES.VIDEOS.IMPORT,
-    element: <VideoImportPage />,
-  },
-  {
-    path: ROUTES.VIDEOS.STORAGE,
-    element: <VideoStorage />,
-  },
-  {
-    path: ROUTES.VIDEOS.BATCH,
-    element: <VideoBatchManage />,
-  },
-  {
-    path: ROUTES.VIDEOS.SWIPE,
-    element: <VideoSwipe />,
-  },
-  
-  // Knowledge Base
-  {
-    path: ROUTES.MEDIA,
-    element: <Media />,
-  },
-  {
-    path: ROUTES.DOCUMENTS.ROOT,
-    element: <DocumentsPage />,
-  },
-  {
-    path: ROUTES.SCIENTIFIC_ARTICLES,
-    element: <ScientificArticles />,
-  },
-  {
-    path: ROUTES.EQUIPMENT.LIST,
-    element: <EquipmentList />,
-  },
-  {
-    path: ROUTES.MARKETING.CONSULTANT,
-    element: <MarketingConsultant />,
-  },
-  {
-    path: ROUTES.MARKETING.REPORTS,
-    element: <ReportsPage />,
-  },
-  
-  // Admin routes
-  {
-    path: ROUTES.ADMIN.ROOT,
-    element: <AdminDashboard />,
-  },
-  {
-    path: ROUTES.ADMIN.CONTENT,
-    element: <AdminContent />,
-  },
-  {
-    path: ROUTES.ADMIN_VIDEOS,
-    element: <AdminVideosPage />,
-  },
-  {
-    path: ROUTES.ADMIN.EQUIPMENT,
-    element: <AdminEquipments />,
-  },
-  {
-    path: ROUTES.ADMIN.AI,
-    element: <AdminAIPanel />,
-  },
-  {
-    path: ROUTES.ADMIN.VIMEO.SETTINGS,
-    element: <AdminVimeoSettings />,
-  },
-  {
-    path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS,
-    element: <AdminSystemDiagnostics />,
-  },
-  {
-    path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE,
-    element: <AdminSystemIntelligence />,
-  },
-  {
-    path: ROUTES.ADMIN.WORKSPACE,
-    element: <AdminWorkspace />,
-  },
-  
-  // Redirect legacy routes to new paths
-  {
-    path: "/video",
-    element: <Navigate to={ROUTES.VIDEOS.ROOT} replace />,
-  },
-  {
-    path: "/video-import",
-    element: <Navigate to={ROUTES.VIDEOS.IMPORT} replace />,
-  },
-  {
-    path: "/video-batch",
-    element: <Navigate to={ROUTES.VIDEOS.BATCH} replace />,
-  },
-  {
-    path: "/video-storage",
-    element: <Navigate to={ROUTES.VIDEOS.STORAGE} replace />,
-  },
-  {
-    path: "/video-swipe",
-    element: <Navigate to={ROUTES.VIDEOS.SWIPE} replace />,
-  },
-  {
-    path: "/equipment-list",
-    element: <Navigate to={ROUTES.EQUIPMENT.LIST} replace />,
-  },
-  {
-    path: "/consultant",
-    element: <Navigate to={ROUTES.MARKETING.CONSULTANT} replace />,
-  },
-  {
-    path: "/estrategias",
-    element: <Navigate to={ROUTES.CONTENT.STRATEGY} replace />,
-  },
-  {
-    path: "/documents",
-    element: <Navigate to={ROUTES.DOCUMENTS.ROOT} replace />,
+    path: "/",
+    element: <PrivateRoute />,
+    children: [
+      {
+        path: ROUTES.DASHBOARD,
+        element: <Dashboard />,
+      },
+      {
+        path: ROUTES.PROFILE,
+        element: <Profile />,
+      },
+      {
+        path: ROUTES.WORKSPACE_SETTINGS,
+        element: <WorkspaceSettings />,
+      },
+      
+      // Scripts & Content Strategy
+      {
+        path: ROUTES.CONTENT.SCRIPTS.ROOT,
+        element: <ContentScripts />,
+      },
+      {
+        path: ROUTES.CONTENT.SCRIPTS.GENERATOR,
+        element: <ScriptGenerator />,
+      },
+      {
+        path: ROUTES.CONTENT.SCRIPTS.VALIDATION,
+        element: <ScriptValidation />,
+      },
+      {
+        path: ROUTES.CONTENT.PLANNER,
+        element: <ContentPlanner />,
+      },
+      {
+        path: ROUTES.CONTENT.STRATEGY,
+        element: <ContentStrategy />,
+      },
+      {
+        path: ROUTES.CONTENT.IDEAS,
+        element: <ContentIdeas />,
+      },
+      {
+        path: ROUTES.CONTENT.CALENDAR,
+        element: <Calendar />,
+      },
+      
+      // Videos
+      {
+        path: ROUTES.VIDEOS.ROOT,
+        element: <VideosPage />,
+      },
+      {
+        path: `${ROUTES.VIDEOS.PLAYER}/:id`,
+        element: <VideoPlayer />,
+      },
+      {
+        path: ROUTES.VIDEOS.CREATE,
+        element: <VideoCreatePage />,
+      },
+      {
+        path: ROUTES.VIDEOS.IMPORT,
+        element: <VideoImportPage />,
+      },
+      {
+        path: ROUTES.VIDEOS.STORAGE,
+        element: <VideoStorage />,
+      },
+      {
+        path: ROUTES.VIDEOS.BATCH,
+        element: <VideoBatchManage />,
+      },
+      {
+        path: ROUTES.VIDEOS.SWIPE,
+        element: <VideoSwipe />,
+      },
+      
+      // Knowledge Base
+      {
+        path: ROUTES.MEDIA,
+        element: <Media />,
+      },
+      {
+        path: ROUTES.DOCUMENTS.ROOT,
+        element: <DocumentsPage />,
+      },
+      {
+        path: ROUTES.SCIENTIFIC_ARTICLES,
+        element: <ScientificArticles />,
+      },
+      {
+        path: ROUTES.EQUIPMENT.LIST,
+        element: <EquipmentList />,
+      },
+      {
+        path: ROUTES.MARKETING.CONSULTANT,
+        element: <MarketingConsultant />,
+      },
+      
+      // Admin routes
+      {
+        path: ROUTES.ADMIN.ROOT,
+        element: <AdminDashboard />,
+      },
+      {
+        path: ROUTES.ADMIN.CONTENT,
+        element: <AdminContent />,
+      },
+      {
+        path: ROUTES.ADMIN_VIDEOS,
+        element: <AdminVideosPage />,
+      },
+      {
+        path: ROUTES.ADMIN.EQUIPMENT,
+        element: <AdminEquipments />,
+      },
+      {
+        path: ROUTES.ADMIN.AI,
+        element: <AdminAIPanel />,
+      },
+      {
+        path: ROUTES.ADMIN.VIMEO.SETTINGS,
+        element: <AdminVimeoSettings />,
+      },
+      {
+        path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS,
+        element: <AdminSystemDiagnostics />,
+      },
+      {
+        path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE,
+        element: <AdminSystemIntelligence />,
+      },
+      {
+        path: ROUTES.ADMIN.WORKSPACE,
+        element: <AdminWorkspace />,
+      },
+      
+      // Reports
+      {
+        path: ROUTES.MARKETING.REPORTS,
+        element: <ReportsPage />,
+      },
+    ]
   },
   
-  // Catch all route - 404
+  // Catch all route
   {
     path: "*",
     element: <NotFound />,
-  }
+  },
 ];
 
-// Create router with routes
 const router = createBrowserRouter(routes);
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light">
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <AuthProvider>
         <SidebarProvider>
-          <Toaster position="top-right" richColors />
           <RouterProvider router={router} />
+          <Toaster />
         </SidebarProvider>
       </AuthProvider>
     </ThemeProvider>

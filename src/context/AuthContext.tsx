@@ -1,7 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { fetchUserProfile, loginWithEmailAndPassword, logoutUser, registerUser as registerUserService, updateUserPassword as updateUserPasswordService, updateUserProfile as updateUserProfileService, fetchUserInvites } from '@/services/authService';
+import { fetchUserProfile, loginWithEmailAndPassword, logoutUser, registerUser as registerUserService, updateUserPassword as updateUserPasswordService, updateUserProfile as updateUserProfileService } from '@/services/authService';
 import { UserProfile, AuthContextType } from '@/types/auth';
 import { toast } from 'sonner';
 
@@ -27,80 +28,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const setupAuth = async () => {
-      // First establish the auth state listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (event === 'SIGNED_IN' && session?.user) {
+      try {
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (session?.user) {
             const userProfile = await fetchUserProfile(session.user.id);
-            setUser(userProfile);
-            setIsAuthenticated(true);
-            
-            // Check if the user has pending invites
-            try {
-              const invites = await fetchUserInvites();
-              if (invites && invites.length > 0) {
-                toast('Convites pendentes', {
-                  description: 'Você tem convites pendentes para se juntar a workspaces',
-                });
-                // We'll handle navigation in the component that consumes this context
-              }
-            } catch (error) {
-              console.error('Error checking invites:', error);
+            if (mounted) {
+              setUser(userProfile);
+              setIsAuthenticated(true);
             }
-          } else if (event === 'SIGNED_OUT') {
+          } else {
             setUser(null);
             setIsAuthenticated(false);
           }
+          setIsLoading(false);
         }
-      );
 
-      // Then get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const userProfile = await fetchUserProfile(session.user.id);
-        setUser(userProfile);
-        setIsAuthenticated(true);
-        
-        // Check if the user has pending invites
-        try {
-          const invites = await fetchUserInvites();
-          if (invites && invites.length > 0) {
-            toast('Convites pendentes', {
-              description: 'Você tem convites pendentes para se juntar a workspaces',
-            });
-            // Navigation will be handled in components using this context
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+
+            console.log('Auth state changed:', { event, session: !!session });
+            
+            if (session?.user) {
+              try {
+                const userProfile = await fetchUserProfile(session.user.id);
+                if (mounted) {
+                  setUser(userProfile);
+                  setIsAuthenticated(true);
+                }
+              } catch (error) {
+                console.error('Error fetching user profile:', error);
+                if (mounted) {
+                  setUser(null);
+                  setIsAuthenticated(false);
+                }
+              }
+            } else {
+              if (mounted) {
+                setUser(null);
+                setIsAuthenticated(false);
+              }
+            }
+            
+            if (mounted) {
+              setIsLoading(false);
+            }
           }
-        } catch (error) {
-          console.error('Error checking invites:', error);
-        }
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
+        );
 
-      setIsLoading(false);
-      return () => {
-        subscription.unsubscribe();
-      };
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error setting up auth:', error);
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
+      }
     };
 
     setupAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setError(null);
+      setIsLoading(true);
       const { data, error } = await loginWithEmailAndPassword(email, password);
       
       if (error) throw error;
       
-      // User profile data will be set by the auth state change handler
+      // User profile will be set by the auth state change handler
       return;
     } catch (error: any) {
       console.error('Login error:', error);
       setError(error.message || 'Error logging in');
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,7 +126,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await logoutUser();
-      // Navigation will be handled by the component that uses this context
     } catch (error: any) {
       console.error('Logout error:', error);
       setError(error.message || 'Error logging out');
@@ -129,12 +146,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }) => {
     try {
       setError(null);
+      setIsLoading(true);
       await registerUserService(userData);
-      // Navigation will be handled by the component that uses this context
     } catch (error: any) {
       console.error('Register error:', error);
       setError(error.message || 'Error registering user');
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -168,8 +187,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string): Promise<void> => {
     try {
       setError(null);
-      // This would be implemented in authService.ts
-      // await resetPasswordEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
     } catch (error: any) {
       console.error('Reset password error:', error);
       setError(error.message || 'Error resetting password');
@@ -218,4 +237,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

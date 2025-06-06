@@ -1,34 +1,41 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
-  const { login } = useAuth();
-  const { toast } = useToast();
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
 
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await login(email, password);
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Você foi autenticado e será redirecionado."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao fazer login",
-        description: "Verifique suas credenciais e tente novamente."
-      });
+      toast.success('Login realizado com sucesso');
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error);
+      toast.error('Erro ao fazer login: ' + (error.message || 'Verifique suas credenciais'));
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +59,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com" 
                 required 
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -68,6 +76,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)} 
                 placeholder="••••••••" 
                 required 
+                disabled={isLoading}
               />
             </div>
           </CardContent>

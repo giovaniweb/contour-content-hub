@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import AuroraCommandPalette from "@/components/AuroraCommandPalette";
 
 const Index: React.FC = () => {
@@ -15,9 +15,8 @@ const Index: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  // Redirecionar para o dashboard se já estiver autenticado
+  // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate("/dashboard");
@@ -26,17 +25,18 @@ const Index: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!email || !password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
 
+    setIsLoading(true);
     try {
       await login(email, password);
-    } catch (error) {
+      toast.success('Login realizado com sucesso');
+    } catch (error: any) {
       console.error("Erro ao fazer login:", error);
-      toast({
-        title: "Erro de login",
-        description: "Usuário ou senha incorretos",
-        variant: "destructive"
-      });
+      toast.error('Erro ao fazer login: ' + (error.message || 'Verifique suas credenciais'));
     } finally {
       setIsLoading(false);
     }
@@ -51,12 +51,14 @@ const Index: React.FC = () => {
       <header className="py-6 border-b bg-white">
         <div className="container flex items-center justify-between">
           <h1 className="text-2xl font-bold text-reelline-primary">Fluida</h1>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/register")}
-          >
-            Criar conta
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/register")}>
+              Criar conta
+            </Button>
+            <Button onClick={() => navigate("/login")}>
+              Entrar
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -94,6 +96,7 @@ const Index: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -110,6 +113,7 @@ const Index: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </CardContent>
