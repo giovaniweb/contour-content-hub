@@ -10,20 +10,20 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Redirect to dashboard if already authenticated
-  React.useEffect(() => {
+  const handleGetStarted = () => {
     if (isAuthenticated) {
       navigate('/dashboard');
+    } else {
+      navigate('/register');
     }
-  }, [isAuthenticated, navigate]);
-
-  const handleGetStarted = () => {
-    navigate('/register');
   };
 
   const handleViewFeatures = () => {
-    // Scroll to features section or navigate to features page
-    navigate('/login');
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
   };
 
   return (
@@ -133,7 +133,7 @@ const Home: React.FC = () => {
             size="lg"
             className="bg-white text-black hover:bg-gray-100 text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105 min-w-[200px]"
           >
-            Começar
+            {isAuthenticated ? 'Ir para Dashboard' : 'Começar'}
           </Button>
           
           <Button
@@ -142,7 +142,7 @@ const Home: React.FC = () => {
             size="lg"
             className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-black text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105 min-w-[200px]"
           >
-            Ver recursos
+            {isAuthenticated ? 'Dashboard' : 'Ver recursos'}
           </Button>
         </motion.div>
 
