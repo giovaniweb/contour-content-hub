@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   createBrowserRouter,
@@ -13,6 +14,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import PrivateRoute from "@/components/PrivateRoute";
 
 // Public Pages
+import Home from "@/pages/Home";
 import HomePage from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -69,6 +71,10 @@ console.log('App initialization');
 // Define routes with better organization
 const routes: RouteObject[] = [
   // Public routes
+  {
+    path: "/",
+    element: <Home />,
+  },
   {
     path: ROUTES.HOME,
     element: <HomePage />,
