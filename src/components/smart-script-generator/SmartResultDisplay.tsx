@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, Camera, Volume2, Wand2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SmartGenerationResult } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
+import { useEquipments } from '@/hooks/useEquipments';
 
 interface SmartResultDisplayProps {
   generationResult: SmartGenerationResult;
@@ -31,6 +32,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
   isProcessing
 }) => {
   const { toast } = useToast();
+  const { equipments } = useEquipments();
 
   const handleCopyScript = () => {
     navigator.clipboard.writeText(generationResult.content);
@@ -64,20 +66,18 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
   };
 
   const getEquipmentLabel = () => {
-    const labels = {
-      'hifu': 'HIFU/Ultrassom Focado',
-      'laser': 'Laser',
-      'radiofrequencia': 'Radiofrequência',
-      'bioestimulador': 'Bioestimulador',
-      'microagulhamento': 'Microagulhamento',
-      'peeling': 'Peeling Químico',
-      'toxina': 'Toxina Botulínica',
-      'preenchimento': 'Preenchimento',
-      'criolipolise': 'Criolipólise',
-      'carboxiterapia': 'Carboxiterapia',
-      'sem_equipamento': 'Protocolo da Clínica'
-    };
-    return labels[generationResult.intention.equipamento] || generationResult.intention.equipamento || 'Não específico';
+    if (generationResult.intention.equipamento === 'sem_equipamento') {
+      return 'Protocolo da Clínica';
+    }
+    
+    // Buscar o equipamento na lista de equipamentos
+    const equipment = equipments.find(eq => eq.id === generationResult.intention.equipamento);
+    if (equipment) {
+      return equipment.nome;
+    }
+    
+    // Fallback caso não encontre
+    return generationResult.intention.equipamento || 'Não específico';
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus, Wrench } from 'lucide-react';
 import { useSmartScriptGeneration } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 import { EQUIPMENT_SUGGESTIONS } from './intentionTree';
+import { useEquipments } from '@/hooks/useEquipments';
 
 interface SmartScriptGeneratorProps {
   onGenerate: (data: any) => void;
@@ -27,6 +28,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
     handleThemeInput
   } = useSmartScriptGeneration();
 
+  const { equipments, loading: equipmentsLoading } = useEquipments();
   const [themeText, setThemeText] = useState('');
 
   const getStepNumber = () => {
@@ -76,7 +78,19 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
 
   // Sugestões baseadas no equipamento selecionado
   const getEquipmentSuggestions = () => {
-    if (currentStep === 'tema' && intention.equipamento && intention.equipamento !== 'sem_equipamento') {
+    if (currentStep === 'tema' && intention.equipamento) {
+      // Buscar equipamento selecionado
+      const selectedEquipment = equipments.find(eq => eq.id === intention.equipamento);
+      if (selectedEquipment) {
+        // Gerar sugestões baseadas no equipamento real
+        return [
+          `Benefícios do ${selectedEquipment.nome} para rejuvenescimento`,
+          `Como o ${selectedEquipment.nome} resolve problemas estéticos`,
+          `Resultados do ${selectedEquipment.nome} - antes e depois`,
+          `${selectedEquipment.nome}: tecnologia ${selectedEquipment.tecnologia}`
+        ];
+      }
+      // Fallback para sugestões genéricas se não encontrar
       return EQUIPMENT_SUGGESTIONS[intention.equipamento] || [];
     }
     return [];
@@ -181,33 +195,39 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
 
         {currentStep === 'equipamento' && (
           <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
-            {questionData.options.map((option) => {
-              const icons = {
-                'hifu': '🔊',
-                'laser': '⚡',
-                'radiofrequencia': '📡',
-                'bioestimulador': '🧬',
-                'microagulhamento': '📍',
-                'peeling': '✨',
-                'toxina': '💉',
-                'preenchimento': '💧',
-                'criolipolise': '❄️',
-                'carboxiterapia': '💨',
-                'sem_equipamento': '🏥'
-              };
-              
-              return (
+            {equipmentsLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin h-6 w-6 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm text-gray-400">Carregando equipamentos...</p>
+              </div>
+            ) : (
+              <>
+                {equipments.filter(eq => eq.ativo).map((equipment) => (
+                  <Button
+                    key={equipment.id}
+                    variant="outline"
+                    className="justify-start h-auto p-4"
+                    onClick={() => handleOptionClick(equipment.id)}
+                  >
+                    <span className="mr-3 text-lg">🔧</span>
+                    <div className="text-left">
+                      <div className="font-medium">{equipment.nome}</div>
+                      {equipment.tecnologia && (
+                        <div className="text-xs text-gray-400">{equipment.tecnologia}</div>
+                      )}
+                    </div>
+                  </Button>
+                ))}
                 <Button
-                  key={option.value}
                   variant="outline"
                   className="justify-start h-auto p-4"
-                  onClick={() => handleOptionClick(option.value)}
+                  onClick={() => handleOptionClick('sem_equipamento')}
                 >
-                  <span className="mr-3 text-lg">{icons[option.value] || '🔧'}</span>
-                  {option.label}
+                  <span className="mr-3 text-lg">🏥</span>
+                  Protocolo da clínica (sem equipamento específico)
                 </Button>
-              );
-            })}
+              </>
+            )}
           </div>
         )}
         

@@ -47,6 +47,7 @@ export const useSmartScriptGeneration = () => {
         updatedIntention.estilo_comunicacao = value as any;
         break;
       case 'equipamento':
+        // Para equipamento, salvar o ID do equipamento ou string especial
         updatedIntention.equipamento = value;
         break;
     }
@@ -56,6 +57,9 @@ export const useSmartScriptGeneration = () => {
     // Navegar para próximo passo
     if (selectedOption?.leads_to) {
       setCurrentStep(selectedOption.leads_to);
+    } else if (currentStep === 'equipamento') {
+      // Após equipamento, ir para tema
+      setCurrentStep('tema');
     } else if (currentStep === 'tema') {
       // Último passo - gerar roteiro
       finalizeIntention({ ...updatedIntention, tema: value });
