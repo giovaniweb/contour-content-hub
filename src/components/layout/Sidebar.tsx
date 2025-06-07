@@ -40,7 +40,7 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent collapsible="icon" className="bg-gradient-to-b from-white/80 to-zinc-100/70 backdrop-blur-sm border-r">
+    <SidebarComponent className="bg-gradient-to-b from-white/80 to-zinc-100/70 backdrop-blur-sm border-r">
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center justify-between">
           {open && (
@@ -72,8 +72,7 @@ export default function Sidebar() {
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 
-                    active={isActive(item.path)}
-                    collapsible
+                    isActive={isActive(item.path)}
                     className={item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""}
                   >
                     <Link to={item.path}>
@@ -92,8 +91,7 @@ export default function Sidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton 
                     asChild 
-                    active={isActive(ROUTES.VIDEOS.CREATE)}
-                    collapsible
+                    isActive={isActive(ROUTES.VIDEOS.CREATE)}
                   >
                     <Link to={ROUTES.VIDEOS.CREATE} className="text-blue-500 hover:text-blue-600">
                       <PlusCircle className="h-5 w-5" />
@@ -117,8 +115,7 @@ export default function Sidebar() {
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 
-                    active={isActive(item.path)}
-                    collapsible
+                    isActive={isActive(item.path)}
                   >
                     <Link to={item.path}>
                       <item.icon className="h-5 w-5" />

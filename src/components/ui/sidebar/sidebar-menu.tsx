@@ -31,7 +31,7 @@ export function SidebarMenuItem({
 }
 
 export interface SidebarMenuButtonProps
-  extends React.HTMLAttributes<HTMLButtonElement> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
   isActive?: boolean;
   icon?: React.ReactNode;
@@ -57,7 +57,7 @@ export function SidebarMenuButton({
           isActive && "bg-white/15 text-white shadow-lg shadow-aurora-lavender/20",
           className
         )}
-        {...props}
+        {...(asChild ? {} : props)}
       >
         {icon && (
           <span className={cn(
