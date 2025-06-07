@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, UserRole } from '@/types/auth';
 
@@ -33,7 +32,6 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       telefone: data.telefone,
       equipamentos: data.equipamentos,
       idioma: (data.idioma as 'PT' | 'EN' | 'ES') || 'PT',
-      workspace_id: data.workspace_id || undefined,
       profilePhotoUrl: data.foto_url || undefined,
       created_at: data.data_criacao,
       updated_at: data.data_criacao
@@ -54,8 +52,7 @@ export const updateUserProfile = async (userId: string, data: Partial<UserProfil
       telefone: data.telefone,
       equipamentos: data.equipamentos,
       idioma: data.idioma,
-      profile_photo_url: data.profilePhotoUrl,
-      updated_at: new Date().toISOString()
+      foto_url: data.profilePhotoUrl,
     })
     .eq('id', userId);
 

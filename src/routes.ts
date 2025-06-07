@@ -6,8 +6,6 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   WORKSPACE_SETTINGS: '/workspace-settings',
-  CONSULTANT: '/consultant',
-  ADMIN: '/admin',
   
   CONTENT: {
     SCRIPTS: {
