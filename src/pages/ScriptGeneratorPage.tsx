@@ -88,7 +88,8 @@ const ScriptGeneratorPage: React.FC = () => {
         
         {generatorMode === 'smart' && (
           <>
-            {!generatedResult && !isGenerating && (
+            {/* Mostrar formulário apenas se não estiver gerando e não tiver resultado */}
+            {!isGenerating && !generatedResult && (
               <div className="container mx-auto px-4 py-8">
                 <div className="mb-6">
                   <Button 
@@ -106,8 +107,14 @@ const ScriptGeneratorPage: React.FC = () => {
               </div>
             )}
             
-            {isGenerating && <GeneratingStep />}
+            {/* Mostrar tela de progresso quando estiver gerando */}
+            {isGenerating && (
+              <div className="container mx-auto px-4 py-8">
+                <GeneratingStep />
+              </div>
+            )}
             
+            {/* Mostrar resultado quando tiver resultado e não estiver gerando */}
             {generatedResult && !isGenerating && (
               <SmartResultDisplay
                 generationResult={generatedResult}

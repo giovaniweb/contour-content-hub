@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScriptIntention, INTENTION_TREE } from '@/components/smart-script-generator/intentionTree';
@@ -67,11 +66,24 @@ export const useSmartScriptGeneration = () => {
     console.log('handleThemeInput chamado com tema:', tema);
     console.log('Intenção atual:', intention);
     
-    // Começar loading imediatamente
+    // Começar loading IMEDIATAMENTE antes de qualquer processamento
     setIsGenerating(true);
     
-    // Finalizar intenção e gerar roteiro
-    await finalizeIntention({ ...intention, tema });
+    // Aguardar um frame para garantir que o estado seja atualizado na UI
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+      // Finalizar intenção e gerar roteiro
+      await finalizeIntention({ ...intention, tema });
+    } catch (error) {
+      console.error('Erro em handleThemeInput:', error);
+      setIsGenerating(false);
+      toast({
+        title: "Erro na preparação",
+        description: "Não foi possível preparar o roteiro.",
+        variant: "destructive",
+      });
+    }
   };
 
   const finalizeIntention = async (completeIntention: Partial<ScriptIntention>) => {
@@ -143,11 +155,21 @@ export const useSmartScriptGeneration = () => {
 
     } catch (error) {
       console.error('Erro ao gerar roteiro:', error);
-      toast({
-        title: "Erro na geração",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
-      });
+      
+      // Tratar erro de rate limit especificamente
+      if (error.message && error.message.includes('rate_limit_exceeded')) {
+        toast({
+          title: "Limite de requisições atingido",
+          description: "Muitas requisições foram feitas. Tente novamente em alguns instantes.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro na geração",
+          description: "Tente novamente em alguns instantes.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
