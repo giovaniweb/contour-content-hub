@@ -5,18 +5,17 @@ import Layout from '@/components/Layout';
 import GeneratingStep from '@/components/script-generator/GeneratingStep';
 import SmartScriptGenerator from '@/components/smart-script-generator/SmartScriptGenerator';
 import SmartResultDisplay from '@/components/smart-script-generator/SmartResultDisplay';
-import AkinatorScriptGenerator from '@/components/akinator-script-generator/AkinatorScriptGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, Sparkles, Bot } from "lucide-react";
+import { Bot } from "lucide-react";
 import { useScriptGeneration } from './ScriptGeneratorPage/useScriptGeneration';
 import { useActionHandlers } from './ScriptGeneratorPage/actionHandlers';
 
-type GeneratorMode = 'selection' | 'smart' | 'akinator';
+type GeneratorMode = 'selection' | 'smart';
 
 const ScriptGeneratorPage: React.FC = () => {
   const navigate = useNavigate();
-  const [generatorMode, setGeneratorMode] = useState<GeneratorMode>('selection');
+  const [generatorMode, setGeneratorMode] = useState<GeneratorMode>('smart');
   
   const {
     step,
@@ -34,7 +33,7 @@ const ScriptGeneratorPage: React.FC = () => {
 
   const handleNewScriptWithSelection = () => {
     handleNewScript();
-    setGeneratorMode('selection');
+    setGeneratorMode('smart');
   };
 
   const renderGeneratorSelection = () => (
@@ -44,14 +43,14 @@ const ScriptGeneratorPage: React.FC = () => {
           🎬 Gerador de Roteiros
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Escolha o estilo de geração que mais combina com você
+          Sistema inteligente para criar roteiros profissionais com IA
         </p>
       </div>
       
-      <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
-        <Card className="border-2 hover:border-primary/50 transition-colors cursor-pointer group">
+      <div className="max-w-2xl mx-auto">
+        <Card className="border-2 hover:border-primary/50 transition-colors">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
               <Bot className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-xl">Gerador Inteligente</CardTitle>
@@ -64,39 +63,15 @@ const ScriptGeneratorPage: React.FC = () => {
               <li>• Análise de objetivos de marketing</li>
               <li>• Validação estrutural automática</li>
               <li>• Múltiplos formatos de conteúdo</li>
+              <li>• Seleção automática de mentor</li>
             </ul>
             <Button 
               onClick={() => setGeneratorMode('smart')}
               className="w-full"
+              size="lg"
             >
               <Bot className="h-4 w-4 mr-2" />
-              Usar Gerador Inteligente
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 hover:border-primary/50 transition-colors cursor-pointer group">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-              <Sparkles className="h-8 w-8 text-purple-500" />
-            </div>
-            <CardTitle className="text-xl">Roteirista Akinator</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Como o Akinator, vou adivinhar exatamente o tipo de roteiro que você precisa através de perguntas inteligentes.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Experiência interativa guiada</li>
-              <li>• Seleção automática de mentor</li>
-              <li>• Estrutura Disney opcional</li>
-            </ul>
-            <Button 
-              onClick={() => setGeneratorMode('akinator')}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Usar Roteirista Akinator
+              Começar a criar roteiro
             </Button>
           </CardContent>
         </Card>
@@ -116,10 +91,10 @@ const ScriptGeneratorPage: React.FC = () => {
                 <div className="mb-6">
                   <Button 
                     variant="ghost" 
-                    onClick={() => setGeneratorMode('selection')}
+                    onClick={handleGoBack}
                     className="mb-4"
                   >
-                    ← Voltar para seleção
+                    ← Voltar
                   </Button>
                 </div>
                 <SmartScriptGenerator
@@ -141,32 +116,6 @@ const ScriptGeneratorPage: React.FC = () => {
               />
             )}
           </>
-        )}
-        
-        {generatorMode === 'akinator' && (
-          <div className="container mx-auto px-4 py-8">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                onClick={() => setGeneratorMode('selection')}
-                className="mb-4"
-              >
-                ← Voltar para seleção
-              </Button>
-            </div>
-            
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4">
-                🔮 Roteirista Akinator
-              </h1>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Como o Akinator, vou adivinhar exatamente o tipo de roteiro que você precisa. 
-                Responda às perguntas e deixe a magia acontecer!
-              </p>
-            </div>
-            
-            <AkinatorScriptGenerator />
-          </div>
         )}
       </div>
     </Layout>
