@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus, Wrench } from 'lucide-react';
+import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus, Wrench, AlertCircle } from 'lucide-react';
 import { useSmartScriptGeneration } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 import { EQUIPMENT_SUGGESTIONS } from './intentionTree';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -29,7 +29,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
     isGenerating: internalIsGenerating
   } = useSmartScriptGeneration();
 
-  const { equipments, loading: equipmentsLoading } = useEquipments();
+  const { equipments, loading: equipmentsLoading, error: equipmentsError } = useEquipments();
   const [themeText, setThemeText] = useState('');
 
   // Use o estado interno de loading
@@ -205,9 +205,35 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         {currentStep === 'equipamento' && (
           <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
             {equipmentsLoading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin h-6 w-6 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-2"></div>
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-sm text-gray-400">Carregando equipamentos...</p>
+              </div>
+            ) : equipmentsError ? (
+              <div className="text-center py-8">
+                <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
+                <p className="text-sm text-red-400 mb-4">Erro ao carregar equipamentos</p>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="text-sm"
+                >
+                  Tentar novamente
+                </Button>
+              </div>
+            ) : equipments.length === 0 ? (
+              <div className="text-center py-8">
+                <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm text-gray-400 mb-4">Nenhum equipamento encontrado</p>
+                <Button
+                  variant="outline"
+                  className="justify-start h-auto p-4"
+                  onClick={() => handleOptionClick('sem_equipamento')}
+                  disabled={actualIsGenerating}
+                >
+                  <span className="mr-3 text-lg">🏥</span>
+                  Protocolo da clínica (sem equipamento específico)
+                </Button>
               </div>
             ) : (
               <>
