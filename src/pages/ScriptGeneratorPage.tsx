@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -9,6 +8,7 @@ import IdeaInputStep from '@/components/script-generator/IdeaInputStep';
 import GeneratingStep from '@/components/script-generator/GeneratingStep';
 import ResultStep from '@/components/script-generator/ResultStep';
 import { generateScript } from '@/services/supabaseService';
+import type { MarketingObjectiveType } from '@/types/script';
 
 const ScriptGeneratorPage: React.FC = () => {
   const location = useLocation();
@@ -66,11 +66,15 @@ const ScriptGeneratorPage: React.FC = () => {
     
     try {
       // Call the real Supabase API to generate script
+      const marketingObjective: MarketingObjectiveType = formData.objective === 'emotion' 
+        ? '🟢 Criar Conexão' 
+        : '🔴 Fazer Comprar';
+
       const scriptRequest = {
         type: 'videoScript' as const, // Use valid ScriptType
         topic: formData.idea,
         tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
-        marketingObjective: (formData.objective === 'emotion' ? '🟢 Criar Conexão' : '🔴 Fazer Comprar') as const,
+        marketingObjective,
         additionalInfo: `Objetivo: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}`
       };
 
@@ -291,4 +295,3 @@ ${generatedScript.refinedScript}
 };
 
 export default ScriptGeneratorPage;
-
