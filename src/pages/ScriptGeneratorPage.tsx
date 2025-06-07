@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -68,7 +69,7 @@ const ScriptGeneratorPage: React.FC = () => {
         type: 'videoScript' as const, // Use valid ScriptType
         topic: formData.idea,
         tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
-        marketingObjective: formData.objective === 'emotion' ? '🟢 Criar Conexão' : '🔴 Fazer Comprar',
+        marketingObjective: formData.objective === 'emotion' ? '🟢 Criar Conexão' : '🔴 Fazer Comprar' as const,
         additionalInfo: `Objetivo: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}`
       };
 
