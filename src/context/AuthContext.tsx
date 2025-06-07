@@ -7,11 +7,13 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  loading?: boolean; // Add compatibility alias
   isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   logout: () => Promise<{ error: any }>; // Alias for signOut
+  login?: (email: string, password: string) => Promise<{ error: any }>; // Add compatibility alias
   isAdmin: () => boolean;
 }
 
@@ -81,8 +83,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error };
   };
 
-  // Alias for compatibility
+  // Aliases for compatibility
   const logout = signOut;
+  const login = signIn;
 
   const isAdmin = () => {
     // Check if user has admin role
@@ -93,11 +96,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     isLoading,
+    loading: isLoading, // Compatibility alias
     isAuthenticated: !!user,
     signIn,
     signUp,
     signOut,
     logout,
+    login, // Compatibility alias
     isAdmin,
   };
 
