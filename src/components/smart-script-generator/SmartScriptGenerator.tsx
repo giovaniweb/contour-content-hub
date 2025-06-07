@@ -6,8 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus } from 'lucide-react';
+import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus, Wrench } from 'lucide-react';
 import { useSmartScriptGeneration } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
+import { EQUIPMENT_SUGGESTIONS } from './intentionTree';
 
 interface SmartScriptGeneratorProps {
   onGenerate: (data: any) => void;
@@ -29,14 +30,14 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
   const [themeText, setThemeText] = useState('');
 
   const getStepNumber = () => {
-    const steps = ['root', 'objetivo', 'canal', 'estilo', 'tema'];
+    const steps = ['root', 'objetivo', 'canal', 'estilo', 'equipamento', 'tema'];
     return steps.indexOf(currentStep);
   };
 
-  const getTotalSteps = () => 5;
+  const getTotalSteps = () => 6;
 
   const getStepIcon = (stepIndex: number) => {
-    const icons = [FileText, Target, Users, Palette, MessageCircle];
+    const icons = [FileText, Target, Users, Palette, Wrench, MessageCircle];
     return icons[stepIndex] || FileText;
   };
 
@@ -46,6 +47,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
       'objetivo': 'Objetivo',
       'canal': 'Canal',
       'estilo': 'Estilo',
+      'equipamento': 'Equipamento',
       'tema': 'Tema'
     };
     return titles[currentStep] || 'Configuração';
@@ -72,15 +74,46 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
     return true;
   };
 
+  // Sugestões baseadas no equipamento selecionado
+  const getEquipmentSuggestions = () => {
+    if (currentStep === 'tema' && intention.equipamento && intention.equipamento !== 'sem_equipamento') {
+      return EQUIPMENT_SUGGESTIONS[intention.equipamento] || [];
+    }
+    return [];
+  };
+
   const renderStepContent = () => {
     const questionData = getCurrentQuestion();
     
     if (currentStep === 'tema') {
+      const suggestions = getEquipmentSuggestions();
+      
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-center mb-6">
             {questionData.question}
           </h3>
+          
+          {suggestions.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-400 mb-3">💡 Sugestões baseadas no equipamento selecionado:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {suggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setThemeText(suggestion)}
+                    className="text-left justify-start text-purple-400 border-purple-500/30"
+                  >
+                    <Plus className="h-3 w-3 mr-2" />
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <Textarea
             placeholder="Ex: Benefícios do HIFU para rejuvenescimento facial, Como resolver flacidez sem cirurgia..."
             value={themeText}
@@ -145,8 +178,40 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
             })}
           </div>
         )}
+
+        {currentStep === 'equipamento' && (
+          <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+            {questionData.options.map((option) => {
+              const icons = {
+                'hifu': '🔊',
+                'laser': '⚡',
+                'radiofrequencia': '📡',
+                'bioestimulador': '🧬',
+                'microagulhamento': '📍',
+                'peeling': '✨',
+                'toxina': '💉',
+                'preenchimento': '💧',
+                'criolipolise': '❄️',
+                'carboxiterapia': '💨',
+                'sem_equipamento': '🏥'
+              };
+              
+              return (
+                <Button
+                  key={option.value}
+                  variant="outline"
+                  className="justify-start h-auto p-4"
+                  onClick={() => handleOptionClick(option.value)}
+                >
+                  <span className="mr-3 text-lg">{icons[option.value] || '🔧'}</span>
+                  {option.label}
+                </Button>
+              );
+            })}
+          </div>
+        )}
         
-        {currentStep !== 'root' && (
+        {currentStep !== 'root' && currentStep !== 'equipamento' && (
           <div className="grid grid-cols-1 gap-3">
             {questionData.options.map((option) => {
               const icons = {
@@ -176,7 +241,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Progress Bar - mantendo visual original */}
+      {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           {Array.from({ length: getTotalSteps() }, (_, index) => {
@@ -209,7 +274,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         </div>
       </div>
 
-      {/* Step Content - mantendo visual original */}
+      {/* Step Content */}
       <Card className="p-6 mb-6 bg-gray-900/50 border-gray-800">
         <AnimatePresence mode="wait">
           <motion.div
@@ -224,7 +289,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         </AnimatePresence>
       </Card>
 
-      {/* Navigation - mantendo visual original */}
+      {/* Navigation */}
       {currentStep === 'tema' && (
         <div className="flex justify-center">
           <Button

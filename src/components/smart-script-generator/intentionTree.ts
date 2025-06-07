@@ -60,12 +60,12 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
   estilo: {
     question: "Qual estilo de comunicação?",
     options: [
-      { value: 'emocional', label: 'Emocional/Inspirador', leads_to: 'tema' },
-      { value: 'direto', label: 'Direto/Objetivo', leads_to: 'tema' },
-      { value: 'poetico', label: 'Poético/Artístico', leads_to: 'tema' },
-      { value: 'didatico', label: 'Didático/Educativo', leads_to: 'tema' },
-      { value: 'humoristico', label: 'Humorístico/Viral', leads_to: 'tema' },
-      { value: 'criativo', label: 'Criativo/Publicitário', leads_to: 'tema' }
+      { value: 'emocional', label: 'Emocional/Inspirador', leads_to: 'equipamento' },
+      { value: 'direto', label: 'Direto/Objetivo', leads_to: 'equipamento' },
+      { value: 'poetico', label: 'Poético/Artístico', leads_to: 'equipamento' },
+      { value: 'didatico', label: 'Didático/Educativo', leads_to: 'equipamento' },
+      { value: 'humoristico', label: 'Humorístico/Viral', leads_to: 'equipamento' },
+      { value: 'criativo', label: 'Criativo/Publicitário', leads_to: 'equipamento' }
     ],
     inference_rules: [
       {
@@ -98,6 +98,22 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
         mentor: 'washington_olivetto',
         confidence: 0.7
       }
+    ]
+  },
+  equipamento: {
+    question: "Qual equipamento/tratamento você quer destacar?",
+    options: [
+      { value: 'hifu', label: 'HIFU/Ultrassom Focado', leads_to: 'tema' },
+      { value: 'laser', label: 'Laser (CO2, Alexandrite, etc)', leads_to: 'tema' },
+      { value: 'radiofrequencia', label: 'Radiofrequência', leads_to: 'tema' },
+      { value: 'bioestimulador', label: 'Bioestimulador de Colágeno', leads_to: 'tema' },
+      { value: 'microagulhamento', label: 'Microagulhamento', leads_to: 'tema' },
+      { value: 'peeling', label: 'Peeling Químico', leads_to: 'tema' },
+      { value: 'toxina', label: 'Toxina Botulínica', leads_to: 'tema' },
+      { value: 'preenchimento', label: 'Preenchimento', leads_to: 'tema' },
+      { value: 'criolipolise', label: 'Criolipólise', leads_to: 'tema' },
+      { value: 'carboxiterapia', label: 'Carboxiterapia', leads_to: 'tema' },
+      { value: 'sem_equipamento', label: 'Não específico/Protocolo da clínica', leads_to: 'tema' }
     ]
   },
   tema: {
@@ -152,4 +168,74 @@ export const MENTOR_PROFILES: Record<string, { name: string; focus: string; styl
     focus: 'Clareza lógica e antecipação',
     style: 'Lógico, estruturado, antecipativo'
   }
+};
+
+// Sugestões dinâmicas baseadas no equipamento selecionado
+export const EQUIPMENT_SUGGESTIONS: Record<string, string[]> = {
+  'hifu': [
+    'Rejuvenescimento facial sem cirurgia',
+    'Lifting natural com HIFU',
+    'Firmeza da pele sem downtime',
+    'Resultados duradouros do ultrassom focado'
+  ],
+  'laser': [
+    'Remoção de manchas com laser',
+    'Rejuvenescimento a laser',
+    'Textura da pele perfeita',
+    'Cicatrizes de acne: antes e depois'
+  ],
+  'radiofrequencia': [
+    'Flacidez corporal: solução definitiva',
+    'Radiofrequência para celulite',
+    'Aquecimento profundo dos tecidos',
+    'Firmeza corporal sem cirurgia'
+  ],
+  'bioestimulador': [
+    'Estímulo natural de colágeno',
+    'Rejuvenescimento gradual e natural',
+    'Bioestimulador: o que esperar',
+    'Juventude que vem de dentro'
+  ],
+  'microagulhamento': [
+    'Microagulhamento: renovação celular',
+    'Poros dilatados: como tratar',
+    'Microagulhamento com drug delivery',
+    'Textura da pele: transformação real'
+  ],
+  'peeling': [
+    'Peeling químico: renovação profunda',
+    'Melasma: tratamento eficaz',
+    'Peeling para acne ativa',
+    'Luminosidade natural da pele'
+  ],
+  'toxina': [
+    'Toxina botulínica: rugas expressão',
+    'Prevenção do envelhecimento',
+    'Toxina para hiperhidrose',
+    'Naturalidade em cada aplicação'
+  ],
+  'preenchimento': [
+    'Preenchimento labial natural',
+    'Harmonização facial sutil',
+    'Bigode chinês: como tratar',
+    'Volume facial equilibrado'
+  ],
+  'criolipolise': [
+    'Criolipólise: gordura localizada',
+    'Redução de medidas sem cirurgia',
+    'Criolipólise: mitos e verdades',
+    'Resultados definitivos em gordura'
+  ],
+  'carboxiterapia': [
+    'Carboxiterapia para olheiras',
+    'Celulite: tratamento inovador',
+    'Carboxiterapia facial rejuvenescedora',
+    'Melhora da circulação'
+  ],
+  'sem_equipamento': [
+    'Protocolo exclusivo da clínica',
+    'Tratamento personalizado',
+    'Resultados comprovados',
+    'Cuidado individualizado'
+  ]
 };

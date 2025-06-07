@@ -46,6 +46,9 @@ export const useSmartScriptGeneration = () => {
       case 'estilo':
         updatedIntention.estilo_comunicacao = value as any;
         break;
+      case 'equipamento':
+        updatedIntention.equipamento = value;
+        break;
     }
     
     setIntention(updatedIntention);
@@ -89,7 +92,7 @@ export const useSmartScriptGeneration = () => {
         systemPrompt,
         userPrompt,
         topic: finalIntention.tema,
-        additionalInfo: `Tipo: ${finalIntention.tipo_conteudo}, Objetivo: ${finalIntention.objetivo}, Canal: ${finalIntention.canal}`,
+        additionalInfo: `Tipo: ${finalIntention.tipo_conteudo}, Objetivo: ${finalIntention.objetivo}, Canal: ${finalIntention.canal}, Equipamento: ${finalIntention.equipamento || 'Não específico'}`,
         tone: finalIntention.estilo_comunicacao,
         marketingObjective: finalIntention.objetivo as any
       });

@@ -63,6 +63,23 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
     return labels[generationResult.intention.objetivo] || 'Objetivo';
   };
 
+  const getEquipmentLabel = () => {
+    const labels = {
+      'hifu': 'HIFU/Ultrassom Focado',
+      'laser': 'Laser',
+      'radiofrequencia': 'Radiofrequência',
+      'bioestimulador': 'Bioestimulador',
+      'microagulhamento': 'Microagulhamento',
+      'peeling': 'Peeling Químico',
+      'toxina': 'Toxina Botulínica',
+      'preenchimento': 'Preenchimento',
+      'criolipolise': 'Criolipólise',
+      'carboxiterapia': 'Carboxiterapia',
+      'sem_equipamento': 'Protocolo da Clínica'
+    };
+    return labels[generationResult.intention.equipamento] || generationResult.intention.equipamento || 'Não específico';
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -173,7 +190,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
           </CardContent>
         </Card>
 
-        {/* Dados da Intenção (para debug) */}
+        {/* Dados da Intenção */}
         <Card>
           <CardHeader>
             <CardTitle>Análise de Intenção</CardTitle>
@@ -193,9 +210,12 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                 <strong>Estilo:</strong> {generationResult.intention.estilo_comunicacao}
               </div>
               <div>
-                <strong>Tema:</strong> {generationResult.intention.tema}
+                <strong>Equipamento:</strong> {getEquipmentLabel()}
               </div>
               <div>
+                <strong>Tema:</strong> {generationResult.intention.tema}
+              </div>
+              <div className="col-span-2">
                 <strong>Mentor:</strong> {generationResult.mentor}
               </div>
             </div>
