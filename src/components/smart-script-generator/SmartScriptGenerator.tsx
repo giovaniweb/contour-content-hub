@@ -25,11 +25,15 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
     intention,
     getCurrentQuestion,
     handleAnswer,
-    handleThemeInput
+    handleThemeInput,
+    isGenerating: internalIsGenerating
   } = useSmartScriptGeneration();
 
   const { equipments, loading: equipmentsLoading } = useEquipments();
   const [themeText, setThemeText] = useState('');
+
+  // Use o estado interno de loading
+  const actualIsGenerating = internalIsGenerating || isGenerating;
 
   const getStepNumber = () => {
     const steps = ['root', 'objetivo', 'canal', 'estilo', 'equipamento', 'tema'];
@@ -56,6 +60,8 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
   };
 
   const handleOptionClick = (value: string) => {
+    if (actualIsGenerating) return;
+    
     if (currentStep === 'tema') {
       handleThemeInput(value);
     } else {
@@ -64,7 +70,8 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
   };
 
   const handleThemeSubmit = () => {
-    if (themeText.trim()) {
+    if (themeText.trim() && !actualIsGenerating) {
+      console.log('handleThemeSubmit chamado com:', themeText);
       handleThemeInput(themeText);
     }
   };
@@ -119,6 +126,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                     size="sm"
                     onClick={() => setThemeText(suggestion)}
                     className="text-left justify-start text-purple-400 border-purple-500/30"
+                    disabled={actualIsGenerating}
                   >
                     <Plus className="h-3 w-3 mr-2" />
                     {suggestion}
@@ -133,6 +141,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
             value={themeText}
             onChange={(e) => setThemeText(e.target.value)}
             className="min-h-[120px]"
+            disabled={actualIsGenerating}
           />
           
           {intention.mentor_inferido && (
@@ -179,8 +188,8 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
               return (
                 <Card
                   key={option.value}
-                  className="p-4 cursor-pointer transition-all hover:scale-105 hover:bg-gray-800/50"
-                  onClick={() => handleOptionClick(option.value)}
+                  className={`p-4 cursor-pointer transition-all hover:scale-105 hover:bg-gray-800/50 ${actualIsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => !actualIsGenerating && handleOptionClick(option.value)}
                 >
                   <div className="text-center">
                     <div className="text-3xl mb-2">{icons[option.value]}</div>
@@ -208,6 +217,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                     variant="outline"
                     className="justify-start h-auto p-4"
                     onClick={() => handleOptionClick(equipment.id)}
+                    disabled={actualIsGenerating}
                   >
                     <span className="mr-3 text-lg">🔧</span>
                     <div className="text-left">
@@ -222,6 +232,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                   variant="outline"
                   className="justify-start h-auto p-4"
                   onClick={() => handleOptionClick('sem_equipamento')}
+                  disabled={actualIsGenerating}
                 >
                   <span className="mr-3 text-lg">🏥</span>
                   Protocolo da clínica (sem equipamento específico)
@@ -247,6 +258,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                   variant="outline"
                   className="justify-start h-auto p-4"
                   onClick={() => handleOptionClick(option.value)}
+                  disabled={actualIsGenerating}
                 >
                   <IconComponent className="mr-3 h-4 w-4" />
                   {option.label}
@@ -314,13 +326,13 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         <div className="flex justify-center">
           <Button
             onClick={handleThemeSubmit}
-            disabled={!isStepComplete() || isGenerating}
+            disabled={!isStepComplete() || actualIsGenerating}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {isGenerating ? (
+            {actualIsGenerating ? (
               <>
                 <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                Analisando intenção...
+                Gerando roteiro...
               </>
             ) : (
               <>

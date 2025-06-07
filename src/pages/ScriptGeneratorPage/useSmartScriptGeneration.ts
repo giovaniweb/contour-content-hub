@@ -60,35 +60,55 @@ export const useSmartScriptGeneration = () => {
     } else if (currentStep === 'equipamento') {
       // Após equipamento, ir para tema
       setCurrentStep('tema');
-    } else if (currentStep === 'tema') {
-      // Último passo - gerar roteiro
-      finalizeIntention({ ...updatedIntention, tema: value });
     }
   };
 
-  const handleThemeInput = (tema: string) => {
-    finalizeIntention({ ...intention, tema });
+  const handleThemeInput = async (tema: string) => {
+    console.log('handleThemeInput chamado com tema:', tema);
+    console.log('Intenção atual:', intention);
+    
+    // Começar loading imediatamente
+    setIsGenerating(true);
+    
+    // Finalizar intenção e gerar roteiro
+    await finalizeIntention({ ...intention, tema });
   };
 
   const finalizeIntention = async (completeIntention: Partial<ScriptIntention>) => {
-    // Inferir mentor
-    const mentorInference = MentorInferenceEngine.inferMentor(completeIntention);
+    console.log('finalizeIntention chamado com:', completeIntention);
     
-    const finalIntention: ScriptIntention = {
-      ...completeIntention,
-      mentor_inferido: mentorInference.mentor,
-      enigma_mentor: mentorInference.enigma
-    } as ScriptIntention;
-    
-    setIntention(finalIntention);
-    await generateRoteiro(finalIntention);
+    try {
+      // Inferir mentor
+      const mentorInference = MentorInferenceEngine.inferMentor(completeIntention);
+      
+      const finalIntention: ScriptIntention = {
+        ...completeIntention,
+        mentor_inferido: mentorInference.mentor,
+        enigma_mentor: mentorInference.enigma
+      } as ScriptIntention;
+      
+      console.log('Intenção finalizada:', finalIntention);
+      setIntention(finalIntention);
+      
+      await generateRoteiro(finalIntention);
+    } catch (error) {
+      console.error('Erro em finalizeIntention:', error);
+      setIsGenerating(false);
+      toast({
+        title: "Erro na preparação",
+        description: "Não foi possível preparar o roteiro.",
+        variant: "destructive",
+      });
+    }
   };
 
   const generateRoteiro = async (finalIntention: ScriptIntention) => {
-    setIsGenerating(true);
+    console.log('generateRoteiro iniciado com:', finalIntention);
     
     try {
       const { systemPrompt, userPrompt } = DynamicPromptGenerator.generateMentorPrompt(finalIntention);
+      
+      console.log('Prompts gerados, chamando API...');
       
       // Chamar API com prompts dinâmicos
       const response = await generateScript({
@@ -101,6 +121,8 @@ export const useSmartScriptGeneration = () => {
         marketingObjective: finalIntention.objetivo as any
       });
 
+      console.log('Resposta da API recebida:', response);
+
       const mentorProfile = MentorInferenceEngine.getMentorProfile(finalIntention.mentor_inferido);
       
       const result: SmartGenerationResult = {
@@ -109,6 +131,8 @@ export const useSmartScriptGeneration = () => {
         enigma: finalIntention.enigma_mentor,
         intention: finalIntention
       };
+      
+      console.log('Resultado final:', result);
       
       setGeneratedResult(result);
       
@@ -183,6 +207,7 @@ export const useSmartScriptGeneration = () => {
   };
 
   const resetGeneration = () => {
+    console.log('resetGeneration chamado');
     setCurrentStep('root');
     setIntention({});
     setGeneratedResult(null);
