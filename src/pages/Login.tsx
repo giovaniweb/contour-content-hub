@@ -22,10 +22,39 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
+  const getErrorMessage = (error: any) => {
+    if (error?.message) {
+      switch (error.message) {
+        case 'Invalid login credentials':
+          return 'Email ou senha incorretos. Verifique seus dados e tente novamente.';
+        case 'Email not confirmed':
+          return 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email.';
+        case 'Too many requests':
+          return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+        case 'User not found':
+          return 'Usuário não encontrado. Verifique o email ou crie uma nova conta.';
+        default:
+          return `Erro ao fazer login: ${error.message}`;
+      }
+    }
+    return 'Erro desconhecido ao fazer login. Tente novamente.';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!email || !password) {
       toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      toast.error('Por favor, insira um email válido');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
@@ -36,7 +65,8 @@ const Login: React.FC = () => {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);
-      toast.error('Erro ao fazer login: ' + (error.message || 'Verifique suas credenciais'));
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +91,7 @@ const Login: React.FC = () => {
                 placeholder="seu@email.com" 
                 required 
                 disabled={isLoading}
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
@@ -78,6 +109,7 @@ const Login: React.FC = () => {
                 placeholder="••••••••" 
                 required 
                 disabled={isLoading}
+                autoComplete="current-password"
               />
             </div>
           </CardContent>
@@ -94,6 +126,9 @@ const Login: React.FC = () => {
               <Link to="/register" className="text-blue-600 hover:underline">
                 Registre-se
               </Link>
+            </div>
+            <div className="text-center text-xs text-gray-600 bg-yellow-50 p-2 rounded">
+              💡 <strong>Dica:</strong> Se você não tem uma conta, clique em "Registre-se" para criar uma nova conta.
             </div>
           </CardFooter>
         </form>
