@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -7,6 +6,7 @@ import { ScriptGeneratorState, FormData, GeneratedScript } from '@/types/script'
 import IdeaInputStep from '@/components/script-generator/IdeaInputStep';
 import GeneratingStep from '@/components/script-generator/GeneratingStep';
 import ResultStep from '@/components/script-generator/ResultStep';
+import { generateScript } from '@/services/supabaseService';
 
 const ScriptGeneratorPage: React.FC = () => {
   const location = useLocation();
@@ -25,16 +25,14 @@ const ScriptGeneratorPage: React.FC = () => {
     const state = location.state as ScriptGeneratorState | undefined;
     
     if (state?.ideaText) {
-      // Handle direct idea text from ValidationResponse
       setFormData({
         idea: state.ideaText,
         objective: state.objective === 'emotion' ? 'emotion' : 'sales',
       });
     } else if (state?.validatedIdea) {
-      // Handle validated idea from AIResponseBlock
       setFormData({
         idea: state.validatedIdea.topic,
-        objective: 'emotion', // Default to emotion if not specified
+        objective: 'emotion',
       });
     }
   }, [location.state]);
@@ -64,33 +62,92 @@ const ScriptGeneratorPage: React.FC = () => {
 
     setStep('generating');
     
-    // Simulated API call with timeout
-    setTimeout(() => {
+    try {
+      // Chamar a API real do Supabase para gerar roteiro
+      const scriptRequest = {
+        type: 'roteiro' as const,
+        topic: formData.idea,
+        tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
+        marketingObjective: formData.objective === 'emotion' ? '🟢 Criar Conexão' : '🔴 Fazer Comprar',
+        language: 'PT'
+      };
+
+      const response = await generateScript(scriptRequest);
+      
+      // Converter a resposta da API para o formato esperado
+      const mockScript: GeneratedScript = {
+        title: response.title || formData.idea,
+        opening: extractSection(response.content, 'abertura') || "Gancho inicial impactante",
+        body: extractSection(response.content, 'desenvolvimento') || response.content,
+        closing: extractSection(response.content, 'fechamento') || "Call to action poderoso",
+        visualSuggestion: extractSection(response.content, 'visual') || "Sugestões visuais para o vídeo",
+        duration: "60 segundos",
+        finalPhrase: formData.objective === 'emotion' ? "Conecte antes de vender" : "Venda com propósito",
+        initialScore: 7.5,
+        refinedScript: response.content,
+        finalScore: 9.2
+      };
+
+      setGeneratedScript(mockScript);
+      setStep('result');
+
+      toast({
+        title: "Roteiro gerado com sucesso!",
+        description: "Seu roteiro está pronto para ser usado.",
+      });
+
+    } catch (error) {
+      console.error('Erro ao gerar roteiro:', error);
+      
+      // Fallback para geração simulada em caso de erro
       const mockScript = generateMockScript(formData);
       setGeneratedScript(mockScript);
       setStep('result');
-    }, 3000);
+
+      toast({
+        title: "Roteiro gerado (modo simulado)",
+        description: "Houve um problema com a API, mas geramos um roteiro de exemplo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função auxiliar para extrair seções do conteúdo gerado
+  const extractSection = (content: string, section: string): string => {
+    const patterns = {
+      'abertura': /(?:abertura|gancho|início):\s*([^\n]+)/i,
+      'desenvolvimento': /(?:desenvolvimento|corpo|conteúdo):\s*([^\n]+)/i,
+      'fechamento': /(?:fechamento|conclusão|cta):\s*([^\n]+)/i,
+      'visual': /(?:visual|imagem|sugestão visual):\s*([^\n]+)/i
+    };
+
+    const pattern = patterns[section as keyof typeof patterns];
+    if (pattern) {
+      const match = content.match(pattern);
+      return match ? match[1].trim() : '';
+    }
+    return '';
   };
 
   const handleCopyScript = () => {
     if (!generatedScript) return;
     
     const scriptText = `
-    🎬 Roteiro Fluida – Intenção: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}
+🎬 Roteiro Fluida – Intenção: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}
 
-    1. Título: ${generatedScript.title}
-    2. Abertura: ${generatedScript.opening}
-    3. Parte principal: ${generatedScript.body}
-    4. Fechamento: ${generatedScript.closing}
-    5. Visual sugerido: ${generatedScript.visualSuggestion}
-    6. Duração: ${generatedScript.duration}
-    7. Frase final: ${generatedScript.finalPhrase}
-    🧠 SCORE antes: ${generatedScript.initialScore}/10
+1. Título: ${generatedScript.title}
+2. Abertura: ${generatedScript.opening}
+3. Parte principal: ${generatedScript.body}
+4. Fechamento: ${generatedScript.closing}
+5. Visual sugerido: ${generatedScript.visualSuggestion}
+6. Duração: ${generatedScript.duration}
+7. Frase final: ${generatedScript.finalPhrase}
+🧠 SCORE antes: ${generatedScript.initialScore}/10
 
-    ✨ Versão refinada com Magia Disney:
-    ${generatedScript.refinedScript}
+✨ Versão refinada:
+${generatedScript.refinedScript}
 
-    🌟 SCORE após validação: ${generatedScript.finalScore}/10
+🌟 SCORE após validação: ${generatedScript.finalScore}/10
     `;
     
     navigator.clipboard.writeText(scriptText);
@@ -126,7 +183,7 @@ const ScriptGeneratorPage: React.FC = () => {
       
       closing = isEmotion 
         ? "Algumas memórias não podem ser compradas. Mas podem ser moldadas."
-        : "Garanta já seu kit de massinha especial e faça parte das memórias de uma família.";
+        : "Garante já seu kit de massinha especial e faça parte das memórias de uma família.";
       
       visualSuggestion = "Iluminação suave, tons pastel, close nas mãos trabalhando com a massinha, sorrisos discretos.";
     } 
