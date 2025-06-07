@@ -15,77 +15,36 @@ const convertRoteiro = (roteiro: any): ScriptResponse => {
 };
 
 // Função para gerar um roteiro usando a Edge Function
-export const generateScript = async (ScriptRequest: ScriptRequest): Promise<ScriptResponse> => {
+export const generateScript = async (request: any) => {
+  console.log('generateScript chamado com request:', request);
+  
   try {
-    const { data: user } = await supabase.auth.getUser();
-    const token = await supabase.auth.getSession().then(res => res.data.session?.access_token || '');
+    const { data, error } = await supabase.functions.invoke('generate-script', {
+      body: { request }
+    });
 
-    console.log('Iniciando geração de roteiro com os parâmetros:', ScriptRequest);
-
-    // Use the SUPABASE_BASE_URL exported from the client
-    if (!SUPABASE_BASE_URL) {
-      throw new Error('URL do Supabase não definida');
-    }
-    
-    // Chamar a Edge Function para gerar o roteiro usando o URL base do Supabase
-    console.log(`Chamando Edge Function em: ${SUPABASE_BASE_URL}/functions/v1/generate-script`);
-    
-    let response;
-    try {
-      response = await fetch(`${SUPABASE_BASE_URL}/functions/v1/generate-script`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          request: ScriptRequest
-        })
-      });
-      
-      console.log('Status da resposta Edge Function:', response.status);
-    } catch (fetchError) {
-      console.error('Erro na chamada da Edge Function:', fetchError);
-      throw new Error(`Falha na conexão com a Edge Function: ${fetchError.message}`);
+    if (error) {
+      console.error('Erro na função generate-script:', error);
+      throw new Error(`Erro na API: ${error.message}`);
     }
 
-    if (!response.ok) {
-      let errorMessage = '';
-      try {
-        // Tentar processar como JSON primeiro
-        const errorJson = await response.json();
-        errorMessage = errorJson.error || `Status: ${response.status}`;
-      } catch (jsonError) {
-        // Caso não seja JSON, tentar obter como texto
-        try {
-          const errorText = await response.text();
-          errorMessage = errorText || `Status: ${response.status}`;
-        } catch (textError) {
-          errorMessage = `Status: ${response.status}`;
-        }
-      }
-      
-      console.error('Resposta da Edge Function:', response.status, errorMessage);
-      throw new Error(`Erro ao chamar a Edge Function: ${errorMessage}`);
+    if (!data) {
+      console.error('Dados vazios retornados da API');
+      throw new Error('Resposta vazia da API');
     }
 
-    let scriptResponse;
-    try {
-      scriptResponse = await response.json();
-    } catch (jsonError) {
-      console.error('Erro ao processar resposta JSON:', jsonError);
-      throw new Error('A resposta da Edge Function não é um JSON válido');
-    }
+    console.log('generateScript sucesso:', data);
+    return data;
     
-    if (scriptResponse.error) {
-      throw new Error(`Erro retornado pela Edge Function: ${scriptResponse.error}`);
-    }
-    
-    console.log('Roteiro gerado com sucesso');
-    return scriptResponse;
   } catch (error) {
-    console.error('Erro ao gerar roteiro:', error);
-    throw error;
+    console.error('Erro em generateScript:', error);
+    
+    // Re-throw com mensagem mais clara
+    if (error instanceof Error) {
+      throw new Error(`Falha na geração: ${error.message}`);
+    } else {
+      throw new Error('Erro desconhecido na geração do roteiro');
+    }
   }
 };
 

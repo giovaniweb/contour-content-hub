@@ -13,6 +13,8 @@ export const useScriptGeneration = () => {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
 
   const handleSmartGenerate = async (data: ScriptGenerationData) => {
+    console.log('handleSmartGenerate iniciado com dados:', data);
+    
     setGenerationData(data);
     setStep('generating');
     
@@ -34,7 +36,14 @@ export const useScriptGeneration = () => {
 
       console.log('Enviando requisição para API:', scriptRequest);
 
-      const response = await generateScript(scriptRequest);
+      // Adicionar timeout para evitar travamento
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout na geração do roteiro')), 30000);
+      });
+
+      const scriptPromise = generateScript(scriptRequest);
+      
+      const response = await Promise.race([scriptPromise, timeoutPromise]);
       
       console.log('Resposta da API recebida:', response);
       
@@ -57,19 +66,33 @@ export const useScriptGeneration = () => {
       console.error('Erro ao gerar roteiro:', error);
       
       // Fallback para conteúdo mock em caso de erro
-      const mockContent = generateMockContent(data);
-      setGeneratedContent(mockContent);
-      setStep('smartResult');
+      try {
+        const mockContent = generateMockContent(data);
+        setGeneratedContent(mockContent);
+        setStep('smartResult');
 
-      toast({
-        title: "Roteiro gerado (modo simulado)",
-        description: "Houve um problema com a API, mas geramos um conteúdo de exemplo.",
-        variant: "destructive",
-      });
+        toast({
+          title: "Roteiro gerado (modo simulado)",
+          description: "Houve um problema com a API, mas geramos um conteúdo de exemplo.",
+          variant: "destructive",
+        });
+      } catch (mockError) {
+        console.error('Erro ao gerar conteúdo mock:', mockError);
+        
+        // Se mesmo o mock falhar, voltar para o input
+        setStep('smartInput');
+        
+        toast({
+          title: "Erro ao gerar roteiro",
+          description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleNewScript = () => {
+    console.log('handleNewScript chamado');
     setStep('smartInput');
     setGenerationData(null);
     setGeneratedContent(null);
