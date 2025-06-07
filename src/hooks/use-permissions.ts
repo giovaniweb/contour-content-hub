@@ -31,6 +31,22 @@ export const usePermissions = () => {
     return role === 'admin' || role === 'manager';
   };
 
+  const hasPermission = (permission: string) => {
+    const role = getUserRole();
+    
+    // Define permission mappings
+    const permissions: { [key: string]: string[] } = {
+      'admin': ['admin'],
+      'editAllContent': ['admin', 'operator'],
+      'viewSales': ['admin', 'seller', 'manager'],
+      'manageSales': ['admin', 'seller'],
+      'viewConsultant': ['admin', 'consultant'],
+      'manageWorkspace': ['admin', 'workspace_admin']
+    };
+    
+    return permissions[permission]?.includes(role) || false;
+  };
+
   return {
     isAdmin,
     canManageWorkspace,
@@ -38,5 +54,6 @@ export const usePermissions = () => {
     canManageUsers,
     canAccessReports,
     getUserRole,
+    hasPermission,
   };
 };

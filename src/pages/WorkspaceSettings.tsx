@@ -112,10 +112,7 @@ const WorkspaceSettings: React.FC = () => {
           </TabsList>
           
           <TabsContent value="users">
-            <WorkspaceUsers 
-              workspaceId={user?.workspace_id} 
-              onInviteUser={handleInviteUser}
-            />
+            <WorkspaceUsers />
           </TabsContent>
           
           <TabsContent value="communication">
@@ -247,7 +244,7 @@ const WorkspaceSettings: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <FormLabel>Nome da Clínica/Empresa</FormLabel>
-                      <Input value={user?.clinic || ''} disabled />
+                      <Input value={user?.user_metadata?.clinic || ''} disabled />
                     </div>
                     <div>
                       <FormLabel>Plano Atual</FormLabel>
@@ -257,7 +254,7 @@ const WorkspaceSettings: React.FC = () => {
                   
                   <div>
                     <FormLabel>ID do Workspace</FormLabel>
-                    <Input value={user?.workspace_id || ''} disabled />
+                    <Input value={user?.user_metadata?.workspace_id || ''} disabled />
                   </div>
                 </div>
               </CardContent>

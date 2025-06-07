@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
-  const { user, loading, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   
@@ -33,9 +32,9 @@ const Profile = () => {
   
   useEffect(() => {
     if (user) {
-      setName(user.nome || '');
+      setName(user.user_metadata?.name || user.user_metadata?.full_name || '');
       setEmail(user.email || '');
-      setClinic(user.clinic || '');
+      setClinic(user.user_metadata?.clinic || '');
       // For these fields, we would typically fetch from a profile service
       setPhone('');
       setCity('');
@@ -107,7 +106,7 @@ const Profile = () => {
     }
   };
   
-  if (loading || isLoading) {
+  if (isLoading) {
     return <Layout title="Perfil">Carregando...</Layout>;
   }
   
@@ -167,13 +166,13 @@ const Profile = () => {
                 <div className="space-y-4">
                   <div>
                     <span className="text-sm text-muted-foreground">Função</span>
-                    <p>{getRoleName(user.role)}</p>
+                    <p>{getRoleName(user.user_metadata?.role || 'user')}</p>
                   </div>
                   
-                  {user.workspace_id && (
+                  {user.user_metadata?.workspace_id && (
                     <div>
                       <span className="text-sm text-muted-foreground">Workspace ID</span>
-                      <p className="text-xs font-mono bg-muted p-1 rounded">{user.workspace_id}</p>
+                      <p className="text-xs font-mono bg-muted p-1 rounded">{user.user_metadata.workspace_id}</p>
                     </div>
                   )}
                 </div>
