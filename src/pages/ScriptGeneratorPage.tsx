@@ -31,23 +31,30 @@ const ScriptGeneratorPage: React.FC = () => {
     setStep('generating');
     
     try {
-      // Convert smart generation data to script request format
+      // Preparar requisição correta para a API
       const scriptRequest = {
-        type: 'videoScript' as const,
+        type: data.contentType === 'video' ? 'videoScript' : data.contentType === 'bigIdea' ? 'bigIdea' : 'dailySales',
         topic: data.theme,
         tone: data.style.toLowerCase(),
         marketingObjective: mapObjectiveToMarketingType(data.objective),
-        additionalInfo: `Canal: ${data.channel}\nEstilo: ${data.style}\nMentor: ${data.selectedMentor}\n${data.additionalNotes || ''}`
+        additionalInfo: buildAdditionalInfo(data),
+        // Novos parâmetros para SmartScriptGenerator
+        contentType: data.contentType,
+        objective: data.objective,
+        channel: data.channel,
+        style: data.style,
+        mentor: data.selectedMentor
       };
+
+      console.log('Enviando requisição para API:', scriptRequest);
 
       const response = await generateScript(scriptRequest);
       
-      // Format content based on type
-      const formattedContent = formatContentByType(response.content, data.contentType, data);
+      console.log('Resposta da API recebida:', response);
       
       const smartContent: GeneratedContent = {
         type: data.contentType,
-        content: formattedContent,
+        content: response.content,
         mentor: getMentorName(data.selectedMentor),
         suggestions: getSuggestionsForType(data.contentType)
       };
@@ -57,13 +64,13 @@ const ScriptGeneratorPage: React.FC = () => {
 
       toast({
         title: "Roteiro gerado com sucesso!",
-        description: `Conteúdo ${data.contentType} criado com base no estilo ${data.selectedMentor}.`,
+        description: `Conteúdo ${data.contentType} criado com base no estilo ${getMentorName(data.selectedMentor)}.`,
       });
 
     } catch (error) {
       console.error('Erro ao gerar roteiro:', error);
       
-      // Fallback to mock generation
+      // Fallback para conteúdo mock em caso de erro
       const mockContent = generateMockContent(data);
       setGeneratedContent(mockContent);
       setStep('smartResult');
@@ -76,11 +83,27 @@ const ScriptGeneratorPage: React.FC = () => {
     }
   };
 
+  const buildAdditionalInfo = (data: ScriptGenerationData): string => {
+    const parts = [
+      `Canal: ${data.channel}`,
+      `Estilo: ${data.style}`,
+      `Mentor: ${getMentorName(data.selectedMentor)}`,
+      `Objetivo: ${data.objective}`
+    ];
+    
+    if (data.additionalNotes) {
+      parts.push(`Observações: ${data.additionalNotes}`);
+    }
+    
+    return parts.join('\n');
+  };
+
   const mapObjectiveToMarketingType = (objective: string): MarketingObjectiveType => {
     if (objective.includes('Vender')) return '🔴 Fazer Comprar';
     if (objective.includes('Atrair')) return '🟡 Atrair Atenção';
     if (objective.includes('Engajar')) return '🟢 Criar Conexão';
     if (objective.includes('autoridade')) return '🟢 Criar Conexão';
+    if (objective.includes('leads')) return '🟡 Atrair Atenção';
     return '🟢 Criar Conexão';
   };
 
@@ -97,116 +120,6 @@ const ScriptGeneratorPage: React.FC = () => {
     return mentors[mentorId] || 'Mentor Especializado';
   };
 
-  const formatContentByType = (content: string, type: string, data: ScriptGenerationData): string => {
-    switch (type) {
-      case 'bigIdea':
-        return generateBigIdeas(data);
-      case 'carousel':
-        return generateCarouselContent(data);
-      case 'image':
-        return generateImageContent(data);
-      case 'video':
-        return formatVideoScript(content);
-      case 'stories':
-        return generateStoriesContent(data);
-      default:
-        return content;
-    }
-  };
-
-  const generateBigIdeas = (data: ScriptGenerationData): string => {
-    const ideas = [
-      `${data.theme}: A verdade que ninguém te conta`,
-      `3 erros fatais sobre ${data.theme.toLowerCase()} que estão sabotando seus resultados`,
-      `Por que ${data.theme.toLowerCase()} não funciona para 90% das pessoas`,
-      `O método secreto dos profissionais para ${data.theme.toLowerCase()}`,
-      `${data.theme}: Antes vs Depois - transformação real em 30 dias`
-    ];
-    
-    return ideas.map((idea, index) => `${index + 1}. ${idea}`).join('\n\n');
-  };
-
-  const generateCarouselContent = (data: ScriptGenerationData): string => {
-    return `SLIDE 1 - CAPA:
-${data.theme}
-"A transformação que você precisa ver"
-
-SLIDE 2 - PROBLEMA:
-"Você já tentou de tudo e nada funcionou?"
-
-SLIDE 3 - SOLUÇÃO:
-"Descobri o método que realmente funciona"
-
-SLIDE 4 - PROVA:
-"Resultados reais em [tempo]"
-
-SLIDE 5 - CTA:
-"Quer saber como? Manda DM que eu explico!"`;
-  };
-
-  const generateImageContent = (data: ScriptGenerationData): string => {
-    return `TÍTULO PRINCIPAL:
-${data.theme}
-
-SUBTÍTULO:
-A solução definitiva que você estava procurando
-
-CALL TO ACTION:
-👆 Toque para mais informações
-📩 Envie DM para saber mais
-
-HASHTAGS:
-#${data.theme.toLowerCase().replace(/\s+/g, '')} #resultados #transformacao`;
-  };
-
-  const formatVideoScript = (content: string): string => {
-    // Try to identify sections in the content
-    if (content.includes('Gancho') || content.includes('🎬')) {
-      return content;
-    }
-    
-    // Format as structured video script
-    const lines = content.split('\n').filter(line => line.trim());
-    const scriptParts = {
-      gancho: lines.slice(0, 2).join(' '),
-      conflito: lines.slice(2, 4).join(' '),
-      virada: lines.slice(4, 6).join(' '),
-      cta: lines.slice(-2).join(' ')
-    };
-    
-    return `🎬 Gancho:
-${scriptParts.gancho}
-
-🎯 Conflito:
-${scriptParts.conflito}
-
-🔁 Virada:
-${scriptParts.virada}
-
-📣 CTA:
-${scriptParts.cta}`;
-  };
-
-  const generateStoriesContent = (data: ScriptGenerationData): string => {
-    return `STORIES - ${data.theme}
-
-FRAME 1:
-"Você sabia que..."
-[Texto chamativo sobre o tema]
-
-FRAME 2:
-"Eu descobri que..."
-[Revelação interessante]
-
-FRAME 3:
-"E o resultado foi..."
-[Demonstração do benefício]
-
-FRAME 4:
-"Quer saber mais?"
-[CTA para DM ou link]`;
-  };
-
   const getSuggestionsForType = (type: string) => {
     return {
       generateImage: type === 'image' || type === 'carousel',
@@ -216,9 +129,92 @@ FRAME 4:
   };
 
   const generateMockContent = (data: ScriptGenerationData): GeneratedContent => {
+    let mockContent = '';
+    
+    switch (data.contentType) {
+      case 'bigIdea':
+        mockContent = `1. ${data.theme}: A verdade que ninguém te conta
+2. 3 erros fatais sobre ${data.theme.toLowerCase()} que estão sabotando seus resultados  
+3. Por que ${data.theme.toLowerCase()} não funciona para 90% das pessoas
+4. O método secreto dos profissionais para ${data.theme.toLowerCase()}
+5. ${data.theme}: Antes vs Depois - transformação real em 30 dias`;
+        break;
+        
+      case 'carousel':
+        mockContent = `SLIDE 1 - CAPA:
+${data.theme}
+"A transformação que você precisa ver"
+
+SLIDE 2 - PROBLEMA:
+"Você já tentou de tudo e nada funcionou?"
+
+SLIDE 3 - SOLUÇÃO:
+"Descobri o método que realmente funciona"
+
+SLIDE 4 - BENEFÍCIOS:
+"Resultados reais em [tempo]"
+
+SLIDE 5 - CTA:
+"Quer saber como? Manda DM que eu explico!"`;
+        break;
+        
+      case 'image':
+        mockContent = `TÍTULO PRINCIPAL:
+${data.theme}
+
+SUBTÍTULO:
+A solução definitiva que você estava procurando
+
+TEXTO PRINCIPAL:
+Descubra o método que já transformou milhares de vidas
+
+CTA:
+👆 Toque para mais informações
+📩 Envie DM para saber mais
+
+HASHTAGS:
+#${data.theme.toLowerCase().replace(/\s+/g, '')} #resultados #transformacao #sucesso #dicas`;
+        break;
+        
+      case 'video':
+        mockContent = `🎬 Gancho:
+"Se você ainda não conseguiu [resultado desejado], é porque ninguém te contou isso..."
+
+🎯 Conflito:
+"A maioria das pessoas tenta [método comum] e falha porque não sabem do segredo que vou revelar agora."
+
+🔁 Virada:
+"O verdadeiro segredo do ${data.theme.toLowerCase()} é [solução específica]. Quando descobri isso, tudo mudou."
+
+📣 CTA:
+"Manda DM que eu te explico o passo a passo completo!"`;
+        break;
+        
+      case 'stories':
+        mockContent = `STORIES 1:
+"Você sabia que..."
+[Gancho sobre o tema]
+
+STORIES 2:
+"Eu descobri que..."
+[Revelação interessante]
+
+STORIES 3:
+"E o resultado foi..."
+[Demonstração do benefício]
+
+STORIES 4:
+"Quer saber mais?"
+[CTA para DM ou link]`;
+        break;
+        
+      default:
+        mockContent = `Conteúdo ${data.contentType} sobre ${data.theme} no estilo ${getMentorName(data.selectedMentor)}`;
+    }
+    
     return {
       type: data.contentType,
-      content: formatContentByType("Conteúdo gerado com base nos seus parâmetros...", data.contentType, data),
+      content: mockContent,
       mentor: getMentorName(data.selectedMentor),
       suggestions: getSuggestionsForType(data.contentType)
     };
