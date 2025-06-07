@@ -4,6 +4,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { Slot } from "@radix-ui/react-slot"
 
 // Menu components
 export function SidebarMenu({
@@ -45,7 +46,7 @@ export function SidebarMenuButton({
   asChild = false,
   ...props
 }: SidebarMenuButtonProps) {
-  const Comp = asChild ? "div" : "button"
+  const Comp = asChild ? Slot : "button"
   
   return (
     <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
@@ -57,7 +58,7 @@ export function SidebarMenuButton({
           isActive && "bg-white/15 text-white shadow-lg shadow-aurora-lavender/20",
           className
         )}
-        {...(asChild ? {} : props)}
+        {...props}
       >
         {icon && (
           <span className={cn(
