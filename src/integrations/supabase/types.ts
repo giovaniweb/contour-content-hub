@@ -197,6 +197,36 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       avaliacoes: {
         Row: {
           comentario: string | null
@@ -1626,7 +1656,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      database_documentation: {
+        Row: {
+          column_default: string | null
+          column_name: unknown | null
+          column_type: string | null
+          data_type: string | null
+          description: string | null
+          is_nullable: string | null
+          table_name: unknown | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize: {

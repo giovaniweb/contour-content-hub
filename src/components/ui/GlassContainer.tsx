@@ -19,8 +19,9 @@ export default function GlassContainer({
     <div 
       className={cn(
         "rounded-xl bg-white/90 backdrop-blur-md shadow-sm border border-gray-100",
-        !noPadding && "p-4 md:p-6", // Padding responsivo
-        onClick && "cursor-pointer hover:shadow-md transition-all",
+        "dark:bg-white/10 dark:border-white/20 dark:shadow-lg",
+        !noPadding && "p-4 md:p-6",
+        onClick && "cursor-pointer hover:shadow-md transition-all hover:bg-white/95 dark:hover:bg-white/20",
         className
       )}
       onClick={onClick}
