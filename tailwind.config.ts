@@ -68,35 +68,44 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Aurora Borealis Color Palette
+				// Aurora Borealis Color Palette - Dark Theme
 				aurora: {
-					lavender: '#C4B5FD',
-					teal: '#14B8A6',
-					turquoise: '#06B6D4',
-					'deep-violet': '#7C3AED',
-					'soft-pink': '#F472B6',
-					'electric-blue': '#3B82F6',
-					sage: '#A7F3D0',
-					midnight: '#1E1B4B',
+					'deep-purple': '#1a0b2e',
+					'dark-violet': '#2d1b3d',
+					'electric-purple': '#6b46c1',
+					'neon-blue': '#3b82f6',
+					cyan: '#06b6d4',
+					emerald: '#10b981',
+					lime: '#84cc16',
+					midnight: '#0f0f23',
+					'space-black': '#000511',
+					// Keeping original names for compatibility
+					lavender: '#8b5cf6',
+					teal: '#14b8a6',
+					turquoise: '#06b6d4',
+					'deep-violet': '#6b46c1',
+					'soft-pink': '#f472b6',
+					'electric-blue': '#3b82f6',
+					sage: '#10b981',
 				},
-				// Fluida brand colors - updated with Aurora palette
+				// Fluida brand colors - updated with Aurora dark palette
 				fluida: {
-					blue: '#3B82F6',    // Aurora electric blue
-					pink: '#F472B6',    // Aurora soft pink
-					blueDark: '#1E40AF',
-					pinkDark: '#BE185D',
-					lightGray: '#F8FAFC',
-					gradient: 'linear-gradient(to right, #3B82F6, #F472B6)'
+					blue: '#3b82f6',
+					pink: '#f472b6',
+					blueDark: '#6b46c1',
+					pinkDark: '#be185d',
+					lightGray: '#1a0b2e',
+					gradient: 'linear-gradient(to right, #6b46c1, #3b82f6)'
 				},
-				// Contourline colors - keeping for compatibility
+				// Contourline colors - updated for dark theme
 				contourline: {
-					darkBlue: '#3A567A',
-					mediumBlue: '#3B82F6', // Updated to Aurora electric blue
-					lightBlue: '#93C5FD',
-					lightGray: '#F8FAFC',
-					black: '#121212',
-					white: '#FFFFFF',
-					accent: '#F472B6', // Aurora soft pink
+					darkBlue: '#1a0b2e',
+					mediumBlue: '#6b46c1',
+					lightBlue: '#8b5cf6',
+					lightGray: '#2d1b3d',
+					black: '#000511',
+					white: '#ffffff',
+					accent: '#f472b6',
 				},
 			},
 			borderRadius: {
@@ -131,28 +140,31 @@ export default {
 				},
 				'pulse-light': {
 					'0%, 100%': { 
-						boxShadow: '0 0 5px rgba(196, 181, 253, 0.2), 0 0 10px rgba(196, 181, 253, 0.1)' 
+						boxShadow: '0 0 5px rgba(107, 70, 193, 0.3), 0 0 10px rgba(107, 70, 193, 0.2)' 
 					},
 					'50%': { 
-						boxShadow: '0 0 15px rgba(196, 181, 253, 0.3), 0 0 20px rgba(196, 181, 253, 0.2)' 
+						boxShadow: '0 0 20px rgba(107, 70, 193, 0.5), 0 0 30px rgba(107, 70, 193, 0.3)' 
 					}
 				},
 				'bounce-light': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-5px)' }
 				},
-				// Aurora-specific animations
+				// Aurora-specific animations - Enhanced
 				'aurora-flow': {
 					'0%, 100%': { backgroundPosition: '0% 50%' },
-					'50%': { backgroundPosition: '100% 50%' }
+					'25%': { backgroundPosition: '100% 0%' },
+					'50%': { backgroundPosition: '100% 100%' },
+					'75%': { backgroundPosition: '0% 100%' }
 				},
 				'aurora-pulse': {
-					'0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
+					'0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
 					'50%': { opacity: '1', transform: 'scale(1.05)' }
 				},
 				'aurora-float': {
-					'0%, 100%': { transform: 'translateY(0px)' },
-					'50%': { transform: 'translateY(-10px)' }
+					'0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+					'33%': { transform: 'translateY(-15px) rotate(1deg)' },
+					'66%': { transform: 'translateY(-5px) rotate(-1deg)' }
 				},
 				'aurora-shimmer': {
 					'0%': { backgroundPosition: '-200% center' },
@@ -160,9 +172,31 @@ export default {
 				},
 				'aurora-particles': {
 					'0%': { transform: 'translateY(100vh) rotate(0deg)', opacity: '0' },
-					'10%': { opacity: '1' },
-					'90%': { opacity: '1' },
+					'10%': { opacity: '0.8' },
+					'90%': { opacity: '0.8' },
 					'100%': { transform: 'translateY(-100vh) rotate(360deg)', opacity: '0' }
+				},
+				'aurora-wave': {
+					'0%, 100%': { 
+						transform: 'translateX(0) scale(1)',
+						filter: 'hue-rotate(0deg)'
+					},
+					'33%': { 
+						transform: 'translateX(10px) scale(1.02)',
+						filter: 'hue-rotate(60deg)'
+					},
+					'66%': { 
+						transform: 'translateX(-10px) scale(0.98)',
+						filter: 'hue-rotate(120deg)'
+					}
+				},
+				'aurora-glow': {
+					'0%, 100%': { 
+						boxShadow: '0 0 10px #6b46c1, 0 0 20px #6b46c1, 0 0 30px #6b46c1'
+					},
+					'50%': { 
+						boxShadow: '0 0 20px #3b82f6, 0 0 40px #3b82f6, 0 0 60px #3b82f6'
+					}
 				}
 			},
 			animation: {
@@ -174,31 +208,37 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-light': 'pulse-light 2s infinite ease-in-out',
 				'bounce-light': 'bounce-light 2s infinite ease-in-out',
-				// Aurora animations
-				'aurora-flow': 'aurora-flow 8s ease-in-out infinite',
+				// Aurora animations - Enhanced
+				'aurora-flow': 'aurora-flow 12s ease-in-out infinite',
 				'aurora-pulse': 'aurora-pulse 2s infinite',
-				'aurora-float': 'aurora-float 6s ease-in-out infinite',
-				'aurora-shimmer': 'aurora-shimmer 3s infinite',
+				'aurora-float': 'aurora-float 8s ease-in-out infinite',
+				'aurora-shimmer': 'aurora-shimmer 4s infinite',
 				'aurora-particles': 'aurora-particles linear infinite',
+				'aurora-wave': 'aurora-wave 15s ease-in-out infinite',
+				'aurora-glow': 'aurora-glow 3s infinite',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-				'fluida-gradient': 'linear-gradient(to right, #3B82F6, #F472B6)',
-				'lavender-gradient': 'linear-gradient(to bottom, #F8FAFC, #E8F0FF)',
-				// Aurora gradients
-				'aurora-gradient': 'linear-gradient(135deg, #C4B5FD, #14B8A6, #06B6D4, #7C3AED, #F472B6)',
-				'aurora-gradient-primary': 'linear-gradient(135deg, #C4B5FD, #14B8A6)',
-				'aurora-gradient-secondary': 'linear-gradient(135deg, #7C3AED, #F472B6)',
-				'aurora-gradient-tertiary': 'linear-gradient(135deg, #06B6D4, #3B82F6)',
+				'fluida-gradient': 'linear-gradient(to right, #6b46c1, #3b82f6)',
+				'lavender-gradient': 'linear-gradient(to bottom, #1a0b2e, #2d1b3d)',
+				// Aurora gradients - Dark theme
+				'aurora-gradient': 'linear-gradient(135deg, #1a0b2e, #6b46c1, #3b82f6, #06b6d4, #10b981)',
+				'aurora-gradient-primary': 'linear-gradient(135deg, #6b46c1, #3b82f6)',
+				'aurora-gradient-secondary': 'linear-gradient(135deg, #1a0b2e, #6b46c1)',
+				'aurora-gradient-tertiary': 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+				'aurora-gradient-dark': 'linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d)',
+				'aurora-gradient-emerald': 'linear-gradient(135deg, #10b981, #84cc16)',
 			},
 			backdropBlur: {
 				xs: '2px',
 			},
 			boxShadow: {
-				'aurora-glow': '0 0 20px rgba(196, 181, 253, 0.3)',
-				'aurora-glow-intense': '0 0 40px rgba(124, 58, 237, 0.5)',
-				'aurora-glass': '0 8px 32px rgba(31, 41, 55, 0.12)',
+				'aurora-glow': '0 0 30px rgba(107, 70, 193, 0.4)',
+				'aurora-glow-intense': '0 0 50px rgba(107, 70, 193, 0.6)',
+				'aurora-glow-blue': '0 0 25px rgba(59, 130, 246, 0.4)',
+				'aurora-glow-emerald': '0 0 20px rgba(16, 185, 129, 0.4)',
+				'aurora-glass': '0 8px 32px rgba(0, 5, 17, 0.3)',
 			}
 		}
 	},
