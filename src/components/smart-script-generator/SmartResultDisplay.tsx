@@ -37,13 +37,13 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
   };
 
   const handleDisneyTransformation = () => {
-    const disneyScript = generateDisneyScript(currentContent, generatedContent.type);
+    const disneyScript = generateDisneyScript(currentContent, generatedContent.type, generationData);
     setCurrentContent(disneyScript);
     setIsDisneyApplied(true);
     
     toast({
       title: "✨ Magia Disney 1928 Aplicada!",
-      description: "Seu roteiro foi transformado pela narrativa clássica Disney.",
+      description: "Walt Disney transformou seu roteiro com narrativa encantadora e emocional.",
     });
   };
 
@@ -85,7 +85,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                 <Badge variant="outline">{generatedContent.type}</Badge>
                 {isDisneyApplied && (
                   <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                    ✨ Disney Magic
+                    🏰 Walt Disney 1928
                   </Badge>
                 )}
               </div>
@@ -105,7 +105,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                     className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    ✨ Transformar com Magia Disney 1928
+                    🏰 Transformar com Magia Disney 1928
                   </Button>
                 )}
                 

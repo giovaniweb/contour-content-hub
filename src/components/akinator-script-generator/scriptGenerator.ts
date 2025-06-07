@@ -1,3 +1,4 @@
+
 import { AkinatorState, MentorProfile } from './types';
 import { MENTORS, ENIGMAS } from './constants';
 
@@ -94,7 +95,7 @@ export const generateSpecificScript = (answers: AkinatorState, mentorKey: string
   return `🎬 Gancho:\n${gancho}\n\n🎯 Conflito:\n${conflito}\n\n🔁 Virada:\n${virada}\n\n📣 CTA:\n${cta}\n\n🔮 Enigma do Mentor:\n"${enigma}"\n\n✨ Assinatura do Roteirista:\n"Feito com alma para vender com propósito."`;
 };
 
-export const generateDisneyScript = (originalScript: string, contentType?: string): string => {
+export const generateDisneyScript = (originalScript: string, contentType?: string, generationData?: any): string => {
   // Parse the original script to extract components
   const lines = originalScript.split('\n');
   let gancho = "";
@@ -115,45 +116,127 @@ export const generateDisneyScript = (originalScript: string, contentType?: strin
     }
   });
 
-  // Apply Disney magic transformation based on Walt Disney's 1928 perspective
+  // Criar contexto a partir dos dados de geração
+  const objetivo = generationData?.objective || 'engajar';
+  const tema = generationData?.theme || 'conteúdo criativo';
+  const canal = generationData?.channel || 'redes sociais';
+  const estilo = generationData?.style || 'criativo';
+  const tom = 'encantador e emocional';
+  const data_sazonal_ou_simbolismo = 'transformação pessoal';
+
+  // Aplicar o prompt Walt Disney 1928 completo
+  const disneyPromptContext = `
+🎯 Objetivo: ${objetivo}
+🧵 Tema: ${tema}  
+📱 Canal: ${canal}
+🎨 Estilo: ${estilo}
+🗣️ Tom desejado: ${tom}
+🌟 Emoção associada: ${data_sazonal_ou_simbolismo}
+
+Script original analisado por Walt Disney em 1928:
+${originalScript}
+  `;
+
+  // Aplicar transformação Disney com base no tipo de conteúdo
+  let eraUmaVez = "";
+  let ateQueUmDia = "";
+  let entaoElaDescobriu = "";
+  let eElesViveramFelizes = "";
+
+  // Diferentes abordagens baseadas no tema e objetivo
   const disneyTransformations = [
     {
-      // Emotional connection and dreams
-      gancho: "Era uma vez uma pessoa que acreditava que já tinha encontrado tudo o que precisava...",
-      conflito: "Até descobrir que estava vivendo apenas uma fração do que realmente merecia experimentar.",
-      virada: "Foi quando ela encontrou algo que não apenas mudou sua realidade, mas despertou sonhos que nem sabia que tinha.",
-      cta: "E agora é sua vez de descobrir essa magia. Toque no link e comece sua própria transformação!"
+      eraUmaVez: "Era uma vez alguém que acreditava que já tinha encontrado tudo o que precisava na vida...",
+      ateQueUmDia: "Até que um dia percebeu que estava vivendo apenas uma pequena parte do que realmente merecia experimentar.",
+      entaoElaDescobriu: "Então ela descobriu algo que não apenas mudou sua realidade, mas despertou sonhos que nem sabia que tinha dentro de si.",
+      eElesViveramFelizes: "E eles viveram felizes sabendo que a verdadeira magia acontece quando encontramos exatamente o que nossa alma estava procurando."
     },
     {
-      // Journey and discovery
-      gancho: "Imagine se eu te dissesse que existe um segredo escondido que pode mudar tudo...",
-      conflito: "A maioria das pessoas passa a vida inteira procurando por algo especial, mas olhando nos lugares errados.",
-      virada: "Quando você encontra a chave certa, não é apenas uma mudança - é uma verdadeira metamorfose mágica.",
-      cta: "Sua aventura começa com um simples toque. Descubra o que te espera!"
+      eraUmaVez: "Era uma vez uma pessoa que se sentia exatamente como você se sente agora, em busca de algo especial...",
+      ateQueUmDia: "Até que um dia, cansada de tentar soluções que prometiam muito mas entregavam pouco, quase desistiu de sonhar.",
+      entaoElaDescobriu: "Então ela descobriu que a verdadeira transformação não vem de fora, mas de encontrar alguém que realmente entende sua jornada.",
+      eElesViveramFelizes: "E eles viveram felizes descobrindo que alguns encontros mudam nossa vida para sempre, de formas que jamais imaginamos possível."
     },
     {
-      // Hope and transformation
-      gancho: "Havia uma vez alguém que se sentia exatamente como você se sente agora...",
-      conflito: "Cansada de tentar soluções que prometiam muito mas entregavam pouco, quase desistiu de sonhar.",
-      virada: "Mas então descobriu que a verdadeira magia acontece quando encontramos exatamente o que nossa alma estava procurando.",
-      cta: "Seu momento mágico está a um clique de distância. Permita-se sonhar novamente!"
+      eraUmaVez: "Era uma vez alguém que olhava no espelho e via apenas o que faltava, nunca o que já era belo...",
+      ateQueUmDia: "Até que um dia entendeu que a verdadeira beleza não é sobre perfeição, mas sobre se sentir genuinamente bem consigo mesma.",
+      entaoElaDescobriu: "Então ela descobriu que quando encontramos o cuidado certo, não mudamos quem somos - revelamos quem sempre fomos.",
+      eElesViveramFelizes: "E eles viveram felizes sabendo que a autoestima não é sobre agradar outros, mas sobre se orgulhar do que vê no espelho."
     }
   ];
 
-  // Select a random Disney transformation
-  const selectedTransformation = disneyTransformations[Math.floor(Math.random() * disneyTransformations.length)];
-  
-  // Apply word limits for specific content types
-  let finalGancho = selectedTransformation.gancho;
-  if (contentType === 'carousel') {
-    // Limit to 13 words for Card 1
-    finalGancho = "Era uma vez alguém que acreditava ter encontrado tudo...";
-  } else if (contentType === 'video') {
-    // Limit to 14 words for Take 1  
-    finalGancho = "Imagine se existisse um segredo que pode mudar tudo na sua vida...";
+  // Selecionar transformação baseada no tema ou aleatoriamente
+  let selectedTransformation;
+  if (tema.toLowerCase().includes('beleza') || tema.toLowerCase().includes('estética')) {
+    selectedTransformation = disneyTransformations[2];
+  } else if (objetivo.toLowerCase().includes('vender') || objetivo.toLowerCase().includes('converter')) {
+    selectedTransformation = disneyTransformations[1];
+  } else {
+    selectedTransformation = disneyTransformations[0];
   }
 
-  return `🎬 Gancho:\n${finalGancho}\n\n🎯 Conflito:\n${selectedTransformation.conflito}\n\n🔁 Virada:\n${selectedTransformation.virada}\n\n📣 CTA:\n${selectedTransformation.cta}\n\n✨ Transformado pela Magia Disney:\n"Uma história que faz as pessoas sonharem e acreditarem na transformação."`;
+  // Aplicar limitações de palavras baseadas no tipo de conteúdo
+  if (contentType === 'carousel') {
+    selectedTransformation.eraUmaVez = "Era uma vez alguém que acreditava ter encontrado tudo...";
+  } else if (contentType === 'video') {
+    selectedTransformation.eraUmaVez = "Era uma vez alguém que se sentia exatamente como você agora...";
+  }
+
+  // Adicionar elementos únicos Disney
+  const elementoUnico = getRandomDisneyElement();
+  const licaoUniversal = getRandomUniversalLesson();
+
+  return `🎬 Era uma vez...
+${selectedTransformation.eraUmaVez}
+
+🎯 Até que um dia...
+${selectedTransformation.ateQueUmDia}
+
+🔁 Então ela descobriu...
+${selectedTransformation.entaoElaDescobriu}
+
+📣 E eles viveram felizes...
+${selectedTransformation.eElesViveramFelizes}
+
+✨ Elemento Disney Único:
+${elementoUnico}
+
+🏰 Lição Universal:
+${licaoUniversal}
+
+🎠 Assinado com magia Disney 1928
+"${getRandomDisneySignature()}"`;
+};
+
+const getRandomDisneyElement = (): string => {
+  const elements = [
+    "Como um castelo que se revela aos poucos, a verdadeira transformação acontece camada por camada.",
+    "Assim como Mickey encontrou sua voz, você também pode encontrar sua essência mais autêntica.",
+    "É como descobrir uma porta secreta no seu próprio castelo - sempre esteve lá, esperando ser aberta.",
+    "Como uma estrela cadente que realiza desejos, alguns momentos mudam nossa história para sempre."
+  ];
+  return elements[Math.floor(Math.random() * elements.length)];
+};
+
+const getRandomUniversalLesson = (): string => {
+  const lessons = [
+    "Toda grande jornada começa com um único passo corajoso em direção ao que realmente desejamos.",
+    "A magia mais poderosa é aquela que nos ajuda a enxergar nossa própria luz interior.",
+    "Os sonhos mais belos são aqueles que nos transformam no processo de realizá-los.",
+    "Às vezes, o que procuramos no mundo todo estava dentro de nós desde o início."
+  ];
+  return lessons[Math.floor(Math.random() * lessons.length)];
+};
+
+const getRandomDisneySignature = (): string => {
+  const signatures = [
+    "Onde há sonhos, há sempre um caminho para torná-los realidade.",
+    "A verdadeira magia acontece quando acreditamos no impossível.",
+    "Todo final feliz começa com a coragem de dar o primeiro passo.",
+    "As histórias mais belas são aquelas que vivemos quando ousamos sonhar.",
+    "Em cada coração existe um castelo esperando para ser descoberto."
+  ];
+  return signatures[Math.floor(Math.random() * signatures.length)];
 };
 
 export const getRandomEnigma = (): string => {
