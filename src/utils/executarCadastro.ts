@@ -3,8 +3,8 @@ import { cadastrarMentorPorIndice } from './cadastrarMentores';
 
 export const executarCadastroIndividual = async () => {
   try {
-    // Cadastrar Ícaro de Carvalho (índice 1)
-    const resultado = await cadastrarMentorPorIndice(1);
+    // Cadastrar Paulo Cuenca (índice 2)
+    const resultado = await cadastrarMentorPorIndice(2);
     console.log(resultado);
     return resultado;
   } catch (error) {
