@@ -73,7 +73,7 @@ const VideosPage: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <AuroraButton variant="outline">
+            <AuroraButton variant="secondary">
               <Upload className="w-5 h-5 mr-2" />
               Upload
             </AuroraButton>
@@ -164,7 +164,7 @@ const VideosPage: React.FC = () => {
                 Comece criando ou fazendo upload do seu primeiro vídeo
               </p>
               <div className="flex gap-3 justify-center">
-                <AuroraButton variant="outline">
+                <AuroraButton variant="secondary">
                   <Upload className="w-5 h-5 mr-2" />
                   Upload
                 </AuroraButton>

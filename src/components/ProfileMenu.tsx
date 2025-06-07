@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ProfileMenu() {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const { isAdmin, canManageWorkspace, canViewConsultantPanel } = usePermissions();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -29,7 +29,7 @@ export function ProfileMenu() {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      await logout();
+      await signOut();
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado com sucesso."
@@ -53,14 +53,16 @@ export function ProfileMenu() {
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
   };
 
-  const userInitials = getInitials(user?.nome || "");
+  // Get user name from metadata or email
+  const userName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
+  const userInitials = getInitials(userName);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.profilePhotoUrl || ""} />
+            <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {userInitials}
             </AvatarFallback>
@@ -70,13 +72,13 @@ export function ProfileMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.nome}</p>
+            <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
             </p>
-            {user?.role && (
+            {user?.user_metadata?.role && (
               <p className="text-xs leading-none text-primary bg-primary/10 rounded px-1 py-0.5 mt-1 inline-block max-w-max">
-                {user.role}
+                {user.user_metadata.role}
               </p>
             )}
           </div>

@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  logout: () => Promise<{ error: any }>; // Alias for signOut
   isAdmin: () => boolean;
 }
 
@@ -80,6 +81,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error };
   };
 
+  // Alias for compatibility
+  const logout = signOut;
+
   const isAdmin = () => {
     // Check if user has admin role
     return user?.user_metadata?.role === 'admin' || false;
@@ -93,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signUp,
     signOut,
+    logout,
     isAdmin,
   };
 

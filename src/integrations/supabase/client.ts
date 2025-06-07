@@ -15,3 +15,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
   }
 });
+
+// Export the base URL for edge functions
+export const SUPABASE_BASE_URL = supabaseUrl;
