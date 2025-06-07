@@ -14,7 +14,7 @@ export const getQuickActions = (): ActionItem[] => {
     {
       label: "Criar um roteiro",
       icon: <FileText className="h-5 w-5" />,
-      path: "/custom-gpt",
+      path: "/script-generator",
       color: "bg-blue-100 text-blue-700"
     },
     {
@@ -24,7 +24,7 @@ export const getQuickActions = (): ActionItem[] => {
       color: "bg-green-100 text-green-700"
     },
     {
-      label: "Consultor de Marketing",
+      label: "Consultor Fluida",
       icon: <BrainCircuit className="h-5 w-5" />,
       path: "/marketing-consultant",
       color: "bg-amber-100 text-amber-700"

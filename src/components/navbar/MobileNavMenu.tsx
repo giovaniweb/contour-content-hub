@@ -78,6 +78,14 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
               <span>Vídeos</span>
             </Link>
             <Link
+              to={ROUTES.MARKETING.CONSULTANT}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
+              onClick={() => setIsOpen(false)}
+            >
+              <BrainCircuit className="h-5 w-5" />
+              <span>Consultor Fluida</span>
+            </Link>
+            <Link
               to={ROUTES.CONTENT.STRATEGY}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
               onClick={() => setIsOpen(false)}

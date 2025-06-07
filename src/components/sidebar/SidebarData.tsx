@@ -17,7 +17,8 @@ import {
   TestTube,
   Calendar,
   Lightbulb,
-  PenTool
+  PenTool,
+  BrainCircuit
 } from "lucide-react";
 import { ROUTES } from '@/routes';
 
@@ -33,6 +34,7 @@ export const sidebarData = [
       { name: "Vídeos", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
       { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
       { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY, highlight: false },
+      { name: "Consultor", icon: BrainCircuit, path: ROUTES.MARKETING.CONSULTANT, highlight: false },
       { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST, highlight: false }
     ]
   },
