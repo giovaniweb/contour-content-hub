@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 // Interface para o usuário com fallback seguro
 interface SafeUser {
