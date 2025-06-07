@@ -63,18 +63,18 @@ const ScriptGeneratorPage: React.FC = () => {
     setStep('generating');
     
     try {
-      // Chamar a API real do Supabase para gerar roteiro
+      // Call the real Supabase API to generate script
       const scriptRequest = {
-        type: 'roteiro' as const,
+        type: 'videoScript' as const, // Use valid ScriptType
         topic: formData.idea,
         tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
         marketingObjective: formData.objective === 'emotion' ? '🟢 Criar Conexão' : '🔴 Fazer Comprar',
-        language: 'PT'
+        additionalInfo: `Objetivo: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}`
       };
 
       const response = await generateScript(scriptRequest);
       
-      // Converter a resposta da API para o formato esperado
+      // Convert API response to expected format
       const mockScript: GeneratedScript = {
         title: response.title || formData.idea,
         opening: extractSection(response.content, 'abertura') || "Gancho inicial impactante",
@@ -99,7 +99,7 @@ const ScriptGeneratorPage: React.FC = () => {
     } catch (error) {
       console.error('Erro ao gerar roteiro:', error);
       
-      // Fallback para geração simulada em caso de erro
+      // Fallback to simulated generation in case of error
       const mockScript = generateMockScript(formData);
       setGeneratedScript(mockScript);
       setStep('result');
