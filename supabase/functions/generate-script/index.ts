@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -18,6 +17,7 @@ serve(async (req) => {
   }
 
   try {
+    // Use only the official OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error("OPENAI_API_KEY não encontrado");
@@ -27,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Edge function iniciada");
+    console.log("Edge function iniciada com chave oficial OpenAI");
     
     // Parse request
     let requestData;
@@ -74,9 +74,9 @@ serve(async (req) => {
       marketingObjective
     });
 
-    console.log("Enviando requisição para OpenAI");
+    console.log("Enviando requisição para OpenAI com chave oficial");
     
-    // Call OpenAI API
+    // Call OpenAI API with the official key only
     let response;
     try {
       response = await fetch('https://api.openai.com/v1/chat/completions', {

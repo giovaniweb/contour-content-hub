@@ -42,14 +42,18 @@ serve(async (req) => {
       );
     }
 
-    // Recuperar os segredos solicitados
+    // Only return the official OpenAI API key and other necessary secrets
     const result: Record<string, string | null> = {};
     
     for (const key of keys) {
-      result[key] = Deno.env.get(key) || null;
+      // Only allow specific, official keys
+      if (key === 'OPENAI_API_KEY') {
+        result[key] = Deno.env.get(key) || null;
+      } else {
+        result[key] = null; // Don't expose other keys
+      }
     }
 
-    // Retornar apenas os valores necessários e não todas as variáveis de ambiente
     return new Response(
       JSON.stringify(result),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
