@@ -1,188 +1,174 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import AuroraLayout from '@/components/layout/AuroraLayout';
 import AuroraCard from '@/components/ui/AuroraCard';
 import AuroraButton from '@/components/ui/AuroraButton';
-import GlassContainer from '@/components/ui/GlassContainer';
-import { FileText, Wand2, CheckCircle, PlayCircle, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/routes';
+import { FileText, Plus, Eye, Edit, Trash2, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ContentScripts: React.FC = () => {
-  const navigate = useNavigate();
-
+  // Mock data para demonstração
   const scripts = [
     {
       id: 1,
-      title: "Roteiro: Skincare Matinal",
-      description: "Passo a passo para cuidados com a pele pela manhã",
-      status: "completed",
-      emotion: 8,
-      created: "2 dias atrás"
+      title: "Script para Lançamento de Produto",
+      type: "Vídeo Promocional",
+      status: "Concluído",
+      createdAt: "2024-06-01",
+      content: "Gancho poderoso sobre transformação..."
     },
     {
       id: 2,
-      title: "Como escolher o protetor solar ideal",
-      description: "Dicas personalizadas baseadas no tipo de pele",
-      status: "draft",
-      emotion: 6,
-      created: "1 semana atrás"
+      title: "Roteiro Educativo - Dicas de Marketing",
+      type: "Conteúdo Educativo",
+      status: "Em Revisão",
+      createdAt: "2024-06-05",
+      content: "Você sabia que 90% das pessoas..."
     },
     {
       id: 3,
-      title: "Maquiagem natural para o dia a dia",
-      description: "Tutorial simples e elegante",
-      status: "review",
-      emotion: 9,
-      created: "3 dias atrás"
+      title: "Script Emocional - História de Sucesso",
+      type: "Storytelling",
+      status: "Rascunho",
+      createdAt: "2024-06-07",
+      content: "Era uma vez uma pessoa que..."
     }
   ];
 
-  const getStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4 text-aurora-teal" />;
-      case 'review': return <PlayCircle className="w-4 h-4 text-aurora-soft-pink" />;
-      default: return <FileText className="w-4 h-4 text-aurora-lavender" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Concluído';
-      case 'review': return 'Em revisão';
-      default: return 'Rascunho';
+      case 'Concluído':
+        return 'text-aurora-emerald';
+      case 'Em Revisão':
+        return 'text-aurora-neon-blue';
+      case 'Rascunho':
+        return 'text-aurora-soft-pink';
+      default:
+        return 'text-white/70';
     }
   };
 
   return (
     <AuroraLayout 
-      title="Roteiros Mágicos" 
-      subtitle="Crie conteúdo que conecta e emociona seu público"
+      title="Roteiros & Scripts" 
+      subtitle="Gerencie seus roteiros criativos e scripts de vídeo"
     >
-      <div className="p-6">
-        {/* Quick Actions */}
-        <motion.div 
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <AuroraCard 
-              floating
-              onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}
-              className="cursor-pointer text-center p-6"
-            >
-              <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-lavender to-aurora-teal mx-auto mb-4 w-fit"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                <Wand2 className="h-8 w-8 text-white" />
-              </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
-                Gerar Roteiro
-              </h3>
-              <p className="aurora-body text-white/70">
-                Crie roteiros emocionais com IA
-              </p>
-            </AuroraCard>
-
-            <AuroraCard 
-              floating
-              onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.VALIDATION)}
-              className="cursor-pointer text-center p-6"
-            >
-              <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-turquoise mx-auto mb-4 w-fit"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                <CheckCircle className="h-8 w-8 text-white" />
-              </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
-                Validar Conteúdo
-              </h3>
-              <p className="aurora-body text-white/70">
-                Analise o impacto emocional
-              </p>
-            </AuroraCard>
-
-            <AuroraCard 
-              floating
-              className="cursor-pointer text-center p-6"
-            >
-              <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-deep-violet to-aurora-soft-pink mx-auto mb-4 w-fit"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                <Plus className="h-8 w-8 text-white" />
-              </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
-                Template Customizado
-              </h3>
-              <p className="aurora-body text-white/70">
-                Crie modelos personalizados
-              </p>
-            </AuroraCard>
-          </div>
-        </motion.div>
-
-        {/* Scripts List */}
+      <div className="p-6 space-y-8">
+        {/* Header Actions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
         >
-          <GlassContainer aurora className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="aurora-heading text-xl font-medium text-white">
-                Seus Roteiros
-              </h2>
-              <AuroraButton onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Roteiro
-              </AuroraButton>
-            </div>
+          <div>
+            <h2 className="aurora-heading text-2xl font-light text-white mb-2">
+              Seus Roteiros
+            </h2>
+            <p className="aurora-body text-white/70">
+              {scripts.length} roteiros criados
+            </p>
+          </div>
+          <AuroraButton>
+            <Plus className="w-5 h-5 mr-2" />
+            Novo Roteiro
+          </AuroraButton>
+        </motion.div>
 
-            <div className="space-y-4">
-              {scripts.map((script, index) => (
-                <motion.div
-                  key={script.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <AuroraCard className="p-4 hover:bg-white/5 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        {getStatusIcon(script.status)}
-                        <div>
-                          <h3 className="aurora-body font-medium text-white">
-                            {script.title}
-                          </h3>
-                          <p className="aurora-body text-white/70 text-sm">
-                            {script.description}
-                          </p>
-                        </div>
+        {/* Scripts Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {scripts.map((script, index) => (
+            <motion.div
+              key={script.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <AuroraCard floating className="h-full">
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue rounded-lg flex items-center justify-center mr-3">
+                        <FileText className="w-5 h-5 text-white" />
                       </div>
-                      <div className="text-right">
-                        <span className="aurora-body text-white/60 text-xs">
-                          {getStatusText(script.status)}
-                        </span>
-                        <p className="aurora-body text-white/50 text-xs">
-                          {script.created}
+                      <div>
+                        <h3 className="aurora-heading text-white font-medium text-sm">
+                          {script.title}
+                        </h3>
+                        <p className="aurora-body text-white/60 text-xs">
+                          {script.type}
                         </p>
                       </div>
                     </div>
-                  </AuroraCard>
-                </motion.div>
-              ))}
-            </div>
-          </GlassContainer>
-        </motion.div>
+                    <span className={`text-xs font-medium ${getStatusColor(script.status)}`}>
+                      {script.status}
+                    </span>
+                  </div>
+
+                  {/* Content Preview */}
+                  <div className="mb-4">
+                    <p className="aurora-body text-white/80 text-sm line-clamp-3">
+                      {script.content}
+                    </p>
+                  </div>
+
+                  {/* Meta Info */}
+                  <div className="flex items-center justify-between text-xs text-white/50 mb-4">
+                    <div className="flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {new Date(script.createdAt).toLocaleDateString('pt-BR')}
+                    </div>
+                    <div>
+                      #{script.id.toString().padStart(3, '0')}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                        <Eye className="w-4 h-4 text-white/70" />
+                      </button>
+                      <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                        <Edit className="w-4 h-4 text-white/70" />
+                      </button>
+                    </div>
+                    <button className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors">
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              </AuroraCard>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Empty State - se não houver scripts */}
+        {scripts.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center py-12"
+          >
+            <AuroraCard className="max-w-md mx-auto p-8">
+              <div className="w-16 h-16 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="aurora-heading text-xl font-medium text-white mb-2">
+                Nenhum roteiro ainda
+              </h3>
+              <p className="aurora-body text-white/70 mb-6">
+                Comece criando seu primeiro roteiro com nossa IA inteligente
+              </p>
+              <AuroraButton>
+                <Plus className="w-5 h-5 mr-2" />
+                Criar Primeiro Roteiro
+              </AuroraButton>
+            </AuroraCard>
+          </motion.div>
+        )}
       </div>
     </AuroraLayout>
   );

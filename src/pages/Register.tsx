@@ -1,43 +1,68 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Register: React.FC = () => {
-  const { register } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (password !== confirmPassword) {
-      toast("Senhas não conferem", {
-        description: "A senha e a confirmação de senha precisam ser iguais."
+      toast({
+        variant: "destructive",
+        title: "Erro na validação",
+        description: "As senhas não coincidem.",
       });
       return;
     }
-    
+
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+      });
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      await register({
-        email,
-        password,
-      });
-      toast("Conta criada com sucesso", {
-        description: "Você será redirecionado para a página de login."
-      });
-      // Redirect to login page after successful registration
-      navigate('/login');
+      const { error } = await signUp(email, password, { name });
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro no registro",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Conta criada",
+          description: "Bem-vindo ao sistema! Você foi conectado automaticamente.",
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
-      toast("Erro ao criar conta", {
-        description: "Não foi possível criar sua conta. Tente novamente."
+      toast({
+        variant: "destructive",
+        title: "Erro no registro",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -45,65 +70,104 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-3xl font-light">Criar conta</CardTitle>
-          <CardDescription>Cadastre-se para começar a usar o sistema</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com" 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Senha</label>
-              <Input 
-                id="password" 
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)} 
-                placeholder="••••••••" 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirme sua senha</label>
-              <Input 
-                id="confirmPassword" 
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-                placeholder="••••••••" 
-                required 
-              />
+    <div className="min-h-screen aurora-dark-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="aurora-glass border-aurora-electric-purple/20">
+          <CardHeader className="text-center">
+            <CardTitle className="aurora-heading text-2xl text-white">
+              Criar Conta
+            </CardTitle>
+            <CardDescription className="aurora-body text-white/70">
+              Junte-se a nós e comece a criar conteúdo incrível
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white/90">Nome</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-white/50" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Seu nome completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/90">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-white/50" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white/90">Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-white/50" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-white/90">Confirmar Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-white/50" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full aurora-button"
+                disabled={isLoading}
+              >
+                {isLoading ? "Criando conta..." : "Criar Conta"}
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="aurora-body text-white/70">
+                Já tem uma conta?{' '}
+                <Link to="/login" className="aurora-text-gradient hover:underline">
+                  Faça login aqui
+                </Link>
+              </p>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              disabled={isLoading}
-            >
-              {isLoading ? "Criando conta..." : "Registrar"}
-            </Button>
-            <div className="text-center text-sm">
-              Já tem uma conta?{" "}
-              <Link to="/login" className="text-blue-600 hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
