@@ -1,213 +1,158 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
-import { getEquipments } from '@/api/equipment';
-import { Equipment } from '@/types/equipment';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter, Wrench } from "lucide-react";
+import { useEquipments } from '@/hooks/useEquipments';
 import { useNavigate } from 'react-router-dom';
 
 const EquipmentsPage: React.FC = () => {
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [filteredEquipments, setFilteredEquipments] = useState<Equipment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { equipments, loading } = useEquipments();
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchEquipment = async () => {
-      try {
-        setLoading(true);
-        const data = await getEquipments();
-        // Filtrar apenas equipamentos ativos para os clientes
-        const activeEquipments = data.filter(eq => eq.ativo);
-        setEquipments(activeEquipments);
-        setFilteredEquipments(activeEquipments);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao carregar equipamentos",
-          description: "Não foi possível carregar a lista de equipamentos.",
-        });
-        console.error('Error fetching equipment:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Filtrar equipamentos ativos
+  const activeEquipments = equipments.filter(eq => eq.ativo);
 
-    fetchEquipment();
-  }, [toast]);
+  // Aplicar filtros de busca e categoria
+  const filteredEquipments = activeEquipments.filter(equipment => {
+    const matchesSearch = equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         equipment.tecnologia.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || equipment.tecnologia.toLowerCase().includes(selectedCategory.toLowerCase());
+    
+    return matchesSearch && matchesCategory;
+  });
 
-  // Filtrar equipamentos com base na pesquisa
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredEquipments(equipments);
-    } else {
-      const lowercaseSearch = searchTerm.toLowerCase();
-      const filtered = equipments.filter(eq => 
-        eq.nome.toLowerCase().includes(lowercaseSearch) || 
-        (eq.tecnologia && eq.tecnologia.toLowerCase().includes(lowercaseSearch))
-      );
-      setFilteredEquipments(filtered);
-    }
-  }, [searchTerm, equipments]);
+  // Extrair categorias únicas
+  const categories = [...new Set(activeEquipments.map(eq => eq.tecnologia))];
 
-  const handleViewDetails = (id: string) => {
-    navigate(`/equipments/${id}`);
+  const handleEquipmentClick = (equipmentId: string) => {
+    navigate(`/equipment/${equipmentId}`);
   };
 
-  if (loading) {
-    return (
-      <Layout title="Equipamentos">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      </Layout>
-    );
-  }
-
   return (
-    <Layout title="Equipamentos">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Nossos Equipamentos</h1>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Equipamentos Disponíveis</h1>
             <p className="text-muted-foreground">
-              Conheça nossa linha completa de equipamentos e suas tecnologias
+              Explore nossa linha completa de equipamentos estéticos
             </p>
           </div>
-          
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar equipamentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-        </div>
 
-        <Tabs defaultValue="todos" className="w-full">
-          <TabsList>
-            <TabsTrigger value="todos">Todos os Equipamentos</TabsTrigger>
-            <TabsTrigger value="laser">Tecnologia Laser</TabsTrigger>
-            <TabsTrigger value="rf">Radiofrequência</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="todos" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEquipments.map(equipment => (
-                <EquipmentCard 
-                  key={equipment.id} 
-                  equipment={equipment}
-                  onViewDetails={handleViewDetails}
+          {/* Filtros */}
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Pesquisar equipamentos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedCategory === null ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Todos
+                </Button>
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Loading */}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Carregando equipamentos...</p>
+            </div>
+          )}
+
+          {/* Grid de Equipamentos */}
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredEquipments.map((equipment) => (
+                <Card 
+                  key={equipment.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleEquipmentClick(equipment.id)}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <Wrench className="h-8 w-8 text-primary" />
+                      <Badge variant="outline">{equipment.tecnologia}</Badge>
+                    </div>
+                    <CardTitle className="text-xl">{equipment.nome}</CardTitle>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Indicações</h4>
+                        <p className="text-sm line-clamp-3">{equipment.indicacoes}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Benefícios</h4>
+                        <p className="text-sm line-clamp-2">{equipment.beneficios}</p>
+                      </div>
+                      
+                      <div className="pt-2">
+                        <Button variant="outline" size="sm" className="w-full">
+                          Ver Detalhes
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-            
-            {filteredEquipments.length === 0 && (
-              <div className="text-center py-20 bg-muted/30 rounded-lg">
-                <Search className="h-12 w-12 mx-auto text-muted-foreground" />
-                <h3 className="mt-4 text-xl font-semibold">Nenhum equipamento encontrado</h3>
-                <p className="text-muted-foreground mt-2">
-                  Tente ajustar sua busca ou entre em contato conosco para mais informações.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="laser" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEquipments
-                .filter(eq => eq.tecnologia?.toLowerCase().includes('laser'))
-                .map(equipment => (
-                  <EquipmentCard 
-                    key={equipment.id} 
-                    equipment={equipment}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))
-              }
+          )}
+
+          {/* Sem resultados */}
+          {!loading && filteredEquipments.length === 0 && (
+            <div className="text-center py-12">
+              <Wrench className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Nenhum equipamento encontrado</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || selectedCategory 
+                  ? "Tente ajustar os filtros de busca" 
+                  : "Nenhum equipamento cadastrado ainda"}
+              </p>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="rf" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEquipments
-                .filter(eq => eq.tecnologia?.toLowerCase().includes('rf') || 
-                             eq.tecnologia?.toLowerCase().includes('radiofrequência'))
-                .map(equipment => (
-                  <EquipmentCard 
-                    key={equipment.id} 
-                    equipment={equipment}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))
-              }
+          )}
+
+          {/* Estatísticas */}
+          {!loading && filteredEquipments.length > 0 && (
+            <div className="mt-8 text-center text-sm text-muted-foreground">
+              Mostrando {filteredEquipments.length} de {activeEquipments.length} equipamentos
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </Layout>
-  );
-};
-
-interface EquipmentCardProps {
-  equipment: Equipment;
-  onViewDetails: (id: string) => void;
-}
-
-const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onViewDetails }) => {
-  return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl">{equipment.nome}</CardTitle>
-        <CardDescription className="line-clamp-1">{equipment.tecnologia}</CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        {equipment.image_url ? (
-          <div className="relative h-40 mb-4">
-            <img 
-              src={equipment.image_url} 
-              alt={equipment.nome}
-              className="w-full h-full object-cover rounded-md" 
-            />
-          </div>
-        ) : (
-          <div className="h-40 mb-4 bg-muted/20 rounded-md flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">Imagem não disponível</p>
-          </div>
-        )}
-        
-        <div className="space-y-2">
-          <div>
-            <h4 className="text-sm font-medium mb-1">Indicações:</h4>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {Array.isArray(equipment.indicacoes) 
-                ? equipment.indicacoes.join(', ') 
-                : equipment.indicacoes || 'Não especificado'}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-between pt-2">
-        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100">
-          Disponível
-        </Badge>
-        <Button variant="ghost" onClick={() => onViewDetails(equipment.id)}>
-          Detalhes <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
   );
 };
 

@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Users,
   Heart,
-  Zap
+  Zap,
+  Wrench
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -46,10 +47,10 @@ const Dashboard: React.FC = () => {
       gradient: "from-aurora-cyan to-aurora-emerald"
     },
     {
-      icon: Lightbulb,
-      title: "Gerar Ideias",
-      description: "Inspire-se com IA criativa",
-      path: ROUTES.CONTENT.IDEAS,
+      icon: Wrench,
+      title: "Ver Equipamentos",
+      description: "Explore equipamentos disponíveis",
+      path: ROUTES.EQUIPMENT.LIST,
       gradient: "from-aurora-emerald to-aurora-lime"
     }
   ];
