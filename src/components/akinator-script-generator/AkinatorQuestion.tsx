@@ -3,6 +3,17 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Video,
+  Image,
+  Grid3X3,
+  Lightbulb,
+  Zap,
+  Target,
+  Heart,
+  BookOpen,
+  Crown
+} from "lucide-react";
 import { AkinatorStep } from './types';
 
 interface AkinatorQuestionProps {
@@ -12,6 +23,29 @@ interface AkinatorQuestionProps {
   onGoBack: () => void;
   canGoBack: boolean;
 }
+
+const getIcon = (stepId: string, optionValue: string) => {
+  if (stepId === 'contentType') {
+    switch (optionValue) {
+      case 'video': return <Video className="h-4 w-4" />;
+      case 'image': return <Image className="h-4 w-4" />;
+      case 'carousel': return <Grid3X3 className="h-4 w-4" />;
+      case 'bigIdea': return <Lightbulb className="h-4 w-4" />;
+    }
+  }
+  
+  if (stepId === 'objective') {
+    switch (optionValue) {
+      case 'vender': return <Zap className="h-4 w-4" />;
+      case 'leads': return <Target className="h-4 w-4" />;
+      case 'engajar': return <Heart className="h-4 w-4" />;
+      case 'ensinar': return <BookOpen className="h-4 w-4" />;
+      case 'posicionar': return <Crown className="h-4 w-4" />;
+    }
+  }
+  
+  return null;
+};
 
 const AkinatorQuestion: React.FC<AkinatorQuestionProps> = ({
   stepData,
@@ -49,7 +83,7 @@ const AkinatorQuestion: React.FC<AkinatorQuestionProps> = ({
                 onClick={() => onOptionSelect(option.value)}
               >
                 <div className="flex items-center gap-3">
-                  {option.icon}
+                  {getIcon(stepData.id, option.value)}
                   <span>{option.label}</span>
                 </div>
               </Button>

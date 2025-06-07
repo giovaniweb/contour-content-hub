@@ -4,7 +4,7 @@ import React from 'react';
 export interface AkinatorStep {
   id: string;
   question: string;
-  options: { value: string; label: string; icon?: React.ReactNode }[];
+  options: { value: string; label: string }[];
 }
 
 export interface AkinatorState {

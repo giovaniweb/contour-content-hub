@@ -1,15 +1,4 @@
 
-import { 
-  Video,
-  Image,
-  Grid3X3,
-  Lightbulb,
-  Zap,
-  Target,
-  Heart,
-  BookOpen,
-  Crown
-} from "lucide-react";
 import { AkinatorStep, MentorProfile } from './types';
 
 export const STEPS: AkinatorStep[] = [
@@ -17,21 +6,21 @@ export const STEPS: AkinatorStep[] = [
     id: 'contentType',
     question: '🎭 Que tipo de magia você quer criar hoje?',
     options: [
-      { value: 'video', label: 'Vídeo', icon: <Video className="h-4 w-4" /> },
-      { value: 'image', label: 'Imagem', icon: <Image className="h-4 w-4" /> },
-      { value: 'carousel', label: 'Carrossel', icon: <Grid3X3 className="h-4 w-4" /> },
-      { value: 'bigIdea', label: 'Big Idea', icon: <Lightbulb className="h-4 w-4" /> }
+      { value: 'video', label: 'Vídeo' },
+      { value: 'image', label: 'Imagem' },
+      { value: 'carousel', label: 'Carrossel' },
+      { value: 'bigIdea', label: 'Big Idea' }
     ]
   },
   {
     id: 'objective',
     question: '🎯 Qual é a sua verdadeira intenção?',
     options: [
-      { value: 'vender', label: 'Vender', icon: <Zap className="h-4 w-4" /> },
-      { value: 'leads', label: 'Capturar Leads', icon: <Target className="h-4 w-4" /> },
-      { value: 'engajar', label: 'Engajar', icon: <Heart className="h-4 w-4" /> },
-      { value: 'ensinar', label: 'Ensinar', icon: <BookOpen className="h-4 w-4" /> },
-      { value: 'posicionar', label: 'Posicionar', icon: <Crown className="h-4 w-4" /> }
+      { value: 'vender', label: 'Vender' },
+      { value: 'leads', label: 'Capturar Leads' },
+      { value: 'engajar', label: 'Engajar' },
+      { value: 'ensinar', label: 'Ensinar' },
+      { value: 'posicionar', label: 'Posicionar' }
     ]
   },
   {
