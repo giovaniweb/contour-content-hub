@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Wrench } from "lucide-react";
+import { Search, Wrench, Camera } from "lucide-react";
 import { useEquipments } from '@/hooks/useEquipments';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,6 +38,18 @@ const EquipmentsPage: React.FC = () => {
 
   const handleEquipmentClick = (equipmentId: string) => {
     navigate(`/equipment/${equipmentId}`);
+  };
+
+  // Função para extrair palavras-chave das indicações
+  const getKeywords = (indicacoes: string | string[]) => {
+    if (Array.isArray(indicacoes)) {
+      return indicacoes;
+    }
+    if (typeof indicacoes === 'string') {
+      // Dividir por vírgulas, pontos-e-vírgulas ou quebras de linha
+      return indicacoes.split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
+    }
+    return [];
   };
 
   if (error) {
@@ -118,41 +130,82 @@ const EquipmentsPage: React.FC = () => {
           {/* Grid de Equipamentos */}
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEquipments.map((equipment) => (
-                <Card 
-                  key={equipment.id} 
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handleEquipmentClick(equipment.id)}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <Wrench className="h-8 w-8 text-primary" />
-                      <Badge variant="outline">{equipment.tecnologia}</Badge>
-                    </div>
-                    <CardTitle className="text-xl">{equipment.nome}</CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Indicações</h4>
-                        <p className="text-sm line-clamp-3">{equipment.indicacoes}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Benefícios</h4>
-                        <p className="text-sm line-clamp-2">{equipment.beneficios}</p>
-                      </div>
-                      
-                      <div className="pt-2">
-                        <Button variant="outline" size="sm" className="w-full">
-                          Ver Detalhes
-                        </Button>
+              {filteredEquipments.map((equipment) => {
+                const keywords = getKeywords(equipment.indicacoes);
+                
+                return (
+                  <Card 
+                    key={equipment.id} 
+                    className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
+                    onClick={() => handleEquipmentClick(equipment.id)}
+                  >
+                    {/* Foto do equipamento */}
+                    <div className="relative h-48 bg-gray-100 overflow-hidden">
+                      {equipment.image_url ? (
+                        <img 
+                          src={equipment.image_url} 
+                          alt={equipment.nome}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <Camera className="h-16 w-16 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="outline" className="bg-white/90">
+                          {equipment.tecnologia}
+                        </Badge>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                    <CardHeader className="pb-3">
+                      {/* Título primeiro */}
+                      <CardTitle className="text-xl text-center mb-2">
+                        {equipment.nome}
+                      </CardTitle>
+                      <CardDescription className="text-center">
+                        Tecnologia: {equipment.tecnologia}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
+                        {/* Palavras-chave das indicações - separadas */}
+                        {keywords.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-sm text-muted-foreground mb-2">Indicações</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {keywords.slice(0, 6).map((keyword, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                              {keywords.length > 6 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{keywords.length - 6} mais
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Benefícios resumidos */}
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground mb-2">Benefícios</h4>
+                          <p className="text-sm line-clamp-2">{equipment.beneficios}</p>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <Button variant="outline" size="sm" className="w-full">
+                            Ver Detalhes
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
 
