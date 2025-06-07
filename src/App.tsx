@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,7 +15,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ContentPlanner from '@/pages/ContentPlanner';
 import ContentIdeas from '@/pages/ContentIdeas';
-import ScriptGenerator from '@/pages/ScriptGenerator';
+import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
 import AdminContent from '@/pages/AdminContent';
 import Profile from '@/pages/Profile';
 import WorkspaceSettings from '@/pages/WorkspaceSettings';
@@ -67,7 +66,7 @@ function App() {
                       
                       <Route path="/script-generator" element={
                         <PrivateRoute>
-                          <ScriptGenerator />
+                          <ScriptGeneratorPage />
                         </PrivateRoute>
                       } />
                       
