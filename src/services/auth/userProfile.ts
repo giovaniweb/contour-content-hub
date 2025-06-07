@@ -1,100 +1,99 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { UserProfile, UserRole } from "@/types/auth";
-import { DbPerfil } from "@/lib/supabase/schema-types";
+import { supabase } from '@/integrations/supabase/client';
+import { UserProfile } from '@/types/auth';
 
-// Type guard to ensure role is one of the allowed values
-export function validateRole(role: string): UserRole {
-  const validRoles: string[] = [
-    'admin', 'gerente', 'operador', 'consultor', 'superadmin', 'cliente',
-    'editAllContent', 'manageClients', 'viewSales'
-  ];
-  
-  if (validRoles.includes(role)) {
-    return role as UserRole;
-  }
-  return 'operador'; // Default to 'operador' if an invalid role is found
-}
-
-// Helper function to format user profile data consistently
-export function formatUserProfile(userData: any): UserProfile {
-  return {
-    id: userData.id,
-    email: userData.email,
-    nome: userData.nome || '',
-    role: validateRole(userData.role || 'operador'),
-    city: userData.cidade,
-    clinic: userData.clinica,
-    phone: userData.telefone,
-    equipment: userData.equipamentos,
-    language: userData.idioma as "PT" | "EN" | "ES" | undefined,
-    profilePhotoUrl: userData.foto_url,
-    name: userData.nome || '', // Definir name com base em nome para compatibilidade
-    passwordChanged: userData.password_changed,
-    workspace_id: userData.workspace_id
-  };
-}
-
-// Helper function to ensure UserProfile object has all required fields
-export function ensureUserProfile(user: Partial<UserProfile>): UserProfile {
-  return {
-    id: user.id || '',
-    email: user.email || '',
-    role: user.role || 'cliente',
-    name: user.name || user.nome || 'Usuário',
-    nome: user.nome || user.name || '',
-    clinic: user.clinic,
-    city: user.city,
-    phone: user.phone,
-    equipment: user.equipment,
-    language: user.language,
-    profilePhotoUrl: user.profilePhotoUrl,
-    passwordChanged: user.passwordChanged,
-    workspace_id: user.workspace_id
-  };
-}
-
-export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
+export const fetchUserProfile = async (userId?: string): Promise<UserProfile | null> => {
   try {
-    // Buscar perfil do usuário no Supabase
-    const { data: userData, error: userError } = await supabase
+    let targetUserId = userId;
+    
+    if (!targetUserId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return null;
+      targetUserId = session.user.id;
+    }
+
+    const { data, error } = await supabase
       .from('perfis')
       .select('*')
-      .eq('id', userId)
+      .eq('id', targetUserId)
       .single();
 
-    if (userError || !userData) {
-      console.error("Erro ao buscar usuário:", userError);
+    if (error || !data) {
+      console.error('Error fetching user profile:', error);
       return null;
     }
 
-    // Converter o formato do banco para o formato esperado pelo frontend usando o formatador
-    return formatUserProfile(userData);
+    return {
+      id: data.id,
+      email: data.email,
+      nome: data.nome,
+      role: data.role,
+      clinica: data.clinica,
+      cidade: data.cidade,
+      telefone: data.telefone,
+      equipamentos: data.equipamentos,
+      idioma: data.idioma,
+      workspace_id: data.workspace_id,
+      profilePhotoUrl: data.profile_photo_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error) {
-    console.error("Erro ao processar perfil:", error);
+    console.error('Error fetching user profile:', error);
     return null;
   }
-}
+};
 
-export async function updateUserProfile(userId: string, data: Partial<UserProfile>) {
-  // Garantindo que name e nome estejam sincronizados
-  const safeData = ensureUserProfile(data);
-  
-  // Converter do formato frontend para o formato do banco
-  const userData: any = {};
-  
-  if (data.nome) userData.nome = data.nome;
-  if (data.role) userData.role = data.role;
-  if (data.clinic) userData.clinica = data.clinic;
-  if (data.city) userData.cidade = data.city;
-  if (data.phone) userData.telefone = data.phone;
-  if (data.equipment) userData.equipamentos = data.equipment;
-  if (data.language) userData.idioma = data.language;
-  if (data.profilePhotoUrl) userData.foto_url = data.profilePhotoUrl;
-  if (data.name) userData.nome = data.name; // Map name to nome field
-  
-  return await supabase
+export const updateUserProfile = async (userId: string, data: Partial<UserProfile>): Promise<void> => {
+  const { error } = await supabase
     .from('perfis')
-    .update(userData)
+    .update({
+      nome: data.nome,
+      clinica: data.clinica,
+      cidade: data.cidade,
+      telefone: data.telefone,
+      equipamentos: data.equipamentos,
+      idioma: data.idioma,
+      profile_photo_url: data.profilePhotoUrl,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', userId);
-}
+
+  if (error) {
+    throw error;
+  }
+};
+
+export const validateRole = (userRole: string, requiredRole: string): boolean => {
+  const roleHierarchy = {
+    'superadmin': 6,
+    'admin': 5,
+    'gerente': 4,
+    'operador': 3,
+    'consultor': 2,
+    'cliente': 1
+  };
+
+  const userLevel = roleHierarchy[userRole as keyof typeof roleHierarchy] || 0;
+  const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
+
+  return userLevel >= requiredLevel;
+};
+
+export const ensureUserProfile = (user: any): UserProfile => {
+  return {
+    id: user.id,
+    email: user.email,
+    nome: user.nome || user.name,
+    role: user.role || 'cliente',
+    clinica: user.clinica,
+    cidade: user.cidade,
+    telefone: user.telefone,
+    equipamentos: user.equipamentos,
+    idioma: user.idioma || 'PT',
+    workspace_id: user.workspace_id,
+    profilePhotoUrl: user.profilePhotoUrl || user.profile_photo_url,
+    created_at: user.created_at,
+    updated_at: user.updated_at
+  };
+};

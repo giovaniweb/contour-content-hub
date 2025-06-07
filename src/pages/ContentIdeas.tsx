@@ -2,18 +2,18 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 
-const ScriptGenerator: React.FC = () => {
+const ContentIdeas: React.FC = () => {
   return (
-    <Layout title="Gerador de Roteiros">
+    <Layout title="Validador de Ideias">
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-primary" />
+          <Lightbulb className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Gerador de Roteiros</h1>
+            <h1 className="text-3xl font-bold">Validador de Ideias</h1>
             <p className="text-muted-foreground">
-              Crie roteiros profissionais com inteligência artificial
+              Valide suas ideias de conteúdo com inteligência artificial
             </p>
           </div>
         </div>
@@ -24,8 +24,8 @@ const ScriptGenerator: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              O gerador de roteiros estará disponível em breve. Esta ferramenta permitirá
-              que você crie roteiros personalizados para seus vídeos e conteúdos.
+              O validador de ideias estará disponível em breve. Esta ferramenta permitirá
+              que você analise e valide suas ideias de conteúdo antes de criá-las.
             </p>
           </CardContent>
         </Card>
@@ -34,4 +34,4 @@ const ScriptGenerator: React.FC = () => {
   );
 };
 
-export default ScriptGenerator;
+export default ContentIdeas;
