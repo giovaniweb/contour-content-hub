@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,65 +138,70 @@ const EquipmentsPage: React.FC = () => {
                     className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
                     onClick={() => handleEquipmentClick(equipment.id)}
                   >
-                    {/* Foto do equipamento - sem overlay de texto */}
-                    <div className="relative h-48 bg-gray-100 overflow-hidden">
-                      {equipment.image_url ? (
-                        <img 
-                          src={equipment.image_url} 
-                          alt={equipment.nome}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                          <Camera className="h-16 w-16 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    <CardHeader className="pb-3">
-                      {/* Título primeiro */}
-                      <CardTitle className="text-xl text-center mb-2">
-                        {equipment.nome}
-                      </CardTitle>
-                      <CardDescription className="text-center">
-                        Tecnologia: {equipment.tecnologia}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <div className="space-y-4">
-                        {/* Palavras-chave das indicações - separadas */}
-                        {keywords.length > 0 && (
-                          <div>
-                            <h4 className="font-medium text-sm text-muted-foreground mb-2">Indicações</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {keywords.slice(0, 6).map((keyword, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                              {keywords.length > 6 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{keywords.length - 6} mais
-                                </Badge>
-                              )}
-                            </div>
+                    <div className="flex">
+                      {/* Foto do equipamento - lateral esquerda */}
+                      <div className="w-32 h-32 bg-gray-100 flex-shrink-0 overflow-hidden">
+                        {equipment.image_url ? (
+                          <img 
+                            src={equipment.image_url} 
+                            alt={equipment.nome}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <Camera className="h-8 w-8 text-gray-400" />
                           </div>
                         )}
-                        
-                        {/* Benefícios resumidos */}
-                        <div>
-                          <h4 className="font-medium text-sm text-muted-foreground mb-2">Benefícios</h4>
-                          <p className="text-sm line-clamp-2">{equipment.beneficios}</p>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <Button variant="outline" size="sm" className="w-full">
-                            Ver Detalhes
-                          </Button>
-                        </div>
                       </div>
-                    </CardContent>
+
+                      {/* Conteúdo do lado direito */}
+                      <div className="flex-1 flex flex-col">
+                        <CardHeader className="pb-2">
+                          {/* Título primeiro */}
+                          <CardTitle className="text-lg mb-1">
+                            {equipment.nome}
+                          </CardTitle>
+                          <CardDescription className="text-sm">
+                            Tecnologia: {equipment.tecnologia}
+                          </CardDescription>
+                        </CardHeader>
+                        
+                        <CardContent className="pt-0 flex-1">
+                          <div className="space-y-3">
+                            {/* Palavras-chave das indicações - separadas */}
+                            {keywords.length > 0 && (
+                              <div>
+                                <h4 className="font-medium text-xs text-muted-foreground mb-1">Indicações</h4>
+                                <div className="flex flex-wrap gap-1">
+                                  {keywords.slice(0, 4).map((keyword, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {keyword}
+                                    </Badge>
+                                  ))}
+                                  {keywords.length > 4 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{keywords.length - 4} mais
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Benefícios resumidos */}
+                            <div>
+                              <h4 className="font-medium text-xs text-muted-foreground mb-1">Benefícios</h4>
+                              <p className="text-xs line-clamp-2">{equipment.beneficios}</p>
+                            </div>
+                            
+                            <div className="pt-1">
+                              <Button variant="outline" size="sm" className="w-full text-xs">
+                                Ver Detalhes
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </div>
+                    </div>
                   </Card>
                 );
               })}
