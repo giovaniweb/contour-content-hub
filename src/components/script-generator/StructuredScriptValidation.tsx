@@ -87,13 +87,13 @@ O roteiro respeita esse estilo de comunicação?
 
 ---
 
-📌 Responda EXATAMENTE com a estrutura abaixo em formato JSON:
+IMPORTANTE: Responda OBRIGATORIAMENTE em PORTUGUÊS BRASILEIRO no formato JSON exato abaixo:
 
 {
-  "estrutura": "[ok ou sugestão de melhoria]",
-  "alinhamento": "[ok ou sugestão]",
-  "coerencia": "[ok ou sugestão]",
-  "sugestaoFinal": "[resuma em 1 frase o que melhorar ou se está aprovado]",
+  "estrutura": "[ok ou sugestão de melhoria em português]",
+  "alinhamento": "[ok ou sugestão em português]",
+  "coerencia": "[ok ou sugestão em português]",
+  "sugestaoFinal": "[resuma em 1 frase em português o que melhorar ou se está aprovado]",
   "approved": true ou false
 }
 
