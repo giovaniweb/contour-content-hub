@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -10,6 +9,7 @@ import SmartResultDisplay from '@/components/smart-script-generator/SmartResultD
 import { ScriptGenerationData, GeneratedContent } from '@/components/smart-script-generator/types';
 import { generateScript } from '@/services/supabaseService';
 import type { MarketingObjectiveType } from '@/types/script';
+import type { ScriptType } from '@/utils/api';
 
 const ScriptGeneratorPage: React.FC = () => {
   const location = useLocation();
@@ -26,6 +26,21 @@ const ScriptGeneratorPage: React.FC = () => {
     navigate(-1);
   };
 
+  const mapContentTypeToScriptType = (contentType: string): ScriptType => {
+    switch (contentType) {
+      case 'video':
+        return 'videoScript';
+      case 'bigIdea':
+        return 'bigIdea';
+      case 'stories':
+      case 'carousel':
+      case 'image':
+        return 'dailySales';
+      default:
+        return 'videoScript';
+    }
+  };
+
   const handleSmartGenerate = async (data: ScriptGenerationData) => {
     setGenerationData(data);
     setStep('generating');
@@ -33,7 +48,7 @@ const ScriptGeneratorPage: React.FC = () => {
     try {
       // Preparar requisição correta para a API
       const scriptRequest = {
-        type: data.contentType === 'video' ? 'videoScript' : data.contentType === 'bigIdea' ? 'bigIdea' : 'dailySales',
+        type: mapContentTypeToScriptType(data.contentType),
         topic: data.theme,
         tone: data.style.toLowerCase(),
         marketingObjective: mapObjectiveToMarketingType(data.objective),
