@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   createBrowserRouter,
@@ -16,6 +15,7 @@ import PrivateRoute from "@/components/PrivateRoute";
 // Public Pages
 import Home from "@/pages/Home";
 import HomePage from "@/pages/Index";
+import ViteStyleHome from "@/pages/ViteStyleHome";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -73,6 +73,10 @@ const routes: RouteObject[] = [
   // Public routes
   {
     path: "/",
+    element: <ViteStyleHome />,
+  },
+  {
+    path: "/old-home",
     element: <Home />,
   },
   {
