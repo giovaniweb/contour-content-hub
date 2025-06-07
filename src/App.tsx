@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,6 +21,7 @@ import AdminContent from '@/pages/AdminContent';
 import Profile from '@/pages/Profile';
 import WorkspaceSettings from '@/pages/WorkspaceSettings';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
+import MarketingConsultant from '@/pages/MarketingConsultant';
 
 // Import components
 import PrivateRoute from '@/components/PrivateRoute';
@@ -85,6 +87,12 @@ function App() {
                       <Route path="/videos" element={
                         <PrivateRoute>
                           <VideosPage />
+                        </PrivateRoute>
+                      } />
+                      
+                      <Route path="/marketing-consultant" element={
+                        <PrivateRoute>
+                          <MarketingConsultant />
                         </PrivateRoute>
                       } />
                       
