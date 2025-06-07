@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus, Wrench, AlertCircle } from 'lucide-react';
 import { useSmartScriptGeneration } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 import { EQUIPMENT_SUGGESTIONS } from './intentionTree';
-import { useEquipments } from '@/hooks/useEquipments';
+import { useUserEquipments } from '@/hooks/useUserEquipments';
 
 interface SmartScriptGeneratorProps {
   onGenerate: (data: any) => void;
@@ -29,7 +29,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
     isGenerating: internalIsGenerating
   } = useSmartScriptGeneration();
 
-  const { equipments, loading: equipmentsLoading, error: equipmentsError } = useEquipments();
+  const { equipments, loading: equipmentsLoading, error: equipmentsError } = useUserEquipments();
   const [themeText, setThemeText] = useState('');
 
   // Use o estado interno de loading
@@ -224,7 +224,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
             ) : equipments.length === 0 ? (
               <div className="text-center py-8">
                 <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-gray-400 mb-4">Nenhum equipamento encontrado</p>
+                <p className="text-sm text-gray-400 mb-4">Nenhum equipamento disponível para seu perfil</p>
                 <Button
                   variant="outline"
                   className="justify-start h-auto p-4"
@@ -237,7 +237,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
               </div>
             ) : (
               <>
-                {equipments.filter(eq => eq.ativo).map((equipment) => (
+                {equipments.map((equipment) => (
                   <Button
                     key={equipment.id}
                     variant="outline"
