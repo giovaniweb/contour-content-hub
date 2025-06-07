@@ -8,12 +8,12 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/components/theme-provider';
 import PrivateRoute from '@/components/PrivateRoute';
 import AdminRoute from '@/components/AdminRoute';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Pages
 import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
 import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
 import EquipmentsPage from '@/pages/EquipmentsPage';
@@ -40,8 +40,8 @@ function App() {
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                   
                   {/* Protected routes */}
                   <Route path="/dashboard" element={

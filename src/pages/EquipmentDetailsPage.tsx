@@ -2,7 +2,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getEquipment } from '@/api/equipment';
+import { getEquipmentById } from '@/api/equipment';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsHeader } from '@/components/equipment-details/EquipmentDetailsHeader';
@@ -18,7 +18,7 @@ const EquipmentDetailsPage: React.FC = () => {
   
   const { data: equipment, isLoading, error } = useQuery({
     queryKey: ['equipment', id],
-    queryFn: () => getEquipment(id!),
+    queryFn: () => getEquipmentById(id!),
     enabled: !!id,
   });
 
