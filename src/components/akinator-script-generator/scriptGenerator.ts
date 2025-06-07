@@ -1,4 +1,3 @@
-
 import { AkinatorState, MentorProfile } from './types';
 import { MENTORS, ENIGMAS } from './constants';
 
@@ -90,7 +89,9 @@ export const generateSpecificScript = (answers: AkinatorState, mentorKey: string
     cta = "Baixe nossa análise completa de mercado no link da bio";
   }
 
-  return { gancho, conflito, virada, cta, mentor };
+  const enigma = getRandomEnigma();
+  
+  return `🎬 Gancho:\n${gancho}\n\n🎯 Conflito:\n${conflito}\n\n🔁 Virada:\n${virada}\n\n📣 CTA:\n${cta}\n\n🔮 Enigma do Mentor:\n"${enigma}"\n\n✨ Assinatura do Roteirista:\n"Feito com alma para vender com propósito."`;
 };
 
 export const generateDisneyScript = (originalScript: string, contentType?: string): string => {
