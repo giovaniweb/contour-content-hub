@@ -19,9 +19,10 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Poppins', 'Montserrat', 'Inter', 'sans-serif'],
+				sans: ['Inter', 'Poppins', 'Montserrat', 'sans-serif'],
 				heading: ['Poppins', 'Montserrat', 'sans-serif'],
 				poppins: ['Poppins', 'sans-serif'],
+				inter: ['Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -67,28 +68,36 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Fluida brand colors - updated with softer tones
+				// Aurora Borealis Color Palette
+				aurora: {
+					lavender: '#C4B5FD',
+					teal: '#14B8A6',
+					turquoise: '#06B6D4',
+					'deep-violet': '#7C3AED',
+					'soft-pink': '#F472B6',
+					'electric-blue': '#3B82F6',
+					sage: '#A7F3D0',
+					midnight: '#1E1B4B',
+				},
+				// Fluida brand colors - updated with Aurora palette
 				fluida: {
-					blue: '#5B8CF7',    // Softer blue
-					pink: '#C98FEF',    // Softer pink
-					blueDark: '#3A6CCC', // Darker shade for hover states
-					pinkDark: '#A36CC8', // Darker pink for hover states
-					lightGray: '#F4F0FF', // Light lavender background
-					gradient: 'linear-gradient(to right, #5B8CF7, #C98FEF)'
+					blue: '#3B82F6',    // Aurora electric blue
+					pink: '#F472B6',    // Aurora soft pink
+					blueDark: '#1E40AF',
+					pinkDark: '#BE185D',
+					lightGray: '#F8FAFC',
+					gradient: 'linear-gradient(to right, #3B82F6, #F472B6)'
 				},
-				// Nova paleta de cores personalizada - Contourline (keeping but softening)
+				// Contourline colors - keeping for compatibility
 				contourline: {
-					darkBlue: '#3A567A', // Softer dark blue
-					mediumBlue: '#5B8CF7', // Updated to softer Fluida blue
-					lightBlue: '#B3CBEE', // Softer light blue
-					lightGray: '#F4F0FF', // Light lavender for backgrounds
-					black: '#121212', // Text color
+					darkBlue: '#3A567A',
+					mediumBlue: '#3B82F6', // Updated to Aurora electric blue
+					lightBlue: '#93C5FD',
+					lightGray: '#F8FAFC',
+					black: '#121212',
 					white: '#FFFFFF',
-					accent: '#C98FEF', // Softer accent
+					accent: '#F472B6', // Aurora soft pink
 				},
-				// Add these to the theme.extend.colors section
-				'fluida-blue': '#5B8CF7',
-				'fluida-pink': '#C98FEF',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -122,15 +131,38 @@ export default {
 				},
 				'pulse-light': {
 					'0%, 100%': { 
-						boxShadow: '0 0 5px rgba(91, 140, 247, 0.2), 0 0 10px rgba(91, 140, 247, 0.1)' 
+						boxShadow: '0 0 5px rgba(196, 181, 253, 0.2), 0 0 10px rgba(196, 181, 253, 0.1)' 
 					},
 					'50%': { 
-						boxShadow: '0 0 15px rgba(91, 140, 247, 0.3), 0 0 20px rgba(91, 140, 247, 0.2)' 
+						boxShadow: '0 0 15px rgba(196, 181, 253, 0.3), 0 0 20px rgba(196, 181, 253, 0.2)' 
 					}
 				},
 				'bounce-light': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-5px)' }
+				},
+				// Aurora-specific animations
+				'aurora-flow': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' }
+				},
+				'aurora-pulse': {
+					'0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
+					'50%': { opacity: '1', transform: 'scale(1.05)' }
+				},
+				'aurora-float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'aurora-shimmer': {
+					'0%': { backgroundPosition: '-200% center' },
+					'100%': { backgroundPosition: '200% center' }
+				},
+				'aurora-particles': {
+					'0%': { transform: 'translateY(100vh) rotate(0deg)', opacity: '0' },
+					'10%': { opacity: '1' },
+					'90%': { opacity: '1' },
+					'100%': { transform: 'translateY(-100vh) rotate(360deg)', opacity: '0' }
 				}
 			},
 			animation: {
@@ -141,14 +173,33 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-light': 'pulse-light 2s infinite ease-in-out',
-				'bounce-light': 'bounce-light 2s infinite ease-in-out'
+				'bounce-light': 'bounce-light 2s infinite ease-in-out',
+				// Aurora animations
+				'aurora-flow': 'aurora-flow 8s ease-in-out infinite',
+				'aurora-pulse': 'aurora-pulse 2s infinite',
+				'aurora-float': 'aurora-float 6s ease-in-out infinite',
+				'aurora-shimmer': 'aurora-shimmer 3s infinite',
+				'aurora-particles': 'aurora-particles linear infinite',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-				'fluida-gradient': 'linear-gradient(to right, #5B8CF7, #C98FEF)',
-				'lavender-gradient': 'linear-gradient(to bottom, #F4F0FF, #E8F0FF)',
+				'fluida-gradient': 'linear-gradient(to right, #3B82F6, #F472B6)',
+				'lavender-gradient': 'linear-gradient(to bottom, #F8FAFC, #E8F0FF)',
+				// Aurora gradients
+				'aurora-gradient': 'linear-gradient(135deg, #C4B5FD, #14B8A6, #06B6D4, #7C3AED, #F472B6)',
+				'aurora-gradient-primary': 'linear-gradient(135deg, #C4B5FD, #14B8A6)',
+				'aurora-gradient-secondary': 'linear-gradient(135deg, #7C3AED, #F472B6)',
+				'aurora-gradient-tertiary': 'linear-gradient(135deg, #06B6D4, #3B82F6)',
 			},
+			backdropBlur: {
+				xs: '2px',
+			},
+			boxShadow: {
+				'aurora-glow': '0 0 20px rgba(196, 181, 253, 0.3)',
+				'aurora-glow-intense': '0 0 40px rgba(124, 58, 237, 0.5)',
+				'aurora-glass': '0 8px 32px rgba(31, 41, 55, 0.12)',
+			}
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

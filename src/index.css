@@ -1,6 +1,10 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import Aurora Design System */
+@import url('./styles/aurora-design-system.css');
 
 @layer base {
   :root {
@@ -25,11 +29,13 @@
     --ring: 240 10% 3.9%;
     --radius: 0.5rem;
     
-    /* Fluida custom colors */
-    --fluida-blue: 209, 64%, 47%;     /* #2672B8 */
-    --fluida-blue-dark: 209, 64%, 37%; /* #1F5D9A */
-    --fluida-pink: 333, 100%, 75%;     /* #FF99CC */
-    --fluida-pink-dark: 333, 100%, 65%; /* #FF66B3 */
+    /* Aurora custom colors */
+    --aurora-lavender: #C4B5FD;
+    --aurora-teal: #14B8A6;
+    --aurora-turquoise: #06B6D4;
+    --aurora-deep-violet: #7C3AED;
+    --aurora-soft-pink: #F472B6;
+    --aurora-electric-blue: #3B82F6;
   }
 
   .dark {
@@ -62,6 +68,12 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', 'Poppins', sans-serif;
+  }
+  
+  /* Aurora Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Inter', sans-serif;
   }
 }
 
@@ -77,6 +89,31 @@
   
   .hover-lift {
     @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
+  }
+  
+  /* Aurora Utility Classes */
+  .aurora-lavender {
+    color: var(--aurora-lavender);
+  }
+  
+  .aurora-teal {
+    color: var(--aurora-teal);
+  }
+  
+  .aurora-turquoise {
+    color: var(--aurora-turquoise);
+  }
+  
+  .aurora-deep-violet {
+    color: var(--aurora-deep-violet);
+  }
+  
+  .aurora-soft-pink {
+    color: var(--aurora-soft-pink);
+  }
+  
+  .aurora-electric-blue {
+    color: var(--aurora-electric-blue);
   }
 }
 
