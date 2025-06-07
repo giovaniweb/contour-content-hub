@@ -13,17 +13,27 @@ import ScriptSuggestedVideos from "@/components/script/ScriptSuggestedVideos";
 import ScriptCaptionTips from "@/components/script/ScriptCaptionTips";
 import ScriptActionButtons from "@/components/script/ScriptActionButtons";
 import ScriptValidationScores from "@/components/script/ScriptValidationScores";
+import StructuredScriptValidation from "@/components/script-generator/StructuredScriptValidation";
 
 interface ScriptCardProps {
   script: ScriptResponse;
   onApprove?: () => Promise<void>;
   onReject?: (id: string) => Promise<void>;
+  mentor?: {
+    nome: string;
+    estilo: string;
+    tom: string;
+    exemplos: string[];
+  };
+  objective?: string;
 }
 
 const ScriptCard: React.FC<ScriptCardProps> = ({ 
   script,
   onApprove,
   onReject,
+  mentor,
+  objective
 }) => {
   const [activeTab, setActiveTab] = useState("conteudo");
   const [showVideos, setShowVideos] = useState(false);
@@ -51,13 +61,16 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
       <ScriptCardHeader script={script} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-2 w-full">
+        <TabsList className="grid grid-cols-4 mb-2 w-full">
           <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
           <TabsTrigger value="sugestoes" disabled={script.suggestedVideos.length === 0}>
             Sugestões de Vídeos
           </TabsTrigger>
           <TabsTrigger value="validacao">
             Validação IA
+          </TabsTrigger>
+          <TabsTrigger value="validacao-estruturada">
+            Val. Estruturada
           </TabsTrigger>
         </TabsList>
         
@@ -69,6 +82,17 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
             <ScriptValidationScores 
               scores={mockValidationScores} 
               suggestions={mockSuggestions} 
+            />
+          </TabsContent>
+
+          <TabsContent value="validacao-estruturada" className="mt-0 p-4">
+            <StructuredScriptValidation
+              script={script.content}
+              objective={objective || script.objective || script.marketingObjective}
+              mentor={mentor}
+              onValidationComplete={(result) => {
+                console.log("Validação estruturada concluída:", result);
+              }}
             />
           </TabsContent>
         </ScrollArea>
@@ -100,7 +124,7 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
           
           <div className="mt-4">
             <Tabs defaultValue="conteudo" className="w-full">
-              <TabsList className="grid grid-cols-3 mb-2 w-full">
+              <TabsList className="grid grid-cols-4 mb-2 w-full">
                 <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
                 <TabsTrigger value="sugestoes" disabled={script.suggestedVideos.length === 0}>
                   Sugestões de Vídeos
@@ -108,15 +132,27 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
                 <TabsTrigger value="validacao">
                   Validação
                 </TabsTrigger>
+                <TabsTrigger value="validacao-estruturada">
+                  Val. Estruturada
+                </TabsTrigger>
               </TabsList>
               
               <div className="p-0 border rounded-md">
                 <ScriptContent content={script.content} />
                 <ScriptSuggestedVideos videos={script.suggestedVideos} />
+                
                 <TabsContent value="validacao" className="mt-0 p-0">
                   <ScriptValidationScores 
                     scores={mockValidationScores} 
                     suggestions={mockSuggestions} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="validacao-estruturada" className="mt-0 p-4">
+                  <StructuredScriptValidation
+                    script={script.content}
+                    objective={objective || script.objective || script.marketingObjective}
+                    mentor={mentor}
                   />
                 </TabsContent>
               </div>
