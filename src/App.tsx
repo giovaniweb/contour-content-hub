@@ -14,14 +14,14 @@ import ViteStyleHome from '@/pages/ViteStyleHome';
 import ContentScripts from '@/pages/ContentScripts';
 import VideosPage from '@/pages/VideosPage';
 
-// Import auth pages
-import Login from '@/pages/auth/Login';
-import Register from '@/pages/auth/Register';
+// Import auth pages - corrected paths
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 
-// Import components
+// Import components - corrected import
 import PrivateRoute from '@/components/PrivateRoute';
 import AdminRoute from '@/components/AdminRoute';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Create query client
 const queryClient = new QueryClient({
