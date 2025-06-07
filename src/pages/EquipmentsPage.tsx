@@ -139,7 +139,7 @@ const EquipmentsPage: React.FC = () => {
                     className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
                     onClick={() => handleEquipmentClick(equipment.id)}
                   >
-                    {/* Foto do equipamento */}
+                    {/* Foto do equipamento - sem overlay de texto */}
                     <div className="relative h-48 bg-gray-100 overflow-hidden">
                       {equipment.image_url ? (
                         <img 
@@ -152,11 +152,6 @@ const EquipmentsPage: React.FC = () => {
                           <Camera className="h-16 w-16 text-gray-400" />
                         </div>
                       )}
-                      <div className="absolute top-2 right-2">
-                        <Badge variant="outline" className="bg-white/90">
-                          {equipment.tecnologia}
-                        </Badge>
-                      </div>
                     </div>
 
                     <CardHeader className="pb-3">
