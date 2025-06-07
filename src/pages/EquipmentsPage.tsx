@@ -5,18 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Wrench } from "lucide-react";
+import { Search, Wrench } from "lucide-react";
 import { useEquipments } from '@/hooks/useEquipments';
 import { useNavigate } from 'react-router-dom';
 
 const EquipmentsPage: React.FC = () => {
-  const { equipments, loading } = useEquipments();
+  const { equipments, loading, error } = useEquipments();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  console.log('All equipments:', equipments);
+  console.log('Loading state:', loading);
+  console.log('Error state:', error);
+
   // Filtrar equipamentos ativos
   const activeEquipments = equipments.filter(eq => eq.ativo);
+  console.log('Active equipments:', activeEquipments);
 
   // Aplicar filtros de busca e categoria
   const filteredEquipments = activeEquipments.filter(equipment => {
@@ -35,6 +40,21 @@ const EquipmentsPage: React.FC = () => {
     navigate(`/equipment/${equipmentId}`);
   };
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <Wrench className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar equipamentos</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -45,6 +65,11 @@ const EquipmentsPage: React.FC = () => {
             <p className="text-muted-foreground">
               Explore nossa linha completa de equipamentos estéticos
             </p>
+            {equipments.length > 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {equipments.length} equipamentos cadastrados no total
+              </p>
+            )}
           </div>
 
           {/* Filtros */}
@@ -86,7 +111,7 @@ const EquipmentsPage: React.FC = () => {
           {loading && (
             <div className="text-center py-8">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Carregando equipamentos...</p>
+              <p className="text-muted-foreground">Carregando equipamentos do banco de dados...</p>
             </div>
           )}
 
@@ -135,19 +160,31 @@ const EquipmentsPage: React.FC = () => {
           {!loading && filteredEquipments.length === 0 && (
             <div className="text-center py-12">
               <Wrench className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum equipamento encontrado</h3>
+              <h3 className="text-lg font-medium mb-2">
+                {equipments.length === 0 ? 'Nenhum equipamento cadastrado' : 'Nenhum equipamento encontrado'}
+              </h3>
               <p className="text-muted-foreground">
                 {searchTerm || selectedCategory 
                   ? "Tente ajustar os filtros de busca" 
-                  : "Nenhum equipamento cadastrado ainda"}
+                  : equipments.length === 0 
+                    ? "Cadastre equipamentos na área administrativa"
+                    : "Nenhum equipamento encontrado"}
               </p>
+              {equipments.length === 0 && (
+                <Button 
+                  className="mt-4" 
+                  onClick={() => navigate('/admin/equipments')}
+                >
+                  Ir para Administração
+                </Button>
+              )}
             </div>
           )}
 
           {/* Estatísticas */}
           {!loading && filteredEquipments.length > 0 && (
             <div className="mt-8 text-center text-sm text-muted-foreground">
-              Mostrando {filteredEquipments.length} de {activeEquipments.length} equipamentos
+              Mostrando {filteredEquipments.length} de {activeEquipments.length} equipamentos ativos
             </div>
           )}
         </div>

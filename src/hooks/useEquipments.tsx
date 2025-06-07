@@ -1,60 +1,44 @@
 
-import { useState } from "react";
-import { Equipment } from '@/types/equipment'; 
+import { useState, useEffect } from "react";
+import { Equipment } from '@/types/equipment';
+import { getEquipments } from '@/api/equipment';
+import { useToast } from '@/hooks/use-toast';
 
-export type { Equipment }; 
+export type { Equipment };
 
 export const useEquipments = () => {
-  const [equipments, setEquipments] = useState<Equipment[]>([
-    { 
-      id: 'eq1', 
-      nome: 'Equipamento X',
-      descricao: 'Descrição do equipamento X',
-      categoria: 'Categoria 1',
-      tecnologia: 'Tecnologia avançada',
-      beneficios: 'Resultados rápidos, Sem dor, Não invasivo',
-      diferenciais: 'Único no mercado com tecnologia dupla',
-      linguagem: 'técnica',
-      indicacoes: ['Indicação 1', 'Indicação 2'],
-      ativo: true,
-      data_cadastro: new Date().toISOString(),
-      efeito: 'Efeito poderoso',
-      image_url: ''
-    },
-    { 
-      id: 'eq2', 
-      nome: 'Equipamento Y',
-      descricao: 'Descrição do equipamento Y',
-      categoria: 'Categoria 2',
-      tecnologia: 'Laser de última geração',
-      beneficios: 'Tratamento eficaz, Recuperação rápida',
-      diferenciais: 'Máxima potência com segurança',
-      linguagem: 'acessível',
-      indicacoes: ['Indicação 3', 'Indicação 4'],
-      ativo: true,
-      data_cadastro: new Date().toISOString(),
-      efeito: 'Efeito suave',
-      image_url: ''
-    },
-    { 
-      id: 'eq3', 
-      nome: 'Equipamento Z',
-      descricao: 'Descrição do equipamento Z',
-      categoria: 'Categoria 3',
-      tecnologia: 'Ultrassom focalizado',
-      beneficios: 'Resultados permanentes, Sem tempo de inatividade',
-      diferenciais: 'Tratamento personalizado',
-      linguagem: 'comercial',
-      indicacoes: ['Indicação 5', 'Indicação 6'],
-      ativo: true,
-      data_cadastro: new Date().toISOString(),
-      efeito: 'Efeito profundo',
-      image_url: ''
-    },
-  ]);
-  
-  const [loading, setLoading] = useState(false);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  return { equipments, loading, error };
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('Fetching equipments from Supabase...');
+        
+        const data = await getEquipments();
+        console.log('Equipments fetched:', data);
+        
+        setEquipments(data || []);
+      } catch (err: any) {
+        console.error('Error fetching equipments:', err);
+        setError(err.message || 'Erro ao carregar equipamentos');
+        
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar equipamentos",
+          description: "Não foi possível carregar os equipamentos do banco de dados.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEquipments();
+  }, [toast]);
+
+  return { equipments, loading, error, refetch: () => window.location.reload() };
 };
