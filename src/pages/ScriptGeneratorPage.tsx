@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -8,7 +7,7 @@ import SmartResultDisplay from '@/components/smart-script-generator/SmartResultD
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
-import { useScriptGeneration } from './ScriptGeneratorPage/useScriptGeneration';
+import { useSmartScriptGeneration } from './ScriptGeneratorPage/useSmartScriptGeneration';
 import { useActionHandlers } from './ScriptGeneratorPage/actionHandlers';
 
 type GeneratorMode = 'selection' | 'smart';
@@ -18,12 +17,15 @@ const ScriptGeneratorPage: React.FC = () => {
   const [generatorMode, setGeneratorMode] = useState<GeneratorMode>('smart');
   
   const {
-    step,
-    generationData,
-    generatedContent,
-    handleSmartGenerate,
-    handleNewScript
-  } = useScriptGeneration();
+    currentStep,
+    generatedResult,
+    isGenerating,
+    isDisneyMode,
+    isApproved,
+    applyDisneyMagic,
+    approveScript,
+    resetGeneration
+  } = useSmartScriptGeneration();
   
   const { handleGenerateImage, handleGenerateVoice } = useActionHandlers();
 
@@ -32,7 +34,7 @@ const ScriptGeneratorPage: React.FC = () => {
   };
 
   const handleNewScriptWithSelection = () => {
-    handleNewScript();
+    resetGeneration();
     setGeneratorMode('smart');
   };
 
@@ -60,10 +62,10 @@ const ScriptGeneratorPage: React.FC = () => {
               Sistema avançado baseado em IA para gerar roteiros personalizados com análise estruturada e validação automática.
             </p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Análise de objetivos de marketing</li>
-              <li>• Validação estrutural automática</li>
-              <li>• Múltiplos formatos de conteúdo</li>
-              <li>• Seleção automática de mentor</li>
+              <li>• Análise de intenção automática</li>
+              <li>• Seleção inteligente de mentor</li>
+              <li>• Prompts dinâmicos personalizados</li>
+              <li>• Validação emocional Disney</li>
             </ul>
             <Button 
               onClick={() => setGeneratorMode('smart')}
@@ -86,7 +88,7 @@ const ScriptGeneratorPage: React.FC = () => {
         
         {generatorMode === 'smart' && (
           <>
-            {step === 'smartInput' && (
+            {!generatedResult && !isGenerating && (
               <div className="container mx-auto px-4 py-8">
                 <div className="mb-6">
                   <Button 
@@ -98,21 +100,25 @@ const ScriptGeneratorPage: React.FC = () => {
                   </Button>
                 </div>
                 <SmartScriptGenerator
-                  onGenerate={handleSmartGenerate}
-                  isGenerating={false}
+                  onGenerate={() => {}} // Não usado mais - lógica interna
+                  isGenerating={isGenerating}
                 />
               </div>
             )}
             
-            {step === 'generating' && <GeneratingStep />}
+            {isGenerating && <GeneratingStep />}
             
-            {step === 'smartResult' && generationData && generatedContent && (
+            {generatedResult && !isGenerating && (
               <SmartResultDisplay
-                generationData={generationData}
-                generatedContent={generatedContent}
+                generationResult={generatedResult}
                 onGenerateImage={handleGenerateImage}
                 onGenerateVoice={handleGenerateVoice}
                 onNewScript={handleNewScriptWithSelection}
+                onApplyDisney={applyDisneyMagic}
+                onApproveScript={approveScript}
+                isDisneyApplied={isDisneyMode}
+                isApproved={isApproved}
+                isProcessing={isGenerating}
               />
             )}
           </>

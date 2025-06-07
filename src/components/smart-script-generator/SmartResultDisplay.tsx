@@ -5,54 +5,62 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Camera, Volume2, Wand2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ScriptGenerationData, GeneratedContent } from './types';
-import { generateDisneyScript } from '../akinator-script-generator/scriptGenerator';
+import { SmartGenerationResult } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 
 interface SmartResultDisplayProps {
-  generationData: ScriptGenerationData;
-  generatedContent: GeneratedContent;
+  generationResult: SmartGenerationResult;
   onGenerateImage: () => void;
   onGenerateVoice: () => void;
   onNewScript: () => void;
+  onApplyDisney: () => void;
+  onApproveScript: () => void;
+  isDisneyApplied: boolean;
+  isApproved: boolean;
+  isProcessing: boolean;
 }
 
 const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
-  generationData,
-  generatedContent,
+  generationResult,
   onGenerateImage,
   onGenerateVoice,
-  onNewScript
+  onNewScript,
+  onApplyDisney,
+  onApproveScript,
+  isDisneyApplied,
+  isApproved,
+  isProcessing
 }) => {
   const { toast } = useToast();
-  const [currentContent, setCurrentContent] = useState(generatedContent.content);
-  const [isDisneyApplied, setIsDisneyApplied] = useState(false);
-  const [isApproved, setIsApproved] = useState(false);
 
   const handleCopyScript = () => {
-    navigator.clipboard.writeText(currentContent);
+    navigator.clipboard.writeText(generationResult.content);
     toast({
       title: "Roteiro copiado!",
       description: "O roteiro foi copiado para a área de transferência.",
     });
   };
 
-  const handleDisneyTransformation = () => {
-    const disneyScript = generateDisneyScript(currentContent, generatedContent.type, generationData);
-    setCurrentContent(disneyScript);
-    setIsDisneyApplied(true);
-    
-    toast({
-      title: "✨ Magia Disney 1928 Aplicada!",
-      description: "Walt Disney transformou seu roteiro com narrativa encantadora e emocional.",
-    });
+  const getContentTypeLabel = () => {
+    const labels = {
+      'bigIdea': 'Big Idea',
+      'stories': 'Stories',
+      'carousel': 'Carrossel',
+      'image': 'Imagem',
+      'video': 'Vídeo'
+    };
+    return labels[generationResult.intention.tipo_conteudo] || 'Conteúdo';
   };
 
-  const handleApproveScript = () => {
-    setIsApproved(true);
-    toast({
-      title: "✅ Roteiro Aprovado!",
-      description: "Agora você pode gerar conteúdo adicional.",
-    });
+  const getObjectiveLabel = () => {
+    const labels = {
+      'leads': 'Gerar Leads',
+      'vendas': 'Vendas',
+      'autoridade': 'Autoridade',
+      'engajamento': 'Engajamento',
+      'ensinar': 'Educação',
+      'emocional': 'Conexão Emocional'
+    };
+    return labels[generationResult.intention.objetivo] || 'Objetivo';
   };
 
   return (
@@ -62,7 +70,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
           <div>
             <h1 className="text-2xl font-bold">Roteiro Gerado</h1>
             <p className="text-muted-foreground">
-              {generationData.contentType} • {generationData.objective} • {generatedContent.mentor}
+              {getContentTypeLabel()} • {getObjectiveLabel()} • {generationResult.mentor}
             </p>
           </div>
           <div className="flex gap-2">
@@ -82,7 +90,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
             <CardTitle className="flex items-center justify-between">
               <span>Conteúdo Gerado</span>
               <div className="flex gap-2">
-                <Badge variant="outline">{generatedContent.type}</Badge>
+                <Badge variant="outline">{getContentTypeLabel()}</Badge>
                 {isDisneyApplied && (
                   <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                     🏰 Walt Disney 1928
@@ -93,15 +101,16 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
           </CardHeader>
           <CardContent>
             <div className="whitespace-pre-line text-sm bg-muted/50 p-6 rounded-lg mb-6">
-              {currentContent}
+              {generationResult.content}
             </div>
             
             {!isApproved && (
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 {!isDisneyApplied && (
                   <Button 
-                    onClick={handleDisneyTransformation}
+                    onClick={onApplyDisney}
                     variant="outline"
+                    disabled={isProcessing}
                     className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
@@ -110,8 +119,9 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                 )}
                 
                 <Button 
-                  onClick={handleApproveScript}
+                  onClick={onApproveScript}
                   className="flex-1 bg-green-600 hover:bg-green-700"
+                  disabled={isProcessing}
                 >
                   ✅ Aprovar Roteiro
                 </Button>
@@ -127,7 +137,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  {generatedContent.type !== 'video' ? (
+                  {generationResult.intention.tipo_conteudo !== 'video' ? (
                     <Button 
                       onClick={onGenerateImage}
                       className="flex-1 bg-purple-600 hover:bg-purple-700"
@@ -150,37 +160,47 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
           </CardContent>
         </Card>
 
-        {generatedContent.suggestions && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Sugestões Adicionais</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {generatedContent.suggestions.generateImage && (
-                  <p className="text-sm text-muted-foreground">
-                    💡 Para este tipo de conteúdo, recomendamos gerar uma imagem visual atrativa
-                  </p>
-                )}
-                {generatedContent.suggestions.generateVoice && (
-                  <p className="text-sm text-muted-foreground">
-                    🎙️ Considere adicionar uma narração em áudio para maior engajamento
-                  </p>
-                )}
-                {generatedContent.suggestions.relatedVideos && generatedContent.suggestions.relatedVideos.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Vídeos relacionados sugeridos:</p>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {generatedContent.suggestions.relatedVideos.map((video, index) => (
-                        <li key={index}>• {video}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+        {/* Enigma do Mentor */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Assinatura do Mentor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+              <p className="text-purple-400 italic">"{generationResult.enigma}"</p>
+              <p className="text-sm text-gray-400 mt-2">— {generationResult.mentor}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dados da Intenção (para debug) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Análise de Intenção</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <strong>Tipo:</strong> {getContentTypeLabel()}
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <strong>Objetivo:</strong> {getObjectiveLabel()}
+              </div>
+              <div>
+                <strong>Canal:</strong> {generationResult.intention.canal}
+              </div>
+              <div>
+                <strong>Estilo:</strong> {generationResult.intention.estilo_comunicacao}
+              </div>
+              <div>
+                <strong>Tema:</strong> {generationResult.intention.tema}
+              </div>
+              <div>
+                <strong>Mentor:</strong> {generationResult.mentor}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

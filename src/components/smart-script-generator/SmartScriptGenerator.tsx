@@ -7,325 +7,209 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, MessageCircle, Target, Users, Palette, FileText, Plus } from 'lucide-react';
+import { useSmartScriptGeneration } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 
 interface SmartScriptGeneratorProps {
-  onGenerate: (data: ScriptGenerationData) => void;
+  onGenerate: (data: any) => void;
   isGenerating?: boolean;
 }
-
-export interface ScriptGenerationData {
-  contentType: 'bigIdea' | 'stories' | 'carousel' | 'image' | 'video';
-  objective: string;
-  channel: string;
-  style: string;
-  theme: string;
-  additionalNotes: string;
-  selectedMentor: string;
-}
-
-const CONTENT_TYPES = [
-  { id: 'bigIdea', label: 'Big Idea', icon: '💡', description: '5 ideias criativas e virais' },
-  { id: 'stories', label: 'Stories', icon: '📱', description: 'Roteiro para stories' },
-  { id: 'carousel', label: 'Carrossel', icon: '🎠', description: 'Textos para múltiplas artes' },
-  { id: 'image', label: 'Imagem', icon: '🖼️', description: 'Texto para arte única' },
-  { id: 'video', label: 'Vídeo', icon: '🎬', description: 'Roteiro completo estruturado' }
-];
-
-const OBJECTIVES = [
-  'Atrair novos seguidores',
-  'Vender produto/serviço',
-  'Engajar a audiência',
-  'Ensinar/educar',
-  'Construir autoridade',
-  'Gerar leads'
-];
-
-const CHANNELS = [
-  'Instagram Reels',
-  'Instagram Feed',
-  'TikTok',
-  'YouTube Shorts',
-  'LinkedIn',
-  'Facebook'
-];
-
-const STYLES = [
-  'Divertido/Humorístico',
-  'Direto/Objetivo',
-  'Didático/Educativo',
-  'Emocional/Inspirador',
-  'Criativo/Artístico',
-  'Casual/Descontraído'
-];
-
-const MENTORS = {
-  'leandro_ladeira': { name: 'Leandro Ladeira', focus: 'Gatilhos mentais e CTAs fortes' },
-  'icaro_carvalho': { name: 'Ícaro de Carvalho', focus: 'Storytelling emocional' },
-  'paulo_cuenca': { name: 'Paulo Cuenca', focus: 'Criatividade audiovisual' },
-  'pedro_sobral': { name: 'Pedro Sobral', focus: 'Clareza lógica e antecipação' },
-  'camila_porto': { name: 'Camila Porto', focus: 'Linguagem acessível' },
-  'hyeser_souza': { name: 'Hyeser Souza', focus: 'Humor viral' },
-  'washington_olivetto': { name: 'Washington Olivetto', focus: 'Big ideas publicitárias' }
-};
 
 export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({ 
   onGenerate, 
   isGenerating = false 
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Partial<ScriptGenerationData>>({});
+  const {
+    currentStep,
+    intention,
+    getCurrentQuestion,
+    handleAnswer,
+    handleThemeInput
+  } = useSmartScriptGeneration();
 
-  const steps = [
-    { id: 'contentType', title: 'Tipo de Conteúdo', icon: FileText },
-    { id: 'objective', title: 'Objetivo', icon: Target },
-    { id: 'channel', title: 'Canal', icon: Users },
-    { id: 'style', title: 'Estilo', icon: Palette },
-    { id: 'theme', title: 'Tema', icon: MessageCircle },
-    { id: 'notes', title: 'Observações', icon: Plus }
-  ];
+  const [themeText, setThemeText] = useState('');
 
-  const selectMentor = (data: Partial<ScriptGenerationData>) => {
-    const { style, objective, contentType } = data;
-    
-    if (style?.includes('Humorístico') || contentType === 'stories') {
-      return 'hyeser_souza';
-    }
-    if (style?.includes('Direto') || objective?.includes('Vender')) {
-      return 'leandro_ladeira';
-    }
-    if (style?.includes('Emocional') || style?.includes('Inspirador')) {
-      return 'icaro_carvalho';
-    }
-    if (style?.includes('Criativo') || contentType === 'video') {
-      return 'paulo_cuenca';
-    }
-    if (style?.includes('Didático')) {
-      return 'camila_porto';
-    }
-    if (objective?.includes('autoridade')) {
-      return 'washington_olivetto';
-    }
-    
-    return 'pedro_sobral'; // Default
+  const getStepNumber = () => {
+    const steps = ['root', 'objetivo', 'canal', 'estilo', 'tema'];
+    return steps.indexOf(currentStep);
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+  const getTotalSteps = () => 5;
+
+  const getStepIcon = (stepIndex: number) => {
+    const icons = [FileText, Target, Users, Palette, MessageCircle];
+    return icons[stepIndex] || FileText;
+  };
+
+  const getStepTitle = () => {
+    const titles = {
+      'root': 'Tipo de Conteúdo',
+      'objetivo': 'Objetivo',
+      'canal': 'Canal',
+      'estilo': 'Estilo',
+      'tema': 'Tema'
+    };
+    return titles[currentStep] || 'Configuração';
+  };
+
+  const handleOptionClick = (value: string) => {
+    if (currentStep === 'tema') {
+      handleThemeInput(value);
     } else {
-      const selectedMentor = selectMentor(formData);
-      const completeData = {
-        ...formData,
-        selectedMentor
-      } as ScriptGenerationData;
-      
-      onGenerate(completeData);
+      handleAnswer(value);
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  const handleThemeSubmit = () => {
+    if (themeText.trim()) {
+      handleThemeInput(themeText);
     }
-  };
-
-  const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const isStepComplete = () => {
-    const step = steps[currentStep];
-    switch (step.id) {
-      case 'contentType': return !!formData.contentType;
-      case 'objective': return !!formData.objective;
-      case 'channel': return !!formData.channel;
-      case 'style': return !!formData.style;
-      case 'theme': return !!formData.theme;
-      case 'notes': return true; // Optional step
-      default: return false;
+    if (currentStep === 'tema') {
+      return themeText.trim().length > 0;
     }
+    return true;
   };
 
   const renderStepContent = () => {
-    const step = steps[currentStep];
+    const questionData = getCurrentQuestion();
+    
+    if (currentStep === 'tema') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-center mb-6">
+            {questionData.question}
+          </h3>
+          <Textarea
+            placeholder="Ex: Benefícios do HIFU para rejuvenescimento facial, Como resolver flacidez sem cirurgia..."
+            value={themeText}
+            onChange={(e) => setThemeText(e.target.value)}
+            className="min-h-[120px]"
+          />
+          
+          {intention.mentor_inferido && (
+            <div className="mt-6 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-purple-400" />
+                <span className="text-sm font-medium text-purple-400">Mentor Detectado</span>
+              </div>
+              <div className="text-sm">
+                <p className="text-gray-400 italic">"{intention.enigma_mentor}"</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
 
-    switch (step.id) {
-      case 'contentType':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Qual tipo de conteúdo você quer criar?
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              {CONTENT_TYPES.map((type) => (
+    // Para outros passos, renderizar as opções como cards
+    return (
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-center mb-6">
+          {questionData.question}
+        </h3>
+        
+        {currentStep === 'root' && (
+          <div className="grid grid-cols-2 gap-4">
+            {questionData.options.map((option) => {
+              const icons = {
+                'bigIdea': '💡',
+                'stories': '📱', 
+                'carousel': '🎠',
+                'image': '🖼️',
+                'video': '🎬'
+              };
+              
+              const descriptions = {
+                'bigIdea': '5 ideias criativas e virais',
+                'stories': 'Roteiro para stories',
+                'carousel': 'Textos para múltiplas artes', 
+                'image': 'Texto para arte única',
+                'video': 'Roteiro completo estruturado'
+              };
+              
+              return (
                 <Card
-                  key={type.id}
-                  className={`p-4 cursor-pointer transition-all hover:scale-105 ${
-                    formData.contentType === type.id
-                      ? 'ring-2 ring-purple-500 bg-purple-500/10'
-                      : 'hover:bg-gray-800/50'
-                  }`}
-                  onClick={() => updateFormData('contentType', type.id)}
+                  key={option.value}
+                  className="p-4 cursor-pointer transition-all hover:scale-105 hover:bg-gray-800/50"
+                  onClick={() => handleOptionClick(option.value)}
                 >
                   <div className="text-center">
-                    <div className="text-3xl mb-2">{type.icon}</div>
-                    <h4 className="font-semibold">{type.label}</h4>
-                    <p className="text-sm text-gray-400">{type.description}</p>
+                    <div className="text-3xl mb-2">{icons[option.value]}</div>
+                    <h4 className="font-semibold">{option.label}</h4>
+                    <p className="text-sm text-gray-400">{descriptions[option.value]}</p>
                   </div>
                 </Card>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        );
-
-      case 'objective':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Qual o objetivo do seu conteúdo?
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
-              {OBJECTIVES.map((objective) => (
+        )}
+        
+        {currentStep !== 'root' && (
+          <div className="grid grid-cols-1 gap-3">
+            {questionData.options.map((option) => {
+              const icons = {
+                'objetivo': Target,
+                'canal': Users,
+                'estilo': Palette
+              };
+              const IconComponent = icons[currentStep] || Target;
+              
+              return (
                 <Button
-                  key={objective}
-                  variant={formData.objective === objective ? 'default' : 'outline'}
+                  key={option.value}
+                  variant="outline"
                   className="justify-start h-auto p-4"
-                  onClick={() => updateFormData('objective', objective)}
+                  onClick={() => handleOptionClick(option.value)}
                 >
-                  <Target className="mr-3 h-4 w-4" />
-                  {objective}
+                  <IconComponent className="mr-3 h-4 w-4" />
+                  {option.label}
                 </Button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        );
-
-      case 'channel':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Onde será publicado?
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {CHANNELS.map((channel) => (
-                <Button
-                  key={channel}
-                  variant={formData.channel === channel ? 'default' : 'outline'}
-                  className="justify-start h-auto p-4"
-                  onClick={() => updateFormData('channel', channel)}
-                >
-                  <Users className="mr-3 h-4 w-4" />
-                  {channel}
-                </Button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'style':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Qual estilo de comunicação?
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
-              {STYLES.map((style) => (
-                <Button
-                  key={style}
-                  variant={formData.style === style ? 'default' : 'outline'}
-                  className="justify-start h-auto p-4"
-                  onClick={() => updateFormData('style', style)}
-                >
-                  <Palette className="mr-3 h-4 w-4" />
-                  {style}
-                </Button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'theme':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Qual o tema ou assunto principal?
-            </h3>
-            <Textarea
-              placeholder="Ex: Benefícios do equipamento X, Como resolver problema Y, Dicas para..."
-              value={formData.theme || ''}
-              onChange={(e) => updateFormData('theme', e.target.value)}
-              className="min-h-[120px]"
-            />
-          </div>
-        );
-
-      case 'notes':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-center mb-6">
-              Alguma observação adicional?
-              <span className="text-sm text-gray-400 block mt-2">(Opcional)</span>
-            </h3>
-            <Textarea
-              placeholder="Ex: Tom mais inspirador, incluir dados científicos, focar no público feminino..."
-              value={formData.additionalNotes || ''}
-              onChange={(e) => updateFormData('additionalNotes', e.target.value)}
-              className="min-h-[120px]"
-            />
-            
-            {formData.style && (
-              <div className="mt-6 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-sm font-medium text-purple-400">Mentor Selecionado</span>
-                </div>
-                <div className="text-sm">
-                  <strong>{MENTORS[selectMentor(formData)]?.name}</strong>
-                  <p className="text-gray-400">{MENTORS[selectMentor(formData)]?.focus}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Progress Bar */}
+      {/* Progress Bar - mantendo visual original */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          {steps.map((step, index) => (
-            <div
-              key={step.id}
-              className={`flex items-center ${
-                index <= currentStep ? 'text-purple-400' : 'text-gray-500'
-              }`}
-            >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                index <= currentStep ? 'bg-purple-500' : 'bg-gray-700'
-              }`}>
-                {index < currentStep ? '✓' : index + 1}
+          {Array.from({ length: getTotalSteps() }, (_, index) => {
+            const IconComponent = getStepIcon(index);
+            return (
+              <div
+                key={index}
+                className={`flex items-center ${
+                  index <= getStepNumber() ? 'text-purple-400' : 'text-gray-500'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  index <= getStepNumber() ? 'bg-purple-500' : 'bg-gray-700'
+                }`}>
+                  {index < getStepNumber() ? '✓' : index + 1}
+                </div>
+                {index < getTotalSteps() - 1 && (
+                  <div className={`w-8 h-px mx-2 ${
+                    index < getStepNumber() ? 'bg-purple-500' : 'bg-gray-700'
+                  }`} />
+                )}
               </div>
-              {index < steps.length - 1 && (
-                <div className={`w-8 h-px mx-2 ${
-                  index < currentStep ? 'bg-purple-500' : 'bg-gray-700'
-                }`} />
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="text-center">
           <Badge variant="outline" className="text-purple-400 border-purple-400">
-            {steps[currentStep].title}
+            {getStepTitle()}
           </Badge>
         </div>
       </div>
 
-      {/* Step Content */}
+      {/* Step Content - mantendo visual original */}
       <Card className="p-6 mb-6 bg-gray-900/50 border-gray-800">
         <AnimatePresence mode="wait">
           <motion.div
@@ -340,36 +224,28 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         </AnimatePresence>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 0}
-        >
-          Voltar
-        </Button>
-        
-        <Button
-          onClick={handleNext}
-          disabled={!isStepComplete() || isGenerating}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          {isGenerating ? (
-            <>
-              <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-              Gerando...
-            </>
-          ) : currentStep === steps.length - 1 ? (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Gerar Roteiro
-            </>
-          ) : (
-            'Continuar'
-          )}
-        </Button>
-      </div>
+      {/* Navigation - mantendo visual original */}
+      {currentStep === 'tema' && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleThemeSubmit}
+            disabled={!isStepComplete() || isGenerating}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            {isGenerating ? (
+              <>
+                <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+                Analisando intenção...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Gerar Roteiro Inteligente
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
