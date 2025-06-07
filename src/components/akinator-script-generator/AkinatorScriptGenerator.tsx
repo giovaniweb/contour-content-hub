@@ -15,24 +15,34 @@ const AkinatorScriptGenerator: React.FC = () => {
     isComplete: false
   });
 
+  console.log('AkinatorScriptGenerator - Estado atual:', state);
+
   const currentStepData = STEPS[state.currentStep];
 
   const handleOptionSelect = (value: string) => {
     const newState = { ...state, [currentStepData.id]: value };
     
+    console.log('handleOptionSelect - newState:', newState);
+    console.log('handleOptionSelect - currentStep:', state.currentStep, 'STEPS.length:', STEPS.length);
+    
     if (state.currentStep < STEPS.length - 1) {
+      console.log('Avançando para próximo step');
       setState({ ...newState, currentStep: state.currentStep + 1 });
     } else {
+      console.log('Gerando roteiro - última etapa');
       // Gerar roteiro
       const mentorKey = selectMentor(newState);
       const script = generateSpecificScript(newState, mentorKey);
       
-      setState({
+      const finalState = {
         ...newState,
         isComplete: true,
         generatedScript: script,
         selectedMentor: mentorKey
-      });
+      };
+      
+      console.log('Estado final sendo definido:', finalState);
+      setState(finalState);
     }
   };
 
@@ -76,6 +86,7 @@ const AkinatorScriptGenerator: React.FC = () => {
   };
 
   const resetGenerator = () => {
+    console.log('resetGenerator chamado');
     setState({
       currentStep: 0,
       isComplete: false,
@@ -88,7 +99,10 @@ const AkinatorScriptGenerator: React.FC = () => {
     setState({ ...state, currentStep: state.currentStep - 1 });
   };
 
+  console.log('Renderizando - isComplete:', state.isComplete);
+
   if (state.isComplete) {
+    console.log('Renderizando AkinatorResult com state:', state);
     return (
       <AkinatorResult
         state={state}
