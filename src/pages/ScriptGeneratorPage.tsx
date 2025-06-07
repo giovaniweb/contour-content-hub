@@ -71,7 +71,7 @@ const ScriptGeneratorPage: React.FC = () => {
         : '🔴 Fazer Comprar';
 
       const scriptRequest = {
-        type: 'videoScript' as const, // Use valid ScriptType
+        type: 'videoScript' as const,
         topic: formData.idea,
         tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
         marketingObjective,
@@ -265,7 +265,7 @@ ${generatedScript.refinedScript}
 
   return (
     <Layout title="Gerador de Roteiros" fullWidth={false}>
-      <div className="py-8">
+      <div className="py-8 min-h-screen">
         {step === 'ideaInput' && (
           <IdeaInputStep
             formData={formData}
