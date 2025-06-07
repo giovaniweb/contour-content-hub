@@ -66,7 +66,7 @@ const ScriptGeneratorPage: React.FC = () => {
     
     try {
       // Call the real Supabase API to generate script
-      const marketingObjective: MarketingObjectiveType = formData.objective === 'emotion' 
+      const marketingObjectiveValue: MarketingObjectiveType = formData.objective === 'emotion' 
         ? '🟢 Criar Conexão' 
         : '🔴 Fazer Comprar';
 
@@ -74,7 +74,7 @@ const ScriptGeneratorPage: React.FC = () => {
         type: 'videoScript' as const,
         topic: formData.idea,
         tone: formData.objective === 'emotion' ? 'emocional' : 'vendas',
-        marketingObjective,
+        marketingObjective: marketingObjectiveValue,
         additionalInfo: `Objetivo: ${formData.objective === 'emotion' ? 'Emocionar' : 'Vender'}`
       };
 
@@ -265,7 +265,7 @@ ${generatedScript.refinedScript}
 
   return (
     <Layout title="Gerador de Roteiros" fullWidth={false}>
-      <div className="py-8 min-h-screen">
+      <div className="container mx-auto px-4 py-8 min-h-screen">
         {step === 'ideaInput' && (
           <IdeaInputStep
             formData={formData}
