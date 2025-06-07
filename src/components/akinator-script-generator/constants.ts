@@ -62,46 +62,51 @@ export const STEPS: AkinatorStep[] = [
 ];
 
 export const MENTORS: Record<string, MentorProfile> = {
-  viral: {
-    estilo: "Divertido e envolvente",
-    tom: "Descontraído, com humor inteligente",
-    exemplos: ["Gente, isso aqui vai viralizar", "Prepara que vem textão", "Alguém mais passou por isso?"]
+  diretoEscassez: {
+    estilo: "Direto com urgência e escassez",
+    tom: "Assertivo, focado em resultados mensuráveis",
+    exemplos: ["Os números não mentem", "Última oportunidade", "Enquanto outros hesitam, você age"]
   },
-  vendedor: {
-    estilo: "Direto e persuasivo",
-    tom: "Confiante, focado em resultados",
-    exemplos: ["Vou direto ao ponto", "Isso aqui vai mudar sua vida", "Última chance de garantir"]
+  storytellingEmocional: {
+    estilo: "Narrativo e tocante",
+    tom: "Empático, conectivo, com profundidade humana",
+    exemplos: ["Essa história mudou minha perspectiva", "Você já passou por isso?", "O que senti naquele momento foi..."]
   },
-  emocional: {
-    estilo: "Conectivo e tocante",
-    tom: "Empático, com profundidade emocional",
-    exemplos: ["Você já se sentiu assim?", "Essa história me tocou profundamente", "Não estamos sozinhos nisso"]
+  criativoPoetico: {
+    estilo: "Criativo e inspiracional",
+    tom: "Artístico, poético, com visão estética",
+    exemplos: ["Beleza é uma forma de arte", "Cada detalhe conta uma história", "Transformação que vem de dentro"]
   },
-  criativo: {
-    estilo: "Inovador e artístico",
-    tom: "Inspirador, com visão única",
-    exemplos: ["Vou mostrar uma perspectiva diferente", "Arte é transformação", "Beleza está nos detalhes"]
+  didaticoPassoAPasso: {
+    estilo: "Educativo e estruturado",
+    tom: "Claro, didático, focado no aprendizado",
+    exemplos: ["Vou te mostrar exatamente como fazer", "Passo 1, 2, 3...", "Simples de entender, fácil de aplicar"]
   },
-  educador: {
-    estilo: "Didático e claro",
-    tom: "Acessível, focado no aprendizado",
-    exemplos: ["Vou te ensinar passo a passo", "Conhecimento é poder", "Simplificando para você"]
+  tecnicoEstruturado: {
+    estilo: "Técnico e baseado em dados",
+    tom: "Analítico, metodológico, orientado por métricas",
+    exemplos: ["Dados comprovam que", "Metodologia testada", "ROI mensurável em 30 dias"]
   },
-  visionario: {
-    estilo: "Inspirador e estratégico",
-    tom: "Assertivo, com visão de futuro",
-    exemplos: ["O futuro já chegou", "Liderança é sobre visão", "Inovação começa com coragem"]
+  humorViral: {
+    estilo: "Descontraído e viral",
+    tom: "Divertido, espontâneo, popular",
+    exemplos: ["Gente, vocês não vão acreditar", "Quem mais já passou por isso?", "Para de julgar, vai"]
   },
-  estrategista: {
-    estilo: "Analítico e estruturado",
-    tom: "Metodológico, baseado em dados",
-    exemplos: ["Os números não mentem", "Estratégia é tudo", "Planejamento é chave do sucesso"]
+  criativoInstitucional: {
+    estilo: "Sofisticado e profissional",
+    tom: "Elegante, confiável, premium",
+    exemplos: ["Excelência é nosso padrão", "Inovação com propósito", "Resultados que honram sua confiança"]
+  },
+  estrategicoRacional: {
+    estilo: "Estratégico e racional",
+    tom: "Inteligente, visionário, fundamentado",
+    exemplos: ["Visão de longo prazo", "Estratégia baseada em evidências", "Decisões que impactam o futuro"]
   }
 };
 
 export const ENIGMAS = [
-  "Foi feito pra vender. Mas com alma.",
-  "Esse roteiro? Você não lê, você sente.",
-  "Quem entende de narrativa vai sacar quem passou por aqui.",
+  "Quem entende narrativa, sente a assinatura.",
+  "Feito pra vender. Mas com alma.",
+  "Isso aqui tem mais que copy. Tem vivência.",
   "Foi só uma virada... mas mudou tudo."
 ];

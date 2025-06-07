@@ -3,62 +3,91 @@ import { AkinatorState, MentorProfile } from './types';
 import { MENTORS, ENIGMAS } from './constants';
 
 export const selectMentor = (answers: AkinatorState): string => {
-  const { style, objective, contentType } = answers;
+  const { contentType, objective, style, channel, theme } = answers;
   
-  if (style === 'humoristico' || contentType === 'bigIdea') return 'viral';
-  if (style === 'direto' || objective === 'vender') return 'vendedor';
-  if (style === 'emocional' || style === 'provocativo') return 'emocional';
-  if (style === 'criativo' || contentType === 'video') return 'criativo';
-  if (style === 'didático' || objective === 'ensinar') return 'educador';
-  if (objective === 'posicionar') return 'visionario';
+  // Regras específicas baseadas na nova lógica
+  if (contentType === 'video' && objective === 'vender' && style === 'direto') {
+    return 'diretoEscassez';
+  }
+  if (contentType === 'video' && style === 'emocional') {
+    return 'storytellingEmocional';
+  }
+  if (contentType === 'image' && style === 'criativo') {
+    return 'criativoPoetico';
+  }
+  if (contentType === 'carousel' && style === 'didático') {
+    return 'didaticoPassoAPasso';
+  }
+  if (objective === 'leads' && style === 'direto') {
+    return 'tecnicoEstruturado';
+  }
+  if (style === 'humoristico') {
+    return 'humorViral';
+  }
+  if (style === 'publicitário') {
+    return 'criativoInstitucional';
+  }
+  if (style === 'institucional') {
+    return 'estrategicoRacional';
+  }
   
-  return 'estrategista';
+  // Fallback para outros casos
+  if (style === 'provocativo') return 'diretoEscassez';
+  if (objective === 'ensinar') return 'didaticoPassoAPasso';
+  if (objective === 'posicionar') return 'estrategicoRacional';
+  
+  return 'tecnicoEstruturado';
 };
 
 export const generateSpecificScript = (answers: AkinatorState, mentorKey: string) => {
   const mentor = MENTORS[mentorKey];
+  const { contentType, objective, style, channel, theme } = answers;
   
-  // Estruturas específicas baseadas no mentor e contexto
   let gancho = "";
   let conflito = "";
   let virada = "";
   let cta = "";
 
-  if (mentorKey === 'viral') {
-    gancho = "Gente, 73% das pessoas fazem isso errado todo santo dia...";
-    conflito = "E aí que mora o drama: você gasta uma fortuna achando que tá certo, mas na verdade tá sabotando tudo.";
-    virada = "Descobri um truque de 30 segundos que economiza 80% do tempo e dobra o resultado.";
-    cta = "Comenta AÍ embaixo se você quer que eu mostre o passo a passo!";
-  } else if (mentorKey === 'vendedor') {
-    gancho = "Vou te mostrar como faturar R$ 5.000 a mais este mês sem sair de casa.";
-    conflito = "O problema é que 90% das pessoas tentam vender sem entender a dor real do cliente.";
-    virada = "Quando você aplica a fórmula dos 3 gatilhos mentais, as vendas disparam automaticamente.";
-    cta = "Clica no link da bio e garante sua vaga no treinamento gratuito que acontece hoje às 20h.";
-  } else if (mentorKey === 'emocional') {
-    gancho = "Essa foto mudou minha vida. E eu quero te contar por quê.";
-    conflito = "Durante anos eu carreguei uma culpa que me consumia por dentro, achando que nunca seria suficiente.";
-    virada = "Foi quando entendi que nossa maior fraqueza pode se tornar nossa maior força.";
-    cta = "Se você também carrega algo assim, me manda uma DM. Você não está sozinho.";
-  } else if (mentorKey === 'criativo') {
-    gancho = "Transformei um objeto do lixo numa obra de arte que vale R$ 2.000.";
-    conflito = "Vivemos numa sociedade que descarta o que poderia ser recriado com um olhar diferente.";
-    virada = "Arte não está no material caro, está na visão de quem cria.";
-    cta = "Marca alguém que precisa ver que criatividade não tem limite!";
-  } else if (mentorKey === 'educador') {
-    gancho = "Em 60 segundos você vai aprender algo que deveria ter aprendido na escola.";
-    conflito = "O sistema educacional ensina fórmulas, mas esquece de ensinar como aplicar na vida real.";
-    virada = "Quando você domina esse conceito, problemas complexos viram exercícios simples.";
-    cta = "Salva esse post e compartilha com alguém que precisa aprender isso também!";
-  } else if (mentorKey === 'visionario') {
-    gancho = "Em 2030, quem não souber isso vai ficar para trás.";
-    conflito = "Enquanto todos se preocupam com tendências passageiras, o futuro já está sendo construído.";
-    virada = "Visão não é prever o futuro, é criar ele.";
-    cta = "Me segue para não perder as próximas previsões que vão virar realidade.";
-  } else { // estrategista
-    gancho = "Analisei 10.000 casos e descobri o padrão que 99% ignora.";
-    conflito = "Dados mostram que intuição sem estratégia leva ao fracasso em 87% dos casos.";
-    virada = "Quando você segue o método baseado em evidências, o sucesso deixa de ser sorte.";
-    cta = "Quer acesso à planilha com o framework completo? Link na bio.";
+  if (mentorKey === 'diretoEscassez') {
+    gancho = "87% das pessoas perdem R$ 3.200 por mês sem saber desta estratégia";
+    conflito = "Você trabalha 12 horas por dia, mas seu faturamento não cresce porque está usando métodos ultrapassados";
+    virada = "Quando apliquei o funil de conversão otimizado, meu ticket médio saltou de R$ 150 para R$ 890 em 30 dias";
+    cta = "Clica no link da bio e baixa a planilha que uso para calcular ROI de cada cliente";
+  } else if (mentorKey === 'storytellingEmocional') {
+    gancho = "Minha filha de 8 anos me perguntou: 'Pai, por que você chora olhando o celular?'";
+    conflito = "Eu acabara de receber a mensagem de uma mãe dizendo que nosso tratamento salvou a autoestima da filha dela";
+    virada = "Percebi que não estava só vendendo procedimentos, estava devolvendo a confiança que essas mulheres perderam";
+    cta = "Se você também quer transformar vidas enquanto cresce profissionalmente, me chama no direct";
+  } else if (mentorKey === 'criativoPoetico') {
+    gancho = "Transformei um rosto cansado numa obra de arte que respira juventude";
+    conflito = "Muitas pessoas acham que beleza é superficial, mas esquece que autoestima impacta toda nossa vida";
+    virada = "Com HIFU 4D não invasivo, você conquista o resultado de cirurgia sem os riscos e o tempo de recuperação";
+    cta = "Marca aquela amiga que merece se sentir radiante todos os dias";
+  } else if (mentorKey === 'didaticoPassoAPasso') {
+    gancho = "Vou te ensinar em 3 passos como aumentar suas vendas em 40% este mês";
+    conflito = "90% dos empreendedores fazem prospecção errada porque não sabem qualificar leads de verdade";
+    virada = "Passo 1: Mapeie a dor real. Passo 2: Apresente solução específica. Passo 3: Crie urgência genuína";
+    cta = "Salva este post e aplica hoje mesmo na sua estratégia de vendas";
+  } else if (mentorKey === 'tecnicoEstruturado') {
+    gancho = "Analisei 847 campanhas e descobri o padrão que 95% ignora";
+    conflito = "Você investe em anúncios, mas seu CAC está alto porque não otimiza a jornada de conversão";
+    virada = "Implementando pixel de conversão + lookalike audience + landing page focada, reduzi CAC em 60%";
+    cta = "Quer acesso ao meu checklist de otimização? Link na bio";
+  } else if (mentorKey === 'humorViral') {
+    gancho = "Gente, eu descobri por que minha sobrancelha estava mais torta que política brasileira";
+    conflito = "Fui numa 'profissional' que cobrou R$ 80 e me deixou parecendo personagem de desenho animado";
+    virada = "Quando encontrei uma micropigmentadora certificada, gastei R$ 300 mas economizei minha dignidade";
+    cta = "Comenta AÍ quem já passou vergonha com procedimento barato";
+  } else if (mentorKey === 'criativoInstitucional') {
+    gancho = "Inovação não é sobre tecnologia. É sobre resolver problemas reais de forma elegante";
+    conflito = "O mercado de estética está saturado de promessas vazias e resultados mediocres";
+    virada = "Nossa abordagem combina ciência avançada com cuidado humanizado para resultados que honram sua essência";
+    cta = "Agende sua consulta e descubra como a verdadeira transformação acontece";
+  } else { // estrategicoRacional
+    gancho = "ROI de 340% em procedimentos estéticos: os números que sua clínica precisa conhecer";
+    conflito = "Clínicas faturam pouco porque tratam estética como gasto, não como investimento estratégico";
+    virada = "Implementando protocolos baseados em evidências e fidelização inteligente, triplicamos o LTV dos pacientes";
+    cta = "Baixe nossa análise completa de mercado no link da bio";
   }
 
   return { gancho, conflito, virada, cta, mentor };
@@ -69,5 +98,11 @@ export const generateDisneyScript = (): string => {
 };
 
 export const getRandomEnigma = (): string => {
-  return ENIGMAS[Math.floor(Math.random() * ENIGMAS.length)];
+  const newEnigmas = [
+    "Quem entende narrativa, sente a assinatura.",
+    "Feito pra vender. Mas com alma.",
+    "Isso aqui tem mais que copy. Tem vivência.",
+    "Foi só uma virada... mas mudou tudo."
+  ];
+  return newEnigmas[Math.floor(Math.random() * newEnigmas.length)];
 };
