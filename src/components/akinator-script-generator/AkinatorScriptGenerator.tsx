@@ -26,12 +26,11 @@ const AkinatorScriptGenerator: React.FC = () => {
       // Gerar roteiro
       const mentorKey = selectMentor(newState);
       const script = generateSpecificScript(newState, mentorKey);
-      const enigma = getRandomEnigma();
       
       setState({
         ...newState,
         isComplete: true,
-        generatedScript: `🎬 Gancho:\n${script.gancho}\n\n🎯 Conflito:\n${script.conflito}\n\n🔁 Virada:\n${script.virada}\n\n📣 CTA:\n${script.cta}\n\n🔮 Enigma do Mentor:\n"${enigma}"`,
+        generatedScript: script,
         selectedMentor: mentorKey
       });
     }
