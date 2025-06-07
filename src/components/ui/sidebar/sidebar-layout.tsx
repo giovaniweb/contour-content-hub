@@ -3,131 +3,109 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { useSidebar } from "./sidebar-context"
 
-// Header component
-interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
+// Layout components for sidebar structure
+export function SidebarHeader({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 px-4 py-3 border-b border-white/10",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
 
-const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("flex h-14 items-center px-4", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarHeader.displayName = "SidebarHeader"
+export function SidebarContent({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("flex-1 overflow-auto py-2", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
 
-// Content component
-interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+export function SidebarFooter({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "mt-auto border-t border-white/10 px-4 py-3",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
 
-const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("flex-1 overflow-auto p-3", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarContent.displayName = "SidebarContent"
+export function SidebarGroup({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("px-3 py-2", className)} {...props}>
+      {children}
+    </div>
+  )
+}
 
-// Footer component
-interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
+export function SidebarGroupLabel({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "px-2 py-1 text-xs font-medium text-white/60 uppercase tracking-wider",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
 
-const SidebarFooter = React.forwardRef<HTMLDivElement, SidebarFooterProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("mt-auto p-4", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarFooter.displayName = "SidebarFooter"
+export function SidebarGroupContent({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("space-y-1", className)} {...props}>
+      {children}
+    </div>
+  )
+}
 
-// Group component
-interface SidebarGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-const SidebarGroup = React.forwardRef<HTMLDivElement, SidebarGroupProps>(
-  ({ className, ...props }, ref) => {
-    const { open } = useSidebar()
-    
-    return (
-      <div
-        ref={ref}
-        className={cn("pb-4", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarGroup.displayName = "SidebarGroup"
-
-// Group label component
-interface SidebarGroupLabelProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-const SidebarGroupLabel = React.forwardRef<HTMLDivElement, SidebarGroupLabelProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-SidebarGroupLabel.displayName = "SidebarGroupLabel"
-
-// Group content component
-interface SidebarGroupContentProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-const SidebarGroupContent = React.forwardRef<HTMLDivElement, SidebarGroupContentProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("space-y-1", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarGroupContent.displayName = "SidebarGroupContent"
-
-// Separator component
-interface SidebarSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-const SidebarSeparator = React.forwardRef<HTMLDivElement, SidebarSeparatorProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("my-2 h-px bg-border", className)}
-        {...props}
-      />
-    )
-  }
-)
-SidebarSeparator.displayName = "SidebarSeparator"
-
-export {
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarSeparator,
+export function SidebarSeparator({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("mx-4 my-2 h-px bg-white/10", className)}
+      {...props}
+    />
+  )
 }
