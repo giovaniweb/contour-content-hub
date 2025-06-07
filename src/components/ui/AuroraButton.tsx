@@ -3,12 +3,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface AuroraButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AuroraButtonProps {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   confetti?: boolean;
+  className?: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const AuroraButton: React.FC<AuroraButtonProps> = ({
@@ -19,7 +23,8 @@ const AuroraButton: React.FC<AuroraButtonProps> = ({
   confetti = false,
   className,
   onClick,
-  ...props
+  disabled = false,
+  type = 'button',
 }) => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (confetti) {
@@ -65,12 +70,12 @@ const AuroraButton: React.FC<AuroraButtonProps> = ({
 
   return (
     <motion.button
+      type={type}
       className={baseClasses}
       onClick={handleClick}
+      disabled={disabled || loading}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.95 }}
-      disabled={loading}
-      {...props}
     >
       {/* Shimmer effect overlay */}
       <motion.div
