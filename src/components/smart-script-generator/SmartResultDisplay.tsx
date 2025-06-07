@@ -18,14 +18,14 @@ import {
   Wand2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SmartGenerationData, SmartGeneratedContent } from './types';
+import { ScriptGenerationData, GeneratedContent } from './types';
 import ScriptCard from '@/components/ScriptCard';
 import StructuredScriptValidation from '@/components/script-generator/StructuredScriptValidation';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SmartResultDisplayProps {
-  generationData: SmartGenerationData;
-  generatedContent: SmartGeneratedContent;
+  generationData: ScriptGenerationData;
+  generatedContent: GeneratedContent;
   onGenerateImage?: (prompt: string) => void;
   onGenerateVoice?: (text: string) => void;
   onNewScript: () => void;
