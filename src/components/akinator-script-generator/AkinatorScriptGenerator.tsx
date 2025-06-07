@@ -44,6 +44,12 @@ interface AkinatorState {
   isApproved?: boolean;
 }
 
+interface MentorProfile {
+  estilo: string;
+  tom: string;
+  exemplos: string[];
+}
+
 const STEPS: AkinatorStep[] = [
   {
     id: 'contentType',
@@ -104,12 +110,49 @@ const STEPS: AkinatorStep[] = [
   }
 ];
 
+const MENTORS: Record<string, MentorProfile> = {
+  viral: {
+    estilo: "Divertido e envolvente",
+    tom: "Descontraído, com humor inteligente",
+    exemplos: ["Gente, isso aqui vai viralizar", "Prepara que vem textão", "Alguém mais passou por isso?"]
+  },
+  vendedor: {
+    estilo: "Direto e persuasivo",
+    tom: "Confiante, focado em resultados",
+    exemplos: ["Vou direto ao ponto", "Isso aqui vai mudar sua vida", "Última chance de garantir"]
+  },
+  emocional: {
+    estilo: "Conectivo e tocante",
+    tom: "Empático, com profundidade emocional",
+    exemplos: ["Você já se sentiu assim?", "Essa história me tocou profundamente", "Não estamos sozinhos nisso"]
+  },
+  criativo: {
+    estilo: "Inovador e artístico",
+    tom: "Inspirador, com visão única",
+    exemplos: ["Vou mostrar uma perspectiva diferente", "Arte é transformação", "Beleza está nos detalhes"]
+  },
+  educador: {
+    estilo: "Didático e claro",
+    tom: "Acessível, focado no aprendizado",
+    exemplos: ["Vou te ensinar passo a passo", "Conhecimento é poder", "Simplificando para você"]
+  },
+  visionario: {
+    estilo: "Inspirador e estratégico",
+    tom: "Assertivo, com visão de futuro",
+    exemplos: ["O futuro já chegou", "Liderança é sobre visão", "Inovação começa com coragem"]
+  },
+  estrategista: {
+    estilo: "Analítico e estruturado",
+    tom: "Metodológico, baseado em dados",
+    exemplos: ["Os números não mentem", "Estratégia é tudo", "Planejamento é chave do sucesso"]
+  }
+};
+
 const ENIGMAS = [
-  "Você sentiu a virada? Então já sabe quem guiou isso.",
-  "Esse roteiro tem cheiro de provocação.",
-  "Foi feito para vender. Mas com alma.",
-  "Não é sobre marketing. É sobre visão.",
-  "Esse gancho? Isso tem assinatura secreta."
+  "Foi feito pra vender. Mas com alma.",
+  "Esse roteiro? Você não lê, você sente.",
+  "Quem entende de narrativa vai sacar quem passou por aqui.",
+  "Foi só uma virada... mas mudou tudo."
 ];
 
 const AkinatorScriptGenerator: React.FC = () => {
@@ -134,53 +177,50 @@ const AkinatorScriptGenerator: React.FC = () => {
     return 'estrategista';
   };
 
-  const generateScript = (answers: AkinatorState) => {
-    const mentor = selectMentor(answers);
+  const generateSpecificScript = (answers: AkinatorState, mentorKey: string) => {
+    const mentor = MENTORS[mentorKey];
     
-    // Estrutura base do roteiro baseada no tipo de conteúdo e mentor
+    // Estruturas específicas baseadas no mentor e contexto
     let gancho = "";
     let conflito = "";
     let virada = "";
     let cta = "";
 
-    // Ganchos baseados no estilo
-    if (answers.style === 'emocional') {
-      gancho = "Você já sentiu aquela sensação de que algo está faltando?";
-    } else if (answers.style === 'direto') {
-      gancho = "Vou te contar algo que ninguém fala sobre isso...";
-    } else if (answers.style === 'provocativo') {
-      gancho = "Todo mundo está fazendo errado. E eu vou provar.";
-    } else if (answers.style === 'humoristico') {
-      gancho = "Gente, vocês não vão acreditar no que aconteceu...";
-    } else {
-      gancho = "Hoje eu descobri algo que mudou tudo...";
-    }
-
-    // Conflitos baseados no objetivo
-    if (answers.objective === 'vender') {
-      conflito = "O problema é que a maioria das pessoas não sabe que existe uma solução simples para isso.";
-    } else if (answers.objective === 'engajar') {
-      conflito = "E aí que mora o drama: todo mundo quer, mas ninguém sabe como começar.";
-    } else {
-      conflito = "Mas existe um detalhe que muda tudo e poucos sabem.";
-    }
-
-    // Viradas baseadas no tema
-    if (answers.theme === 'transformacao') {
-      virada = "A virada acontece quando você entende que não é sobre técnica, é sobre mentalidade.";
-    } else if (answers.theme === 'curiosidade') {
-      virada = "O segredo está em fazer exatamente o oposto do que todo mundo faz.";
-    } else {
-      virada = "A resposta está bem na sua frente, você só precisa mudar o ângulo.";
-    }
-
-    // CTAs baseados no canal
-    if (answers.channel === 'instagram') {
-      cta = "Salva esse post e me conta nos comentários: você já passou por isso?";
-    } else if (answers.channel === 'tiktok') {
-      cta = "Comenta AÍ se você quer que eu faça um vídeo só sobre isso!";
-    } else {
-      cta = "Deixa seu comentário aqui embaixo contando sua experiência!";
+    if (mentorKey === 'viral') {
+      gancho = "Gente, 73% das pessoas fazem isso errado todo santo dia...";
+      conflito = "E aí que mora o drama: você gasta uma fortuna achando que tá certo, mas na verdade tá sabotando tudo.";
+      virada = "Descobri um truque de 30 segundos que economiza 80% do tempo e dobra o resultado.";
+      cta = "Comenta AÍ embaixo se você quer que eu mostre o passo a passo!";
+    } else if (mentorKey === 'vendedor') {
+      gancho = "Vou te mostrar como faturar R$ 5.000 a mais este mês sem sair de casa.";
+      conflito = "O problema é que 90% das pessoas tentam vender sem entender a dor real do cliente.";
+      virada = "Quando você aplica a fórmula dos 3 gatilhos mentais, as vendas disparam automaticamente.";
+      cta = "Clica no link da bio e garante sua vaga no treinamento gratuito que acontece hoje às 20h.";
+    } else if (mentorKey === 'emocional') {
+      gancho = "Essa foto mudou minha vida. E eu quero te contar por quê.";
+      conflito = "Durante anos eu carreguei uma culpa que me consumia por dentro, achando que nunca seria suficiente.";
+      virada = "Foi quando entendi que nossa maior fraqueza pode se tornar nossa maior força.";
+      cta = "Se você também carrega algo assim, me manda uma DM. Você não está sozinho.";
+    } else if (mentorKey === 'criativo') {
+      gancho = "Transformei um objeto do lixo numa obra de arte que vale R$ 2.000.";
+      conflito = "Vivemos numa sociedade que descarta o que poderia ser recriado com um olhar diferente.";
+      virada = "Arte não está no material caro, está na visão de quem cria.";
+      cta = "Marca alguém que precisa ver que criatividade não tem limite!";
+    } else if (mentorKey === 'educador') {
+      gancho = "Em 60 segundos você vai aprender algo que deveria ter aprendido na escola.";
+      conflito = "O sistema educacional ensina fórmulas, mas esquece de ensinar como aplicar na vida real.";
+      virada = "Quando você domina esse conceito, problemas complexos viram exercícios simples.";
+      cta = "Salva esse post e compartilha com alguém que precisa aprender isso também!";
+    } else if (mentorKey === 'visionario') {
+      gancho = "Em 2030, quem não souber isso vai ficar para trás.";
+      conflito = "Enquanto todos se preocupam com tendências passageiras, o futuro já está sendo construído.";
+      virada = "Visão não é prever o futuro, é criar ele.";
+      cta = "Me segue para não perder as próximas previsões que vão virar realidade.";
+    } else { // estrategista
+      gancho = "Analisei 10.000 casos e descobri o padrão que 99% ignora.";
+      conflito = "Dados mostram que intuição sem estratégia leva ao fracasso em 87% dos casos.";
+      virada = "Quando você segue o método baseado em evidências, o sucesso deixa de ser sorte.";
+      cta = "Quer acesso à planilha com o framework completo? Link na bio.";
     }
 
     return { gancho, conflito, virada, cta, mentor };
@@ -193,14 +233,15 @@ const AkinatorScriptGenerator: React.FC = () => {
       setState({ ...newState, currentStep: state.currentStep + 1 });
     } else {
       // Gerar roteiro
-      const script = generateScript(newState);
+      const mentorKey = selectMentor(newState);
+      const script = generateSpecificScript(newState, mentorKey);
       const enigma = ENIGMAS[Math.floor(Math.random() * ENIGMAS.length)];
       
       setState({
         ...newState,
         isComplete: true,
         generatedScript: `🎬 Gancho:\n${script.gancho}\n\n🎯 Conflito:\n${script.conflito}\n\n🔁 Virada:\n${script.virada}\n\n📣 CTA:\n${script.cta}\n\n🔮 Enigma do Mentor:\n"${enigma}"`,
-        selectedMentor: script.mentor
+        selectedMentor: mentorKey
       });
     }
   };
@@ -208,8 +249,8 @@ const AkinatorScriptGenerator: React.FC = () => {
   const handleDisneyMagic = () => {
     if (!state.generatedScript) return;
     
-    // Aplicar estrutura Disney
-    const disneyScript = `🎬 Gancho (Era uma vez...):\nEm um mundo onde todos buscam a mesma coisa, uma pessoa descobriu algo diferente...\n\n🎯 Conflito (Até que um dia...):\nMas ela percebeu que o caminho tradicional não funcionava mais...\n\n🔁 Virada (Então ela descobriu...):\nFoi quando encontrou uma abordagem que ninguém esperava...\n\n📣 CTA (E eles viveram felizes...):\nAgora é sua vez de descobrir esse segredo. Vem comigo!`;
+    // Aplicar estrutura Disney com conteúdo específico
+    const disneyScript = `🎬 Gancho (Era uma vez...):\nHavia uma pessoa que acreditava que tinha encontrado a solução perfeita...\n\n🎯 Conflito (Até que um dia...):\nMas descobriu que estava cometendo o mesmo erro que 90% das pessoas cometem...\n\n🔁 Virada (Então ela descobriu...):\nQuando aplicou o método dos especialistas, tudo mudou em questão de dias...\n\n📣 CTA (E eles viveram felizes...):\nAgora é sua vez de descobrir esse segredo. Me chama no direct!`;
     
     setState({
       ...state,
