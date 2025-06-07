@@ -1,21 +1,24 @@
 
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
-import { UserRole } from '@/types/auth';
+import { ROUTES } from '@/routes';
 
 interface PrivateRouteProps {
-  children?: React.ReactNode;
-  requiredRole?: UserRole;
+  children: React.ReactNode;
+  requiredPermission?: string;
+  fallbackPath?: string;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
-  const { user, isLoading, isAuthenticated } = useAuth();
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ 
+  children, 
+  requiredPermission,
+  fallbackPath = ROUTES.LOGIN 
+}) => {
+  const { isAuthenticated, isLoading } = useAuth();
   const { hasPermission } = usePermissions();
-  const location = useLocation();
-  
-  // Show loading while auth is being determined
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,18 +27,15 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
     );
   }
 
-  // If not authenticated, redirect to login
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAuthenticated) {
+    return <Navigate to={fallbackPath} replace />;
   }
-  
-  // If a role is required and the user doesn't have it, redirect to dashboard
-  if (requiredRole && !hasPermission(requiredRole)) {
-    return <Navigate to="/dashboard" replace />;
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
-  
-  // Render children or outlet
-  return children ? <>{children}</> : <Outlet />;
+
+  return <>{children}</>;
 };
 
 export default PrivateRoute;
