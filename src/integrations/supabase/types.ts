@@ -838,6 +838,45 @@ export type Database = {
         }
         Relationships: []
       }
+      mentores: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string
+          estilo: string
+          exemplos: string[]
+          id: string
+          nome: string
+          tom: string
+          updated_at: string
+          uso_ideal: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao: string
+          estilo: string
+          exemplos?: string[]
+          id?: string
+          nome: string
+          tom: string
+          updated_at?: string
+          uso_ideal: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string
+          estilo?: string
+          exemplos?: string[]
+          id?: string
+          nome?: string
+          tom?: string
+          updated_at?: string
+          uso_ideal?: string
+        }
+        Relationships: []
+      }
       perfis: {
         Row: {
           cidade: string | null
