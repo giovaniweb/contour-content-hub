@@ -1,103 +1,124 @@
 
-import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import AuroraCard from '@/components/ui/AuroraCard';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, MoreHorizontal } from 'lucide-react';
-import InviteUserModal from './InviteUserModal';
+import { fetchWorkspaceUsers } from '@/services/authService';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { WorkspaceUser as WorkspaceUserType } from '@/lib/supabase/schema-types';
 
-const WorkspaceUsers: React.FC = () => {
+interface WorkspaceUsersProps {
+  workspaceId?: string;
+  onInviteUser?: () => void;
+}
+
+const WorkspaceUsers: React.FC<WorkspaceUsersProps> = ({ workspaceId, onInviteUser }) => {
+  const [users, setUsers] = useState<WorkspaceUserType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   const { user } = useAuth();
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
-  // Mock users data - in a real app this would come from the database
-  const mockUsers = [
-    {
-      id: '1',
-      name: user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário',
-      email: user?.email || '',
-      role: user?.user_metadata?.role || 'admin',
-      avatar: user?.user_metadata?.avatar_url || '',
-      isCurrentUser: true
-    },
-    {
-      id: '2',
-      name: 'Maria Silva',
-      email: 'maria@exemplo.com',
-      role: 'user',
-      avatar: '',
-      isCurrentUser: false
-    },
-    {
-      id: '3',
-      name: 'João Santos',
-      email: 'joao@exemplo.com',
-      role: 'manager',
-      avatar: '',
-      isCurrentUser: false
+  
+  useEffect(() => {
+    if (workspaceId || user?.workspace_id) {
+      loadUsers();
     }
-  ];
-
-  if (!user) {
-    return null;
-  }
-
+  }, [workspaceId, user?.workspace_id]);
+  
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersData = await fetchWorkspaceUsers(workspaceId || user?.workspace_id || '');
+      setUsers(usersData as WorkspaceUserType[]);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: 'Erro ao carregar usuários',
+        description: 'Não foi possível carregar os usuários do workspace.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800';
+      case 'gerente':
+        return 'bg-blue-100 text-blue-800';
+      case 'operador':
+        return 'bg-green-100 text-green-800';
+      case 'consultor':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'U';
+  };
+  
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="aurora-heading text-2xl font-light text-white mb-2">
-            Usuários do Workspace
-          </h2>
-          <p className="aurora-body text-white/70">
-            Gerencie os membros do seu workspace
-          </p>
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Usuários</CardTitle>
+            <CardDescription>Gerencie os usuários do workspace</CardDescription>
+          </div>
+          {onInviteUser && (
+            <Button onClick={onInviteUser}>Convidar Usuário</Button>
+          )}
         </div>
-        <Button onClick={() => setIsInviteModalOpen(true)}>
-          <UserPlus className="w-4 h-4 mr-2" />
-          Convidar Usuário
-        </Button>
-      </div>
-
-      <AuroraCard className="p-6">
-        <div className="space-y-4">
-          {mockUsers.map((workspaceUser) => (
-            <div key={workspaceUser.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="text-center py-4">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            <p className="mt-2 text-sm text-muted-foreground">Carregando usuários...</p>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-8 border rounded-lg">
+            <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+            {onInviteUser && (
+              <Button variant="outline" className="mt-2" onClick={onInviteUser}>
+                Convidar Usuários
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y">
+            {users.map(user => (
+              <div key={user.id} className="py-3 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Avatar>
+                    <AvatarFallback>{getInitials(user.nome)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{user.nome || user.email}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-white">
-                    {workspaceUser.name}
-                    {workspaceUser.isCurrentUser && (
-                      <span className="ml-2 text-xs bg-aurora-electric-purple px-2 py-1 rounded">
-                        Você
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-sm text-white/70">{workspaceUser.email}</p>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className={getRoleColor(user.role)}>
+                    {user.role}
+                  </Badge>
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-white/80 capitalize">
-                  {workspaceUser.role}
-                </span>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </AuroraCard>
-
-      <InviteUserModal 
-        isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
-      />
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,120 +1,138 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Redirect if already authenticated and on login page
+  React.useEffect(() => {
+    if (isAuthenticated && location.pathname === '/login') {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  const getErrorMessage = (error: any) => {
+    if (error?.message) {
+      switch (error.message) {
+        case 'Invalid login credentials':
+          return 'Email ou senha incorretos. Verifique seus dados e tente novamente.';
+        case 'Email not confirmed':
+          return 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email.';
+        case 'Too many requests':
+          return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+        case 'User not found':
+          return 'Usuário não encontrado. Verifique o email ou crie uma nova conta.';
+        default:
+          return `Erro ao fazer login: ${error.message}`;
+      }
+    }
+    return 'Erro desconhecido ao fazer login. Tente novamente.';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!email || !password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
 
+    if (!email.includes('@')) {
+      toast.error('Por favor, insira um email válido');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro no login",
-          description: error.message,
-        });
-      } else {
-        toast({
-          title: "Login realizado",
-          description: "Bem-vindo de volta!",
-        });
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
-      });
+      await login(email, password);
+      toast.success('Login realizado com sucesso');
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen aurora-dark-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="aurora-glass border-aurora-electric-purple/20">
-          <CardHeader className="text-center">
-            <CardTitle className="aurora-heading text-2xl text-white">
-              Entrar no Sistema
-            </CardTitle>
-            <CardDescription className="aurora-body text-white/70">
-              Acesse sua conta para continuar criando conteúdo mágico
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/90">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-white/50" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-white/90">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-white/50" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50"
-                    required
-                  />
-                </div>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full aurora-button"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-3xl font-light">Login</CardTitle>
+          <CardDescription>Entre com sua conta para acessar o sistema</CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com" 
+                required 
                 disabled={isLoading}
-              >
-                {isLoading ? "Entrando..." : "Entrar"}
-                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="aurora-body text-white/70">
-                Não tem uma conta?{' '}
-                <Link to="/register" className="aurora-text-gradient hover:underline">
-                  Registre-se aqui
+                autoComplete="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium">Senha</label>
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                  Esqueceu a senha?
                 </Link>
-              </p>
+              </div>
+              <Input 
+                id="password" 
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="••••••••" 
+                required 
+                disabled={isLoading}
+                autoComplete="current-password"
+              />
             </div>
           </CardContent>
-        </Card>
-      </div>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "Autenticando..." : "Entrar"}
+            </Button>
+            <div className="text-center text-sm">
+              Não tem uma conta?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Registre-se
+              </Link>
+            </div>
+            <div className="text-center text-xs text-gray-600 bg-yellow-50 p-2 rounded">
+              💡 <strong>Dica:</strong> Se você não tem uma conta, clique em "Registre-se" para criar uma nova conta.
+            </div>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 };

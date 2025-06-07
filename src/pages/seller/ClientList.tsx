@@ -1,71 +1,277 @@
 
-import React, { useState } from 'react';
-import Layout from '@/components/Layout';
-import { usePermissions } from '@/hooks/use-permissions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Users } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import { Users, Search, Plus, Calendar, FileText, BarChart, UserPlus, User as UserIcon } from "lucide-react";
+import { UserRole } from "@/types/auth";
 
 interface Client {
   id: string;
   name: string;
   email: string;
-  status: string;
+  clinic?: string;
+  city?: string;
+  phone?: string;
+  lastActive?: string;
+  scriptCount?: number;
+  subscription?: string;
 }
 
-const ClientList: React.FC = () => {
+const ClientList = () => {
+  const { user } = useAuth();
   const { hasPermission } = usePermissions();
-  const [clients] = useState<Client[]>([
-    { id: '1', name: 'Cliente 1', email: 'cliente1@example.com', status: 'Ativo' },
-    { id: '2', name: 'Cliente 2', email: 'cliente2@example.com', status: 'Pendente' },
-  ]);
-
-  if (!hasPermission('viewSales')) {
-    return (
-      <Layout title="Acesso Negado">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Você não tem permissão para acessar esta página.
-          </AlertDescription>
-        </Alert>
-      </Layout>
-    );
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Check if user has permission to manage clients
+  if (!hasPermission('manageClients' as UserRole)) {
+    return <Navigate to="/dashboard" replace />;
   }
-
+  
+  useEffect(() => {
+    fetchClients();
+  }, []);
+  
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar todos os clientes (role = 'cliente')
+      const { data: clientProfiles, error } = await supabase
+        .from('perfis')
+        .select('*')
+        .eq('role', 'cliente');
+        
+      if (error) throw error;
+      
+      // Para cada cliente, buscar estatísticas adicionais
+      const enrichedClients = await Promise.all((clientProfiles || []).map(async (profile) => {
+        // Contar roteiros
+        const { count: scriptCount } = await supabase
+          .from('roteiros')
+          .select('*', { count: 'exact', head: true })
+          .eq('usuario_id', profile.id);
+          
+        // Buscar plano de assinatura do usuário
+        const { data: usageData } = await supabase
+          .from('user_usage')
+          .select('plan_id, last_activity')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+        
+        let subscriptionName = 'Free';
+        if (usageData?.plan_id) {
+          const { data: planData } = await supabase
+            .from('subscription_plans')
+            .select('name')
+            .eq('id', usageData.plan_id)
+            .maybeSingle();
+            
+          if (planData) {
+            subscriptionName = planData.name;
+          }
+        }
+        
+        return {
+          id: profile.id,
+          name: profile.nome || 'Sem nome',
+          email: profile.email,
+          clinic: profile.clinica,
+          city: profile.cidade,
+          phone: profile.telefone,
+          lastActive: usageData?.last_activity,
+          scriptCount: scriptCount || 0,
+          subscription: subscriptionName
+        };
+      }));
+      
+      setClients(enrichedClients);
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      toast("Erro", {
+        description: "Não foi possível carregar a lista de clientes."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (client.clinic && client.clinic.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (client.city && client.city.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  
+  const getSubscriptionBadge = (subscription: string) => {
+    switch(subscription) {
+      case 'Free':
+        return <Badge variant="outline">Gratuito</Badge>;
+      case 'Pro':
+        return <Badge variant="default" className="bg-blue-500">Pro</Badge>;
+      case 'Unlimited':
+        return <Badge variant="default" className="bg-purple-600">Premium</Badge>;
+      default:
+        return <Badge variant="outline">{subscription}</Badge>;
+    }
+  };
+  
   return (
-    <Layout title="Lista de Clientes">
-      <div className="space-y-6">
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Gerenciamento de Clientes</h1>
+          <p className="text-muted-foreground">
+            Visualize e gerencie seus clientes
+          </p>
+        </div>
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Novo Cliente
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="h-5 w-5" />
-              <span>Clientes</span>
-            </CardTitle>
-            <CardDescription>
-              Gerencie sua lista de clientes
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle>Total de Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {clients.map((client) => (
-                <div key={client.id} className="flex items-center justify-between p-4 border rounded">
-                  <div>
-                    <h3 className="font-medium">{client.name}</h3>
-                    <p className="text-sm text-gray-600">{client.email}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm">{client.status}</span>
-                    <Button size="sm" variant="outline">Ver Detalhes</Button>
-                  </div>
-                </div>
-              ))}
+            <div className="text-3xl font-bold">{clients.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Clientes Ativos</CardTitle>
+            <CardDescription>Últimos 30 dias</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {clients.filter(client => 
+                client.lastActive && 
+                new Date(client.lastActive) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+              ).length}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Roteiros Gerados</CardTitle>
+            <CardDescription>Total</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {clients.reduce((sum, client) => sum + (client.scriptCount || 0), 0)}
             </div>
           </CardContent>
         </Card>
       </div>
-    </Layout>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Seus Clientes</CardTitle>
+          <div className="flex w-full max-w-sm items-center space-x-2 mt-2">
+            <Input 
+              type="text"
+              placeholder="Buscar clientes..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+            <Button type="submit" size="icon" variant="ghost">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Clínica</TableHead>
+                    <TableHead>Cidade</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead className="text-right">Roteiros</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredClients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center h-24">
+                        Nenhum cliente encontrado
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredClients.map(client => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div>{client.name}</div>
+                              <div className="text-xs text-muted-foreground">{client.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{client.clinic || "-"}</TableCell>
+                        <TableCell>{client.city || "-"}</TableCell>
+                        <TableCell>{getSubscriptionBadge(client.subscription || 'Free')}</TableCell>
+                        <TableCell className="text-right">{client.scriptCount}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to={`/seller/clients/${client.id}`}>
+                                <BarChart className="mr-1 h-4 w-4" />
+                                Detalhes
+                              </Link>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
