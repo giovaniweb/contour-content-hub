@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Wand2, Sparkles, Brain, Lightbulb } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, Brain, Lightbulb, Clock } from 'lucide-react';
 
 const GeneratingStep: React.FC = () => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   const messages = [
     {
@@ -33,23 +34,34 @@ const GeneratingStep: React.FC = () => {
   useEffect(() => {
     const messageInterval = setInterval(() => {
       setCurrentMessageIndex((prev) => (prev + 1) % messages.length);
-    }, 2000);
+    }, 3000);
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) return prev;
-        return prev + Math.random() * 5;
+        return prev + Math.random() * 3;
       });
-    }, 300);
+    }, 500);
+
+    const timeInterval = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
 
     return () => {
       clearInterval(messageInterval);
       clearInterval(progressInterval);
+      clearInterval(timeInterval);
     };
   }, []);
 
   const currentMessage = messages[currentMessageIndex];
   const CurrentIcon = currentMessage.icon;
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -77,9 +89,13 @@ const GeneratingStep: React.FC = () => {
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-xs text-center text-muted-foreground">
-              {Math.round(progress)}% concluído
-            </p>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{Math.round(progress)}% concluído</span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {formatTime(elapsed)}
+              </span>
+            </div>
           </div>
 
           {/* Loading dots */}
@@ -89,12 +105,30 @@ const GeneratingStep: React.FC = () => {
             <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce"></div>
           </div>
 
-          {/* Fun fact */}
+          {/* Dynamic tips */}
           <div className="mt-4 p-4 bg-purple-500/10 rounded-lg max-w-md">
-            <p className="text-sm text-center text-purple-300">
-              💡 <strong>Dica:</strong> Um bom roteiro pode aumentar o engajamento em até 300%!
-            </p>
+            {elapsed < 20 && (
+              <p className="text-sm text-center text-purple-300">
+                💡 <strong>Dica:</strong> Um bom roteiro pode aumentar o engajamento em até 300%!
+              </p>
+            )}
+            {elapsed >= 20 && elapsed < 40 && (
+              <p className="text-sm text-center text-purple-300">
+                🎯 <strong>Lembre-se:</strong> Estamos otimizando seu conteúdo para máxima conversão!
+              </p>
+            )}
+            {elapsed >= 40 && (
+              <p className="text-sm text-center text-purple-300">
+                🚀 <strong>Quase pronto:</strong> Sua IA está aplicando as melhores práticas de copywriting!
+              </p>
+            )}
           </div>
+
+          {elapsed > 45 && (
+            <div className="text-center text-sm text-yellow-400">
+              ⏳ Processamento mais complexo detectado - aguarde mais alguns instantes...
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

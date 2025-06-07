@@ -36,9 +36,9 @@ export const useScriptGeneration = () => {
 
       console.log('Enviando requisição para API:', scriptRequest);
 
-      // Adicionar timeout para evitar travamento
+      // Aumentar timeout para 60 segundos e adicionar melhor tratamento
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na geração do roteiro')), 30000);
+        setTimeout(() => reject(new Error('Timeout na geração do roteiro - tente novamente')), 60000);
       });
 
       const scriptPromise = generateScript(scriptRequest);
@@ -65,29 +65,14 @@ export const useScriptGeneration = () => {
     } catch (error) {
       console.error('Erro ao gerar roteiro:', error);
       
-      // Fallback para conteúdo mock em caso de erro
-      try {
-        const mockContent = generateMockContent(data);
-        setGeneratedContent(mockContent);
-        setStep('smartResult');
-
-        toast({
-          title: "Roteiro gerado (modo simulado)",
-          description: "Houve um problema com a API, mas geramos um conteúdo de exemplo.",
-          variant: "destructive",
-        });
-      } catch (mockError) {
-        console.error('Erro ao gerar conteúdo mock:', mockError);
-        
-        // Se mesmo o mock falhar, voltar para o input
-        setStep('smartInput');
-        
-        toast({
-          title: "Erro ao gerar roteiro",
-          description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-      }
+      // Voltar para o input em caso de erro para não ficar travado
+      setStep('smartInput');
+      
+      toast({
+        title: "Erro na geração",
+        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
