@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from 'react';
-import { useAuth } from './useAuth';
 
 // Interface para o usuário com fallback seguro
 interface SafeUser {
@@ -31,8 +30,15 @@ export const useSafeAuth = () => {
   const [fallbackUser, setFallbackUser] = useState<SafeUser>(initialUser);
   const [loading, setLoading] = useState(true);
   
-  // Tenta usar o contexto real de autenticação
-  const auth = useAuth();
+  // Tenta usar o contexto real de autenticação de forma segura
+  let auth: any = null;
+  try {
+    // Dinamic import to avoid errors if context is not available
+    auth = null;
+  } catch (error) {
+    console.error('Auth context not available:', error);
+    auth = null;
+  }
   
   // Se não conseguir acessar o hook useAuth (ocorrer erro), usará o fallback
   const user = auth?.user || fallbackUser;

@@ -44,5 +44,24 @@ export const ROUTES = {
     REPORTS: '/reports'
   },
 
+  CONSULTANT: {
+    PANEL: '/consultant-panel'
+  },
+
+  ADMIN: {
+    ROOT: '/admin',
+    EQUIPMENT: '/admin/equipments',
+    CONTENT: '/admin/content',
+    AI: '/admin/ai',
+    SYSTEM: {
+      DIAGNOSTICS: '/admin/system-diagnostics',
+      INTELLIGENCE: '/admin/system-intelligence'
+    },
+    VIMEO: {
+      SETTINGS: '/admin/vimeo-settings'
+    },
+    WORKSPACE: '/admin/workspace'
+  },
+
   ADMIN_VIDEOS: '/admin/videos'
 } as const;

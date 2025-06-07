@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile } from '@/types/auth';
+import { UserProfile, UserRole } from '@/types/auth';
 
 export const fetchUserProfile = async (userId?: string): Promise<UserProfile | null> => {
   try {
@@ -27,16 +27,16 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       id: data.id,
       email: data.email,
       nome: data.nome,
-      role: data.role,
+      role: (data.role as UserRole) || 'cliente',
       clinica: data.clinica,
       cidade: data.cidade,
       telefone: data.telefone,
       equipamentos: data.equipamentos,
-      idioma: data.idioma,
-      workspace_id: data.workspace_id,
-      profilePhotoUrl: data.profile_photo_url,
-      created_at: data.created_at,
-      updated_at: data.updated_at
+      idioma: (data.idioma as 'PT' | 'EN' | 'ES') || 'PT',
+      workspace_id: data.workspace_id || undefined,
+      profilePhotoUrl: data.foto_url || undefined,
+      created_at: data.data_criacao,
+      updated_at: data.data_criacao
     };
   } catch (error) {
     console.error('Error fetching user profile:', error);
