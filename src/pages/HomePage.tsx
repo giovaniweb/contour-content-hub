@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navbar/Navbar';
 import HeroSection from '@/components/home/HeroSection';
-import FeaturesSection from '@/components/home/FeaturesSection';
+import FeaturesSection from '@/components/home/HomePage/FeaturesSection';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import VideoGallerySection from '@/components/home/VideoGallerySection';
 import ImageGallerySection from '@/components/home/ImageGallerySection';
