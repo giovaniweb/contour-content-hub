@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -50,7 +51,7 @@ serve(async (req) => {
       );
     }
     
-    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective } = request;
+    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective, systemPrompt, userPrompt } = request;
     
     if (!type) {
       return new Response(
@@ -61,19 +62,33 @@ serve(async (req) => {
     
     console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}, objetivo: ${marketingObjective}`);
 
-    // Create prompts based on script type
-    const { systemPrompt, userPrompt } = buildPrompt({
-      type,
-      topic,
-      equipment,
-      bodyArea,
-      purpose,
-      additionalInfo,
-      tone,
-      language,
-      marketingObjective
-    });
+    let finalSystemPrompt: string;
+    let finalUserPrompt: string;
 
+    // Handle custom prompts or build standard prompts
+    if (type === 'custom' && systemPrompt && userPrompt) {
+      console.log("Usando prompts customizados fornecidos");
+      finalSystemPrompt = systemPrompt;
+      finalUserPrompt = userPrompt;
+    } else {
+      console.log("Construindo prompts padrão");
+      const prompts = buildPrompt({
+        type,
+        topic,
+        equipment,
+        bodyArea,
+        purpose,
+        additionalInfo,
+        tone,
+        language,
+        marketingObjective
+      });
+      finalSystemPrompt = prompts.systemPrompt;
+      finalUserPrompt = prompts.userPrompt;
+    }
+
+    console.log("System Prompt:", finalSystemPrompt.substring(0, 200) + "...");
+    console.log("User Prompt:", finalUserPrompt.substring(0, 200) + "...");
     console.log("Enviando requisição para OpenAI com chave oficial");
     
     // Call OpenAI API with the official key only
@@ -88,10 +103,11 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
+            { role: "system", content: finalSystemPrompt },
+            { role: "user", content: finalUserPrompt }
           ],
-          temperature: 0.7
+          temperature: 0.7,
+          max_tokens: 2000
         })
       });
     } catch (fetchError) {
@@ -116,7 +132,7 @@ serve(async (req) => {
     let data;
     try {
       data = await response.json();
-      console.log("Resposta OpenAI recebida:", JSON.stringify(data).substring(0, 200) + "...");
+      console.log("Resposta OpenAI recebida:", JSON.stringify(data).substring(0, 500) + "...");
     } catch (parseError) {
       console.error("Erro ao processar resposta da OpenAI:", parseError);
       return new Response(
@@ -133,7 +149,15 @@ serve(async (req) => {
       );
     }
 
-    const content = data.choices[0].message.content;
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      console.error("Conteúdo vazio na resposta da OpenAI:", data);
+      return new Response(
+        JSON.stringify({ error: "Resposta vazia da API OpenAI" }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log("Conteúdo gerado com sucesso:", content.substring(0, 200) + "...");
     
     // Format the response
