@@ -26,6 +26,11 @@ interface ScriptCardProps {
     exemplos: string[];
   };
   objective?: string;
+  contentType?: string;
+  theme?: string;
+  style?: string;
+  channel?: string;
+  onGenerateImage?: (prompt: string) => void;
 }
 
 const ScriptCard: React.FC<ScriptCardProps> = ({ 
@@ -33,7 +38,12 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
   onApprove,
   onReject,
   mentor,
-  objective
+  objective,
+  contentType,
+  theme,
+  style,
+  channel,
+  onGenerateImage
 }) => {
   const [activeTab, setActiveTab] = useState("conteudo");
   const [showVideos, setShowVideos] = useState(false);
@@ -90,6 +100,11 @@ const ScriptCard: React.FC<ScriptCardProps> = ({
               script={script.content}
               objective={objective || script.objective || script.marketingObjective}
               mentor={mentor}
+              contentType={contentType}
+              theme={theme}
+              style={style}
+              channel={channel}
+              onGenerateImage={onGenerateImage}
               onValidationComplete={(result) => {
                 console.log("Validação estruturada concluída:", result);
               }}

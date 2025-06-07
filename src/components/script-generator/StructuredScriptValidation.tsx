@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { CheckCircle, AlertCircle, RefreshCw, Image, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,7 +16,12 @@ interface StructuredValidationProps {
     tom: string;
     exemplos: string[];
   };
+  contentType?: string;
+  theme?: string;
+  style?: string;
+  channel?: string;
   onValidationComplete?: (result: StructuredValidationResult) => void;
+  onGenerateImage?: (prompt: string) => void;
 }
 
 interface StructuredValidationResult {
@@ -32,11 +36,17 @@ const StructuredScriptValidation: React.FC<StructuredValidationProps> = ({
   script,
   objective = "não especificado",
   mentor,
-  onValidationComplete
+  contentType,
+  theme,
+  style,
+  channel,
+  onValidationComplete,
+  onGenerateImage
 }) => {
   const [isValidating, setIsValidating] = useState(false);
   const [result, setResult] = useState<StructuredValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const { toast } = useToast();
 
   const handleValidate = async () => {
@@ -173,6 +183,123 @@ ${script}
     }
   };
 
+  const generateImagePrompt = (scriptContent: string) => {
+    // Parse script content to extract sections
+    const lines = scriptContent.split('\n').filter(line => line.trim());
+    let gancho = '', conflito = '', virada = '', cta = '';
+    
+    // Simple parsing - you might want to improve this based on your script format
+    lines.forEach(line => {
+      if (line.toLowerCase().includes('gancho') || line.toLowerCase().includes('hook')) {
+        gancho = line;
+      } else if (line.toLowerCase().includes('conflito') || line.toLowerCase().includes('problema')) {
+        conflito = line;
+      } else if (line.toLowerCase().includes('virada') || line.toLowerCase().includes('solução')) {
+        virada = line;
+      } else if (line.toLowerCase().includes('cta') || line.toLowerCase().includes('chamada')) {
+        cta = line;
+      }
+    });
+
+    return `Gere uma imagem para Instagram com base no roteiro abaixo.
+
+Tema: ${theme || 'Não especificado'}  
+Objetivo: ${objective}  
+Estilo: ${style || 'Não especificado'}  
+Canal: ${channel || 'Instagram'}  
+Mentor: ${mentor?.nome || 'Não especificado'}
+
+---
+
+Roteiro:
+🎬 Gancho: ${gancho}  
+🎯 Conflito: ${conflito}  
+🔁 Virada: ${virada}  
+📣 CTA: ${cta}
+
+---
+
+Descreva a imagem ideal que represente esse roteiro:
+- Qual deve ser o cenário?
+- Quem aparece (ex: mulher, 40 anos, expressão pensativa)?
+- Que texto aparece na imagem? (ex: Slide 1, headline)
+
+Exemplo de descrição final esperada:
+
+Imagem 1:
+- Uma mulher de 40 anos com expressão de dúvida, tocando o rosto
+- Fundo suave, luz natural
+- Texto na imagem: "Flacidez não é só estética"
+
+Imagem 2:
+- Close no rosto dela, mostrando flacidez
+- Texto: "Creme resolve? Só na embalagem"
+
+Imagem 3:
+- Dispositivo HIFU sendo usado
+- Texto: "A tecnologia que ativa colágeno"
+
+Imagem 4:
+- Ela sorrindo confiante, com pele firme
+- Texto: "Me chama no direct e descubra se é pra você"
+
+---
+
+Retorne apenas a descrição visual de cada imagem + texto.`;
+  };
+
+  const handleGenerateImage = async () => {
+    if (!script.trim()) {
+      toast({
+        title: "Erro",
+        description: "Roteiro não pode estar vazio",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+
+    try {
+      const imagePrompt = generateImagePrompt(script);
+      
+      if (onGenerateImage) {
+        onGenerateImage(imagePrompt);
+      } else {
+        // Call OpenAI to generate image description
+        const { data, error } = await supabase.functions.invoke('generate-image-description', {
+          body: {
+            prompt: imagePrompt
+          }
+        });
+
+        if (error) {
+          throw new Error(`Erro na geração: ${error.message}`);
+        }
+
+        toast({
+          title: "Descrição da imagem gerada!",
+          description: "Descrição visual criada com sucesso.",
+        });
+
+        // You could store or display the generated description here
+        console.log("Descrição da imagem gerada:", data);
+      }
+
+    } catch (err) {
+      console.error("Erro ao gerar descrição da imagem:", err);
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido na geração";
+      
+      toast({
+        title: "Erro na Geração",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const ValidationCriterion = ({ 
     icon, 
     title, 
@@ -199,6 +326,8 @@ ${script}
       </Badge>
     </div>
   );
+
+  const isImageContent = contentType === 'image' || contentType === 'carousel';
 
   return (
     <Card>
@@ -288,6 +417,36 @@ ${script}
               </h4>
               <p className="text-sm">{result.sugestaoFinal}</p>
             </div>
+
+            {/* Show image generation option if script is approved and content type is image/carousel */}
+            {result.approved && isImageContent && (
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  <h4 className="font-medium text-purple-800">Roteiro Aprovado!</h4>
+                </div>
+                <p className="text-sm text-purple-700 mb-3">
+                  Seu roteiro está pronto! Que tal criar uma imagem visual para acompanhar?
+                </p>
+                <Button 
+                  onClick={handleGenerateImage} 
+                  disabled={isGeneratingImage}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {isGeneratingImage ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Gerando Descrição...
+                    </>
+                  ) : (
+                    <>
+                      <Image className="h-4 w-4 mr-2" />
+                      Criar Imagem com IA
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             <Button variant="outline" onClick={handleValidate} className="w-full">
               <RefreshCw className="h-4 w-4 mr-2" />
