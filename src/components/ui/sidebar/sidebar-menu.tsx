@@ -46,11 +46,41 @@ export function SidebarMenuButton({
   asChild = false,
   ...props
 }: SidebarMenuButtonProps) {
-  const Comp = asChild ? Slot : "button"
+  const content = (
+    <>
+      {icon && (
+        <span className={cn(
+          "flex-shrink-0 w-5 h-5",
+          isActive && "text-aurora-lavender"
+        )}>
+          {icon}
+        </span>
+      )}
+      <span className="flex-1 text-left">{children}</span>
+    </>
+  );
+
+  if (asChild) {
+    return (
+      <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+        <Slot
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+            "text-white/80 hover:text-white hover:bg-white/10",
+            "focus:outline-none focus:ring-2 focus:ring-aurora-lavender/50",
+            isActive && "bg-white/15 text-white shadow-lg shadow-aurora-lavender/20",
+            className
+          )}
+        >
+          {React.cloneElement(children as React.ReactElement, {}, content)}
+        </Slot>
+      </motion.div>
+    );
+  }
   
   return (
     <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-      <Comp
+      <button
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
           "text-white/80 hover:text-white hover:bg-white/10",
@@ -60,16 +90,8 @@ export function SidebarMenuButton({
         )}
         {...props}
       >
-        {icon && (
-          <span className={cn(
-            "flex-shrink-0 w-5 h-5",
-            isActive && "text-aurora-lavender"
-          )}>
-            {icon}
-          </span>
-        )}
-        <span className="flex-1 text-left">{children}</span>
-      </Comp>
+        {content}
+      </button>
     </motion.div>
   )
 }
