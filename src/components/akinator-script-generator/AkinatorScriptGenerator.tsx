@@ -40,7 +40,7 @@ const AkinatorScriptGenerator: React.FC = () => {
   const handleDisneyMagic = () => {
     if (!state.generatedScript) return;
     
-    const disneyScript = generateDisneyScript();
+    const disneyScript = generateDisneyScript(state.generatedScript, state.contentType);
     
     setState({
       ...state,
@@ -49,8 +49,8 @@ const AkinatorScriptGenerator: React.FC = () => {
     });
     
     toast({
-      title: "✨ Magia Disney Aplicada!",
-      description: "Seu roteiro agora tem a estrutura narrativa da Disney."
+      title: "✨ Magia Disney 1928 Aplicada!",
+      description: "Seu roteiro foi transformado por Walt Disney em seu estúdio criativo."
     });
   };
 

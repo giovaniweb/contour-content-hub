@@ -93,8 +93,66 @@ export const generateSpecificScript = (answers: AkinatorState, mentorKey: string
   return { gancho, conflito, virada, cta, mentor };
 };
 
-export const generateDisneyScript = (): string => {
-  return `🎬 Gancho (Era uma vez...):\nHavia uma pessoa que acreditava que tinha encontrado a solução perfeita...\n\n🎯 Conflito (Até que um dia...):\nMas descobriu que estava cometendo o mesmo erro que 90% das pessoas cometem...\n\n🔁 Virada (Então ela descobriu...):\nQuando aplicou o método dos especialistas, tudo mudou em questão de dias...\n\n📣 CTA (E eles viveram felizes...):\nAgora é sua vez de descobrir esse segredo. Me chama no direct!`;
+export const generateDisneyScript = (originalScript: string, contentType?: string): string => {
+  // Parse the original script to extract components
+  const lines = originalScript.split('\n');
+  let gancho = "";
+  let conflito = "";
+  let virada = "";
+  let cta = "";
+  
+  // Extract existing components for transformation
+  lines.forEach(line => {
+    if (line.includes('Gancho:')) {
+      gancho = line.replace(/.*Gancho:\s*/, '');
+    } else if (line.includes('Conflito:')) {
+      conflito = line.replace(/.*Conflito:\s*/, '');
+    } else if (line.includes('Virada:')) {
+      virada = line.replace(/.*Virada:\s*/, '');
+    } else if (line.includes('CTA:')) {
+      cta = line.replace(/.*CTA:\s*/, '');
+    }
+  });
+
+  // Apply Disney magic transformation based on Walt Disney's 1928 perspective
+  const disneyTransformations = [
+    {
+      // Emotional connection and dreams
+      gancho: "Era uma vez uma pessoa que acreditava que já tinha encontrado tudo o que precisava...",
+      conflito: "Até descobrir que estava vivendo apenas uma fração do que realmente merecia experimentar.",
+      virada: "Foi quando ela encontrou algo que não apenas mudou sua realidade, mas despertou sonhos que nem sabia que tinha.",
+      cta: "E agora é sua vez de descobrir essa magia. Toque no link e comece sua própria transformação!"
+    },
+    {
+      // Journey and discovery
+      gancho: "Imagine se eu te dissesse que existe um segredo escondido que pode mudar tudo...",
+      conflito: "A maioria das pessoas passa a vida inteira procurando por algo especial, mas olhando nos lugares errados.",
+      virada: "Quando você encontra a chave certa, não é apenas uma mudança - é uma verdadeira metamorfose mágica.",
+      cta: "Sua aventura começa com um simples toque. Descubra o que te espera!"
+    },
+    {
+      // Hope and transformation
+      gancho: "Havia uma vez alguém que se sentia exatamente como você se sente agora...",
+      conflito: "Cansada de tentar soluções que prometiam muito mas entregavam pouco, quase desistiu de sonhar.",
+      virada: "Mas então descobriu que a verdadeira magia acontece quando encontramos exatamente o que nossa alma estava procurando.",
+      cta: "Seu momento mágico está a um clique de distância. Permita-se sonhar novamente!"
+    }
+  ];
+
+  // Select a random Disney transformation
+  const selectedTransformation = disneyTransformations[Math.floor(Math.random() * disneyTransformations.length)];
+  
+  // Apply word limits for specific content types
+  let finalGancho = selectedTransformation.gancho;
+  if (contentType === 'carousel') {
+    // Limit to 13 words for Card 1
+    finalGancho = "Era uma vez alguém que acreditava ter encontrado tudo...";
+  } else if (contentType === 'video') {
+    // Limit to 14 words for Take 1  
+    finalGancho = "Imagine se existisse um segredo que pode mudar tudo na sua vida...";
+  }
+
+  return `🎬 Gancho:\n${finalGancho}\n\n🎯 Conflito:\n${selectedTransformation.conflito}\n\n🔁 Virada:\n${selectedTransformation.virada}\n\n📣 CTA:\n${selectedTransformation.cta}\n\n✨ Transformado pela Magia Disney:\n"Uma história que faz as pessoas sonharem e acreditarem na transformação."`;
 };
 
 export const getRandomEnigma = (): string => {
