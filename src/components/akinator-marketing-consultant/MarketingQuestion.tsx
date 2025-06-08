@@ -90,17 +90,6 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     console.log('Should load equipments:', stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments');
   }, [equipments, loading, error, stepData.id]);
 
-  // Tentar recarregar equipamentos quando necessário
-  useEffect(() => {
-    if ((stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') && 
-        !loading && 
-        (!equipments || equipments.length === 0) && 
-        !error) {
-      console.log('Tentando recarregar equipamentos...');
-      refetch?.();
-    }
-  }, [stepData.id, loading, equipments, error, refetch]);
-
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
     if (currentStep === 0) {
@@ -221,7 +210,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
     console.log('Processing equipments:', equipments);
 
-    // Filtrar equipamentos baseado no tipo de clínica
+    // Filtrar equipamentos baseado no tipo de clínica e na categoria (se disponível)
     const filteredEquipments = equipments.filter(equipment => {
       if (!equipment || !equipment.nome) return false;
       
