@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -163,46 +162,44 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
         </div>
       </div>
 
-      {/* Specialists Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Specialists Horizontal Layout */}
+      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-purple-500/30 scrollbar-track-transparent">
         {specialistData.map((specialist, index) => {
           const IconComponent = getSpecialistIcon(specialist.icon);
           
           return (
             <Card 
               key={index} 
-              className="group relative overflow-hidden aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1"
+              className="group relative overflow-hidden aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1 min-w-[320px] flex-shrink-0"
             >
               {/* Background gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
               <CardHeader className="pb-4 relative z-10">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-start gap-4">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-3">
                     <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-purple-500/40 group-hover:scale-110 transition-transform duration-300">
-                        <IconComponent className="h-6 w-6 text-aurora-electric-purple" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-purple-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                         <span className="text-xs font-bold text-white">{index + 1}</span>
                       </div>
                     </div>
                     
                     <div className="flex-1">
-                      <div className="mb-4">
-                        <h4 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
-                          {specialist.title}
-                        </h4>
-                        <p className="text-sm text-foreground/60 font-medium">
-                          {specialist.subtitle}
-                        </p>
-                      </div>
+                      <h4 className="text-base font-semibold text-foreground mb-1">
+                        {specialist.title}
+                      </h4>
+                      <p className="text-xs text-foreground/60 font-medium">
+                        {specialist.subtitle}
+                      </p>
                     </div>
                   </div>
                   
                   <Badge 
                     variant="outline" 
-                    className={`${specialist.actionColor} text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm`}
+                    className={`${specialist.actionColor} text-xs px-2 py-1 rounded-full font-semibold shadow-sm`}
                   >
                     {specialist.actionText}
                   </Badge>
@@ -210,11 +207,11 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
               </CardHeader>
               
               <CardContent className="pt-0 relative z-10">
-                <p className="text-sm text-foreground/80 leading-relaxed mb-6 line-height-relaxed">
+                <p className="text-sm text-foreground/80 leading-relaxed mb-4 line-height-relaxed">
                   {specialist.description}
                 </p>
                 
-                <div className="flex items-center justify-between pt-4 border-t border-purple-500/20">
+                <div className="flex items-center justify-between pt-3 border-t border-purple-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-foreground/60 font-medium">
                       Status: 
@@ -224,10 +221,10 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse animation-delay-150"></div>
-                    <div className="w-1 h-1 bg-green-200 rounded-full animate-pulse animation-delay-300"></div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
+                    <div className="w-1 h-1 bg-green-300 rounded-full animate-pulse animation-delay-150"></div>
+                    <div className="w-0.5 h-0.5 bg-green-200 rounded-full animate-pulse animation-delay-300"></div>
                   </div>
                 </div>
               </CardContent>
