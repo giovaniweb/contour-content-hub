@@ -1,98 +1,59 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { ScriptIntention } from '@/components/smart-script-generator/intentionTree';
-import { MentorInferenceEngine } from '@/components/smart-script-generator/mentorInference';
-import { DynamicPromptGenerator } from '@/components/smart-script-generator/dynamicPrompts';
-import { generateScript, ScriptResponse } from '@/services/supabaseService';
-
-export interface SmartGenerationResult {
-  content: string;
-  mentor: string;
-  enigma: string;
-  intention: ScriptIntention;
-}
+import { useToast } from "@/hooks/use-toast";
+import { SmartGenerationResult, ScriptIntention } from './useSmartScriptGeneration';
+import { useSmartScriptGeneration } from './useSmartScriptGeneration';
 
 export const useScriptGeneration = () => {
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState('root');
-  const [intention, setIntention] = useState<Partial<ScriptIntention>>({});
+  const [currentStep, setCurrentStep] = useState(0);
+  const [intention, setIntention] = useState<ScriptIntention | null>(null);
   const [generatedResult, setGeneratedResult] = useState<SmartGenerationResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDisneyMode, setIsDisneyMode] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
-  const handleThemeInput = async (tema: string) => {
-    console.log('🚀 handleThemeInput iniciado com tema:', tema);
-    console.log('📋 Intenção atual:', intention);
+  const { generateScript } = useSmartScriptGeneration();
+
+  const handleThemeInput = async (theme: string) => {
+    console.log('handleThemeInput chamado com tema:', theme);
     
-    // IMPORTANTE: Definir loading IMEDIATAMENTE
+    if (!intention) {
+      console.error('Intenção não definida');
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Intenção não foi definida corretamente"
+      });
+      return;
+    }
+
+    console.log('Intenção atual:', intention);
+    
     setIsGenerating(true);
     
     try {
-      // Finalizar intenção completa
-      const completeIntention: ScriptIntention = {
+      const finalIntention = {
         ...intention,
-        tema
-      } as ScriptIntention;
-
-      console.log('✅ Intenção finalizada:', completeIntention);
-
-      // Inferir mentor
-      const mentorInference = MentorInferenceEngine.inferMentor(completeIntention);
-      
-      const finalIntention: ScriptIntention = {
-        ...completeIntention,
-        mentor_inferido: mentorInference.mentor,
-        enigma_mentor: mentorInference.enigma
-      };
-
-      console.log('🧠 Mentor inferido:', finalIntention);
-
-      // Gerar prompts
-      const { systemPrompt, userPrompt } = DynamicPromptGenerator.generateMentorPrompt(finalIntention);
-      
-      console.log('📝 Prompts gerados, chamando OpenAI...');
-
-      // Chamar API OpenAI
-      const response = await generateScript({
-        type: 'custom',
-        systemPrompt,
-        userPrompt,
-        topic: finalIntention.tema,
-        additionalInfo: `Tipo: ${finalIntention.tipo_conteudo}, Objetivo: ${finalIntention.objetivo}`,
-        tone: finalIntention.estilo_comunicacao,
-        marketingObjective: finalIntention.objetivo as any
-      }) as ScriptResponse;
-
-      console.log('✨ Resposta OpenAI recebida:', response);
-
-      const mentorProfile = MentorInferenceEngine.getMentorProfile(finalIntention.mentor_inferido);
-      
-      const result: SmartGenerationResult = {
-        content: response.content,
-        mentor: mentorProfile.name,
-        enigma: finalIntention.enigma_mentor,
-        intention: finalIntention
+        tema: theme
       };
       
-      setGeneratedResult(result);
+      console.log('finalizeIntention chamado com:', finalIntention);
+      const result = await generateScript(finalIntention);
       
-      toast({
-        title: "✨ Roteiro gerado com sucesso!",
-        description: `Criado no estilo ${mentorProfile.name}.`,
-      });
-
+      if (result) {
+        console.log('Resultado final:', result);
+        setGeneratedResult(result);
+        setIsGenerating(false);
+      }
     } catch (error) {
-      console.error('❌ Erro na geração:', error);
-      
-      toast({
-        title: "❌ Erro na geração",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
-      });
-    } finally {
+      console.error('Erro ao gerar roteiro:', error);
       setIsGenerating(false);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar roteiro",
+        description: "Houve um problema ao gerar o roteiro. Tente novamente."
+      });
     }
   };
 
@@ -102,57 +63,65 @@ export const useScriptGeneration = () => {
     setIsGenerating(true);
     
     try {
-      const { systemPrompt, userPrompt } = DynamicPromptGenerator.generateDisneyPrompt(
-        generatedResult.content, 
-        generatedResult.intention
-      );
+      // Simular transformação Disney
+      const disneyContent = transformContentWithDisney(generatedResult.content);
       
-      const response = await generateScript({
-        type: 'custom',
-        systemPrompt,
-        userPrompt,
-        topic: generatedResult.intention.tema,
-        additionalInfo: 'Transformação Disney 1928',
-        tone: 'magical',
-        marketingObjective: generatedResult.intention.objetivo as any
-      }) as ScriptResponse;
-
       setGeneratedResult({
         ...generatedResult,
-        content: response.content
+        content: disneyContent
       });
       
       setIsDisneyMode(true);
+      setIsGenerating(false);
       
       toast({
-        title: "✨ Magia Disney 1928 Aplicada!",
-        description: "Walt Disney transformou seu roteiro.",
+        title: "✨ Magia Disney Aplicada!",
+        description: "Seu roteiro foi transformado com a magia Disney 1928."
       });
-
     } catch (error) {
-      console.error('Erro ao aplicar magia Disney:', error);
-      toast({
-        title: "Erro na transformação",
-        description: "Não foi possível aplicar a magia Disney.",
-        variant: "destructive",
-      });
-    } finally {
+      console.error('Erro ao aplicar Disney:', error);
       setIsGenerating(false);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível aplicar a transformação Disney."
+      });
     }
+  };
+
+  const transformContentWithDisney = (content: string): string => {
+    // Transformação Disney básica
+    const lines = content.split('\n');
+    const transformedLines = lines.map(line => {
+      if (line.includes('🎬')) {
+        return line.replace('🎬 **Gancho**', '🏰 Era uma vez...');
+      }
+      if (line.includes('🎯')) {
+        return line.replace('🎯 **Conflito**', '⚡ Até que um dia...');
+      }
+      if (line.includes('🔁')) {
+        return line.replace('🔁 **Virada**', '✨ Então ela descobriu...');
+      }
+      if (line.includes('📣')) {
+        return line.replace('📣 **CTA**', '🌟 E eles viveram felizes...');
+      }
+      return line;
+    });
+    
+    return transformedLines.join('\n') + '\n\n🎠 Transformado com a magia Disney 1928\n"Onde há sonhos, há sempre um caminho para torná-los realidade."';
   };
 
   const approveScript = () => {
     setIsApproved(true);
     toast({
       title: "✅ Roteiro Aprovado!",
-      description: "Agora você pode gerar conteúdo adicional.",
+      description: "Agora você pode gerar conteúdo adicional."
     });
   };
 
   const resetGeneration = () => {
-    console.log('🔄 Reset geração');
-    setCurrentStep('root');
-    setIntention({});
+    setCurrentStep(0);
+    setIntention(null);
     setGeneratedResult(null);
     setIsGenerating(false);
     setIsDisneyMode(false);
@@ -161,16 +130,18 @@ export const useScriptGeneration = () => {
 
   return {
     currentStep,
+    setCurrentStep,
     intention,
+    setIntention,
     generatedResult,
+    setGeneratedResult,
     isGenerating,
+    setIsGenerating,
     isDisneyMode,
     isApproved,
     handleThemeInput,
     applyDisneyMagic,
     approveScript,
-    resetGeneration,
-    setCurrentStep,
-    setIntention
+    resetGeneration
   };
 };
