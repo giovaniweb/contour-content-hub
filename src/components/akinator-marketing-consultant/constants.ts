@@ -43,13 +43,6 @@ export const MARKETING_STEPS: MarketingStep[] = [
     condition: (state) => state.clinicType === 'clinica_medica'
   },
   {
-    id: 'medicalTreatments',
-    question: 'O que esses equipamentos/tratamentos prometem resolver?',
-    options: [],
-    isOpen: true,
-    condition: (state) => state.clinicType === 'clinica_medica'
-  },
-  {
     id: 'medicalBestSeller',
     question: 'Qual é o protocolo médico mais vendido/procurado?',
     options: [],
@@ -129,13 +122,6 @@ export const MARKETING_STEPS: MarketingStep[] = [
     id: 'aestheticEquipments',
     question: 'Quais equipamentos estéticos você usa?',
     options: [],
-    condition: (state) => state.clinicType === 'clinica_estetica'
-  },
-  {
-    id: 'aestheticPromises',
-    question: 'O que seus equipamentos/tratamentos prometem resolver?',
-    options: [],
-    isOpen: true,
     condition: (state) => state.clinicType === 'clinica_estetica'
   },
   {
