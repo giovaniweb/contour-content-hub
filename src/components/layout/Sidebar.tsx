@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { sidebarData, adminItems } from "../sidebar/SidebarData";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Sidebar() {
   const { open, setOpen } = useSidebar();
@@ -128,175 +129,177 @@ export default function Sidebar() {
           </div>
         </SidebarHeader>
         
-        <SidebarContent className="p-4 overflow-y-auto scrollbar-hide">
-          {/* Display all sidebar groups from our data */}
-          {sidebarData.map((group, groupIndex) => (
-            <SidebarGroup key={group.name} className="mb-8">
-              <SidebarGroupLabel className={cn("text-sm font-bold text-white/90 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
-                {group.name}
-              </SidebarGroupLabel>
-              <SidebarMenu className="space-y-2">
-                {group.links.map((item, itemIndex) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      delay: (groupIndex * 0.1) + (itemIndex * 0.05),
-                      ease: "easeOut"
-                    }}
-                  >
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive(item.path)}
-                        className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
-                          "text-white hover:text-white",
-                          isActive(item.path) 
-                            ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg backdrop-blur-sm border border-white/20" 
-                            : "hover:bg-white/15 hover:backdrop-blur-sm text-white/85 hover:text-white",
-                          item.highlight && "relative"
-                        )}
-                      >
-                        <Link to={item.path} className="flex items-center gap-4 w-full">
-                          {/* Gradient background for active items */}
-                          {isActive(item.path) && (
-                            <motion.div
-                              className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3 }}
-                            />
+        <SidebarContent className="p-4">
+          <ScrollArea className="h-full">
+            {/* Display all sidebar groups from our data */}
+            {sidebarData.map((group, groupIndex) => (
+              <SidebarGroup key={group.name} className="mb-8">
+                <SidebarGroupLabel className={cn("text-sm font-bold text-white/90 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
+                  {group.name}
+                </SidebarGroupLabel>
+                <SidebarMenu className="space-y-2">
+                  {group.links.map((item, itemIndex) => (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: (groupIndex * 0.1) + (itemIndex * 0.05),
+                        ease: "easeOut"
+                      }}
+                    >
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive(item.path)}
+                          className={cn(
+                            "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
+                            "text-white hover:text-white",
+                            isActive(item.path) 
+                              ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg backdrop-blur-sm border border-white/20" 
+                              : "hover:bg-white/15 hover:backdrop-blur-sm text-white/85 hover:text-white",
+                            item.highlight && "relative"
                           )}
-                          
-                          {/* Icon with improved visibility */}
-                          <div className={cn(
-                            "relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6",
-                            isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]"
-                          )}>
-                            <item.icon className="h-6 w-6 text-white" />
-                          </div>
-                          
-                          {/* Text always visible */}
-                          <span className={cn(
-                            "flex-1 relative z-10 font-medium text-white transition-all duration-300",
-                            !open && "opacity-0 w-0 overflow-hidden"
-                          )}>
-                            {item.name}
-                          </span>
-                          
-                          {item.highlight && open && (
-                            <motion.div
-                              className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg flex-shrink-0"
-                              animate={{ 
-                                scale: [1, 1.3, 1], 
-                                opacity: [0.7, 1, 0.7] 
-                              }}
-                              transition={{ 
-                                duration: 2, 
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </motion.div>
-                ))}
+                        >
+                          <Link to={item.path} className="flex items-center gap-4 w-full">
+                            {/* Gradient background for active items */}
+                            {isActive(item.path) && (
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            )}
+                            
+                            {/* Icon with improved visibility */}
+                            <div className={cn(
+                              "relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6",
+                              isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]"
+                            )}>
+                              <item.icon className="h-6 w-6 text-white" />
+                            </div>
+                            
+                            {/* Text always visible */}
+                            <span className={cn(
+                              "flex-1 relative z-10 font-medium text-white transition-all duration-300",
+                              !open && "opacity-0 w-0 overflow-hidden"
+                            )}>
+                              {item.name}
+                            </span>
+                            
+                            {item.highlight && open && (
+                              <motion.div
+                                className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg flex-shrink-0"
+                                animate={{ 
+                                  scale: [1, 1.3, 1], 
+                                  opacity: [0.7, 1, 0.7] 
+                                }}
+                                transition={{ 
+                                  duration: 2, 
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </motion.div>
+                  ))}
 
-                {/* Only add Create Video button to the Videos group */}
-                {group.name === "Vídeos" && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      delay: (groupIndex * 0.1) + (group.links.length * 0.05),
-                      ease: "easeOut" 
-                    }}
-                  >
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive(ROUTES.VIDEOS.CREATE)}
-                        className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
-                          "text-cyan-200 hover:text-cyan-100",
-                          isActive(ROUTES.VIDEOS.CREATE) 
-                            ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-100 shadow-lg backdrop-blur-sm border border-cyan-400/30" 
-                            : "hover:bg-cyan-500/15 hover:backdrop-blur-sm"
-                        )}
-                      >
-                        <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-4 w-full">
-                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
-                            <PlusCircle className="h-6 w-6 text-cyan-200" />
-                          </div>
-                          <span className={cn(
-                            "flex-1 relative z-10 font-medium text-cyan-200 transition-all duration-300",
-                            !open && "opacity-0 w-0 overflow-hidden"
-                          )}>
-                            Criar Vídeo
-                          </span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </motion.div>
-                )}
-              </SidebarMenu>
-            </SidebarGroup>
-          ))}
-          
-          {/* Admin menu - only show for admin users */}
-          {isAdmin && (
-            <SidebarGroup className="mt-8 pt-6 border-t border-white/20">
-              <SidebarGroupLabel className={cn("text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
-                Administração
-              </SidebarGroupLabel>
-              <SidebarMenu className="space-y-2">
-                {adminItems.map((item, itemIndex) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      delay: itemIndex * 0.05,
-                      ease: "easeOut" 
-                    }}
-                  >
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive(item.path)}
-                        className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
-                          "text-orange-100 hover:text-orange-50",
-                          isActive(item.path) 
-                            ? "bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-50 shadow-lg backdrop-blur-sm border border-orange-400/30" 
-                            : "hover:bg-orange-500/15 hover:backdrop-blur-sm text-orange-200/85 hover:text-orange-100"
-                        )}
-                      >
-                        <Link to={item.path} className="flex items-center gap-4 w-full">
-                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
-                            <item.icon className="h-6 w-6 text-orange-100" />
-                          </div>
-                          <span className={cn(
-                            "flex-1 relative z-10 font-medium text-orange-100 transition-all duration-300",
-                            !open && "opacity-0 w-0 overflow-hidden"
-                          )}>
-                            {item.name}
-                          </span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </motion.div>
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
+                  {/* Only add Create Video button to the Videos group */}
+                  {group.name === "Vídeos" && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: (groupIndex * 0.1) + (group.links.length * 0.05),
+                        ease: "easeOut" 
+                      }}
+                    >
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive(ROUTES.VIDEOS.CREATE)}
+                          className={cn(
+                            "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
+                            "text-cyan-200 hover:text-cyan-100",
+                            isActive(ROUTES.VIDEOS.CREATE) 
+                              ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-100 shadow-lg backdrop-blur-sm border border-cyan-400/30" 
+                              : "hover:bg-cyan-500/15 hover:backdrop-blur-sm"
+                          )}
+                        >
+                          <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-4 w-full">
+                            <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
+                              <PlusCircle className="h-6 w-6 text-cyan-200" />
+                            </div>
+                            <span className={cn(
+                              "flex-1 relative z-10 font-medium text-cyan-200 transition-all duration-300",
+                              !open && "opacity-0 w-0 overflow-hidden"
+                            )}>
+                              Criar Vídeo
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </motion.div>
+                  )}
+                </SidebarMenu>
+              </SidebarGroup>
+            ))}
+            
+            {/* Admin menu - only show for admin users */}
+            {isAdmin && (
+              <SidebarGroup className="mt-8 pt-6 border-t border-white/20">
+                <SidebarGroupLabel className={cn("text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
+                  Administração
+                </SidebarGroupLabel>
+                <SidebarMenu className="space-y-2">
+                  {adminItems.map((item, itemIndex) => (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: itemIndex * 0.05,
+                        ease: "easeOut" 
+                      }}
+                    >
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive(item.path)}
+                          className={cn(
+                            "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
+                            "text-orange-100 hover:text-orange-50",
+                            isActive(item.path) 
+                              ? "bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-50 shadow-lg backdrop-blur-sm border border-orange-400/30" 
+                              : "hover:bg-orange-500/15 hover:backdrop-blur-sm text-orange-200/85 hover:text-orange-100"
+                          )}
+                        >
+                          <Link to={item.path} className="flex items-center gap-4 w-full">
+                            <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
+                              <item.icon className="h-6 w-6 text-orange-100" />
+                            </div>
+                            <span className={cn(
+                              "flex-1 relative z-10 font-medium text-orange-100 transition-all duration-300",
+                              !open && "opacity-0 w-0 overflow-hidden"
+                            )}>
+                              {item.name}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </motion.div>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+            )}
+          </ScrollArea>
         </SidebarContent>
         
         <SidebarFooter className="border-t border-white/20 p-4">
