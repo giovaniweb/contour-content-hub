@@ -1,8 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Progress } from "@/components/ui/progress";
-import { Brain, Users, Target, Lightbulb, Zap, CheckCircle, Sparkles, Clock } from "lucide-react";
+import { Brain, Clock } from "lucide-react";
 import { MarketingConsultantState } from './types';
+import SpecialistSection from './components/SpecialistSection';
+import CurrentPhaseDisplay from './components/CurrentPhaseDisplay';
+import PhaseTimeline from './components/PhaseTimeline';
 
 interface AnalysisProgressScreenProps {
   currentStep: number;
@@ -18,134 +21,15 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({
   const [currentPhase, setCurrentPhase] = useState(0);
   const progress = Math.round((currentStep / totalSteps) * 100);
 
-  const phases = [
-    {
-      icon: Brain,
-      title: "Analisando seu perfil clínico",
-      description: "A IA Fluida está processando suas respostas...",
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-      duration: 2000
-    },
-    {
-      icon: Users,
-      title: "Convocando especialistas",
-      description: "Reunindo mentores estratégicos específicos para seu caso...",
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-      duration: 2500
-    },
-    {
-      icon: Target,
-      title: "Identificando oportunidades",
-      description: "Mapeando pontos de crescimento para sua clínica...",
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
-      duration: 2000
-    },
-    {
-      icon: Lightbulb,
-      title: "Criando estratégias personalizadas",
-      description: "Desenvolvendo plano específico para seus objetivos...",
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
-      duration: 2500
-    },
-    {
-      icon: Zap,
-      title: "Finalizando diagnóstico",
-      description: "Preparando seu relatório completo...",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-      duration: 2000
-    }
-  ];
-
-  const currentPhaseData = phases[currentPhase] || phases[0];
-  const PhaseIcon = currentPhaseData.icon;
+  const phaseDurations = [2000, 2500, 2000, 2500, 2000];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPhase(prev => (prev + 1) % phases.length);
-    }, currentPhaseData.duration);
+      setCurrentPhase(prev => (prev + 1) % 5);
+    }, phaseDurations[currentPhase] || 2000);
 
     return () => clearInterval(interval);
-  }, [currentPhase, currentPhaseData.duration]);
-
-  // Função para obter especialistas relevantes baseados no perfil
-  const getRelevantSpecialists = (): Array<{name: string; specialty: string; reason: string; status: string}> => {
-    if (!state) {
-      return [
-        { name: "Especialista em Conversão", specialty: "Tráfego Pago e Vendas", reason: "para otimizar captação de leads", status: "analisando funil" },
-        { name: "Expert em Storytelling", specialty: "Autoridade e Branding", reason: "para construir credibilidade", status: "avaliando narrativa" },
-        { name: "Consultor Criativo", specialty: "Visual e Diferenciação", reason: "para destacar sua marca", status: "estrategizando visual" },
-        { name: "Estrategista Digital", specialty: "Marketing Estruturado", reason: "para organizar presença online", status: "planejando cronograma" }
-      ];
-    }
-
-    const specialists = [];
-    
-    // Especialista em conversão - sempre relevante para captação
-    if (state.paidTraffic === 'nunca_usei' || state.clinicType === 'clinica_estetica') {
-      specialists.push({
-        name: "Especialista em Conversão",
-        specialty: "Tráfego Pago e Vendas Diretas",
-        reason: state.paidTraffic === 'nunca_usei' 
-          ? "pois você precisa estruturar captação de leads qualificados"
-          : "para otimizar suas campanhas e aumentar conversões",
-        status: "analisando seu funil de vendas"
-      });
-    }
-
-    // Especialista em storytelling - para autoridade
-    if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente' || state.clinicType === 'clinica_medica') {
-      specialists.push({
-        name: "Expert em Storytelling",
-        specialty: "Autoridade e Marca Pessoal",
-        reason: state.personalBrand === 'nunca' 
-          ? "pois você precisa construir sua credibilidade no mercado"
-          : "para fortalecer seu posicionamento como referência",
-        status: "avaliando sua narrativa pessoal"
-      });
-    }
-
-    // Especialista em criatividade - para diferenciação
-    if (state.clinicPosition === 'moderna' || state.clinicType === 'clinica_estetica') {
-      specialists.push({
-        name: "Consultor Criativo",
-        specialty: "Identidade Visual e Diferenciação",
-        reason: state.clinicPosition === 'moderna'
-          ? "pois você precisa de comunicação visual inovadora"
-          : "para destacar transformações e resultados",
-        status: "desenvolvendo conceito visual"
-      });
-    }
-
-    // Especialista digital - para iniciantes
-    if (state.contentFrequency === 'irregular' || state.personalBrand === 'nunca') {
-      specialists.push({
-        name: "Estrategista Digital",
-        specialty: "Marketing Digital Estruturado",
-        reason: "pois você precisa organizar e sistematizar sua presença online",
-        status: "planejando cronograma de conteúdo"
-      });
-    }
-
-    // Garantir pelo menos 4 especialistas
-    while (specialists.length < 4) {
-      const remaining = [
-        { name: "Expert em Engajamento", specialty: "Crescimento Orgânico", reason: "para aumentar alcance natural", status: "identificando trends" },
-        { name: "Consultor de Grandes Ideias", specialty: "Conceitos Memoráveis", reason: "para criar campanhas marcantes", status: "conceptualizando" },
-        { name: "Analista de Performance", specialty: "ROI e Métricas", reason: "para estruturar acompanhamento", status: "calculando indicadores" }
-      ];
-      
-      specialists.push(remaining[specialists.length - 1]);
-    }
-
-    return specialists.slice(0, 4);
-  };
-
-  const specialists = getRelevantSpecialists();
+  }, [currentPhase]);
 
   return (
     <div className="max-w-2xl mx-auto p-8 space-y-8">
@@ -173,92 +57,13 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({
       </div>
 
       {/* Current Phase */}
-      <div className="bg-card border rounded-lg p-6 space-y-4">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 ${currentPhaseData.bgColor} rounded-full flex items-center justify-center animate-pulse`}>
-            <PhaseIcon className={`h-6 w-6 ${currentPhaseData.color}`} />
-          </div>
-          <div className="flex-1">
-            <h3 className={`font-semibold ${currentPhaseData.color}`}>
-              {currentPhaseData.title}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {currentPhaseData.description}
-            </p>
-          </div>
-        </div>
-      </div>
+      <CurrentPhaseDisplay currentPhase={currentPhase} />
 
       {/* Specialists Working */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Users className="h-5 w-5 text-purple-600" />
-          <h4 className="font-medium text-purple-900">Especialistas Convocados Para Seu Caso</h4>
-        </div>
-        
-        <div className="space-y-3">
-          {specialists.map((specialist, index) => (
-            <div key={index} className="bg-white/60 rounded-lg p-3 border border-purple-100">
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mt-2 flex-shrink-0"></div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-purple-900">{specialist.name}</span>
-                    <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
-                      {specialist.specialty}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-1">
-                    <strong>{specialist.reason}</strong>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Status: {specialist.status}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 text-center">
-          <p className="text-xs text-purple-600 font-medium">
-            ✨ Cada especialista foi selecionado baseado no seu perfil específico
-          </p>
-        </div>
-      </div>
+      <SpecialistSection state={state} />
 
       {/* Timeline */}
-      <div className="space-y-3">
-        <h4 className="font-medium text-center">Etapas do Diagnóstico</h4>
-        <div className="flex justify-between items-center">
-          {phases.map((phase, index) => {
-            const PhaseIcon = phase.icon;
-            const isActive = index === currentPhase;
-            const isCompleted = index < currentPhase;
-            
-            return (
-              <div key={index} className="flex flex-col items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                  isActive 
-                    ? `${phase.bgColor} ${phase.color} animate-pulse scale-110` 
-                    : isCompleted 
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-gray-100 text-gray-400'
-                }`}>
-                  {isCompleted ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : (
-                    <PhaseIcon className="h-4 w-4" />
-                  )}
-                </div>
-                <div className="text-xs text-center max-w-16">
-                  {phase.title.split(' ')[0]}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PhaseTimeline currentPhase={currentPhase} />
 
       {/* Estimated Time */}
       <div className="text-center space-y-2">
