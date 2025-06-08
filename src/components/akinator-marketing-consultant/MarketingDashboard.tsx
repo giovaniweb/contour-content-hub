@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,7 +123,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   };
 
   const getMentorEnigma = () => {
-    return "Este diagnóstico foi criado por alguém que transforma dados em estratégias, insights em resultados e clínicas em referências. Consegue descobrir a metodologia por trás dessa análise? 🤔✨";
+    return "Se {mentor} olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. 🚀💡";
   };
 
   return (
