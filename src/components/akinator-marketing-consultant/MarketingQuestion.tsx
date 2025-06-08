@@ -24,9 +24,9 @@ import {
   Zap
 } from "lucide-react";
 import { MarketingStep } from './types';
-import { useEquipments } from '@/hooks/useEquipments';
 import { useSlideNotifications } from '@/components/notifications/SlideNotificationProvider';
 import { toast } from 'sonner';
+import { mockEquipments } from './data/mockEquipments';
 
 interface MarketingQuestionProps {
   stepData: MarketingStep;
@@ -76,19 +76,8 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const [customEquipment, setCustomEquipment] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { equipments, loading, error, refetch } = useEquipments();
+  const [equipmentsLoading, setEquipmentsLoading] = useState(false);
   const { showNotification } = useSlideNotifications();
-
-  // Log mais detalhado para debug
-  useEffect(() => {
-    console.log('=== DEBUG EQUIPAMENTOS ===');
-    console.log('Step ID:', stepData.id);
-    console.log('Loading:', loading);
-    console.log('Error:', error);
-    console.log('Equipments length:', equipments?.length || 0);
-    console.log('Equipments data:', equipments);
-    console.log('Should load equipments:', stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments');
-  }, [equipments, loading, error, stepData.id]);
 
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
@@ -183,75 +172,35 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   };
 
   const getEquipmentOptions = () => {
-    console.log('getEquipmentOptions called - stepData.id:', stepData.id);
-    
-    if (loading) {
-      console.log('Still loading equipments...');
-      return [
-        { value: 'loading', label: '⏳ Carregando equipamentos...' }
-      ];
+    if (stepData.id !== 'medicalEquipments' && stepData.id !== 'aestheticEquipments') {
+      return stepData.options || [];
     }
 
-    if (error) {
-      console.log('Error loading equipments:', error);
-      return [
-        { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
-        { value: 'outros', label: '🔧 Outros Equipamentos' }
-      ];
-    }
-
-    if (!equipments || equipments.length === 0) {
-      console.log('No equipments found, showing default options');
-      return [
-        { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
-        { value: 'outros', label: '🔧 Outros Equipamentos' }
-      ];
-    }
-
-    console.log('Processing equipments:', equipments);
-
-    // Filtrar equipamentos baseado no tipo de clínica e na categoria (se disponível)
-    const filteredEquipments = equipments.filter(equipment => {
-      if (!equipment || !equipment.nome) return false;
-      
-      // Se não tem categoria definida, incluir para ambos os tipos
-      if (!equipment.categoria) return true;
-      
-      // Para pergunta de equipamentos estéticos, mostrar preferencialmente estéticos
+    // Usar equipamentos mock
+    const filteredEquipments = mockEquipments.filter(equipment => {
       if (stepData.id === 'aestheticEquipments') {
         return equipment.categoria === 'estetico';
       }
-      
-      // Para equipamentos médicos, mostrar médicos
       if (stepData.id === 'medicalEquipments') {
         return equipment.categoria === 'medico';
       }
-      
       return true;
     });
-
-    console.log('Filtered equipments:', filteredEquipments);
 
     const equipmentOptions = filteredEquipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
       label: `🔬 ${equipment.nome}`
     }));
 
-    const finalOptions = [
+    return [
       ...equipmentOptions,
       { value: 'outros', label: '🔧 Outros Equipamentos' },
       { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
     ];
-
-    console.log('Final equipment options:', finalOptions);
-    return finalOptions;
   };
 
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
-  const optionsToShow = shouldUseDynamicEquipments && !stepData.isOpen ? getEquipmentOptions() : stepData.options || [];
-
-  console.log('Should use dynamic equipments:', shouldUseDynamicEquipments);
-  console.log('Options to show:', optionsToShow);
+  const optionsToShow = shouldUseDynamicEquipments ? getEquipmentOptions() : stepData.options || [];
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -409,32 +358,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
               </motion.div>
             ) : (
               <div className="space-y-4">
-                {shouldUseDynamicEquipments && loading ? (
-                  <motion.div 
-                    className="flex items-center justify-center py-12"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Loader2 className="h-8 w-8 animate-spin text-aurora-electric-purple mr-3" />
-                    <span className="aurora-body text-lg">Carregando equipamentos...</span>
-                  </motion.div>
-                ) : shouldUseDynamicEquipments && error ? (
-                  <motion.div 
-                    className="flex flex-col items-center justify-center py-12 text-red-400"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <AlertCircle className="h-8 w-8 mb-3" />
-                    <span className="text-lg mb-4">Erro ao carregar equipamentos</span>
-                    <Button 
-                      onClick={() => refetch?.()}
-                      variant="outline"
-                      className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20"
-                    >
-                      Tentar novamente
-                    </Button>
-                  </motion.div>
-                ) : optionsToShow.length > 0 ? (
+                {optionsToShow.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {optionsToShow.map((option, index) => (
                       <motion.div
@@ -451,10 +375,9 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                             hover:border-aurora-sage hover:bg-aurora-electric-purple/10
                             transition-all duration-300 group
                             ${selectedOption === option.value ? 'border-aurora-sage bg-aurora-electric-purple/20' : ''}
-                            ${option.value === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
                           onClick={() => handleOptionClick(option.value, option.label)}
-                          disabled={option.value === 'loading' || isAnimating}
+                          disabled={isAnimating}
                         >
                           <div className="flex items-center justify-between w-full">
                             <span className="aurora-body text-base group-hover:text-aurora-sage transition-colors">
