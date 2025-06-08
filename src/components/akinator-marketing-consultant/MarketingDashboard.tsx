@@ -1,7 +1,9 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Building2, 
   DollarSign, 
@@ -19,7 +21,9 @@ import {
   MessageSquare,
   History,
   Brain,
-  BarChart3
+  BarChart3,
+  Eye,
+  ChevronRight
 } from "lucide-react";
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
@@ -41,6 +45,8 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onDownloadPDF,
   onViewHistory
 }) => {
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+
   // Parse do diagnóstico da IA para extrair seções
   const parseAIDiagnostic = (diagnostic: string) => {
     console.log('🔍 Parseando diagnóstico:', diagnostic);
@@ -281,6 +287,19 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     );
   };
 
+  const cleanText = (text: string) => {
+    return text
+      .replace(/\*\*/g, '') // Remove **
+      .replace(/\*/g, '') // Remove *
+      .replace(/^[•\-]\s*/, '') // Remove bullets no início
+      .trim();
+  };
+
+  const formatTitle = (text: string) => {
+    // Remove asteriscos e formata títulos
+    return cleanText(text);
+  };
+
   const renderAIContentIdeas = () => {
     // Ideias padrão mais elaboradas quando a IA não retorna ideias específicas
     const defaultIdeas = [
@@ -290,7 +309,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <Camera className="h-5 w-5" />,
         category: "Transformação",
         engagement: "Alto",
-        difficulty: "Médio"
+        difficulty: "Médio",
+        format: "Reel",
+        details: "Combine vídeos curtos mostrando o antes e depois dos procedimentos, incluindo depoimentos emocionais das pacientes sobre como se sentem após o tratamento. Use música inspiradora e transições suaves."
       },
       {
         title: "Lives Educativas Semanais",
@@ -298,7 +319,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <Play className="h-5 w-5" />,
         category: "Educativo",
         engagement: "Muito Alto",
-        difficulty: "Baixo"
+        difficulty: "Baixo",
+        format: "Story",
+        details: "Realize lives semanais de 15-20 minutos respondendo dúvidas do público. Crie um cronograma fixo (ex: terças às 19h) e promova antecipadamente. Salve as melhores perguntas para posts futuros."
       },
       {
         title: "Depoimentos em Vídeo Autênticos",
@@ -306,7 +329,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <MessageSquare className="h-5 w-5" />,
         category: "Social Proof",
         engagement: "Alto",
-        difficulty: "Baixo"
+        difficulty: "Baixo",
+        format: "Carrossel",
+        details: "Grave depoimentos curtos (30-60s) com pacientes satisfeitas. Foque na jornada emocional, medos iniciais e satisfação final. Use legendas para maior alcance."
       },
       {
         title: "Bastidores dos Procedimentos",
@@ -314,7 +339,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <Users className="h-5 w-5" />,
         category: "Transparência",
         engagement: "Médio",
-        difficulty: "Médio"
+        difficulty: "Médio",
+        format: "Reel",
+        details: "Mostre a preparação do ambiente, higienização, cuidados pré-procedimento. Explique cada etapa de forma didática, criando confiança através da transparência."
       },
       {
         title: "Dicas de Autocuidado Sazonal",
@@ -322,7 +349,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <Lightbulb className="h-5 w-5" />,
         category: "Lifestyle",
         engagement: "Médio",
-        difficulty: "Baixo"
+        difficulty: "Baixo",
+        format: "Story",
+        details: "Crie posts temáticos por estação: verão (proteção solar, hidratação), inverno (combate ao ressecamento), etc. Use cores e elementos visuais da estação."
       },
       {
         title: "Comparativo de Tratamentos",
@@ -330,21 +359,21 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         icon: <BarChart3 className="h-5 w-5" />,
         category: "Educativo",
         engagement: "Alto",
-        difficulty: "Alto"
+        difficulty: "Alto",
+        format: "Carrossel",
+        details: "Crie carrosséis comparativos mostrando prós, contras, indicações e resultados esperados de diferentes tratamentos. Use infográficos claros e linguagem acessível."
       }
     ];
 
     let ideas = [];
     
     if (!aiSections || !aiSections.ideias.length) {
-      // Selecionar ideias baseadas no perfil da clínica
       ideas = defaultIdeas.slice(0, 6);
     } else {
-      // Processar ideias da IA e adicionar algumas padrão
       ideas = aiSections.ideias.slice(0, 3).map((idea, index) => {
         const lines = idea.split('\n').filter(line => line.trim());
-        const title = lines[0] ? lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '') : `Ideia Personalizada ${index + 1}`;
-        const description = lines.slice(1).join(' ').substring(0, 120) + '...' || 'Estratégia de conteúdo desenvolvida especificamente para seu perfil de clínica';
+        const title = cleanText(lines[0] ? lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '') : `Ideia Personalizada ${index + 1}`);
+        const description = cleanText(lines.slice(1).join(' ').substring(0, 120) + '...' || 'Estratégia de conteúdo desenvolvida especificamente para seu perfil de clínica');
 
         return {
           title,
@@ -352,11 +381,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           icon: [<Camera className="h-5 w-5" />, <Play className="h-5 w-5" />, <MessageSquare className="h-5 w-5" />][index],
           category: "IA Personalizada",
           engagement: "Alto",
-          difficulty: "Médio"
+          difficulty: "Médio",
+          format: ["Reel", "Story", "Carrossel"][index],
+          details: `Estratégia personalizada baseada no diagnóstico da sua clínica: ${cleanText(idea.substring(0, 200))}`
         };
       });
       
-      // Adicionar algumas ideias padrão complementares
       ideas = [...ideas, ...defaultIdeas.slice(0, 3)];
     }
 
@@ -378,41 +408,112 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       }
     };
 
+    const getFormatIcon = (format: string) => {
+      switch (format) {
+        case "Reel": return "📱";
+        case "Story": return "📸";
+        case "Carrossel": return "🎠";
+        default: return "📄";
+      }
+    };
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {ideas.map((idea, index) => (
-          <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 overflow-hidden group">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
+          <Card key={index} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 bg-white overflow-hidden relative">
+            <div className="absolute top-4 right-4">
+              <Badge variant="outline" className="bg-white/90 text-xs">
+                {getFormatIcon(idea.format)} {idea.format}
+              </Badge>
+            </div>
+            
+            <CardHeader className="pb-3">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg shadow-sm group-hover:scale-110 transition-transform duration-300">
                   {idea.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {idea.title}
+                  <h3 className="font-semibold text-base text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {formatTitle(idea.title)}
                   </h3>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <Badge variant="outline" className={`text-xs px-2 py-1 ${getEngagementColor(idea.engagement)}`}>
-                      📈 {idea.engagement}
-                    </Badge>
-                    <Badge variant="outline" className={`text-xs px-2 py-1 ${getDifficultyColor(idea.difficulty)}`}>
-                      ⚙️ {idea.difficulty}
-                    </Badge>
-                  </div>
                 </div>
               </div>
               
-              <p className="text-sm text-gray-600 leading-relaxed line-clamp-4 mb-4">
-                {idea.description}
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className={`text-xs px-2 py-1 ${getEngagementColor(idea.engagement)}`}>
+                  📈 {idea.engagement}
+                </Badge>
+                <Badge variant="outline" className={`text-xs px-2 py-1 ${getDifficultyColor(idea.difficulty)}`}>
+                  ⚙️ {idea.difficulty}
+                </Badge>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="pt-0">
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-4">
+                {cleanText(idea.description)}
               </p>
               
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
                   {idea.category}
                 </Badge>
-                <Button size="sm" variant="ghost" className="text-xs hover:bg-blue-50 hover:text-blue-600">
-                  Ver Detalhes →
-                </Button>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-xs hover:bg-blue-50 hover:text-blue-600 flex items-center gap-1"
+                      onClick={() => setSelectedContent(idea)}
+                    >
+                      <Eye className="h-3 w-3" />
+                      Ver Detalhes
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        {idea.icon}
+                        {formatTitle(idea.title)}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className={getEngagementColor(idea.engagement)}>
+                          📈 Engajamento {idea.engagement}
+                        </Badge>
+                        <Badge className={getDifficultyColor(idea.difficulty)}>
+                          ⚙️ Dificuldade {idea.difficulty}
+                        </Badge>
+                        <Badge variant="outline">
+                          {getFormatIcon(idea.format)} {idea.format}
+                        </Badge>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Descrição:</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {cleanText(idea.description)}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Como Executar:</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {cleanText(idea.details)}
+                        </p>
+                      </div>
+                      
+                      <div className="pt-4 border-t">
+                        <Button className="w-full">
+                          Adicionar ao Planejador de Conteúdo
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -424,12 +525,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIStrategicActions = () => {
     if (!aiSections || !aiSections.plano) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((index) => (
             <Card key={index} className="border-l-4 border-l-indigo-300 border-dashed">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center text-sm font-bold">
                     {index}
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">Ação estratégica sendo gerada...</p>
@@ -450,7 +551,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       const actionItems = section.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
       if (actionItems) {
         actionItems.forEach(item => {
-          const cleanAction = item.replace(/^[•\-]\s*/, '').trim();
+          const cleanAction = cleanText(item);
           if (cleanAction && cleanAction.length > 10) {
             actions.push(cleanAction);
           }
@@ -463,7 +564,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       const generalActions = aiSections.plano.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
       if (generalActions) {
         generalActions.forEach(item => {
-          const cleanAction = item.replace(/^[•\-]\s*/, '').trim();
+          const cleanAction = cleanText(item);
           if (cleanAction && cleanAction.length > 10) {
             actions.push(cleanAction);
           }
@@ -474,15 +575,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     const displayActions = actions.slice(0, 4);
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {displayActions.map((action, index) => (
-          <Card key={index} className="border-l-4 border-l-indigo-500">
+          <Card key={index} className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium line-clamp-2">{action}</p>
+                <p className="text-sm font-medium line-clamp-2 flex-1">{formatTitle(action)}</p>
               </div>
             </CardContent>
           </Card>
@@ -494,12 +595,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIPersonalizedStrategies = () => {
     if (!aiSections || !aiSections.estrategias.length) {
       return (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {[1, 2, 3].map((index) => (
             <Card key={index} className="border-l-4 border-l-purple-300 border-dashed">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-purple-200 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 bg-purple-200 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold">
                     {index}
                   </div>
                   <p className="text-sm font-medium flex-1 text-muted-foreground">Estratégia personalizada sendo elaborada pela IA...</p>
@@ -512,15 +613,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     }
 
     return (
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {aiSections.estrategias.map((estrategia, index) => (
-          <Card key={index} className="border-l-4 border-l-purple-500">
+          <Card key={index} className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium flex-1 line-clamp-3">{estrategia}</p>
+                <p className="text-sm font-medium flex-1 line-clamp-3">{formatTitle(estrategia)}</p>
               </div>
             </CardContent>
           </Card>
@@ -534,7 +635,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       return enigma; // Fallback para o enigma padrão
     }
 
-    return aiSections.satira;
+    return cleanText(aiSections.satira);
   };
 
   return (
@@ -556,12 +657,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           📊 Diagnóstico da Clínica
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* ... keep existing code (diagnosis cards) */}
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Building2 className="h-5 w-5 text-blue-500" />
-                📁 Perfil do Negócio
+                Perfil do Negócio
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -576,7 +676,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="h-5 w-5 text-green-500" />
-                💰 Análise Financeira
+                Análise Financeira
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -593,7 +693,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Target className="h-5 w-5 text-red-500" />
-                🎯 Objetivo Principal
+                Objetivo Principal
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -608,7 +708,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Brain className="h-5 w-5 text-purple-500" />
-                🤖 Análise IA Personalizada
+                Análise IA Personalizada
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -620,7 +720,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="h-5 w-5 text-orange-500" />
-                🎯 Público-Alvo
+                Público-Alvo
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -637,7 +737,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-3">
-              💡 Ideias de Conteúdo Personalizadas pela IA
+              💡 Ideias de Conteúdo Personalizadas
             </h2>
             <p className="text-muted-foreground mt-1">
               Estratégias de conteúdo desenvolvidas especificamente para o perfil da sua clínica
@@ -653,7 +753,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       {/* Estratégias Personalizadas da IA */}
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          📈 Estratégias Personalizadas pela IA
+          📈 Estratégias Personalizadas
         </h2>
         {renderAIPersonalizedStrategies()}
       </section>
