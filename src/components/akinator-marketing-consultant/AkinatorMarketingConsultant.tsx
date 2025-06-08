@@ -111,6 +111,15 @@ const AkinatorMarketingConsultant: React.FC = () => {
     });
   };
 
+  const handleViewHistory = () => {
+    toast({
+      title: "📊 Abrindo histórico de relatórios...",
+      description: "Carregando seus diagnósticos anteriores!"
+    });
+    // Aqui você pode redirecionar para a página de relatórios ou abrir um modal
+    window.open('/reports', '_blank');
+  };
+
   console.log('Renderizando - viewMode:', viewMode, 'isComplete:', state.isComplete);
 
   if (viewMode === 'dashboard') {
@@ -121,6 +130,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         onCreateScript={handleCreateScript}
         onGenerateImage={handleGenerateImage}
         onDownloadPDF={handleDownloadPDF}
+        onViewHistory={handleViewHistory}
       />
     );
   }

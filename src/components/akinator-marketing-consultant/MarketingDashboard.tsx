@@ -16,7 +16,8 @@ import {
   ArrowLeft,
   Play,
   Camera,
-  MessageSquare
+  MessageSquare,
+  History
 } from "lucide-react";
 import { MarketingConsultantState } from './types';
 
@@ -26,6 +27,7 @@ interface MarketingDashboardProps {
   onCreateScript: () => void;
   onGenerateImage: () => void;
   onDownloadPDF: () => void;
+  onViewHistory?: () => void;
 }
 
 const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
@@ -33,7 +35,8 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onBack,
   onCreateScript,
   onGenerateImage,
-  onDownloadPDF
+  onDownloadPDF,
+  onViewHistory
 }) => {
   const getClinicProfile = () => {
     const profiles = {
@@ -289,7 +292,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
           ✅ Próximos Passos
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button 
             onClick={onCreateScript}
             className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
@@ -322,6 +325,20 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               <div className="text-xs opacity-90">Estratégia completa</div>
             </div>
           </Button>
+
+          {onViewHistory && (
+            <Button 
+              onClick={onViewHistory}
+              variant="outline"
+              className="h-auto p-6 flex flex-col items-center gap-3 border-2 hover:bg-slate-50"
+            >
+              <History className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-semibold">Histórico</div>
+                <div className="text-xs opacity-70">Relatórios anteriores</div>
+              </div>
+            </Button>
+          )}
         </div>
       </section>
     </div>
