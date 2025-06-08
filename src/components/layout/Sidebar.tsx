@@ -163,15 +163,19 @@ export default function Sidebar() {
                           item.highlight && "relative"
                         )}
                       >
-                        <Link to={item.path}>
+                        <Link to={item.path} className="flex items-center gap-3 w-full">
                           <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="flex-1">{item.name}</span>
-                          {item.highlight && open && (
-                            <motion.span 
-                              className="w-2 h-2 rounded-full bg-blue-500"
-                              animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            />
+                          {open && (
+                            <>
+                              <span className="flex-1">{item.name}</span>
+                              {item.highlight && (
+                                <motion.span 
+                                  className="w-2 h-2 rounded-full bg-blue-500"
+                                  animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                />
+                              )}
+                            </>
                           )}
                         </Link>
                       </SidebarMenuButton>
@@ -196,9 +200,9 @@ export default function Sidebar() {
                           isActive(ROUTES.VIDEOS.CREATE) && "bg-white/15 text-blue-300"
                         )}
                       >
-                        <Link to={ROUTES.VIDEOS.CREATE}>
+                        <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-3 w-full">
                           <PlusCircle className="h-5 w-5 flex-shrink-0" />
-                          <span className="flex-1">Criar Vídeo</span>
+                          {open && <span className="flex-1">Criar Vídeo</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -232,9 +236,9 @@ export default function Sidebar() {
                           isActive(item.path) && "bg-white/15 text-white"
                         )}
                       >
-                        <Link to={item.path}>
+                        <Link to={item.path} className="flex items-center gap-3 w-full">
                           <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="flex-1">{item.name}</span>
+                          {open && <span className="flex-1">{item.name}</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
