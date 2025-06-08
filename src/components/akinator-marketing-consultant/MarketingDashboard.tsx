@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,11 +112,17 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return 'Público-alvo ainda não foi definido claramente';
   };
 
-  const getContentIdeas = () => {
+  const getPersonalizedContentIdeas = () => {
     const isClinicaMedica = state.clinicType === 'clinica_medica';
-    
+    const ideas = [];
+
+    // Seed para variação baseado no timestamp para evitar sempre as mesmas ideias
+    const today = new Date();
+    const seed = today.getDate() + today.getMonth();
+
     if (isClinicaMedica) {
-      return [
+      // Pool de ideias médicas variadas
+      const medicalIdeasPool = [
         {
           icon: <Play className="h-4 w-4" />,
           title: "Reel: 'Resultados Médicos em 30s'",
@@ -137,10 +142,62 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           icon: <Users className="h-4 w-4" />,
           title: "Depoimento: 'Por que confio neste médico?'",
           description: "Pacientes explicando a confiança no profissional e resultados"
+        },
+        {
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Mitos vs Verdades Médicas'",
+          description: "Desmistificando conceitos sobre sua especialidade médica"
+        },
+        {
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Tecnologia na Medicina'",
+          description: "Equipamentos e técnicas avançadas da sua clínica"
+        },
+        {
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Preparação para procedimento'",
+          description: "Mostrando cuidados pré e pós procedimento"
+        },
+        {
+          icon: <Users className="h-4 w-4" />,
+          title: "Live: 'Tire suas dúvidas médicas'",
+          description: "Sessão ao vivo respondendo perguntas da comunidade"
         }
       ];
+
+      // Selecionar ideias baseadas no perfil específico
+      if (state.medicalSpecialty === 'dermatologia') {
+        ideas.push({
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Rotina de skincare médico'",
+          description: "Demonstrando cuidados dermatológicos profissionais"
+        });
+      }
+
+      if (state.medicalObjective === 'autoridade') {
+        ideas.push({
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Cases clínicos de sucesso'",
+          description: "Apresentando resultados científicos e metodologia"
+        });
+      }
+
+      if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente') {
+        ideas.push({
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Conheça o médico'",
+          description: "Apresentação pessoal e formação acadêmica"
+        });
+      }
+
+      // Preencher com ideias do pool para completar 4
+      const remainingSlots = 4 - ideas.length;
+      const shuffledPool = medicalIdeasPool.sort(() => (seed % 2) - 0.5);
+      ideas.push(...shuffledPool.slice(0, remainingSlots));
+
     } else {
-      return [
+      // Pool de ideias estéticas variadas
+      const aestheticIdeasPool = [
         {
           icon: <Play className="h-4 w-4" />,
           title: "Reel: 'Transformação em 30 segundos'",
@@ -160,9 +217,69 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           icon: <Users className="h-4 w-4" />,
           title: "Depoimento: 'Como me senti mais bonita'",
           description: "Clientes falando sobre autoestima e bem-estar"
+        },
+        {
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Processo do tratamento'",
+          description: "Mostrando passo a passo de um procedimento popular"
+        },
+        {
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Tendências em estética'",
+          description: "Novidades e tecnologias do mercado estético"
+        },
+        {
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Dicas de cuidados'",
+          description: "Orientações para manter resultados em casa"
+        },
+        {
+          icon: <Users className="h-4 w-4" />,
+          title: "Live: 'Tire suas dúvidas estéticas'",
+          description: "Bate-papo ao vivo sobre procedimentos e cuidados"
         }
       ];
+
+      // Selecionar ideias baseadas no perfil específico
+      if (state.aestheticFocus === 'corporal') {
+        ideas.push({
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Verão chegando, corpo em forma'",
+          description: "Tratamentos corporais para a temporada"
+        });
+      }
+
+      if (state.aestheticFocus === 'facial') {
+        ideas.push({
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Cuidados faciais por idade'",
+          description: "Tratamentos específicos para cada faixa etária"
+        });
+      }
+
+      if (state.aestheticObjective === 'mais_leads') {
+        ideas.push({
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Promoção especial'",
+          description: "Ofertas limitadas para atrair novos clientes"
+        });
+      }
+
+      if (state.clinicPosition === 'premium') {
+        ideas.push({
+          icon: <Users className="h-4 w-4" />,
+          title: "Depoimento: 'Experiência VIP'",
+          description: "Clientes falando sobre atendimento exclusivo"
+        });
+      }
+
+      // Preencher com ideias do pool para completar 4
+      const remainingSlots = 4 - ideas.length;
+      const shuffledPool = aestheticIdeasPool.sort(() => (seed % 2) - 0.5);
+      ideas.push(...shuffledPool.slice(0, remainingSlots));
     }
+
+    return ideas.slice(0, 4); // Garantir exatamente 4 ideias
   };
 
   const getStrategicActions = () => {
@@ -288,7 +405,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           💡 Ideias de Conteúdo Personalizadas
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {getContentIdeas().map((idea, index) => (
+          {getPersonalizedContentIdeas().map((idea, index) => (
             <Card key={index} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
