@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 }) => {
   // Parse do diagnóstico da IA para extrair seções
   const parseAIDiagnostic = (diagnostic: string) => {
-    if (!diagnostic) return null;
+    console.log('🔍 Parseando diagnóstico:', diagnostic);
+    
+    if (!diagnostic) {
+      console.log('❌ Diagnóstico vazio');
+      return null;
+    }
 
     const sections = {
       diagnostico: '',
@@ -53,58 +57,137 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       satira: ''
     };
 
-    // Extrair seção de diagnóstico
-    const diagnosticoMatch = diagnostic.match(/## 📊 (DIAGNÓSTICO ESTRATÉGICO|PERFIL DA CLÍNICA)([\s\S]*?)(?=## |$)/);
-    if (diagnosticoMatch) {
-      sections.diagnostico = diagnosticoMatch[2].trim();
+    // Normalizar o texto removendo caracteres especiais e convertendo para maiúsculo para busca
+    const normalizedText = diagnostic.replace(/[#*]/g, '').toUpperCase();
+    
+    // Extrair seção de diagnóstico - procurar por diferentes variações
+    const diagnosticoPatterns = [
+      /DIAGNÓSTICO ESTRATÉGICO([\s\S]*?)(?=IDEIAS DE CONTEÚDO|PLANO DE AÇÃO|💡|📅|$)/i,
+      /PERFIL DA CLÍNICA([\s\S]*?)(?=IDEIAS DE CONTEÚDO|PLANO DE AÇÃO|💡|📅|$)/i,
+      /DIAGNÓSTICO([\s\S]*?)(?=IDEIAS DE CONTEÚDO|PLANO DE AÇÃO|💡|📅|$)/i
+    ];
+
+    for (const pattern of diagnosticoPatterns) {
+      const match = diagnostic.match(pattern);
+      if (match && match[1].trim().length > 50) {
+        sections.diagnostico = match[1].trim();
+        console.log('✅ Diagnóstico extraído:', sections.diagnostico.substring(0, 100));
+        break;
+      }
     }
 
-    // Extrair ideias de conteúdo
-    const ideiasMatch = diagnostic.match(/## 💡 IDEIAS DE CONTEÚDO([\s\S]*?)(?=## |$)/);
-    if (ideiasMatch) {
-      const ideiasText = ideiasMatch[1];
-      const ideiasList = ideiasText.split(/\d+\./).filter(item => item.trim());
-      sections.ideias = ideiasList.map(idea => idea.trim()).slice(0, 4);
+    // Extrair ideias de conteúdo - procurar por diferentes variações
+    const ideiasPatterns = [
+      /IDEIAS DE CONTEÚDO[^a-zA-Z]*PERSONALIZADAS([\s\S]*?)(?=PLANO DE AÇÃO|ESTRATÉGIAS|📅|📈|$)/i,
+      /IDEIAS DE CONTEÚDO([\s\S]*?)(?=PLANO DE Ação|ESTRATÉGIAS|📅|📈|$)/i,
+      /💡[^a-zA-Z]*IDEIAS([\s\S]*?)(?=PLANO DE AÇÃO|ESTRATÉGIAS|📅|📈|$)/i
+    ];
+
+    for (const pattern of ideiasPatterns) {
+      const match = diagnostic.match(pattern);
+      if (match && match[1]) {
+        const ideiasText = match[1];
+        // Extrair itens numerados ou com bullets
+        const ideiasList = ideiasText.match(/(\d+\..*?(?=\d+\.|$))|([•\-].*?(?=[•\-]|$))/gs);
+        if (ideiasList && ideiasList.length > 0) {
+          sections.ideias = ideiasList
+            .map(idea => idea.replace(/^\d+\.|^[•\-]\s*/, '').trim())
+            .filter(idea => idea.length > 20)
+            .slice(0, 4);
+          console.log('✅ Ideias extraídas:', sections.ideias.length);
+          break;
+        }
+      }
     }
 
     // Extrair plano de ação
-    const planoMatch = diagnostic.match(/## 📅 PLANO DE AÇÃO([\s\S]*?)(?=## |$)/);
-    if (planoMatch) {
-      sections.plano = planoMatch[1].trim();
+    const planoPatterns = [
+      /PLANO DE AÇÃO[^a-zA-Z]*3 SEMANAS([\s\S]*?)(?=ESTRATÉGIAS|SÁTIRA|🧩|$)/i,
+      /PLANO DE AÇÃO([\s\S]*?)(?=ESTRATÉGIAS|SÁTIRA|🧩|$)/i,
+      /📅[^a-zA-Z]*PLANO([\s\S]*?)(?=ESTRATÉGIAS|SÁTIRA|🧩|$)/i
+    ];
+
+    for (const pattern of planoPatterns) {
+      const match = diagnostic.match(pattern);
+      if (match && match[1].trim().length > 50) {
+        sections.plano = match[1].trim();
+        console.log('✅ Plano extraído:', sections.plano.substring(0, 100));
+        break;
+      }
     }
 
     // Extrair estratégias personalizadas
-    const estrategiasMatch = diagnostic.match(/## 📈 ESTRATÉGIAS PERSONALIZADAS([\s\S]*?)(?=## |$)/);
-    if (estrategiasMatch) {
-      const estrategiasText = estrategiasMatch[1];
-      const estrategiasList = estrategiasText.split(/[•\-]/).filter(item => item.trim() && item.length > 20);
-      sections.estrategias = estrategiasList.map(estrategia => estrategia.trim()).slice(0, 5);
+    const estrategiasPatterns = [
+      /ESTRATÉGIAS PERSONALIZADAS([\s\S]*?)(?=SÁTIRA|🧩|$)/i,
+      /📈[^a-zA-Z]*ESTRATÉGIAS([\s\S]*?)(?=SÁTIRA|🧩|$)/i
+    ];
+
+    for (const pattern of estrategiasPatterns) {
+      const match = diagnostic.match(pattern);
+      if (match && match[1]) {
+        const estrategiasText = match[1];
+        const estrategiasList = estrategiasText.match(/([•\-].*?(?=[•\-]|$))|(\d+\..*?(?=\d+\.|$))/gs);
+        if (estrategiasList && estrategiasList.length > 0) {
+          sections.estrategias = estrategiasList
+            .map(estrategia => estrategia.replace(/^\d+\.|^[•\-]\s*/, '').trim())
+            .filter(estrategia => estrategia.length > 20)
+            .slice(0, 5);
+          console.log('✅ Estratégias extraídas:', sections.estrategias.length);
+          break;
+        }
+      }
     }
 
-    // Se não encontrou estratégias na seção específica, extrair do diagnóstico geral
+    // Se não encontrou estratégias específicas, extrair do diagnóstico geral
     if (sections.estrategias.length === 0) {
-      const linhasEstrategicas = diagnostic.split('\n').filter(linha => 
-        linha.includes('•') || linha.includes('-')
-      ).filter(linha => 
-        linha.toLowerCase().includes('conteúdo') ||
-        linha.toLowerCase().includes('estratégia') ||
-        linha.toLowerCase().includes('marketing') ||
-        linha.toLowerCase().includes('autoridade') ||
-        linha.toLowerCase().includes('cases') ||
-        linha.toLowerCase().includes('educativo')
-      );
-      sections.estrategias = linhasEstrategicas.map(linha => linha.replace(/[•\-]/g, '').trim()).slice(0, 5);
+      const linhasEstrategicas = diagnostic.split('\n')
+        .filter(linha => (linha.includes('•') || linha.includes('-')) && linha.length > 30)
+        .filter(linha => 
+          linha.toLowerCase().includes('conteúdo') ||
+          linha.toLowerCase().includes('estratégia') ||
+          linha.toLowerCase().includes('marketing') ||
+          linha.toLowerCase().includes('autoridade') ||
+          linha.toLowerCase().includes('cases') ||
+          linha.toLowerCase().includes('educativo') ||
+          linha.toLowerCase().includes('redes sociais')
+        );
+      
+      sections.estrategias = linhasEstrategicas
+        .map(linha => linha.replace(/[•\-]/g, '').trim())
+        .slice(0, 5);
+      
+      console.log('🔄 Estratégias extraídas do diagnóstico geral:', sections.estrategias.length);
     }
 
     // Extrair sátira do mentor
-    const satiraMatch = diagnostic.match(/## 🧩 MENTOR ESTRATÉGICO([\s\S]*?)(?=---|\*Diagnóstico|$)/);
-    if (satiraMatch) {
-      const mentorSection = satiraMatch[1];
-      const reflexaoMatch = mentorSection.match(/\*\*💭 Reflexão Estratégica:\*\*([\s\S]*?)(?=\*\*|$)/);
-      if (reflexaoMatch) {
-        sections.satira = reflexaoMatch[1].replace(/[*"]/g, '').trim();
+    const satiraPatterns = [
+      /SÁTIRA DO MENTOR([\s\S]*?)(?=---|\*Diagnóstico|$)/i,
+      /🧩[^a-zA-Z]*MENTOR([\s\S]*?)(?=---|\*Diagnóstico|$)/i,
+      /ENIGMA SATÍRICO([\s\S]*?)(?=---|\*Diagnóstico|$)/i
+    ];
+
+    for (const pattern of satiraPatterns) {
+      const match = diagnostic.match(pattern);
+      if (match && match[1]) {
+        const mentorSection = match[1];
+        // Procurar por texto em aspas ou texto após ":" 
+        const reflexaoMatch = mentorSection.match(/"([^"]+)"|:([^.]+\.)/) || 
+                             mentorSection.match(/["""']([^"""']+)["""']/);
+        if (reflexaoMatch) {
+          sections.satira = (reflexaoMatch[1] || reflexaoMatch[2] || '').replace(/[*"]/g, '').trim();
+          console.log('✅ Sátira extraída:', sections.satira.substring(0, 100));
+          break;
+        }
       }
     }
+
+    console.log('📊 Seções extraídas:', {
+      diagnostico: sections.diagnostico.length > 0,
+      ideias: sections.ideias.length,
+      plano: sections.plano.length > 0,
+      estrategias: sections.estrategias.length,
+      satira: sections.satira.length > 0
+    });
 
     return sections;
   };
@@ -114,6 +197,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   // Inferir mentor baseado no perfil
   const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
 
+  // Helper functions
   const getClinicProfile = () => {
     if (state.clinicType === 'clinica_medica') {
       const profiles = {
@@ -170,21 +254,28 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     if (!aiSections || !aiSections.diagnostico) {
       return (
         <div className="text-muted-foreground text-sm">
-          Diagnóstico IA não disponível
+          <p>📊 Diagnóstico sendo processado pela IA...</p>
+          <p className="text-xs mt-1">Dados disponíveis, gerando insights personalizados</p>
         </div>
       );
     }
 
-    // Pegar as primeiras linhas do diagnóstico
-    const summaryLines = aiSections.diagnostico.split('\n').slice(0, 3);
+    // Pegar as primeiras linhas mais significativas do diagnóstico
+    const lines = aiSections.diagnostico.split('\n').filter(line => line.trim().length > 20);
+    const summaryLines = lines.slice(0, 3);
     
     return (
       <div className="space-y-2">
         {summaryLines.map((line, index) => (
-          <p key={index} className="text-sm text-muted-foreground">
+          <p key={index} className="text-sm text-muted-foreground leading-relaxed">
             {line.replace(/[•\-\*]/g, '').trim()}
           </p>
         ))}
+        {summaryLines.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Análise personalizada baseada no perfil da clínica e objetivos definidos.
+          </p>
+        )}
       </div>
     );
   };
@@ -192,8 +283,22 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIContentIdeas = () => {
     if (!aiSections || !aiSections.ideias.length) {
       return (
-        <div className="text-center text-muted-foreground p-4">
-          <p>Ideias de conteúdo não disponíveis</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow border-dashed">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Lightbulb className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm mb-1">Ideia {index}</h3>
+                    <p className="text-xs text-muted-foreground">Conteúdo personalizado sendo gerado pela IA...</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       );
     }
@@ -203,8 +308,8 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         {aiSections.ideias.slice(0, 4).map((idea, index) => {
           // Extrair título e descrição da ideia
           const lines = idea.split('\n').filter(line => line.trim());
-          const title = lines[0] || `Ideia ${index + 1}`;
-          const description = lines.slice(1).join(' ') || 'Descrição da estratégia';
+          const title = lines[0] ? lines[0].substring(0, 60) + (lines[0].length > 60 ? '...' : '') : `Ideia ${index + 1}`;
+          const description = lines.slice(1).join(' ').substring(0, 100) + '...' || 'Estratégia de conteúdo personalizada';
 
           const icons = [
             <Play className="h-4 w-4" />,
@@ -218,11 +323,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-blue-50 rounded-lg">
-                    {icons[index]}
+                    {icons[index] || <Lightbulb className="h-4 w-4" />}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-1">{title}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+                    <h3 className="font-semibold text-sm mb-1 line-clamp-2">{title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{description}</p>
                   </div>
                 </div>
               </CardContent>
@@ -236,34 +341,65 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIStrategicActions = () => {
     if (!aiSections || !aiSections.plano) {
       return (
-        <div className="text-center text-muted-foreground p-4">
-          <p>Plano de ação não disponível</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((index) => (
+            <Card key={index} className="border-l-4 border-l-indigo-300 border-dashed">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    {index}
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Ação estratégica sendo gerada...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       );
     }
 
     // Extrair ações do plano
-    const actions = aiSections.plano.split(/SEMANA \d+:/).filter(section => section.trim());
-    const actionsList = [];
-
-    actions.forEach(section => {
-      const lines = section.split('\n').filter(line => line.trim() && line.includes('-'));
-      lines.forEach(line => {
-        const action = line.replace(/^[\-•\*]\s*/, '').trim();
-        if (action) actionsList.push(action);
-      });
+    const actions = [];
+    
+    // Procurar por padrões de semanas ou listas
+    const weekSections = aiSections.plano.split(/SEMANA \d+/i);
+    weekSections.forEach(section => {
+      const actionItems = section.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
+      if (actionItems) {
+        actionItems.forEach(item => {
+          const cleanAction = item.replace(/^[•\-]\s*/, '').trim();
+          if (cleanAction && cleanAction.length > 10) {
+            actions.push(cleanAction);
+          }
+        });
+      }
     });
+
+    // Se não encontrou com padrão de semanas, procurar por listas gerais
+    if (actions.length === 0) {
+      const generalActions = aiSections.plano.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
+      if (generalActions) {
+        generalActions.forEach(item => {
+          const cleanAction = item.replace(/^[•\-]\s*/, '').trim();
+          if (cleanAction && cleanAction.length > 10) {
+            actions.push(cleanAction);
+          }
+        });
+      }
+    }
+
+    const displayActions = actions.slice(0, 4);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {actionsList.slice(0, 4).map((action, index) => (
+        {displayActions.map((action, index) => (
           <Card key={index} className="border-l-4 border-l-indigo-500">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium">{action}</p>
+                <p className="text-sm font-medium line-clamp-2">{action}</p>
               </div>
             </CardContent>
           </Card>
@@ -275,8 +411,19 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIPersonalizedStrategies = () => {
     if (!aiSections || !aiSections.estrategias.length) {
       return (
-        <div className="text-center text-muted-foreground p-4">
-          <p>Estratégias personalizadas não disponíveis</p>
+        <div className="grid grid-cols-1 gap-3">
+          {[1, 2, 3].map((index) => (
+            <Card key={index} className="border-l-4 border-l-purple-300 border-dashed">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-200 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    {index}
+                  </div>
+                  <p className="text-sm font-medium flex-1 text-muted-foreground">Estratégia personalizada sendo elaborada pela IA...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       );
     }
@@ -290,7 +437,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                 <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium flex-1">{estrategia}</p>
+                <p className="text-sm font-medium flex-1 line-clamp-3">{estrategia}</p>
               </div>
             </CardContent>
           </Card>
@@ -326,6 +473,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           📊 Diagnóstico da Clínica
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* ... keep existing code (diagnosis cards) */}
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
