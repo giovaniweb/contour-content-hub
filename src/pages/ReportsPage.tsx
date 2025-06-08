@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Download, FileText, BarChart3, PieChart } from "lucide-react";
+import { Calendar, Download, FileText, BarChart3, PieChart, BrainCircuit, TrendingUp } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
 import ContentPerformanceChart from "@/components/reports/ContentPerformanceChart";
@@ -16,92 +17,108 @@ import ChannelDistributionChart from "@/components/reports/ChannelDistributionCh
 import ActivityHeatmap from "@/components/reports/ActivityHeatmap";
 import SummaryCard from "@/components/reports/SummaryCard";
 
-// Mock data for reports
-const months = [
-  { value: "2025-05", label: "Maio 2025" },
-  { value: "2025-04", label: "Abril 2025" },
-  { value: "2025-03", label: "Março 2025" },
-];
-
-const clients = [
-  { value: "all", label: "Todos os Clientes" },
-  { value: "client1", label: "Clínica Estética Bela" },
-  { value: "client2", label: "Dr. Fernando Estética" },
-  { value: "client3", label: "Instituto Beleza Natural" },
-];
-
-// Mock performance data
-const mockPerformanceData = {
-  planned: 32,
-  published: 27,
-  channels: {
-    Instagram: 18,
-    TikTok: 7,
-    YouTube: 2,
-  },
-  activityByDay: {
-    Monday: 4,
-    Tuesday: 7,
-    Wednesday: 3,
-    Thursday: 8,
-    Friday: 5,
-    Saturday: 0,
-    Sunday: 0,
-  },
-  activityByTime: {
-    morning: 8,
-    afternoon: 12, 
-    evening: 7,
-  },
-  moduleUsage: {
-    "AI Script Generator": 22,
-    "Content Planner": 32,
-    "Scientific Articles": 5,
-    "Video Distribution": 14,
-  },
-  topPerformingContent: [
+// Mock data para diagnósticos do consultor de marketing
+const mockMarketingConsultantData = {
+  diagnosticos: [
     {
-      title: "Os benefícios do tratamento facial",
-      platform: "Instagram",
-      engagement: 87,
+      id: 1,
+      data: "2025-06-07",
+      tipoClinica: "Estética Facial Especializada",
+      faturamentoAtual: "R$ 15k-30k",
+      metaFaturamento: "Dobrar Faturamento",
+      principalDesafio: "Dificuldade em Atrair Novos Clientes",
+      investimentoMarketing: "Investimento Básico (até R$ 1.000)",
+      presencaDigital: "Básica",
+      publicoAlvo: "Adultos (30-45 anos)",
+      pontuacaoGeral: 65,
+      proximosPassos: [
+        "Criar presença digital básica (Instagram e Facebook)",
+        "Definir orçamento mínimo para marketing (3-5% do faturamento)",
+        "Implementar sistema de acompanhamento de métricas e ROI"
+      ]
     },
     {
-      title: "Tutorial de uso do equipamento X",
-      platform: "YouTube",
-      engagement: 72,
-    },
-    {
-      title: "Resultados antes e depois",
-      platform: "TikTok",
-      engagement: 65,
-    },
+      id: 2,
+      data: "2025-06-01",
+      tipoClinica: "Clínica Completa (Facial + Corporal)",
+      faturamentoAtual: "R$ 30k-50k",
+      metaFaturamento: "Crescer 50%",
+      principalDesafio: "Baixa Conversão de Leads em Vendas",
+      investimentoMarketing: "Investimento Intermediário (R$ 1.000-3.000)",
+      presencaDigital: "Ativa",
+      publicoAlvo: "Público Diverso",
+      pontuacaoGeral: 78,
+      proximosPassos: [
+        "Otimizar processo de conversão de leads",
+        "Criar cronograma de conteúdo e campanhas",
+        "Implementar sistema de acompanhamento de métricas e ROI"
+      ]
+    }
   ],
-  summary: "Este mês, sua estratégia focou em conteúdo educacional sobre tratamentos faciais, com ênfase na plataforma Instagram. Houve um aumento de 23% no engajamento comparado ao mês anterior. Recomendamos ampliar a presença no TikTok, que mostrou um crescimento de engajamento acima da média.",
+  estatisticas: {
+    totalDiagnosticos: 2,
+    pontuacaoMedia: 71.5,
+    melhoriaUltimoMes: 13,
+    principaisDesafios: {
+      "Atrair Clientes": 40,
+      "Converter Leads": 35,
+      "Fidelizar": 15,
+      "Aumentar Ticket": 10
+    }
+  }
 };
 
+// Mock data for other tools (will be populated as user uses them)
+const mockOtherToolsData = {
+  scriptGenerator: {
+    totalGerados: 0,
+    ultimaUso: null
+  },
+  contentPlanner: {
+    totalPlanejados: 0,
+    ultimaUso: null
+  },
+  ideaValidator: {
+    totalValidadas: 0,
+    ultimaUso: null
+  }
+};
+
+const months = [
+  { value: "2025-06", label: "Junho 2025" },
+  { value: "2025-05", label: "Maio 2025" },
+  { value: "2025-04", label: "Abril 2025" },
+];
+
 const ReportsPage: React.FC = () => {
-  const [selectedMonth, setSelectedMonth] = useState<string>("2025-05");
-  const [selectedClient, setSelectedClient] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("2025-06");
   const { theme = 'light' } = useTheme();
   const { toast } = useToast();
 
-  // Calculate completion percentage
-  const completionPercentage = Math.round((mockPerformanceData.published / mockPerformanceData.planned) * 100);
-
   const handleExport = (format: "pdf" | "csv") => {
-    // Simulate export processing
     toast({
       title: `Exportando relatório como ${format.toUpperCase()}`,
       description: "O arquivo será baixado em instantes.",
     });
 
-    // Simulate download delay
     setTimeout(() => {
       toast({
         title: "Relatório exportado com sucesso!",
-        description: `Relatório_${selectedClient}_${selectedMonth}.${format}`,
+        description: `Relatorio_Marketing_${selectedMonth}.${format}`,
       });
     }, 2000);
+  };
+
+  const getStatusColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getStatusBadge = (score: number) => {
+    if (score >= 80) return <Badge className="bg-green-100 text-green-800">Excelente</Badge>;
+    if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">Bom</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Precisa Melhorar</Badge>;
   };
 
   return (
@@ -110,10 +127,10 @@ const ReportsPage: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fluida-blue to-fluida-pink">
-              Relatórios de Desempenho
+              Relatórios de Performance
             </h1>
             <p className="text-muted-foreground mt-1">
-              Acompanhe a execução e o engajamento do conteúdo publicado
+              Acompanhe seu progresso e análises das ferramentas utilizadas
             </p>
           </div>
           
@@ -134,133 +151,222 @@ const ReportsPage: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            
-            <Select 
-              value={selectedClient}
-              onValueChange={setSelectedClient}
-            >
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.value} value={client.value}>
-                    {client.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Conteúdo Planejado vs. Publicado</CardTitle>
-              <CardDescription>Taxa de execução do planejamento</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{completionPercentage}%</div>
-              <Progress value={completionPercentage} className="mt-2" />
-              <div className="mt-2 text-sm text-muted-foreground">
-                {mockPerformanceData.published} de {mockPerformanceData.planned} conteúdos publicados
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Canais Utilizados</CardTitle>
-              <CardDescription>Distribuição por plataforma</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-2">
-                <div className="space-y-1">
-                  {Object.entries(mockPerformanceData.channels).map(([channel, count]) => (
-                    <div key={channel} className="flex items-center">
-                      <span className="text-sm">{channel}</span>
-                      <span className="ml-auto text-sm font-medium">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Módulos mais utilizados</CardTitle>
-              <CardDescription>Distribuição de uso das ferramentas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {Object.entries(mockPerformanceData.moduleUsage).map(([module, count]) => (
-                  <div key={module} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">{module}</span>
-                      <span className="text-sm font-medium">{count}</span>
-                    </div>
-                    <Progress 
-                      value={(count / 32) * 100} 
-                      className="h-2" 
-                    />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Tabs defaultValue="charts" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="charts">Gráficos</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="summary">Resumo AI</TabsTrigger>
-            <TabsTrigger value="export">Exportar</TabsTrigger>
+        <Tabs defaultValue="marketing-consultant" className="w-full">
+          <TabsList className="grid grid-cols-5 mb-4">
+            <TabsTrigger value="marketing-consultant">
+              <BrainCircuit className="h-4 w-4 mr-2" />
+              Consultor Marketing
+            </TabsTrigger>
+            <TabsTrigger value="content-tools" disabled>
+              <FileText className="h-4 w-4 mr-2" />
+              Ferramentas Conteúdo
+            </TabsTrigger>
+            <TabsTrigger value="analytics" disabled>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="performance" disabled>
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="export">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="charts" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="marketing-consultant" className="space-y-6">
+            {/* Estatísticas Gerais do Consultor */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BarChart3 className="mr-2 h-5 w-5" />
-                    Performance de Conteúdo
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total de Diagnósticos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="h-[300px]">
-                    <ContentPerformanceChart />
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{mockMarketingConsultantData.estatisticas.totalDiagnosticos}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Análises realizadas
+                  </p>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <PieChart className="mr-2 h-5 w-5" />
-                    Distribuição por Canais
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Pontuação Média
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="h-[300px]">
-                    <ChannelDistributionChart data={mockPerformanceData.channels} />
+                <CardContent>
+                  <div className={`text-2xl font-bold ${getStatusColor(mockMarketingConsultantData.estatisticas.pontuacaoMedia)}`}>
+                    {mockMarketingConsultantData.estatisticas.pontuacaoMedia}
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Score geral dos diagnósticos
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Melhoria no Período
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    +{mockMarketingConsultantData.estatisticas.melhoriaUltimoMes}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pontos de evolução
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Status Atual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {getStatusBadge(mockMarketingConsultantData.estatisticas.pontuacaoMedia)}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Classificação geral
+                  </p>
                 </CardContent>
               </Card>
             </div>
-            
+
+            {/* Distribuição de Desafios */}
             <Card>
               <CardHeader>
-                <CardTitle>Atividade Semanal</CardTitle>
+                <CardTitle className="flex items-center">
+                  <PieChart className="mr-2 h-5 w-5" />
+                  Principais Desafios Identificados
+                </CardTitle>
                 <CardDescription>
-                  Distribuição de publicações por dia e horário
+                  Distribuição dos desafios mais comuns nos diagnósticos
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[200px]">
-                  <ActivityHeatmap data={mockPerformanceData.activityByDay} />
+                <div className="space-y-3">
+                  {Object.entries(mockMarketingConsultantData.estatisticas.principaisDesafios).map(([desafio, percentual]) => (
+                    <div key={desafio} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{desafio}</span>
+                        <span className="text-sm text-muted-foreground">{percentual}%</span>
+                      </div>
+                      <Progress value={percentual} className="h-2" />
+                    </div>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Histórico de Diagnósticos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Diagnósticos</CardTitle>
+                <CardDescription>
+                  Análises realizadas pelo Consultor de Marketing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockMarketingConsultantData.diagnosticos.map((diagnostico) => (
+                    <div key={diagnostico.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{diagnostico.tipoClinica}</h3>
+                          {getStatusBadge(diagnostico.pontuacaoGeral)}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(diagnostico.data), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Faturamento Atual:</span>
+                          <p className="text-muted-foreground">{diagnostico.faturamentoAtual}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Meta:</span>
+                          <p className="text-muted-foreground">{diagnostico.metaFaturamento}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Principal Desafio:</span>
+                          <p className="text-muted-foreground">{diagnostico.principalDesafio}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Público-Alvo:</span>
+                          <p className="text-muted-foreground">{diagnostico.publicoAlvo}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <span className="font-medium text-sm">Próximos Passos Recomendados:</span>
+                        <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
+                          {diagnostico.proximosPassos.map((passo, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-primary mr-2">•</span>
+                              {passo}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Pontuação:</span>
+                        <div className="flex-1 max-w-xs">
+                          <Progress value={diagnostico.pontuacaoGeral} className="h-2" />
+                        </div>
+                        <span className={`text-sm font-semibold ${getStatusColor(diagnostico.pontuacaoGeral)}`}>
+                          {diagnostico.pontuacaoGeral}/100
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="content-tools" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ferramentas de Conteúdo</CardTitle>
+                <CardDescription>
+                  Dados serão exibidos conforme você usar as ferramentas
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Use o Gerador de Roteiros, Planejador de Conteúdo ou Validador de Ideias para ver os dados aqui
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics Avançado</CardTitle>
+                <CardDescription>
+                  Análises detalhadas serão exibidas conforme você gerar mais conteúdo
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center py-8">
+                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Continue usando as ferramentas para gerar dados de analytics
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -268,35 +374,18 @@ const ReportsPage: React.FC = () => {
           <TabsContent value="performance" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Conteúdo com Melhor Performance</CardTitle>
+                <CardTitle>Métricas de Performance</CardTitle>
                 <CardDescription>
-                  Os conteúdos que obtiveram maior engajamento
+                  Acompanhamento de resultados dos conteúdos publicados
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockPerformanceData.topPerformingContent.map((content, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 rounded-md bg-accent/20">
-                      <div className="w-8 h-8 rounded-md bg-primary/20 flex items-center justify-center">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="font-medium">{content.title}</p>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <span>{content.platform}</span>
-                          <div className="mx-2 h-1 w-1 rounded-full bg-muted-foreground"></div>
-                          <span>{content.engagement}% engajamento</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent className="text-center py-8">
+                <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Conecte suas redes sociais para acompanhar a performance dos conteúdos
+                </p>
               </CardContent>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="summary">
-            <SummaryCard summary={mockPerformanceData.summary} />
           </TabsContent>
           
           <TabsContent value="export">
@@ -304,7 +393,7 @@ const ReportsPage: React.FC = () => {
               <CardHeader>
                 <CardTitle>Exportar Relatório</CardTitle>
                 <CardDescription>
-                  Escolha o formato para exportar o relatório completo
+                  Escolha o formato para exportar seus dados de marketing
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -312,9 +401,9 @@ const ReportsPage: React.FC = () => {
                   <div className="flex items-center p-3 rounded-md border">
                     <FileText className="h-5 w-5 mr-3" />
                     <div className="flex-1">
-                      <div className="font-medium">Relatório em PDF</div>
+                      <div className="font-medium">Diagnósticos em PDF</div>
                       <div className="text-sm text-muted-foreground">
-                        Documento completo com gráficos e análises
+                        Relatório completo dos diagnósticos de marketing
                       </div>
                     </div>
                     <Button 
@@ -350,7 +439,7 @@ const ReportsPage: React.FC = () => {
               </CardContent>
               <CardFooter className="border-t pt-4">
                 <div className="text-sm text-muted-foreground">
-                  Os dados exportados são referentes a {selectedClient === "all" ? "todos os clientes" : "cliente selecionado"} no período de {format(new Date(selectedMonth), "MMMM yyyy", { locale: ptBR })}.
+                  Os dados exportados são referentes ao período de {format(new Date(selectedMonth), "MMMM yyyy", { locale: ptBR })}.
                 </div>
               </CardFooter>
             </Card>
