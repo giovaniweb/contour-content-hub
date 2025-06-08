@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
+import AuroraParticles from '@/components/ui/AuroraParticles';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -63,37 +64,107 @@ const Dashboard: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen aurora-gradient-bg relative overflow-hidden">
-        {/* Aurora Particles Background */}
-        <div className="absolute inset-0">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        {/* Aurora Particles */}
+        <AuroraParticles count={30} active={true} />
+        
+        {/* Aurora Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Main Aurora Waves */}
           <motion.div
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20"
+            className="absolute top-0 left-0 w-full h-full"
             style={{
-              background: 'radial-gradient(circle, #6b46c1 0%, transparent 70%)',
-              filter: 'blur(80px)',
+              background: 'linear-gradient(45deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.2) 25%, rgba(16, 185, 129, 0.3) 50%, rgba(139, 92, 246, 0.2) 75%, rgba(236, 72, 153, 0.3) 100%)',
+              filter: 'blur(100px)',
             }}
             animate={{
+              x: [-100, 100, -100],
+              y: [-50, 50, -50],
               scale: [1, 1.2, 1],
-              opacity: [0.2, 0.4, 0.2],
             }}
             transition={{
-              duration: 8,
+              duration: 20,
               repeat: Infinity,
               ease: "easeInOut"
             }}
           />
+
+          {/* Secondary Aurora Layer */}
           <motion.div
-            className="absolute top-3/4 right-1/4 w-80 h-80 rounded-full opacity-30"
+            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-30"
             style={{
-              background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)',
+              background: 'radial-gradient(circle, #C4B5FD 0%, #8B5CF6 30%, transparent 70%)',
+              filter: 'blur(80px)',
+            }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.6, 0.3],
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+
+          {/* Teal Aurora */}
+          <motion.div
+            className="absolute top-3/4 right-1/4 w-80 h-80 rounded-full opacity-40"
+            style={{
+              background: 'radial-gradient(circle, #14B8A6 0%, #06B6D4 30%, transparent 70%)',
               filter: 'blur(60px)',
             }}
             animate={{
               scale: [1.2, 1, 1.2],
-              opacity: [0.3, 0.5, 0.3],
+              opacity: [0.4, 0.7, 0.4],
+              x: [-50, 50, -50],
+              y: [0, -30, 0],
             }}
             transition={{
-              duration: 6,
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+
+          {/* Pink Aurora */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full opacity-35"
+            style={{
+              background: 'radial-gradient(circle, #F472B6 0%, #EC4899 30%, transparent 70%)',
+              filter: 'blur(70px)',
+            }}
+            animate={{
+              scale: [1, 1.4, 1],
+              opacity: [0.35, 0.6, 0.35],
+              x: [-100, 100, -100],
+              y: [-30, 30, -30],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+
+          {/* Electric Blue Aurora */}
+          <motion.div
+            className="absolute top-1/3 right-1/3 w-64 h-64 rounded-full opacity-25"
+            style={{
+              background: 'radial-gradient(circle, #3B82F6 0%, #1D4ED8 30%, transparent 70%)',
+              filter: 'blur(90px)',
+            }}
+            animate={{
+              scale: [0.8, 1.2, 0.8],
+              opacity: [0.25, 0.5, 0.25],
+              x: [50, -50, 50],
+              y: [20, -20, 20],
+            }}
+            transition={{
+              duration: 18,
               repeat: Infinity,
               ease: "easeInOut"
             }}
