@@ -2,7 +2,6 @@
 import { 
   Home,
   FileText,
-  Check,
   Film,
   Book,
   BarChart3,
@@ -30,7 +29,6 @@ export const sidebarData = [
     links: [
       { name: "Dashboard", icon: Home, path: ROUTES.DASHBOARD, highlight: false },
       { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, highlight: false },
-      { name: "Validador", icon: Check, path: ROUTES.CONTENT.SCRIPTS.VALIDATION, highlight: false },
       { name: "Vídeos", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
       { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
       { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY, highlight: false },
