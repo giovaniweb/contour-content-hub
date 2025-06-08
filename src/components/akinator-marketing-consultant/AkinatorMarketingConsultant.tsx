@@ -1,130 +1,42 @@
 
-import React, { useState } from 'react';
-import { MARKETING_STEPS } from './constants';
+import React from 'react';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
 import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
 import MarketingQuestion from './MarketingQuestion';
-import { MarketingConsultantState } from './types';
-import { useEquipments } from '@/hooks/useEquipments';
-import { useUserProfile } from '@/hooks/useUserProfile';
-
-const initialState: MarketingConsultantState = {
-  clinicType: '',
-  medicalSpecialty: '',
-  medicalProcedures: '',
-  medicalEquipments: '',
-  medicalProblems: '',
-  medicalMostSought: '',
-  medicalTicket: '',
-  medicalSalesModel: '',
-  medicalObjective: '',
-  medicalVideoFrequency: '',
-  medicalClinicStyle: '',
-  aestheticFocus: '',
-  aestheticEquipments: '',
-  aestheticProblems: '',
-  aestheticBestSeller: '',
-  aestheticSalesModel: '',
-  aestheticTicket: '',
-  aestheticObjective: '',
-  aestheticVideoFrequency: '',
-  aestheticClinicStyle: '',
-  currentRevenue: '',
-  revenueGoal: '',
-  targetAudience: '',
-  contentFrequency: '',
-  communicationStyle: '',
-  generatedDiagnostic: ''
-};
+import { MARKETING_STEPS } from './constants';
+import { useAkinatorFlow } from './hooks/useAkinatorFlow';
+import { useAnswerHandler } from './components/AkinatorAnswerHandler';
+import { shouldShowQuestion, getPreviousValidQuestion } from './utils/questionNavigation';
 
 const AkinatorMarketingConsultant: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [state, setState] = useState<MarketingConsultantState>(initialState);
-  const [showResult, setShowResult] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { equipments } = useEquipments();
-  const { updateClinicType } = useUserProfile();
+  const {
+    currentStep,
+    setCurrentStep,
+    state,
+    setState,
+    showResult,
+    setShowResult,
+    showDashboard,
+    setShowDashboard,
+    isProcessing,
+    setIsProcessing,
+    equipments,
+    updateClinicType
+  } = useAkinatorFlow();
 
-  // Função para determinar se uma pergunta deve ser exibida baseada no estado atual
-  const shouldShowQuestion = (questionIndex: number, currentState: MarketingConsultantState): boolean => {
-    const question = MARKETING_STEPS[questionIndex];
-    
-    if (!question.condition) {
-      return true; // Sem condição, sempre exibir
-    }
-
-    // Verificar se a condição está atendida
-    if (question.condition === 'clinica_medica') {
-      return currentState.clinicType === 'clinica_medica';
-    }
-    
-    if (question.condition === 'clinica_estetica') {
-      return currentState.clinicType === 'clinica_estetica';
-    }
-
-    return true;
-  };
-
-  // Função para encontrar a próxima pergunta válida
-  const getNextValidQuestion = (currentIndex: number, currentState: MarketingConsultantState): number => {
-    for (let i = currentIndex + 1; i < MARKETING_STEPS.length; i++) {
-      if (shouldShowQuestion(i, currentState)) {
-        console.log(`Próxima pergunta válida encontrada: ${i}`, MARKETING_STEPS[i]);
-        return i;
-      }
-    }
-    console.log('Nenhuma próxima pergunta válida encontrada');
-    return MARKETING_STEPS.length;
-  };
-
-  // Função para encontrar a pergunta anterior válida
-  const getPreviousValidQuestion = (currentIndex: number): number => {
-    for (let i = currentIndex - 1; i >= 0; i--) {
-      if (shouldShowQuestion(i, state)) {
-        return i;
-      }
-    }
-    return 0;
-  };
-
-  const handleAnswer = (answer: string) => {
-    console.log('Resposta selecionada:', answer, 'Step atual:', currentStep);
-    
-    if (currentStep >= 0 && currentStep < MARKETING_STEPS.length) {
-      const currentQuestion = MARKETING_STEPS[currentStep];
-      
-      const newState = { ...state, [currentQuestion.id]: answer };
-      setState(newState);
-      
-      // Se for a primeira pergunta (tipo de clínica), salvar no perfil do usuário
-      if (currentQuestion.id === 'clinicType') {
-        updateClinicType(answer as 'clinica_medica' | 'clinica_estetica');
-      }
-      
-      console.log('Estado atualizado:', newState);
-      
-      // Usar o novo estado para encontrar a próxima pergunta
-      const nextStep = getNextValidQuestion(currentStep, newState);
-      
-      if (nextStep < MARKETING_STEPS.length) {
-        console.log('Próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
-        setCurrentStep(nextStep);
-      } else {
-        console.log('Última pergunta respondida, iniciando processamento...');
-        setIsProcessing(true);
-        
-        setTimeout(() => {
-          setIsProcessing(false);
-          setShowResult(true);
-        }, 3000);
-      }
-    }
-  };
+  const { handleAnswer } = useAnswerHandler({
+    currentStep,
+    state,
+    setState,
+    setCurrentStep,
+    setIsProcessing,
+    setShowResult,
+    updateClinicType
+  });
 
   const handleGoBack = () => {
-    const previousStep = getPreviousValidQuestion(currentStep);
+    const previousStep = getPreviousValidQuestion(currentStep, state);
     setCurrentStep(previousStep);
   };
 
