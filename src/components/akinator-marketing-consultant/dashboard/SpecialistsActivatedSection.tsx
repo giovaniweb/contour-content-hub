@@ -29,7 +29,8 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
     if (!aiSections?.ativacao_especialistas) {
       return [
         {
-          title: 'Etapa 1 - Diagnóstico Estratégico',
+          etapa: 'Etapa 1',
+          title: 'Diagnóstico Estratégico',
           subtitle: 'Especialista Ativado',
           description: 'Realizando análise profunda dos dados da clínica para identificar oportunidades de crescimento e pontos de melhoria estratégicos.',
           actionText: 'Executando estratégia',
@@ -38,7 +39,8 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
           status: 'Ativo'
         },
         {
-          title: 'Etapa 2 - Sugestões de Conteúdo',
+          etapa: 'Etapa 2',
+          title: 'Sugestões de Conteúdo',
           subtitle: 'Especialista Ativado',
           description: 'Criando sugestões de conteúdo baseadas no perfil da clínica e objetivos definidos para maximizar o engajamento.',
           actionText: 'Executando estratégia',
@@ -70,7 +72,8 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
         ];
 
         return {
-          title: `${index + 1}. ${title}`,
+          etapa: `Etapa ${index + 1}`,
+          title: title,
           subtitle: 'Especialista Ativado',
           description: description,
           actionText: 'Executando estratégia',
@@ -82,6 +85,7 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
 
     return specialists.length > 0 ? specialists : [
       {
+        etapa: 'Carregando',
         title: 'Especialistas sendo ativados...',
         subtitle: 'Aguarde o processamento',
         description: 'Os especialistas estão sendo configurados baseados no seu perfil de clínica.',
@@ -133,7 +137,7 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
               <CardHeader className="pb-4 relative z-10">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-6">
                   <div className="flex items-start gap-4">
                     <div className="relative">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-purple-500/40 group-hover:scale-110 transition-transform duration-300">
@@ -145,9 +149,14 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                     </div>
                     
                     <div className="flex-1">
-                      <CardTitle className="text-xl text-foreground font-bold leading-tight mb-2">
-                        {specialist.title}
-                      </CardTitle>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-lg font-bold text-foreground">
+                          {index + 1}.
+                        </span>
+                        <CardTitle className="text-xl text-foreground font-bold leading-tight">
+                          {specialist.title}
+                        </CardTitle>
+                      </div>
                       <p className="text-sm text-foreground/60 font-medium">
                         {specialist.subtitle}
                       </p>
@@ -160,6 +169,14 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                   >
                     {specialist.actionText}
                   </Badge>
+                </div>
+
+                {/* Seção padronizada: Etapa X - Título: */}
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
+                    {specialist.etapa} - {specialist.title}:
+                  </h4>
                 </div>
               </CardHeader>
               
