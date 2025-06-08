@@ -149,17 +149,15 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                     </div>
                     
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-lg font-bold text-foreground">
-                          {index + 1}.
-                        </span>
-                        <CardTitle className="text-xl text-foreground font-bold leading-tight">
-                          {specialist.title}
-                        </CardTitle>
+                      <div className="mb-4">
+                        <h4 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
+                          <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
+                          {specialist.etapa} - {specialist.title}:
+                        </h4>
+                        <p className="text-sm text-foreground/60 font-medium">
+                          {specialist.subtitle}
+                        </p>
                       </div>
-                      <p className="text-sm text-foreground/60 font-medium">
-                        {specialist.subtitle}
-                      </p>
                     </div>
                   </div>
                   
@@ -169,14 +167,6 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                   >
                     {specialist.actionText}
                   </Badge>
-                </div>
-
-                {/* Seção padronizada: Etapa X - Título: */}
-                <div className="mb-4">
-                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
-                    {specialist.etapa} - {specialist.title}:
-                  </h4>
                 </div>
               </CardHeader>
               
