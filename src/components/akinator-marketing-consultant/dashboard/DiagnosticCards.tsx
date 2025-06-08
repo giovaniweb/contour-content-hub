@@ -107,6 +107,13 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
     return frequencies[state.contentFrequency as keyof typeof frequencies] || 'Frequência não definida';
   };
 
+  const scrollToFullDiagnostic = () => {
+    const element = document.querySelector('[data-section="specialists-activated"]');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <section>
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
@@ -164,11 +171,21 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg text-foreground">
               <Brain className="h-5 w-5 text-aurora-electric-purple" />
-              Análise IA Personalizada
+              🧠 Análise Fluida Especialista MKT
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {renderAIDiagnosticSummary()}
+            <div className="space-y-3">
+              {renderAIDiagnosticSummary()}
+              {aiSections?.diagnostico_estrategico && (
+                <button
+                  onClick={scrollToFullDiagnostic}
+                  className="text-xs text-aurora-electric-purple hover:text-aurora-electric-purple/80 transition-colors cursor-pointer underline"
+                >
+                  Ver diagnóstico completo abaixo →
+                </button>
+              )}
+            </div>
           </CardContent>
         </Card>
 
