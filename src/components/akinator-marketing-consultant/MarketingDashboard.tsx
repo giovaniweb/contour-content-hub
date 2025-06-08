@@ -10,8 +10,11 @@ import StrategicActionsSection from './dashboard/StrategicActionsSection';
 import PersonalizedStrategiesSection from './dashboard/PersonalizedStrategiesSection';
 import ActionButtons from './dashboard/ActionButtons';
 import MentorSection from './dashboard/MentorSection';
-import SpecialistsActivatedSection from './dashboard/SpecialistsActivatedSection';
 import FluidAnalysisCards from './dashboard/FluidAnalysisCards';
+import ClinicTypeIndicator from './dashboard/ClinicTypeIndicator';
+import ActiveStrategiesSection from './dashboard/ActiveStrategiesSection';
+import ActionPlanSection from './dashboard/ActionPlanSection';
+import RevenueProjectionCard from './dashboard/RevenueProjectionCard';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -116,7 +119,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      {/* Header */}
+      {/* Header with Clinic Type Indicator */}
       <motion.div 
         className="flex items-center justify-between"
         initial={{ opacity: 0, y: -20 }}
@@ -132,9 +135,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             Novo Diagnóstico
           </Button>
           <div>
-            <h1 className="text-3xl font-bold aurora-heading">
-              Diagnóstico Completo
-            </h1>
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold aurora-heading">
+                ✨ Fluida Diagnóstico Pro
+              </h1>
+              <ClinicTypeIndicator clinicType={state.clinicType || 'clinica_estetica'} />
+            </div>
             <p className="aurora-body text-lg">
               Estratégias personalizadas para sua clínica
             </p>
@@ -166,44 +172,47 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         />
       </motion.div>
 
-      {/* Análise Fluida em Cards */}
+      {/* Revenue Projection */}
+      {state.currentRevenue && state.revenueGoal && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <RevenueProjectionCard 
+            currentRevenue={state.currentRevenue}
+            revenueGoal={state.revenueGoal}
+            clinicType={state.clinicType || 'clinica_estetica'}
+          />
+        </motion.div>
+      )}
+
+      {/* Estratégias Ativas (substituindo Especialistas Ativados) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <FluidAnalysisCards 
-          state={state}
-          aiSections={safeAiSections}
+        <ActiveStrategiesSection 
+          aiSections={safeAiSections} 
+          clinicType={state.clinicType || 'clinica_estetica'} 
         />
       </motion.div>
 
-      {/* Especialistas Ativados */}
+      {/* Plano de Ação */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <SpecialistsActivatedSection aiSections={safeAiSections} />
-      </motion.div>
-
-      {/* Mentor Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <MentorSection 
-          mentor={mentor}
-          renderAIMentorSatire={renderAIMentorSatire}
-        />
+        <ActionPlanSection clinicType={state.clinicType || 'clinica_estetica'} />
       </motion.div>
 
       {/* Ideias de Conteúdo */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.4 }}
       >
         <ContentIdeasSection 
           aiSections={safeAiSections}
@@ -212,16 +221,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         />
       </motion.div>
 
-      {/* Ações Estratégicas */}
+      {/* Mentor Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.5 }}
       >
-        <StrategicActionsSection 
-          aiSections={safeAiSections}
-          cleanText={cleanText}
-          formatTitle={formatTitle}
+        <MentorSection 
+          mentor={mentor}
+          renderAIMentorSatire={renderAIMentorSatire}
         />
       </motion.div>
 
@@ -229,7 +237,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.6 }}
       >
         <PersonalizedStrategiesSection 
           aiSections={safeAiSections}
@@ -241,7 +249,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 0.7 }}
       >
         <ActionButtons 
           onCreateScript={handleCreateScript}
