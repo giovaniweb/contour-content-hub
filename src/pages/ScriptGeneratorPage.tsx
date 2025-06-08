@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import GeneratingStep from '@/components/script-generator/GeneratingStep';
 import SmartScriptGenerator from '@/components/smart-script-generator/SmartScriptGenerator';
 import SmartResultDisplay from '@/components/smart-script-generator/SmartResultDisplay';
+import ScriptGeneratorTest from '@/components/ScriptGeneratorTest';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bot, TestTube } from "lucide-react";
 import { useSmartScriptGeneration } from './ScriptGeneratorPage/useSmartScriptGeneration';
 import { useActionHandlers } from './ScriptGeneratorPage/actionHandlers';
 
@@ -49,35 +52,52 @@ const ScriptGeneratorPage: React.FC = () => {
         </p>
       </div>
       
-      <div className="max-w-2xl mx-auto">
-        <Card className="border-2 hover:border-primary/50 transition-colors">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Bot className="h-8 w-8 text-primary" />
-            </div>
-            <CardTitle className="text-xl">Gerador Inteligente</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Sistema avançado baseado em IA para gerar roteiros personalizados com análise estruturada e validação automática.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Análise de intenção automática</li>
-              <li>• Seleção inteligente de mentor</li>
-              <li>• Prompts dinâmicos personalizados</li>
-              <li>• Validação emocional Disney</li>
-            </ul>
-            <Button 
-              onClick={() => setGeneratorMode('smart')}
-              className="w-full"
-              size="lg"
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              Começar a criar roteiro
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="generator" className="max-w-4xl mx-auto">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generator" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Gerador de Roteiros
+          </TabsTrigger>
+          <TabsTrigger value="test" className="flex items-center gap-2">
+            <TestTube className="h-4 w-4" />
+            Teste OpenAI
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="generator" className="mt-6">
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <Bot className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-xl">Gerador Inteligente</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                Sistema avançado baseado em IA para gerar roteiros personalizados com análise estruturada e validação automática.
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Análise de intenção automática</li>
+                <li>• Seleção inteligente de mentor</li>
+                <li>• Prompts dinâmicos personalizados</li>
+                <li>• Validação emocional Disney</li>
+              </ul>
+              <Button 
+                onClick={() => setGeneratorMode('smart')}
+                className="w-full"
+                size="lg"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Começar a criar roteiro
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="test" className="mt-6">
+          <ScriptGeneratorTest />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
