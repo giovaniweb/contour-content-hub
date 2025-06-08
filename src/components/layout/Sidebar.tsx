@@ -41,18 +41,18 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-screen aurora-glass border-r border-white/10 flex flex-col relative overflow-hidden">
-      {/* Aurora background effects for sidebar */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-purple-900/50 to-slate-900">
+    <div className="h-screen border-r border-white/10 flex flex-col relative overflow-hidden bg-transparent">
+      {/* Subtle aurora effects for sidebar only */}
+      <div className="absolute inset-0">
         <div 
-          className="absolute top-1/4 left-0 w-32 h-32 rounded-full opacity-20"
+          className="absolute top-1/4 left-0 w-24 h-24 rounded-full opacity-10"
           style={{
             background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)',
             filter: 'blur(40px)',
           }}
         />
         <div 
-          className="absolute bottom-1/4 right-0 w-24 h-24 rounded-full opacity-15"
+          className="absolute bottom-1/4 right-0 w-20 h-20 rounded-full opacity-8"
           style={{
             background: 'radial-gradient(circle, #3B82F6 0%, transparent 70%)',
             filter: 'blur(30px)',
