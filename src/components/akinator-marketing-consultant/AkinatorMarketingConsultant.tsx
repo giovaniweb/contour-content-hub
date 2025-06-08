@@ -65,21 +65,26 @@ const AkinatorMarketingConsultant: React.FC = () => {
     return step;
   };
 
-  const findNextValidStepIndex = (currentIndex: number): number => {
+  const findNextValidStepIndex = (currentIndex: number, clinicType?: string): number => {
     let nextIndex = currentIndex + 1;
+    
+    // Use the clinic type from the current state or the passed parameter
+    const currentClinicType = clinicType || state.clinicType;
     
     while (nextIndex < steps.length) {
       const nextStep = steps[nextIndex];
       
+      // If no condition, step is always valid
       if (!nextStep.condition) {
         return nextIndex;
       }
       
-      if (nextStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
+      // Check if step matches the clinic type
+      if (nextStep.condition === 'clinica_medica' && currentClinicType === 'clinica_medica') {
         return nextIndex;
       }
       
-      if (nextStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
+      if (nextStep.condition === 'clinica_estetica' && currentClinicType === 'clinica_estetica') {
         return nextIndex;
       }
       
@@ -87,6 +92,32 @@ const AkinatorMarketingConsultant: React.FC = () => {
     }
     
     return -1; // No more valid steps
+  };
+
+  const findPreviousValidStepIndex = (currentIndex: number): number => {
+    let prevIndex = currentIndex - 1;
+    
+    while (prevIndex >= 0) {
+      const prevStep = steps[prevIndex];
+      
+      // If no condition, step is always valid
+      if (!prevStep.condition) {
+        return prevIndex;
+      }
+      
+      // Check if step matches the clinic type
+      if (prevStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
+        return prevIndex;
+      }
+      
+      if (prevStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
+        return prevIndex;
+      }
+      
+      prevIndex--;
+    }
+    
+    return 0; // Return to first step if no valid previous step
   };
 
   const currentStepData = getCurrentStep();
@@ -100,13 +131,20 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
     const newState = { ...state, [stepId]: value };
 
-    // Find next valid step
-    const nextStepIndex = findNextValidStepIndex(state.currentStep);
+    // Special handling for clinic type selection
+    let nextStepIndex: number;
+    if (stepId === 'clinicType') {
+      // When selecting clinic type, pass it to find the next valid step
+      nextStepIndex = findNextValidStepIndex(state.currentStep, value);
+    } else {
+      // For other steps, use current state
+      nextStepIndex = findNextValidStepIndex(state.currentStep);
+    }
     
     if (nextStepIndex === -1) {
       // No more valid steps, complete the process
       console.log('No more steps, completing process');
-      setState({ ...newState, isComplete: false }); // Keep current step for analysis
+      setState({ ...newState, isComplete: false });
       setIsAnalyzing(true);
       
       setTimeout(() => {
@@ -127,29 +165,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   const handleGoBack = () => {
     if (state.currentStep > 0) {
-      let prevIndex = state.currentStep - 1;
-      
-      // Find previous valid step
-      while (prevIndex >= 0) {
-        const prevStep = steps[prevIndex];
-        if (!prevStep.condition) {
-          break;
-        }
-        
-        if (prevStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
-          break;
-        }
-        
-        if (prevStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
-          break;
-        }
-        
-        prevIndex--;
-      }
-      
-      if (prevIndex >= 0) {
-        setState(prev => ({ ...prev, currentStep: prevIndex }));
-      }
+      const prevIndex = findPreviousValidStepIndex(state.currentStep);
+      setState(prev => ({ ...prev, currentStep: prevIndex }));
     }
   };
 
@@ -214,25 +231,29 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  // Skip current step if it doesn't meet conditions
+  // Auto-advance if current step should be skipped
   if (!currentStepData) {
     const nextStepIndex = findNextValidStepIndex(state.currentStep);
     if (nextStepIndex !== -1) {
       // Auto-advance to next valid step
-      setState(prev => ({ ...prev, currentStep: nextStepIndex }));
+      setTimeout(() => {
+        setState(prev => ({ ...prev, currentStep: nextStepIndex }));
+      }, 0);
       return null; // Will re-render with new step
     } else {
       // No more steps, complete
-      setIsAnalyzing(true);
       setTimeout(() => {
-        setState(prev => ({ ...prev, isComplete: true }));
-        setIsAnalyzing(false);
-        
-        toast({
-          title: "🎯 Diagnóstico completo!",
-          description: "Seu plano estratégico está pronto!"
-        });
-      }, 1000);
+        setIsAnalyzing(true);
+        setTimeout(() => {
+          setState(prev => ({ ...prev, isComplete: true }));
+          setIsAnalyzing(false);
+          
+          toast({
+            title: "🎯 Diagnóstico completo!",
+            description: "Seu plano estratégico está pronto!"
+          });
+        }, 1000);
+      }, 0);
       return null;
     }
   }
