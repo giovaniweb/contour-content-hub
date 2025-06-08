@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, ArrowRight, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -21,10 +21,11 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
   onStartConsultation 
 }) => {
   const { toast } = useToast();
+  const { profile } = useUserProfile();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Olá! Sou seu consultor de marketing especializado em clínicas de estética. Estou aqui para ajudar você a crescer seu negócio com estratégias personalizadas. Podemos começar uma análise completa ou você pode me perguntar algo específico sobre marketing para sua clínica.'
+      content: `Olá! Sou seu consultor de marketing especializado em clínicas ${profile?.clinic_type === 'clinica_medica' ? 'médicas e' : 'de'} estética${profile?.clinic_type === 'clinica_medica' ? 's' : ''}. Estou aqui para ajudar você a crescer seu negócio com estratégias personalizadas${profile?.clinic_type ? ` para ${profile.clinic_type === 'clinica_medica' ? 'clínicas médicas' : 'clínicas estéticas'}` : ''}. Podemos começar uma análise completa ou você pode me perguntar algo específico sobre marketing para sua clínica.`
     }
   ]);
   const [input, setInput] = useState('');
@@ -146,7 +147,7 @@ const MarketingConsultantChat: React.FC<MarketingConsultantChatProps> = ({
       } else if (userMessage.toLowerCase().includes('google') || userMessage.toLowerCase().includes('ads')) {
         response = 'Anúncios no Google são ideais para capturar pessoas que já estão procurando por serviços estéticos. Para clínicas, recomendo campanhas de search focadas em procedimentos específicos e remarketing para quem visitou seu site. Quer iniciar um diagnóstico para uma estratégia detalhada?';
       } else if (hasSavedData && (userMessage.toLowerCase().includes('novo') || userMessage.toLowerCase().includes('reiniciar'))) {
-        response = 'Entendi que você deseja iniciar um novo diagnóstico. Isso substituirá seus dados salvos anteriormente. Está certo disso? Podemos começar agora mesmo.';
+        response = 'Entendi que você deseja iniciar um novo diagnóstico. Isso substituirá seus dados salvos anteriormente. Está certo disso? Podemos começar agora mesmo mesmo.';
       } else {
         response = 'Entendi sua questão. Para criar uma estratégia realmente eficaz para sua clínica, precisamos realizar um diagnóstico completo. Posso te guiar por esse processo agora mesmo. Está pronto para começar?';
         // Mostra as sugestões novamente após responder
