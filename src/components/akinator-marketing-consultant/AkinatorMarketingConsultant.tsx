@@ -35,14 +35,17 @@ const AkinatorMarketingConsultant: React.FC = () => {
     } else {
       console.log('Gerando diagnóstico - última etapa');
       
-      // Gerar diagnóstico usando IA primeiro, depois fallback
       try {
+        // Gerar diagnóstico usando IA primeiro, depois fallback
+        console.log('🔄 Tentando IA primeiro...');
         const aiDiagnostic = await generateDiagnostic(newState);
         
         let finalDiagnostic;
         if (aiDiagnostic) {
+          console.log('✅ IA funcionou! Usando diagnóstico da OpenAI');
           finalDiagnostic = aiDiagnostic;
         } else {
+          console.log('⚠️ IA falhou, usando fallback estático');
           // Fallback para sistema local se IA falhar
           finalDiagnostic = await generateMarketingDiagnostic(newState, false);
         }
@@ -62,12 +65,33 @@ const AkinatorMarketingConsultant: React.FC = () => {
         });
         
       } catch (error) {
-        console.error('Erro ao gerar diagnóstico:', error);
-        toast({
-          variant: "destructive",
-          title: "Erro na geração",
-          description: "Não foi possível gerar o diagnóstico. Tente novamente."
-        });
+        console.error('💥 Erro CRÍTICO ao gerar diagnóstico:', error);
+        
+        // Em caso de erro crítico, usar o fallback
+        console.log('🆘 Usando fallback de emergência...');
+        try {
+          const emergencyDiagnostic = await generateMarketingDiagnostic(newState, false);
+          
+          const finalState = {
+            ...newState,
+            isComplete: true,
+            generatedDiagnostic: emergencyDiagnostic
+          };
+          
+          setState(finalState);
+          
+          toast({
+            title: "⚠️ Diagnóstico gerado (modo offline)",
+            description: "IA indisponível, mas seu diagnóstico foi criado com sucesso."
+          });
+        } catch (emergencyError) {
+          console.error('💥 Erro no fallback de emergência:', emergencyError);
+          toast({
+            variant: "destructive",
+            title: "Erro na geração",
+            description: "Não foi possível gerar o diagnóstico. Tente novamente."
+          });
+        }
       }
     }
   };

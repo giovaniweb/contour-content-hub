@@ -23,9 +23,16 @@ export const useAIDiagnostic = () => {
       console.log('🚀 Chamando edge function generate-marketing-diagnostic...');
       console.log('🔑 Verificando se OPENAI_API_KEY está configurada...');
       
-      const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
+      // Criar um timeout de 15 segundos para a chamada da IA
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout na chamada da IA')), 15000);
+      });
+
+      const supabasePromise = supabase.functions.invoke('generate-marketing-diagnostic', {
         body: diagnosticData
       });
+
+      const { data, error } = await Promise.race([supabasePromise, timeoutPromise]) as any;
 
       console.log('📥 Resposta COMPLETA da edge function:');
       console.log('📄 Data:', JSON.stringify(data, null, 2));
@@ -33,8 +40,6 @@ export const useAIDiagnostic = () => {
 
       if (error) {
         console.error('❌ ERRO na edge function:', error);
-        console.error('❌ Tipo do erro:', typeof error);
-        console.error('❌ Stack trace:', error.stack);
         throw new Error(`Edge function error: ${JSON.stringify(error)}`);
       }
 
@@ -42,8 +47,6 @@ export const useAIDiagnostic = () => {
         console.error('❌ DADOS VAZIOS retornados da edge function');
         throw new Error('Dados vazios retornados da edge function');
       }
-
-      console.log('✅ Data recebida:', typeof data, data);
 
       // Verificar se é uma resposta de sucesso da IA
       if (data.success === false) {
