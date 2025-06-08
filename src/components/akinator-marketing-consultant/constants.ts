@@ -1,4 +1,3 @@
-
 import { MarketingStep } from './types';
 
 export const MARKETING_STEPS: MarketingStep[] = [
@@ -43,14 +42,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
   },
   {
     id: 'medicalProblems',
-    question: 'Qual problema de saúde/estética seus pacientes mais procuram resolver?',
-    options: [],
-    isOpen: true,
-    condition: (state) => state.clinicType === 'clinica_medica'
-  },
-  {
-    id: 'medicalMostSought',
-    question: 'Qual é o protocolo mais procurado pelos seus pacientes?',
+    question: 'Qual é o principal problema/protocolo que seus pacientes mais procuram resolver?',
     options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_medica'
@@ -131,14 +123,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
   },
   {
     id: 'aestheticProblems',
-    question: 'Qual problema estético seus clientes mais procuram resolver?',
-    options: [],
-    isOpen: true,
-    condition: (state) => state.clinicType === 'clinica_estetica'
-  },
-  {
-    id: 'aestheticBestSeller',
-    question: 'Qual é o seu protocolo mais vendido?',
+    question: 'Qual é o principal problema/protocolo que seus clientes mais procuram resolver?',
     options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_estetica'

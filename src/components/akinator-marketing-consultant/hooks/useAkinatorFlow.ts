@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MARKETING_STEPS } from '../constants';
 import { MarketingConsultantState } from '../types';
@@ -11,7 +10,6 @@ const initialState: MarketingConsultantState = {
   medicalProcedures: '',
   medicalEquipments: '',
   medicalProblems: '',
-  medicalMostSought: '',
   medicalTicket: '',
   medicalSalesModel: '',
   medicalObjective: '',
@@ -20,7 +18,6 @@ const initialState: MarketingConsultantState = {
   aestheticFocus: '',
   aestheticEquipments: '',
   aestheticProblems: '',
-  aestheticBestSeller: '',
   aestheticSalesModel: '',
   aestheticTicket: '',
   aestheticObjective: '',

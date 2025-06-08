@@ -1,4 +1,3 @@
-
 import React from 'react';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
 import MarketingResult from './MarketingResult';
@@ -55,7 +54,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
       medicalProcedures: '',
       medicalEquipments: '',
       medicalProblems: '',
-      medicalMostSought: '',
       medicalTicket: '',
       medicalSalesModel: '',
       medicalObjective: '',
@@ -64,7 +62,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
       aestheticFocus: '',
       aestheticEquipments: '',
       aestheticProblems: '',
-      aestheticBestSeller: '',
       aestheticSalesModel: '',
       aestheticTicket: '',
       aestheticObjective: '',

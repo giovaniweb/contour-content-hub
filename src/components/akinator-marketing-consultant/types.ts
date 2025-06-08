@@ -1,11 +1,9 @@
-
 export interface MarketingConsultantState {
   clinicType: string;
   medicalSpecialty: string;
   medicalProcedures: string;
   medicalEquipments: string;
   medicalProblems: string;
-  medicalMostSought: string;
   medicalTicket: string;
   medicalSalesModel: string;
   medicalObjective: string;
@@ -14,7 +12,6 @@ export interface MarketingConsultantState {
   aestheticFocus: string;
   aestheticEquipments: string;
   aestheticProblems: string;
-  aestheticBestSeller: string;
   aestheticSalesModel: string;
   aestheticTicket: string;
   aestheticObjective: string;
