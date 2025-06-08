@@ -224,7 +224,7 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
     if (data.clinicType === 'clinica_medica') {
       return data.medicalProcedures || data.medicalSpecialty || 'procedimentos médicos';
     } else {
-      return data.aestheticFocus || data.aestheticBestSeller || 'tratamentos estéticos';
+      return data.aestheticFocus || data.aestheticProblems || 'tratamentos estéticos';
     }
   };
 
