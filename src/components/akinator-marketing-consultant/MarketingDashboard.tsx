@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Share2 } from 'lucide-react';
@@ -14,6 +13,8 @@ import ClinicTypeIndicator from './dashboard/ClinicTypeIndicator';
 import ActiveStrategiesSection from './dashboard/ActiveStrategiesSection';
 import ActionPlanSection from './dashboard/ActionPlanSection';
 import RevenueProjectionCard from './dashboard/RevenueProjectionCard';
+import RealMentorSection from './dashboard/RealMentorSection';
+import { useRealMentors } from './hooks/useRealMentors';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -28,6 +29,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   aiSections,
   onRestart
 }) => {
+  const { mentors, loading: mentorsLoading, inferBestMentor, generateMentorEnigma } = useRealMentors();
+  
+  // Inferir o melhor mentor real baseado no estado
+  const bestMentorMapping = inferBestMentor(state);
+  const mentorEnigma = generateMentorEnigma(bestMentorMapping);
+
   const renderAIDiagnosticSummary = () => {
     if (!aiSections?.diagnostico_estrategico) {
       return (
@@ -195,17 +202,35 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         <ActionPlanSection clinicType={state.clinicType || 'clinica_estetica'} />
       </motion.div>
 
-      {/* Mentor Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <MentorSection 
-          mentor={mentor}
-          renderAIMentorSatire={renderAIMentorSatire}
-        />
-      </motion.div>
+      {/* Real Mentor Section */}
+      {!mentorsLoading && bestMentorMapping && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <RealMentorSection
+            mentor={bestMentorMapping.mentor}
+            marketingProfile={bestMentorMapping.marketingProfile}
+            confidence={bestMentorMapping.confidence}
+            enigma={mentorEnigma}
+          />
+        </motion.div>
+      )}
+
+      {/* Fallback para mentor conceitual se não houver mentores reais */}
+      {(mentorsLoading || !bestMentorMapping) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <MentorSection 
+            mentor={mentor}
+            renderAIMentorSatire={renderAIMentorSatire}
+          />
+        </motion.div>
+      )}
 
       {/* Action Buttons */}
       <motion.div
