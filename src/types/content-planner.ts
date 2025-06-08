@@ -1,5 +1,4 @@
-
-export type ContentPlannerStatus = 'idea' | 'script_generated' | 'approved' | 'scheduled' | 'published';
+export type ContentPlannerStatus = 'idea' | 'approved' | 'published';
 
 export type ContentFormat = 'vídeo' | 'story' | 'carrossel' | 'reels' | 'texto' | 'outro';
 

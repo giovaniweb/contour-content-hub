@@ -9,36 +9,24 @@ export const initialColumns: ContentPlannerColumn[] = [
     items: []
   },
   {
-    id: 'script_generated',
-    title: '✍️ Roteiro Gerado',
-    icon: '✍️',
-    items: []
-  },
-  {
     id: 'approved',
-    title: '✅ Aprovado',
-    icon: '✅',
-    items: []
-  },
-  {
-    id: 'scheduled',
-    title: '📅 Agendado',
-    icon: '📅',
+    title: '⚡ Executar',
+    icon: '⚡',
     items: []
   },
   {
     id: 'published',
-    title: '📢 Publicado',
+    title: '📢 Publicar',
     icon: '📢',
     items: []
   }
 ];
 
-// Mock items for testing
+// Mock items para teste - com dados reais visíveis
 export const mockItems: ContentPlannerItem[] = [
   {
     id: 'item-1',
-    title: 'Video tutorial sobre tratamento facial',
+    title: 'Vídeo tutorial sobre tratamento facial',
     description: 'Vídeo explicativo sobre os benefícios do tratamento facial com ácido hialurônico',
     status: 'idea',
     tags: ['facial', 'tutorial', 'ácido'],
@@ -55,7 +43,7 @@ export const mockItems: ContentPlannerItem[] = [
     id: 'item-2',
     title: 'Benefícios do lifting facial',
     description: 'Conteúdo sobre os principais benefícios do lifting facial não cirúrgico',
-    status: 'script_generated',
+    status: 'approved',
     tags: ['facial', 'lifting', 'rejuvenescimento'],
     scriptId: 'script-123',
     format: 'reels',
@@ -66,5 +54,20 @@ export const mockItems: ContentPlannerItem[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     aiGenerated: true
+  },
+  {
+    id: 'item-3',
+    title: 'Post sobre cuidados pós-procedimento',
+    description: 'Dicas importantes para cuidados após procedimentos estéticos',
+    status: 'published',
+    tags: ['cuidados', 'pós-procedimento', 'dicas'],
+    format: 'carrossel',
+    objective: '🟢 Criar Conexão',
+    distribution: 'Instagram',
+    authorId: 'user-1',
+    authorName: 'Dr. Silva',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    aiGenerated: false
   }
 ];

@@ -1,91 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { ContentPlannerFilter, ContentPlannerItem, ContentPlannerStatus, ContentFormat, ContentDistribution } from '@/types/content-planner';
-import { initialColumns } from './initialState';
+import { initialColumns, mockItems } from './initialState';
 import { toast } from "sonner";
-
-// Exemplo de dados mocados para o Content Planner
-const mockItems: ContentPlannerItem[] = [
-  {
-    id: 'item-1',
-    title: 'Video tutorial sobre tratamento facial',
-    description: 'Vídeo explicativo sobre os benefícios do tratamento facial com ácido hialurônico',
-    status: 'idea',
-    tags: ['facial', 'tutorial', 'ácido'],
-    format: 'vídeo',
-    objective: '🟡 Atrair Atenção',
-    distribution: 'Instagram',
-    authorId: 'user-1',
-    authorName: 'Dr. Silva',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    aiGenerated: false
-  },
-  {
-    id: 'item-2',
-    title: 'Benefícios do lifting facial',
-    description: 'Conteúdo sobre os principais benefícios do lifting facial não cirúrgico',
-    status: 'script_generated',
-    tags: ['facial', 'lifting', 'rejuvenescimento'],
-    scriptId: 'script-123',
-    format: 'reels',
-    objective: '🟡 Atrair Atenção',
-    distribution: 'Instagram',
-    authorId: 'user-1',
-    authorName: 'Dr. Silva',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    aiGenerated: true
-  },
-  {
-    id: 'item-3',
-    title: 'Como funciona o botox preventivo?',
-    description: 'Explicação detalhada sobre o uso de botox para prevenção de rugas',
-    status: 'approved',
-    tags: ['botox', 'prevenção', 'rugas'],
-    scriptId: 'script-456',
-    format: 'vídeo',
-    objective: '🔴 Fazer Comprar',
-    distribution: 'YouTube',
-    authorId: 'user-1',
-    authorName: 'Dr. Silva',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    aiGenerated: false
-  },
-  {
-    id: 'item-4',
-    title: 'Aplicação de preenchimento labial',
-    description: 'Demonstração de aplicação de preenchimento labial com ácido hialurônico',
-    status: 'scheduled',
-    tags: ['preenchimento', 'labial', 'procedimento'],
-    scriptId: 'script-789',
-    format: 'reels',
-    objective: '🟢 Criar Conexão',
-    distribution: 'TikTok',
-    scheduledDate: new Date(Date.now() + 86400000).toISOString(),
-    authorId: 'user-1',
-    authorName: 'Dr. Silva',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    aiGenerated: false
-  },
-  {
-    id: 'item-5',
-    title: 'Comparação entre procedimentos faciais',
-    description: 'Infográfico comparando diferentes procedimentos para rejuvenescimento facial',
-    status: 'published',
-    tags: ['facial', 'comparação', 'rejuvenescimento'],
-    format: 'carrossel',
-    objective: '🟡 Atrair Atenção',
-    distribution: 'Instagram',
-    authorId: 'user-1',
-    authorName: 'Dr. Silva',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    aiGenerated: false
-  }
-];
 
 export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => {
   const [columns, setColumns] = useState(initialColumns);
@@ -103,6 +19,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
         await new Promise(resolve => setTimeout(resolve, 800));
         setItems(mockItems);
         setError(null);
+        
+        console.log("📋 Dados do planejador carregados:", mockItems);
         
         toast.success("Planejador carregado", {
           description: "Dados atualizados com sucesso!"
@@ -141,12 +59,82 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
 
   // Atualizar colunas quando items mudam
   useEffect(() => {
-    const updatedColumns = initialColumns.map(column => ({
-      ...column,
-      items: items.filter(item => item.status === column.id)
-    }));
+    const updatedColumns = initialColumns.map(column => {
+      const columnItems = items.filter(item => item.status === column.id);
+      console.log(`📊 Coluna ${column.title}: ${columnItems.length} itens`);
+      
+      return {
+        ...column,
+        items: columnItems
+      };
+    });
+    
     setColumns(updatedColumns);
+    console.log("🔄 Colunas atualizadas:", updatedColumns);
   }, [items]);
+
+  // Gerar sugestões de conteúdo com IA
+  const generateSuggestions = async (count = 3, objective?: string, format?: string): Promise<ContentPlannerItem[]> => {
+    try {
+      setLoading(true);
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const suggestions: ContentPlannerItem[] = [];
+      
+      const topics = [
+        "5 melhores tratamentos para rejuvenescimento facial em 2024",
+        "Mitos e verdades sobre botox: o que você precisa saber",
+        "Como escolher o preenchimento ideal para seu tipo de pele",
+        "Cuidados pós-procedimento: dicas essenciais para melhores resultados",
+        "Tratamentos não invasivos: alternativas ao lifting cirúrgico",
+        "Harmonização facial: técnicas modernas e seguras",
+        "Prevenção do envelhecimento: quando começar os tratamentos",
+        "Diferenças entre ácido hialurônico e outros preenchedores"
+      ];
+      
+      const randomTopics = [...topics].sort(() => 0.5 - Math.random()).slice(0, count);
+      
+      for (let i = 0; i < count; i++) {
+        const formats: ContentFormat[] = ['vídeo', 'reels', 'carrossel', 'story'];
+        const objectives = ['🟡 Atrair Atenção', '🔴 Fazer Comprar', '🟢 Criar Conexão'];
+        
+        const newItem: ContentPlannerItem = {
+          id: `item-ai-${Date.now()}-${i}`,
+          title: randomTopics[i] || `Sugestão IA: Conteúdo ${i+1}`,
+          description: "Conteúdo gerado por IA baseado em tendências de mercado e dados de engajamento. Personalize conforme sua audiência.",
+          status: 'idea',
+          tags: ['ia', 'sugestão', 'trend', 'engajamento'],
+          format: (format as ContentFormat) || formats[Math.floor(Math.random() * formats.length)],
+          objective: objective || objectives[Math.floor(Math.random() * objectives.length)],
+          distribution: 'Instagram' as ContentDistribution,
+          authorId: 'ai-assistant',
+          authorName: '🤖 Assistente IA',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          aiGenerated: true
+        };
+        
+        suggestions.push(newItem);
+      }
+      
+      setItems(prevItems => [...suggestions, ...prevItems]);
+      
+      toast.success(`🎯 ${count} sugestões geradas!`, {
+        description: "Novas ideias inteligentes adicionadas ao planejador"
+      });
+      
+      return suggestions;
+    } catch (err) {
+      console.error("Erro ao gerar sugestões:", err);
+      toast.error("❌ Erro na geração IA", {
+        description: "Não foi possível gerar sugestões automáticas"
+      });
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Adicionar item
   const addItem = async (newItem: Partial<ContentPlannerItem>): Promise<ContentPlannerItem | null> => {
@@ -275,69 +263,6 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
         description: "Não foi possível alterar o status"
       });
       return null;
-    }
-  };
-
-  // Gerar sugestões de conteúdo com IA
-  const generateSuggestions = async (count = 3, objective?: string, format?: string): Promise<ContentPlannerItem[]> => {
-    try {
-      setLoading(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const suggestions: ContentPlannerItem[] = [];
-      
-      const topics = [
-        "5 melhores tratamentos para rejuvenescimento facial em 2024",
-        "Mitos e verdades sobre botox: o que você precisa saber",
-        "Como escolher o preenchimento ideal para seu tipo de pele",
-        "Cuidados pós-procedimento: dicas essenciais para melhores resultados",
-        "Tratamentos não invasivos: alternativas ao lifting cirúrgico",
-        "Harmonização facial: técnicas modernas e seguras",
-        "Prevenção do envelhecimento: quando começar os tratamentos",
-        "Diferenças entre ácido hialurônico e outros preenchedores"
-      ];
-      
-      const randomTopics = [...topics].sort(() => 0.5 - Math.random()).slice(0, count);
-      
-      for (let i = 0; i < count; i++) {
-        const formats: ContentFormat[] = ['vídeo', 'reels', 'carrossel', 'story'];
-        const objectives = ['🟡 Atrair Atenção', '🔴 Fazer Comprar', '🟢 Criar Conexão'];
-        
-        const newItem: ContentPlannerItem = {
-          id: `item-ai-${Date.now()}-${i}`,
-          title: randomTopics[i] || `Sugestão IA: Conteúdo ${i+1}`,
-          description: "Conteúdo gerado por IA baseado em tendências de mercado e dados de engajamento. Personalize conforme sua audiência.",
-          status: 'idea',
-          tags: ['ia', 'sugestão', 'trend', 'engajamento'],
-          format: (format as ContentFormat) || formats[Math.floor(Math.random() * formats.length)],
-          objective: objective || objectives[Math.floor(Math.random() * objectives.length)],
-          distribution: 'Instagram' as ContentDistribution,
-          authorId: 'ai-assistant',
-          authorName: '🤖 Assistente IA',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          aiGenerated: true
-        };
-        
-        suggestions.push(newItem);
-      }
-      
-      setItems(prevItems => [...suggestions, ...prevItems]);
-      
-      toast.success(`🎯 ${count} sugestões geradas!`, {
-        description: "Novas ideias inteligentes adicionadas ao planejador"
-      });
-      
-      return suggestions;
-    } catch (err) {
-      console.error("Erro ao gerar sugestões:", err);
-      toast.error("❌ Erro na geração IA", {
-        description: "Não foi possível gerar sugestões automáticas"
-      });
-      return [];
-    } finally {
-      setLoading(false);
     }
   };
 
