@@ -1,32 +1,27 @@
 
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
-import { STEPS } from './constants';
+import { Progress } from "@/components/ui/progress";
 
 interface AkinatorProgressProps {
   currentStep: number;
+  totalSteps?: number;
 }
 
-const AkinatorProgress: React.FC<AkinatorProgressProps> = ({ currentStep }) => {
+const AkinatorProgress: React.FC<AkinatorProgressProps> = ({ 
+  currentStep, 
+  totalSteps = 9 // Valor padrão para compatibilidade
+}) => {
+  const progress = Math.round(((currentStep + 1) / totalSteps) * 100);
+
   return (
-    <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        {STEPS.map((_, index) => (
-          <div
-            key={index}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              index <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted'
-            }`}
-          >
-            {index < currentStep ? '✓' : index + 1}
-          </div>
-        ))}
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium">Progresso do Diagnóstico</span>
+        <span className="text-sm text-muted-foreground">
+          {currentStep + 1} de {totalSteps}
+        </span>
       </div>
-      <div className="text-center">
-        <Badge variant="outline">
-          Etapa {currentStep + 1} de {STEPS.length}
-        </Badge>
-      </div>
+      <Progress value={progress} className="w-full" />
     </div>
   );
 };

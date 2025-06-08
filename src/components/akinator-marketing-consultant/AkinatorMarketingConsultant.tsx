@@ -21,15 +21,33 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   console.log('AkinatorMarketingConsultant - Estado atual:', state);
 
-  const currentStepData = MARKETING_STEPS[state.currentStep];
+  // Filtrar perguntas baseado no tipo de clínica
+  const getFilteredSteps = () => {
+    return MARKETING_STEPS.filter(step => {
+      if (!step.condition) return true;
+      
+      // Mostrar perguntas específicas baseadas no tipo de clínica
+      if (step.condition === 'clinica_medica') {
+        return state.clinicType === 'clinica_medica';
+      }
+      if (step.condition === 'clinica_estetica') {
+        return state.clinicType === 'clinica_estetica';
+      }
+      
+      return true;
+    });
+  };
+
+  const filteredSteps = getFilteredSteps();
+  const currentStepData = filteredSteps[state.currentStep];
 
   const handleOptionSelect = (value: string) => {
     const newState = { ...state, [currentStepData.id]: value };
     
     console.log('handleOptionSelect - newState:', newState);
-    console.log('handleOptionSelect - currentStep:', state.currentStep, 'MARKETING_STEPS.length:', MARKETING_STEPS.length);
+    console.log('handleOptionSelect - currentStep:', state.currentStep, 'filteredSteps.length:', filteredSteps.length);
     
-    if (state.currentStep < MARKETING_STEPS.length - 1) {
+    if (state.currentStep < filteredSteps.length - 1) {
       console.log('Avançando para próximo step');
       setState({ ...newState, currentStep: state.currentStep + 1 });
     } else {
@@ -116,7 +134,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
       title: "📊 Abrindo histórico de relatórios...",
       description: "Carregando seus diagnósticos anteriores!"
     });
-    // Aqui você pode redirecionar para a página de relatórios ou abrir um modal
     window.open('/reports', '_blank');
   };
 
@@ -147,9 +164,21 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
+  // Se não há step atual (pode acontecer após filtrar), mostrar mensagem de erro
+  if (!currentStepData) {
+    return (
+      <div className="text-center p-8">
+        <p>Erro na navegação. Reiniciando...</p>
+        <button onClick={resetConsultant} className="mt-4 px-4 py-2 bg-primary text-white rounded">
+          Reiniciar
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <AkinatorProgress currentStep={state.currentStep} />
+      <AkinatorProgress currentStep={state.currentStep} totalSteps={filteredSteps.length} />
       <MarketingQuestion
         stepData={currentStepData}
         currentStep={state.currentStep}

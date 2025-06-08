@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Building2,
@@ -12,7 +14,9 @@ import {
   AlertCircle,
   CreditCard,
   Smartphone,
-  UserCheck
+  UserCheck,
+  Stethoscope,
+  Sparkles
 } from "lucide-react";
 import { MarketingStep } from './types';
 
@@ -27,14 +31,24 @@ interface MarketingQuestionProps {
 const getIcon = (stepId: string) => {
   const icons = {
     'clinicType': Building2,
-    'businessTime': Clock,
-    'teamSize': Users,
+    'medicalSpecialty': Stethoscope,
+    'medicalProcedures': Sparkles,
+    'medicalTicket': DollarSign,
+    'medicalModel': Target,
+    'medicalObjective': Target,
+    'aestheticFocus': Sparkles,
+    'aestheticEquipments': Building2,
+    'aestheticBestSeller': Target,
+    'aestheticSalesModel': CreditCard,
+    'aestheticObjective': Target,
     'currentRevenue': DollarSign,
     'revenueGoal': Target,
-    'mainChallenge': AlertCircle,
-    'marketingBudget': CreditCard,
-    'socialMediaPresence': Smartphone,
-    'targetAudience': UserCheck
+    'mainService': Sparkles,
+    'personalBrand': Smartphone,
+    'contentFrequency': Clock,
+    'paidTraffic': Target,
+    'targetAudience': Users,
+    'clinicPosition': Building2
   };
   
   const IconComponent = icons[stepId as keyof typeof icons] || Building2;
@@ -48,6 +62,22 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   onGoBack,
   canGoBack
 }) => {
+  const [openAnswer, setOpenAnswer] = useState('');
+
+  const handleOpenSubmit = () => {
+    if (openAnswer.trim()) {
+      onOptionSelect(openAnswer.trim());
+      setOpenAnswer('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleOpenSubmit();
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       {/* Question Card */}
@@ -71,18 +101,39 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-3">
-            {stepData.options.map((option) => (
-              <Button
-                key={option.value}
-                variant="outline"
-                className="justify-start h-auto p-4 text-left hover:bg-primary/5"
-                onClick={() => onOptionSelect(option.value)}
+          {stepData.isOpen ? (
+            // Campo aberto para texto livre
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Digite sua resposta aqui..."
+                value={openAnswer}
+                onChange={(e) => setOpenAnswer(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="min-h-[100px]"
+              />
+              <Button 
+                onClick={handleOpenSubmit}
+                disabled={!openAnswer.trim()}
+                className="w-full"
               >
-                <span>{option.label}</span>
+                Continuar
               </Button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            // Opções múltipla escolha
+            <div className="grid grid-cols-1 gap-3">
+              {stepData.options.map((option) => (
+                <Button
+                  key={option.value}
+                  variant="outline"
+                  className="justify-start h-auto p-4 text-left hover:bg-primary/5"
+                  onClick={() => onOptionSelect(option.value)}
+                >
+                  <span>{option.label}</span>
+                </Button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

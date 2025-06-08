@@ -2,135 +2,267 @@
 import { MarketingConsultantState } from './types';
 
 export const generateMarketingDiagnostic = (state: MarketingConsultantState): string => {
-  const clinicTypeText = getClinicTypeAnalysis(state.clinicType || '');
-  const businessMaturity = getBusinessMaturityAnalysis(state.businessTime || '');
+  const isClinicaMedica = state.clinicType === 'clinica_medica';
+  const clinicTypeAnalysis = getClinicTypeAnalysis(state);
   const revenueAnalysis = getRevenueAnalysis(state.currentRevenue || '', state.revenueGoal || '');
-  const challengeAnalysis = getChallengeAnalysis(state.mainChallenge || '');
-  const marketingAnalysis = getMarketingAnalysis(state.marketingBudget || '', state.socialMediaPresence || '');
-  const audienceAnalysis = getAudienceAnalysis(state.targetAudience || '');
+  const marketingAnalysis = getMarketingAnalysis(state);
+  const strategicActions = getStrategicActions(state);
+  const nextSteps = getNextSteps(state);
+  const enigmaMentor = getEnigmaMentor(state);
   
-  return `# 🎯 DIAGNÓSTICO PERSONALIZADO DA SUA CLÍNICA
+  return `# 🎯 DIAGNÓSTICO ESTRATÉGICO FLUIDA
 
-## 📊 PERFIL DO NEGÓCIO
-${clinicTypeText}
-${businessMaturity}
+## 📊 PERFIL DA CLÍNICA
+${clinicTypeAnalysis}
 
-## 💰 ANÁLISE FINANCEIRA
+## 💰 ANÁLISE FINANCEIRA E OBJETIVOS
 ${revenueAnalysis}
 
-## 🚀 PRINCIPAIS DESAFIOS
-${challengeAnalysis}
-
-## 📱 MARKETING DIGITAL
+## 📱 MARKETING E COMUNICAÇÃO ATUAL
 ${marketingAnalysis}
 
-## 🎭 PÚBLICO-ALVO
-${audienceAnalysis}
+## 🚀 PLANO DE AÇÃO - 3 SEMANAS
 
-## 🎯 PRÓXIMOS PASSOS RECOMENDADOS
+### SEMANA 1: ${getWeek1Action(state)}
+### SEMANA 2: ${getWeek2Action(state)}
+### SEMANA 3: ${getWeek3Action(state)}
 
-**PRIORIDADE 1:** ${getPriority1(state)}
-**PRIORIDADE 2:** ${getPriority2(state)}  
-**PRIORIDADE 3:** ${getPriority3(state)}
+## 📈 ESTRATÉGIAS PERSONALIZADAS
+${strategicActions}
 
-## 📈 POTENCIAL DE CRESCIMENTO
-Com as estratégias corretas, sua clínica tem potencial para ${getGrowthPotential(state)} nos próximos 6 meses.
+## 🎯 PRÓXIMOS PASSOS PRIORITÁRIOS
+${nextSteps}
 
+## 🧩 REFLEXÃO ESTRATÉGICA
+*${enigmaMentor}*
+
+---
 *Diagnóstico gerado pelo Consultor Fluida AI*`;
 };
 
-const getClinicTypeAnalysis = (type: string): string => {
-  const analyses = {
-    'estetica_facial': 'Clínica especializada em estética facial - foco em rejuvenescimento e tratamentos faciais. Mercado com alta demanda e margem boa.',
-    'estetica_corporal': 'Clínica focada em estética corporal - tratamentos de contorno e emagrecimento. Mercado sazonal com picos no verão.',
-    'completa': 'Clínica completa facial e corporal - amplo portfólio de serviços. Vantagem competitiva pela diversidade de tratamentos.',
-    'dermatologia': 'Dermatologia estética - posicionamento premium com tratamentos médicos. Alto valor agregado e confiança do paciente.'
-  };
-  return analyses[type as keyof typeof analyses] || 'Perfil de clínica não identificado.';
+const getClinicTypeAnalysis = (state: MarketingConsultantState): string => {
+  if (state.clinicType === 'clinica_medica') {
+    const specialty = getSpecialtyAnalysis(state.medicalSpecialty || '');
+    const procedures = getProcedureAnalysis(state.medicalProcedures || '');
+    const positioning = getPositioningAnalysis(state.clinicPosition || '');
+    
+    return `**CLÍNICA MÉDICA ESPECIALIZADA**
+${specialty}
+${procedures}
+${positioning}
+
+**Diferenciais identificados:**
+- Credibilidade médica como vantagem competitiva
+- Público mais exigente e com maior poder aquisitivo
+- Comunicação deve focar em segurança e resultados científicos`;
+  } else {
+    const focus = getAestheticFocusAnalysis(state.aestheticFocus || '');
+    const equipment = getEquipmentAnalysis(state.aestheticEquipments || '');
+    const positioning = getPositioningAnalysis(state.clinicPosition || '');
+    
+    return `**CLÍNICA ESTÉTICA ESPECIALIZADA**
+${focus}
+${equipment}
+${positioning}
+
+**Diferenciais identificados:**
+- Foco em bem-estar e autoestima
+- Comunicação humanizada e emocional
+- Público sensível a transformações visuais`;
+  }
 };
 
-const getBusinessMaturityAnalysis = (time: string): string => {
+const getSpecialtyAnalysis = (specialty: string): string => {
   const analyses = {
-    'iniciante': 'Negócio em fase inicial - foco deve ser em construir reputação e base de clientes fiéis.',
-    'intermediario': 'Clínica em crescimento - momento ideal para investir em marketing e expansão.',
-    'consolidado': 'Negócio consolidado - hora de otimizar operações e aumentar lucratividade.',
-    'experiente': 'Clínica estabelecida - foco em inovação e diferenciação no mercado.'
+    'dermatologia': 'Especialidade: Dermatologia - Autoridade médica natural em tratamentos de pele.',
+    'nutrologia': 'Especialidade: Nutrologia - Foco em saúde integral e resultados duradouros.',
+    'ginecoestetica': 'Especialidade: Ginecoestética - Nicho específico com alta demanda.',
+    'cirurgia_plastica': 'Especialidade: Cirurgia Plástica - Procedimentos de alto valor agregado.',
+    'medicina_estetica': 'Especialidade: Medicina Estética - Combinação perfeita de técnica e estética.',
+    'outras': 'Especialidade médica diferenciada - Oportunidade de posicionamento único.'
   };
-  return analyses[time as keyof typeof analyses] || 'Tempo de mercado não identificado.';
+  return analyses[specialty as keyof typeof analyses] || 'Especialidade médica identificada.';
+};
+
+const getProcedureAnalysis = (procedures: string): string => {
+  const analyses = {
+    'invasivos': 'Procedimentos invasivos - Ticket alto, foco em resultados definitivos.',
+    'injetaveis': 'Injetáveis - Recorrência natural, fidelização por manutenção.',
+    'tecnologicos': 'Tecnológicos - Modernidade como diferencial, resultados progressivos.',
+    'combinados': 'Portfólio combinado - Versatilidade para diferentes perfis de pacientes.'
+  };
+  return analyses[procedures as keyof typeof analyses] || 'Procedimentos médicos variados.';
+};
+
+const getAestheticFocusAnalysis = (focus: string): string => {
+  const analyses = {
+    'corporal': 'Foco corporal - Mercado sazonal, picos no verão e início do ano.',
+    'facial': 'Foco facial - Demanda constante, menor sazonalidade.',
+    'ambos': 'Portfólio completo - Vantagem competitiva pela diversidade.',
+    'depilacao': 'Depilação a laser - Recorrência natural, base sólida de faturamento.'
+  };
+  return analyses[focus as keyof typeof analyses] || 'Foco estético definido.';
+};
+
+const getEquipmentAnalysis = (equipment: string): string => {
+  const analyses = {
+    'hifu_radio': 'HIFU e Radiofrequência - Tecnologia avançada para resultados corporais.',
+    'heccus_crio': 'Heccus e Criolipólise - Foco em gordura localizada, alta demanda.',
+    'laser_depilacao': 'Laser depilação - Base recorrente, faturamento previsível.',
+    'sem_equipamentos': 'Clínica manual - Foco na técnica e relacionamento.',
+    'varios': 'Múltiplos equipamentos - Portfólio diversificado.'
+  };
+  return analyses[equipment as keyof typeof analyses] || 'Equipamentos identificados.';
+};
+
+const getPositioningAnalysis = (position: string): string => {
+  const analyses = {
+    'premium': 'Posicionamento Premium - Foco em exclusividade e excelência.',
+    'humanizada': 'Posicionamento Humanizado - Acolhimento e relacionamento próximo.',
+    'acessivel': 'Posicionamento Acessível - Democratização dos tratamentos.',
+    'tecnica': 'Posicionamento Técnico - Expertise e resultados científicos.',
+    'moderna': 'Posicionamento Moderno - Inovação e tendências.'
+  };
+  return analyses[position as keyof typeof analyses] || 'Posicionamento definido.';
 };
 
 const getRevenueAnalysis = (current: string, goal: string): string => {
   const currentAnalysis = {
-    'ate_10k': 'Faturamento inicial - foco em aumentar frequência de clientes.',
-    '10k_30k': 'Faturamento em crescimento - momento de profissionalizar marketing.',
-    '30k_50k': 'Faturamento sólido - investir em retenção e ticket médio.',
-    'acima_50k': 'Faturamento excelente - foco em eficiência e expansão.'
+    'ate_15k': 'Faturamento inicial - Foco em estruturação e crescimento.',
+    '15k_30k': 'Faturamento em crescimento - Momento de profissionalizar.',
+    '30k_60k': 'Faturamento consolidado - Otimização e expansão.',
+    'acima_60k': 'Alto faturamento - Eficiência e liderança de mercado.'
   };
   
-  return currentAnalysis[current as keyof typeof currentAnalysis] || 'Análise de faturamento indisponível.';
-};
-
-const getChallengeAnalysis = (challenge: string): string => {
-  const analyses = {
-    'atrair_clientes': 'Desafio: Atração de clientes. Solução: Investir em marketing digital e parcerias locais.',
-    'converter_leads': 'Desafio: Conversão de leads. Solução: Melhorar processo de vendas e follow-up.',
-    'fidelizar': 'Desafio: Fidelização. Solução: Criar programas de loyalty e comunicação pós-venda.',
-    'aumentar_ticket': 'Desafio: Ticket médio baixo. Solução: Cross-sell, up-sell e pacotes de tratamentos.'
+  const goalAnalysis = {
+    'crescer_30': 'Meta: Crescimento de 30% - Objetivo realista e alcançável.',
+    'crescer_50': 'Meta: Crescimento de 50% - Ambição moderada, estratégia focada.',
+    'dobrar': 'Meta: Dobrar faturamento - Objetivo ambicioso, mudança estrutural.',
+    'manter_estavel': 'Meta: Manter estabilidade - Foco em eficiência operacional.'
   };
-  return analyses[challenge as keyof typeof analyses] || 'Desafio não identificado.';
+  
+  return `${currentAnalysis[current as keyof typeof currentAnalysis] || 'Análise de faturamento'}\n${goalAnalysis[goal as keyof typeof goalAnalysis] || 'Meta definida'}`;
 };
 
-const getMarketingAnalysis = (budget: string, presence: string): string => {
-  let analysis = 'Status do marketing: ';
+const getMarketingAnalysis = (state: MarketingConsultantState): string => {
+  let analysis = 'Status atual do marketing:\n';
   
-  if (budget === 'nada' && presence === 'inexistente') {
-    analysis += 'Início necessário - começar com presença digital básica.';
-  } else if (presence === 'profissional') {
-    analysis += 'Estratégia avançada - otimizar ROI dos investimentos.';
-  } else {
-    analysis += 'Em desenvolvimento - aumentar consistência e profissionalização.';
-  }
+  // Análise da presença pessoal
+  const personalBrand = {
+    'sim_sempre': '✅ Marca pessoal ativa - Vantagem competitiva estabelecida.',
+    'as_vezes': '⚠️ Presença irregular - Oportunidade de consistência.',
+    'raramente': '❌ Pouca exposição - Potencial inexplorado de autoridade.',
+    'nunca': '❌ Ausência total - Necessidade urgente de posicionamento.'
+  };
+  
+  // Análise da frequência de conteúdo
+  const contentFreq = {
+    'diario': '✅ Conteúdo diário - Excelente engajamento.',
+    'varios_por_semana': '✅ Boa frequência - Manter consistência.',
+    'semanal': '⚠️ Frequência baixa - Aumentar produção.',
+    'irregular': '❌ Inconsistente - Criar cronograma estruturado.'
+  };
+  
+  // Análise do tráfego pago
+  const paidTraffic = {
+    'sim_regular': '✅ Tráfego pago ativo - Otimizar ROI.',
+    'esporadico': '⚠️ Uso esporádico - Estruturar campanhas.',
+    'ja_testei': '❌ Experiência negativa - Revisar estratégia.',
+    'nunca_usei': '❌ Sem tráfego pago - Oportunidade de crescimento.'
+  };
+  
+  analysis += personalBrand[state.personalBrand as keyof typeof personalBrand] || 'Presença pessoal não definida.';
+  analysis += '\n' + (contentFreq[state.contentFrequency as keyof typeof contentFreq] || 'Frequência não definida.');
+  analysis += '\n' + (paidTraffic[state.paidTraffic as keyof typeof paidTraffic] || 'Tráfego pago não definido.');
   
   return analysis;
 };
 
-const getAudienceAnalysis = (audience: string): string => {
-  const analyses = {
-    'jovens': 'Público jovem - focar em redes sociais, TikTok e Instagram com conteúdo viral.',
-    'adultos': 'Público adulto - usar Facebook e Instagram com foco em resultados e depoimentos.',
-    'maduros': 'Público maduro - WhatsApp, Facebook e marketing tradicional mais efetivos.',
-    'todos': 'Público diverso - estratégia multi-canal com conteúdo segmentado por idade.'
-  };
-  return analyses[audience as keyof typeof analyses] || 'Público-alvo não definido.';
+const getStrategicActions = (state: MarketingConsultantState): string => {
+  const isClinicaMedica = state.clinicType === 'clinica_medica';
+  
+  if (isClinicaMedica) {
+    return `**Estratégias para Clínica Médica:**
+• Conteúdo educativo com base científica
+• Cases de sucesso com resultados mensuráveis
+• Participação em eventos médicos e lives
+• Parcerias com outros profissionais da saúde
+• Comunicação técnica mas acessível`;
+  } else {
+    return `**Estratégias para Clínica Estética:**
+• Transformações visuais (antes/depois)
+• Conteúdo emocional e inspirador
+• Depoimentos de clientes satisfeitas
+• Trends e novidades do mercado estético
+• Comunicação humanizada e próxima`;
+  }
 };
 
-const getPriority1 = (state: MarketingConsultantState): string => {
-  if (state.socialMediaPresence === 'inexistente') {
-    return 'Criar presença digital básica (Instagram e Facebook)';
+const getWeek1Action = (state: MarketingConsultantState): string => {
+  if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente') {
+    return 'Estruturar presença pessoal e definir tom de comunicação';
   }
-  if (state.mainChallenge === 'atrair_clientes') {
-    return 'Implementar estratégia de captação digital';
+  if (state.contentFrequency === 'irregular') {
+    return 'Criar cronograma de conteúdo e banco de ideias';
   }
-  return 'Otimizar processo de conversão de leads';
+  return 'Otimizar conteúdo atual e definir objetivos claros';
 };
 
-const getPriority2 = (state: MarketingConsultantState): string => {
-  if (state.marketingBudget === 'nada') {
-    return 'Definir orçamento mínimo para marketing (3-5% do faturamento)';
+const getWeek2Action = (state: MarketingConsultantState): string => {
+  if (state.paidTraffic === 'nunca_usei') {
+    return 'Estruturar primeira campanha de tráfego pago';
   }
-  return 'Criar cronograma de conteúdo e campanhas';
+  if (state.clinicType === 'clinica_medica') {
+    return 'Criar conteúdo de autoridade médica e cases';
+  }
+  return 'Implementar campanhas de captação e engajamento';
 };
 
-const getPriority3 = (state: MarketingConsultantState): string => {
-  return 'Implementar sistema de acompanhamento de métricas e ROI';
+const getWeek3Action = (state: MarketingConsultantState): string => {
+  return 'Análise de resultados, ajustes e planejamento do próximo mês';
 };
 
-const getGrowthPotential = (state: MarketingConsultantState): string => {
-  if (state.socialMediaPresence === 'inexistente' && state.marketingBudget === 'nada') {
-    return 'crescer 40-60% implementando marketing digital básico';
+const getNextSteps = (state: MarketingConsultantState): string => {
+  const steps = [];
+  
+  if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente') {
+    steps.push('1. Definir posicionamento pessoal e começar a aparecer no conteúdo');
   }
-  if (state.revenueGoal === 'dobrar') {
-    return 'dobrar o faturamento com estratégia completa';
+  
+  if (state.contentFrequency === 'irregular' || state.contentFrequency === 'semanal') {
+    steps.push('2. Criar cronograma de conteúdo com no mínimo 3 posts por semana');
   }
-  return 'aumentar 30-50% com otimizações estratégicas';
+  
+  if (state.paidTraffic === 'nunca_usei' || state.paidTraffic === 'ja_testei') {
+    steps.push('3. Estruturar estratégia de tráfego pago com orçamento definido');
+  }
+  
+  steps.push('4. Implementar sistema de acompanhamento de métricas e ROI');
+  
+  return steps.join('\n');
+};
+
+const getEnigmaMentor = (state: MarketingConsultantState): string => {
+  const enigmas = [
+    "Quem entende seu público, não precisa gritar para ser ouvido.",
+    "A consistência vence a perfeição em marketing digital.",
+    "Autoridade se constrói compartilhando conhecimento, não escondendo.",
+    "Quem não aparece, não vende. Quem aparece mal, vende menos ainda.",
+    "O melhor marketing é aquele que não parece marketing.",
+    "Resultados falam mais alto que promessas vazias.",
+    "Humanizar é mais importante que vender."
+  ];
+  
+  // Selecionar enigma baseado no perfil
+  if (state.clinicType === 'clinica_medica') {
+    return enigmas[2]; // Sobre autoridade
+  }
+  if (state.personalBrand === 'nunca') {
+    return enigmas[3]; // Sobre aparecer
+  }
+  if (state.contentFrequency === 'irregular') {
+    return enigmas[1]; // Sobre consistência
+  }
+  
+  return enigmas[Math.floor(Math.random() * enigmas.length)];
 };
