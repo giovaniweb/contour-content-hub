@@ -11,6 +11,7 @@ import PersonalizedStrategiesSection from './dashboard/PersonalizedStrategiesSec
 import ActionButtons from './dashboard/ActionButtons';
 import MentorSection from './dashboard/MentorSection';
 import SpecialistsActivatedSection from './dashboard/SpecialistsActivatedSection';
+import FluidAnalysisCards from './dashboard/FluidAnalysisCards';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -45,7 +46,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </p>
         {text.length > summary.length && (
           <p className="text-xs text-aurora-electric-purple">
-            Ver diagnóstico completo abaixo →
+            Ver análise completa abaixo →
           </p>
         )}
       </div>
@@ -165,11 +166,23 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         />
       </motion.div>
 
-      {/* Especialistas Ativados */}
+      {/* Análise Fluida em Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+      >
+        <FluidAnalysisCards 
+          state={state}
+          aiSections={safeAiSections}
+        />
+      </motion.div>
+
+      {/* Especialistas Ativados */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
       >
         <SpecialistsActivatedSection aiSections={safeAiSections} />
       </motion.div>
@@ -178,7 +191,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.4 }}
       >
         <MentorSection 
           mentor={mentor}
@@ -190,7 +203,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.5 }}
       >
         <ContentIdeasSection 
           aiSections={safeAiSections}
@@ -203,7 +216,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.6 }}
       >
         <StrategicActionsSection 
           aiSections={safeAiSections}
@@ -216,7 +229,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.7 }}
       >
         <PersonalizedStrategiesSection 
           aiSections={safeAiSections}
@@ -228,7 +241,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.8 }}
       >
         <ActionButtons 
           onCreateScript={handleCreateScript}
