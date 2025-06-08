@@ -22,6 +22,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   });
 
   console.log('AkinatorMarketingConsultant - Estado atual:', state);
+  console.log('showDashboard:', showDashboard);
 
   const currentStepData = MARKETING_STEPS[state.currentStep];
 
@@ -112,16 +113,17 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleGenerateStrategy = () => {
-    console.log('Navegando para dashboard estratégico');
+    console.log('🚀 Navegando para dashboard estratégico');
     setShowDashboard(true);
   };
 
   const handleGeneratePlan = () => {
-    console.log('Navegando para dashboard de plano');
+    console.log('🚀 Navegando para dashboard de plano');
     setShowDashboard(true);
   };
 
   const handleBackFromDashboard = () => {
+    console.log('🔙 Voltando do dashboard');
     setShowDashboard(false);
   };
 
@@ -130,7 +132,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
       title: "🎬 Criando Roteiro...",
       description: "Redirecionando para o gerador de roteiros!"
     });
-    // Aqui pode navegar para a página de geração de roteiros
   };
 
   const handleGenerateImage = () => {
@@ -158,6 +159,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   // Mostrar dashboard se solicitado
   if (showDashboard && state.isComplete) {
+    console.log('📊 Renderizando MarketingDashboard');
     return (
       <MarketingDashboard
         state={state}
