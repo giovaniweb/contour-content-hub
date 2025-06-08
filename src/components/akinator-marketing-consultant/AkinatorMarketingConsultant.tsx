@@ -48,7 +48,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const { updateClinicType } = useUserProfile();
 
   // Função para determinar se uma pergunta deve ser exibida baseada no estado atual
-  const shouldShowQuestion = (questionIndex: number): boolean => {
+  const shouldShowQuestion = (questionIndex: number, currentState: MarketingConsultantState): boolean => {
     const question = MARKETING_STEPS[questionIndex];
     
     if (!question.condition) {
@@ -57,30 +57,32 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
     // Verificar se a condição está atendida
     if (question.condition === 'clinica_medica') {
-      return state.clinicType === 'clinica_medica';
+      return currentState.clinicType === 'clinica_medica';
     }
     
     if (question.condition === 'clinica_estetica') {
-      return state.clinicType === 'clinica_estetica';
+      return currentState.clinicType === 'clinica_estetica';
     }
 
     return true;
   };
 
   // Função para encontrar a próxima pergunta válida
-  const getNextValidQuestion = (currentIndex: number): number => {
+  const getNextValidQuestion = (currentIndex: number, currentState: MarketingConsultantState): number => {
     for (let i = currentIndex + 1; i < MARKETING_STEPS.length; i++) {
-      if (shouldShowQuestion(i)) {
+      if (shouldShowQuestion(i, currentState)) {
+        console.log(`Próxima pergunta válida encontrada: ${i}`, MARKETING_STEPS[i]);
         return i;
       }
     }
+    console.log('Nenhuma próxima pergunta válida encontrada');
     return MARKETING_STEPS.length;
   };
 
   // Função para encontrar a pergunta anterior válida
   const getPreviousValidQuestion = (currentIndex: number): number => {
     for (let i = currentIndex - 1; i >= 0; i--) {
-      if (shouldShowQuestion(i)) {
+      if (shouldShowQuestion(i, state)) {
         return i;
       }
     }
@@ -103,7 +105,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       console.log('Estado atualizado:', newState);
       
-      const nextStep = getNextValidQuestion(currentStep);
+      // Usar o novo estado para encontrar a próxima pergunta
+      const nextStep = getNextValidQuestion(currentStep, newState);
       
       if (nextStep < MARKETING_STEPS.length) {
         console.log('Próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
@@ -179,7 +182,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  if (currentStep < MARKETING_STEPS.length && shouldShowQuestion(currentStep)) {
+  if (currentStep < MARKETING_STEPS.length && shouldShowQuestion(currentStep, state)) {
     const currentQuestion = MARKETING_STEPS[currentStep];
     
     return (
