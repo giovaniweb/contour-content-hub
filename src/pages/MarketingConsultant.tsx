@@ -1,10 +1,22 @@
 
 import React from 'react';
 import AppLayout from "@/components/layout/AppLayout";
-import { BrainCircuit } from "lucide-react";
+import { BrainCircuit, History } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import AkinatorMarketingConsultant from "@/components/akinator-marketing-consultant/AkinatorMarketingConsultant";
 
 const MarketingConsultant: React.FC = () => {
+  const { toast } = useToast();
+
+  const handleViewHistory = () => {
+    toast({
+      title: "📊 Abrindo histórico de relatórios...",
+      description: "Carregando seus diagnósticos anteriores!"
+    });
+    window.open('/reports', '_blank');
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto py-6 space-y-8">
@@ -18,6 +30,15 @@ const MarketingConsultant: React.FC = () => {
               </p>
             </div>
           </div>
+          
+          <Button 
+            onClick={handleViewHistory}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <History className="h-4 w-4" />
+            Histórico de Relatórios
+          </Button>
         </div>
 
         <div className="max-w-4xl mx-auto">
