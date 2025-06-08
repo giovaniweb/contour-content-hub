@@ -68,7 +68,12 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const [openAnswer, setOpenAnswer] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customEquipment, setCustomEquipment] = useState('');
-  const { equipments, loading } = useEquipments();
+  const { equipments, loading, error } = useEquipments();
+
+  console.log('MarketingQuestion - stepData.id:', stepData.id);
+  console.log('MarketingQuestion - equipments:', equipments);
+  console.log('MarketingQuestion - loading:', loading);
+  console.log('MarketingQuestion - error:', error);
 
   const handleOpenSubmit = () => {
     if (openAnswer.trim()) {
@@ -109,19 +114,32 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
   // Função para gerar opções de equipamentos dinamicamente
   const getEquipmentOptions = () => {
+    console.log('getEquipmentOptions called - loading:', loading, 'equipments:', equipments);
+    
     if (loading) {
       return [
         { value: 'loading', label: '⏳ Carregando equipamentos...' }
       ];
     }
 
-    if (!equipments || equipments.length === 0) {
+    if (error) {
+      console.error('Erro ao carregar equipamentos:', error);
       return [
         { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
         { value: 'outros', label: '🔧 Outros Equipamentos' }
       ];
     }
 
+    if (!equipments || equipments.length === 0) {
+      console.log('Nenhum equipamento encontrado');
+      return [
+        { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
+        { value: 'outros', label: '🔧 Outros Equipamentos' }
+      ];
+    }
+
+    console.log('Equipamentos encontrados:', equipments.length);
+    
     const equipmentOptions = equipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
       label: `🔬 ${equipment.nome}`
@@ -138,6 +156,9 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   // Determinar se deve usar equipamentos dinâmicos
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
   const optionsToShow = shouldUseDynamicEquipments ? getEquipmentOptions() : stepData.options;
+
+  console.log('shouldUseDynamicEquipments:', shouldUseDynamicEquipments);
+  console.log('optionsToShow:', optionsToShow);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -213,6 +234,11 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   <span className="ml-2 text-muted-foreground">Carregando equipamentos...</span>
+                </div>
+              ) : error && shouldUseDynamicEquipments ? (
+                <div className="flex items-center justify-center py-8 text-red-500">
+                  <AlertCircle className="h-6 w-6 mr-2" />
+                  <span>Erro ao carregar equipamentos</span>
                 </div>
               ) : (
                 optionsToShow.map((option) => (
