@@ -34,7 +34,7 @@ export const sidebarData = [
       { name: "Fotos", icon: Image, path: "/photos", highlight: false },
       { name: "Artes", icon: Palette, path: "/arts", highlight: false },
       { name: "Artigo científico", icon: BookOpen, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
-      { name: "Planejador", icon: Calendar, path: ROUTES.CONTENT.PLANNER, highlight: false },
+      { name: "Planejador", icon: Calendar, path: "/content-planner", highlight: false },
       { name: "Equipamentos", icon: Wrench, path: "/equipments", highlight: false }
     ]
   }
