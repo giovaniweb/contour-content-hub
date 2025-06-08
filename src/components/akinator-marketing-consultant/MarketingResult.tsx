@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
 import { Equipment } from '@/types/equipment';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MarketingResultProps {
   consultantData: MarketingConsultantState;
@@ -95,42 +96,21 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
     try {
       console.log('Generating diagnostic with data:', consultantData);
       
-      const response = await fetch('/api/functions/v1/generate-marketing-diagnostic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
+        body: {
           ...consultantData,
           equipments: equipments
-        }),
+        }
       });
 
-      console.log('API Response status:', response.status);
+      console.log('Supabase function response:', { data, error });
 
-      if (!response.ok) {
-        console.error('API response not ok:', response.status, response.statusText);
-        throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(`Erro na função: ${error.message}`);
       }
 
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-
-      if (!responseText.trim()) {
-        console.error('Empty response from API');
-        throw new Error('API retornou resposta vazia');
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Response text that failed to parse:', responseText);
-        throw new Error('Resposta da API não é um JSON válido');
-      }
-      
-      if (data.success && data.diagnostic) {
+      if (data && data.success && data.diagnostic) {
         // Complete progress
         clearInterval(progressInterval);
         setProgress(100);
@@ -142,8 +122,8 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
           setIsGenerating(false);
         }, 1000);
       } else {
-        console.error('API returned error:', data);
-        throw new Error(data.error || 'Erro desconhecido na geração do diagnóstico');
+        console.error('Invalid response format:', data);
+        throw new Error(data?.error || 'Erro desconhecido na geração do diagnóstico');
       }
     } catch (error) {
       clearInterval(progressInterval);
