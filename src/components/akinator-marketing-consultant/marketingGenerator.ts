@@ -1,4 +1,3 @@
-
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
 import { generateAIDiagnostic } from '@/utils/aiDiagnosticUtils';
@@ -7,19 +6,27 @@ export const generateMarketingDiagnostic = async (
   state: MarketingConsultantState, 
   useAI: boolean = true
 ): Promise<string> => {
+  console.log('🎯 generateMarketingDiagnostic chamado com useAI:', useAI);
+  console.log('📊 Estado recebido:', state);
+
   // Se usar IA estiver habilitado, tentar gerar via OpenAI primeiro
   if (useAI) {
     try {
+      console.log('🤖 Tentando gerar diagnóstico via IA...');
       const aiDiagnostic = await generateAIDiagnostic(state);
+      
       if (aiDiagnostic) {
+        console.log('✅ Diagnóstico IA gerado com sucesso! Tamanho:', aiDiagnostic.length);
         return aiDiagnostic;
+      } else {
+        console.log('⚠️ IA retornou null, usando fallback');
       }
     } catch (error) {
-      console.error('Erro na geração via IA, usando fallback:', error);
+      console.error('💥 Erro na geração via IA, usando fallback:', error);
     }
   }
 
-  // Fallback para lógica atual
+  console.log('🔄 Usando sistema de fallback (diagnóstico estático)');
   return generateStaticDiagnostic(state);
 };
 
@@ -28,23 +35,31 @@ const callAIDiagnostic = async (state: MarketingConsultantState): Promise<string
   try {
     const { supabase } = await import('@/integrations/supabase/client');
     
+    console.log('🌐 Chamando edge function diretamente...');
+    
     const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
       body: state
     });
 
+    console.log('📡 Resposta da edge function direta:', { data, error });
+
     if (error || !data.success) {
+      console.log('❌ Edge function falhou:', error || data.error);
       return null;
     }
 
+    console.log('✅ Edge function sucesso!');
     return data.diagnostic;
   } catch (error) {
-    console.error('Erro na chamada da IA:', error);
+    console.error('💥 Erro na chamada da IA:', error);
     return null;
   }
 };
 
 // Função com a lógica estática atual (como fallback)
 const generateStaticDiagnostic = (state: MarketingConsultantState): string => {
+  console.log('📝 Gerando diagnóstico estático para estado:', state);
+  
   const isClinicaMedica = state.clinicType === 'clinica_medica';
   const clinicTypeAnalysis = getClinicTypeAnalysis(state);
   const revenueAnalysis = getRevenueAnalysis(state.currentRevenue || '', state.revenueGoal || '');
@@ -55,7 +70,16 @@ const generateStaticDiagnostic = (state: MarketingConsultantState): string => {
   // Inferir mentor baseado no perfil
   const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
   
-  return `# 🎯 DIAGNÓSTICO ESTRATÉGICO FLUIDA
+  console.log('🧠 Mentor inferido:', mentor.name);
+  console.log('🎭 Enigma:', enigma);
+  
+  // Gerar variações dinâmicas para evitar sempre o mesmo resultado
+  const currentTime = Date.now();
+  const variationSeed = currentTime % 5; // 5 variações diferentes
+  
+  const diagnosticVariations = generateDynamicVariations(state, variationSeed);
+  
+  return `# 🎯 DIAGNÓSTICO ESTRATÉGICO FLUIDA ${getDiagnosticTimestamp()}
 
 ## 📊 PERFIL DA CLÍNICA
 ${clinicTypeAnalysis}
@@ -75,14 +99,168 @@ ${marketingAnalysis}
 ## 📈 ESTRATÉGIAS PERSONALIZADAS
 ${strategicActions}
 
+${diagnosticVariations}
+
 ## 🎯 PRÓXIMOS PASSOS PRIORITÁRIOS
 ${nextSteps}
 
-## 🧩 REFLEXÃO ESTRATÉGICA
-*Se ${mentor.name} olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. ${enigma}*
+## 🧩 MENTOR ESTRATÉGICO IDENTIFICADO
+
+**🧠 ${mentor.name}**
+**Especialidade:** ${mentor.focus}
+**Por que foi escolhido:** Baseado no seu perfil de ${state.clinicType === 'clinica_medica' ? 'clínica médica' : 'clínica estética'} com foco em ${getMainObjective(state)}.
+
+**💭 Reflexão Estratégica:**
+*"${enigma}"*
 
 ---
-*Diagnóstico gerado pelo Consultor Fluida AI*`;
+*Diagnóstico gerado pelo Consultor Fluida AI - ${new Date().toLocaleString('pt-BR')}*`;
+};
+
+// Função para gerar variações dinâmicas
+const generateDynamicVariations = (state: MarketingConsultantState, seed: number): string => {
+  const variations = [
+    `## 💡 INSIGHTS ESPECIAIS
+• Timing ideal para implementação: ${getTimingInsight(state)}
+• Oportunidade sazonal identificada: ${getSeasonalOpportunity(state)}
+• Diferencial competitivo: ${getCompetitiveAdvantage(state)}`,
+    
+    `## 🎯 FOCO ESTRATÉGICO
+• Prioridade máxima: ${getTopPriority(state)}
+• Quick wins identificados: ${getQuickWins(state)}
+• Investimento recomendado: ${getInvestmentRecommendation(state)}`,
+    
+    `## 📊 ANÁLISE DE MERCADO
+• Posicionamento atual: ${getCurrentPositioning(state)}
+• Gaps de oportunidade: ${getOpportunityGaps(state)}
+• Benchmarks do setor: ${getSectorBenchmarks(state)}`,
+    
+    `## 🚀 ACELERAÇÃO DE CRESCIMENTO
+• Alavancas de crescimento: ${getGrowthLevers(state)}
+• Otimizações prioritárias: ${getPriorityOptimizations(state)}
+• Métricas de acompanhamento: ${getKPIs(state)}`,
+    
+    `## 🎨 ESTRATÉGIA CRIATIVA
+• Conceito de comunicação: ${getCommunicationConcept(state)}
+• Narrativa da marca: ${getBrandNarrative(state)}
+• Elementos visuais: ${getVisualElements(state)}`
+  ];
+  
+  return variations[seed] || variations[0];
+};
+
+// Funções auxiliares para variações dinâmicas
+const getDiagnosticTimestamp = (): string => {
+  const now = new Date();
+  return `v${now.getDate()}.${now.getMonth() + 1}`;
+};
+
+const getMainObjective = (state: MarketingConsultantState): string => {
+  if (state.clinicType === 'clinica_medica') {
+    return state.medicalObjective === 'autoridade' ? 'construção de autoridade médica' : 
+           state.medicalObjective === 'escala' ? 'escalabilidade e estruturação' : 'crescimento sustentável';
+  } else {
+    return state.aestheticObjective === 'mais_leads' ? 'geração de leads' :
+           state.aestheticObjective === 'autoridade' ? 'posicionamento de autoridade' : 'otimização de resultados';
+  }
+};
+
+const getTimingInsight = (state: MarketingConsultantState): string => {
+  const month = new Date().getMonth();
+  if (month >= 10 || month <= 1) return 'Janeiro/Fevereiro - Alta demanda estética';
+  if (month >= 2 && month <= 4) return 'Março/Maio - Consolidação de hábitos';
+  if (month >= 5 && month <= 7) return 'Junho/Agosto - Preparação para o verão';
+  return 'Setembro/Dezembro - Planejamento para o próximo ano';
+};
+
+const getSeasonalOpportunity = (state: MarketingConsultantState): string => {
+  if (state.clinicType === 'clinica_estetica') {
+    return 'Tratamentos corporais em alta demanda';
+  } else {
+    return 'Procedimentos preventivos em foco';
+  }
+};
+
+const getCompetitiveAdvantage = (state: MarketingConsultantState): string => {
+  if (state.personalBrand === 'sim_sempre') return 'Marca pessoal consolidada';
+  if (state.clinicPosition === 'premium') return 'Posicionamento premium estabelecido';
+  if (state.clinicPosition === 'humanizada') return 'Relacionamento humanizado';
+  return 'Oportunidade de diferenciação técnica';
+};
+
+const getTopPriority = (state: MarketingConsultantState): string => {
+  if (state.contentFrequency === 'irregular') return 'Consistência na comunicação';
+  if (state.paidTraffic === 'nunca_usei') return 'Estruturação de tráfego pago';
+  if (state.personalBrand === 'nunca') return 'Construção de marca pessoal';
+  return 'Otimização da estratégia atual';
+};
+
+const getQuickWins = (state: MarketingConsultantState): string => {
+  return state.clinicType === 'clinica_estetica' ? 
+    'Stories com antes/depois, depoimentos em vídeo' :
+    'Conteúdo educativo, cases científicos';
+};
+
+const getInvestmentRecommendation = (state: MarketingConsultantState): string => {
+  if (state.currentRevenue === 'ate_15k') return 'R$ 1.500-3.000/mês em marketing';
+  if (state.currentRevenue === '15k_30k') return 'R$ 3.000-6.000/mês em marketing';
+  if (state.currentRevenue === '30k_60k') return 'R$ 6.000-12.000/mês em marketing';
+  return 'R$ 12.000+/mês em marketing estruturado';
+};
+
+const getCurrentPositioning = (state: MarketingConsultantState): string => {
+  return `${state.clinicPosition || 'Em definição'} - ${state.clinicType === 'clinica_medica' ? 'Credibilidade técnica' : 'Foco em resultados'}`;
+};
+
+const getOpportunityGaps = (state: MarketingConsultantState): string => {
+  const gaps = [];
+  if (state.personalBrand === 'nunca') gaps.push('marca pessoal');
+  if (state.contentFrequency === 'irregular') gaps.push('consistência');
+  if (state.paidTraffic === 'nunca_usei') gaps.push('tráfego pago');
+  return gaps.length ? gaps.join(', ') : 'Otimização da estratégia atual';
+};
+
+const getSectorBenchmarks = (state: MarketingConsultantState): string => {
+  return state.clinicType === 'clinica_medica' ? 
+    'CAC médio R$ 200-400, LTV R$ 3.000-8.000' :
+    'CAC médio R$ 150-300, LTV R$ 2.000-5.000';
+};
+
+const getGrowthLevers = (state: MarketingConsultantState): string => {
+  if (state.clinicType === 'clinica_medica') {
+    return 'Autoridade científica, parcerias médicas, educação continuada';
+  } else {
+    return 'Transformações visuais, indicações, experiência do cliente';
+  }
+};
+
+const getPriorityOptimizations = (state: MarketingConsultantState): string => {
+  return state.paidTraffic === 'sim_regular' ? 
+    'ROI das campanhas, segmentação avançada' :
+    'Funil de conversão, landing pages';
+};
+
+const getKPIs = (state: MarketingConsultantState): string => {
+  return 'CAC, LTV, taxa de conversão, engajamento, NPS';
+};
+
+const getCommunicationConcept = (state: MarketingConsultantState): string => {
+  if (state.clinicPosition === 'premium') return 'Excelência e exclusividade';
+  if (state.clinicPosition === 'humanizada') return 'Cuidado e acolhimento';
+  if (state.clinicPosition === 'moderna') return 'Inovação e tecnologia';
+  return 'Resultados e confiança';
+};
+
+const getBrandNarrative = (state: MarketingConsultantState): string => {
+  return state.clinicType === 'clinica_medica' ? 
+    'Ciência aplicada ao bem-estar' :
+    'Transformação com segurança e naturalidade';
+};
+
+const getVisualElements = (state: MarketingConsultantState): string => {
+  return state.clinicType === 'clinica_medica' ? 
+    'Paleta clean, tipografia moderna, ícones científicos' :
+    'Cores vibrantes, antes/depois, lifestyle aspiracional';
 };
 
 const getClinicTypeAnalysis = (state: MarketingConsultantState): string => {
@@ -234,7 +412,7 @@ const getStrategicActions = (state: MarketingConsultantState): string => {
     return `**Estratégias para Clínica Estética:**
 • Transformações visuais (antes/depois)
 • Conteúdo emocional e inspirador
-• Depoimentos de clientes satisfeitas
+• Depoimentos de clientes satisfeitos
 • Trends e novidades do mercado estético
 • Comunicação humanizada e próxima`;
   }
