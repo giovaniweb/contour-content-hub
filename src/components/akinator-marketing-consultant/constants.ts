@@ -2,7 +2,7 @@
 import { MarketingStep } from './types';
 
 export const MARKETING_STEPS: MarketingStep[] = [
-  // Etapa 1 - Identificar tipo de clínica
+  // 🧭 Etapa 1 – Identificar o tipo de clínica
   {
     id: 'clinicType',
     question: 'Qual é o seu tipo de clínica?',
@@ -12,7 +12,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
     ]
   },
 
-  // === PERGUNTAS PARA CLÍNICA MÉDICA ===
+  // === 🏥 ROTEIRO PARA CLÍNICA MÉDICA ===
   {
     id: 'medicalSpecialty',
     question: 'Qual sua especialidade principal?',
@@ -37,16 +37,23 @@ export const MARKETING_STEPS: MarketingStep[] = [
       { value: 'laser_medico', label: '🔬 Laser Médico' },
       { value: 'cirurgias_menores', label: '🔪 Cirurgias Menores' },
       { value: 'harmonizacao_facial', label: '💎 Harmonização Facial' },
-      { value: 'tratamentos_corporais', label: '💪 Tratamentos Corporais' },
-      { value: 'outros', label: '🩺 Outros Procedimentos' }
+      { value: 'tratamentos_corporais', label: '💪 Tratamentos Corporais' }
     ]
   },
   {
     id: 'medicalEquipments',
     question: 'Você utiliza algum equipamento? Se sim, quais?',
     condition: 'clinica_medica',
-    isOpen: true,
-    options: []
+    options: [
+      { value: 'ultrassom_microfocado', label: '🔬 Ultrassom Microfocado' },
+      { value: 'co2_fracionado', label: '⚡ CO2 Fracionado' },
+      { value: 'intradermoterapia', label: '💉 Intradermoterapia' },
+      { value: 'laser_co2', label: '🔥 Laser CO2' },
+      { value: 'radiofrequencia_medica', label: '📡 Radiofrequência Médica' },
+      { value: 'microagulhamento_medico', label: '🔬 Microagulhamento Médico' },
+      { value: 'outros', label: '🩺 Outros Equipamentos' },
+      { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
+    ]
   },
   {
     id: 'medicalProblems',
@@ -64,7 +71,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
   },
   {
     id: 'medicalTicket',
-    question: 'Qual seu ticket médio atual?',
+    question: 'Seu ticket médio atual?',
     condition: 'clinica_medica',
     options: [
       { value: 'ate_500', label: '💰 Até R$ 500' },
@@ -93,8 +100,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
       { value: 'aumentar_autoridade', label: '⭐ Aumentar Autoridade' },
       { value: 'gerar_leads', label: '👥 Gerar Leads' },
       { value: 'escalar_negocio', label: '📈 Escalar Negócio' },
-      { value: 'fidelizar_pacientes', label: '❤️ Fidelizar Pacientes' },
-      { value: 'aumentar_ticket', label: '💰 Aumentar Ticket Médio' }
+      { value: 'fidelizar_pacientes', label: '❤️ Fidelizar Pacientes' }
     ]
   },
   {
@@ -116,13 +122,11 @@ export const MARKETING_STEPS: MarketingStep[] = [
     options: [
       { value: 'premium', label: '💎 Premium' },
       { value: 'tecnica', label: '🔬 Técnica' },
-      { value: 'humanizada', label: '❤️ Humanizada' },
-      { value: 'acessivel', label: '💰 Acessível' },
-      { value: 'inovadora', label: '🚀 Inovadora' }
+      { value: 'humanizada', label: '❤️ Humanizada' }
     ]
   },
 
-  // === PERGUNTAS PARA CLÍNICA ESTÉTICA ===
+  // === 💆‍♀️ ROTEIRO PARA CLÍNICA ESTÉTICA ===
   {
     id: 'aestheticFocus',
     question: 'Você atua com facial, corporal ou ambos?',
@@ -139,8 +143,17 @@ export const MARKETING_STEPS: MarketingStep[] = [
     id: 'aestheticEquipments',
     question: 'Quais equipamentos estéticos você usa?',
     condition: 'clinica_estetica',
-    isOpen: true,
-    options: []
+    options: [
+      { value: 'heccus', label: '⚡ Heccus' },
+      { value: 'criofrequencia', label: '❄️ Criofrequência' },
+      { value: 'lipocavitacao', label: '🌊 Lipocavitação' },
+      { value: 'radiofrequencia_estetica', label: '📡 Radiofrequência Estética' },
+      { value: 'carboxiterapia', label: '💨 Carboxiterapia' },
+      { value: 'pressoterapia', label: '🔄 Pressoterapia' },
+      { value: 'led_terapia', label: '💡 LED Terapia' },
+      { value: 'outros', label: '🔧 Outros Equipamentos' },
+      { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
+    ]
   },
   {
     id: 'aestheticProblems',
@@ -187,8 +200,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
       { value: 'atrair_leads', label: '👥 Atrair Leads' },
       { value: 'vender_mais', label: '💰 Vender Mais' },
       { value: 'aumentar_recorrencia', label: '🔄 Aumentar Recorrência' },
-      { value: 'fidelizar_clientes', label: '❤️ Fidelizar Clientes' },
-      { value: 'aumentar_ticket', label: '📈 Aumentar Ticket Médio' }
+      { value: 'fidelizar_clientes', label: '❤️ Fidelizar Clientes' }
     ]
   },
   {
@@ -213,66 +225,6 @@ export const MARKETING_STEPS: MarketingStep[] = [
       { value: 'popular', label: '👥 Popular' },
       { value: 'premium', label: '💎 Premium' },
       { value: 'moderna', label: '🚀 Moderna' }
-    ]
-  },
-
-  // === BRIEFING COMUM PARA AMBOS ===
-  {
-    id: 'currentRevenue',
-    question: 'Qual seu faturamento atual?',
-    options: [
-      { value: 'ate_15k', label: '💰 Até R$ 15.000' },
-      { value: '15k_30k', label: '💸 R$ 15.000 - R$ 30.000' },
-      { value: '30k_60k', label: '💵 R$ 30.000 - R$ 60.000' },
-      { value: 'acima_60k', label: '💎 Acima de R$ 60.000' }
-    ]
-  },
-  {
-    id: 'revenueGoal',
-    question: 'Qual sua meta de faturamento em 3 meses?',
-    options: [
-      { value: 'crescer_30', label: '📈 Crescer 30%' },
-      { value: 'crescer_50', label: '🚀 Crescer 50%' },
-      { value: 'dobrar', label: '⚡ Dobrar o faturamento' },
-      { value: 'triplicar', label: '🔥 Triplicar o faturamento' },
-      { value: 'manter_estavel', label: '📊 Manter estabilidade' }
-    ]
-  },
-  {
-    id: 'targetAudience',
-    question: 'Quem é seu público ideal?',
-    options: [
-      { value: 'mulheres_25_40', label: '👩 Mulheres 25-40 anos' },
-      { value: 'mulheres_40_plus', label: '👩‍🦳 Mulheres 40+ anos' },
-      { value: 'homens_adultos', label: '👨 Homens adultos' },
-      { value: 'jovens', label: '👧 Jovens 18-25 anos' },
-      { value: 'publico_geral', label: '👥 Público geral' },
-      { value: 'classe_ab', label: '💎 Classe A/B' },
-      { value: 'classe_c', label: '💰 Classe C' }
-    ]
-  },
-  {
-    id: 'contentFrequency',
-    question: 'Com que frequência você posta conteúdo?',
-    options: [
-      { value: 'diario', label: '📅 Diariamente' },
-      { value: 'semanal', label: '📊 Semanalmente' },
-      { value: 'quinzenal', label: '🗓️ Quinzenalmente' },
-      { value: 'mensal', label: '📆 Mensalmente' },
-      { value: 'raramente', label: '❌ Raramente' },
-      { value: 'nao_posto', label: '🚫 Não posto' }
-    ]
-  },
-  {
-    id: 'communicationStyle',
-    question: 'Qual seu estilo de comunicação preferido?',
-    options: [
-      { value: 'emocional', label: '❤️ Emocional' },
-      { value: 'tecnico', label: '🔬 Técnico' },
-      { value: 'didatico', label: '📚 Didático' },
-      { value: 'divertido', label: '😄 Divertido' },
-      { value: 'elegante', label: '💎 Elegante' },
-      { value: 'direto', label: '🎯 Direto' }
     ]
   }
 ];
