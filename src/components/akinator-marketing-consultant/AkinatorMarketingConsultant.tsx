@@ -40,7 +40,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const { equipments } = useEquipments();
 
   const handleAnswer = (answer: string) => {
-    setState({ ...state, [currentQuestion.key]: answer });
+    setState({ ...state, [currentQuestion.id]: answer });
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
