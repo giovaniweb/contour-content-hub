@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Question } from './types';
 import { questions } from './questions';
@@ -20,7 +21,15 @@ const initialState: MarketingConsultantState = {
   mainService: '',
   medicalEquipments: '',
   aestheticEquipments: '',
-  generatedDiagnostic: ''
+  generatedDiagnostic: '',
+  medicalProcedures: '',
+  medicalTicket: '',
+  medicalModel: '',
+  contentFrequency: '',
+  paidTraffic: '',
+  clinicPosition: '',
+  aestheticBestSeller: '',
+  aestheticSalesModel: ''
 };
 
 const AkinatorMarketingConsultant: React.FC = () => {
