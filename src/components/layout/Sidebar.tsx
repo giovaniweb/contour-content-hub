@@ -39,21 +39,19 @@ export default function Sidebar() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  console.log('Sidebar renderizado com dados:', sidebarData); // Debug log
-
   return (
-    <SidebarComponent className="bg-gradient-to-b from-white/80 to-zinc-100/70 backdrop-blur-sm border-r">
-      <SidebarHeader className="border-b p-4">
+    <SidebarComponent className="bg-gradient-to-b from-aurora-dark via-aurora-darker to-aurora-darkest border-r border-white/10">
+      <SidebarHeader className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           {open && (
-            <div className="font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-[#0094fb] to-[#f300fc]">
+            <div className="font-semibold text-xl aurora-text-gradient">
               Fluida
             </div>
           )}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="ml-auto"
+            className="ml-auto text-white hover:bg-white/10"
             onClick={() => setOpen(!open)}
           >
             <Menu className="h-5 w-5" />
@@ -65,7 +63,7 @@ export default function Sidebar() {
         {/* Display all sidebar groups from our data */}
         {sidebarData.map((group) => (
           <SidebarGroup key={group.name} className="mb-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-muted-foreground")}>
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-white/60")}>
               {group.icon && <group.icon className="mr-2 h-4 w-4" />}
               {group.name}
             </SidebarGroupLabel>
@@ -75,13 +73,16 @@ export default function Sidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className={item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""}
+                    className={cn(
+                      "text-white/80 hover:text-white hover:bg-white/10",
+                      item.highlight && "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-aurora-electric-purple before:to-aurora-neon-blue before:rounded-r-sm"
+                    )}
                   >
                     <Link to={item.path}>
                       <item.icon className="h-5 w-5" />
                       <span>{item.name}</span>
                       {item.highlight && open && (
-                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[#f300fc] animate-pulse" />
+                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-aurora-neon-blue animate-pulse" />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -94,8 +95,9 @@ export default function Sidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(ROUTES.VIDEOS.CREATE)}
+                    className="text-aurora-cyan hover:text-aurora-electric-blue hover:bg-white/10"
                   >
-                    <Link to={ROUTES.VIDEOS.CREATE} className="text-blue-500 hover:text-blue-600">
+                    <Link to={ROUTES.VIDEOS.CREATE}>
                       <PlusCircle className="h-5 w-5" />
                       <span>Criar Vídeo</span>
                     </Link>
@@ -109,7 +111,7 @@ export default function Sidebar() {
         {/* Admin menu */}
         {isAdmin && (
           <SidebarGroup className="mt-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-muted-foreground")}>
+            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-white/60")}>
               Administração
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -118,6 +120,7 @@ export default function Sidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
+                    className="text-white/80 hover:text-white hover:bg-white/10"
                   >
                     <Link to={item.path}>
                       <item.icon className="h-5 w-5" />
@@ -131,24 +134,24 @@ export default function Sidebar() {
         )}
       </SidebarContent>
       
-      <SidebarFooter className="border-t p-4">
+      <SidebarFooter className="border-t border-white/10 p-4">
         {open ? (
           <div className="space-y-2">
-            <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+            <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
               <User className="h-4 w-4" />
               <span className="text-sm">Perfil</span>
             </Link>
-            <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors">
+            <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
               <HelpCircle className="h-4 w-4" />
               <span className="text-sm">Ajuda</span>
             </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-2">
-            <Link to={ROUTES.PROFILE} className="p-2 rounded-md hover:bg-muted transition-colors">
+            <Link to={ROUTES.PROFILE} className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
               <User className="h-4 w-4" />
             </Link>
-            <Link to="/help" className="p-2 rounded-md hover:bg-muted transition-colors">
+            <Link to="/help" className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
               <HelpCircle className="h-4 w-4" />
             </Link>
           </div>
