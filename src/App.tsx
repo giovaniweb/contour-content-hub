@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SlideNotificationProvider } from '@/components/notifications/SlideNotificationProvider';
 import PrivateRoute from '@/components/PrivateRoute';
 import AdminRoute from '@/components/AdminRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -46,147 +47,149 @@ function App() {
       <ThemeProvider defaultTheme="system" storageKey="fluida-ui-theme">
         <TooltipProvider>
           <AuthProvider>
-            <Router>
-              <ErrorBoundary>
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  
-                  {/* Protected routes - All using AppLayout */}
-                  <Route path="/dashboard" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <Dashboard />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
-                  
-                  <Route path="/script-generator" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ScriptGeneratorPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
-                  
-                  <Route path="/equipments" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <EquipmentsPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
-                  
-                  <Route path="/equipment/:id" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <EquipmentDetailsPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+            <SlideNotificationProvider>
+              <Router>
+                <ErrorBoundary>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    
+                    {/* Protected routes - All using AppLayout */}
+                    <Route path="/dashboard" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <Dashboard />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+                    
+                    <Route path="/script-generator" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ScriptGeneratorPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+                    
+                    <Route path="/equipments" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <EquipmentsPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+                    
+                    <Route path="/equipment/:id" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <EquipmentDetailsPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/content-strategy" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ContentStrategy />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/content-strategy" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ContentStrategy />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/scripts" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ContentScripts />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/scripts" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ContentScripts />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/content/scripts" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ContentScripts />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/content/scripts" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ContentScripts />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/marketing-consultant" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <MarketingConsultant />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/marketing-consultant" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <MarketingConsultant />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/reports" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ReportsPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/reports" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ReportsPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/consultant-panel" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ConsultantPanel />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/consultant-panel" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ConsultantPanel />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/photos" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <PhotosPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/photos" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <PhotosPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/arts" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ArtsPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/arts" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ArtsPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/videos" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <VideosPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
+                    <Route path="/videos" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <VideosPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
 
-                  <Route path="/content-planner" element={
-                    <PrivateRoute>
-                      <AppLayout>
-                        <ContentPlannerPage />
-                      </AppLayout>
-                    </PrivateRoute>
-                  } />
-                  
-                  {/* Admin routes */}
-                  <Route path="/admin" element={
-                    <AdminRoute>
-                      <AppLayout requireAdmin={true}>
-                        <AdminDashboard />
-                      </AppLayout>
-                    </AdminRoute>
-                  } />
+                    <Route path="/content-planner" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <ContentPlannerPage />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+                    
+                    {/* Admin routes */}
+                    <Route path="/admin" element={
+                      <AdminRoute>
+                        <AppLayout requireAdmin={true}>
+                          <AdminDashboard />
+                        </AppLayout>
+                      </AdminRoute>
+                    } />
 
-                  <Route path="/admin/equipments" element={
-                    <AdminRoute>
-                      <AppLayout requireAdmin={true}>
-                        <AdminEquipments />
-                      </AppLayout>
-                    </AdminRoute>
-                  } />
-                </Routes>
-                <Toaster />
-              </ErrorBoundary>
-            </Router>
+                    <Route path="/admin/equipments" element={
+                      <AdminRoute>
+                        <AppLayout requireAdmin={true}>
+                          <AdminEquipments />
+                        </AppLayout>
+                      </AdminRoute>
+                    } />
+                  </Routes>
+                  <Toaster />
+                </ErrorBoundary>
+              </Router>
+            </SlideNotificationProvider>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
