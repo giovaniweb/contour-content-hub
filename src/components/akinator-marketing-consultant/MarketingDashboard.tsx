@@ -86,6 +86,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     console.log('Download PDF');
   };
 
+  // Prepare aiSections with safe defaults
+  const safeAiSections = {
+    diagnostico_estrategico: aiSections?.diagnostico_estrategico || state.generatedDiagnostic || '',
+    ativacao_especialistas: aiSections?.ativacao_especialistas || '',
+    sugestoes_conteudo: aiSections?.sugestoes_conteudo || [],
+    acoes_estrategicas: aiSections?.acoes_estrategicas || [],
+    estrategias: aiSections?.estrategias || []
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
@@ -133,7 +142,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       >
         <DiagnosticCards 
           state={state} 
-          aiSections={aiSections}
+          aiSections={safeAiSections}
           renderAIDiagnosticSummary={renderAIDiagnosticSummary}
         />
       </motion.div>
@@ -144,7 +153,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <SpecialistsActivatedSection aiSections={aiSections} />
+        <SpecialistsActivatedSection aiSections={safeAiSections} />
       </motion.div>
 
       {/* Mentor Section */}
@@ -166,7 +175,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         transition={{ delay: 0.4 }}
       >
         <ContentIdeasSection 
-          aiSections={aiSections}
+          aiSections={safeAiSections}
           cleanText={cleanText}
           formatTitle={formatTitle}
         />
@@ -179,7 +188,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         transition={{ delay: 0.5 }}
       >
         <StrategicActionsSection 
-          aiSections={aiSections}
+          aiSections={safeAiSections}
           cleanText={cleanText}
           formatTitle={formatTitle}
         />
@@ -192,7 +201,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         transition={{ delay: 0.6 }}
       >
         <PersonalizedStrategiesSection 
-          aiSections={aiSections}
+          aiSections={safeAiSections}
           formatTitle={formatTitle}
         />
       </motion.div>

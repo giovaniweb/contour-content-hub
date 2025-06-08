@@ -12,7 +12,7 @@ const PersonalizedStrategiesSection: React.FC<PersonalizedStrategiesSectionProps
   formatTitle 
 }) => {
   const renderAIPersonalizedStrategies = () => {
-    if (!aiSections || !aiSections.estrategias.length) {
+    if (!aiSections || !aiSections.estrategias || !Array.isArray(aiSections.estrategias)) {
       return (
         <div className="grid grid-cols-1 gap-4">
           {[1, 2, 3].map((index) => (

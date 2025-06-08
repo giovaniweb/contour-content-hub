@@ -14,7 +14,7 @@ const StrategicActionsSection: React.FC<StrategicActionsSectionProps> = ({
   formatTitle 
 }) => {
   const renderAIStrategicActions = () => {
-    if (!aiSections || !aiSections.plano) {
+    if (!aiSections || !aiSections.acoes_estrategicas || !Array.isArray(aiSections.acoes_estrategicas)) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((index) => (
@@ -33,48 +33,18 @@ const StrategicActionsSection: React.FC<StrategicActionsSectionProps> = ({
       );
     }
 
-    // Extrair ações do plano
-    const actions = [];
-    
-    // Procurar por padrões de semanas ou listas
-    const weekSections = aiSections.plano.split(/SEMANA \d+/i);
-    weekSections.forEach((section: string) => {
-      const actionItems = section.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
-      if (actionItems) {
-        actionItems.forEach((item: string) => {
-          const cleanAction = cleanText(item);
-          if (cleanAction && cleanAction.length > 10) {
-            actions.push(cleanAction);
-          }
-        });
-      }
-    });
-
-    // Se não encontrou com padrão de semanas, procurar por listas gerais
-    if (actions.length === 0) {
-      const generalActions = aiSections.plano.match(/[•\-]\s*(.+?)(?=[•\-]|$)/gs);
-      if (generalActions) {
-        generalActions.forEach((item: string) => {
-          const cleanAction = cleanText(item);
-          if (cleanAction && cleanAction.length > 10) {
-            actions.push(cleanAction);
-          }
-        });
-      }
-    }
-
-    const displayActions = actions.slice(0, 4);
+    const actions = aiSections.acoes_estrategicas.slice(0, 4);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {displayActions.map((action, index) => (
+        {actions.map((action: string, index: number) => (
           <Card key={index} className="border-l-4 border-l-aurora-neon-blue aurora-glass hover:shadow-md transition-shadow border-purple-500/30">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-aurora-neon-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium line-clamp-2 flex-1 text-foreground">{formatTitle(action)}</p>
+                <p className="text-sm font-medium line-clamp-2 flex-1 text-foreground">{formatTitle(cleanText(action))}</p>
               </div>
             </CardContent>
           </Card>
