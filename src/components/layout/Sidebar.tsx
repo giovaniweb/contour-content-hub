@@ -18,7 +18,8 @@ import {
   Menu,
   User,
   HelpCircle,
-  PlusCircle
+  PlusCircle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -40,12 +41,17 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent className="aurora-glass border-r border-white/10">
-      <SidebarHeader className="border-b border-white/10 p-4">
+    <SidebarComponent className="bg-[#1a1b2e] border-r border-[#2d2e3f]">
+      <SidebarHeader className="border-b border-[#2d2e3f] p-4">
         <div className="flex items-center justify-between">
           {open && (
-            <div className="font-semibold text-xl aurora-text-gradient">
-              Fluida
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="font-semibold text-xl text-white">
+                Fluida
+              </div>
             </div>
           )}
           <Button 
@@ -59,30 +65,31 @@ export default function Sidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="p-2 overflow-y-auto">
+      <SidebarContent className="p-4 overflow-y-auto">
         {/* Display all sidebar groups from our data */}
         {sidebarData.map((group) => (
-          <SidebarGroup key={group.name} className="mb-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-white/60")}>
-              {group.icon && <group.icon className="mr-2 h-4 w-4" />}
+          <SidebarGroup key={group.name} className="mb-6">
+            <SidebarGroupLabel className={cn(!open && "sr-only", "text-xs font-medium text-gray-400 uppercase tracking-wider mb-3")}>
               {group.name}
             </SidebarGroupLabel>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {group.links.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
                     className={cn(
-                      "text-white/80 hover:text-white hover:bg-white/10",
-                      item.highlight && "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-aurora-electric-purple before:to-aurora-neon-blue before:rounded-r-sm"
+                      "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                      "text-gray-300 hover:text-white hover:bg-[#2d2e3f]",
+                      isActive(item.path) && "bg-[#2d2e3f] text-white",
+                      item.highlight && "relative"
                     )}
                   >
                     <Link to={item.path}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="flex-1">{item.name}</span>
                       {item.highlight && open && (
-                        <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-aurora-neon-blue animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -95,11 +102,15 @@ export default function Sidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(ROUTES.VIDEOS.CREATE)}
-                    className="text-aurora-cyan hover:text-aurora-electric-blue hover:bg-white/10"
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                      "text-blue-400 hover:text-blue-300 hover:bg-[#2d2e3f]",
+                      isActive(ROUTES.VIDEOS.CREATE) && "bg-[#2d2e3f] text-blue-300"
+                    )}
                   >
                     <Link to={ROUTES.VIDEOS.CREATE}>
-                      <PlusCircle className="h-5 w-5" />
-                      <span>Criar Vídeo</span>
+                      <PlusCircle className="h-5 w-5 flex-shrink-0" />
+                      <span className="flex-1">Criar Vídeo</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -110,21 +121,25 @@ export default function Sidebar() {
         
         {/* Admin menu */}
         {isAdmin && (
-          <SidebarGroup className="mt-4">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs text-white/60")}>
+          <SidebarGroup className="mt-6">
+            <SidebarGroupLabel className={cn(!open && "sr-only", "text-xs font-medium text-gray-400 uppercase tracking-wider mb-3")}>
               Administração
             </SidebarGroupLabel>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className="text-white/80 hover:text-white hover:bg-white/10"
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                      "text-gray-300 hover:text-white hover:bg-[#2d2e3f]",
+                      isActive(item.path) && "bg-[#2d2e3f] text-white"
+                    )}
                   >
                     <Link to={item.path}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="flex-1">{item.name}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -134,25 +149,25 @@ export default function Sidebar() {
         )}
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-white/10 p-4">
+      <SidebarFooter className="border-t border-[#2d2e3f] p-4">
         {open ? (
-          <div className="space-y-2">
-            <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-              <User className="h-4 w-4" />
-              <span className="text-sm">Perfil</span>
+          <div className="space-y-1">
+            <Link to={ROUTES.PROFILE} className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#2d2e3f] transition-all duration-200">
+              <User className="h-5 w-5 flex-shrink-0" />
+              <span className="flex-1">Perfil</span>
             </Link>
-            <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-              <HelpCircle className="h-4 w-4" />
-              <span className="text-sm">Ajuda</span>
+            <Link to="/help" className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#2d2e3f] transition-all duration-200">
+              <HelpCircle className="h-5 w-5 flex-shrink-0" />
+              <span className="flex-1">Ajuda</span>
             </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-2">
-            <Link to={ROUTES.PROFILE} className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-              <User className="h-4 w-4" />
+            <Link to={ROUTES.PROFILE} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-[#2d2e3f] transition-all duration-200">
+              <User className="h-5 w-5" />
             </Link>
-            <Link to="/help" className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-              <HelpCircle className="h-4 w-4" />
+            <Link to="/help" className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-[#2d2e3f] transition-all duration-200">
+              <HelpCircle className="h-5 w-5" />
             </Link>
           </div>
         )}
