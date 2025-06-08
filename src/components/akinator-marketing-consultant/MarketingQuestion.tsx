@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,7 +79,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const { showNotification } = useSlideNotifications();
   
   // Buscar equipamentos reais do banco de dados
-  const { equipments, isLoading: equipmentsLoading } = useEquipments();
+  const { equipments, loading: equipmentsLoading } = useEquipments();
 
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
