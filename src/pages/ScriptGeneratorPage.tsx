@@ -45,10 +45,10 @@ const ScriptGeneratorPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">
-          🎬 Gerador de Roteiros
+          🎬 Gerador de Roteiros IA
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Sistema inteligente para criar roteiros profissionais com IA
+          Sistema inteligente alimentado por OpenAI para criar roteiros profissionais
         </p>
       </div>
       
@@ -56,7 +56,7 @@ const ScriptGeneratorPage: React.FC = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generator" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
-            Gerador de Roteiros
+            Gerador Inteligente
           </TabsTrigger>
           <TabsTrigger value="test" className="flex items-center gap-2">
             <TestTube className="h-4 w-4" />
@@ -65,30 +65,31 @@ const ScriptGeneratorPage: React.FC = () => {
         </TabsList>
         
         <TabsContent value="generator" className="mt-6">
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          <Card className="border-2 hover:border-primary/50 transition-colors bg-gradient-to-br from-purple-900/10 to-blue-900/10">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <Bot className="h-8 w-8 text-primary" />
+              <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                <Bot className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl">Gerador Inteligente</CardTitle>
+              <CardTitle className="text-xl">Gerador Inteligente OpenAI</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">
-                Sistema avançado baseado em IA para gerar roteiros personalizados com análise estruturada e validação automática.
+                Sistema avançado baseado em OpenAI para gerar roteiros personalizados com análise estruturada e validação automática.
               </p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Análise de intenção automática</li>
-                <li>• Seleção inteligente de mentor</li>
-                <li>• Prompts dinâmicos personalizados</li>
-                <li>• Validação emocional Disney</li>
+                <li>• 🧠 Análise de intenção com IA</li>
+                <li>• 🎯 Seleção inteligente de mentor</li>
+                <li>• ⚡ Prompts dinâmicos personalizados</li>
+                <li>• ✨ Validação emocional Disney</li>
+                <li>• 🚀 Powered by OpenAI GPT</li>
               </ul>
               <Button 
                 onClick={() => setGeneratorMode('smart')}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                 size="lg"
               >
                 <Bot className="h-4 w-4 mr-2" />
-                Começar a criar roteiro
+                Começar Geração IA
               </Button>
             </CardContent>
           </Card>
@@ -102,13 +103,13 @@ const ScriptGeneratorPage: React.FC = () => {
   );
 
   return (
-    <Layout title="Gerador de Roteiros" fullWidth={false}>
+    <Layout title="Gerador de Roteiros IA" fullWidth={false}>
       <div className="min-h-screen">
         {generatorMode === 'selection' && renderGeneratorSelection()}
         
         {generatorMode === 'smart' && (
           <>
-            {/* Mostrar formulário apenas se não estiver gerando e não tiver resultado */}
+            {/* Formulário de entrada */}
             {!isGenerating && !generatedResult && (
               <div className="container mx-auto px-4 py-8">
                 <div className="mb-6">
@@ -121,20 +122,20 @@ const ScriptGeneratorPage: React.FC = () => {
                   </Button>
                 </div>
                 <SmartScriptGenerator
-                  onGenerate={() => {}} // Não usado mais - lógica interna
+                  onGenerate={() => {}} // Não usado - lógica interna
                   isGenerating={isGenerating}
                 />
               </div>
             )}
             
-            {/* Mostrar tela de progresso quando estiver gerando */}
+            {/* Tela de processamento OpenAI */}
             {isGenerating && (
               <div className="container mx-auto px-4 py-8">
                 <GeneratingStep />
               </div>
             )}
             
-            {/* Mostrar resultado quando tiver resultado e não estiver gerando */}
+            {/* Resultado final */}
             {generatedResult && !isGenerating && (
               <SmartResultDisplay
                 generationResult={generatedResult}
