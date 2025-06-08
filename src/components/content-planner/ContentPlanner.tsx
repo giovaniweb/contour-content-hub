@@ -100,11 +100,11 @@ const ContentPlanner: React.FC = () => {
   ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-contourline-darkBlue">
+            <h1 className="text-2xl font-bold text-foreground">
               Planner de Conteúdo
             </h1>
             {autoRefresh && (
@@ -130,7 +130,7 @@ const ContentPlanner: React.FC = () => {
             <Input 
               type="search" 
               placeholder="Buscar conteúdo..." 
-              className="pl-9 w-full md:w-[200px]"
+              className="pl-9 w-full md:w-[200px] bg-background text-foreground border-border"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -152,7 +152,7 @@ const ContentPlanner: React.FC = () => {
             variant="default" 
             onClick={handleGenerateSuggestions}
             disabled={isGeneratingSuggestions}
-            className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
           >
             {isGeneratingSuggestions ? (
               <>
@@ -171,14 +171,14 @@ const ContentPlanner: React.FC = () => {
       
       <Tabs defaultValue="board" className="w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <TabsList>
-            <TabsTrigger value="board" onClick={() => setView('board')}>
+          <TabsList className="bg-muted">
+            <TabsTrigger value="board" onClick={() => setView('board')} className="text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
               Quadro Kanban
             </TabsTrigger>
-            <TabsTrigger value="list" onClick={() => setView('list')}>
+            <TabsTrigger value="list" onClick={() => setView('list')} className="text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
               Lista
             </TabsTrigger>
-            <TabsTrigger value="calendar" onClick={() => setView('calendar')}>
+            <TabsTrigger value="calendar" onClick={() => setView('calendar')} className="text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
               Calendário
             </TabsTrigger>
           </TabsList>
@@ -190,7 +190,7 @@ const ContentPlanner: React.FC = () => {
                 checked={autoRefresh}
                 onCheckedChange={(checked) => setAutoRefresh(checked === true)}
               />
-              <Label htmlFor="auto-refresh" className="flex items-center gap-1">
+              <Label htmlFor="auto-refresh" className="flex items-center gap-1 text-foreground">
                 <TrendingUp className="h-3 w-3" />
                 Auto-atualização
               </Label>
@@ -204,7 +204,7 @@ const ContentPlanner: React.FC = () => {
                 checked={smartSuggestionsEnabled}
                 onCheckedChange={(checked) => setSmartSuggestionsEnabled(checked === true)}
               />
-              <Label htmlFor="smart-suggestions">Sugestões inteligentes</Label>
+              <Label htmlFor="smart-suggestions" className="text-foreground">Sugestões inteligentes</Label>
             </div>
             
             <Separator orientation="vertical" className="h-6 hidden md:block" />
@@ -215,7 +215,7 @@ const ContentPlanner: React.FC = () => {
                 checked={autoScheduleEnabled}
                 onCheckedChange={(checked) => setAutoScheduleEnabled(checked === true)}
               />
-              <Label htmlFor="auto-schedule">Agendamento automático</Label>
+              <Label htmlFor="auto-schedule" className="text-foreground">Agendamento automático</Label>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@ const ContentPlanner: React.FC = () => {
         <TabsContent value="board" className="pt-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-contourline-mediumBlue" />
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
               <p className="text-sm text-muted-foreground">Carregando planejador ativo...</p>
             </div>
           ) : (
@@ -237,7 +237,7 @@ const ContentPlanner: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="list" className="pt-6">
-          <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-slate-50">
+          <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-muted/30">
             <p className="text-muted-foreground">Visualização em lista será implementada em breve</p>
             <Button variant="outline" className="mt-4" onClick={() => setView('board')}>
               Voltar para Kanban
@@ -246,7 +246,7 @@ const ContentPlanner: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="calendar" className="pt-6">
-          <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-slate-50">
+          <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-muted/30">
             <p className="text-muted-foreground">Visualização de calendário será implementada em breve</p>
             <Button variant="outline" className="mt-4" onClick={() => setView('board')}>
               Voltar para Kanban

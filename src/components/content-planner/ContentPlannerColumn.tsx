@@ -22,12 +22,12 @@ const ContentPlannerColumn: React.FC<ContentPlannerColumnProps> = ({
   onScheduleItem
 }) => {
   return (
-    <div className="flex flex-col w-[300px] min-w-[300px] bg-muted/30 rounded-md">
-      <div className="p-3 font-medium">
+    <div className="flex flex-col w-[300px] min-w-[300px] bg-muted/30 rounded-lg border border-border">
+      <div className="p-3 font-medium border-b border-border">
         <div className="flex items-center">
-          <span className="mr-2">{column.icon}</span>
-          <h3>{column.title}</h3>
-          <span className="ml-2 text-sm text-muted-foreground bg-muted rounded-full w-6 h-6 flex items-center justify-center">
+          <span className="mr-2 text-lg">{column.icon}</span>
+          <h3 className="text-foreground font-semibold">{column.title}</h3>
+          <span className="ml-2 text-sm text-muted-foreground bg-background border border-border rounded-full w-6 h-6 flex items-center justify-center">
             {column.items.length}
           </span>
         </div>
