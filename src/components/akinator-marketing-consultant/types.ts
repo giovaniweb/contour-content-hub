@@ -2,45 +2,45 @@
 export interface MarketingStep {
   id: string;
   question: string;
-  options: { value: string; label: string }[];
-  condition?: string; // Para perguntas condicionais
-  isOpen?: boolean; // Para campos de texto livre
+  options: Array<{ value: string; label: string }>;
+  condition?: string;
+  isOpen?: boolean;
 }
 
-// Export Question as alias for MarketingStep for backwards compatibility
-export type Question = MarketingStep;
-
 export interface MarketingConsultantState {
-  // Tipo de clínica
+  // Identificação do tipo
   clinicType: string;
   
-  // Específico para clínicas médicas
+  // Dados para clínica médica
   medicalSpecialty: string;
   medicalProcedures: string;
+  medicalEquipments: string;
+  medicalProblems: string;
+  medicalMostSought: string;
   medicalTicket: string;
-  medicalModel: string;
+  medicalSalesModel: string;
   medicalObjective: string;
+  medicalVideoFrequency: string;
+  medicalClinicStyle: string;
   
-  // Específico para clínicas estéticas
+  // Dados para clínica estética
   aestheticFocus: string;
   aestheticEquipments: string;
+  aestheticProblems: string;
   aestheticBestSeller: string;
   aestheticSalesModel: string;
+  aestheticTicket: string;
   aestheticObjective: string;
+  aestheticVideoFrequency: string;
+  aestheticClinicStyle: string;
   
-  // Perguntas comuns
+  // Briefing comum
   currentRevenue: string;
   revenueGoal: string;
-  mainService: string;
-  personalBrand: string;
-  contentFrequency: string;
-  paidTraffic: string;
   targetAudience: string;
-  clinicPosition: string;
+  contentFrequency: string;
+  communicationStyle: string;
   
-  // Additional properties that were missing
-  medicalEquipments: string;
-  
-  // Generated diagnostic
+  // Dados gerados
   generatedDiagnostic: string;
 }

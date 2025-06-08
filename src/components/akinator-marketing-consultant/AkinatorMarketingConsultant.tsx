@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { questions } from './questions';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
@@ -11,25 +10,30 @@ import { useEquipments } from '@/hooks/useEquipments';
 const initialState: MarketingConsultantState = {
   clinicType: '',
   medicalSpecialty: '',
-  aestheticFocus: '',
+  medicalProcedures: '',
+  medicalEquipments: '',
+  medicalProblems: '',
+  medicalMostSought: '',
+  medicalTicket: '',
+  medicalSalesModel: '',
   medicalObjective: '',
+  medicalVideoFrequency: '',
+  medicalClinicStyle: '',
+  aestheticFocus: '',
+  aestheticEquipments: '',
+  aestheticProblems: '',
+  aestheticBestSeller: '',
+  aestheticSalesModel: '',
+  aestheticTicket: '',
   aestheticObjective: '',
+  aestheticVideoFrequency: '',
+  aestheticClinicStyle: '',
   currentRevenue: '',
   revenueGoal: '',
   targetAudience: '',
-  personalBrand: '',
-  mainService: '',
-  medicalEquipments: '',
-  aestheticEquipments: '',
-  generatedDiagnostic: '',
-  medicalProcedures: '',
-  medicalTicket: '',
-  medicalModel: '',
   contentFrequency: '',
-  paidTraffic: '',
-  clinicPosition: '',
-  aestheticBestSeller: '',
-  aestheticSalesModel: ''
+  communicationStyle: '',
+  generatedDiagnostic: ''
 };
 
 const AkinatorMarketingConsultant: React.FC = () => {
@@ -67,7 +71,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         return i;
       }
     }
-    return questions.length; // Fim das perguntas
+    return questions.length;
   };
 
   // Função para encontrar a pergunta anterior válida
@@ -77,7 +81,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         return i;
       }
     }
-    return 0; // Primeira pergunta
+    return 0;
   };
 
   const handleAnswer = (answer: string) => {
@@ -86,13 +90,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
     if (currentStep >= 0 && currentStep < questions.length) {
       const currentQuestion = questions[currentStep];
       
-      // Atualizar o estado com a resposta
       const newState = { ...state, [currentQuestion.id]: answer };
       setState(newState);
       
       console.log('Estado atualizado:', newState);
       
-      // Encontrar próxima pergunta válida
       const nextStep = getNextValidQuestion(currentStep);
       
       if (nextStep < questions.length) {
@@ -101,7 +103,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
         console.log('Última pergunta respondida, iniciando processamento...');
         setIsProcessing(true);
         
-        // Simular processamento e depois mostrar resultado
         setTimeout(() => {
           setIsProcessing(false);
           setShowResult(true);
@@ -169,7 +170,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  // Verificar se a pergunta atual deve ser exibida
   if (currentStep < questions.length && shouldShowQuestion(currentStep)) {
     const currentQuestion = questions[currentStep];
     
@@ -184,7 +184,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  // Fallback (não deveria chegar aqui)
   return (
     <div className="text-center">
       <h2>Carregando...</h2>
