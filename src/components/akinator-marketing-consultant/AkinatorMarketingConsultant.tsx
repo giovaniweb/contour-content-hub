@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { questions } from './questions';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
@@ -6,6 +7,7 @@ import MarketingDashboard from './MarketingDashboard';
 import MarketingQuestion from './MarketingQuestion';
 import { MarketingConsultantState } from './types';
 import { useEquipments } from '@/hooks/useEquipments';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 const initialState: MarketingConsultantState = {
   clinicType: '',
@@ -43,6 +45,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const [showDashboard, setShowDashboard] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { equipments } = useEquipments();
+  const { updateClinicType } = useUserProfile();
 
   // Função para determinar se uma pergunta deve ser exibida baseada no estado atual
   const shouldShowQuestion = (questionIndex: number): boolean => {
@@ -92,6 +95,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       const newState = { ...state, [currentQuestion.id]: answer };
       setState(newState);
+      
+      // Se for a primeira pergunta (tipo de clínica), salvar no perfil do usuário
+      if (currentQuestion.id === 'clinicType') {
+        updateClinicType(answer as 'clinica_medica' | 'clinica_estetica');
+      }
       
       console.log('Estado atualizado:', newState);
       

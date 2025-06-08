@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -14,11 +13,13 @@ import { useUserEquipments } from '@/hooks/useUserEquipments';
 interface SmartScriptGeneratorProps {
   onGenerate: (data: any) => void;
   isGenerating?: boolean;
+  userClinicType?: 'clinica_medica' | 'clinica_estetica'; // Novo prop para controle de acesso
 }
 
 export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({ 
   onGenerate, 
-  isGenerating = false 
+  isGenerating = false,
+  userClinicType 
 }) => {
   const {
     currentStep,
@@ -34,6 +35,22 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
 
   // Use o estado interno de loading
   const actualIsGenerating = internalIsGenerating || isGenerating;
+
+  // Filtrar equipamentos baseado no tipo de clínica
+  const getFilteredEquipments = () => {
+    if (!userClinicType) {
+      return equipments; // Se não souber o tipo, mostra todos
+    }
+    
+    if (userClinicType === 'clinica_medica') {
+      return equipments; // Clínica médica pode ver todos
+    } else {
+      // Clínica estética só vê equipamentos estéticos
+      return equipments.filter(eq => eq.categoria === 'estetico');
+    }
+  };
+
+  const filteredEquipments = getFilteredEquipments();
 
   const getStepNumber = () => {
     const steps = ['root', 'objetivo', 'canal', 'estilo', 'equipamento', 'tema'];
@@ -87,7 +104,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
   const getEquipmentSuggestions = () => {
     if (currentStep === 'tema' && intention.equipamento) {
       // Buscar equipamento selecionado
-      const selectedEquipment = equipments.find(eq => eq.id === intention.equipamento);
+      const selectedEquipment = filteredEquipments.find(eq => eq.id === intention.equipamento);
       if (selectedEquipment) {
         // Gerar sugestões baseadas no equipamento real
         return [
@@ -207,9 +224,23 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
             <div className="flex items-center justify-center mb-4">
               <div className="flex items-center gap-2 text-purple-400">
                 <Wrench className="h-5 w-5" />
-                <span className="text-sm font-medium">Equipamentos Cadastrados</span>
+                <span className="text-sm font-medium">
+                  Equipamentos {userClinicType === 'clinica_estetica' ? 'Estéticos' : 'Cadastrados'}
+                </span>
               </div>
             </div>
+            
+            {userClinicType === 'clinica_estetica' && (
+              <div className="mb-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <div className="flex items-center gap-2 text-amber-400 mb-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">Clínica Estética</span>
+                </div>
+                <p className="text-xs text-amber-300">
+                  Você está visualizando apenas equipamentos estéticos compatíveis com seu perfil.
+                </p>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
               {equipmentsLoading ? (
@@ -229,10 +260,15 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                     Tentar novamente
                   </Button>
                 </div>
-              ) : equipments.length === 0 ? (
+              ) : filteredEquipments.length === 0 ? (
                 <div className="text-center py-8">
                   <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                  <p className="text-sm text-gray-400 mb-4">Nenhum equipamento cadastrado para seu perfil</p>
+                  <p className="text-sm text-gray-400 mb-4">
+                    {userClinicType === 'clinica_estetica' 
+                      ? 'Nenhum equipamento estético cadastrado para seu perfil'
+                      : 'Nenhum equipamento cadastrado para seu perfil'
+                    }
+                  </p>
                   <Button
                     variant="outline"
                     className="justify-start h-auto p-4 w-full"
@@ -250,7 +286,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                 </div>
               ) : (
                 <>
-                  {equipments.map((equipment) => (
+                  {filteredEquipments.map((equipment) => (
                     <Button
                       key={equipment.id}
                       variant="outline"
@@ -267,7 +303,7 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
                           )}
                         </div>
                         <Badge variant="secondary" className="ml-2 text-xs">
-                          Cadastrado
+                          {equipment.categoria === 'estetico' ? 'Estético' : 'Médico'}
                         </Badge>
                       </div>
                     </Button>
