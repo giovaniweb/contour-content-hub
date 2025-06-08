@@ -45,31 +45,58 @@ const AkinatorMarketingConsultant: React.FC = () => {
     setShowDashboard(true);
   };
 
-  const handleBackFromDashboard = () => {
+  const handleRestartDiagnostic = () => {
     setShowDashboard(false);
-  };
-
-  const handleCreateScript = () => {
-    window.location.href = '/script-generator';
-  };
-
-  const handleGenerateImage = () => {
-    window.location.href = '/media-library';
-  };
-
-  const handleDownloadPDF = () => {
-    console.log('Generate PDF');
+    setShowResult(false);
+    setCurrentStep(0);
+    setState({
+      clinicType: '',
+      medicalSpecialty: '',
+      medicalProcedures: '',
+      medicalEquipments: '',
+      medicalProblems: '',
+      medicalMostSought: '',
+      medicalTicket: '',
+      medicalSalesModel: '',
+      medicalObjective: '',
+      medicalVideoFrequency: '',
+      medicalClinicStyle: '',
+      aestheticFocus: '',
+      aestheticEquipments: '',
+      aestheticProblems: '',
+      aestheticBestSeller: '',
+      aestheticSalesModel: '',
+      aestheticTicket: '',
+      aestheticObjective: '',
+      aestheticVideoFrequency: '',
+      aestheticClinicStyle: '',
+      currentRevenue: '',
+      revenueGoal: '',
+      targetAudience: '',
+      contentFrequency: '',
+      communicationStyle: '',
+      generatedDiagnostic: ''
+    });
   };
 
   if (showDashboard) {
     return (
       <MarketingDashboard
         state={state}
-        onBack={handleBackFromDashboard}
-        onCreateScript={handleCreateScript}
-        onGenerateImage={handleGenerateImage}
-        onDownloadPDF={handleDownloadPDF}
-        onViewHistory={() => {}}
+        mentor={{
+          name: "Consultor Expert",
+          focus: "Marketing para Clínicas",
+          style: "Estratégico e prático",
+          expertise: ["Conversão", "Storytelling", "Tráfego Pago"]
+        }}
+        aiSections={{
+          diagnostico_estrategico: state.generatedDiagnostic || "Processando diagnóstico...",
+          ativacao_especialistas: state.generatedDiagnostic || "",
+          sugestoes_conteudo: [],
+          acoes_estrategicas: [],
+          estrategias: []
+        }}
+        onRestart={handleRestartDiagnostic}
       />
     );
   }

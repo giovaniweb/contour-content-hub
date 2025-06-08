@@ -65,6 +65,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return satires[Math.floor(Math.random() * satires.length)];
   };
 
+  const cleanText = (text: string): string => {
+    return text.replace(/[*#]+/g, '').trim();
+  };
+
+  const formatTitle = (text: string): string => {
+    const cleaned = cleanText(text);
+    return cleaned.length > 80 ? cleaned.substring(0, 80) + '...' : cleaned;
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
@@ -144,7 +153,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <ContentIdeasSection aiSections={aiSections} />
+        <ContentIdeasSection 
+          aiSections={aiSections}
+          cleanText={cleanText}
+          formatTitle={formatTitle}
+        />
       </motion.div>
 
       {/* Ações Estratégicas */}
@@ -153,7 +166,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <StrategicActionsSection aiSections={aiSections} />
+        <StrategicActionsSection 
+          aiSections={aiSections}
+          cleanText={cleanText}
+          formatTitle={formatTitle}
+        />
       </motion.div>
 
       {/* Estratégias Personalizadas */}
@@ -162,7 +179,10 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <PersonalizedStrategiesSection aiSections={aiSections} />
+        <PersonalizedStrategiesSection 
+          aiSections={aiSections}
+          formatTitle={formatTitle}
+        />
       </motion.div>
 
       {/* Action Buttons */}
@@ -171,7 +191,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
-        <ActionButtons onRestart={onRestart} />
+        <ActionButtons />
       </motion.div>
     </div>
   );
