@@ -31,7 +31,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas. Responda sempre de forma estruturada e profissional.' 
+            content: 'Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas. Responda sempre de forma estruturada e profissional, incluindo a identificação de um mentor estratégico adequado.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -79,15 +79,16 @@ function createDiagnosticPrompt(data: any): string {
   const aparece = data.personalBrand || 'Não informado';
   const publico = data.targetAudience || 'Não definido';
   const posicionamento = data.clinicPosition || 'Não definido';
+  const trafegoReq = data.paidTraffic || 'Não informado';
 
   const prompt = `Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas.
 
-Com base no briefing abaixo, gere uma resposta dividida em seções claras:
+Com base no briefing abaixo, gere uma resposta completa dividida em seções claras:
 
 1. Diagnóstico Estratégico da Clínica
 2. Sugestões de Conteúdo Inteligente
 3. Plano de Ação de 3 Semanas
-4. Enigma Satírico do Mentor
+4. Mentor Estratégico Identificado + Enigma
 
 ---
 
@@ -103,6 +104,7 @@ Com base no briefing abaixo, gere uma resposta dividida em seções claras:
 - Aparece no conteúdo? ${aparece}
 - Público ideal: ${publico}
 - Posicionamento da clínica: ${posicionamento}
+- Usa tráfego pago? ${trafegoReq}
 
 ---
 
@@ -123,8 +125,32 @@ Com base no briefing abaixo, gere uma resposta dividida em seções claras:
 - Semana 3: Conversão e fidelização
 - Liste 3 a 4 ações práticas por semana, com tom consultivo
 
-## 🧩 Enigma Satírico do Mentor
-Crie uma frase misteriosa com trocadilho ou sátira relacionada ao perfil da clínica, sem citar nomes de mentores específicos.
+## 🧩 Mentor Estratégico Identificado
+Baseado no perfil da clínica, identifique qual dos mentores abaixo seria mais adequado e gere um enigma personalizado:
+
+**Mentores disponíveis:**
+- **Leandro Ladeira**: Conversão e vendas diretas (tráfego pago, gatilhos mentais)
+- **Ícaro de Carvalho**: Storytelling e posicionamento (branding, autoridade)
+- **Camila Porto**: Marketing digital acessível (redes sociais, iniciantes)
+- **Paulo Cuenca**: Criatividade e estética visual (criatividade, diferenciação)
+- **Hyeser Souza**: Virais e engajamento orgânico (humor, trends)
+- **Washington Olivetto**: Big ideas e branding institucional (conceito, memorável)
+- **Pedro Sobral**: Performance e ROI estruturado (métricas, analítico)
+
+**Critérios de seleção:**
+- Clínicas médicas + autoridade → Ícaro de Carvalho
+- Clínicas médicas + escala/estruturação → Pedro Sobral
+- Clínicas estéticas + mais leads → Leandro Ladeira
+- Iniciantes em marketing → Camila Porto
+- Posicionamento premium → Washington Olivetto
+- Foco em criatividade visual → Paulo Cuenca
+- Presença ativa + engajamento → Hyeser Souza
+
+Apresente o mentor escolhido assim:
+**🧠 Mentor Estratégico: [NOME DO MENTOR]**
+**Foco:** [ESPECIALIDADE]
+**Por que foi escolhido:** [JUSTIFICATIVA BASEADA NO PERFIL]
+**Enigma personalizado:** [FRASE SATÍRICA RELACIONADA AO PERFIL DA CLÍNICA]
 
 ---
 
@@ -132,7 +158,9 @@ Crie uma frase misteriosa com trocadilho ou sátira relacionada ao perfil da cl�
 - Use linguagem coerente com o perfil e objetivo da clínica
 - Não gere texto genérico
 - Organize com títulos claros e tom profissional/humano
-- Seja específico e acionável nas sugestões`;
+- Seja específico e acionável nas sugestões
+- O mentor deve ser relevante ao perfil identificado
+- O enigma deve ser espirituoso e relacionado aos desafios da clínica`;
 
   return prompt;
 }
