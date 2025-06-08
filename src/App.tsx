@@ -23,6 +23,7 @@ import ContentStrategy from '@/pages/ContentStrategy';
 import ContentScripts from '@/pages/ContentScripts';
 import MarketingConsultant from '@/pages/MarketingConsultant';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
+import ReportsPage from '@/pages/ReportsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,13 @@ function App() {
                   <Route path="/marketing-consultant" element={
                     <PrivateRoute>
                       <MarketingConsultant />
+                    </PrivateRoute>
+                  } />
+
+                  {/* Reports Route */}
+                  <Route path="/reports" element={
+                    <PrivateRoute>
+                      <ReportsPage />
                     </PrivateRoute>
                   } />
 
