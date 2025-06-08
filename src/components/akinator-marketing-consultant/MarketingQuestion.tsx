@@ -32,6 +32,7 @@ const getIcon = (stepId: string) => {
   const icons = {
     'clinicType': Building2,
     'medicalSpecialty': Stethoscope,
+    'medicalEquipments': Building2,
     'medicalProcedures': Sparkles,
     'medicalTicket': DollarSign,
     'medicalModel': Target,
@@ -63,6 +64,8 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   canGoBack
 }) => {
   const [openAnswer, setOpenAnswer] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customEquipment, setCustomEquipment] = useState('');
 
   const handleOpenSubmit = () => {
     if (openAnswer.trim()) {
@@ -71,10 +74,33 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     }
   };
 
+  const handleCustomEquipmentSubmit = () => {
+    if (customEquipment.trim()) {
+      onOptionSelect(customEquipment.trim());
+      setCustomEquipment('');
+      setShowCustomInput(false);
+    }
+  };
+
+  const handleOptionClick = (value: string) => {
+    if (value === 'outros' && (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments')) {
+      setShowCustomInput(true);
+    } else {
+      onOptionSelect(value);
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleOpenSubmit();
+    }
+  };
+
+  const handleCustomKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleCustomEquipmentSubmit();
     }
   };
 
@@ -101,7 +127,33 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {stepData.isOpen ? (
+          {showCustomInput ? (
+            // Custom equipment input
+            <div className="space-y-4">
+              <Input
+                placeholder="Digite o nome do equipamento..."
+                value={customEquipment}
+                onChange={(e) => setCustomEquipment(e.target.value)}
+                onKeyPress={handleCustomKeyPress}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleCustomEquipmentSubmit}
+                  disabled={!customEquipment.trim()}
+                  className="flex-1"
+                >
+                  Continuar
+                </Button>
+                <Button 
+                  onClick={() => setShowCustomInput(false)}
+                  variant="outline"
+                >
+                  Voltar
+                </Button>
+              </div>
+            </div>
+          ) : stepData.isOpen ? (
             // Campo aberto para texto livre
             <div className="space-y-4">
               <Textarea
@@ -127,7 +179,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                   key={option.value}
                   variant="outline"
                   className="justify-start h-auto p-4 text-left hover:bg-primary/5"
-                  onClick={() => onOptionSelect(option.value)}
+                  onClick={() => handleOptionClick(option.value)}
                 >
                   <span>{option.label}</span>
                 </Button>
@@ -138,7 +190,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       </Card>
 
       {/* Back Button */}
-      {canGoBack && (
+      {canGoBack && !showCustomInput && (
         <div className="text-center">
           <Button variant="ghost" onClick={onGoBack}>
             ← Voltar

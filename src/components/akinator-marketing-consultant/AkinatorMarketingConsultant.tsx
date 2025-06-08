@@ -29,13 +29,17 @@ const AkinatorMarketingConsultant: React.FC = () => {
   useEffect(() => {
     if (!equipmentsLoading && equipments.length > 0) {
       const updatedSteps = MARKETING_STEPS.map(step => {
-        if (step.id === 'aestheticEquipments') {
+        if (step.id === 'aestheticEquipments' || step.id === 'medicalEquipments') {
           return {
             ...step,
-            options: equipments.map(equipment => ({
-              value: equipment.id,
-              label: equipment.nome
-            }))
+            options: [
+              ...equipments.map(equipment => ({
+                value: equipment.id,
+                label: equipment.nome
+              })),
+              { value: 'sem_equipamentos', label: 'Não uso equipamentos tecnológicos' },
+              { value: 'outros', label: 'Outros' }
+            ]
           };
         }
         return step;
@@ -128,6 +132,17 @@ const AkinatorMarketingConsultant: React.FC = () => {
     if (!stepId) return;
 
     console.log('Option selected:', { stepId, value, currentStep: state.currentStep });
+
+    // Handle "outros" option for equipment questions
+    if ((stepId === 'medicalEquipments' || stepId === 'aestheticEquipments') && value === 'outros') {
+      // This will be handled by the MarketingQuestion component with an open field
+      const customEquipment = prompt('Digite o nome do equipamento:');
+      if (customEquipment && customEquipment.trim()) {
+        value = customEquipment.trim();
+      } else {
+        return; // Don't proceed if user cancelled or entered empty value
+      }
+    }
 
     const newState = { ...state, [stepId]: value };
 
