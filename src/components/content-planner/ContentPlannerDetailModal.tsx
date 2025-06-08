@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Dialog,
@@ -172,9 +171,9 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                   Aprovado
                 </Badge>
               )}
-              {editedItem.status === "scheduled" && (
+              {editedItem.status === "published" && (
                 <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
-                  Agendado
+                  Publicado
                 </Badge>
               )}
               {editedItem.aiGenerated && (
@@ -245,12 +244,12 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Formatos</SelectLabel>
-                            <SelectItem value="vídeo">Reels</SelectItem>
-                            <SelectItem value="story">Post de Feed</SelectItem>
-                            <SelectItem value="carrossel">Story</SelectItem>
-                            <SelectItem value="reels">IGTV</SelectItem>
-                            <SelectItem value="texto">YouTube</SelectItem>
-                            <SelectItem value="outro">TikTok</SelectItem>
+                            <SelectItem value="vídeo">Vídeo</SelectItem>
+                            <SelectItem value="story">Story</SelectItem>
+                            <SelectItem value="carrossel">Carrossel</SelectItem>
+                            <SelectItem value="reels">Reels</SelectItem>
+                            <SelectItem value="texto">Texto</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -267,10 +266,8 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="idea">Ideia</SelectItem>
-                          <SelectItem value="script_generated">Roteiro Gerado</SelectItem>
-                          <SelectItem value="approved">Aprovado</SelectItem>
-                          <SelectItem value="scheduled">Agendado</SelectItem>
-                          <SelectItem value="published">Publicado</SelectItem>
+                          <SelectItem value="approved">Executar</SelectItem>
+                          <SelectItem value="published">Publicar</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -307,11 +304,11 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Instagram">Instagram</SelectItem>
-                          <SelectItem value="YouTube">Facebook</SelectItem>
-                          <SelectItem value="TikTok">YouTube</SelectItem>
-                          <SelectItem value="Blog">TikTok</SelectItem>
-                          <SelectItem value="Múltiplos">LinkedIn</SelectItem>
-                          <SelectItem value="Outro">Twitter</SelectItem>
+                          <SelectItem value="YouTube">YouTube</SelectItem>
+                          <SelectItem value="TikTok">TikTok</SelectItem>
+                          <SelectItem value="Blog">Blog</SelectItem>
+                          <SelectItem value="Múltiplos">Múltiplos</SelectItem>
+                          <SelectItem value="Outro">Outro</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -532,11 +529,11 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Instagram">Instagram</SelectItem>
-                        <SelectItem value="YouTube">Facebook</SelectItem>
-                        <SelectItem value="TikTok">YouTube</SelectItem>
-                        <SelectItem value="Blog">TikTok</SelectItem>
-                        <SelectItem value="Múltiplos">LinkedIn</SelectItem>
-                        <SelectItem value="Outro">Twitter</SelectItem>
+                        <SelectItem value="YouTube">YouTube</SelectItem>
+                        <SelectItem value="TikTok">TikTok</SelectItem>
+                        <SelectItem value="Blog">Blog</SelectItem>
+                        <SelectItem value="Múltiplos">Múltiplos</SelectItem>
+                        <SelectItem value="Outro">Outro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -607,10 +604,10 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                         <div className="flex items-center gap-2">
                           {editedItem.status === "published" ? (
                             <Badge className="bg-green-100 text-green-800">Publicado</Badge>
-                          ) : editedItem.status === "scheduled" ? (
-                            <Badge className="bg-blue-100 text-blue-800">Agendado</Badge>
+                          ) : editedItem.status === "approved" ? (
+                            <Badge className="bg-blue-100 text-blue-800">Para Executar</Badge>
                           ) : (
-                            <Badge className="bg-amber-100 text-amber-800">Não Publicado</Badge>
+                            <Badge className="bg-amber-100 text-amber-800">Ideia</Badge>
                           )}
                           
                           {editedItem.scheduledDate && (
@@ -655,7 +652,7 @@ const ContentPlannerDetailModal: React.FC<ContentPlannerDetailModalProps> = ({
                 </Button>
               )}
               
-              {onGenerateScript && (editedItem.status === "idea" || editedItem.status === "script_generated") && (
+              {onGenerateScript && editedItem.status === "idea" && (
                 <Button 
                   variant="outline" 
                   size="sm"
