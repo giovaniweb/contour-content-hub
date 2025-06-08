@@ -1,4 +1,3 @@
-
 // Define the Equipment interface that includes all possible properties
 export interface Equipment {
   id: string;
@@ -13,7 +12,7 @@ export interface Equipment {
   image_url: string;
   ativo: boolean;
   descricao?: string; // Optional
-  categoria?: string; // Optional
+  categoria: 'medico' | 'estetico'; // Required category field
 }
 
 // Interface for creating new equipment
@@ -28,7 +27,7 @@ export interface EquipmentCreationProps {
   ativo?: boolean;
   efeito?: string;
   descricao?: string;
-  categoria?: string;
+  categoria: 'medico' | 'estetico'; // Required category field
 }
 
 // Validation error interface
@@ -40,6 +39,7 @@ export interface ValidationErrors {
   diferenciais?: string;
   linguagem?: string;
   efeito?: string;
+  categoria?: string;
   [key: string]: string | undefined;
 }
 
@@ -58,7 +58,7 @@ export function ensureEquipmentFields(equipment: Partial<Equipment>): Equipment 
     image_url: equipment.image_url || '',
     ativo: equipment.ativo ?? true,
     descricao: equipment.descricao || '',
-    categoria: equipment.categoria || '',
+    categoria: equipment.categoria || 'estetico', // Default to estético
   };
 }
 
@@ -100,6 +100,10 @@ export function validateEquipment(equipment: Partial<Equipment>): ValidationErro
   
   if (!equipment.diferenciais || equipment.diferenciais.trim() === '') {
     errors.diferenciais = "Diferenciais são obrigatórios";
+  }
+  
+  if (!equipment.categoria || (equipment.categoria !== 'medico' && equipment.categoria !== 'estetico')) {
+    errors.categoria = "Categoria é obrigatória (médico ou estético)";
   }
   
   return errors;

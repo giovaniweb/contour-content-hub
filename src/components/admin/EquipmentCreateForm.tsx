@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Save, Plus, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +26,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
     descricao: '',
-    categoria: '',
+    categoria: 'estetico', // Default to estético
     tecnologia: '',
     indicacoes: [],
     beneficios: '',
@@ -116,6 +117,19 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     setEquipment(prev => ({ ...prev, [name]: value }));
     
     // Clear error for this field when user types
+    if (errors[name as keyof ValidationErrors]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name as keyof ValidationErrors];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setEquipment(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user selects
     if (errors[name as keyof ValidationErrors]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -239,7 +253,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       id: 'new-' + Date.now(), // Temporary ID to satisfy the type
       nome: equipment.nome,
       descricao: equipment.descricao || '',
-      categoria: equipment.categoria || '',
+      categoria: equipment.categoria,
       tecnologia: equipment.tecnologia || '',
       indicacoes: convertStringToArray(equipment.indicacoes),
       beneficios: equipment.beneficios || '',
@@ -354,6 +368,28 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             />
             {errors.nome && (
               <p className="text-destructive text-sm mt-1">{errors.nome}</p>
+            )}
+          </div>
+          
+          {/* Categoria field - new */}
+          <div>
+            <Label htmlFor="categoria" className={errors.categoria ? "text-destructive" : ""}>
+              Categoria
+            </Label>
+            <Select 
+              value={equipment.categoria} 
+              onValueChange={(value) => handleSelectChange('categoria', value)}
+            >
+              <SelectTrigger className={`mt-1 ${errors.categoria ? "border-destructive" : ""}`}>
+                <SelectValue placeholder="Selecione a categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="estetico">🌟 Estético</SelectItem>
+                <SelectItem value="medico">🏥 Médico</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.categoria && (
+              <p className="text-destructive text-sm mt-1">{errors.categoria}</p>
             )}
           </div>
           

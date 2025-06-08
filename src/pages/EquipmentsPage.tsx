@@ -27,13 +27,13 @@ const EquipmentsPage: React.FC = () => {
     const matchesSearch = equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          equipment.tecnologia.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = !selectedCategory || equipment.tecnologia.toLowerCase().includes(selectedCategory.toLowerCase());
+    const matchesCategory = !selectedCategory || equipment.categoria === selectedCategory;
     
     return matchesSearch && matchesCategory;
   });
 
   // Extrair categorias únicas
-  const categories = [...new Set(activeEquipments.map(eq => eq.tecnologia))];
+  const categories = ['medico', 'estetico'];
 
   const handleEquipmentClick = (equipmentId: string) => {
     navigate(`/equipment/${equipmentId}`);
@@ -49,6 +49,11 @@ const EquipmentsPage: React.FC = () => {
       return indicacoes.split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
     }
     return [];
+  };
+
+  // Função para obter o nome da categoria
+  const getCategoryLabel = (categoria: string) => {
+    return categoria === 'medico' ? '🏥 Médico' : '🌟 Estético';
   };
 
   if (error) {
@@ -74,7 +79,7 @@ const EquipmentsPage: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Equipamentos Disponíveis</h1>
             <p className="text-muted-foreground">
-              Explore nossa linha completa de equipamentos estéticos
+              Explore nossa linha completa de equipamentos médicos e estéticos
             </p>
             {equipments.length > 0 && (
               <p className="text-sm text-muted-foreground mt-2">
@@ -111,7 +116,7 @@ const EquipmentsPage: React.FC = () => {
                     size="sm"
                     onClick={() => setSelectedCategory(category)}
                   >
-                    {category}
+                    {getCategoryLabel(category)}
                   </Button>
                 ))}
               </div>
@@ -157,7 +162,17 @@ const EquipmentsPage: React.FC = () => {
                       {/* Conteúdo do lado direito */}
                       <div className="flex-1 flex flex-col">
                         <CardHeader className="pb-2">
-                          {/* Título primeiro */}
+                          {/* Categoria badge */}
+                          <div className="mb-1">
+                            <Badge 
+                              variant={equipment.categoria === 'medico' ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {getCategoryLabel(equipment.categoria)}
+                            </Badge>
+                          </div>
+                          
+                          {/* Título */}
                           <CardTitle className="text-lg mb-1">
                             {equipment.nome}
                           </CardTitle>

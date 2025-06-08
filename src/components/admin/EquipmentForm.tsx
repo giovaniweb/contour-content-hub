@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -56,7 +56,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       linguagem: '',
       image_url: '',
       ativo: true,
-      efeito: '' // Default empty string for efeito field
+      efeito: '', // Default empty string for efeito field
+      categoria: 'estetico' // Default to estético
     } as Equipment // Type assertion to avoid TypeScript errors
   });
 
@@ -108,7 +109,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
         linguagem: draft.data.linguagem as string || '',
         image_url: draft.data.image_url as string || '',
         ativo: true,
-        efeito: draft.data.efeito as string || ''
+        efeito: draft.data.efeito as string || '',
+        categoria: draft.data.categoria as string || 'estetico'
       } as Equipment);
       
       // Set image preview if available
@@ -137,7 +139,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       linguagem: '',
       image_url: '',
       ativo: true,
-      efeito: ''
+      efeito: '',
+      categoria: 'estetico'
     } as Equipment);
     setImagePreview(null);
     
@@ -339,6 +342,29 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   <FormControl>
                     <Input required {...field} placeholder="Ex: Hipro" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Categoria field - new */}
+            <FormField
+              control={form.control}
+              name="categoria"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria*</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="estetico">🌟 Estético</SelectItem>
+                      <SelectItem value="medico">🏥 Médico</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
