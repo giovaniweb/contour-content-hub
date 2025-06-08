@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { motion } from 'framer-motion';
 import { 
   CheckCircle2,
@@ -11,7 +11,11 @@ import {
   Download,
   Sparkles,
   AlertCircle,
-  RotateCcw
+  RotateCcw,
+  Brain,
+  Lightbulb,
+  Target,
+  TrendingUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
@@ -27,6 +31,41 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
   const [isGenerating, setIsGenerating] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState<string>('');
   const [hasError, setHasError] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentPhase, setCurrentPhase] = useState(0);
+
+  const generationPhases = [
+    {
+      icon: Brain,
+      title: "Analisando perfil da clínica...",
+      subtitle: "🔍 Decodificando seus dados estratégicos",
+      motivational: "💡 Cada resposta sua revela oportunidades únicas!"
+    },
+    {
+      icon: Target,
+      title: "Identificando oportunidades de crescimento...",
+      subtitle: "🎯 Mapeando potencial de mercado",
+      motivational: "🚀 Sua clínica tem mais potencial do que imagina!"
+    },
+    {
+      icon: Lightbulb,
+      title: "Criando estratégias personalizadas...",
+      subtitle: "💡 Desenvolvendo táticas exclusivas",
+      motivational: "✨ Estratégias sob medida sendo criadas para você!"
+    },
+    {
+      icon: Sparkles,
+      title: "Aplicando inteligência do Consultor Fluida...",
+      subtitle: "🧠 Otimizando com expertise especializada",
+      motivational: "🔥 O melhor da consultoria está sendo aplicado!"
+    },
+    {
+      icon: TrendingUp,
+      title: "Finalizando seu plano de crescimento...",
+      subtitle: "📈 Últimos ajustes estratégicos",
+      motivational: "🎉 Seu diagnóstico exclusivo está quase pronto!"
+    }
+  ];
 
   useEffect(() => {
     generateDiagnostic();
@@ -35,7 +74,24 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
   const generateDiagnostic = async () => {
     setIsGenerating(true);
     setHasError(false);
+    setProgress(0);
+    setCurrentPhase(0);
     
+    // Simulate progress phases
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + Math.random() * 15 + 5;
+        
+        // Update phase based on progress
+        if (newProgress > 80 && currentPhase < 4) setCurrentPhase(4);
+        else if (newProgress > 60 && currentPhase < 3) setCurrentPhase(3);
+        else if (newProgress > 40 && currentPhase < 2) setCurrentPhase(2);
+        else if (newProgress > 20 && currentPhase < 1) setCurrentPhase(1);
+        
+        return Math.min(newProgress, 95);
+      });
+    }, 800);
+
     try {
       console.log('Generating diagnostic with data:', consultantData);
       
@@ -75,26 +131,35 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
       }
       
       if (data.success && data.diagnostic) {
-        setDiagnosticResult(data.diagnostic);
+        // Complete progress
+        clearInterval(progressInterval);
+        setProgress(100);
+        setCurrentPhase(4);
+        
+        // Small delay before showing result
+        setTimeout(() => {
+          setDiagnosticResult(data.diagnostic);
+          setIsGenerating(false);
+        }, 1000);
       } else {
         console.error('API returned error:', data);
         throw new Error(data.error || 'Erro desconhecido na geração do diagnóstico');
       }
     } catch (error) {
+      clearInterval(progressInterval);
       console.error('Error generating diagnostic:', error);
       setHasError(true);
       
       // Fallback diagnostic
       const fallbackDiagnostic = generateFallbackDiagnostic();
       setDiagnosticResult(fallbackDiagnostic);
+      setIsGenerating(false);
       
       toast({
         variant: "destructive",
         title: "Erro ao gerar diagnóstico personalizado",
         description: "Usando diagnóstico padrão. Verifique sua conexão e tente novamente.",
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -183,16 +248,95 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
   };
 
   if (isGenerating) {
+    const currentPhaseData = generationPhases[currentPhase];
+    const CurrentIcon = currentPhaseData.icon;
+
     return (
       <div className="max-w-4xl mx-auto">
-        <Card>
+        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
           <CardContent className="p-8">
-            <div className="text-center space-y-4">
-              <Sparkles className="h-8 w-8 animate-spin text-primary mx-auto" />
-              <h3 className="text-lg font-medium">Gerando seu diagnóstico personalizado...</h3>
-              <p className="text-muted-foreground">
-                Analisando suas respostas para criar estratégias específicas
-              </p>
+            <div className="text-center space-y-6">
+              {/* Animated Icon */}
+              <motion.div
+                animate={{ 
+                  rotate: 360,
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 2, repeat: Infinity }
+                }}
+                className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center shadow-lg"
+              >
+                <CurrentIcon className="h-10 w-10 text-white" />
+              </motion.div>
+
+              {/* Current Phase */}
+              <motion.div
+                key={currentPhase}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-2"
+              >
+                <h3 className="text-xl font-bold text-foreground">
+                  {currentPhaseData.title}
+                </h3>
+                <p className="text-muted-foreground">
+                  {currentPhaseData.subtitle}
+                </p>
+              </motion.div>
+
+              {/* Progress Bar */}
+              <div className="space-y-3">
+                <Progress value={progress} className="h-3 bg-secondary" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {Math.round(progress)}% concluído
+                  </span>
+                  <motion.span 
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="text-primary font-medium"
+                  >
+                    Fase {currentPhase + 1} de {generationPhases.length}
+                  </motion.span>
+                </div>
+              </div>
+
+              {/* Motivational Message */}
+              <motion.div
+                key={`motivational-${currentPhase}`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl border border-primary/20"
+              >
+                <p className="text-primary font-medium animate-pulse">
+                  {currentPhaseData.motivational}
+                </p>
+              </motion.div>
+
+              {/* Phase Indicators */}
+              <div className="flex justify-center space-x-2 pt-4">
+                {generationPhases.map((_, index) => (
+                  <motion.div
+                    key={index}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      index <= currentPhase 
+                        ? 'bg-primary shadow-md' 
+                        : 'bg-muted'
+                    }`}
+                    animate={index === currentPhase ? { scale: [1, 1.3, 1] } : {}}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
+                ))}
+              </div>
+
+              {/* Footer Message */}
+              <div className="pt-4 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">
+                  🤖 Consultor Fluida trabalhando para criar seu plano estratégico exclusivo
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
