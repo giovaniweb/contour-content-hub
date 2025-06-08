@@ -26,7 +26,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
     descricao: '',
-    categoria: 'estetico', // Default to estético
+    categoria: 'estetico', // Changed from empty string to valid default value
     tecnologia: '',
     indicacoes: [],
     beneficios: '',
@@ -94,7 +94,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     setEquipment({
       nome: '',
       descricao: '',
-      categoria: '',
+      categoria: 'estetico', // Reset to valid default value
       tecnologia: '',
       indicacoes: [],
       beneficios: '',
@@ -371,7 +371,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             )}
           </div>
           
-          {/* Categoria field - new */}
+          {/* Categoria field */}
           <div>
             <Label htmlFor="categoria" className={errors.categoria ? "text-destructive" : ""}>
               Categoria
@@ -393,7 +393,6 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
             )}
           </div>
           
-          {/* Moved efeito field right after nome */}
           <div>
             <Label htmlFor="efeito" className={errors.efeito ? "text-destructive" : ""}>
               Efeito (Frase de efeito/Tagline)
