@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScriptGenerationData, GeneratedContent } from '@/components/smart-script-generator/types';
-import { generateScript } from '@/services/supabaseService';
+import { generateScript, ScriptResponse } from '@/services/supabaseService';
 import { mapContentTypeToScriptType, mapObjectiveToMarketingType, buildAdditionalInfo, getMentorName, getSuggestionsForType } from './utils';
 import { generateMockContent } from './mockContentService';
 
@@ -43,7 +43,7 @@ export const useScriptGeneration = () => {
 
       const scriptPromise = generateScript(scriptRequest);
       
-      const response = await Promise.race([scriptPromise, timeoutPromise]);
+      const response = await Promise.race([scriptPromise, timeoutPromise]) as ScriptResponse;
       
       console.log('Resposta da API recebida:', response);
       

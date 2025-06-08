@@ -13,7 +13,7 @@ export interface ScriptResponse {
   captionTips: string[];
   pdf_url?: string;
   equipment?: string;
-  marketingObjective?: MarketingObjectiveType; // Using the MarketingObjectiveType from script.ts
+  marketingObjective?: MarketingObjectiveType;
   observation?: string;
 }
 
@@ -53,7 +53,7 @@ export interface MediaItem {
   rating: number;
   equipment: string[];
   purpose: string[];
-  bodyArea: string; // Keep as string for backward compatibility
+  bodyArea: string;
   duration?: string;
   fecha_criacao?: string;
   shortDescription?: string;
@@ -78,37 +78,31 @@ export interface CalendarPreferences {
   topics: string[];
   equipment: string[];
   autoGenerate: boolean;
-  formats?: string[]; // Make formats optional
-  purpose?: string[]; // Make purpose optional
+  formats?: string[];
+  purpose?: string[];
 }
 
 export async function generatePDF(scriptId: string): Promise<string> {
-  // Simulating PDF generation
   console.log(`Generating PDF for script ${scriptId}`);
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // In a real case, this would be a URL to the generated PDF file
   return `https://example.com/scripts/${scriptId}.pdf`;
 }
 
 export async function linkScriptToCalendar(scriptId: string, calendarEventId: string): Promise<boolean> {
-  // Simulating link between script and calendar event
   console.log(`Linking script ${scriptId} to event ${calendarEventId}`);
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // In a real case, here the link would be made in the database
   return true;
 }
 
 export async function toggleFavorite(mediaId: string): Promise<boolean> {
-  // Simulating favorite toggle
   console.log(`Toggling favorite for media ${mediaId}`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function rateMedia(mediaId: string, rating: number): Promise<boolean> {
-  // Simulating media rating
   console.log(`Rating media ${mediaId} with ${rating} stars`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
@@ -120,21 +114,18 @@ export async function updateScript(
   observation?: string, 
   status?: "aprovado" | "editado" | "gerado"
 ): Promise<boolean> {
-  // Simulating script update
   console.log(`Updating script ${scriptId}`);
   await new Promise(resolve => setTimeout(resolve, 800));
   return true;
 }
 
 export async function updateCalendarCompletion(date: string, completed: boolean): Promise<boolean> {
-  // Simulating calendar completion status update
   console.log(`Updating event from ${date} to ${completed ? 'completed' : 'pending'}`);
   await new Promise(resolve => setTimeout(resolve, 500));
   return true;
 }
 
 export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
-  // Simulating getting calendar suggestions
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
@@ -152,7 +143,7 @@ export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
     },
     {
       id: '2',
-      date: new Date(Date.now() + 86400000).toISOString(), // tomorrow
+      date: new Date(Date.now() + 86400000).toISOString(),
       title: 'Story about results',
       description: 'Share real results from customers who used Hipro',
       format: 'story',
@@ -164,19 +155,7 @@ export async function getCalendarSuggestions(): Promise<CalendarSuggestion[]> {
 }
 
 export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
-  // Try to fetch from Supabase first
-  try {
-    const { getMediaItems } = await import('../services/supabaseService');
-    const items = await getMediaItems(filters);
-    if (items && items.length > 0) {
-      return items;
-    }
-    // If no items were found in Supabase, continue to fallback data
-  } catch (error) {
-    console.error("Failed to fetch from Supabase, using fallback data:", error);
-  }
-  
-  // Fallback: Simulating search for media items
+  // Simulating search for media items with fallback data
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [
@@ -264,7 +243,6 @@ export async function getMediaItems(filters?: any): Promise<MediaItem[]> {
 }
 
 export async function getScriptHistory(): Promise<ScriptHistoryItem[]> {
-  // Simulating getting script history
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return [

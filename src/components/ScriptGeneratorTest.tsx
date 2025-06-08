@@ -42,11 +42,11 @@ const ScriptGeneratorTest: React.FC = () => {
     } catch (error) {
       console.error('Teste falhou:', error);
       setConnectionStatus('error');
-      setTestResult(error.message || 'Erro desconhecido');
+      setTestResult(error instanceof Error ? error.message : 'Erro desconhecido');
       
       toast({
         title: "❌ Erro na Integração",
-        description: error.message || "Falha ao conectar com OpenAI",
+        description: error instanceof Error ? error.message : "Falha ao conectar com OpenAI",
         variant: "destructive",
       });
     } finally {
@@ -99,7 +99,7 @@ const ScriptGeneratorTest: React.FC = () => {
             disabled={isTesting}
             variant={connectionStatus === 'success' ? 'outline' : 'default'}
           >
-            {isTestingRound ? (
+            {isTesting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Testando...
