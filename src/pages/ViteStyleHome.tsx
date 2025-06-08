@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Zap, Palette, Users, BarChart3 } from 'lucide-react';
 import AuroraButton from '@/components/ui/AuroraButton';
 import AuroraCard from '@/components/ui/AuroraCard';
+import AuroraParticles from '@/components/ui/AuroraParticles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
@@ -47,8 +48,11 @@ const ViteStyleHome: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative overflow-hidden">
-      {/* Background effects */}
+    <div className="min-h-screen aurora-gradient-bg relative overflow-hidden">
+      {/* Aurora Particles */}
+      <AuroraParticles count={25} active={true} />
+      
+      {/* Aurora Background Effects */}
       <div className="absolute inset-0">
         <motion.div
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20"
@@ -78,6 +82,24 @@ const ViteStyleHome: React.FC = () => {
           }}
           transition={{
             duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full opacity-25"
+          style={{
+            background: 'radial-gradient(circle, #06B6D4 0%, transparent 70%)',
+            filter: 'blur(70px)',
+          }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.25, 0.45, 0.25],
+            x: [-50, 50, -50],
+            y: [-25, 25, -25],
+          }}
+          transition={{
+            duration: 10,
             repeat: Infinity,
             ease: "easeInOut"
           }}
