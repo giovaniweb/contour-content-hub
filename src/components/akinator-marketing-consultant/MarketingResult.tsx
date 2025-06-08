@@ -101,11 +101,12 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
 
     try {
       console.log('Generating diagnostic with data:', consultantData);
+      console.log('Available equipments:', equipments);
       
       const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
         body: {
           ...consultantData,
-          equipments: equipments
+          equipments: equipments // Passar lista de equipamentos para o edge function
         }
       });
 
@@ -157,12 +158,28 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
 
   const generateFallbackDiagnostic = () => {
     const clinicType = consultantData.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
+    const isClinicaMedica = consultantData.clinicType === 'clinica_medica';
     const specialty = consultantData.medicalSpecialty || consultantData.aestheticFocus || 'especialização selecionada';
     const mainService = getMainService(consultantData);
     const revenue = formatRevenue(consultantData.currentRevenue);
     const goal = formatGoal(consultantData.revenueGoal);
     
+    // Filtrar equipamentos baseado no tipo de clínica
+    const equipamentosDisponiveis = equipments.filter(eq => {
+      if (isClinicaMedica) {
+        return true; // Clínica médica pode ver todos
+      } else {
+        return eq.categoria === 'estetico'; // Clínica estética só vê estéticos
+      }
+    });
+    
+    const equipamentosTexto = equipamentosDisponiveis.length > 0 
+      ? equipamentosDisponiveis.slice(0, 3).map(eq => eq.nome).join(', ')
+      : 'equipamentos básicos';
+    
     return `# 🎯 **DIAGNÓSTICO ESTRATÉGICO - ${clinicType}**
+
+🔐 **Perfil de Acesso:** ${isClinicaMedica ? 'Médico (acesso completo)' : 'Estético (equipamentos não-médicos)'}
 
 Baseado nas suas respostas, identificamos oportunidades específicas para sua clínica de ${specialty} crescer de forma estratégica e sustentável.
 
@@ -180,6 +197,13 @@ Sua clínica tem potencial para crescimento através de uma comunicação mais d
 4. **Otimizar processo de conversão** de leads em consultas
 5. **Estabelecer autoridade técnica** através de conteúdo especializado
 
+## 🛠️ **Sugestões de Equipamentos Compatíveis**
+
+${equipamentosDisponiveis.length > 0 ? 
+  `Baseado no seu perfil ${isClinicaMedica ? 'médico' : 'estético'}, considere investir em: ${equipamentosTexto}. Estes equipamentos são compatíveis com seu tipo de clínica e podem agregar valor aos seus protocolos.` :
+  `${isClinicaMedica ? 'Consulte nossa base de equipamentos médicos e estéticos disponíveis.' : 'Foque em equipamentos estéticos não-invasivos para sua clínica.'}`
+}
+
 ## 📅 **Cronograma de Implementação**
 
 **Semana 1-2:** Estruturação de conteúdo e linha editorial  
@@ -190,7 +214,10 @@ Sua clínica tem potencial para crescimento através de uma comunicação mais d
 
 Foque em mostrar transformações reais, educar sobre procedimentos e criar conexão emocional com seu público através de comunicação humanizada e próxima.
 
-**Próximo passo:** Implemente as 3 primeiras ações táticas na próxima semana e monitore os resultados.`;
+**Próximo passo:** Implemente as 3 primeiras ações táticas na próxima semana e monitore os resultados.
+
+---
+*⚠️ Lembre-se: ${!isClinicaMedica ? 'Como clínica estética, você deve focar apenas em equipamentos e procedimentos não-médicos.' : 'Como clínica médica, você tem acesso completo a todos os equipamentos e procedimentos.'}*`;
   };
 
   const getMainService = (data: MarketingConsultantState): string => {

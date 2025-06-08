@@ -51,7 +51,14 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e estéticas, com foco total em atrair, encantar e fidelizar o público final. Use linguagem emocional, acessível e inspiração prática.' 
+            content: `Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e estéticas, com foco total em atrair, encantar e fidelizar o público final.
+
+🔐 REGRAS DE ACESSO IMPORTANTES:
+- Se for CLÍNICA MÉDICA: pode sugerir TODOS os equipamentos (médicos e estéticos)
+- Se for CLÍNICA ESTÉTICA: pode sugerir APENAS equipamentos estéticos
+- NUNCA sugira equipamentos médicos (CO2 Fracionado, Ultrassom microfocado, Intradermoterapia) para clínicas estéticas
+
+Use linguagem emocional, acessível e inspiração prática. Foque em conteúdo para Instagram, TikTok e YouTube Shorts.` 
           },
           { role: 'user', content: prompt }
         ],
@@ -97,13 +104,32 @@ serve(async (req) => {
 
 function createConsultorFluidaPrompt(data: any): string {
   const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
+  const isClinicaMedica = data.clinicType === 'clinica_medica';
   
-  // Identificar equipamentos mencionados
-  let equipamentos = '';
+  // Filtrar equipamentos baseado no tipo de clínica
+  let equipamentosDisponiveis = '';
+  if (data.equipments && Array.isArray(data.equipments)) {
+    const equipamentosFiltrados = data.equipments.filter(eq => {
+      if (isClinicaMedica) {
+        // Clínica médica pode ver todos os equipamentos
+        return true;
+      } else {
+        // Clínica estética só pode ver equipamentos estéticos
+        return eq.categoria === 'estetico';
+      }
+    });
+    
+    equipamentosDisponiveis = equipamentosFiltrados.length > 0 
+      ? equipamentosFiltrados.map(eq => `${eq.nome} (${eq.categoria})`).join(', ')
+      : 'Nenhum equipamento cadastrado para este perfil';
+  }
+  
+  // Identificar equipamentos mencionados pelo usuário
+  let equipamentosUsuario = '';
   if (data.clinicType === 'clinica_medica') {
-    equipamentos = data.medicalEquipments || 'Não informado';
+    equipamentosUsuario = data.medicalEquipments || 'Não informado';
   } else {
-    equipamentos = data.aestheticEquipments || 'Não informado';
+    equipamentosUsuario = data.aestheticEquipments || 'Não informado';
   }
   
   // Identificar problemas/protocolos
@@ -140,9 +166,14 @@ function createConsultorFluidaPrompt(data: any): string {
 - Estilo da clínica: ${data.aestheticClinicStyle || 'Não informado'}`;
   }
 
-  const prompt = `CONSULTOR FLUIDA – Diagnóstico de Marketing com Segmentação Inteligente
+  const prompt = `CONSULTOR FLUIDA – Diagnóstico de Marketing com Controle de Acesso por Perfil
 
 Você é o CONSULTOR FLUIDA — um estrategista de marketing para clínicas estéticas e clínicas médicas.
+
+🔐 REGRAS DE ACESSO IMPORTANTES:
+- Tipo de clínica detectado: ${tipoClinica}
+- ${isClinicaMedica ? 'CLÍNICA MÉDICA: pode sugerir TODOS os equipamentos (médicos e estéticos)' : 'CLÍNICA ESTÉTICA: pode sugerir APENAS equipamentos estéticos'}
+- ${!isClinicaMedica ? 'NUNCA sugira equipamentos médicos (CO2 Fracionado, Ultrassom microfocado, Intradermoterapia) para esta clínica' : ''}
 
 Com base no briefing abaixo, gere uma resposta completa dividida nas seções:
 
@@ -156,7 +187,8 @@ Com base no briefing abaixo, gere uma resposta completa dividida nas seções:
 
 📥 DADOS DO BRIEFING:
 - **Tipo de clínica:** ${tipoClinica}
-- **Equipamentos utilizados:** ${equipamentos}
+- **Equipamentos do usuário:** ${equipamentosUsuario}
+- **Equipamentos disponíveis no sistema:** ${equipamentosDisponiveis}
 - **Problemas/Protocolos:** ${problemasProtocolos}
 - **Público ideal:** ${publicoIdeal}
 - **Estilo de comunicação:** ${estilo}
@@ -177,14 +209,16 @@ ${dadosEspecificos}
 - Use linguagem acessível, direta e empática
 - Foque nos pontos que impedem o crescimento e nas oportunidades não exploradas
 - Se equipamentos foram mencionados, analise como estão sendo comunicados
+- **IMPORTANTE:** Sugira apenas equipamentos compatíveis com o perfil da clínica
 
 ### 2. 💡 Sugestões de Conteúdo Humanizado
 Crie 5 ideias ESPECÍFICAS para esta clínica ${tipoClinica} baseadas nos dados fornecidos:
 - **Formatos prioritários:** Reels, vídeos curtos ou carrossel com rosto
-- **Conecte cada conteúdo aos equipamentos:** ${equipamentos}
+- **Conecte cada conteúdo aos equipamentos:** ${equipamentosUsuario}
 - **Inclua os problemas/protocolos mencionados:** ${problemasProtocolos}
 - **Use o estilo de comunicação:** ${estilo}
 - **Foque no público:** ${publicoIdeal}
+- **IMPORTANTE:** Se sugerir equipamentos, use apenas os compatíveis: ${equipamentosDisponiveis}
 
 **Exemplos de formato:**
 - "Você sabia que [problema específico mencionado] tem solução?" → Reel com before/after
@@ -200,7 +234,7 @@ Baseado no perfil desta clínica ${tipoClinica}, crie ações específicas e pr�
 
 **SEMANA 1:** Estruturação de conteúdo
 - 3 ações práticas específicas para clínica ${tipoClinica}
-- Foco em ${equipamentos}
+- Foco em ${equipamentosUsuario}
 - Objetivo: ${data.clinicType === 'clinica_medica' ? data.medicalObjective : data.aestheticObjective}
 
 **SEMANA 2:** Engajamento e autoridade  
@@ -226,6 +260,10 @@ Analise especificamente para esta clínica ${tipoClinica}:
 - Programa de indicação: como transformar clientes satisfeitos em embaixadores
 - Recorrência: estratégias para ${data.clinicType === 'clinica_medica' ? 'fidelizar pacientes' : 'manter clientes'}
 
+**Sugestões de Equipamentos (se aplicável):**
+- Com base nos problemas mencionados (${problemasProtocolos}), considere: ${equipamentosDisponiveis}
+- Justifique cada sugestão baseada no ROI e perfil do público
+
 ### 5. 🧩 Enigma Satírico do Mentor
 Crie uma frase enigmática que brinque com características do mentor sem revelá-lo:
 - Use trocadilhos ou jogos de palavras
@@ -241,7 +279,7 @@ Crie uma frase enigmática que brinque com características do mentor sem revel�
 - Linguagem prática, clara e emocional
 - Foco 100% no cliente final da clínica
 - Todo conteúdo deve caber em Instagram, TikTok ou YouTube Shorts
-- Se equipamentos específicos foram mencionados, inclua sugestões baseadas neles
+- **CRÍTICO:** Respeite o controle de acesso - ${!isClinicaMedica ? 'NÃO sugira equipamentos médicos para clínica estética' : 'Pode sugerir qualquer equipamento'}
 - Use os dados específicos fornecidos para personalizar cada seção
 - Mantenha tom inspirador e executável`;
 
