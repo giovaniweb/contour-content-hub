@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2 } from "lucide-react";
+import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
@@ -37,6 +37,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const { profile } = useUserProfile();
   const [mentor, setMentor] = useState<any>(null);
   const [aiSections, setAiSections] = useState<any>(null);
+  const [processingError, setProcessingError] = useState<string | null>(null);
 
   // Atualizar o perfil do usuário quando o tipo de clínica for selecionado
   useEffect(() => {
@@ -69,6 +70,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       // Chegou ao fim do questionário
       console.log('Fim do questionário detectado, iniciando processamento...');
       setIsProcessing(true);
+      setProcessingError(null);
       
       try {
         // Gerar diagnóstico usando IA
@@ -89,9 +91,22 @@ const AkinatorMarketingConsultant: React.FC = () => {
         setShowDashboard(true);
       } catch (error) {
         console.error('Erro ao gerar diagnóstico:', error);
-        toast.error("Erro ao processar diagnóstico", { id: "processing" });
-      } finally {
-        setIsProcessing(false);
+        setProcessingError('Erro ao processar diagnóstico com IA');
+        
+        // Permitir continuar mesmo com erro na API
+        const finalState = {
+          ...newState,
+          generatedDiagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas e você pode visualizar as recomendações básicas.'
+        };
+        
+        setState(finalState);
+        toast.error("Erro na IA, mas suas respostas foram salvas", { id: "processing" });
+        
+        // Continuar para o dashboard mesmo com erro
+        setTimeout(() => {
+          setShowDashboard(true);
+          setIsProcessing(false);
+        }, 2000);
       }
     } else {
       console.log('Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
@@ -147,9 +162,25 @@ const AkinatorMarketingConsultant: React.FC = () => {
     setShowDashboard(false);
     setMentor(null);
     setAiSections(null);
+    setProcessingError(null);
     
     toast.success("Diagnóstico reiniciado!", {
       description: "Vamos começar um novo diagnóstico."
+    });
+  };
+
+  const handleContinueWithoutAI = () => {
+    const finalState = {
+      ...state,
+      generatedDiagnostic: 'Modo básico: Suas respostas foram processadas localmente.'
+    };
+    
+    setState(finalState);
+    setShowDashboard(true);
+    setIsProcessing(false);
+    
+    toast.success("Continuando com diagnóstico básico", {
+      description: "Você pode ver suas respostas e recomendações gerais."
     });
   };
 
@@ -214,6 +245,28 @@ const AkinatorMarketingConsultant: React.FC = () => {
               <span className="text-sm">Gerando diagnóstico personalizado</span>
             </div>
           </div>
+
+          {processingError && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6 max-w-md mx-auto"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                <h3 className="text-lg font-medium text-yellow-600">IA Temporariamente Indisponível</h3>
+              </div>
+              <p className="text-sm text-yellow-700 mb-4">
+                Não foi possível processar seu diagnóstico com IA, mas você pode continuar e ver as recomendações básicas baseadas em suas respostas.
+              </p>
+              <Button 
+                onClick={handleContinueWithoutAI}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+              >
+                Continuar com Diagnóstico Básico
+              </Button>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     );
