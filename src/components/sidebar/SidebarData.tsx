@@ -1,11 +1,8 @@
 
 import { 
   Home,
-  FileText,
   Film,
-  Book,
   BarChart3,
-  Box,
   LayoutDashboard,
   Settings,
   File,
@@ -26,20 +23,15 @@ export const sidebarData = [
     icon: Home,
     links: [
       { name: "Dashboard", icon: Home, path: ROUTES.DASHBOARD, highlight: false },
-      { name: "Roteiros", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, highlight: false },
       { name: "Vídeos", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
-      { name: "Artigos", icon: Book, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
-      { name: "Estratégia", icon: BarChart3, path: ROUTES.CONTENT.STRATEGY, highlight: false },
-      { name: "Consultor", icon: BrainCircuit, path: "/marketing-consultant", highlight: false },
-      { name: "Equipamentos", icon: Box, path: ROUTES.EQUIPMENT.LIST, highlight: false }
+      { name: "Consultor", icon: BrainCircuit, path: "/marketing-consultant", highlight: false }
     ]
   },
   {
     name: "Conteúdo",
-    icon: FileText,
+    icon: Calendar,
     links: [
-      { name: "Calendário", icon: Calendar, path: ROUTES.CONTENT.CALENDAR, highlight: true },
-      { name: "Planejador", icon: BarChart3, path: ROUTES.CONTENT.PLANNER, highlight: false },
+      { name: "Calendário", icon: Calendar, path: ROUTES.CONTENT.CALENDAR, highlight: true }
     ]
   },
   {
@@ -47,10 +39,7 @@ export const sidebarData = [
     icon: Film,
     links: [
       { name: "Biblioteca", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
-      { name: "Importar", icon: Upload, path: ROUTES.VIDEOS.IMPORT, highlight: false },
-      { name: "Armazenamento", icon: Video, path: ROUTES.VIDEOS.STORAGE, highlight: false },
-      { name: "Lote", icon: Film, path: ROUTES.VIDEOS.BATCH, highlight: false },
-      { name: "Swipe", icon: Film, path: ROUTES.VIDEOS.SWIPE, highlight: false },
+      { name: "Importar", icon: Upload, path: ROUTES.VIDEOS.IMPORT, highlight: false }
     ]
   }
 ];
@@ -64,6 +53,5 @@ export const adminItems = [
   { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI, highlight: false },
   { name: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE, highlight: false },
   { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS, highlight: false },
-  { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS, highlight: false },
-  { name: "Workspace", icon: Settings, path: ROUTES.ADMIN.WORKSPACE, highlight: false }
+  { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS, highlight: false }
 ];
