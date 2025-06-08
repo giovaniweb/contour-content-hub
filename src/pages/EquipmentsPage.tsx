@@ -63,7 +63,7 @@ const EquipmentsPage: React.FC = () => {
           <div className="text-center py-12">
             <Wrench className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar equipamentos</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
+            <p className="text-muted-foreground mb-4">{error.message}</p>
             <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
           </div>
         </div>
