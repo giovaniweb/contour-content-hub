@@ -25,6 +25,10 @@ import ContentScripts from '@/pages/ContentScripts';
 import MarketingConsultant from '@/pages/MarketingConsultant';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
 import ReportsPage from '@/pages/ReportsPage';
+import PhotosPage from '@/pages/PhotosPage';
+import ArtsPage from '@/pages/ArtsPage';
+import VideosPage from '@/pages/VideosPage';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -129,8 +133,51 @@ function App() {
                       </AppLayout>
                     </PrivateRoute>
                   } />
+
+                  <Route path="/photos" element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <PhotosPage />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } />
+
+                  <Route path="/arts" element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <ArtsPage />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } />
+
+                  <Route path="/videos" element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <VideosPage />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } />
+
+                  <Route path="/content-planner" element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <div className="p-6">
+                          <h1 className="text-2xl font-bold">Planejador de Conteúdo</h1>
+                          <p className="text-muted-foreground mt-2">Em desenvolvimento...</p>
+                        </div>
+                      </AppLayout>
+                    </PrivateRoute>
+                  } />
                   
                   {/* Admin routes */}
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <AppLayout requireAdmin={true}>
+                        <AdminDashboard />
+                      </AppLayout>
+                    </AdminRoute>
+                  } />
+
                   <Route path="/admin/equipments" element={
                     <AdminRoute>
                       <AppLayout requireAdmin={true}>

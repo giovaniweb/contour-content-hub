@@ -31,7 +31,9 @@ export default function Sidebar() {
   const { open, setOpen } = useSidebar();
   const location = useLocation();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  
+  // Verificação mais robusta para admin
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   
   // Check if the current path is active
   const isActive = (path: string) => {
@@ -247,7 +249,7 @@ export default function Sidebar() {
             </SidebarGroup>
           ))}
           
-          {/* Admin menu */}
+          {/* Admin menu - only show for admin users */}
           {isAdmin && (
             <SidebarGroup className="mt-8 pt-6 border-t border-white/20">
               <SidebarGroupLabel className={cn("text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
