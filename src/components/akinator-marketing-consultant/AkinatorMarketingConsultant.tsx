@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
 import { MARKETING_STEPS } from './constants';
 import { generateMarketingDiagnostic } from './marketingGenerator';
+import { useAIDiagnostic } from '@/hooks/useAIDiagnostic';
 import AkinatorProgress from '../akinator-script-generator/AkinatorProgress';
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
@@ -13,6 +13,7 @@ type ViewMode = 'questions' | 'result' | 'dashboard';
 
 const AkinatorMarketingConsultant: React.FC = () => {
   const { toast } = useToast();
+  const { generateDiagnostic, isGenerating } = useAIDiagnostic();
   const [viewMode, setViewMode] = useState<ViewMode>('questions');
   const [state, setState] = useState<MarketingConsultantState>({
     currentStep: 0,
@@ -41,7 +42,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const filteredSteps = getFilteredSteps();
   const currentStepData = filteredSteps[state.currentStep];
 
-  const handleOptionSelect = (value: string) => {
+  const handleOptionSelect = async (value: string) => {
     const newState = { ...state, [currentStepData.id]: value };
     
     console.log('handleOptionSelect - newState:', newState);
@@ -52,26 +53,50 @@ const AkinatorMarketingConsultant: React.FC = () => {
       setState({ ...newState, currentStep: state.currentStep + 1 });
     } else {
       console.log('Gerando diagnóstico - última etapa');
-      // Gerar diagnóstico
-      const diagnostic = generateMarketingDiagnostic(newState);
       
-      const finalState = {
-        ...newState,
-        isComplete: true,
-        generatedDiagnostic: diagnostic
-      };
+      // Mostrar loading durante geração
+      setState({ ...newState, isComplete: false });
       
-      console.log('Estado final sendo definido:', finalState);
-      setState(finalState);
+      toast({
+        title: "🤖 Gerando diagnóstico com IA...",
+        description: "Analisando seu perfil e criando estratégias personalizadas."
+      });
       
-      // Navegar diretamente para o dashboard após completar o diagnóstico
-      setTimeout(() => {
-        setViewMode('dashboard');
+      try {
+        // Tentar gerar diagnóstico com IA primeiro
+        let diagnostic = await generateDiagnostic(newState);
+        
+        // Se a IA falhou, usar o sistema estático
+        if (!diagnostic) {
+          diagnostic = await generateMarketingDiagnostic(newState, false);
+        }
+        
+        const finalState = {
+          ...newState,
+          isComplete: true,
+          generatedDiagnostic: diagnostic
+        };
+        
+        console.log('Estado final sendo definido:', finalState);
+        setState(finalState);
+        
+        // Navegar diretamente para o dashboard após completar o diagnóstico
+        setTimeout(() => {
+          setViewMode('dashboard');
+          toast({
+            title: "🎯 Dashboard estratégico gerado!",
+            description: "Sua análise completa está pronta com ideias personalizadas."
+          });
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Erro na geração do diagnóstico:', error);
         toast({
-          title: "🎯 Dashboard estratégico gerado!",
-          description: "Sua análise completa está pronta com ideias personalizadas."
+          variant: "destructive",
+          title: "Erro na geração",
+          description: "Tente novamente em alguns segundos."
         });
-      }, 1000);
+      }
     }
   };
 
@@ -179,6 +204,16 @@ const AkinatorMarketingConsultant: React.FC = () => {
   return (
     <div>
       <AkinatorProgress currentStep={state.currentStep} totalSteps={filteredSteps.length} />
+      
+      {isGenerating && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-blue-700">Gerando diagnóstico inteligente com IA...</span>
+          </div>
+        </div>
+      )}
+      
       <MarketingQuestion
         stepData={currentStepData}
         currentStep={state.currentStep}

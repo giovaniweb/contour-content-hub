@@ -1,7 +1,50 @@
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
 
-export const generateMarketingDiagnostic = (state: MarketingConsultantState): string => {
+export const generateMarketingDiagnostic = async (
+  state: MarketingConsultantState, 
+  useAI: boolean = true
+): Promise<string> => {
+  // Se usar IA estiver habilitado, tentar gerar via OpenAI primeiro
+  if (useAI) {
+    try {
+      const { generateDiagnostic } = await import('@/hooks/useAIDiagnostic');
+      // Como não podemos usar hooks fora de componentes, vamos usar diretamente a função
+      const aiDiagnostic = await callAIDiagnostic(state);
+      if (aiDiagnostic) {
+        return aiDiagnostic;
+      }
+    } catch (error) {
+      console.error('Erro na geração via IA, usando fallback:', error);
+    }
+  }
+
+  // Fallback para lógica atual
+  return generateStaticDiagnostic(state);
+};
+
+// Função para chamar a IA diretamente (sem hook)
+const callAIDiagnostic = async (state: MarketingConsultantState): Promise<string | null> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
+      body: state
+    });
+
+    if (error || !data.success) {
+      return null;
+    }
+
+    return data.diagnostic;
+  } catch (error) {
+    console.error('Erro na chamada da IA:', error);
+    return null;
+  }
+};
+
+// Função com a lógica estática atual (como fallback)
+const generateStaticDiagnostic = (state: MarketingConsultantState): string => {
   const isClinicaMedica = state.clinicType === 'clinica_medica';
   const clinicTypeAnalysis = getClinicTypeAnalysis(state);
   const revenueAnalysis = getRevenueAnalysis(state.currentRevenue || '', state.revenueGoal || '');
@@ -114,7 +157,7 @@ const getEquipmentAnalysis = (equipment: string): string => {
     'sem_equipamentos': 'Clínica manual - Foco na técnica e relacionamento.',
     'varios': 'Múltiplos equipamentos - Portfólio diversificado.'
   };
-  return analyses[equipment as keyof typeof analyses] || 'Equipamentos identificados.';
+  return analyses[equipment as keyof typeof equipment] || 'Equipamentos identificados.';
 };
 
 const getPositioningAnalysis = (position: string): string => {
