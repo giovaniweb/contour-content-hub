@@ -27,6 +27,7 @@ import { MarketingStep } from './types';
 import { useSlideNotifications } from '@/components/notifications/SlideNotificationProvider';
 import { toast } from 'sonner';
 import { mockEquipments } from './data/mockEquipments';
+import { useEquipments } from '@/hooks/useEquipments';
 
 interface MarketingQuestionProps {
   stepData: MarketingStep;
@@ -76,8 +77,10 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const [customEquipment, setCustomEquipment] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [equipmentsLoading, setEquipmentsLoading] = useState(false);
   const { showNotification } = useSlideNotifications();
+  
+  // Buscar equipamentos reais do banco de dados
+  const { equipments, isLoading: equipmentsLoading } = useEquipments();
 
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
@@ -176,16 +179,28 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       return stepData.options || [];
     }
 
-    // Usar equipamentos mock
-    const filteredEquipments = mockEquipments.filter(equipment => {
-      if (stepData.id === 'aestheticEquipments') {
-        return equipment.categoria === 'estetico';
+    console.log('Equipamentos carregados:', equipments);
+    console.log('Loading state:', equipmentsLoading);
+
+    // Usar equipamentos reais do banco de dados se disponíveis, senão usar mocks
+    const availableEquipments = equipments && equipments.length > 0 ? equipments : mockEquipments;
+    
+    // Filtrar equipamentos por categoria
+    const filteredEquipments = availableEquipments.filter(equipment => {
+      // Para equipamentos do banco, verificar se tem a propriedade categoria
+      if ('categoria' in equipment) {
+        if (stepData.id === 'aestheticEquipments') {
+          return equipment.categoria === 'estetico';
+        }
+        if (stepData.id === 'medicalEquipments') {
+          return equipment.categoria === 'medico';
+        }
       }
-      if (stepData.id === 'medicalEquipments') {
-        return equipment.categoria === 'medico';
-      }
+      // Se não tem categoria definida, assumir que pode ser usado por ambos
       return true;
     });
+
+    console.log('Equipamentos filtrados:', filteredEquipments);
 
     const equipmentOptions = filteredEquipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
@@ -358,7 +373,18 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
               </motion.div>
             ) : (
               <div className="space-y-4">
-                {optionsToShow.length > 0 ? (
+                {equipmentsLoading && shouldUseDynamicEquipments ? (
+                  <motion.div 
+                    className="flex items-center justify-center py-12"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <div className="flex items-center gap-3 text-aurora-electric-purple">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-lg">Carregando equipamentos...</span>
+                    </div>
+                  </motion.div>
+                ) : optionsToShow.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {optionsToShow.map((option, index) => (
                       <motion.div
@@ -399,7 +425,13 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    <span className="text-lg">Nenhuma opção disponível</span>
+                    <div className="text-center">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-3 text-aurora-electric-purple/60" />
+                      <span className="text-lg">Nenhum equipamento encontrado</span>
+                      <p className="text-sm mt-2 opacity-75">
+                        {shouldUseDynamicEquipments ? "Usando dados de exemplo para continuar" : ""}
+                      </p>
+                    </div>
                   </motion.div>
                 )}
               </div>
