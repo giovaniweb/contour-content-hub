@@ -50,6 +50,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
     const currentQuestion = MARKETING_STEPS[currentStep];
     
     console.log('Resposta selecionada:', value, 'Step atual:', currentStep);
+    console.log('Pergunta atual:', currentQuestion);
     
     // Atualizar o estado com a resposta usando o ID da pergunta
     const newState = {
@@ -62,9 +63,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
     
     // Encontrar a próxima pergunta válida
     const nextStep = getNextValidQuestion(currentStep, newState);
+    console.log('Próximo step calculado:', nextStep, 'Total steps:', MARKETING_STEPS.length);
     
     if (nextStep >= MARKETING_STEPS.length) {
       // Chegou ao fim do questionário
+      console.log('Fim do questionário detectado, iniciando processamento...');
       setIsProcessing(true);
       
       try {
@@ -91,19 +94,18 @@ const AkinatorMarketingConsultant: React.FC = () => {
         setIsProcessing(false);
       }
     } else {
-      console.log('Próxima pergunta válida encontrada:', nextStep, MARKETING_STEPS[nextStep]);
+      console.log('Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
       setCurrentStep(nextStep);
       
       toast.success("Resposta salva!", {
         description: "Continuando para a próxima pergunta..."
       });
     }
-    
-    console.log('Próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
   };
 
   const handleGoBack = () => {
     const previousStep = getPreviousValidQuestion(currentStep, state);
+    console.log('Voltando para step:', previousStep);
     setCurrentStep(previousStep);
     
     toast.info("Voltando à pergunta anterior", {
@@ -112,30 +114,32 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleRestart = () => {
+    console.log('Reiniciando diagnóstico...');
     setState({
       clinicType: '',
       medicalSpecialty: '',
       medicalProcedures: '',
       medicalEquipments: '',
-      medicalProblems: '',
+      medicalBestSeller: '',
       medicalTicket: '',
       medicalSalesModel: '',
       medicalObjective: '',
-      medicalVideoFrequency: '',
+      medicalContentFrequency: '',
       medicalClinicStyle: '',
       aestheticFocus: '',
       aestheticEquipments: '',
-      aestheticProblems: '',
+      aestheticBestSeller: '',
       aestheticSalesModel: '',
       aestheticTicket: '',
       aestheticObjective: '',
-      aestheticVideoFrequency: '',
+      aestheticContentFrequency: '',
       aestheticClinicStyle: '',
       currentRevenue: '',
       revenueGoal: '',
       targetAudience: '',
       contentFrequency: '',
       communicationStyle: '',
+      mainChallenges: '',
       generatedDiagnostic: ''
     });
     setCurrentStep(0);
@@ -153,6 +157,12 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const totalQuestions = getTotalValidQuestions(state);
   const currentQuestionNumber = getCurrentQuestionNumber(currentStep, state);
   const progress = (currentQuestionNumber / totalQuestions) * 100;
+
+  // Debug logs
+  console.log('Renderização - currentStep:', currentStep);
+  console.log('Renderização - currentQuestion:', currentQuestion);
+  console.log('Renderização - shouldShow:', currentQuestion ? shouldShowQuestion(currentStep, state) : false);
+  console.log('Renderização - state:', state);
 
   if (showDashboard) {
     return (
@@ -209,6 +219,37 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
+  // Verificar se a pergunta atual é válida
+  if (!currentQuestion) {
+    console.error('Pergunta não encontrada para step:', currentStep);
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-gray-400">Erro: Pergunta não encontrada</p>
+        <Button onClick={handleRestart} className="mt-4">
+          Reiniciar Diagnóstico
+        </Button>
+      </div>
+    );
+  }
+
+  if (!shouldShowQuestion(currentStep, state)) {
+    console.log('Pergunta não deve ser mostrada, buscando próxima...');
+    // Se a pergunta atual não deve ser mostrada, navegar automaticamente
+    const nextValidStep = getNextValidQuestion(currentStep, state);
+    if (nextValidStep < MARKETING_STEPS.length && nextValidStep !== currentStep) {
+      setTimeout(() => setCurrentStep(nextValidStep), 100);
+    }
+    
+    return (
+      <div className="text-center py-12">
+        <div className="flex justify-center items-center gap-2">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Carregando próxima pergunta...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-6xl py-6">
       <AnimatePresence mode="wait">
@@ -219,19 +260,13 @@ const AkinatorMarketingConsultant: React.FC = () => {
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.3 }}
         >
-          {currentQuestion && shouldShowQuestion(currentStep, state) ? (
-            <MarketingQuestion
-              stepData={currentQuestion}
-              currentStep={currentStep}
-              onOptionSelect={handleOptionSelect}
-              onGoBack={handleGoBack}
-              canGoBack={currentStep > 0}
-            />
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-400">Pergunta não disponível</p>
-            </div>
-          )}
+          <MarketingQuestion
+            stepData={currentQuestion}
+            currentStep={currentStep}
+            onOptionSelect={handleOptionSelect}
+            onGoBack={handleGoBack}
+            canGoBack={currentStep > 0}
+          />
         </motion.div>
       </AnimatePresence>
     </div>

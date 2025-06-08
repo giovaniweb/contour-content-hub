@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { MARKETING_STEPS } from '../constants';
 import { MarketingConsultantState } from '../types';
@@ -9,25 +10,26 @@ const initialState: MarketingConsultantState = {
   medicalSpecialty: '',
   medicalProcedures: '',
   medicalEquipments: '',
-  medicalProblems: '',
+  medicalBestSeller: '',
   medicalTicket: '',
   medicalSalesModel: '',
   medicalObjective: '',
-  medicalVideoFrequency: '',
+  medicalContentFrequency: '',
   medicalClinicStyle: '',
   aestheticFocus: '',
   aestheticEquipments: '',
-  aestheticProblems: '',
+  aestheticBestSeller: '',
   aestheticSalesModel: '',
   aestheticTicket: '',
   aestheticObjective: '',
-  aestheticVideoFrequency: '',
+  aestheticContentFrequency: '',
   aestheticClinicStyle: '',
   currentRevenue: '',
   revenueGoal: '',
   targetAudience: '',
   contentFrequency: '',
   communicationStyle: '',
+  mainChallenges: '',
   generatedDiagnostic: ''
 };
 
