@@ -51,23 +51,48 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
         }),
       });
 
-      const data = await response.json();
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', response.headers);
+
+      if (!response.ok) {
+        console.error('API response not ok:', response.status, response.statusText);
+        throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      if (!responseText.trim()) {
+        console.error('Empty response from API');
+        throw new Error('API retornou resposta vazia');
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text that failed to parse:', responseText);
+        throw new Error('Resposta da API não é um JSON válido');
+      }
       
-      if (data.success) {
+      if (data.success && data.diagnostic) {
         setDiagnosticResult(data.diagnostic);
       } else {
-        throw new Error(data.error || 'Erro ao gerar diagnóstico');
+        console.error('API returned error:', data);
+        throw new Error(data.error || 'Erro desconhecido na geração do diagnóstico');
       }
     } catch (error) {
       console.error('Error generating diagnostic:', error);
       
       // Fallback diagnostic
-      setDiagnosticResult(generateFallbackDiagnostic());
+      const fallbackDiagnostic = generateFallbackDiagnostic();
+      setDiagnosticResult(fallbackDiagnostic);
       
       toast({
         variant: "destructive",
-        title: "Erro ao gerar diagnóstico",
-        description: "Usando diagnóstico padrão. Tente novamente mais tarde.",
+        title: "Erro ao gerar diagnóstico personalizado",
+        description: "Usando diagnóstico padrão. Verifique sua conexão e tente novamente.",
       });
     } finally {
       setIsGenerating(false);
@@ -76,21 +101,24 @@ const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equip
 
   const generateFallbackDiagnostic = () => {
     const clinicType = consultantData.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
-    const equipment = consultantData.aestheticEquipments ? 
-      equipments.find(eq => eq.id === consultantData.aestheticEquipments)?.nome || 'equipamento selecionado' 
-      : 'seus equipamentos';
+    const specialty = consultantData.medicalSpecialty || consultantData.aestheticFocus || 'especialização selecionada';
+    const service = consultantData.mainService || 'seus serviços principais';
+    const revenue = formatRevenue(consultantData.currentRevenue);
+    const goal = formatGoal(consultantData.revenueGoal);
     
-    return `
-## 🎯 **DIAGNÓSTICO ESTRATÉGICO - ${clinicType}**
+    return `## 🎯 **DIAGNÓSTICO ESTRATÉGICO - ${clinicType}**
 
-Baseado nas suas respostas, identificamos oportunidades específicas para sua clínica crescer de forma estratégica e sustentável.
+Baseado nas suas respostas, identificamos oportunidades específicas para sua clínica de ${specialty} crescer de forma estratégica e sustentável.
 
 ### 📊 **Análise do Perfil**
-Sua clínica tem potencial para crescimento através de uma comunicação mais direcionada, especialmente destacando os benefícios do ${equipment}.
+Sua clínica tem potencial para crescimento através de uma comunicação mais direcionada, especialmente destacando os benefícios de ${service}.
+
+**Situação Atual:** ${revenue}
+**Meta:** ${goal}
 
 ### 💡 **Ações Táticas Prioritárias**
 
-1. **Criar conteúdo educativo** sobre ${equipment} focando nos resultados reais
+1. **Criar conteúdo educativo** sobre ${service} focando nos resultados reais
 2. **Desenvolver storytelling** com casos de sucesso de pacientes  
 3. **Implementar estratégia de engajamento** nas redes sociais
 4. **Otimizar processo de conversão** de leads em consultas
@@ -106,8 +134,27 @@ Sua clínica tem potencial para crescimento através de uma comunicação mais d
 
 Foque em mostrar transformações reais, educar sobre procedimentos e criar conexão emocional com seu público através de comunicação humanizada e próxima.
 
-**Próximo passo:** Implemente as 3 primeiras ações táticas na próxima semana e monitore os resultados.
-`;
+**Próximo passo:** Implemente as 3 primeiras ações táticas na próxima semana e monitore os resultados.`;
+  };
+
+  const formatRevenue = (revenue?: string) => {
+    const revenueMap: Record<string, string> = {
+      'ate_15k': 'Até R$ 15.000',
+      '15k_30k': 'R$ 15.000 - R$ 30.000', 
+      '30k_60k': 'R$ 30.000 - R$ 60.000',
+      'acima_60k': 'Acima de R$ 60.000'
+    };
+    return revenueMap[revenue || ''] || 'Não informado';
+  };
+
+  const formatGoal = (goal?: string) => {
+    const goalMap: Record<string, string> = {
+      'dobrar': 'Dobrar o faturamento',
+      'crescer_50': 'Crescer 50%',
+      'crescer_30': 'Crescer 30%',
+      'manter_estavel': 'Manter estabilidade'
+    };
+    return goalMap[goal || ''] || 'Não informado';
   };
 
   const handleCopyDiagnostic = () => {
