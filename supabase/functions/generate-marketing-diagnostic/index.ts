@@ -10,16 +10,37 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('🚀 Edge function generate-marketing-diagnostic iniciada');
+  console.log('📝 Method:', req.method);
+  console.log('🔑 OpenAI API Key configurada:', openAIApiKey ? 'SIM' : 'NÃO');
+  
   if (req.method === 'OPTIONS') {
+    console.log('✅ Respondendo OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('📥 Recebendo dados do diagnóstico...');
     const diagnosticData = await req.json();
+    console.log('📊 Dados recebidos:', JSON.stringify(diagnosticData, null, 2));
+
+    if (!openAIApiKey) {
+      console.error('❌ OPENAI_API_KEY não configurada!');
+      return new Response(JSON.stringify({ 
+        error: 'OPENAI_API_KEY não configurada',
+        success: false,
+        details: 'Configure a chave da OpenAI nas configurações do projeto'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Criar o prompt personalizado com os dados do diagnóstico
     const prompt = createDiagnosticPrompt(diagnosticData);
+    console.log('📝 Prompt criado, tamanho:', prompt.length);
 
+    console.log('🤖 Chamando OpenAI API...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -40,12 +61,21 @@ serve(async (req) => {
       }),
     });
 
+    console.log('📡 Resposta OpenAI status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('❌ OpenAI API error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('❌ OpenAI error body:', errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('✅ Resposta OpenAI recebida');
+    console.log('📊 Usage:', data.usage);
+    
     const diagnosticResult = data.choices[0].message.content;
+    console.log('📝 Diagnóstico gerado, tamanho:', diagnosticResult?.length || 0);
 
     return new Response(JSON.stringify({ 
       diagnostic: diagnosticResult,
@@ -54,9 +84,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error generating diagnostic:', error);
+    console.error('💥 Error generating diagnostic:', error);
     return new Response(JSON.stringify({ 
-      error: 'Erro ao gerar diagnóstico',
+      error: 'Erro ao gerar diagnóstico com IA',
       success: false,
       details: error.message 
     }), {

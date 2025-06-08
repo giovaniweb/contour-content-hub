@@ -15,50 +15,69 @@ export const useAIDiagnostic = () => {
 
   const generateDiagnostic = async (diagnosticData: any): Promise<string | null> => {
     console.log('🤖 useAIDiagnostic: Iniciando geração com IA');
-    console.log('📊 Dados enviados:', diagnosticData);
+    console.log('📊 Dados enviados para IA:', JSON.stringify(diagnosticData, null, 2));
     
     setIsGenerating(true);
     
     try {
       console.log('🚀 Chamando edge function generate-marketing-diagnostic...');
+      console.log('🔑 Verificando se OPENAI_API_KEY está configurada...');
       
       const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
         body: diagnosticData
       });
 
-      console.log('📥 Resposta da edge function:', { data, error });
+      console.log('📥 Resposta COMPLETA da edge function:');
+      console.log('📄 Data:', JSON.stringify(data, null, 2));
+      console.log('❌ Error:', JSON.stringify(error, null, 2));
 
       if (error) {
-        console.error('❌ Erro na edge function:', error);
-        throw new Error(error.message);
+        console.error('❌ ERRO na edge function:', error);
+        console.error('❌ Tipo do erro:', typeof error);
+        console.error('❌ Stack trace:', error.stack);
+        throw new Error(`Edge function error: ${JSON.stringify(error)}`);
       }
 
       if (!data) {
-        console.error('❌ Dados vazios retornados da edge function');
-        throw new Error('Dados vazios retornados');
+        console.error('❌ DADOS VAZIOS retornados da edge function');
+        throw new Error('Dados vazios retornados da edge function');
       }
 
-      if (!data.success) {
-        console.error('❌ Edge function retornou sucesso = false:', data.error);
-        throw new Error(data.error || 'Erro na geração do diagnóstico');
+      console.log('✅ Data recebida:', typeof data, data);
+
+      // Verificar se é uma resposta de sucesso da IA
+      if (data.success === false) {
+        console.error('❌ Edge function retornou sucesso = false');
+        console.error('❌ Erro específico:', data.error);
+        console.error('❌ Detalhes:', data.details);
+        throw new Error(data.error || 'Erro na geração do diagnóstico via IA');
       }
 
-      console.log('✅ Diagnóstico gerado com IA com sucesso!');
+      if (!data.diagnostic || data.diagnostic.trim() === '') {
+        console.error('❌ Diagnóstico vazio ou inválido retornado pela IA');
+        throw new Error('Diagnóstico vazio retornado pela IA');
+      }
+
+      console.log('✅ SUCESSO! Diagnóstico IA gerado!');
       console.log('📝 Tamanho do diagnóstico:', data.diagnostic?.length || 0, 'caracteres');
+      console.log('🎯 Primeiros 200 chars:', data.diagnostic?.substring(0, 200) + '...');
 
       toast({
-        title: "🎯 Diagnóstico gerado com IA!",
-        description: "Sua análise personalizada foi criada com sucesso."
+        title: "🎯 Diagnóstico IA gerado!",
+        description: "Sua análise personalizada foi criada com sucesso usando OpenAI."
       });
 
       return data.diagnostic;
     } catch (error) {
-      console.error('💥 Erro completo ao gerar diagnóstico com IA:', error);
+      console.error('💥 ERRO COMPLETO ao gerar diagnóstico com IA:');
+      console.error('💥 Error object:', error);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Error stack:', error.stack);
       
       toast({
         variant: "destructive",
-        title: "⚠️ Usando versão offline",
-        description: "IA indisponível. Gerando diagnóstico com sistema local."
+        title: "⚠️ IA indisponível - usando backup",
+        description: `OpenAI falhou: ${error.message}. Gerando com sistema local.`
       });
       
       // Retorna null para usar fallback

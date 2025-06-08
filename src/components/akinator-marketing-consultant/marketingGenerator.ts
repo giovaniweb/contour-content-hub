@@ -1,28 +1,49 @@
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
-import { generateAIDiagnostic } from '@/utils/aiDiagnosticUtils';
 
 export const generateMarketingDiagnostic = async (
   state: MarketingConsultantState, 
   useAI: boolean = true
 ): Promise<string> => {
-  console.log('🎯 generateMarketingDiagnostic chamado com useAI:', useAI);
-  console.log('📊 Estado recebido:', state);
+  console.log('🎯 generateMarketingDiagnostic chamado');
+  console.log('🤖 useAI:', useAI);
+  console.log('📊 Estado recebido:', JSON.stringify(state, null, 2));
 
   // Se usar IA estiver habilitado, tentar gerar via OpenAI primeiro
   if (useAI) {
     try {
-      console.log('🤖 Tentando gerar diagnóstico via IA...');
-      const aiDiagnostic = await generateAIDiagnostic(state);
+      console.log('🤖 Tentando gerar diagnóstico via IA/OpenAI...');
       
-      if (aiDiagnostic) {
-        console.log('✅ Diagnóstico IA gerado com sucesso! Tamanho:', aiDiagnostic.length);
-        return aiDiagnostic;
-      } else {
-        console.log('⚠️ IA retornou null, usando fallback');
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      console.log('🌐 Chamando edge function generate-marketing-diagnostic diretamente...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
+        body: state
+      });
+
+      console.log('📡 Resposta da edge function (marketingGenerator):');
+      console.log('📄 Data:', JSON.stringify(data, null, 2));
+      console.log('❌ Error:', JSON.stringify(error, null, 2));
+
+      if (error) {
+        console.error('❌ Erro na edge function (marketingGenerator):', error);
+        throw new Error(`Edge function error: ${JSON.stringify(error)}`);
       }
+
+      if (!data || !data.success) {
+        console.log('⚠️ Edge function falhou ou retornou sucesso=false');
+        console.log('⚠️ Data.error:', data?.error);
+        throw new Error(data?.error || 'Falha na geração via IA');
+      }
+
+      console.log('✅ IA funcionou! Retornando diagnóstico gerado pela OpenAI');
+      console.log('📝 Tamanho:', data.diagnostic?.length || 0);
+      return data.diagnostic;
+      
     } catch (error) {
-      console.error('💥 Erro na geração via IA, usando fallback:', error);
+      console.error('💥 Erro na geração via IA (marketingGenerator):', error);
+      console.log('🔄 Caindo para fallback estático...');
     }
   }
 
