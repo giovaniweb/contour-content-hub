@@ -1,131 +1,178 @@
 
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { motion } from 'framer-motion';
+import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { MarketingConsultantState } from './types';
-import { MarketingMentorInference } from './mentorInference';
-import { parseAIDiagnostic, cleanText, formatTitle } from './dashboard/utils';
 import DiagnosticCards from './dashboard/DiagnosticCards';
 import ContentIdeasSection from './dashboard/ContentIdeasSection';
 import StrategicActionsSection from './dashboard/StrategicActionsSection';
 import PersonalizedStrategiesSection from './dashboard/PersonalizedStrategiesSection';
-import MentorSection from './dashboard/MentorSection';
 import ActionButtons from './dashboard/ActionButtons';
+import MentorSection from './dashboard/MentorSection';
+import SpecialistsActivatedSection from './dashboard/SpecialistsActivatedSection';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
-  onBack: () => void;
-  onCreateScript: () => void;
-  onGenerateImage: () => void;
-  onDownloadPDF: () => void;
-  onViewHistory?: () => void;
+  mentor: any;
+  aiSections: any;
+  onRestart: () => void;
 }
 
 const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   state,
-  onBack,
-  onCreateScript,
-  onGenerateImage,
-  onDownloadPDF,
-  onViewHistory
+  mentor,
+  aiSections,
+  onRestart
 }) => {
-  const aiSections = parseAIDiagnostic(state.generatedDiagnostic || '');
-  
-  // Inferir mentor baseado no perfil
-  const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
-
   const renderAIDiagnosticSummary = () => {
-    if (!aiSections || !aiSections.diagnostico) {
+    if (!aiSections?.diagnostico_estrategico) {
       return (
-        <div className="text-foreground/80 text-sm">
-          <p>📊 Diagnóstico sendo processado pela IA...</p>
-          <p className="text-xs mt-1 text-foreground/60">Dados disponíveis, gerando insights personalizados</p>
+        <div className="text-sm text-foreground/60 italic">
+          Diagnóstico sendo processado...
         </div>
       );
     }
 
-    // Pegar as primeiras linhas mais significativas do diagnóstico
-    const lines = aiSections.diagnostico.split('\n').filter(line => line.trim().length > 20);
-    const summaryLines = lines.slice(0, 3);
-    
+    const text = aiSections.diagnostico_estrategico;
+    const sentences = text.split('.').slice(0, 2);
+    const summary = sentences.join('.') + (sentences.length > 0 ? '.' : '');
+
     return (
       <div className="space-y-2">
-        {summaryLines.map((line, index) => (
-          <p key={index} className="text-sm text-foreground/80 leading-relaxed">
-            {line.replace(/[•\-\*]/g, '').trim()}
-          </p>
-        ))}
-        {summaryLines.length === 0 && (
-          <p className="text-sm text-foreground/80">
-            Análise personalizada baseada no perfil da clínica e objetivos definidos.
+        <p className="text-sm text-foreground/80 leading-relaxed">
+          {summary}
+        </p>
+        {text.length > summary.length && (
+          <p className="text-xs text-aurora-electric-purple">
+            Ver diagnóstico completo abaixo →
           </p>
         )}
       </div>
     );
   };
 
-  const renderAIMentorSatire = () => {
-    if (!aiSections || !aiSections.satira) {
-      return enigma; // Fallback para o enigma padrão
-    }
-
-    return cleanText(aiSections.satira);
+  const renderAIMentorSatire = (): string => {
+    if (!mentor?.name) return "Você tem muito potencial com a estratégia certa!";
+    
+    const satires = [
+      "transformaria esses dados em estratégias que convertem de verdade.",
+      "olharia esses números e já saberia exatamente o que fazer.",
+      "usaria essas informações para criar algo realmente impactante.",
+      "veria oportunidades incríveis neste perfil de clínica."
+    ];
+    
+    return satires[Math.floor(Math.random() * satires.length)];
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="flex items-center gap-2 text-foreground hover:text-aurora-electric-purple">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar ao Diagnóstico
-        </Button>
-        <Badge variant="outline" className="aurora-gradient-bg text-white border-aurora-electric-purple/50">
-          Dashboard Estratégico Fluida
-        </Badge>
-      </div>
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={onRestart}
+            className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Novo Diagnóstico
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold aurora-heading">
+              Diagnóstico Completo
+            </h1>
+            <p className="aurora-body text-lg">
+              Estratégias personalizadas para sua clínica
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <Button variant="outline" className="aurora-glass border-aurora-electric-purple/30">
+            <Share2 className="h-4 w-4 mr-2" />
+            Compartilhar
+          </Button>
+          <Button className="aurora-button">
+            <Download className="h-4 w-4 mr-2" />
+            Baixar PDF
+          </Button>
+        </div>
+      </motion.div>
 
-      {/* Diagnóstico em Cards */}
-      <DiagnosticCards 
-        state={state}
-        aiSections={aiSections}
-        renderAIDiagnosticSummary={renderAIDiagnosticSummary}
-      />
+      {/* Cards de Diagnóstico */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <DiagnosticCards 
+          state={state} 
+          aiSections={aiSections}
+          renderAIDiagnosticSummary={renderAIDiagnosticSummary}
+        />
+      </motion.div>
 
-      {/* Ideias de Conteúdo da IA */}
-      <ContentIdeasSection 
-        aiSections={aiSections}
-        cleanText={cleanText}
-        formatTitle={formatTitle}
-      />
+      {/* Especialistas Ativados */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <SpecialistsActivatedSection aiSections={aiSections} />
+      </motion.div>
 
-      {/* Estratégias Personalizadas da IA */}
-      <PersonalizedStrategiesSection 
-        aiSections={aiSections}
-        formatTitle={formatTitle}
-      />
+      {/* Mentor Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <MentorSection 
+          mentor={mentor}
+          renderAIMentorSatire={renderAIMentorSatire}
+        />
+      </motion.div>
 
-      {/* Ações Estratégicas da IA */}
-      <StrategicActionsSection 
-        aiSections={aiSections}
-        cleanText={cleanText}
-        formatTitle={formatTitle}
-      />
+      {/* Ideias de Conteúdo */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <ContentIdeasSection aiSections={aiSections} />
+      </motion.div>
 
-      {/* Mentor Identificado e Enigma da IA */}
-      <MentorSection 
-        mentor={mentor}
-        renderAIMentorSatire={renderAIMentorSatire}
-      />
+      {/* Ações Estratégicas */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <StrategicActionsSection aiSections={aiSections} />
+      </motion.div>
 
-      {/* CTAs Finais */}
-      <ActionButtons 
-        onCreateScript={onCreateScript}
-        onGenerateImage={onGenerateImage}
-        onDownloadPDF={onDownloadPDF}
-        onViewHistory={onViewHistory}
-      />
+      {/* Estratégias Personalizadas */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <PersonalizedStrategiesSection aiSections={aiSections} />
+      </motion.div>
+
+      {/* Action Buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
+        <ActionButtons onRestart={onRestart} />
+      </motion.div>
     </div>
   );
 };

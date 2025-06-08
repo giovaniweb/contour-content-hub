@@ -68,6 +68,45 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
     }
   };
 
+  const getTargetAudience = () => {
+    // Tentar extrair público-alvo das respostas existentes
+    if (state.targetAudience) {
+      return state.targetAudience;
+    }
+    
+    // Inferir baseado no tipo de clínica e especialidade
+    if (state.clinicType === 'clinica_medica') {
+      const audiences = {
+        'dermatologia': 'Pessoas preocupadas com saúde e beleza da pele',
+        'nutrologia': 'Pessoas em busca de bem-estar e emagrecimento',
+        'ginecoestetica': 'Mulheres que buscam saúde íntima e autoestima',
+        'cirurgia_plastica': 'Pessoas que desejam transformação corporal',
+        'medicina_estetica': 'Público interessado em procedimentos estéticos'
+      };
+      return audiences[state.medicalSpecialty as keyof typeof audiences] || 'Pacientes em busca de cuidados médicos especializados';
+    } else {
+      const audiences = {
+        'corporal': 'Pessoas que querem melhorar contorno corporal',
+        'facial': 'Clientes interessados em rejuvenescimento facial',
+        'ambos': 'Público amplo interessado em estética',
+        'depilacao': 'Pessoas que buscam depilação definitiva'
+      };
+      return audiences[state.aestheticFocus as keyof typeof audiences] || 'Clientes interessados em tratamentos estéticos';
+    }
+  };
+
+  const getContentFrequency = () => {
+    const frequencies = {
+      'diario': 'Publica conteúdo diariamente',
+      'semanal': 'Publica semanalmente',
+      'quinzenal': 'Publica quinzenalmente',
+      'mensal': 'Publica mensalmente',
+      'raramente': 'Publica raramente',
+      'nao_posto': 'Não posta conteúdo'
+    };
+    return frequencies[state.contentFrequency as keyof typeof frequencies] || 'Frequência não definida';
+  };
+
   return (
     <section>
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
@@ -93,7 +132,7 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg text-foreground">
               <DollarSign className="h-5 w-5 text-aurora-emerald" />
-              Análise Financeira
+              Situação Financeira
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -141,9 +180,8 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-foreground/80">
-              {state.targetAudience ? `Público Definido: ${state.targetAudience}` : 'Público-alvo ainda não foi definido claramente'}
-            </p>
+            <p className="text-sm text-foreground/80">{getTargetAudience()}</p>
+            <p className="text-xs mt-2 text-orange-400">{getContentFrequency()}</p>
           </CardContent>
         </Card>
       </div>
