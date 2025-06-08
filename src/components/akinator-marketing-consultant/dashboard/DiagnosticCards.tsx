@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +104,6 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Perfil da Clínica */}
         <Card className={`aurora-glass ${clinicInfo.borderColor} bg-gradient-to-br ${clinicInfo.color}`}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
@@ -125,7 +123,6 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           </CardContent>
         </Card>
 
-        {/* Situação Financeira */}
         <Card className="aurora-glass border-green-500/30 bg-gradient-to-br from-green-500/20 to-emerald-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
@@ -148,7 +145,6 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           </CardContent>
         </Card>
 
-        {/* Objetivo Principal */}
         <Card className="aurora-glass border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-red-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
@@ -168,7 +164,6 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           </CardContent>
         </Card>
 
-        {/* Comunicação */}
         <Card className="aurora-glass border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
@@ -192,7 +187,6 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
         </Card>
       </div>
 
-      {/* Card de Análise da IA */}
       <Card className="aurora-glass border-aurora-electric-purple/50 bg-gradient-to-br from-gray-900/60 to-gray-800/40">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">

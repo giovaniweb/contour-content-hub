@@ -43,8 +43,35 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Verificações de segurança para evitar erros de null
-  const safeState = state || {};
+  // Create a safe state with proper defaults to match MarketingConsultantState interface
+  const safeState: MarketingConsultantState = {
+    clinicType: state?.clinicType || '',
+    medicalSpecialty: state?.medicalSpecialty || '',
+    medicalProcedures: state?.medicalProcedures || '',
+    medicalEquipments: state?.medicalEquipments || '',
+    medicalBestSeller: state?.medicalBestSeller || '',
+    medicalTicket: state?.medicalTicket || '',
+    medicalSalesModel: state?.medicalSalesModel || '',
+    medicalObjective: state?.medicalObjective || '',
+    medicalContentFrequency: state?.medicalContentFrequency || '',
+    medicalClinicStyle: state?.medicalClinicStyle || '',
+    aestheticFocus: state?.aestheticFocus || '',
+    aestheticEquipments: state?.aestheticEquipments || '',
+    aestheticBestSeller: state?.aestheticBestSeller || '',
+    aestheticSalesModel: state?.aestheticSalesModel || '',
+    aestheticTicket: state?.aestheticTicket || '',
+    aestheticObjective: state?.aestheticObjective || '',
+    aestheticContentFrequency: state?.aestheticContentFrequency || '',
+    aestheticClinicStyle: state?.aestheticClinicStyle || '',
+    currentRevenue: state?.currentRevenue || '',
+    revenueGoal: state?.revenueGoal || '',
+    targetAudience: state?.targetAudience || '',
+    contentFrequency: state?.contentFrequency || '',
+    communicationStyle: state?.communicationStyle || '',
+    mainChallenges: state?.mainChallenges || '',
+    generatedDiagnostic: state?.generatedDiagnostic || ''
+  };
+
   const safeMentor = mentor || { name: 'Mentor Fluida', speciality: 'Marketing Digital' };
   const safeAiSections = aiSections || {};
 
@@ -99,6 +126,23 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return goalMap[safeState.revenueGoal as keyof typeof goalMap] || 'Não informado';
   };
 
+  // Function to render AI diagnostic summary
+  const renderAIDiagnosticSummary = () => {
+    if (safeState.generatedDiagnostic && safeState.generatedDiagnostic !== 'Diagnóstico sendo processado...') {
+      const firstParagraph = safeState.generatedDiagnostic.split('\n')[0];
+      return (
+        <p className="text-sm aurora-body opacity-90 leading-relaxed">
+          {firstParagraph.replace(/[#*]/g, '').trim()}
+        </p>
+      );
+    }
+    return (
+      <p className="text-sm aurora-body opacity-70">
+        Análise estratégica baseada no perfil da sua clínica em processamento...
+      </p>
+    );
+  };
+
   return (
     <div className="container mx-auto max-w-7xl py-8 space-y-8">
       {/* Header */}
@@ -118,7 +162,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </h1>
         
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <ClinicTypeIndicator clinicType={safeState.clinicType || ''} />
+          <ClinicTypeIndicator clinicType={safeState.clinicType} />
           <Badge variant="outline" className="border-aurora-sage text-aurora-sage">
             {getMainSpecialty()}
           </Badge>
@@ -209,16 +253,18 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       >
         {activeTab === 'overview' && (
           <>
-            <DiagnosticCards state={safeState} />
-            <FluidAnalysisCards state={safeState} mentor={safeMentor} />
+            <DiagnosticCards 
+              state={safeState} 
+              aiSections={safeAiSections}
+              renderAIDiagnosticSummary={renderAIDiagnosticSummary}
+            />
+            <FluidAnalysisCards state={safeState} aiSections={safeAiSections} />
           </>
         )}
 
         {activeTab === 'diagnostic' && (
           <StructuredDiagnosticSection 
-            state={safeState} 
             diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'}
-            aiSections={safeAiSections}
           />
         )}
 
@@ -263,9 +309,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
       {/* Action Buttons */}
       <ActionButtons 
-        onRestart={onRestart}
         onDownload={handleDownloadReport}
         onShare={handleShareReport}
+        onRestart={onRestart}
       />
     </div>
   );
