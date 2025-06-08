@@ -260,9 +260,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIDiagnosticSummary = () => {
     if (!aiSections || !aiSections.diagnostico) {
       return (
-        <div className="text-muted-foreground text-sm">
+        <div className="text-foreground/80 text-sm">
           <p>📊 Diagnóstico sendo processado pela IA...</p>
-          <p className="text-xs mt-1">Dados disponíveis, gerando insights personalizados</p>
+          <p className="text-xs mt-1 text-foreground/60">Dados disponíveis, gerando insights personalizados</p>
         </div>
       );
     }
@@ -274,12 +274,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return (
       <div className="space-y-2">
         {summaryLines.map((line, index) => (
-          <p key={index} className="text-sm text-muted-foreground leading-relaxed">
+          <p key={index} className="text-sm text-foreground/80 leading-relaxed">
             {line.replace(/[•\-\*]/g, '').trim()}
           </p>
         ))}
         {summaryLines.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground/80">
             Análise personalizada baseada no perfil da clínica e objetivos definidos.
           </p>
         )}
@@ -392,19 +392,19 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
     const getEngagementColor = (engagement: string) => {
       switch (engagement) {
-        case "Muito Alto": return "bg-green-100 text-green-800 border-green-200";
-        case "Alto": return "bg-blue-100 text-blue-800 border-blue-200";
-        case "Médio": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-        default: return "bg-gray-100 text-gray-800 border-gray-200";
+        case "Muito Alto": return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-700";
+        case "Alto": return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700";
+        case "Médio": return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700";
+        default: return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600";
       }
     };
 
     const getDifficultyColor = (difficulty: string) => {
       switch (difficulty) {
-        case "Baixo": return "bg-green-50 text-green-700";
-        case "Médio": return "bg-yellow-50 text-yellow-700";
-        case "Alto": return "bg-red-50 text-red-700";
-        default: return "bg-gray-50 text-gray-700";
+        case "Baixo": return "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300";
+        case "Médio": return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300";
+        case "Alto": return "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300";
+        default: return "bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
       }
     };
 
@@ -420,20 +420,20 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {ideas.map((idea, index) => (
-          <Card key={index} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 bg-white overflow-hidden relative">
+          <Card key={index} className="group hover:shadow-xl transition-all duration-300 aurora-glass border-purple-500/30 overflow-hidden relative">
             <div className="absolute top-4 right-4">
-              <Badge variant="outline" className="bg-white/90 text-xs">
+              <Badge variant="outline" className="bg-card/90 text-xs border-purple-400/50 text-foreground">
                 {getFormatIcon(idea.format)} {idea.format}
               </Badge>
             </div>
             
             <CardHeader className="pb-3">
               <div className="flex items-start gap-3 mb-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <div className="p-2 bg-gradient-to-br from-aurora-electric-purple to-aurora-neon-blue text-white rounded-lg shadow-sm group-hover:scale-110 transition-transform duration-300">
                   {idea.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-base text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-semibold text-base text-foreground mb-2 line-clamp-2 group-hover:text-aurora-electric-purple transition-colors">
                     {formatTitle(idea.title)}
                   </h3>
                 </div>
@@ -450,12 +450,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             </CardHeader>
             
             <CardContent className="pt-0">
-              <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-4">
+              <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3 mb-4">
                 {cleanText(idea.description)}
               </p>
               
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
+              <div className="flex items-center justify-between pt-3 border-t border-border">
+                <Badge variant="secondary" className="text-xs bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">
                   {idea.category}
                 </Badge>
                 
@@ -464,7 +464,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="text-xs hover:bg-blue-50 hover:text-blue-600 flex items-center gap-1"
+                      className="text-xs hover:bg-aurora-electric-purple/10 hover:text-aurora-electric-purple flex items-center gap-1"
                       onClick={() => setSelectedContent(idea)}
                     >
                       <Eye className="h-3 w-3" />
@@ -472,9 +472,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                       <ChevronRight className="h-3 w-3" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl aurora-glass border-purple-500/30">
                     <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
+                      <DialogTitle className="flex items-center gap-2 text-foreground">
                         {idea.icon}
                         {formatTitle(idea.title)}
                       </DialogTitle>
@@ -487,27 +487,27 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                         <Badge className={getDifficultyColor(idea.difficulty)}>
                           ⚙️ Dificuldade {idea.difficulty}
                         </Badge>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="border-purple-400/50 text-foreground">
                           {getFormatIcon(idea.format)} {idea.format}
                         </Badge>
                       </div>
                       
                       <div>
-                        <h4 className="font-medium mb-2">Descrição:</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <h4 className="font-medium mb-2 text-foreground">Descrição:</h4>
+                        <p className="text-sm text-foreground/80 leading-relaxed">
                           {cleanText(idea.description)}
                         </p>
                       </div>
                       
                       <div>
-                        <h4 className="font-medium mb-2">Como Executar:</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <h4 className="font-medium mb-2 text-foreground">Como Executar:</h4>
+                        <p className="text-sm text-foreground/80 leading-relaxed">
                           {cleanText(idea.details)}
                         </p>
                       </div>
                       
-                      <div className="pt-4 border-t">
-                        <Button className="w-full">
+                      <div className="pt-4 border-t border-border">
+                        <Button className="w-full bg-aurora-electric-purple hover:bg-aurora-electric-purple/90 text-white">
                           Adicionar ao Planejador de Conteúdo
                         </Button>
                       </div>
@@ -527,13 +527,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((index) => (
-            <Card key={index} className="border-l-4 border-l-indigo-300 border-dashed">
+            <Card key={index} className="border-l-4 border-l-aurora-electric-purple/50 aurora-glass border-purple-500/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="w-8 h-8 bg-aurora-electric-purple/20 text-aurora-electric-purple rounded-full flex items-center justify-center text-sm font-bold">
                     {index}
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Ação estratégica sendo gerada...</p>
+                  <p className="text-sm font-medium text-foreground/80">Ação estratégica sendo gerada...</p>
                 </div>
               </CardContent>
             </Card>
@@ -577,13 +577,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {displayActions.map((action, index) => (
-          <Card key={index} className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow">
+          <Card key={index} className="border-l-4 border-l-aurora-neon-blue aurora-glass hover:shadow-md transition-shadow border-purple-500/30">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="w-8 h-8 bg-aurora-neon-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium line-clamp-2 flex-1">{formatTitle(action)}</p>
+                <p className="text-sm font-medium line-clamp-2 flex-1 text-foreground">{formatTitle(action)}</p>
               </div>
             </CardContent>
           </Card>
@@ -597,13 +597,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       return (
         <div className="grid grid-cols-1 gap-4">
           {[1, 2, 3].map((index) => (
-            <Card key={index} className="border-l-4 border-l-purple-300 border-dashed">
+            <Card key={index} className="border-l-4 border-l-aurora-electric-purple/50 aurora-glass border-purple-500/30">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-purple-200 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="w-8 h-8 bg-aurora-electric-purple/20 text-aurora-electric-purple rounded-full flex items-center justify-center text-sm font-bold">
                     {index}
                   </div>
-                  <p className="text-sm font-medium flex-1 text-muted-foreground">Estratégia personalizada sendo elaborada pela IA...</p>
+                  <p className="text-sm font-medium flex-1 text-foreground/80">Estratégia personalizada sendo elaborada pela IA...</p>
                 </div>
               </CardContent>
             </Card>
@@ -615,13 +615,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return (
       <div className="grid grid-cols-1 gap-4">
         {aiSections.estrategias.map((estrategia, index) => (
-          <Card key={index} className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
+          <Card key={index} className="border-l-4 border-l-aurora-electric-purple aurora-glass hover:shadow-md transition-shadow border-purple-500/30">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="w-8 h-8 bg-aurora-electric-purple text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}
                 </div>
-                <p className="text-sm font-medium flex-1 line-clamp-3">{formatTitle(estrategia)}</p>
+                <p className="text-sm font-medium flex-1 line-clamp-3 text-foreground">{formatTitle(estrategia)}</p>
               </div>
             </CardContent>
           </Card>
@@ -642,46 +642,46 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+        <Button variant="ghost" onClick={onBack} className="flex items-center gap-2 text-foreground hover:text-aurora-electric-purple">
           <ArrowLeft className="h-4 w-4" />
           Voltar ao Diagnóstico
         </Button>
-        <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-purple-50">
+        <Badge variant="outline" className="aurora-gradient-bg text-white border-aurora-electric-purple/50">
           Dashboard Estratégico Fluida
         </Badge>
       </div>
 
       {/* Diagnóstico em Cards */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
           📊 Diagnóstico da Clínica
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="border-l-4 border-l-blue-500">
+          <Card className="border-l-4 border-l-aurora-neon-blue aurora-glass border-purple-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Building2 className="h-5 w-5 text-blue-500" />
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <Building2 className="h-5 w-5 text-aurora-neon-blue" />
                 Perfil do Negócio
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getClinicProfile()}</p>
-              <p className="text-xs mt-2 text-blue-600">
+              <p className="text-sm text-foreground/80">{getClinicProfile()}</p>
+              <p className="text-xs mt-2 text-aurora-neon-blue">
                 {state.clinicType === 'clinica_medica' ? 'Clínica Médica Especializada' : 'Clínica Estética'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-l-4 border-l-aurora-emerald aurora-glass border-purple-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="h-5 w-5 text-green-500" />
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <DollarSign className="h-5 w-5 text-aurora-emerald" />
                 Análise Financeira
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getRevenueAnalysis()}</p>
-              <p className="text-xs mt-2 text-green-600">
+              <p className="text-sm text-foreground/80">{getRevenueAnalysis()}</p>
+              <p className="text-xs mt-2 text-aurora-emerald">
                 Meta: {state.revenueGoal === 'dobrar' ? 'Dobrar Faturamento' :
                         state.revenueGoal === 'crescer_50' ? 'Crescer 50%' :
                         state.revenueGoal === 'crescer_30' ? 'Crescer 30%' : 'Manter Estabilidade'}
@@ -689,25 +689,25 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-red-500">
+          <Card className="border-l-4 border-l-red-500 aurora-glass border-purple-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Target className="h-5 w-5 text-red-500" />
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <Target className="h-5 w-5 text-red-400" />
                 Objetivo Principal
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getMainObjective()}</p>
-              <Badge variant="secondary" className="mt-2 text-xs">
+              <p className="text-sm text-foreground/80">{getMainObjective()}</p>
+              <Badge variant="secondary" className="mt-2 text-xs bg-red-500/20 text-red-400 border-red-500/30">
                 Foco Estratégico
               </Badge>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-purple-500 md:col-span-2">
+          <Card className="border-l-4 border-l-aurora-electric-purple md:col-span-2 aurora-glass border-purple-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="h-5 w-5 text-purple-500" />
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <Brain className="h-5 w-5 text-aurora-electric-purple" />
                 Análise IA Personalizada
               </CardTitle>
             </CardHeader>
@@ -716,15 +716,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-orange-500">
+          <Card className="border-l-4 border-l-orange-500 aurora-glass border-purple-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="h-5 w-5 text-orange-500" />
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <Users className="h-5 w-5 text-orange-400" />
                 Público-Alvo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/80">
                 {state.targetAudience ? `Público Definido: ${state.targetAudience}` : 'Público-alvo ainda não foi definido claramente'}
               </p>
             </CardContent>
@@ -736,14 +736,14 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold flex items-center gap-3">
+            <h2 className="text-2xl font-bold flex items-center gap-3 text-foreground">
               💡 Ideias de Conteúdo Personalizadas
             </h2>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-foreground/80 mt-1">
               Estratégias de conteúdo desenvolvidas especificamente para o perfil da sua clínica
             </p>
           </div>
-          <Badge variant="outline" className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <Badge variant="outline" className="aurora-gradient-bg text-white border-aurora-electric-purple/50">
             {aiSections?.ideias.length > 0 ? 'IA Personalizada' : 'Sugestões Inteligentes'}
           </Badge>
         </div>
@@ -752,7 +752,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
       {/* Estratégias Personalizadas da IA */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
           📈 Estratégias Personalizadas
         </h2>
         {renderAIPersonalizedStrategies()}
@@ -760,42 +760,42 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
       {/* Ações Estratégicas da IA */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
           📅 Plano de Ação Personalizado
         </h2>
         {renderAIStrategicActions()}
       </section>
 
       {/* Mentor Identificado e Enigma da IA */}
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-200">
+      <Card className="aurora-gradient-bg border-2 border-aurora-electric-purple/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-700">
+          <CardTitle className="flex items-center gap-2 text-white">
             <Brain className="h-5 w-5" />
             🧩 Mentor Estratégico Identificado
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-white/50 rounded-lg p-4 border border-purple-100">
+          <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 border border-aurora-electric-purple/30">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              <div className="w-10 h-10 bg-aurora-electric-purple text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {mentor.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
-                <h3 className="font-semibold text-purple-800">{mentor.name}</h3>
-                <p className="text-xs text-purple-600">{mentor.focus}</p>
+                <h3 className="font-semibold text-foreground">{mentor.name}</h3>
+                <p className="text-xs text-foreground/70">{mentor.focus}</p>
               </div>
             </div>
-            <p className="text-sm text-purple-700 mb-2">{mentor.style}</p>
+            <p className="text-sm text-foreground/80 mb-2">{mentor.style}</p>
             <div className="flex flex-wrap gap-1">
               {mentor.expertise.map((skill, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                <Badge key={index} variant="secondary" className="text-xs bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">
                   {skill}
                 </Badge>
               ))}
             </div>
           </div>
-          <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
-            <p className="text-sm italic text-purple-700 leading-relaxed">
+          <div className="aurora-gradient-bg rounded-lg p-4">
+            <p className="text-sm italic text-white leading-relaxed">
               "Se <strong>{mentor.name}</strong> olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. {renderAIMentorSatire()}"
             </p>
           </div>
@@ -804,13 +804,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
       {/* CTAs Finais */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
           ✅ Próximos Passos
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button 
             onClick={onCreateScript}
-            className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            className="h-auto p-6 flex flex-col items-center gap-3 aurora-gradient-bg hover:opacity-90 text-white"
           >
             <FileText className="h-6 w-6" />
             <div className="text-center">
@@ -821,7 +821,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
           <Button 
             onClick={onGenerateImage}
-            className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+            className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-aurora-neon-blue to-aurora-cyan hover:opacity-90 text-white"
           >
             <Image className="h-6 w-6" />
             <div className="text-center">
@@ -832,7 +832,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
           <Button 
             onClick={onDownloadPDF}
-            className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-r from-aurora-electric-purple to-primary hover:opacity-90 text-white"
           >
             <Download className="h-6 w-6" />
             <div className="text-center">
@@ -845,7 +845,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <Button 
               onClick={onViewHistory}
               variant="outline"
-              className="h-auto p-6 flex flex-col items-center gap-3 border-2 hover:bg-slate-50"
+              className="h-auto p-6 flex flex-col items-center gap-3 border-2 hover:bg-aurora-electric-purple/10 border-aurora-electric-purple/50 text-foreground"
             >
               <History className="h-6 w-6" />
               <div className="text-center">
