@@ -10,16 +10,8 @@ export const shouldShowQuestion = (questionIndex: number, currentState: Marketin
     return true; // Sem condição, sempre exibir
   }
 
-  // Verificar se a condição está atendida
-  if (question.condition === 'clinica_medica') {
-    return currentState.clinicType === 'clinica_medica';
-  }
-  
-  if (question.condition === 'clinica_estetica') {
-    return currentState.clinicType === 'clinica_estetica';
-  }
-
-  return true;
+  // Chamar a função de condição com o estado atual
+  return question.condition(currentState);
 };
 
 // Função para encontrar a próxima pergunta válida
