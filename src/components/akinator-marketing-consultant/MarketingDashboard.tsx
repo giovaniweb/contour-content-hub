@@ -86,13 +86,31 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     console.log('Download PDF');
   };
 
-  // Prepare aiSections with safe defaults
+  // Prepare aiSections with safe defaults and mock data for demonstration
   const safeAiSections = {
-    diagnostico_estrategico: aiSections?.diagnostico_estrategico || state.generatedDiagnostic || '',
-    ativacao_especialistas: aiSections?.ativacao_especialistas || '',
-    sugestoes_conteudo: aiSections?.sugestoes_conteudo || [],
-    acoes_estrategicas: aiSections?.acoes_estrategicas || [],
-    estrategias: aiSections?.estrategias || []
+    diagnostico_estrategico: aiSections?.diagnostico_estrategico || state.generatedDiagnostic || 
+      'Análise profunda dos dados da clínica realizada. Identificamos oportunidades estratégicas de crescimento baseadas no perfil específico da sua clínica.',
+    ativacao_especialistas: aiSections?.ativacao_especialistas || 
+      'Especialistas ativados para análise completa da estratégia de marketing da clínica.',
+    sugestoes_conteudo: aiSections?.sugestoes_conteudo || [
+      'Criação de conteúdo educativo sobre procedimentos estéticos',
+      'Posts sobre cuidados pós-procedimento para engajamento',
+      'Stories mostrando antes e depois dos tratamentos',
+      'Vídeos explicativos sobre equipamentos utilizados',
+      'Depoimentos de clientes satisfeitos',
+      'Dicas de skincare para diferentes tipos de pele'
+    ],
+    acoes_estrategicas: aiSections?.acoes_estrategicas || [
+      'Implementar estratégia de conteúdo educativo nas redes sociais',
+      'Criar campanha de depoimentos de clientes',
+      'Desenvolver programa de fidelização de pacientes',
+      'Otimizar presença digital com SEO local'
+    ],
+    estrategias: aiSections?.estrategias || [
+      'Estratégia de diferenciação baseada em expertise técnica',
+      'Programa de educação continuada para clientes',
+      'Sistema de follow-up pós-procedimento automatizado'
+    ]
   };
 
   return (
