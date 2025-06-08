@@ -7,9 +7,13 @@ import { generateMarketingDiagnostic } from './marketingGenerator';
 import AkinatorProgress from '../akinator-script-generator/AkinatorProgress';
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
+import MarketingDashboard from './MarketingDashboard';
+
+type ViewMode = 'questions' | 'result' | 'dashboard';
 
 const AkinatorMarketingConsultant: React.FC = () => {
   const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<ViewMode>('questions');
   const [state, setState] = useState<MarketingConsultantState>({
     currentStep: 0,
     isComplete: false
@@ -41,6 +45,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       console.log('Estado final sendo definido:', finalState);
       setState(finalState);
+      setViewMode('result');
     }
   };
 
@@ -49,6 +54,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       title: "📋 Gerando estratégia completa...",
       description: "Sua estratégia de marketing personalizada está sendo criada!"
     });
+    setViewMode('dashboard');
   };
 
   const handleGeneratePlan = () => {
@@ -56,6 +62,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       title: "📅 Criando plano de ação...",
       description: "Seu cronograma de implementação está sendo gerado!"
     });
+    setViewMode('dashboard');
   };
 
   const resetConsultant = () => {
@@ -64,15 +71,53 @@ const AkinatorMarketingConsultant: React.FC = () => {
       currentStep: 0,
       isComplete: false
     });
+    setViewMode('questions');
   };
 
   const handleGoBack = () => {
     setState({ ...state, currentStep: state.currentStep - 1 });
   };
 
-  console.log('Renderizando - isComplete:', state.isComplete);
+  const handleBackToResult = () => {
+    setViewMode('result');
+  };
 
-  if (state.isComplete) {
+  const handleCreateScript = () => {
+    toast({
+      title: "📝 Redirecionando para gerador de roteiros...",
+      description: "Vamos criar conteúdo baseado no seu diagnóstico!"
+    });
+  };
+
+  const handleGenerateImage = () => {
+    toast({
+      title: "🎨 Gerando descrição de imagem...",
+      description: "Criando ideias visuais baseadas na sua estratégia!"
+    });
+  };
+
+  const handleDownloadPDF = () => {
+    toast({
+      title: "📄 Preparando PDF da estratégia...",
+      description: "Seu relatório completo está sendo gerado!"
+    });
+  };
+
+  console.log('Renderizando - viewMode:', viewMode, 'isComplete:', state.isComplete);
+
+  if (viewMode === 'dashboard') {
+    return (
+      <MarketingDashboard
+        state={state}
+        onBack={handleBackToResult}
+        onCreateScript={handleCreateScript}
+        onGenerateImage={handleGenerateImage}
+        onDownloadPDF={handleDownloadPDF}
+      />
+    );
+  }
+
+  if (viewMode === 'result' && state.isComplete) {
     console.log('Renderizando MarketingResult com state:', state);
     return (
       <MarketingResult
