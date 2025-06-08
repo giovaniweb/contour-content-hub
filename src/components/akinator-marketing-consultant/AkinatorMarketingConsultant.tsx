@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { Question } from './types';
 import { questions } from './questions';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
 import MarketingResult from './MarketingResult';
@@ -41,11 +40,51 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { equipments } = useEquipments();
 
+  // Função para determinar se uma pergunta deve ser exibida baseada no estado atual
+  const shouldShowQuestion = (questionIndex: number): boolean => {
+    const question = questions[questionIndex];
+    
+    if (!question.condition) {
+      return true; // Sem condição, sempre exibir
+    }
+
+    // Verificar se a condição está atendida
+    if (question.condition === 'clinica_medica') {
+      return state.clinicType === 'clinica_medica';
+    }
+    
+    if (question.condition === 'clinica_estetica') {
+      return state.clinicType === 'clinica_estetica';
+    }
+
+    return true;
+  };
+
+  // Função para encontrar a próxima pergunta válida
+  const getNextValidQuestion = (currentIndex: number): number => {
+    for (let i = currentIndex + 1; i < questions.length; i++) {
+      if (shouldShowQuestion(i)) {
+        return i;
+      }
+    }
+    return questions.length; // Fim das perguntas
+  };
+
+  // Função para encontrar a pergunta anterior válida
+  const getPreviousValidQuestion = (currentIndex: number): number => {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (shouldShowQuestion(i)) {
+        return i;
+      }
+    }
+    return 0; // Primeira pergunta
+  };
+
   const handleAnswer = (answer: string) => {
     console.log('Resposta selecionada:', answer, 'Step atual:', currentStep);
     
     if (currentStep >= 0 && currentStep < questions.length) {
-      const currentQuestion: Question = questions[currentStep];
+      const currentQuestion = questions[currentStep];
       
       // Atualizar o estado com a resposta
       const newState = { ...state, [currentQuestion.id]: answer };
@@ -53,9 +92,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       console.log('Estado atualizado:', newState);
       
-      // Verificar se chegou ao final das perguntas
-      if (currentStep < questions.length - 1) {
-        setCurrentStep(currentStep + 1);
+      // Encontrar próxima pergunta válida
+      const nextStep = getNextValidQuestion(currentStep);
+      
+      if (nextStep < questions.length) {
+        setCurrentStep(nextStep);
       } else {
         console.log('Última pergunta respondida, iniciando processamento...');
         setIsProcessing(true);
@@ -70,9 +111,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleGoBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+    const previousStep = getPreviousValidQuestion(currentStep);
+    setCurrentStep(previousStep);
   };
 
   const handleViewDashboard = (diagnostic: string) => {
@@ -85,23 +125,19 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleCreateScript = () => {
-    // Navigate to script generator
     window.location.href = '/script-generator';
   };
 
   const handleGenerateImage = () => {
-    // Navigate to image generator
     window.location.href = '/media-library';
   };
 
   const handleDownloadPDF = () => {
-    // PDF generation functionality
     console.log('Generate PDF');
   };
 
   const handleAddToPlanner = () => {
     console.log('Adicionar ao planejador');
-    // Implementar lógica para adicionar ao planejador
   };
 
   if (showDashboard) {
@@ -137,9 +173,9 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  // Mostrar as perguntas do questionário
-  if (currentStep < questions.length) {
-    const currentQuestion: Question = questions[currentStep];
+  // Mostrar apenas perguntas válidas baseadas no estado atual
+  if (currentStep < questions.length && shouldShowQuestion(currentStep)) {
+    const currentQuestion = questions[currentStep];
     
     return (
       <AkinatorQuestion

@@ -6,20 +6,13 @@ import { useSmartScriptGeneration } from './useSmartScriptGeneration';
 
 export const useScriptGeneration = () => {
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [intention, setIntention] = useState<ScriptIntention | null>(null);
-  const [generatedResult, setGeneratedResult] = useState<SmartGenerationResult | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isDisneyMode, setIsDisneyMode] = useState(false);
-  const [isApproved, setIsApproved] = useState(false);
-
   const smartGeneration = useSmartScriptGeneration();
 
   const handleThemeInput = async (theme: string) => {
-    console.log('handleThemeInput chamado com tema:', theme);
+    console.log('🎬 handleThemeInput iniciado com tema:', theme);
     
     if (!smartGeneration.intention || Object.keys(smartGeneration.intention).length === 0) {
-      console.error('Intenção não definida no smartGeneration');
+      console.error('❌ Intenção não definida no smartGeneration');
       toast({
         variant: "destructive",
         title: "Erro",
@@ -28,28 +21,13 @@ export const useScriptGeneration = () => {
       return;
     }
 
-    console.log('Intenção atual do smartGeneration:', smartGeneration.intention);
-    
-    setIsGenerating(true);
+    console.log('✅ Intenção válida, chamando handleThemeInput do smartGeneration');
     
     try {
-      console.log('Chamando smartGeneration.handleThemeInput');
       await smartGeneration.handleThemeInput(theme);
-      
-      // Aguardar que o resultado esteja disponível
-      if (smartGeneration.generatedResult) {
-        console.log('Resultado recebido:', smartGeneration.generatedResult);
-        setGeneratedResult(smartGeneration.generatedResult);
-        setIsGenerating(false);
-        
-        toast({
-          title: "✨ Roteiro gerado com sucesso!",
-          description: "Seu roteiro personalizado está pronto para revisão."
-        });
-      }
+      console.log('✅ handleThemeInput do smartGeneration concluído');
     } catch (error) {
-      console.error('Erro ao gerar roteiro:', error);
-      setIsGenerating(false);
+      console.error('❌ Erro em handleThemeInput:', error);
       toast({
         variant: "destructive",
         title: "Erro ao gerar roteiro",
@@ -59,27 +37,15 @@ export const useScriptGeneration = () => {
   };
 
   const applyDisneyMagic = async () => {
-    if (!generatedResult && !smartGeneration.generatedResult) return;
-    
-    setIsGenerating(true);
-    
+    console.log('✨ Aplicando magia Disney...');
     try {
       await smartGeneration.applyDisneyMagic();
-      setIsDisneyMode(true);
-      setIsGenerating(false);
-      
-      // Atualizar o resultado local com o resultado do smartGeneration
-      if (smartGeneration.generatedResult) {
-        setGeneratedResult(smartGeneration.generatedResult);
-      }
-      
       toast({
         title: "✨ Magia Disney Aplicada!",
         description: "Seu roteiro foi transformado com a magia Disney 1928."
       });
     } catch (error) {
-      console.error('Erro ao aplicar Disney:', error);
-      setIsGenerating(false);
+      console.error('❌ Erro ao aplicar Disney:', error);
       toast({
         variant: "destructive",
         title: "Erro",
@@ -89,7 +55,6 @@ export const useScriptGeneration = () => {
   };
 
   const approveScript = () => {
-    setIsApproved(true);
     smartGeneration.approveScript();
     toast({
       title: "✅ Roteiro Aprovado!",
@@ -98,38 +63,33 @@ export const useScriptGeneration = () => {
   };
 
   const resetGeneration = () => {
-    setCurrentStep(0);
-    setIntention(null);
-    setGeneratedResult(null);
-    setIsGenerating(false);
-    setIsDisneyMode(false);
-    setIsApproved(false);
+    console.log('🔄 Resetando geração...');
     smartGeneration.resetGeneration();
   };
 
-  // Sincronizar os estados do smartGeneration com os locais
-  const syncedGeneratedResult = smartGeneration.generatedResult || generatedResult;
-  const syncedIsGenerating = smartGeneration.isGenerating || isGenerating;
-  const syncedIsDisneyMode = smartGeneration.isDisneyMode || isDisneyMode;
-  const syncedIsApproved = smartGeneration.isApproved || isApproved;
-
   return {
+    // Estados sincronizados com smartGeneration
     currentStep: smartGeneration.currentStep,
-    setCurrentStep,
     intention: smartGeneration.intention,
-    setIntention,
-    generatedResult: syncedGeneratedResult,
-    setGeneratedResult,
-    isGenerating: syncedIsGenerating,
-    setIsGenerating,
-    isDisneyMode: syncedIsDisneyMode,
-    isApproved: syncedIsApproved,
+    generatedResult: smartGeneration.generatedResult,
+    isGenerating: smartGeneration.isGenerating,
+    isDisneyMode: smartGeneration.isDisneyMode,
+    isApproved: smartGeneration.isApproved,
+    
+    // Métodos
     handleThemeInput,
     applyDisneyMagic,
     approveScript,
     resetGeneration,
-    // Expor métodos do smartGeneration
+    
+    // Métodos do smartGeneration
     getCurrentQuestion: smartGeneration.getCurrentQuestion,
-    handleAnswer: smartGeneration.handleAnswer
+    handleAnswer: smartGeneration.handleAnswer,
+    
+    // Setters (se necessário)
+    setCurrentStep: () => {}, // Não usado diretamente
+    setIntention: () => {}, // Não usado diretamente
+    setGeneratedResult: () => {}, // Não usado diretamente
+    setIsGenerating: () => {} // Não usado diretamente
   };
 };
