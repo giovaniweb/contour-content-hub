@@ -46,10 +46,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
     }
   }, [equipments, equipmentsLoading]);
 
-  const currentStepData = getCurrentStep();
-  const progress = ((state.currentStep + 1) / steps.length) * 100;
-
-  function getCurrentStep(): MarketingStep | null {
+  const getCurrentStep = (): MarketingStep | null => {
     if (steps.length === 0) return null;
     
     const step = steps[state.currentStep];
@@ -58,53 +55,60 @@ const AkinatorMarketingConsultant: React.FC = () => {
     // Check conditions for conditional steps
     if (step.condition) {
       if (step.condition === 'clinica_medica' && state.clinicType !== 'clinica_medica') {
-        return getNextValidStep();
+        return null; // Step should be skipped
       }
       if (step.condition === 'clinica_estetica' && state.clinicType !== 'clinica_estetica') {
-        return getNextValidStep();
+        return null; // Step should be skipped
       }
     }
 
     return step;
-  }
+  };
 
-  function getNextValidStep(): MarketingStep | null {
-    let nextIndex = state.currentStep + 1;
+  const findNextValidStepIndex = (currentIndex: number): number => {
+    let nextIndex = currentIndex + 1;
     
     while (nextIndex < steps.length) {
       const nextStep = steps[nextIndex];
       
       if (!nextStep.condition) {
-        setState(prev => ({ ...prev, currentStep: nextIndex }));
-        return nextStep;
+        return nextIndex;
       }
       
       if (nextStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
-        setState(prev => ({ ...prev, currentStep: nextIndex }));
-        return nextStep;
+        return nextIndex;
       }
       
       if (nextStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
-        setState(prev => ({ ...prev, currentStep: nextIndex }));
-        return nextStep;
+        return nextIndex;
       }
       
       nextIndex++;
     }
     
-    return null;
-  }
+    return -1; // No more valid steps
+  };
+
+  const currentStepData = getCurrentStep();
+  const progress = steps.length > 0 ? ((state.currentStep + 1) / steps.length) * 100 : 0;
 
   const handleOptionSelect = (value: string) => {
     const stepId = currentStepData?.id;
     if (!stepId) return;
 
-    const newState = { ...state, [stepId]: value };
-    setState(newState);
+    console.log('Option selected:', { stepId, value, currentStep: state.currentStep });
 
-    // Check if this is the last question
-    if (state.currentStep >= steps.length - 1) {
+    const newState = { ...state, [stepId]: value };
+
+    // Find next valid step
+    const nextStepIndex = findNextValidStepIndex(state.currentStep);
+    
+    if (nextStepIndex === -1) {
+      // No more valid steps, complete the process
+      console.log('No more steps, completing process');
+      setState({ ...newState, isComplete: false }); // Keep current step for analysis
       setIsAnalyzing(true);
+      
       setTimeout(() => {
         setState(prev => ({ ...prev, isComplete: true }));
         setIsAnalyzing(false);
@@ -115,26 +119,37 @@ const AkinatorMarketingConsultant: React.FC = () => {
         });
       }, 3000);
     } else {
-      const nextStep = getNextValidStep();
-      if (!nextStep) {
-        // No more valid steps, complete the process
-        setIsAnalyzing(true);
-        setTimeout(() => {
-          setState(prev => ({ ...prev, isComplete: true }));
-          setIsAnalyzing(false);
-          
-          toast({
-            title: "🎯 Diagnóstico completo!",
-            description: "Seu plano estratégico está pronto!"
-          });
-        }, 3000);
-      }
+      // Move to next step
+      console.log('Moving to next step:', nextStepIndex);
+      setState({ ...newState, currentStep: nextStepIndex });
     }
   };
 
   const handleGoBack = () => {
     if (state.currentStep > 0) {
-      setState(prev => ({ ...prev, currentStep: prev.currentStep - 1 }));
+      let prevIndex = state.currentStep - 1;
+      
+      // Find previous valid step
+      while (prevIndex >= 0) {
+        const prevStep = steps[prevIndex];
+        if (!prevStep.condition) {
+          break;
+        }
+        
+        if (prevStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
+          break;
+        }
+        
+        if (prevStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
+          break;
+        }
+        
+        prevIndex--;
+      }
+      
+      if (prevIndex >= 0) {
+        setState(prev => ({ ...prev, currentStep: prevIndex }));
+      }
     }
   };
 
@@ -199,20 +214,27 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
+  // Skip current step if it doesn't meet conditions
   if (!currentStepData) {
-    return (
-      <Card className="max-w-4xl mx-auto">
-        <CardContent className="p-6">
-          <div className="text-center">
-            <p className="text-muted-foreground">Erro ao carregar pergunta. Tente reiniciar.</p>
-            <Button onClick={handleRestart} className="mt-4">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reiniciar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    const nextStepIndex = findNextValidStepIndex(state.currentStep);
+    if (nextStepIndex !== -1) {
+      // Auto-advance to next valid step
+      setState(prev => ({ ...prev, currentStep: nextStepIndex }));
+      return null; // Will re-render with new step
+    } else {
+      // No more steps, complete
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        setState(prev => ({ ...prev, isComplete: true }));
+        setIsAnalyzing(false);
+        
+        toast({
+          title: "🎯 Diagnóstico completo!",
+          description: "Seu plano estratégico está pronto!"
+        });
+      }, 1000);
+      return null;
+    }
   }
 
   return (
