@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Navbar } from '@/components/navbar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import Sidebar from '@/components/layout/Sidebar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -39,17 +40,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   }
 
   return (
-    <div className="flex h-screen w-full">
-      {/* Only show sidebar if user is authenticated */}
-      {isAuthenticated && <Sidebar />}
-      
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-auto p-4 bg-gradient-to-br from-white to-gray-50">
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        {/* Only show sidebar if user is authenticated */}
+        {isAuthenticated && <Sidebar />}
+        
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

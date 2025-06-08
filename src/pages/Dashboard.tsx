@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import AuroraLayout from '@/components/layout/AuroraLayout';
+import AppLayout from '@/components/layout/AppLayout';
 import AuroraCard from '@/components/ui/AuroraCard';
 import AuroraButton from '@/components/ui/AuroraButton';
 import GlassContainer from '@/components/ui/GlassContainer';
@@ -63,11 +63,8 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <AuroraLayout 
-      title="Dashboard Mágico" 
-      subtitle="Bem-vindo ao seu universo criativo"
-    >
-      <div className="p-6 space-y-8">
+    <AppLayout>
+      <div className="p-6 space-y-8 bg-gradient-to-br from-aurora-dark via-aurora-darker to-aurora-darkest min-h-screen">
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -198,7 +195,7 @@ const Dashboard: React.FC = () => {
           </AuroraCard>
         </motion.div>
       </div>
-    </AuroraLayout>
+    </AppLayout>
   );
 };
 
