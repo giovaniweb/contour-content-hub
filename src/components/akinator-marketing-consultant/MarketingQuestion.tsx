@@ -153,11 +153,14 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     ];
   };
 
-  // Determinar se deve usar equipamentos dinâmicos
+  // Determinar se deve usar equipamentos dinâmicos - CORRIGIDO
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
-  const optionsToShow = shouldUseDynamicEquipments ? getEquipmentOptions() : stepData.options;
+  
+  // Se for uma pergunta de equipamentos e não for campo aberto, usar equipamentos dinâmicos
+  const optionsToShow = shouldUseDynamicEquipments && !stepData.isOpen ? getEquipmentOptions() : stepData.options || [];
 
   console.log('shouldUseDynamicEquipments:', shouldUseDynamicEquipments);
+  console.log('stepData.isOpen:', stepData.isOpen);
   console.log('optionsToShow:', optionsToShow);
 
   return (
@@ -240,7 +243,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                   <AlertCircle className="h-6 w-6 mr-2" />
                   <span>Erro ao carregar equipamentos</span>
                 </div>
-              ) : (
+              ) : optionsToShow.length > 0 ? (
                 optionsToShow.map((option) => (
                   <Button
                     key={option.value}
@@ -252,6 +255,10 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                     <span>{option.label}</span>
                   </Button>
                 ))
+              ) : (
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                  <span>Nenhuma opção disponível</span>
+                </div>
               )}
             </div>
           )}
