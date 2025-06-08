@@ -80,8 +80,14 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Content Scripts Route */}
+                  {/* Content Scripts Routes */}
                   <Route path="/scripts" element={
+                    <PrivateRoute>
+                      <ContentScripts />
+                    </PrivateRoute>
+                  } />
+
+                  <Route path="/content/scripts" element={
                     <PrivateRoute>
                       <ContentScripts />
                     </PrivateRoute>
