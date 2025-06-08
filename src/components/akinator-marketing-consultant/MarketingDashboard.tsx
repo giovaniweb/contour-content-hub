@@ -18,9 +18,11 @@ import {
   Play,
   Camera,
   MessageSquare,
-  History
+  History,
+  Brain
 } from "lucide-react";
 import { MarketingConsultantState } from './types';
+import { MarketingMentorInference } from './mentorInference';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -39,6 +41,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onDownloadPDF,
   onViewHistory
 }) => {
+  // Inferir mentor baseado no perfil
+  const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
+
   const getClinicProfile = () => {
     if (state.clinicType === 'clinica_medica') {
       const profiles = {
@@ -178,10 +183,6 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         "Estabelecer parcerias com influenciadores locais"
       ];
     }
-  };
-
-  const getMentorEnigma = () => {
-    return "Se {mentor} olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. 🚀💡";
   };
 
   return (
@@ -326,17 +327,39 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </div>
       </section>
 
-      {/* Enigma do Mentor */}
+      {/* Mentor Identificado e Enigma */}
       <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-purple-700">
-            🧩 Enigma do Mentor
+            <Brain className="h-5 w-5" />
+            🧩 Mentor Estratégico Identificado
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm italic text-purple-600 leading-relaxed">
-            {getMentorEnigma()}
-          </p>
+        <CardContent className="space-y-4">
+          <div className="bg-white/50 rounded-lg p-4 border border-purple-100">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                {mentor.name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div>
+                <h3 className="font-semibold text-purple-800">{mentor.name}</h3>
+                <p className="text-xs text-purple-600">{mentor.focus}</p>
+              </div>
+            </div>
+            <p className="text-sm text-purple-700 mb-2">{mentor.style}</p>
+            <div className="flex flex-wrap gap-1">
+              {mentor.expertise.map((skill, index) => (
+                <Badge key={index} variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
+            <p className="text-sm italic text-purple-700 leading-relaxed">
+              "Se <strong>{mentor.name}</strong> olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. {enigma}"
+            </p>
+          </div>
         </CardContent>
       </Card>
 

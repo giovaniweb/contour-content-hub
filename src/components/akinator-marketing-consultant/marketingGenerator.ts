@@ -1,5 +1,5 @@
-
 import { MarketingConsultantState } from './types';
+import { MarketingMentorInference } from './mentorInference';
 
 export const generateMarketingDiagnostic = (state: MarketingConsultantState): string => {
   const isClinicaMedica = state.clinicType === 'clinica_medica';
@@ -8,7 +8,9 @@ export const generateMarketingDiagnostic = (state: MarketingConsultantState): st
   const marketingAnalysis = getMarketingAnalysis(state);
   const strategicActions = getStrategicActions(state);
   const nextSteps = getNextSteps(state);
-  const enigmaMentor = getEnigmaMentor(state);
+  
+  // Inferir mentor baseado no perfil
+  const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
   
   return `# 🎯 DIAGNÓSTICO ESTRATÉGICO FLUIDA
 
@@ -34,7 +36,7 @@ ${strategicActions}
 ${nextSteps}
 
 ## 🧩 REFLEXÃO ESTRATÉGICA
-*${enigmaMentor}*
+*Se ${mentor.name} olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. ${enigma}*
 
 ---
 *Diagnóstico gerado pelo Consultor Fluida AI*`;
@@ -123,7 +125,7 @@ const getPositioningAnalysis = (position: string): string => {
     'tecnica': 'Posicionamento Técnico - Expertise e resultados científicos.',
     'moderna': 'Posicionamento Moderno - Inovação e tendências.'
   };
-  return analyses[position as keyof typeof analyses] || 'Posicionamento definido.';
+  return analyses[position as keyof typeof position] || 'Posicionamento definido.';
 };
 
 const getRevenueAnalysis = (current: string, goal: string): string => {
@@ -147,7 +149,6 @@ const getRevenueAnalysis = (current: string, goal: string): string => {
 const getMarketingAnalysis = (state: MarketingConsultantState): string => {
   let analysis = 'Status atual do marketing:\n';
   
-  // Análise da presença pessoal
   const personalBrand = {
     'sim_sempre': '✅ Marca pessoal ativa - Vantagem competitiva estabelecida.',
     'as_vezes': '⚠️ Presença irregular - Oportunidade de consistência.',
@@ -155,7 +156,6 @@ const getMarketingAnalysis = (state: MarketingConsultantState): string => {
     'nunca': '❌ Ausência total - Necessidade urgente de posicionamento.'
   };
   
-  // Análise da frequência de conteúdo
   const contentFreq = {
     'diario': '✅ Conteúdo diário - Excelente engajamento.',
     'varios_por_semana': '✅ Boa frequência - Manter consistência.',
@@ -163,7 +163,6 @@ const getMarketingAnalysis = (state: MarketingConsultantState): string => {
     'irregular': '❌ Inconsistente - Criar cronograma estruturado.'
   };
   
-  // Análise do tráfego pago
   const paidTraffic = {
     'sim_regular': '✅ Tráfego pago ativo - Otimizar ROI.',
     'esporadico': '⚠️ Uso esporádico - Estruturar campanhas.',
