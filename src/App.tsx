@@ -29,6 +29,7 @@ import PhotosPage from '@/pages/PhotosPage';
 import ArtsPage from '@/pages/ArtsPage';
 import VideosPage from '@/pages/VideosPage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
+import ContentPlannerPage from '@/pages/ContentPlannerPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -161,10 +162,7 @@ function App() {
                   <Route path="/content-planner" element={
                     <PrivateRoute>
                       <AppLayout>
-                        <div className="p-6">
-                          <h1 className="text-2xl font-bold">Planejador de Conteúdo</h1>
-                          <p className="text-muted-foreground mt-2">Em desenvolvimento...</p>
-                        </div>
+                        <ContentPlannerPage />
                       </AppLayout>
                     </PrivateRoute>
                   } />
