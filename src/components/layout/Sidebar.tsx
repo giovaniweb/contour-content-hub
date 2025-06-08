@@ -39,6 +39,8 @@ export default function Sidebar() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  console.log('Sidebar renderizado com dados:', sidebarData); // Debug log
+
   return (
     <SidebarComponent className="bg-gradient-to-b from-white/80 to-zinc-100/70 backdrop-blur-sm border-r">
       <SidebarHeader className="border-b p-4">
@@ -87,7 +89,7 @@ export default function Sidebar() {
               ))}
 
               {/* Only add Create Video button to the Videos group */}
-              {group.name === "Downloads" && (
+              {group.name === "Vídeos" && (
                 <SidebarMenuItem>
                   <SidebarMenuButton 
                     asChild 

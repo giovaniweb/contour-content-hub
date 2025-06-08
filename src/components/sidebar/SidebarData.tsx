@@ -1,3 +1,4 @@
+
 import { 
   Home,
   FileText,
@@ -61,7 +62,7 @@ export const sidebarData = [
   }
 ];
 
-// Admin menu structure
+// Admin menu structure  
 export const adminItems = [
   { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT, highlight: false },
   { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT, highlight: false },
