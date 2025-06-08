@@ -117,7 +117,7 @@ const AkinatorScriptGenerator: React.FC = () => {
 
   return (
     <div>
-      <AkinatorProgress currentStep={state.currentStep} />
+      <AkinatorProgress currentStep={state.currentStep} totalSteps={STEPS.length} />
       <AkinatorQuestion
         stepData={currentStepData}
         currentStep={state.currentStep}
