@@ -12,7 +12,12 @@ import {
   Brain,
   TestTube,
   Calendar,
-  BrainCircuit
+  BrainCircuit,
+  FileText,
+  Image,
+  Palette,
+  BookOpen,
+  PenTool
 } from "lucide-react";
 import { ROUTES } from '@/routes';
 
@@ -22,24 +27,13 @@ export const sidebarData = [
     name: "Menu Principal",
     icon: Home,
     links: [
-      { name: "Dashboard", icon: Home, path: ROUTES.DASHBOARD, highlight: false },
-      { name: "Vídeos", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
-      { name: "Consultor", icon: BrainCircuit, path: "/marketing-consultant", highlight: false }
-    ]
-  },
-  {
-    name: "Conteúdo",
-    icon: Calendar,
-    links: [
-      { name: "Calendário", icon: Calendar, path: ROUTES.CONTENT.CALENDAR, highlight: true }
-    ]
-  },
-  {
-    name: "Vídeos",
-    icon: Film,
-    links: [
-      { name: "Biblioteca", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
-      { name: "Importar", icon: Upload, path: ROUTES.VIDEOS.IMPORT, highlight: false }
+      { name: "Consultor de MKT", icon: BrainCircuit, path: "/marketing-consultant", highlight: false },
+      { name: "Roteiro", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, highlight: false },
+      { name: "Video", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
+      { name: "Fotos", icon: Image, path: "/photos", highlight: false },
+      { name: "Artes", icon: Palette, path: "/arts", highlight: false },
+      { name: "Artigo científico", icon: BookOpen, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
+      { name: "Planejador", icon: Calendar, path: ROUTES.CONTENT.PLANNER, highlight: false }
     ]
   }
 ];
