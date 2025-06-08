@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScriptIntention, INTENTION_TREE } from '@/components/smart-script-generator/intentionTree';
@@ -11,6 +12,9 @@ export interface SmartGenerationResult {
   enigma: string;
   intention: ScriptIntention;
 }
+
+// Export ScriptIntention for other files to use
+export { ScriptIntention };
 
 export const useSmartScriptGeneration = () => {
   const { toast } = useToast();
@@ -238,6 +242,12 @@ export const useSmartScriptGeneration = () => {
     setIsApproved(false);
   };
 
+  // Add generateScript method to match expected interface
+  const generateScriptMethod = async (finalIntention: ScriptIntention): Promise<SmartGenerationResult | null> => {
+    await generateRoteiro(finalIntention);
+    return generatedResult;
+  };
+
   return {
     currentStep,
     intention,
@@ -250,6 +260,7 @@ export const useSmartScriptGeneration = () => {
     handleThemeInput,
     applyDisneyMagic,
     approveScript,
-    resetGeneration
+    resetGeneration,
+    generateScript: generateScriptMethod
   };
 };

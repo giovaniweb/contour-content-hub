@@ -13,7 +13,7 @@ export const useScriptGeneration = () => {
   const [isDisneyMode, setIsDisneyMode] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
-  const { generateScript } = useSmartScriptGeneration();
+  const smartGeneration = useSmartScriptGeneration();
 
   const handleThemeInput = async (theme: string) => {
     console.log('handleThemeInput chamado com tema:', theme);
@@ -39,11 +39,11 @@ export const useScriptGeneration = () => {
       };
       
       console.log('finalizeIntention chamado com:', finalIntention);
-      const result = await generateScript(finalIntention);
+      await smartGeneration.handleThemeInput(theme);
       
-      if (result) {
-        console.log('Resultado final:', result);
-        setGeneratedResult(result);
+      // Use the result from smartGeneration
+      if (smartGeneration.generatedResult) {
+        setGeneratedResult(smartGeneration.generatedResult);
         setIsGenerating(false);
       }
     } catch (error) {
@@ -63,14 +63,7 @@ export const useScriptGeneration = () => {
     setIsGenerating(true);
     
     try {
-      // Simular transformação Disney
-      const disneyContent = transformContentWithDisney(generatedResult.content);
-      
-      setGeneratedResult({
-        ...generatedResult,
-        content: disneyContent
-      });
-      
+      await smartGeneration.applyDisneyMagic();
       setIsDisneyMode(true);
       setIsGenerating(false);
       
@@ -89,28 +82,6 @@ export const useScriptGeneration = () => {
     }
   };
 
-  const transformContentWithDisney = (content: string): string => {
-    // Transformação Disney básica
-    const lines = content.split('\n');
-    const transformedLines = lines.map(line => {
-      if (line.includes('🎬')) {
-        return line.replace('🎬 **Gancho**', '🏰 Era uma vez...');
-      }
-      if (line.includes('🎯')) {
-        return line.replace('🎯 **Conflito**', '⚡ Até que um dia...');
-      }
-      if (line.includes('🔁')) {
-        return line.replace('🔁 **Virada**', '✨ Então ela descobriu...');
-      }
-      if (line.includes('📣')) {
-        return line.replace('📣 **CTA**', '🌟 E eles viveram felizes...');
-      }
-      return line;
-    });
-    
-    return transformedLines.join('\n') + '\n\n🎠 Transformado com a magia Disney 1928\n"Onde há sonhos, há sempre um caminho para torná-los realidade."';
-  };
-
   const approveScript = () => {
     setIsApproved(true);
     toast({
@@ -126,6 +97,7 @@ export const useScriptGeneration = () => {
     setIsGenerating(false);
     setIsDisneyMode(false);
     setIsApproved(false);
+    smartGeneration.resetGeneration();
   };
 
   return {
@@ -133,12 +105,12 @@ export const useScriptGeneration = () => {
     setCurrentStep,
     intention,
     setIntention,
-    generatedResult,
+    generatedResult: smartGeneration.generatedResult || generatedResult,
     setGeneratedResult,
-    isGenerating,
+    isGenerating: smartGeneration.isGenerating || isGenerating,
     setIsGenerating,
-    isDisneyMode,
-    isApproved,
+    isDisneyMode: smartGeneration.isDisneyMode || isDisneyMode,
+    isApproved: smartGeneration.isApproved || isApproved,
     handleThemeInput,
     applyDisneyMagic,
     approveScript,
