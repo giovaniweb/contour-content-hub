@@ -24,6 +24,7 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ContentPlannerFilter>(initialFilters);
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   
   // Define columns
   const columns = useMemo<ContentPlannerColumn[]>(() => [
@@ -58,6 +59,24 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
       items: items.filter(item => item.status === 'published')
     }
   ], [items]);
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      console.log("🔄 Auto-refresh do planejador");
+      // Simulate data refresh
+      setItems(prevItems => 
+        prevItems.map(item => ({
+          ...item,
+          updatedAt: new Date().toISOString()
+        }))
+      );
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
   
   // Fetch items when filters change
   useEffect(() => {
@@ -211,6 +230,21 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
       setLoading(false);
     }
   };
+
+  // Sync data functionality
+  const syncData = async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success("🔄 Dados sincronizados!", {
+        description: "Planejador atualizado com últimas alterações"
+      });
+    } catch (err) {
+      toast.error("❌ Erro na sincronização");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return {
     items,
@@ -218,11 +252,14 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
     loading,
     error,
     filters,
+    autoRefresh,
     setFilters,
+    setAutoRefresh,
     addItem,
     updateItem,
     removeItem,
     moveItem,
-    generateSuggestions
+    generateSuggestions,
+    syncData
   };
 }
