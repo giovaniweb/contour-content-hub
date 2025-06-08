@@ -45,7 +45,15 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       console.log('Estado final sendo definido:', finalState);
       setState(finalState);
-      setViewMode('result');
+      
+      // Navegar diretamente para o dashboard após completar o diagnóstico
+      setTimeout(() => {
+        setViewMode('dashboard');
+        toast({
+          title: "🎯 Dashboard estratégico gerado!",
+          description: "Sua análise completa está pronta com ideias personalizadas."
+        });
+      }, 1000);
     }
   };
 
