@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
-import MarketingConsultantChat from './chat/MarketingConsultantChat';
 import { useAkinatorFlow } from './hooks/useAkinatorFlow';
 import { getNextValidQuestion, getPreviousValidQuestion, shouldShowQuestion, getCurrentQuestionNumber, getTotalValidQuestions } from './utils/questionNavigation';
 import { MARKETING_STEPS } from './constants';
@@ -52,10 +51,10 @@ const AkinatorMarketingConsultant: React.FC = () => {
     
     console.log('Resposta selecionada:', value, 'Step atual:', currentStep);
     
-    // Atualizar o estado com a resposta
+    // Atualizar o estado com a resposta usando o ID da pergunta
     const newState = {
       ...state,
-      [currentQuestion.key]: value
+      [currentQuestion.id]: value
     };
     
     setState(newState);
@@ -169,7 +168,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
   if (showResult) {
     return (
       <MarketingResult 
-        state={state}
         onRestart={handleRestart}
         onContinue={() => setShowDashboard(true)}
       />
