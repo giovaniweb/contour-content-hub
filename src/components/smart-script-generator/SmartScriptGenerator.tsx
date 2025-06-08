@@ -203,68 +203,92 @@ export const SmartScriptGenerator: React.FC<SmartScriptGeneratorProps> = ({
         )}
 
         {currentStep === 'equipamento' && (
-          <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
-            {equipmentsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin h-8 w-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-sm text-gray-400">Carregando equipamentos...</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center gap-2 text-purple-400">
+                <Wrench className="h-5 w-5" />
+                <span className="text-sm font-medium">Equipamentos Cadastrados</span>
               </div>
-            ) : equipmentsError ? (
-              <div className="text-center py-8">
-                <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
-                <p className="text-sm text-red-400 mb-4">Erro ao carregar equipamentos</p>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="text-sm"
-                >
-                  Tentar novamente
-                </Button>
-              </div>
-            ) : equipments.length === 0 ? (
-              <div className="text-center py-8">
-                <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-gray-400 mb-4">Nenhum equipamento disponível para seu perfil</p>
-                <Button
-                  variant="outline"
-                  className="justify-start h-auto p-4"
-                  onClick={() => handleOptionClick('sem_equipamento')}
-                  disabled={actualIsGenerating}
-                >
-                  <span className="mr-3 text-lg">🏥</span>
-                  Protocolo da clínica (sem equipamento específico)
-                </Button>
-              </div>
-            ) : (
-              <>
-                {equipments.map((equipment) => (
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+              {equipmentsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-sm text-gray-400">Carregando equipamentos...</p>
+                </div>
+              ) : equipmentsError ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
+                  <p className="text-sm text-red-400 mb-4">Erro ao carregar equipamentos</p>
                   <Button
-                    key={equipment.id}
                     variant="outline"
-                    className="justify-start h-auto p-4"
-                    onClick={() => handleOptionClick(equipment.id)}
+                    onClick={() => window.location.reload()}
+                    className="text-sm"
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : equipments.length === 0 ? (
+                <div className="text-center py-8">
+                  <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-4" />
+                  <p className="text-sm text-gray-400 mb-4">Nenhum equipamento cadastrado para seu perfil</p>
+                  <Button
+                    variant="outline"
+                    className="justify-start h-auto p-4 w-full"
+                    onClick={() => handleOptionClick('sem_equipamento')}
                     disabled={actualIsGenerating}
                   >
-                    <span className="mr-3 text-lg">🔧</span>
-                    <div className="text-left">
-                      <div className="font-medium">{equipment.nome}</div>
-                      {equipment.tecnologia && (
-                        <div className="text-xs text-gray-400">{equipment.tecnologia}</div>
-                      )}
+                    <div className="flex items-center w-full">
+                      <span className="mr-3 text-lg">🏥</span>
+                      <div className="text-left">
+                        <div className="font-medium">Protocolo da clínica</div>
+                        <div className="text-xs text-gray-400">Sem equipamento específico</div>
+                      </div>
                     </div>
                   </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  className="justify-start h-auto p-4"
-                  onClick={() => handleOptionClick('sem_equipamento')}
-                  disabled={actualIsGenerating}
-                >
-                  <span className="mr-3 text-lg">🏥</span>
-                  Protocolo da clínica (sem equipamento específico)
-                </Button>
-              </>
-            )}
+                </div>
+              ) : (
+                <>
+                  {equipments.map((equipment) => (
+                    <Button
+                      key={equipment.id}
+                      variant="outline"
+                      className="justify-start h-auto p-4 hover:bg-purple-500/10 hover:border-purple-400 transition-colors"
+                      onClick={() => handleOptionClick(equipment.id)}
+                      disabled={actualIsGenerating}
+                    >
+                      <div className="flex items-center w-full">
+                        <span className="mr-3 text-lg">🔧</span>
+                        <div className="text-left flex-1">
+                          <div className="font-medium">{equipment.nome}</div>
+                          {equipment.tecnologia && (
+                            <div className="text-xs text-gray-400">{equipment.tecnologia}</div>
+                          )}
+                        </div>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Cadastrado
+                        </Badge>
+                      </div>
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="justify-start h-auto p-4 border-dashed hover:bg-gray-500/10"
+                    onClick={() => handleOptionClick('sem_equipamento')}
+                    disabled={actualIsGenerating}
+                  >
+                    <div className="flex items-center w-full">
+                      <span className="mr-3 text-lg">🏥</span>
+                      <div className="text-left">
+                        <div className="font-medium">Protocolo da clínica</div>
+                        <div className="text-xs text-gray-400">Sem equipamento específico</div>
+                      </div>
+                    </div>
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         )}
         
