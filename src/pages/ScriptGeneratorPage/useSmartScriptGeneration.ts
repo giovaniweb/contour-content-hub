@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScriptIntention, INTENTION_TREE } from '@/components/smart-script-generator/intentionTree';
@@ -14,7 +13,7 @@ export interface SmartGenerationResult {
 }
 
 // Export ScriptIntention for other files to use
-export { ScriptIntention };
+export type { ScriptIntention };
 
 export const useSmartScriptGeneration = () => {
   const { toast } = useToast();
