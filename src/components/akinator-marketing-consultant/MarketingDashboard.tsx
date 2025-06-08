@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,48 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onDownloadPDF,
   onViewHistory
 }) => {
+  // Parse do diagnóstico da IA para extrair seções
+  const parseAIDiagnostic = (diagnostic: string) => {
+    if (!diagnostic) return null;
+
+    const sections = {
+      diagnostico: '',
+      ideias: [],
+      plano: '',
+      satira: ''
+    };
+
+    // Extrair seção de diagnóstico
+    const diagnosticoMatch = diagnostic.match(/## 📊 DIAGNÓSTICO ESTRATÉGICO DA CLÍNICA([\s\S]*?)(?=## |$)/);
+    if (diagnosticoMatch) {
+      sections.diagnostico = diagnosticoMatch[1].trim();
+    }
+
+    // Extrair ideias de conteúdo
+    const ideiasMatch = diagnostic.match(/## 💡 IDEIAS DE CONTEÚDO SUPER PERSONALIZADAS([\s\S]*?)(?=## |$)/);
+    if (ideiasMatch) {
+      const ideiasText = ideiasMatch[1];
+      const ideiasList = ideiasText.split(/\d+\./).filter(item => item.trim());
+      sections.ideias = ideiasList.map(idea => idea.trim()).slice(0, 4);
+    }
+
+    // Extrair plano de ação
+    const planoMatch = diagnostic.match(/## 📅 PLANO DE AÇÃO - 3 SEMANAS ESPECÍFICO([\s\S]*?)(?=## |$)/);
+    if (planoMatch) {
+      sections.plano = planoMatch[1].trim();
+    }
+
+    // Extrair sátira do mentor
+    const satiraMatch = diagnostic.match(/## 🧩 SÁTIRA DO MENTOR[\s\S]*?ENIGMA SATÍRICO:\*\*([\s\S]*?)(?=⚠️|$)/);
+    if (satiraMatch) {
+      sections.satira = satiraMatch[1].trim();
+    }
+
+    return sections;
+  };
+
+  const aiSections = parseAIDiagnostic(state.generatedDiagnostic || '');
+  
   // Inferir mentor baseado no perfil
   const { mentor, enigma } = MarketingMentorInference.inferMentor(state);
 
@@ -95,211 +138,118 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     }
   };
 
-  const getContentFrequencyStatus = () => {
-    const frequencies = {
-      'diario': 'Produção Diária - Excelente Consistência',
-      'varios_por_semana': 'Várias Vezes por Semana - Boa Frequência',
-      'semanal': 'Semanal - Frequência Básica',
-      'irregular': 'Irregular - Necessita Estruturação'
-    };
-    return frequencies[state.contentFrequency as keyof typeof frequencies] || 'Não informado';
-  };
-
-  const getTargetAudienceAnalysis = () => {
-    if (state.targetAudience) {
-      return `Público Definido: ${state.targetAudience}`;
-    }
-    return 'Público-alvo ainda não foi definido claramente';
-  };
-
-  const getPersonalizedContentIdeas = () => {
-    const isClinicaMedica = state.clinicType === 'clinica_medica';
-    const ideas = [];
-
-    // Seed para variação baseado no timestamp para evitar sempre as mesmas ideias
-    const today = new Date();
-    const seed = today.getDate() + today.getMonth();
-
-    if (isClinicaMedica) {
-      // Pool de ideias médicas variadas
-      const medicalIdeasPool = [
-        {
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Resultados Médicos em 30s'",
-          description: "Antes e depois de procedimentos com narração técnica profissional"
-        },
-        {
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Ciência por trás do tratamento'",
-          description: "Educação médica sobre os procedimentos realizados na clínica"
-        },
-        {
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Dia do médico'",
-          description: "Bastidores dos atendimentos destacando expertise e cuidado"
-        },
-        {
-          icon: <Users className="h-4 w-4" />,
-          title: "Depoimento: 'Por que confio neste médico?'",
-          description: "Pacientes explicando a confiança no profissional e resultados"
-        },
-        {
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Mitos vs Verdades Médicas'",
-          description: "Desmistificando conceitos sobre sua especialidade médica"
-        },
-        {
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Tecnologia na Medicina'",
-          description: "Equipamentos e técnicas avançadas da sua clínica"
-        },
-        {
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Preparação para procedimento'",
-          description: "Mostrando cuidados pré e pós procedimento"
-        },
-        {
-          icon: <Users className="h-4 w-4" />,
-          title: "Live: 'Tire suas dúvidas médicas'",
-          description: "Sessão ao vivo respondendo perguntas da comunidade"
-        }
-      ];
-
-      // Selecionar ideias baseadas no perfil específico
-      if (state.medicalSpecialty === 'dermatologia') {
-        ideas.push({
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Rotina de skincare médico'",
-          description: "Demonstrando cuidados dermatológicos profissionais"
-        });
-      }
-
-      if (state.medicalObjective === 'autoridade') {
-        ideas.push({
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Cases clínicos de sucesso'",
-          description: "Apresentando resultados científicos e metodologia"
-        });
-      }
-
-      if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente') {
-        ideas.push({
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Conheça o médico'",
-          description: "Apresentação pessoal e formação acadêmica"
-        });
-      }
-
-      // Preencher com ideias do pool para completar 4
-      const remainingSlots = 4 - ideas.length;
-      const shuffledPool = medicalIdeasPool.sort(() => (seed % 2) - 0.5);
-      ideas.push(...shuffledPool.slice(0, remainingSlots));
-
-    } else {
-      // Pool de ideias estéticas variadas
-      const aestheticIdeasPool = [
-        {
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Transformação em 30 segundos'",
-          description: "Antes e depois com música trending e depoimento emocional"
-        },
-        {
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Mitos vs Verdades da Estética'",
-          description: "Desmistifique conceitos sobre tratamentos de forma acessível"
-        },
-        {
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Dia na Clínica'",
-          description: "Bastidores acolhedores mostrando cuidado e ambiente"
-        },
-        {
-          icon: <Users className="h-4 w-4" />,
-          title: "Depoimento: 'Como me senti mais bonita'",
-          description: "Clientes falando sobre autoestima e bem-estar"
-        },
-        {
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Processo do tratamento'",
-          description: "Mostrando passo a passo de um procedimento popular"
-        },
-        {
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Tendências em estética'",
-          description: "Novidades e tecnologias do mercado estético"
-        },
-        {
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Dicas de cuidados'",
-          description: "Orientações para manter resultados em casa"
-        },
-        {
-          icon: <Users className="h-4 w-4" />,
-          title: "Live: 'Tire suas dúvidas estéticas'",
-          description: "Bate-papo ao vivo sobre procedimentos e cuidados"
-        }
-      ];
-
-      // Selecionar ideias baseadas no perfil específico
-      if (state.aestheticFocus === 'corporal') {
-        ideas.push({
-          icon: <Play className="h-4 w-4" />,
-          title: "Reel: 'Verão chegando, corpo em forma'",
-          description: "Tratamentos corporais para a temporada"
-        });
-      }
-
-      if (state.aestheticFocus === 'facial') {
-        ideas.push({
-          icon: <Camera className="h-4 w-4" />,
-          title: "Carrossel: 'Cuidados faciais por idade'",
-          description: "Tratamentos específicos para cada faixa etária"
-        });
-      }
-
-      if (state.aestheticObjective === 'mais_leads') {
-        ideas.push({
-          icon: <MessageSquare className="h-4 w-4" />,
-          title: "Story: 'Promoção especial'",
-          description: "Ofertas limitadas para atrair novos clientes"
-        });
-      }
-
-      if (state.clinicPosition === 'premium') {
-        ideas.push({
-          icon: <Users className="h-4 w-4" />,
-          title: "Depoimento: 'Experiência VIP'",
-          description: "Clientes falando sobre atendimento exclusivo"
-        });
-      }
-
-      // Preencher com ideias do pool para completar 4
-      const remainingSlots = 4 - ideas.length;
-      const shuffledPool = aestheticIdeasPool.sort(() => (seed % 2) - 0.5);
-      ideas.push(...shuffledPool.slice(0, remainingSlots));
+  const renderAIDiagnosticSummary = () => {
+    if (!aiSections || !aiSections.diagnostico) {
+      return (
+        <div className="text-muted-foreground text-sm">
+          Diagnóstico IA não disponível
+        </div>
+      );
     }
 
-    return ideas.slice(0, 4); // Garantir exatamente 4 ideias
-  };
-
-  const getStrategicActions = () => {
-    const isClinicaMedica = state.clinicType === 'clinica_medica';
+    // Pegar as primeiras linhas do diagnóstico
+    const summaryLines = aiSections.diagnostico.split('\n').slice(0, 3);
     
-    if (isClinicaMedica) {
-      return [
-        "Criar cronograma de conteúdo educativo com base científica",
-        "Desenvolver cases clínicos para demonstrar expertise",
-        "Estabelecer parcerias com outros médicos especialistas",
-        "Implementar sistema de consultas online para triagem"
-      ];
-    } else {
-      return [
-        "Criar cronograma de 3 posts por semana com mix emocional",
-        "Implementar programa de indicação com incentivos",
-        "Desenvolver campanhas sazonais (verão, inverno)",
-        "Estabelecer parcerias com influenciadores locais"
-      ];
+    return (
+      <div className="space-y-2">
+        {summaryLines.map((line, index) => (
+          <p key={index} className="text-sm text-muted-foreground">
+            {line.replace(/[•\-]/g, '').trim()}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  const renderAIContentIdeas = () => {
+    if (!aiSections || !aiSections.ideias.length) {
+      return (
+        <div className="text-center text-muted-foreground p-4">
+          <p>Ideias de conteúdo não disponíveis</p>
+        </div>
+      );
     }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {aiSections.ideias.slice(0, 4).map((idea, index) => {
+          // Extrair título e descrição da ideia
+          const lines = idea.split('\n').filter(line => line.trim());
+          const title = lines[0] || `Ideia ${index + 1}`;
+          const description = lines.slice(1).join(' ') || 'Descrição da estratégia';
+
+          const icons = [
+            <Play className="h-4 w-4" />,
+            <Camera className="h-4 w-4" />,
+            <MessageSquare className="h-4 w-4" />,
+            <Users className="h-4 w-4" />
+          ];
+
+          return (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    {icons[index]}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm mb-1">{title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderAIStrategicActions = () => {
+    if (!aiSections || !aiSections.plano) {
+      return (
+        <div className="text-center text-muted-foreground p-4">
+          <p>Plano de ação não disponível</p>
+        </div>
+      );
+    }
+
+    // Extrair ações do plano
+    const actions = aiSections.plano.split(/SEMANA \d+:/).filter(section => section.trim());
+    const actionsList = [];
+
+    actions.forEach(section => {
+      const lines = section.split('\n').filter(line => line.trim() && line.includes('-'));
+      lines.forEach(line => {
+        const action = line.replace(/^[\-•\*]\s*/, '').trim();
+        if (action) actionsList.push(action);
+      });
+    });
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {actionsList.slice(0, 4).map((action, index) => (
+          <Card key={index} className="border-l-4 border-l-indigo-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  {index + 1}
+                </div>
+                <p className="text-sm font-medium">{action}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderAIMentorSatire = () => {
+    if (!aiSections || !aiSections.satira) {
+      return enigma; // Fallback para o enigma padrão
+    }
+
+    return aiSections.satira;
   };
 
   return (
@@ -368,24 +318,19 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-purple-500">
+          <Card className="border-l-4 border-l-purple-500 md:col-span-2">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5 text-purple-500" />
-                📈 Produção de Conteúdo
+                <Brain className="h-5 w-5 text-purple-500" />
+                🤖 Análise IA Personalizada
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getContentFrequencyStatus()}</p>
-              <p className="text-xs mt-2 text-purple-600">
-                Aparece em vídeos: {state.personalBrand === 'sim_sempre' ? 'Sempre' :
-                                   state.personalBrand === 'as_vezes' ? 'Às vezes' :
-                                   state.personalBrand === 'raramente' ? 'Raramente' : 'Nunca'}
-              </p>
+              {renderAIDiagnosticSummary()}
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-orange-500 md:col-span-2">
+          <Card className="border-l-4 border-l-orange-500">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="h-5 w-5 text-orange-500" />
@@ -393,58 +338,31 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getTargetAudienceAnalysis()}</p>
+              <p className="text-sm text-muted-foreground">
+                {state.targetAudience ? `Público Definido: ${state.targetAudience}` : 'Público-alvo ainda não foi definido claramente'}
+              </p>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* Ideias de Conteúdo */}
+      {/* Ideias de Conteúdo da IA */}
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          💡 Ideias de Conteúdo Personalizadas
+          💡 Ideias de Conteúdo Personalizadas pela IA
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {getPersonalizedContentIdeas().map((idea, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    {idea.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-1">{idea.title}</h3>
-                    <p className="text-xs text-muted-foreground">{idea.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {renderAIContentIdeas()}
       </section>
 
-      {/* Ações Estratégicas */}
+      {/* Ações Estratégicas da IA */}
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          📈 Ações Estratégicas Sugeridas
+          📈 Plano de Ação Personalizado
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {getStrategicActions().map((action, index) => (
-            <Card key={index} className="border-l-4 border-l-indigo-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                    {index + 1}
-                  </div>
-                  <p className="text-sm font-medium">{action}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {renderAIStrategicActions()}
       </section>
 
-      {/* Mentor Identificado e Enigma */}
+      {/* Mentor Identificado e Enigma da IA */}
       <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-purple-700">
@@ -474,7 +392,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           </div>
           <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
             <p className="text-sm italic text-purple-700 leading-relaxed">
-              "Se <strong>{mentor.name}</strong> olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. {enigma}"
+              "Se <strong>{mentor.name}</strong> olhasse esses dados ia fazer muitas sugestões boas, porque você tem muito potencial. {renderAIMentorSatire()}"
             </p>
           </div>
         </CardContent>
