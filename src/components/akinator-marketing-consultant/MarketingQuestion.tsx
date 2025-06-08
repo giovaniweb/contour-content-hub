@@ -16,9 +16,11 @@ import {
   Smartphone,
   UserCheck,
   Stethoscope,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { MarketingStep } from './types';
+import { useEquipments } from '@/hooks/useEquipments';
 
 interface MarketingQuestionProps {
   stepData: MarketingStep;
@@ -66,6 +68,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const [openAnswer, setOpenAnswer] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customEquipment, setCustomEquipment] = useState('');
+  const { equipments, loading } = useEquipments();
 
   const handleOpenSubmit = () => {
     if (openAnswer.trim()) {
@@ -103,6 +106,38 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       handleCustomEquipmentSubmit();
     }
   };
+
+  // Função para gerar opções de equipamentos dinamicamente
+  const getEquipmentOptions = () => {
+    if (loading) {
+      return [
+        { value: 'loading', label: '⏳ Carregando equipamentos...' }
+      ];
+    }
+
+    if (!equipments || equipments.length === 0) {
+      return [
+        { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
+        { value: 'outros', label: '🔧 Outros Equipamentos' }
+      ];
+    }
+
+    const equipmentOptions = equipments.map(equipment => ({
+      value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
+      label: `🔬 ${equipment.nome}`
+    }));
+
+    // Adicionar opções padrão
+    return [
+      ...equipmentOptions,
+      { value: 'outros', label: '🔧 Outros Equipamentos' },
+      { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
+    ];
+  };
+
+  // Determinar se deve usar equipamentos dinâmicos
+  const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
+  const optionsToShow = shouldUseDynamicEquipments ? getEquipmentOptions() : stepData.options;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -174,16 +209,24 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
           ) : (
             // Opções múltipla escolha
             <div className="grid grid-cols-1 gap-3">
-              {stepData.options.map((option) => (
-                <Button
-                  key={option.value}
-                  variant="outline"
-                  className="justify-start h-auto p-4 text-left hover:bg-primary/5"
-                  onClick={() => handleOptionClick(option.value)}
-                >
-                  <span>{option.label}</span>
-                </Button>
-              ))}
+              {loading && shouldUseDynamicEquipments ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Carregando equipamentos...</span>
+                </div>
+              ) : (
+                optionsToShow.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="outline"
+                    className="justify-start h-auto p-4 text-left hover:bg-primary/5"
+                    onClick={() => handleOptionClick(option.value)}
+                    disabled={option.value === 'loading'}
+                  >
+                    <span>{option.label}</span>
+                  </Button>
+                ))
+              )}
             </div>
           )}
         </CardContent>
