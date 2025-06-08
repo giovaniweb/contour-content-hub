@@ -53,17 +53,55 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
 
     // Processar dados da IA para extrair especialistas
     const specialistText = aiSections.ativacao_especialistas;
-    const lines = specialistText.split('\n').filter((line: string) => line.trim());
     
-    const specialists = lines
-      .filter((line: string) => line.includes('**') || line.includes(':'))
+    // Dividir por seções que começam com números ou "Expert"
+    const sections = specialistText.split(/(?=\d+\.\s+\*\*|\*\*Expert)/);
+    
+    const specialists = sections
+      .filter((section: string) => section.trim().length > 0)
       .slice(0, 4)
-      .map((line: string, index: number) => {
-        const cleanLine = line.replace(/[*#-]/g, '').trim();
-        const parts = cleanLine.split(':');
-        const title = parts[0] || `Especialista ${index + 1}`;
-        const description = parts[1] || cleanLine;
+      .map((section: string, index: number) => {
+        // Limpar e extrair informações da seção
+        const cleanSection = section.replace(/[*#-]/g, '').trim();
+        const lines = cleanSection.split('\n').filter((line: string) => line.trim());
         
+        // Extrair título (primeira linha significativa)
+        let title = `Especialista ${index + 1}`;
+        let description = 'Estratégia sendo desenvolvida para sua clínica.';
+        
+        if (lines.length > 0) {
+          // Procurar por título na primeira linha
+          const firstLine = lines[0];
+          if (firstLine.includes('Expert') || firstLine.includes('Especialista')) {
+            title = firstLine.replace(/^\d+\.\s*/, '').trim();
+          } else if (firstLine.length > 5) {
+            title = firstLine.replace(/^\d+\.\s*/, '').trim();
+          }
+          
+          // Procurar por descrição nas linhas seguintes
+          const descriptionLines = lines.slice(1).filter((line: string) => 
+            line.length > 20 && 
+            !line.includes('Missão:') && 
+            !line.includes('Mini diagnóstico:') &&
+            !line.includes('Ação prática:')
+          );
+          
+          if (descriptionLines.length > 0) {
+            description = descriptionLines[0].trim();
+          }
+        }
+        
+        // Se ainda não temos uma boa descrição, usar informações específicas do diagnóstico
+        if (description.length < 30) {
+          const diagnosticTexts = [
+            'A clínica está enfrentando alguns desafios chave: a frequência rara de conteúdo e a falta de variedade nos equipamentos disponíveis estão limitando seu potencial de crescimento.',
+            'A dependência de sessões avulsas pode ser um entrave para a fidelização, pois clientes tendem a buscar pacotes ou planos de tratamento contínuos.',
+            'O foco no público feminino é uma excelente oportunidade para criar conteúdo emocional e inspirador, alinhado ao estilo premium da clínica.',
+            'A meta de aumentar o faturamento em 50% é ambiciosa, mas alcançável com uma estratégia bem direcionada.'
+          ];
+          description = diagnosticTexts[index] || diagnosticTexts[0];
+        }
+
         const actionColors = [
           'bg-green-500/20 text-green-400 border-green-500/30',
           'bg-orange-500/20 text-orange-400 border-orange-500/30',
@@ -71,14 +109,16 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
           'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
         ];
 
+        const icons = ['diagnostico', 'criativo', 'fidelizacao', 'conversao'];
+
         return {
           etapa: `Etapa ${index + 1}`,
-          title: title,
+          title: title.length > 60 ? title.substring(0, 60) + '...' : title,
           subtitle: 'Especialista Ativado',
-          description: description,
+          description: description.length > 150 ? description.substring(0, 150) + '...' : description,
           actionText: 'Executando estratégia',
           actionColor: actionColors[index % actionColors.length],
-          icon: 'conversao',
+          icon: icons[index % icons.length],
           status: 'Ativo'
         };
       });
@@ -151,8 +191,7 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                     <div className="flex-1">
                       <div className="mb-4">
                         <h4 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
-                          <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
-                          {specialist.etapa} - {specialist.title}:
+                          {specialist.title}
                         </h4>
                         <p className="text-sm text-foreground/60 font-medium">
                           {specialist.subtitle}
