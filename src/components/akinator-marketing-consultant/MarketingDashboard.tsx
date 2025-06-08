@@ -74,6 +74,18 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     return cleaned.length > 80 ? cleaned.substring(0, 80) + '...' : cleaned;
   };
 
+  const handleCreateScript = () => {
+    console.log('Criar roteiro');
+  };
+
+  const handleGenerateImage = () => {
+    console.log('Gerar imagem');
+  };
+
+  const handleDownloadPDF = () => {
+    console.log('Download PDF');
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
@@ -191,7 +203,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
-        <ActionButtons />
+        <ActionButtons 
+          onCreateScript={handleCreateScript}
+          onGenerateImage={handleGenerateImage}
+          onDownloadPDF={handleDownloadPDF}
+        />
       </motion.div>
     </div>
   );

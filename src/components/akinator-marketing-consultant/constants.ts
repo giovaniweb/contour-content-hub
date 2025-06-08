@@ -38,17 +38,20 @@ export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'medicalEquipments',
     question: 'Qual equipamento médico você mais utiliza na sua prática?',
+    options: [],
     condition: (state) => state.clinicType === 'clinica_medica'
   },
   {
     id: 'medicalProblems',
     question: 'Qual problema de saúde/estética seus pacientes mais procuram resolver?',
+    options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_medica'
   },
   {
     id: 'medicalMostSought',
     question: 'Qual é o protocolo mais procurado pelos seus pacientes?',
+    options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_medica'
   },
@@ -123,17 +126,20 @@ export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'aestheticEquipments',
     question: 'Qual equipamento estético você mais utiliza?',
+    options: [],
     condition: (state) => state.clinicType === 'clinica_estetica'
   },
   {
     id: 'aestheticProblems',
     question: 'Qual problema estético seus clientes mais procuram resolver?',
+    options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_estetica'
   },
   {
     id: 'aestheticBestSeller',
     question: 'Qual é o seu protocolo mais vendido?',
+    options: [],
     isOpen: true,
     condition: (state) => state.clinicType === 'clinica_estetica'
   },
@@ -218,6 +224,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'targetAudience',
     question: 'Descreva o seu público-alvo ideal',
+    options: [],
     isOpen: true
   },
   {
