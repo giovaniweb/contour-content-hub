@@ -121,20 +121,7 @@ const ScriptGeneratorPage: React.FC = () => {
                   </Button>
                 </div>
                 <SmartScriptGenerator
-                  currentStep={currentStep}
-                  intention={intention}
-                  onAnswer={(step, value) => {
-                    console.log('📝 Resposta recebida:', step, value);
-                    // Lógica de navegação entre passos do formulário
-                    if (step === 'tema') {
-                      handleThemeInput(value);
-                    } else {
-                      // Atualizar intenção e navegar
-                      setIntention(prev => ({ ...prev, [step]: value }));
-                      // Navegar para próximo passo conforme lógica da árvore
-                    }
-                  }}
-                  onThemeSubmit={handleThemeInput}
+                  onGenerate={handleThemeInput}
                   isGenerating={isGenerating}
                 />
               </div>
