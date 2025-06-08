@@ -162,15 +162,15 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
         </div>
       </div>
 
-      {/* Specialists Horizontal Layout */}
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-purple-500/30 scrollbar-track-transparent">
+      {/* Specialists Vertical Layout */}
+      <div className="space-y-6">
         {specialistData.map((specialist, index) => {
           const IconComponent = getSpecialistIcon(specialist.icon);
           
           return (
             <Card 
               key={index} 
-              className="group relative overflow-hidden aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1 min-w-[320px] flex-shrink-0"
+              className="group relative overflow-hidden aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1"
             >
               {/* Background gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
