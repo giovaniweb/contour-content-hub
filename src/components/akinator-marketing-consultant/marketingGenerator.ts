@@ -1,5 +1,7 @@
+
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
+import { generateAIDiagnostic } from '@/utils/aiDiagnosticUtils';
 
 export const generateMarketingDiagnostic = async (
   state: MarketingConsultantState, 
@@ -8,9 +10,7 @@ export const generateMarketingDiagnostic = async (
   // Se usar IA estiver habilitado, tentar gerar via OpenAI primeiro
   if (useAI) {
     try {
-      const { generateDiagnostic } = await import('@/hooks/useAIDiagnostic');
-      // Como não podemos usar hooks fora de componentes, vamos usar diretamente a função
-      const aiDiagnostic = await callAIDiagnostic(state);
+      const aiDiagnostic = await generateAIDiagnostic(state);
       if (aiDiagnostic) {
         return aiDiagnostic;
       }
