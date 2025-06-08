@@ -50,8 +50,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const handleOptionSelect = async (value: string) => {
     const currentQuestion = MARKETING_STEPS[currentStep];
     
-    console.log('Resposta selecionada:', value, 'Step atual:', currentStep);
-    console.log('Pergunta atual:', currentQuestion);
+    console.log('🟢 INÍCIO handleOptionSelect');
+    console.log('🔵 Resposta selecionada:', value);
+    console.log('🔵 Step atual:', currentStep);
+    console.log('🔵 Pergunta atual:', currentQuestion);
+    console.log('🔵 Estado atual antes da atualização:', state);
     
     // Atualizar o estado com a resposta usando o ID da pergunta
     const newState = {
@@ -60,24 +63,29 @@ const AkinatorMarketingConsultant: React.FC = () => {
     };
     
     setState(newState);
-    console.log('Estado atualizado:', newState);
+    console.log('🟡 Estado atualizado:', newState);
     
     // Encontrar a próxima pergunta válida
     const nextStep = getNextValidQuestion(currentStep, newState);
-    console.log('Próximo step calculado:', nextStep, 'Total steps:', MARKETING_STEPS.length);
+    console.log('🟡 Próximo step calculado:', nextStep);
+    console.log('🟡 Total steps disponíveis:', MARKETING_STEPS.length);
     
     if (nextStep >= MARKETING_STEPS.length) {
       // Chegou ao fim do questionário
-      console.log('Fim do questionário detectado, iniciando processamento...');
+      console.log('🔴 FIM DO QUESTIONÁRIO DETECTADO - iniciando processamento');
       setIsProcessing(true);
       setProcessingError(null);
       
       try {
         // Gerar diagnóstico usando IA
         toast.loading("Processando seu diagnóstico...", { id: "processing" });
+        console.log('🟣 Chamando generateMarketingDiagnostic com estado:', newState);
         
         const diagnostic = await generateMarketingDiagnostic(newState);
+        console.log('🟣 Diagnóstico recebido:', diagnostic);
+        
         const sections = await generateAIMarketingSections(newState);
+        console.log('🟣 Seções AI recebidas:', sections);
         
         const finalState = {
           ...newState,
@@ -88,9 +96,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
         setAiSections(sections);
         
         toast.success("Diagnóstico concluído!", { id: "processing" });
+        console.log('🟢 Processamento concluído - indo para dashboard');
         setShowDashboard(true);
+        setIsProcessing(false);
       } catch (error) {
-        console.error('Erro ao gerar diagnóstico:', error);
+        console.error('🔴 ERRO no processamento:', error);
         setProcessingError('Erro ao processar diagnóstico com IA');
         
         // Permitir continuar mesmo com erro na API
@@ -103,24 +113,27 @@ const AkinatorMarketingConsultant: React.FC = () => {
         toast.error("Erro na IA, mas suas respostas foram salvas", { id: "processing" });
         
         // Continuar para o dashboard mesmo com erro
+        console.log('🟡 Continuando para dashboard mesmo com erro da IA');
         setTimeout(() => {
           setShowDashboard(true);
           setIsProcessing(false);
         }, 2000);
       }
     } else {
-      console.log('Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
+      console.log('🟢 Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
       setCurrentStep(nextStep);
       
       toast.success("Resposta salva!", {
         description: "Continuando para a próxima pergunta..."
       });
     }
+    
+    console.log('🟢 FIM handleOptionSelect');
   };
 
   const handleGoBack = () => {
     const previousStep = getPreviousValidQuestion(currentStep, state);
-    console.log('Voltando para step:', previousStep);
+    console.log('⬅️ Voltando para step:', previousStep);
     setCurrentStep(previousStep);
     
     toast.info("Voltando à pergunta anterior", {
@@ -129,7 +142,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleRestart = () => {
-    console.log('Reiniciando diagnóstico...');
+    console.log('🔄 Reiniciando diagnóstico...');
     setState({
       clinicType: '',
       medicalSpecialty: '',
@@ -189,13 +202,18 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const currentQuestionNumber = getCurrentQuestionNumber(currentStep, state);
   const progress = (currentQuestionNumber / totalQuestions) * 100;
 
-  // Debug logs
-  console.log('Renderização - currentStep:', currentStep);
-  console.log('Renderização - currentQuestion:', currentQuestion);
-  console.log('Renderização - shouldShow:', currentQuestion ? shouldShowQuestion(currentStep, state) : false);
-  console.log('Renderização - state:', state);
+  // Debug logs detalhados
+  console.log('🔍 RENDERIZAÇÃO PRINCIPAL:');
+  console.log('🔹 currentStep:', currentStep);
+  console.log('🔹 currentQuestion:', currentQuestion);
+  console.log('🔹 shouldShow:', currentQuestion ? shouldShowQuestion(currentStep, state) : false);
+  console.log('🔹 state:', state);
+  console.log('🔹 showDashboard:', showDashboard);
+  console.log('🔹 showResult:', showResult);
+  console.log('🔹 isProcessing:', isProcessing);
 
   if (showDashboard) {
+    console.log('📊 Renderizando Dashboard');
     return (
       <MarketingDashboard 
         state={state}
@@ -207,6 +225,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   }
 
   if (showResult) {
+    console.log('📋 Renderizando Result');
     return (
       <MarketingResult 
         onRestart={handleRestart}
@@ -216,6 +235,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   }
 
   if (isProcessing) {
+    console.log('⏳ Renderizando Processing');
     return (
       <div className="container mx-auto max-w-4xl py-12">
         <motion.div
@@ -274,7 +294,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   // Verificar se a pergunta atual é válida
   if (!currentQuestion) {
-    console.error('Pergunta não encontrada para step:', currentStep);
+    console.error('❌ Pergunta não encontrada para step:', currentStep);
     return (
       <div className="text-center py-12">
         <p className="text-lg text-gray-400">Erro: Pergunta não encontrada</p>
@@ -286,11 +306,16 @@ const AkinatorMarketingConsultant: React.FC = () => {
   }
 
   if (!shouldShowQuestion(currentStep, state)) {
-    console.log('Pergunta não deve ser mostrada, buscando próxima...');
+    console.log('⏭️ Pergunta não deve ser mostrada, buscando próxima...');
     // Se a pergunta atual não deve ser mostrada, navegar automaticamente
     const nextValidStep = getNextValidQuestion(currentStep, state);
+    console.log('⏭️ Próximo step válido encontrado:', nextValidStep);
+    
     if (nextValidStep < MARKETING_STEPS.length && nextValidStep !== currentStep) {
+      console.log('⏭️ Navegando automaticamente para:', nextValidStep);
       setTimeout(() => setCurrentStep(nextValidStep), 100);
+    } else {
+      console.log('🏁 Chegamos ao fim automaticamente');
     }
     
     return (
@@ -302,6 +327,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
       </div>
     );
   }
+
+  console.log('✅ Renderizando pergunta normalmente');
 
   return (
     <div className="container mx-auto max-w-6xl py-6">
