@@ -79,6 +79,14 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const { equipments, loading, error } = useEquipments();
   const { showNotification } = useSlideNotifications();
 
+  // Log para debug dos equipamentos carregados
+  useEffect(() => {
+    console.log('Equipments loaded:', equipments);
+    console.log('Loading:', loading);
+    console.log('Error:', error);
+    console.log('Step ID:', stepData.id);
+  }, [equipments, loading, error, stepData.id]);
+
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
     if (currentStep === 0) {
@@ -172,13 +180,17 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   };
 
   const getEquipmentOptions = () => {
+    console.log('getEquipmentOptions called - stepData.id:', stepData.id);
+    
     if (loading) {
+      console.log('Still loading equipments...');
       return [
         { value: 'loading', label: '⏳ Carregando equipamentos...' }
       ];
     }
 
     if (error) {
+      console.log('Error loading equipments:', error);
       return [
         { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
         { value: 'outros', label: '🔧 Outros Equipamentos' }
@@ -186,26 +198,50 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     }
 
     if (!equipments || equipments.length === 0) {
+      console.log('No equipments found');
       return [
         { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
         { value: 'outros', label: '🔧 Outros Equipamentos' }
       ];
     }
 
-    const equipmentOptions = equipments.map(equipment => ({
+    // Para clínicas estéticas, mostrar todos os equipamentos (incluindo estéticos)
+    // Para clínicas médicas, também mostrar todos
+    const filteredEquipments = equipments.filter(equipment => {
+      // Se não tem categoria definida, incluir
+      if (!equipment.categoria) return true;
+      
+      // Para pergunta de equipamentos estéticos, mostrar preferencialmente estéticos
+      if (stepData.id === 'aestheticEquipments') {
+        return equipment.categoria === 'estetico' || !equipment.categoria;
+      }
+      
+      // Para equipamentos médicos, mostrar todos
+      return true;
+    });
+
+    console.log('Filtered equipments:', filteredEquipments);
+
+    const equipmentOptions = filteredEquipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
       label: `🔬 ${equipment.nome}`
     }));
 
-    return [
+    const finalOptions = [
       ...equipmentOptions,
       { value: 'outros', label: '🔧 Outros Equipamentos' },
       { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
     ];
+
+    console.log('Final equipment options:', finalOptions);
+    return finalOptions;
   };
 
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
   const optionsToShow = shouldUseDynamicEquipments && !stepData.isOpen ? getEquipmentOptions() : stepData.options || [];
+
+  console.log('Should use dynamic equipments:', shouldUseDynamicEquipments);
+  console.log('Options to show:', optionsToShow);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
