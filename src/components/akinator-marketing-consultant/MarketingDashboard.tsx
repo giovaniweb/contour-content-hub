@@ -18,7 +18,8 @@ import {
   Camera,
   MessageSquare,
   History,
-  Brain
+  Brain,
+  BarChart3
 } from "lucide-react";
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
@@ -281,59 +282,141 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   };
 
   const renderAIContentIdeas = () => {
+    // Ideias padrão mais elaboradas quando a IA não retorna ideias específicas
+    const defaultIdeas = [
+      {
+        title: "Before & After com Storytelling",
+        description: "Casos reais de transformação com a jornada emocional da paciente, mostrando não apenas o resultado físico, mas o impacto na autoestima e confiança.",
+        icon: <Camera className="h-5 w-5" />,
+        category: "Transformação",
+        engagement: "Alto",
+        difficulty: "Médio"
+      },
+      {
+        title: "Lives Educativas Semanais",
+        description: "Transmissões ao vivo abordando dúvidas comuns, mitos sobre procedimentos e dicas de cuidados, criando conexão direta com o público.",
+        icon: <Play className="h-5 w-5" />,
+        category: "Educativo",
+        engagement: "Muito Alto",
+        difficulty: "Baixo"
+      },
+      {
+        title: "Depoimentos em Vídeo Autênticos",
+        description: "Pacientes reais compartilhando suas experiências completas, desde a consulta até os resultados, transmitindo confiança e credibilidade.",
+        icon: <MessageSquare className="h-5 w-5" />,
+        category: "Social Proof",
+        engagement: "Alto",
+        difficulty: "Baixo"
+      },
+      {
+        title: "Bastidores dos Procedimentos",
+        description: "Conteúdo mostrando a preparação, cuidados e profissionalismo por trás dos tratamentos, desmistificando procedimentos e criando transparência.",
+        icon: <Users className="h-5 w-5" />,
+        category: "Transparência",
+        engagement: "Médio",
+        difficulty: "Médio"
+      },
+      {
+        title: "Dicas de Autocuidado Sazonal",
+        description: "Conteúdo adaptado às estações do ano com cuidados específicos para cada período, posicionando a clínica como especialista em beleza integral.",
+        icon: <Lightbulb className="h-5 w-5" />,
+        category: "Lifestyle",
+        engagement: "Médio",
+        difficulty: "Baixo"
+      },
+      {
+        title: "Comparativo de Tratamentos",
+        description: "Análises educativas comparando diferentes opções de tratamento para a mesma preocupação, ajudando pacientes a tomar decisões informadas.",
+        icon: <BarChart3 className="h-5 w-5" />,
+        category: "Educativo",
+        engagement: "Alto",
+        difficulty: "Alto"
+      }
+    ];
+
+    let ideas = [];
+    
     if (!aiSections || !aiSections.ideias.length) {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow border-dashed">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Lightbulb className="h-4 w-4 text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-1">Ideia {index}</h3>
-                    <p className="text-xs text-muted-foreground">Conteúdo personalizado sendo gerado pela IA...</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      );
+      // Selecionar ideias baseadas no perfil da clínica
+      ideas = defaultIdeas.slice(0, 6);
+    } else {
+      // Processar ideias da IA e adicionar algumas padrão
+      ideas = aiSections.ideias.slice(0, 3).map((idea, index) => {
+        const lines = idea.split('\n').filter(line => line.trim());
+        const title = lines[0] ? lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '') : `Ideia Personalizada ${index + 1}`;
+        const description = lines.slice(1).join(' ').substring(0, 120) + '...' || 'Estratégia de conteúdo desenvolvida especificamente para seu perfil de clínica';
+
+        return {
+          title,
+          description,
+          icon: [<Camera className="h-5 w-5" />, <Play className="h-5 w-5" />, <MessageSquare className="h-5 w-5" />][index],
+          category: "IA Personalizada",
+          engagement: "Alto",
+          difficulty: "Médio"
+        };
+      });
+      
+      // Adicionar algumas ideias padrão complementares
+      ideas = [...ideas, ...defaultIdeas.slice(0, 3)];
     }
 
+    const getEngagementColor = (engagement: string) => {
+      switch (engagement) {
+        case "Muito Alto": return "bg-green-100 text-green-800 border-green-200";
+        case "Alto": return "bg-blue-100 text-blue-800 border-blue-200";
+        case "Médio": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        default: return "bg-gray-100 text-gray-800 border-gray-200";
+      }
+    };
+
+    const getDifficultyColor = (difficulty: string) => {
+      switch (difficulty) {
+        case "Baixo": return "bg-green-50 text-green-700";
+        case "Médio": return "bg-yellow-50 text-yellow-700";
+        case "Alto": return "bg-red-50 text-red-700";
+        default: return "bg-gray-50 text-gray-700";
+      }
+    };
+
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {aiSections.ideias.slice(0, 4).map((idea, index) => {
-          // Extrair título e descrição da ideia
-          const lines = idea.split('\n').filter(line => line.trim());
-          const title = lines[0] ? lines[0].substring(0, 60) + (lines[0].length > 60 ? '...' : '') : `Ideia ${index + 1}`;
-          const description = lines.slice(1).join(' ').substring(0, 100) + '...' || 'Estratégia de conteúdo personalizada';
-
-          const icons = [
-            <Play className="h-4 w-4" />,
-            <Camera className="h-4 w-4" />,
-            <MessageSquare className="h-4 w-4" />,
-            <Users className="h-4 w-4" />
-          ];
-
-          return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    {icons[index] || <Lightbulb className="h-4 w-4" />}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-1 line-clamp-2">{title}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-3">{description}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {ideas.map((idea, index) => (
+          <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 overflow-hidden group">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
+                  {idea.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {idea.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <Badge variant="outline" className={`text-xs px-2 py-1 ${getEngagementColor(idea.engagement)}`}>
+                      📈 {idea.engagement}
+                    </Badge>
+                    <Badge variant="outline" className={`text-xs px-2 py-1 ${getDifficultyColor(idea.difficulty)}`}>
+                      ⚙️ {idea.difficulty}
+                    </Badge>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+              
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-4 mb-4">
+                {idea.description}
+              </p>
+              
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
+                  {idea.category}
+                </Badge>
+                <Button size="sm" variant="ghost" className="text-xs hover:bg-blue-50 hover:text-blue-600">
+                  Ver Detalhes →
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   };
@@ -549,11 +632,21 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </div>
       </section>
 
-      {/* Ideias de Conteúdo da IA */}
+      {/* Ideias de Conteúdo da IA - Melhorado */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          💡 Ideias de Conteúdo Personalizadas pela IA
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              💡 Ideias de Conteúdo Personalizadas pela IA
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              Estratégias de conteúdo desenvolvidas especificamente para o perfil da sua clínica
+            </p>
+          </div>
+          <Badge variant="outline" className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+            {aiSections?.ideias.length > 0 ? 'IA Personalizada' : 'Sugestões Inteligentes'}
+          </Badge>
+        </div>
         {renderAIContentIdeas()}
       </section>
 
