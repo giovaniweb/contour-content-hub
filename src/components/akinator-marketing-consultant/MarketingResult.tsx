@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,8 @@ import {
   Brain,
   Lightbulb,
   Target,
-  TrendingUp
+  TrendingUp,
+  ArrowRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
@@ -25,9 +27,14 @@ import { supabase } from '@/integrations/supabase/client';
 interface MarketingResultProps {
   consultantData: MarketingConsultantState;
   equipments: Equipment[];
+  onViewDashboard?: (diagnostic: string) => void;
 }
 
-const MarketingResult: React.FC<MarketingResultProps> = ({ consultantData, equipments }) => {
+const MarketingResult: React.FC<MarketingResultProps> = ({ 
+  consultantData, 
+  equipments, 
+  onViewDashboard 
+}) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState<string>('');
@@ -227,6 +234,12 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
     generateDiagnostic();
   };
 
+  const handleViewDashboard = () => {
+    if (onViewDashboard) {
+      onViewDashboard(diagnosticResult);
+    }
+  };
+
   if (isGenerating) {
     const currentPhaseData = generationPhases[currentPhase];
     const CurrentIcon = currentPhaseData.icon;
@@ -377,7 +390,7 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
                 <Share2 className="h-4 w-4 mr-2" />
                 Compartilhar
               </Button>
-              <Button onClick={handleDownloadPDF} size="sm">
+              <Button onClick={handleDownloadPDF} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 PDF
               </Button>
@@ -397,6 +410,27 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
               }}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Call to Action para ver Dashboard */}
+      <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+        <CardContent className="p-6 text-center">
+          <h3 className="text-xl font-bold text-foreground mb-3">
+            🎯 Visualizar Dashboard Estratégico
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Veja seu diagnóstico organizado em cards interativos com ideias de conteúdo, estratégias e plano de ação estruturado.
+          </p>
+          <Button 
+            onClick={handleViewDashboard}
+            size="lg"
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Sparkles className="h-5 w-5 mr-2" />
+            Abrir Dashboard Completo
+            <ArrowRight className="h-5 w-5 ml-2" />
+          </Button>
         </CardContent>
       </Card>
 
