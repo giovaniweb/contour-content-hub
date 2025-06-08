@@ -75,48 +75,46 @@ export default function Sidebar() {
       <SidebarComponent className="bg-transparent border-r border-white/20 relative z-10">
         <SidebarHeader className="border-b border-white/20 p-6">
           <div className="flex items-center justify-between">
-            {open && (
+            <motion.div 
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <motion.div 
-                className="flex items-center gap-4"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
+                className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg"
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
               >
-                <motion.div 
-                  className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg"
+                <motion.div
                   animate={{
-                    rotate: [0, 360],
+                    scale: [1, 1.1, 1],
                   }}
                   transition={{
-                    duration: 20,
+                    duration: 2,
                     repeat: Infinity,
-                    ease: "linear"
+                    ease: "easeInOut"
                   }}
                 >
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 opacity-50 blur-md" />
+                  <Sparkles className="w-6 h-6 text-white" />
                 </motion.div>
-                <div>
-                  <div className="font-bold text-2xl text-white mb-1 drop-shadow-lg">
-                    Fluida
-                  </div>
-                  <div className="text-xs text-white/80 font-medium">
-                    Plataforma de Conteúdo
-                  </div>
-                </div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 opacity-50 blur-md" />
               </motion.div>
-            )}
+              <div className={cn("transition-all duration-300", !open && "opacity-0 w-0 overflow-hidden")}>
+                <div className="font-bold text-2xl text-white mb-1 drop-shadow-lg">
+                  Fluida
+                </div>
+                <div className="text-xs text-white/80 font-medium">
+                  Plataforma de Conteúdo
+                </div>
+              </div>
+            </motion.div>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -132,7 +130,7 @@ export default function Sidebar() {
           {/* Display all sidebar groups from our data */}
           {sidebarData.map((group, groupIndex) => (
             <SidebarGroup key={group.name} className="mb-8">
-              <SidebarGroupLabel className={cn(!open && "sr-only", "text-sm font-bold text-white/90 uppercase tracking-widest mb-4 px-3 drop-shadow-md")}>
+              <SidebarGroupLabel className={cn("text-sm font-bold text-white/90 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
                 {group.name}
               </SidebarGroupLabel>
               <SidebarMenu className="space-y-2">
@@ -152,7 +150,7 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(item.path)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
                           "text-white hover:text-white",
                           isActive(item.path) 
                             ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg backdrop-blur-sm border border-white/20" 
@@ -160,7 +158,7 @@ export default function Sidebar() {
                           item.highlight && "relative"
                         )}
                       >
-                        <Link to={item.path}>
+                        <Link to={item.path} className="flex items-center gap-4 w-full">
                           {/* Gradient background for active items */}
                           {isActive(item.path) && (
                             <motion.div
@@ -173,30 +171,33 @@ export default function Sidebar() {
                           
                           {/* Icon with improved visibility */}
                           <div className={cn(
-                            "relative flex-shrink-0 transition-all duration-300",
+                            "relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6",
                             isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]"
                           )}>
-                            <item.icon className="h-6 w-6" />
+                            <item.icon className="h-6 w-6 text-white" />
                           </div>
                           
-                          {open && (
-                            <>
-                              <span className="flex-1 relative z-10 font-medium">{item.name}</span>
-                              {item.highlight && (
-                                <motion.div
-                                  className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg"
-                                  animate={{ 
-                                    scale: [1, 1.3, 1], 
-                                    opacity: [0.7, 1, 0.7] 
-                                  }}
-                                  transition={{ 
-                                    duration: 2, 
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                  }}
-                                />
-                              )}
-                            </>
+                          {/* Text always visible */}
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-white transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            {item.name}
+                          </span>
+                          
+                          {item.highlight && open && (
+                            <motion.div
+                              className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg flex-shrink-0"
+                              animate={{ 
+                                scale: [1, 1.3, 1], 
+                                opacity: [0.7, 1, 0.7] 
+                              }}
+                              transition={{ 
+                                duration: 2, 
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
                           )}
                         </Link>
                       </SidebarMenuButton>
@@ -220,18 +221,23 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(ROUTES.VIDEOS.CREATE)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
                           "text-cyan-200 hover:text-cyan-100",
                           isActive(ROUTES.VIDEOS.CREATE) 
                             ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-100 shadow-lg backdrop-blur-sm border border-cyan-400/30" 
                             : "hover:bg-cyan-500/15 hover:backdrop-blur-sm"
                         )}
                       >
-                        <Link to={ROUTES.VIDEOS.CREATE}>
-                          <div className="relative flex-shrink-0 transition-all duration-300">
-                            <PlusCircle className="h-6 w-6" />
+                        <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-4 w-full">
+                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
+                            <PlusCircle className="h-6 w-6 text-cyan-200" />
                           </div>
-                          {open && <span className="flex-1 relative z-10 font-medium">Criar Vídeo</span>}
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-cyan-200 transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            Criar Vídeo
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -244,7 +250,7 @@ export default function Sidebar() {
           {/* Admin menu */}
           {isAdmin && (
             <SidebarGroup className="mt-8 pt-6 border-t border-white/20">
-              <SidebarGroupLabel className={cn(!open && "sr-only", "text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md")}>
+              <SidebarGroupLabel className={cn("text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
                 Administração
               </SidebarGroupLabel>
               <SidebarMenu className="space-y-2">
@@ -264,18 +270,23 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(item.path)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[48px]",
                           "text-orange-100 hover:text-orange-50",
                           isActive(item.path) 
                             ? "bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-50 shadow-lg backdrop-blur-sm border border-orange-400/30" 
                             : "hover:bg-orange-500/15 hover:backdrop-blur-sm text-orange-200/85 hover:text-orange-100"
                         )}
                       >
-                        <Link to={item.path}>
-                          <div className="relative flex-shrink-0 transition-all duration-300">
-                            <item.icon className="h-6 w-6" />
+                        <Link to={item.path} className="flex items-center gap-4 w-full">
+                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-6 h-6">
+                            <item.icon className="h-6 w-6 text-orange-100" />
                           </div>
-                          {open && <span className="flex-1 relative z-10 font-medium">{item.name}</span>}
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-orange-100 transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            {item.name}
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -287,44 +298,37 @@ export default function Sidebar() {
         </SidebarContent>
         
         <SidebarFooter className="border-t border-white/20 p-4">
-          {open ? (
-            <motion.div 
-              className="space-y-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+          <motion.div 
+            className="space-y-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Link 
+              to={ROUTES.PROFILE} 
+              className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group min-h-[48px]"
             >
-              <Link 
-                to={ROUTES.PROFILE} 
-                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group"
-              >
-                <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
-                <span className="flex-1">Perfil</span>
-              </Link>
-              <Link 
-                to="/help" 
-                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group"
-              >
-                <HelpCircle className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
-                <span className="flex-1">Ajuda</span>
-              </Link>
-            </motion.div>
-          ) : (
-            <div className="flex flex-col items-center space-y-3">
-              <Link 
-                to={ROUTES.PROFILE} 
-                className="p-3 rounded-xl text-white hover:text-white hover:bg-white/15 transition-all duration-300 hover:scale-110"
-              >
-                <User className="h-6 w-6" />
-              </Link>
-              <Link 
-                to="/help" 
-                className="p-3 rounded-xl text-white hover:text-white hover:bg-white/15 transition-all duration-300 hover:scale-110"
-              >
-                <HelpCircle className="h-6 w-6" />
-              </Link>
-            </div>
-          )}
+              <User className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+              <span className={cn(
+                "flex-1 text-white transition-all duration-300",
+                !open && "opacity-0 w-0 overflow-hidden"
+              )}>
+                Perfil
+              </span>
+            </Link>
+            <Link 
+              to="/help" 
+              className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group min-h-[48px]"
+            >
+              <HelpCircle className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+              <span className={cn(
+                "flex-1 text-white transition-all duration-300",
+                !open && "opacity-0 w-0 overflow-hidden"
+              )}>
+                Ajuda
+              </span>
+            </Link>
+          </motion.div>
         </SidebarFooter>
       </SidebarComponent>
     </div>
