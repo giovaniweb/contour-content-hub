@@ -214,11 +214,23 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   if (showDashboard) {
     console.log('📊 Renderizando Dashboard');
+    
+    // Validação de segurança antes de renderizar o dashboard
+    const safeState = {
+      ...state,
+      generatedDiagnostic: state.generatedDiagnostic || 'Diagnóstico em processamento...'
+    };
+    
+    const safeMentor = mentor || null;
+    const safeAiSections = aiSections || null;
+    
+    console.log('📊 Dashboard - dados seguros:', { safeState, safeMentor, safeAiSections });
+    
     return (
       <MarketingDashboard 
-        state={state}
-        mentor={mentor}
-        aiSections={aiSections}
+        state={safeState}
+        mentor={safeMentor}
+        aiSections={safeAiSections}
         onRestart={handleRestart}
       />
     );

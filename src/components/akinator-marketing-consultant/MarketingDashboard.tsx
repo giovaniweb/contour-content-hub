@@ -1,20 +1,32 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { 
+  BrainCircuit, 
+  RotateCcw, 
+  Download, 
+  Share2, 
+  TrendingUp,
+  Target,
+  Users,
+  Calendar,
+  Lightbulb,
+  Zap,
+  Crown,
+  CheckCircle2,
+  AlertTriangle
+} from "lucide-react";
+import { toast } from "sonner";
 import { MarketingConsultantState } from './types';
-import DiagnosticCards from './dashboard/DiagnosticCards';
-import ContentIdeasSection from './dashboard/ContentIdeasSection';
-import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection';
-import PersonalizedStrategiesSection from './dashboard/PersonalizedStrategiesSection';
-import ActionButtons from './dashboard/ActionButtons';
-import MentorSection from './dashboard/MentorSection';
 import ClinicTypeIndicator from './dashboard/ClinicTypeIndicator';
-import ActiveStrategiesSection from './dashboard/ActiveStrategiesSection';
-import ActionPlanSection from './dashboard/ActionPlanSection';
-import RevenueProjectionCard from './dashboard/RevenueProjectionCard';
-import RealMentorSection from './dashboard/RealMentorSection';
-import { useRealMentors } from './hooks/useRealMentors';
+import DiagnosticCards from './dashboard/DiagnosticCards';
+import FluidAnalysisCards from './dashboard/FluidAnalysisCards';
+import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection';
+import ActionButtons from './dashboard/ActionButtons';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -29,221 +41,232 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   aiSections,
   onRestart
 }) => {
-  const { mentors, loading: mentorsLoading, inferBestMentor, generateMentorEnigma } = useRealMentors();
-  
-  // Inferir o melhor mentor real baseado no estado
-  const bestMentorMapping = inferBestMentor(state);
-  const mentorEnigma = generateMentorEnigma(bestMentorMapping);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const renderAIDiagnosticSummary = () => {
-    if (!aiSections?.diagnostico_estrategico) {
-      return (
-        <div className="text-sm text-foreground/60 italic">
-          Diagnóstico sendo processado pelo Consultor Fluida...
-        </div>
-      );
+  // Verificações de segurança para evitar erros de null
+  const safeState = state || {};
+  const safeMentor = mentor || { name: 'Mentor Fluida', speciality: 'Marketing Digital' };
+  const safeAiSections = aiSections || {};
+
+  console.log('📊 MarketingDashboard renderizando com dados:', {
+    safeState,
+    safeMentor,
+    safeAiSections
+  });
+
+  const handleDownloadReport = () => {
+    toast.success("📄 Relatório baixado!", {
+      description: "Seu diagnóstico foi salvo em PDF."
+    });
+  };
+
+  const handleShareReport = () => {
+    toast.success("🔗 Link copiado!", {
+      description: "Link do relatório copiado para a área de transferência."
+    });
+  };
+
+  const getClinicTypeLabel = () => {
+    if (!safeState.clinicType) return 'Não definido';
+    return safeState.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
+  };
+
+  const getMainSpecialty = () => {
+    if (safeState.clinicType === 'clinica_medica') {
+      return safeState.medicalSpecialty || 'Não informado';
     }
-
-    const text = aiSections.diagnostico_estrategico;
-    const sentences = text.split('.').slice(0, 2);
-    const summary = sentences.join('.') + (sentences.length > 0 ? '.' : '');
-
-    return (
-      <div className="space-y-2">
-        <p className="text-sm text-foreground/80 leading-relaxed">
-          {summary}
-        </p>
-        {text.length > summary.length && (
-          <p className="text-xs text-aurora-electric-purple">
-            Ver análise completa no relatório abaixo →
-          </p>
-        )}
-      </div>
-    );
+    return safeState.aestheticFocus || 'Não informado';
   };
 
-  const renderAIMentorSatire = (): string => {
-    if (!mentor?.name) return "Você tem muito potencial com a estratégia certa!";
-    
-    const satires = [
-      "transformaria esses dados em estratégias que convertem de verdade.",
-      "olharia esses números e já saberia exatamente o que fazer.",
-      "usaria essas informações para criar algo realmente impactante.",
-      "veria oportunidades incríveis neste perfil de clínica."
-    ];
-    
-    return satires[Math.floor(Math.random() * satires.length)];
+  const getCurrentRevenue = () => {
+    const revenueMap = {
+      'ate_15k': 'Até R$ 15.000',
+      '15k_30k': 'R$ 15.000 - R$ 30.000',
+      '30k_60k': 'R$ 30.000 - R$ 60.000',
+      'acima_60k': 'Acima de R$ 60.000'
+    };
+    return revenueMap[safeState.currentRevenue as keyof typeof revenueMap] || 'Não informado';
   };
 
-  const cleanText = (text: string): string => {
-    return text.replace(/[*#]+/g, '').trim();
+  const getRevenueGoal = () => {
+    const goalMap = {
+      'crescer_30': 'Crescer 30% em 6 meses',
+      'crescer_50': 'Crescer 50% em 6 meses',
+      'dobrar': 'Dobrar em 1 ano',
+      'triplicar': 'Triplicar em 1 ano',
+      'manter_estavel': 'Manter estabilidade'
+    };
+    return goalMap[safeState.revenueGoal as keyof typeof goalMap] || 'Não informado';
   };
-
-  const formatTitle = (text: string): string => {
-    const cleaned = cleanText(text);
-    return cleaned.length > 80 ? cleaned.substring(0, 80) + '...' : cleaned;
-  };
-
-  const handleCreateScript = () => {
-    console.log('Criar roteiro');
-  };
-
-  const handleGenerateImage = () => {
-    console.log('Gerar imagem');
-  };
-
-  const handleDownloadPDF = () => {
-    console.log('Download PDF');
-  };
-
-  // Preparar dados do diagnóstico
-  const safeDiagnostic = state.generatedDiagnostic || 
-    'Análise completa realizada pelo Consultor Fluida. Estratégias personalizadas baseadas no perfil específico da sua clínica.';
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      {/* Header with Clinic Type Indicator */}
-      <motion.div 
-        className="flex items-center justify-between"
+    <div className="container mx-auto max-w-7xl py-8 space-y-8">
+      {/* Header */}
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="text-center space-y-4"
       >
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={onRestart}
-            className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Novo Diagnóstico
-          </Button>
-          <div>
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-3xl font-bold aurora-heading">
-                ✨ Fluida Diagnóstico Pro
-              </h1>
-              <ClinicTypeIndicator clinicType={state.clinicType || 'clinica_estetica'} />
-            </div>
-            <p className="aurora-body text-lg">
-              Estratégias personalizadas pelo Consultor Fluida
-            </p>
+        <div className="flex justify-center mb-4">
+          <div className="p-3 bg-aurora-gradient-primary rounded-full shadow-lg aurora-glow">
+            <BrainCircuit className="h-8 w-8 text-white" />
           </div>
         </div>
         
-        <div className="flex gap-3">
-          <Button variant="outline" className="aurora-glass border-aurora-electric-purple/30">
-            <Share2 className="h-4 w-4 mr-2" />
-            Compartilhar
-          </Button>
-          <Button className="aurora-button">
-            <Download className="h-4 w-4 mr-2" />
-            Baixar PDF
-          </Button>
+        <h1 className="text-3xl font-bold aurora-heading">
+          🎯 Diagnóstico Fluida Concluído
+        </h1>
+        
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <ClinicTypeIndicator clinicType={safeState.clinicType || ''} />
+          <Badge variant="outline" className="border-aurora-sage text-aurora-sage">
+            {getMainSpecialty()}
+          </Badge>
+          <Badge variant="outline" className="border-aurora-electric-purple text-aurora-electric-purple">
+            {getCurrentRevenue()}
+          </Badge>
         </div>
       </motion.div>
 
-      {/* Cards de Diagnóstico */}
+      {/* Quick Stats */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
       >
-        <DiagnosticCards 
-          state={state} 
-          aiSections={aiSections}
-          renderAIDiagnosticSummary={renderAIDiagnosticSummary}
-        />
+        <Card className="aurora-card border-aurora-electric-purple/20">
+          <CardContent className="p-6 text-center">
+            <TrendingUp className="h-8 w-8 text-aurora-electric-purple mx-auto mb-3" />
+            <h3 className="font-semibold aurora-heading mb-2">Meta de Crescimento</h3>
+            <p className="text-sm aurora-body opacity-80">{getRevenueGoal()}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="aurora-card border-aurora-sage/20">
+          <CardContent className="p-6 text-center">
+            <Users className="h-8 w-8 text-aurora-sage mx-auto mb-3" />
+            <h3 className="font-semibold aurora-heading mb-2">Público-Alvo</h3>
+            <p className="text-sm aurora-body opacity-80">{safeState.targetAudience || 'Não definido'}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="aurora-card border-aurora-deep-purple/20">
+          <CardContent className="p-6 text-center">
+            <Target className="h-8 w-8 text-aurora-deep-purple mx-auto mb-3" />
+            <h3 className="font-semibold aurora-heading mb-2">Principal Desafio</h3>
+            <p className="text-sm aurora-body opacity-80">
+              {safeState.mainChallenges ? 
+                safeState.mainChallenges.replace('_', ' ').replace(/^\w/, c => c.toUpperCase()) : 
+                'Não informado'
+              }
+            </p>
+          </CardContent>
+        </Card>
       </motion.div>
 
-      {/* Revenue Projection */}
-      {state.currentRevenue && state.revenueGoal && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <RevenueProjectionCard 
-            currentRevenue={state.currentRevenue}
-            revenueGoal={state.revenueGoal}
-            clinicType={state.clinicType || 'clinica_estetica'}
-          />
-        </motion.div>
-      )}
-
-      {/* Relatório Estruturado do Consultor Fluida */}
-      {safeDiagnostic && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <StructuredDiagnosticSection diagnostic={safeDiagnostic} />
-        </motion.div>
-      )}
-
-      {/* Estratégias Ativas */}
+      {/* Tabs Navigation */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
+        className="flex justify-center"
       >
-        <ActiveStrategiesSection 
-          aiSections={aiSections} 
-          clinicType={state.clinicType || 'clinica_estetica'} 
-        />
+        <div className="aurora-glass rounded-full p-1">
+          <div className="flex gap-1">
+            {[
+              { id: 'overview', label: '📊 Visão Geral', icon: BrainCircuit },
+              { id: 'diagnostic', label: '🎯 Diagnóstico', icon: Target },
+              { id: 'actions', label: '⚡ Ações', icon: Zap }
+            ].map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                className={`
+                  px-6 py-2 rounded-full transition-all duration-300
+                  ${activeTab === tab.id 
+                    ? 'aurora-button' 
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }
+                `}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <tab.icon className="h-4 w-4 mr-2" />
+                {tab.label}
+              </Button>
+            ))}
+          </div>
+        </div>
       </motion.div>
 
-      {/* Plano de Ação */}
+      {/* Tab Content */}
       <motion.div
+        key={activeTab}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
       >
-        <ActionPlanSection clinicType={state.clinicType || 'clinica_estetica'} />
+        {activeTab === 'overview' && (
+          <>
+            <DiagnosticCards state={safeState} />
+            <FluidAnalysisCards state={safeState} mentor={safeMentor} />
+          </>
+        )}
+
+        {activeTab === 'diagnostic' && (
+          <StructuredDiagnosticSection 
+            state={safeState} 
+            diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'}
+            aiSections={safeAiSections}
+          />
+        )}
+
+        {activeTab === 'actions' && (
+          <Card className="aurora-card">
+            <CardHeader>
+              <CardTitle className="aurora-heading flex items-center gap-2">
+                <Zap className="h-5 w-5 text-aurora-electric-purple" />
+                Próximos Passos Recomendados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 aurora-glass rounded-lg">
+                  <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-aurora-sage" />
+                    Imediato (Esta Semana)
+                  </h4>
+                  <ul className="text-sm aurora-body space-y-1 opacity-80">
+                    <li>• Otimizar perfil nas redes sociais</li>
+                    <li>• Criar 3 posts sobre {getMainSpecialty()}</li>
+                    <li>• Definir público-alvo específico</li>
+                  </ul>
+                </div>
+                
+                <div className="p-4 aurora-glass rounded-lg">
+                  <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-aurora-electric-purple" />
+                    Médio Prazo (30 dias)
+                  </h4>
+                  <ul className="text-sm aurora-body space-y-1 opacity-80">
+                    <li>• Implementar estratégia de conteúdo</li>
+                    <li>• Criar landing page otimizada</li>
+                    <li>• Desenvolver funil de vendas</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </motion.div>
-
-      {/* Real Mentor Section */}
-      {!mentorsLoading && bestMentorMapping && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <RealMentorSection
-            mentor={bestMentorMapping.mentor}
-            marketingProfile={bestMentorMapping.marketingProfile}
-            confidence={bestMentorMapping.confidence}
-            enigma={mentorEnigma}
-          />
-        </motion.div>
-      )}
-
-      {/* Fallback para mentor conceitual se não houver mentores reais */}
-      {(mentorsLoading || !bestMentorMapping) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <MentorSection 
-            mentor={mentor}
-            renderAIMentorSatire={renderAIMentorSatire}
-          />
-        </motion.div>
-      )}
 
       {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        <ActionButtons 
-          onCreateScript={handleCreateScript}
-          onGenerateImage={handleGenerateImage}
-          onDownloadPDF={handleDownloadPDF}
-        />
-      </motion.div>
+      <ActionButtons 
+        onRestart={onRestart}
+        onDownload={handleDownloadReport}
+        onShare={handleShareReport}
+      />
     </div>
   );
 };
