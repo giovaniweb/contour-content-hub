@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { questions } from './questions';
+import { MARKETING_STEPS } from './constants';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
 import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
@@ -49,7 +49,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   // Função para determinar se uma pergunta deve ser exibida baseada no estado atual
   const shouldShowQuestion = (questionIndex: number): boolean => {
-    const question = questions[questionIndex];
+    const question = MARKETING_STEPS[questionIndex];
     
     if (!question.condition) {
       return true; // Sem condição, sempre exibir
@@ -69,12 +69,12 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   // Função para encontrar a próxima pergunta válida
   const getNextValidQuestion = (currentIndex: number): number => {
-    for (let i = currentIndex + 1; i < questions.length; i++) {
+    for (let i = currentIndex + 1; i < MARKETING_STEPS.length; i++) {
       if (shouldShowQuestion(i)) {
         return i;
       }
     }
-    return questions.length;
+    return MARKETING_STEPS.length;
   };
 
   // Função para encontrar a pergunta anterior válida
@@ -90,8 +90,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const handleAnswer = (answer: string) => {
     console.log('Resposta selecionada:', answer, 'Step atual:', currentStep);
     
-    if (currentStep >= 0 && currentStep < questions.length) {
-      const currentQuestion = questions[currentStep];
+    if (currentStep >= 0 && currentStep < MARKETING_STEPS.length) {
+      const currentQuestion = MARKETING_STEPS[currentStep];
       
       const newState = { ...state, [currentQuestion.id]: answer };
       setState(newState);
@@ -105,7 +105,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       const nextStep = getNextValidQuestion(currentStep);
       
-      if (nextStep < questions.length) {
+      if (nextStep < MARKETING_STEPS.length) {
+        console.log('Próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
         setCurrentStep(nextStep);
       } else {
         console.log('Última pergunta respondida, iniciando processamento...');
@@ -172,14 +173,14 @@ const AkinatorMarketingConsultant: React.FC = () => {
     return (
       <AnalysisProgressScreen 
         currentStep={currentStep} 
-        totalSteps={questions.length} 
+        totalSteps={MARKETING_STEPS.length} 
         state={state} 
       />
     );
   }
 
-  if (currentStep < questions.length && shouldShowQuestion(currentStep)) {
-    const currentQuestion = questions[currentStep];
+  if (currentStep < MARKETING_STEPS.length && shouldShowQuestion(currentStep)) {
+    const currentQuestion = MARKETING_STEPS[currentStep];
     
     return (
       <MarketingQuestion
