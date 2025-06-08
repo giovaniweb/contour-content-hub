@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Brain, Users, Target, Lightbulb, Zap, CheckCircle, Sparkles, Clock } from "lucide-react";
 import { MarketingConsultantState } from './types';
-import { MARKETING_MENTORS } from './mentorInference';
 
 interface AnalysisProgressScreenProps {
   currentStep: number;
@@ -77,10 +76,10 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({
   const getRelevantSpecialists = (): Array<{name: string; specialty: string; reason: string; status: string}> => {
     if (!state) {
       return [
-        { name: "Leandro Ladeira", specialty: "Conversão", reason: "para otimizar captação de leads", status: "analisando" },
-        { name: "Ícaro de Carvalho", specialty: "Storytelling", reason: "para construir autoridade", status: "avaliando" },
-        { name: "Paulo Cuenca", specialty: "Criatividade", reason: "para diferenciação visual", status: "estrategizando" },
-        { name: "Camila Porto", specialty: "Digital", reason: "para estruturação inicial", status: "planejando" }
+        { name: "Especialista em Conversão", specialty: "Tráfego Pago e Vendas", reason: "para otimizar captação de leads", status: "analisando funil" },
+        { name: "Expert em Storytelling", specialty: "Autoridade e Branding", reason: "para construir credibilidade", status: "avaliando narrativa" },
+        { name: "Consultor Criativo", specialty: "Visual e Diferenciação", reason: "para destacar sua marca", status: "estrategizando visual" },
+        { name: "Estrategista Digital", specialty: "Marketing Estruturado", reason: "para organizar presença online", status: "planejando cronograma" }
       ];
     }
 
@@ -89,55 +88,55 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({
     // Especialista em conversão - sempre relevante para captação
     if (state.paidTraffic === 'nunca_usei' || state.clinicType === 'clinica_estetica') {
       specialists.push({
-        name: "Leandro Ladeira",
-        specialty: "Conversão e Tráfego Pago",
+        name: "Especialista em Conversão",
+        specialty: "Tráfego Pago e Vendas Diretas",
         reason: state.paidTraffic === 'nunca_usei' 
-          ? "pois você precisa estruturar captação de leads"
-          : "para otimizar suas campanhas de conversão",
-        status: "analisando seu funil"
+          ? "pois você precisa estruturar captação de leads qualificados"
+          : "para otimizar suas campanhas e aumentar conversões",
+        status: "analisando seu funil de vendas"
       });
     }
 
     // Especialista em storytelling - para autoridade
     if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente' || state.clinicType === 'clinica_medica') {
       specialists.push({
-        name: "Ícaro de Carvalho",
-        specialty: "Storytelling e Autoridade",
+        name: "Expert em Storytelling",
+        specialty: "Autoridade e Marca Pessoal",
         reason: state.personalBrand === 'nunca' 
-          ? "pois você precisa construir sua marca pessoal"
-          : "para fortalecer seu posicionamento como autoridade",
-        status: "avaliando narrativa"
+          ? "pois você precisa construir sua credibilidade no mercado"
+          : "para fortalecer seu posicionamento como referência",
+        status: "avaliando sua narrativa pessoal"
       });
     }
 
     // Especialista em criatividade - para diferenciação
     if (state.clinicPosition === 'moderna' || state.clinicType === 'clinica_estetica') {
       specialists.push({
-        name: "Paulo Cuenca",
-        specialty: "Criatividade Visual",
+        name: "Consultor Criativo",
+        specialty: "Identidade Visual e Diferenciação",
         reason: state.clinicPosition === 'moderna'
-          ? "pois você precisa de diferenciação criativa moderna"
-          : "para destacar transformações visuais",
-        status: "estrategizando visual"
+          ? "pois você precisa de comunicação visual inovadora"
+          : "para destacar transformações e resultados",
+        status: "desenvolvendo conceito visual"
       });
     }
 
     // Especialista digital - para iniciantes
     if (state.contentFrequency === 'irregular' || state.personalBrand === 'nunca') {
       specialists.push({
-        name: "Camila Porto",
+        name: "Estrategista Digital",
         specialty: "Marketing Digital Estruturado",
-        reason: "pois você precisa organizar sua presença digital",
-        status: "planejando cronograma"
+        reason: "pois você precisa organizar e sistematizar sua presença online",
+        status: "planejando cronograma de conteúdo"
       });
     }
 
     // Garantir pelo menos 4 especialistas
     while (specialists.length < 4) {
       const remaining = [
-        { name: "Hyeser Souza", specialty: "Engajamento Orgânico", reason: "para aumentar alcance natural", status: "idealizando trends" },
-        { name: "Washington Olivetto", specialty: "Big Ideas", reason: "para conceitos memoráveis", status: "conceptualizando" },
-        { name: "Pedro Sobral", specialty: "Performance ROI", reason: "para métricas estruturadas", status: "calculando ROI" }
+        { name: "Expert em Engajamento", specialty: "Crescimento Orgânico", reason: "para aumentar alcance natural", status: "identificando trends" },
+        { name: "Consultor de Grandes Ideias", specialty: "Conceitos Memoráveis", reason: "para criar campanhas marcantes", status: "conceptualizando" },
+        { name: "Analista de Performance", specialty: "ROI e Métricas", reason: "para estruturar acompanhamento", status: "calculando indicadores" }
       ];
       
       specialists.push(remaining[specialists.length - 1]);
@@ -199,7 +198,7 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({
         
         <div className="space-y-3">
           {specialists.map((specialist, index) => (
-            <div key={specialist.name} className="bg-white/60 rounded-lg p-3 border border-purple-100">
+            <div key={index} className="bg-white/60 rounded-lg p-3 border border-purple-100">
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mt-2 flex-shrink-0"></div>
                 <div className="flex-1 min-w-0">

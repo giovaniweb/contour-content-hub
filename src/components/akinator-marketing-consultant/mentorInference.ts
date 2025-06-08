@@ -10,70 +10,70 @@ export interface MarketingMentor {
 }
 
 export const MARKETING_MENTORS: Record<string, MarketingMentor> = {
-  'leandro_ladeira': {
-    key: 'leandro_ladeira',
-    name: 'Leandro Ladeira',
-    focus: 'Conversão e vendas diretas',
+  'especialista_conversao': {
+    key: 'especialista_conversao',
+    name: 'Especialista em Conversão',
+    focus: 'Tráfego pago e vendas diretas',
     style: 'Direto, persuasivo, focado em resultados',
     expertise: ['tráfego pago', 'conversão', 'vendas', 'gatilhos mentais']
   },
-  'icaro_carvalho': {
-    key: 'icaro_carvalho', 
-    name: 'Ícaro de Carvalho',
-    focus: 'Storytelling e posicionamento',
+  'expert_storytelling': {
+    key: 'expert_storytelling', 
+    name: 'Expert em Storytelling',
+    focus: 'Autoridade e posicionamento',
     style: 'Narrativo, emocional, construção de marca',
     expertise: ['branding', 'storytelling', 'autoridade', 'posicionamento']
   },
-  'camila_porto': {
-    key: 'camila_porto',
-    name: 'Camila Porto',
-    focus: 'Marketing digital acessível',
-    style: 'Didático, simples, estruturado',
+  'estrategista_digital': {
+    key: 'estrategista_digital',
+    name: 'Estrategista Digital',
+    focus: 'Marketing digital estruturado',
+    style: 'Didático, simples, organizado',
     expertise: ['redes sociais', 'conteúdo', 'iniciantes', 'organização']
   },
-  'paulo_cuenca': {
-    key: 'paulo_cuenca',
-    name: 'Paulo Cuenca',
-    focus: 'Criatividade e estética visual',
+  'consultor_criativo': {
+    key: 'consultor_criativo',
+    name: 'Consultor Criativo',
+    focus: 'Identidade visual e diferenciação',
     style: 'Criativo, visual, artístico',
     expertise: ['criatividade', 'visual', 'branding', 'diferenciação']
   },
-  'hyeser_souza': {
-    key: 'hyeser_souza',
-    name: 'Hyeser Souza',
-    focus: 'Virais e engajamento orgânico',
-    style: 'Viral, engraçado, popular',
+  'expert_engajamento': {
+    key: 'expert_engajamento',
+    name: 'Expert em Engajamento',
+    focus: 'Crescimento orgânico e virais',
+    style: 'Viral, engajado, popular',
     expertise: ['virais', 'engajamento', 'trends', 'alcance orgânico']
   },
-  'washington_olivetto': {
-    key: 'washington_olivetto',
-    name: 'Washington Olivetto',
-    focus: 'Big ideas e branding institucional',
+  'consultor_grandes_ideias': {
+    key: 'consultor_grandes_ideias',
+    name: 'Consultor de Grandes Ideias',
+    focus: 'Conceitos memoráveis e branding',
     style: 'Conceitual, memorável, institucional',
     expertise: ['big ideas', 'branding', 'conceito', 'diferenciação']
   },
-  'pedro_sobral': {
-    key: 'pedro_sobral',
-    name: 'Pedro Sobral',
-    focus: 'Performance e ROI estruturado',
+  'analista_performance': {
+    key: 'analista_performance',
+    name: 'Analista de Performance',
+    focus: 'ROI e métricas estruturadas',
     style: 'Técnico, analítico, estruturado',
     expertise: ['performance', 'métricas', 'ROI', 'estruturação']
   }
 };
 
 export const MENTOR_ENIGMAS: Record<string, string> = {
-  'leandro_ladeira': "Quem domina gatilhos, vende mais que imagina.",
-  'icaro_carvalho': "Histórias que tocam, convertem sem forçar.",
-  'paulo_cuenca': "Criatividade visual que marca para sempre.",
-  'camila_porto': "Simplicidade que todos entendem e seguem.",
-  'hyeser_souza': "Humor que viraliza e vende sorrindo.",
-  'washington_olivetto': "Big ideas que mudam mercados inteiros.",
-  'pedro_sobral': "Lógica clara que antecipa objeções."
+  'especialista_conversao': "Quem domina gatilhos, vende mais que imagina.",
+  'expert_storytelling': "Histórias que tocam, convertem sem forçar.",
+  'consultor_criativo': "Criatividade visual que marca para sempre.",
+  'estrategista_digital': "Simplicidade que todos entendem e seguem.",
+  'expert_engajamento': "Engajamento genuíno que viraliza naturalmente.",
+  'consultor_grandes_ideias': "Grandes ideias que mudam mercados inteiros.",
+  'analista_performance': "Métricas claras que antecipam resultados."
 };
 
 export class MarketingMentorInference {
   static inferMentor(state: MarketingConsultantState): { mentor: MarketingMentor; enigma: string; confidence: number } {
-    let bestMentorKey = 'pedro_sobral'; // default
+    let bestMentorKey = 'analista_performance'; // default
     let bestConfidence = 0.3;
 
     // Regras de inferência baseadas no perfil da clínica
@@ -103,14 +103,14 @@ export class MarketingMentorInference {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_medica' && 
           state.medicalObjective === 'autoridade',
-        mentorKey: 'icaro_carvalho',
+        mentorKey: 'expert_storytelling',
         confidence: 0.9
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_medica' && 
           state.clinicPosition === 'premium',
-        mentorKey: 'washington_olivetto',
+        mentorKey: 'consultor_grandes_ideias',
         confidence: 0.85
       },
       {
@@ -118,7 +118,7 @@ export class MarketingMentorInference {
           state.clinicType === 'clinica_medica' && 
           state.medicalObjective === 'escala' &&
           state.paidTraffic === 'nunca_usei',
-        mentorKey: 'pedro_sobral',
+        mentorKey: 'analista_performance',
         confidence: 0.88
       },
 
@@ -128,7 +128,7 @@ export class MarketingMentorInference {
           state.clinicType === 'clinica_estetica' && 
           state.aestheticObjective === 'mais_leads' &&
           state.paidTraffic === 'nunca_usei',
-        mentorKey: 'leandro_ladeira',
+        mentorKey: 'especialista_conversao',
         confidence: 0.9
       },
       {
@@ -136,7 +136,7 @@ export class MarketingMentorInference {
           state.clinicType === 'clinica_estetica' && 
           state.personalBrand === 'nunca' &&
           state.contentFrequency === 'irregular',
-        mentorKey: 'camila_porto',
+        mentorKey: 'estrategista_digital',
         confidence: 0.85
       },
       {
@@ -144,7 +144,7 @@ export class MarketingMentorInference {
           state.clinicType === 'clinica_estetica' && 
           state.aestheticObjective === 'autoridade' &&
           state.clinicPosition === 'moderna',
-        mentorKey: 'paulo_cuenca',
+        mentorKey: 'consultor_criativo',
         confidence: 0.87
       },
       {
@@ -152,7 +152,7 @@ export class MarketingMentorInference {
           state.personalBrand === 'sim_sempre' && 
           state.contentFrequency === 'diario' &&
           state.clinicPosition === 'humanizada',
-        mentorKey: 'hyeser_souza',
+        mentorKey: 'expert_engajamento',
         confidence: 0.82
       },
 
@@ -161,14 +161,14 @@ export class MarketingMentorInference {
         condition: (state: MarketingConsultantState) => 
           state.currentRevenue === 'acima_60k' && 
           state.revenueGoal === 'dobrar',
-        mentorKey: 'icaro_carvalho',
+        mentorKey: 'expert_storytelling',
         confidence: 0.8
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.currentRevenue === 'ate_15k' && 
           state.contentFrequency === 'irregular',
-        mentorKey: 'camila_porto',
+        mentorKey: 'estrategista_digital',
         confidence: 0.83
       },
 
@@ -177,14 +177,14 @@ export class MarketingMentorInference {
         condition: (state: MarketingConsultantState) => 
           state.paidTraffic === 'sim_regular' && 
           state.personalBrand === 'sim_sempre',
-        mentorKey: 'leandro_ladeira',
+        mentorKey: 'especialista_conversao',
         confidence: 0.85
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.personalBrand === 'raramente' && 
           state.clinicPosition === 'premium',
-        mentorKey: 'washington_olivetto',
+        mentorKey: 'consultor_grandes_ideias',
         confidence: 0.8
       }
     ];
