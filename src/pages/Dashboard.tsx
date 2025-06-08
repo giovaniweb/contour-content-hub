@@ -2,9 +2,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import AppLayout from '@/components/layout/AppLayout';
-import AuroraCard from '@/components/ui/AuroraCard';
-import AuroraButton from '@/components/ui/AuroraButton';
-import GlassContainer from '@/components/ui/GlassContainer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { 
   Sparkles, 
   FileText, 
@@ -30,41 +29,41 @@ const Dashboard: React.FC = () => {
       title: "Criar Roteiro",
       description: "Gere roteiros emocionais com IA",
       path: ROUTES.CONTENT.SCRIPTS.GENERATOR,
-      gradient: "from-aurora-electric-purple to-aurora-neon-blue"
+      gradient: "from-purple-500 to-blue-500"
     },
     {
       icon: Video,
       title: "Novo Vídeo",
       description: "Crie conteúdo visual impactante",
       path: ROUTES.VIDEOS.CREATE,
-      gradient: "from-aurora-neon-blue to-aurora-cyan"
+      gradient: "from-blue-500 to-cyan-500"
     },
     {
       icon: Calendar,
       title: "Planejar Conteúdo",
       description: "Organize sua estratégia",
       path: ROUTES.CONTENT.PLANNER,
-      gradient: "from-aurora-cyan to-aurora-emerald"
+      gradient: "from-cyan-500 to-green-500"
     },
     {
       icon: Wrench,
       title: "Ver Equipamentos",
       description: "Explore equipamentos disponíveis",
       path: ROUTES.EQUIPMENT.LIST,
-      gradient: "from-aurora-emerald to-aurora-lime"
+      gradient: "from-green-500 to-yellow-500"
     }
   ];
 
   const stats = [
-    { icon: TrendingUp, label: "Crescimento", value: "+24%", color: "text-aurora-emerald" },
-    { icon: Users, label: "Engajamento", value: "8.2k", color: "text-aurora-cyan" },
-    { icon: Heart, label: "Conexão Emocional", value: "9.1/10", color: "text-aurora-soft-pink" },
-    { icon: Zap, label: "Produtividade", value: "+45%", color: "text-aurora-electric-blue" }
+    { icon: TrendingUp, label: "Crescimento", value: "+24%", color: "text-green-500" },
+    { icon: Users, label: "Engajamento", value: "8.2k", color: "text-cyan-500" },
+    { icon: Heart, label: "Conexão Emocional", value: "9.1/10", color: "text-pink-500" },
+    { icon: Zap, label: "Produtividade", value: "+45%", color: "text-blue-500" }
   ];
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-8 bg-gradient-to-br from-aurora-dark via-aurora-darker to-aurora-darkest min-h-screen">
+      <div className="p-6 space-y-8 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -73,7 +72,7 @@ const Dashboard: React.FC = () => {
           className="text-center py-12"
         >
           <motion.div
-            className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-aurora-electric-purple via-aurora-neon-blue to-aurora-cyan flex items-center justify-center"
+            className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center"
             animate={{
               rotate: [0, 360],
               scale: [1, 1.1, 1],
@@ -86,14 +85,14 @@ const Dashboard: React.FC = () => {
             <Sparkles className="w-10 h-10 text-white" />
           </motion.div>
           
-          <h1 className="aurora-heading text-4xl md:text-6xl font-light text-white mb-4">
+          <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
             Crie conteúdo{' '}
-            <span className="aurora-text-gradient font-medium">
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-medium">
               mágico
             </span>
           </h1>
           
-          <p className="aurora-body text-white/80 text-xl max-w-2xl mx-auto">
+          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
             Transforme suas ideias em conteúdo que conecta emocionalmente com seu público
           </p>
         </motion.div>
@@ -104,7 +103,7 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <h2 className="aurora-heading text-2xl font-light text-white mb-6">
+          <h2 className="text-2xl font-light text-gray-900 mb-6">
             Ações Rápidas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -115,21 +114,22 @@ const Dashboard: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <AuroraCard 
-                  floating
+                <Card 
+                  className="cursor-pointer text-center p-6 h-full hover:shadow-lg transition-shadow"
                   onClick={() => navigate(action.path)}
-                  className="cursor-pointer text-center p-6 h-full"
                 >
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${action.gradient} flex items-center justify-center`}>
-                    <action.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="aurora-heading text-lg font-medium text-white mb-2">
-                    {action.title}
-                  </h3>
-                  <p className="aurora-body text-white/70 text-sm">
-                    {action.description}
-                  </p>
-                </AuroraCard>
+                  <CardContent className="p-0">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${action.gradient} flex items-center justify-center`}>
+                      <action.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {action.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {action.description}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -141,32 +141,36 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <GlassContainer aurora className="p-6">
-            <h2 className="aurora-heading text-xl font-medium text-white mb-6">
-              Suas Estatísticas Mágicas
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="flex items-center justify-center mb-3">
-                    <stat.icon className={`w-8 h-8 ${stat.color}`} />
-                  </div>
-                  <div className="text-3xl font-bold text-white mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="aurora-body text-white/70 text-sm">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </GlassContainer>
+          <Card className="p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-medium text-gray-900">
+                Suas Estatísticas Mágicas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="flex items-center justify-center mb-3">
+                      <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                      {stat.value}
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      {stat.label}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* CTA Section */}
@@ -176,23 +180,25 @@ const Dashboard: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="text-center py-12"
         >
-          <AuroraCard className="p-8 max-w-2xl mx-auto">
-            <h2 className="aurora-heading text-2xl font-medium text-white mb-4">
-              Pronto para criar algo{' '}
-              <span className="aurora-text-gradient">incrível</span>?
-            </h2>
-            <p className="aurora-body text-white/80 mb-6">
-              Comece agora e veja como a IA pode transformar sua criatividade
-            </p>
-            <AuroraButton 
-              size="lg"
-              onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}
-              confetti
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Começar a Criar
-            </AuroraButton>
-          </AuroraCard>
+          <Card className="p-8 max-w-2xl mx-auto">
+            <CardContent className="p-0">
+              <h2 className="text-2xl font-medium text-gray-900 mb-4">
+                Pronto para criar algo{' '}
+                <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">incrível</span>?
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Comece agora e veja como a IA pode transformar sua criatividade
+              </p>
+              <Button 
+                size="lg"
+                onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Começar a Criar
+              </Button>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </AppLayout>

@@ -47,7 +47,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         
         <div className="flex flex-col flex-1 overflow-hidden">
           <Navbar />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto bg-background">
             {children}
           </main>
         </div>
