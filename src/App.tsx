@@ -49,7 +49,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   
-                  {/* Protected routes - All using AppLayout now */}
+                  {/* Protected routes - All using AppLayout */}
                   <Route path="/dashboard" element={
                     <PrivateRoute>
                       <AppLayout>
@@ -82,7 +82,6 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Content Strategy Route */}
                   <Route path="/content-strategy" element={
                     <PrivateRoute>
                       <AppLayout>
@@ -91,7 +90,6 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Content Scripts Routes */}
                   <Route path="/scripts" element={
                     <PrivateRoute>
                       <AppLayout>
@@ -108,7 +106,6 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Marketing Consultant Route */}
                   <Route path="/marketing-consultant" element={
                     <PrivateRoute>
                       <AppLayout>
@@ -117,7 +114,6 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Reports Route */}
                   <Route path="/reports" element={
                     <PrivateRoute>
                       <AppLayout>
@@ -126,7 +122,6 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  {/* Consultant Panel Route */}
                   <Route path="/consultant-panel" element={
                     <PrivateRoute>
                       <AppLayout>

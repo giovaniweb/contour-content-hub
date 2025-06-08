@@ -1,10 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import AuroraLayout from '@/components/layout/AuroraLayout';
-import AuroraCard from '@/components/ui/AuroraCard';
-import AuroraButton from '@/components/ui/AuroraButton';
-import GlassContainer from '@/components/ui/GlassContainer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { FileText, Wand2, CheckCircle, PlayCircle, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -41,9 +39,9 @@ const ContentScripts: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4 text-aurora-teal" />;
-      case 'review': return <PlayCircle className="w-4 h-4 text-aurora-soft-pink" />;
-      default: return <FileText className="w-4 h-4 text-aurora-lavender" />;
+      case 'completed': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'review': return <PlayCircle className="w-4 h-4 text-blue-500" />;
+      default: return <FileText className="w-4 h-4 text-gray-500" />;
     }
   };
 
@@ -56,97 +54,107 @@ const ContentScripts: React.FC = () => {
   };
 
   return (
-    <AuroraLayout 
-      title="Roteiros Mágicos" 
-      subtitle="Crie conteúdo que conecta e emociona seu público"
-    >
-      <div className="p-6">
-        {/* Quick Actions */}
-        <motion.div 
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <AuroraCard 
-              floating
-              onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}
-              className="cursor-pointer text-center p-6"
-            >
+    <div className="p-6 space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <h1 className="text-3xl font-bold text-foreground mb-2">Roteiros Mágicos</h1>
+        <p className="text-muted-foreground">Crie conteúdo que conecta e emociona seu público</p>
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div 
+        className="mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card 
+            className="cursor-pointer text-center p-6 hover:shadow-lg transition-all duration-300"
+            onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}
+          >
+            <CardContent className="p-0">
               <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-lavender to-aurora-teal mx-auto mb-4 w-fit"
+                className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mb-4 w-fit"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
                 <Wand2 className="h-8 w-8 text-white" />
               </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Gerar Roteiro
               </h3>
-              <p className="aurora-body text-white/70">
+              <p className="text-muted-foreground">
                 Crie roteiros emocionais com IA
               </p>
-            </AuroraCard>
+            </CardContent>
+          </Card>
 
-            <AuroraCard 
-              floating
-              onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.VALIDATION)}
-              className="cursor-pointer text-center p-6"
-            >
+          <Card 
+            className="cursor-pointer text-center p-6 hover:shadow-lg transition-all duration-300"
+            onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.VALIDATION)}
+          >
+            <CardContent className="p-0">
               <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-turquoise mx-auto mb-4 w-fit"
+                className="p-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500 mx-auto mb-4 w-fit"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
                 <CheckCircle className="h-8 w-8 text-white" />
               </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Validar Conteúdo
               </h3>
-              <p className="aurora-body text-white/70">
+              <p className="text-muted-foreground">
                 Analise o impacto emocional
               </p>
-            </AuroraCard>
+            </CardContent>
+          </Card>
 
-            <AuroraCard 
-              floating
-              className="cursor-pointer text-center p-6"
-            >
+          <Card className="cursor-pointer text-center p-6 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-0">
               <motion.div 
-                className="p-4 rounded-full bg-gradient-to-r from-aurora-deep-violet to-aurora-soft-pink mx-auto mb-4 w-fit"
+                className="p-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mx-auto mb-4 w-fit"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
                 <Plus className="h-8 w-8 text-white" />
               </motion.div>
-              <h3 className="aurora-heading text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Template Customizado
               </h3>
-              <p className="aurora-body text-white/70">
+              <p className="text-muted-foreground">
                 Crie modelos personalizados
               </p>
-            </AuroraCard>
-          </div>
-        </motion.div>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
 
-        {/* Scripts List */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <GlassContainer aurora className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="aurora-heading text-xl font-medium text-white">
+      {/* Scripts List */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card className="p-6">
+          <CardHeader className="px-0 pt-0">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-medium text-foreground">
                 Seus Roteiros
-              </h2>
-              <AuroraButton onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}>
+              </CardTitle>
+              <Button onClick={() => navigate(ROUTES.CONTENT.SCRIPTS.GENERATOR)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Roteiro
-              </AuroraButton>
+              </Button>
             </div>
-
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
             <div className="space-y-4">
               {scripts.map((script, index) => (
                 <motion.div
@@ -155,36 +163,36 @@ const ContentScripts: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <AuroraCard className="p-4 hover:bg-white/5 cursor-pointer">
+                  <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         {getStatusIcon(script.status)}
                         <div>
-                          <h3 className="aurora-body font-medium text-white">
+                          <h3 className="font-medium text-foreground">
                             {script.title}
                           </h3>
-                          <p className="aurora-body text-white/70 text-sm">
+                          <p className="text-muted-foreground text-sm">
                             {script.description}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="aurora-body text-white/60 text-xs">
+                        <span className="text-muted-foreground text-xs">
                           {getStatusText(script.status)}
                         </span>
-                        <p className="aurora-body text-white/50 text-xs">
+                        <p className="text-muted-foreground text-xs">
                           {script.created}
                         </p>
                       </div>
                     </div>
-                  </AuroraCard>
+                  </Card>
                 </motion.div>
               ))}
             </div>
-          </GlassContainer>
-        </motion.div>
-      </div>
-    </AuroraLayout>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
 };
 
