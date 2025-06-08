@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Navbar } from '@/components/navbar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import Sidebar from '@/components/layout/Sidebar';
 import { Navigate } from 'react-router-dom';
@@ -42,12 +41,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">
-        {/* Only show sidebar if user is authenticated */}
-        {isAuthenticated && <Sidebar />}
+        {/* Sidebar */}
+        <Sidebar />
         
         <div className="flex flex-col flex-1 overflow-hidden">
-          <Navbar />
-          <main className="flex-1 overflow-auto bg-background">
+          <main className="flex-1 overflow-auto bg-background p-6">
             {children}
           </main>
         </div>

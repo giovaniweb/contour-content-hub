@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import PrivateRoute from '@/components/PrivateRoute';
 import AdminRoute from '@/components/AdminRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import AppLayout from '@/components/layout/AppLayout';
 
 // Pages
 import HomePage from '@/pages/HomePage';
@@ -48,76 +49,98 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   
-                  {/* Protected routes */}
+                  {/* Protected routes - All using AppLayout now */}
                   <Route path="/dashboard" element={
                     <PrivateRoute>
-                      <Dashboard />
+                      <AppLayout>
+                        <Dashboard />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
                   
                   <Route path="/script-generator" element={
                     <PrivateRoute>
-                      <ScriptGeneratorPage />
+                      <AppLayout>
+                        <ScriptGeneratorPage />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
                   
                   <Route path="/equipments" element={
                     <PrivateRoute>
-                      <EquipmentsPage />
+                      <AppLayout>
+                        <EquipmentsPage />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
                   
                   <Route path="/equipment/:id" element={
                     <PrivateRoute>
-                      <EquipmentDetailsPage />
+                      <AppLayout>
+                        <EquipmentDetailsPage />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   {/* Content Strategy Route */}
                   <Route path="/content-strategy" element={
                     <PrivateRoute>
-                      <ContentStrategy />
+                      <AppLayout>
+                        <ContentStrategy />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   {/* Content Scripts Routes */}
                   <Route path="/scripts" element={
                     <PrivateRoute>
-                      <ContentScripts />
+                      <AppLayout>
+                        <ContentScripts />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   <Route path="/content/scripts" element={
                     <PrivateRoute>
-                      <ContentScripts />
+                      <AppLayout>
+                        <ContentScripts />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   {/* Marketing Consultant Route */}
                   <Route path="/marketing-consultant" element={
                     <PrivateRoute>
-                      <MarketingConsultant />
+                      <AppLayout>
+                        <MarketingConsultant />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   {/* Reports Route */}
                   <Route path="/reports" element={
                     <PrivateRoute>
-                      <ReportsPage />
+                      <AppLayout>
+                        <ReportsPage />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
 
                   {/* Consultant Panel Route */}
                   <Route path="/consultant-panel" element={
                     <PrivateRoute>
-                      <ConsultantPanel />
+                      <AppLayout>
+                        <ConsultantPanel />
+                      </AppLayout>
                     </PrivateRoute>
                   } />
                   
                   {/* Admin routes */}
                   <Route path="/admin/equipments" element={
                     <AdminRoute>
-                      <AdminEquipments />
+                      <AppLayout requireAdmin={true}>
+                        <AdminEquipments />
+                      </AppLayout>
                     </AdminRoute>
                   } />
                 </Routes>
