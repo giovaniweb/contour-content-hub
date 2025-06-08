@@ -163,7 +163,7 @@ export default function Sidebar() {
                           item.highlight && "relative"
                         )}
                       >
-                        <Link to={item.path} className="flex items-center gap-3 w-full">
+                        <Link to={item.path}>
                           <item.icon className="h-5 w-5 flex-shrink-0" />
                           {open && (
                             <>
@@ -200,7 +200,7 @@ export default function Sidebar() {
                           isActive(ROUTES.VIDEOS.CREATE) && "bg-white/15 text-blue-300"
                         )}
                       >
-                        <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-3 w-full">
+                        <Link to={ROUTES.VIDEOS.CREATE}>
                           <PlusCircle className="h-5 w-5 flex-shrink-0" />
                           {open && <span className="flex-1">Criar Vídeo</span>}
                         </Link>
@@ -236,7 +236,7 @@ export default function Sidebar() {
                           isActive(item.path) && "bg-white/15 text-white"
                         )}
                       >
-                        <Link to={item.path} className="flex items-center gap-3 w-full">
+                        <Link to={item.path}>
                           <item.icon className="h-5 w-5 flex-shrink-0" />
                           {open && <span className="flex-1">{item.name}</span>}
                         </Link>
