@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,90 +40,144 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onViewHistory
 }) => {
   const getClinicProfile = () => {
-    const profiles = {
-      'estetica_facial': 'Estética Facial Especializada',
-      'estetica_corporal': 'Estética Corporal Focada',
-      'completa': 'Clínica Completa (Facial + Corporal)',
-      'dermatologia': 'Dermatologia Estética Premium'
-    };
-    return profiles[state.clinicType as keyof typeof profiles] || 'Perfil Indefinido';
+    if (state.clinicType === 'clinica_medica') {
+      const profiles = {
+        'dermatologia': 'Dermatologia Estética',
+        'nutrologia': 'Nutrologia Especializada',
+        'ginecoestetica': 'Ginecoestética',
+        'cirurgia_plastica': 'Cirurgia Plástica',
+        'medicina_estetica': 'Medicina Estética',
+        'outras': 'Medicina Especializada'
+      };
+      return profiles[state.medicalSpecialty as keyof typeof profiles] || 'Clínica Médica';
+    } else {
+      const profiles = {
+        'corporal': 'Estética Corporal',
+        'facial': 'Estética Facial',
+        'ambos': 'Estética Completa',
+        'depilacao': 'Depilação Especializada'
+      };
+      return profiles[state.aestheticFocus as keyof typeof profiles] || 'Clínica Estética';
+    }
   };
 
   const getRevenueAnalysis = () => {
     const revenues = {
-      'ate_10k': 'Faturamento Inicial - Fase de Crescimento',
-      '10k_30k': 'Crescimento Consistente - Expandindo Base',
-      '30k_50k': 'Faturamento Sólido - Otimizando Operações',
-      'acima_50k': 'Alto Faturamento - Liderança no Mercado'
+      'ate_15k': 'Faturamento Inicial - Fase de Crescimento',
+      '15k_30k': 'Crescimento Consistente - Expandindo Base',
+      '30k_60k': 'Faturamento Sólido - Otimizando Operações',
+      'acima_60k': 'Alto Faturamento - Liderança no Mercado'
     };
     return revenues[state.currentRevenue as keyof typeof revenues] || 'Não informado';
   };
 
-  const getMainChallenge = () => {
-    const challenges = {
-      'atrair_clientes': 'Dificuldade em Atrair Novos Clientes',
-      'converter_leads': 'Baixa Conversão de Leads em Vendas',
-      'fidelizar': 'Problema na Retenção de Clientes',
-      'aumentar_ticket': 'Ticket Médio Abaixo do Potencial'
-    };
-    return challenges[state.mainChallenge as keyof typeof challenges] || 'Desafio não identificado';
+  const getMainObjective = () => {
+    if (state.clinicType === 'clinica_medica') {
+      const objectives = {
+        'diferenciacao': 'Diferenciação no Mercado Médico',
+        'escala': 'Escalar Atendimentos Médicos',
+        'retencao': 'Melhorar Retenção de Pacientes',
+        'autoridade': 'Construir Autoridade Médica'
+      };
+      return objectives[state.medicalObjective as keyof typeof objectives] || 'Objetivo não definido';
+    } else {
+      const objectives = {
+        'mais_leads': 'Atrair Mais Leads Qualificados',
+        'recorrencia': 'Aumentar Recorrência de Clientes',
+        'ticket_medio': 'Aumentar Ticket Médio',
+        'autoridade': 'Construir Autoridade na Região'
+      };
+      return objectives[state.aestheticObjective as keyof typeof objectives] || 'Objetivo não definido';
+    }
   };
 
-  const getMarketingStatus = () => {
-    const budgets = {
-      'nada': 'Sem Investimento em Marketing',
-      'ate_1k': 'Investimento Básico (até R$ 1.000)',
-      '1k_3k': 'Investimento Intermediário (R$ 1.000-3.000)',
-      'acima_3k': 'Investimento Avançado (R$ 3.000+)'
+  const getContentFrequencyStatus = () => {
+    const frequencies = {
+      'diario': 'Produção Diária - Excelente Consistência',
+      'varios_por_semana': 'Várias Vezes por Semana - Boa Frequência',
+      'semanal': 'Semanal - Frequência Básica',
+      'irregular': 'Irregular - Necessita Estruturação'
     };
-    return budgets[state.marketingBudget as keyof typeof budgets] || 'Não informado';
+    return frequencies[state.contentFrequency as keyof typeof frequencies] || 'Não informado';
   };
 
-  const getTargetAudience = () => {
-    const audiences = {
-      'jovens': 'Público Jovem (18-30 anos) - Redes Sociais',
-      'adultos': 'Adultos (30-45 anos) - Resultados e Depoimentos',
-      'maduros': 'Público Maduro (45+ anos) - Confiança e Experiência',
-      'todos': 'Público Diverso - Estratégia Multi-Segmento'
-    };
-    return audiences[state.targetAudience as keyof typeof audiences] || 'Público não definido';
+  const getTargetAudienceAnalysis = () => {
+    if (state.targetAudience) {
+      return `Público Definido: ${state.targetAudience}`;
+    }
+    return 'Público-alvo ainda não foi definido claramente';
   };
 
   const getContentIdeas = () => {
-    const ideas = [
-      {
-        icon: <Play className="h-4 w-4" />,
-        title: "Reel: 'Antes e Depois em 30 segundos'",
-        description: "Mostre transformações reais com música trending e texto impactante"
-      },
-      {
-        icon: <Camera className="h-4 w-4" />,
-        title: "Carrossel: 'Mitos vs Verdades'",
-        description: "Desmistifique conceitos sobre tratamentos estéticos de forma educativa"
-      },
-      {
-        icon: <MessageSquare className="h-4 w-4" />,
-        title: "Story: 'Dia na Clínica'",
-        description: "Bastidores dos atendimentos criando conexão e transparência"
-      },
-      {
-        icon: <Users className="h-4 w-4" />,
-        title: "Depoimento: 'Por que escolhi aqui?'",
-        description: "Clientes explicando os diferenciais da sua clínica"
-      }
-    ];
-    return ideas;
+    const isClinicaMedica = state.clinicType === 'clinica_medica';
+    
+    if (isClinicaMedica) {
+      return [
+        {
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Resultados Médicos em 30s'",
+          description: "Antes e depois de procedimentos com narração técnica profissional"
+        },
+        {
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Ciência por trás do tratamento'",
+          description: "Educação médica sobre os procedimentos realizados na clínica"
+        },
+        {
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Dia do médico'",
+          description: "Bastidores dos atendimentos destacando expertise e cuidado"
+        },
+        {
+          icon: <Users className="h-4 w-4" />,
+          title: "Depoimento: 'Por que confio neste médico?'",
+          description: "Pacientes explicando a confiança no profissional e resultados"
+        }
+      ];
+    } else {
+      return [
+        {
+          icon: <Play className="h-4 w-4" />,
+          title: "Reel: 'Transformação em 30 segundos'",
+          description: "Antes e depois com música trending e depoimento emocional"
+        },
+        {
+          icon: <Camera className="h-4 w-4" />,
+          title: "Carrossel: 'Mitos vs Verdades da Estética'",
+          description: "Desmistifique conceitos sobre tratamentos de forma acessível"
+        },
+        {
+          icon: <MessageSquare className="h-4 w-4" />,
+          title: "Story: 'Dia na Clínica'",
+          description: "Bastidores acolhedores mostrando cuidado e ambiente"
+        },
+        {
+          icon: <Users className="h-4 w-4" />,
+          title: "Depoimento: 'Como me senti mais bonita'",
+          description: "Clientes falando sobre autoestima e bem-estar"
+        }
+      ];
+    }
   };
 
   const getStrategicActions = () => {
-    const actions = [
-      "Criar cronograma de 3 posts por semana com mix de conteúdo",
-      "Implementar sequência de Stories diários para engajamento",
-      "Desenvolver programa de indicação com incentivos",
-      "Estabelecer parcerias com influenciadores locais",
-      "Criar landing page específica para agendamentos online"
-    ];
-    return actions.slice(0, 4);
+    const isClinicaMedica = state.clinicType === 'clinica_medica';
+    
+    if (isClinicaMedica) {
+      return [
+        "Criar cronograma de conteúdo educativo com base científica",
+        "Desenvolver cases clínicos para demonstrar expertise",
+        "Estabelecer parcerias com outros médicos especialistas",
+        "Implementar sistema de consultas online para triagem"
+      ];
+    } else {
+      return [
+        "Criar cronograma de 3 posts por semana com mix emocional",
+        "Implementar programa de indicação com incentivos",
+        "Desenvolver campanhas sazonais (verão, inverno)",
+        "Estabelecer parcerias com influenciadores locais"
+      ];
+    }
   };
 
   const getMentorEnigma = () => {
@@ -158,9 +213,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardContent>
               <p className="text-sm text-muted-foreground">{getClinicProfile()}</p>
               <p className="text-xs mt-2 text-blue-600">
-                {state.businessTime === 'iniciante' ? 'Fase de Estabelecimento' : 
-                 state.businessTime === 'intermediario' ? 'Crescimento Acelerado' :
-                 state.businessTime === 'consolidado' ? 'Operação Consolidada' : 'Liderança no Mercado'}
+                {state.clinicType === 'clinica_medica' ? 'Clínica Médica Especializada' : 'Clínica Estética'}
               </p>
             </CardContent>
           </Card>
@@ -176,8 +229,8 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               <p className="text-sm text-muted-foreground">{getRevenueAnalysis()}</p>
               <p className="text-xs mt-2 text-green-600">
                 Meta: {state.revenueGoal === 'dobrar' ? 'Dobrar Faturamento' :
-                        state.revenueGoal === '50_porcento' ? 'Crescer 50%' :
-                        state.revenueGoal === '100k' ? 'Chegar a R$ 100k' : 'Manter Estabilidade'}
+                        state.revenueGoal === 'crescer_50' ? 'Crescer 50%' :
+                        state.revenueGoal === 'crescer_30' ? 'Crescer 30%' : 'Manter Estabilidade'}
               </p>
             </CardContent>
           </Card>
@@ -185,14 +238,14 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           <Card className="border-l-4 border-l-red-500">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                🚨 Principal Desafio
+                <Target className="h-5 w-5 text-red-500" />
+                🎯 Objetivo Principal
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getMainChallenge()}</p>
-              <Badge variant="destructive" className="mt-2 text-xs">
-                Prioridade Alta
+              <p className="text-sm text-muted-foreground">{getMainObjective()}</p>
+              <Badge variant="secondary" className="mt-2 text-xs">
+                Foco Estratégico
               </Badge>
             </CardContent>
           </Card>
@@ -201,15 +254,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <TrendingUp className="h-5 w-5 text-purple-500" />
-                📈 Marketing Atual
+                📈 Produção de Conteúdo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getMarketingStatus()}</p>
+              <p className="text-sm text-muted-foreground">{getContentFrequencyStatus()}</p>
               <p className="text-xs mt-2 text-purple-600">
-                Presença Digital: {state.socialMediaPresence === 'inexistente' ? 'Iniciante' :
-                                  state.socialMediaPresence === 'basico' ? 'Básica' :
-                                  state.socialMediaPresence === 'ativo' ? 'Ativa' : 'Profissional'}
+                Aparece em vídeos: {state.personalBrand === 'sim_sempre' ? 'Sempre' :
+                                   state.personalBrand === 'as_vezes' ? 'Às vezes' :
+                                   state.personalBrand === 'raramente' ? 'Raramente' : 'Nunca'}
               </p>
             </CardContent>
           </Card>
@@ -222,7 +275,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{getTargetAudience()}</p>
+              <p className="text-sm text-muted-foreground">{getTargetAudienceAnalysis()}</p>
             </CardContent>
           </Card>
         </div>
