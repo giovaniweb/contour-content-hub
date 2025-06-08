@@ -76,16 +76,30 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const [customEquipment, setCustomEquipment] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { equipments, loading, error } = useEquipments();
+  const { equipments, loading, error, refetch } = useEquipments();
   const { showNotification } = useSlideNotifications();
 
-  // Log para debug dos equipamentos carregados
+  // Log mais detalhado para debug
   useEffect(() => {
-    console.log('Equipments loaded:', equipments);
+    console.log('=== DEBUG EQUIPAMENTOS ===');
+    console.log('Step ID:', stepData.id);
     console.log('Loading:', loading);
     console.log('Error:', error);
-    console.log('Step ID:', stepData.id);
+    console.log('Equipments length:', equipments?.length || 0);
+    console.log('Equipments data:', equipments);
+    console.log('Should load equipments:', stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments');
   }, [equipments, loading, error, stepData.id]);
+
+  // Tentar recarregar equipamentos quando necessário
+  useEffect(() => {
+    if ((stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') && 
+        !loading && 
+        (!equipments || equipments.length === 0) && 
+        !error) {
+      console.log('Tentando recarregar equipamentos...');
+      refetch?.();
+    }
+  }, [stepData.id, loading, equipments, error, refetch]);
 
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
@@ -198,25 +212,32 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     }
 
     if (!equipments || equipments.length === 0) {
-      console.log('No equipments found');
+      console.log('No equipments found, showing default options');
       return [
         { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' },
         { value: 'outros', label: '🔧 Outros Equipamentos' }
       ];
     }
 
-    // Para clínicas estéticas, mostrar todos os equipamentos (incluindo estéticos)
-    // Para clínicas médicas, também mostrar todos
+    console.log('Processing equipments:', equipments);
+
+    // Filtrar equipamentos baseado no tipo de clínica
     const filteredEquipments = equipments.filter(equipment => {
-      // Se não tem categoria definida, incluir
+      if (!equipment || !equipment.nome) return false;
+      
+      // Se não tem categoria definida, incluir para ambos os tipos
       if (!equipment.categoria) return true;
       
       // Para pergunta de equipamentos estéticos, mostrar preferencialmente estéticos
       if (stepData.id === 'aestheticEquipments') {
-        return equipment.categoria === 'estetico' || !equipment.categoria;
+        return equipment.categoria === 'estetico';
       }
       
-      // Para equipamentos médicos, mostrar todos
+      // Para equipamentos médicos, mostrar médicos
+      if (stepData.id === 'medicalEquipments') {
+        return equipment.categoria === 'medico';
+      }
+      
       return true;
     });
 
@@ -399,7 +420,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
               </motion.div>
             ) : (
               <div className="space-y-4">
-                {loading && shouldUseDynamicEquipments ? (
+                {shouldUseDynamicEquipments && loading ? (
                   <motion.div 
                     className="flex items-center justify-center py-12"
                     animate={{ opacity: [0.5, 1, 0.5] }}
@@ -408,14 +429,21 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                     <Loader2 className="h-8 w-8 animate-spin text-aurora-electric-purple mr-3" />
                     <span className="aurora-body text-lg">Carregando equipamentos...</span>
                   </motion.div>
-                ) : error && shouldUseDynamicEquipments ? (
+                ) : shouldUseDynamicEquipments && error ? (
                   <motion.div 
-                    className="flex items-center justify-center py-12 text-red-400"
+                    className="flex flex-col items-center justify-center py-12 text-red-400"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                   >
-                    <AlertCircle className="h-8 w-8 mr-3" />
-                    <span className="text-lg">Erro ao carregar equipamentos</span>
+                    <AlertCircle className="h-8 w-8 mb-3" />
+                    <span className="text-lg mb-4">Erro ao carregar equipamentos</span>
+                    <Button 
+                      onClick={() => refetch?.()}
+                      variant="outline"
+                      className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20"
+                    >
+                      Tentar novamente
+                    </Button>
                   </motion.div>
                 ) : optionsToShow.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
