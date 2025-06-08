@@ -1,180 +1,129 @@
 
-import React, { useState } from "react";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
-import ContentPlannerCard from "./ContentPlannerCard";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import AddContentPlannerItemForm from "./AddContentPlannerItemForm";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useContentPlanner } from "@/hooks/useContentPlanner";
-import { ContentPlannerItem } from "@/types/content-planner";
-
-interface KanbanColumnProps {
-  title: string;
-  items: ContentPlannerItem[];
-  columnId: string;
-  onEdit: (item: ContentPlannerItem) => void;
-  onDelete: (id: string) => void;
-  onGenerateScript?: (item: ContentPlannerItem) => void;
-  onValidate?: (item: ContentPlannerItem) => void;
-  onSchedule?: (item: ContentPlannerItem) => void;
-  onViewDetails?: (item: ContentPlannerItem) => void;
-}
+import React from 'react';
+import { DragDropContext, DropResult } from '@hello-pangea/dnd';
+import { useContentPlanner } from '@/hooks/useContentPlanner';
+import ContentPlannerColumn from './ContentPlannerColumn';
+import { ContentPlannerItem, ContentPlannerStatus } from '@/types/content-planner';
+import { toast } from 'sonner';
 
 interface KanbanBoardProps {
-  onViewDetails?: (item: ContentPlannerItem) => void;
-  onGenerateScript?: (item: ContentPlannerItem) => void;
-  onValidate?: (item: ContentPlannerItem) => void;
+  onViewDetails: (item: ContentPlannerItem) => void;
+  onGenerateScript: (item: ContentPlannerItem) => void;
+  onValidate: (item: ContentPlannerItem) => void;
+  searchQuery?: string;
 }
 
-// KanbanColumn component
-const KanbanColumn: React.FC<KanbanColumnProps> = ({
-  title,
-  items,
-  columnId,
-  onEdit,
-  onDelete,
+const KanbanBoard: React.FC<KanbanBoardProps> = ({
+  onViewDetails,
   onGenerateScript,
   onValidate,
-  onSchedule,
-  onViewDetails
+  searchQuery = ''
 }) => {
-  return (
-    <div className="flex-1 min-w-[280px] max-w-full">
-      <div className="bg-muted/50 rounded-lg p-4 h-full flex flex-col min-h-[600px]">
-        <h3 className="font-medium text-sm mb-4 text-muted-foreground">{title} ({items.length})</h3>
-        
-        <Droppable droppableId={columnId}>
-          {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex-1"
-            >
-              {items.map((item, index) => (
-                <ContentPlannerCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onGenerateScript={onGenerateScript}
-                  onValidate={onValidate}
-                  onSchedule={onSchedule}
-                  onViewDetails={onViewDetails}
-                />
-              ))}
-              {provided.placeholder}
-              
-              {/* Space at the bottom to allow dropping when column is empty */}
-              {items.length === 0 && (
-                <div className="h-20 border-2 border-dashed border-muted rounded-md flex items-center justify-center text-muted-foreground text-sm">
-                  Arraste itens para cá
-                </div>
-              )}
-            </div>
-          )}
-        </Droppable>
-      </div>
-    </div>
-  );
-};
+  const { columns, moveItem, addItem, removeItem } = useContentPlanner();
 
-// Main KanbanBoard component
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
-  onViewDetails, 
-  onGenerateScript, 
-  onValidate 
-}) => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { columns, items, moveItem, updateItem, removeItem, addItem } = useContentPlanner();
-  
-  const handleDragEnd = (result: any) => {
-    const { destination, source, draggableId } = result;
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
     
-    // Dropped outside the list
-    if (!destination) return;
-    
-    // Dropped in the same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
+    // Se não mudou de lugar, não faz nada
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
       return;
     }
+
+    const targetStatus = destination.droppableId as ContentPlannerStatus;
     
-    // Find the item being dragged
-    const item = items.find(item => item.id === draggableId);
-    if (!item) return;
-    
-    // Update the status based on the destination column
-    moveItem(draggableId, destination.droppableId as any);
+    try {
+      await moveItem(draggableId, targetStatus);
+      
+      toast.success("🚀 Item movido com sucesso!", {
+        description: `Status alterado para ${getStatusLabel(targetStatus)}`
+      });
+    } catch (error) {
+      toast.error("❌ Erro ao mover item", {
+        description: "Não foi possível alterar o status do item"
+      });
+    }
   };
-  
+
+  const getStatusLabel = (status: ContentPlannerStatus): string => {
+    const labels = {
+      'idea': 'Ideias',
+      'script_generated': 'Roteiro Gerado',
+      'approved': 'Aprovado',
+      'scheduled': 'Agendado',
+      'published': 'Publicado'
+    };
+    return labels[status] || status;
+  };
+
   const handleEditItem = (item: ContentPlannerItem) => {
-    updateItem(item.id, item);
+    onViewDetails(item);
   };
-  
-  const handleDeleteItem = (id: string) => {
-    removeItem(id);
+
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await removeItem(id);
+      toast.success("🗑️ Item removido!", {
+        description: "Item removido do planejador"
+      });
+    } catch (error) {
+      toast.error("❌ Erro ao remover", {
+        description: "Não foi possível remover o item"
+      });
+    }
   };
-  
+
+  const handleScheduleItem = (item: ContentPlannerItem) => {
+    // Mover para status "scheduled"
+    moveItem(item.id, 'scheduled');
+  };
+
+  // Filtrar colunas baseado na busca
+  const filteredColumns = columns.map(column => ({
+    ...column,
+    items: column.items.filter(item => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        item.title.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    })
+  }));
+
   return (
-    <>
-      <div className="flex justify-end mb-4">
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Adicionar Conteúdo
-        </Button>
-      </div>
+    <div className="h-full overflow-x-auto">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-6 min-w-max pb-6">
+          {filteredColumns.map(column => (
+            <ContentPlannerColumn
+              key={column.id}
+              column={column}
+              onEditItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
+              onGenerateScript={onGenerateScript}
+              onValidateScript={onValidate}
+              onScheduleItem={handleScheduleItem}
+            />
+          ))}
+        </div>
+      </DragDropContext>
       
-      <div className="relative overflow-x-auto pb-4">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex space-x-4 min-w-max">
-            {columns.map((column) => (
-              <KanbanColumn
-                key={column.id}
-                title={column.title}
-                items={items.filter(item => item.status === column.id)}
-                columnId={column.id}
-                onEdit={handleEditItem}
-                onDelete={handleDeleteItem}
-                onGenerateScript={onGenerateScript}
-                onValidate={onValidate}
-                onSchedule={(item) => {
-                  // Update status to scheduled
-                  updateItem(item.id, {
-                    ...item,
-                    status: "scheduled",
-                    scheduledDate: new Date().toISOString()
-                  });
-                }}
-                onViewDetails={onViewDetails}
-              />
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
-      
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Conteúdo</DialogTitle>
-          </DialogHeader>
-          
-          <AddContentPlannerItemForm
-            onSubmit={(data) => {
-              addItem({
-                ...data,
-                id: `item-${Date.now()}`,
-                status: "idea",
-                aiGenerated: false
-              });
-              setIsAddDialogOpen(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-    </>
+      {searchQuery && filteredColumns.every(col => col.items.length === 0) && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="text-4xl mb-4">🔍</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Nenhum item encontrado
+          </h3>
+          <p className="text-gray-500 max-w-md">
+            Não encontramos nenhum item que corresponda à sua busca "{searchQuery}". 
+            Tente usar outros termos ou limpe o filtro.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 
