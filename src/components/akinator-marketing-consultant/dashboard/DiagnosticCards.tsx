@@ -175,15 +175,19 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {renderAIDiagnosticSummary()}
+            <div className="space-y-4">
+              <div className="text-sm text-foreground/80 leading-relaxed">
+                {renderAIDiagnosticSummary()}
+              </div>
               {aiSections?.diagnostico_estrategico && (
-                <button
-                  onClick={scrollToFullDiagnostic}
-                  className="text-xs text-aurora-electric-purple hover:text-aurora-electric-purple/80 transition-colors cursor-pointer underline"
-                >
-                  Ver diagnóstico completo abaixo →
-                </button>
+                <div className="pt-2 border-t border-purple-500/20">
+                  <button
+                    onClick={scrollToFullDiagnostic}
+                    className="text-sm text-aurora-electric-purple hover:text-aurora-electric-purple/80 transition-colors cursor-pointer underline block"
+                  >
+                    Ver diagnóstico completo abaixo →
+                  </button>
+                </div>
               )}
             </div>
           </CardContent>
