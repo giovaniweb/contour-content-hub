@@ -49,17 +49,18 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       diagnostico: '',
       ideias: [],
       plano: '',
+      estrategias: [],
       satira: ''
     };
 
     // Extrair seção de diagnóstico
-    const diagnosticoMatch = diagnostic.match(/## 📊 DIAGNÓSTICO ESTRATÉGICO DA CLÍNICA([\s\S]*?)(?=## |$)/);
+    const diagnosticoMatch = diagnostic.match(/## 📊 (DIAGNÓSTICO ESTRATÉGICO|PERFIL DA CLÍNICA)([\s\S]*?)(?=## |$)/);
     if (diagnosticoMatch) {
-      sections.diagnostico = diagnosticoMatch[1].trim();
+      sections.diagnostico = diagnosticoMatch[2].trim();
     }
 
     // Extrair ideias de conteúdo
-    const ideiasMatch = diagnostic.match(/## 💡 IDEIAS DE CONTEÚDO SUPER PERSONALIZADAS([\s\S]*?)(?=## |$)/);
+    const ideiasMatch = diagnostic.match(/## 💡 IDEIAS DE CONTEÚDO([\s\S]*?)(?=## |$)/);
     if (ideiasMatch) {
       const ideiasText = ideiasMatch[1];
       const ideiasList = ideiasText.split(/\d+\./).filter(item => item.trim());
@@ -67,15 +68,42 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     }
 
     // Extrair plano de ação
-    const planoMatch = diagnostic.match(/## 📅 PLANO DE AÇÃO - 3 SEMANAS ESPECÍFICO([\s\S]*?)(?=## |$)/);
+    const planoMatch = diagnostic.match(/## 📅 PLANO DE AÇÃO([\s\S]*?)(?=## |$)/);
     if (planoMatch) {
       sections.plano = planoMatch[1].trim();
     }
 
+    // Extrair estratégias personalizadas
+    const estrategiasMatch = diagnostic.match(/## 📈 ESTRATÉGIAS PERSONALIZADAS([\s\S]*?)(?=## |$)/);
+    if (estrategiasMatch) {
+      const estrategiasText = estrategiasMatch[1];
+      const estrategiasList = estrategiasText.split(/[•\-]/).filter(item => item.trim() && item.length > 20);
+      sections.estrategias = estrategiasList.map(estrategia => estrategia.trim()).slice(0, 5);
+    }
+
+    // Se não encontrou estratégias na seção específica, extrair do diagnóstico geral
+    if (sections.estrategias.length === 0) {
+      const linhasEstrategicas = diagnostic.split('\n').filter(linha => 
+        linha.includes('•') || linha.includes('-')
+      ).filter(linha => 
+        linha.toLowerCase().includes('conteúdo') ||
+        linha.toLowerCase().includes('estratégia') ||
+        linha.toLowerCase().includes('marketing') ||
+        linha.toLowerCase().includes('autoridade') ||
+        linha.toLowerCase().includes('cases') ||
+        linha.toLowerCase().includes('educativo')
+      );
+      sections.estrategias = linhasEstrategicas.map(linha => linha.replace(/[•\-]/g, '').trim()).slice(0, 5);
+    }
+
     // Extrair sátira do mentor
-    const satiraMatch = diagnostic.match(/## 🧩 SÁTIRA DO MENTOR[\s\S]*?ENIGMA SATÍRICO:\*\*([\s\S]*?)(?=⚠️|$)/);
+    const satiraMatch = diagnostic.match(/## 🧩 MENTOR ESTRATÉGICO([\s\S]*?)(?=---|\*Diagnóstico|$)/);
     if (satiraMatch) {
-      sections.satira = satiraMatch[1].trim();
+      const mentorSection = satiraMatch[1];
+      const reflexaoMatch = mentorSection.match(/\*\*💭 Reflexão Estratégica:\*\*([\s\S]*?)(?=\*\*|$)/);
+      if (reflexaoMatch) {
+        sections.satira = reflexaoMatch[1].replace(/[*"]/g, '').trim();
+      }
     }
 
     return sections;
@@ -154,7 +182,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <div className="space-y-2">
         {summaryLines.map((line, index) => (
           <p key={index} className="text-sm text-muted-foreground">
-            {line.replace(/[•\-]/g, '').trim()}
+            {line.replace(/[•\-\*]/g, '').trim()}
           </p>
         ))}
       </div>
@@ -236,6 +264,33 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                   {index + 1}
                 </div>
                 <p className="text-sm font-medium">{action}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderAIPersonalizedStrategies = () => {
+    if (!aiSections || !aiSections.estrategias.length) {
+      return (
+        <div className="text-center text-muted-foreground p-4">
+          <p>Estratégias personalizadas não disponíveis</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        {aiSections.estrategias.map((estrategia, index) => (
+          <Card key={index} className="border-l-4 border-l-purple-500">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  {index + 1}
+                </div>
+                <p className="text-sm font-medium flex-1">{estrategia}</p>
               </div>
             </CardContent>
           </Card>
@@ -354,10 +409,18 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         {renderAIContentIdeas()}
       </section>
 
+      {/* Estratégias Personalizadas da IA */}
+      <section>
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          📈 Estratégias Personalizadas pela IA
+        </h2>
+        {renderAIPersonalizedStrategies()}
+      </section>
+
       {/* Ações Estratégicas da IA */}
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          📈 Plano de Ação Personalizado
+          📅 Plano de Ação Personalizado
         </h2>
         {renderAIStrategicActions()}
       </section>
