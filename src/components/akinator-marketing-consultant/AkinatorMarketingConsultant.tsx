@@ -7,6 +7,7 @@ import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
 import { MarketingConsultantState } from './types';
 import { useEquipments } from '@/hooks/useEquipments';
+import AkinatorQuestion from './AkinatorQuestion';
 
 const initialState: MarketingConsultantState = {
   clinicType: '',
@@ -37,18 +38,42 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const [state, setState] = useState<MarketingConsultantState>(initialState);
   const [showResult, setShowResult] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { equipments } = useEquipments();
 
   const handleAnswer = (answer: string) => {
-    setState({ ...state, [currentQuestion.id]: answer });
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      setShowResult(true);
+    console.log('Resposta selecionada:', answer, 'Step atual:', currentStep);
+    
+    if (currentStep >= 0 && currentStep < questions.length) {
+      const currentQuestion: Question = questions[currentStep];
+      
+      // Atualizar o estado com a resposta
+      const newState = { ...state, [currentQuestion.id]: answer };
+      setState(newState);
+      
+      console.log('Estado atualizado:', newState);
+      
+      // Verificar se chegou ao final das perguntas
+      if (currentStep < questions.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        console.log('Última pergunta respondida, iniciando processamento...');
+        setIsProcessing(true);
+        
+        // Simular processamento e depois mostrar resultado
+        setTimeout(() => {
+          setIsProcessing(false);
+          setShowResult(true);
+        }, 2000);
+      }
     }
   };
 
-  const currentQuestion: Question = questions[currentStep];
+  const handleGoBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const handleViewDashboard = (diagnostic: string) => {
     setState(prev => ({ ...prev, generatedDiagnostic: diagnostic }));
@@ -74,6 +99,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
     console.log('Generate PDF');
   };
 
+  const handleAddToPlanner = () => {
+    console.log('Adicionar ao planejador');
+    // Implementar lógica para adicionar ao planejador
+  };
+
   if (showDashboard) {
     return (
       <MarketingDashboard
@@ -97,16 +127,36 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
+  if (isProcessing) {
+    return (
+      <AnalysisProgressScreen 
+        currentStep={currentStep} 
+        totalSteps={questions.length} 
+        state={state} 
+      />
+    );
+  }
+
+  // Mostrar as perguntas do questionário
+  if (currentStep < questions.length) {
+    const currentQuestion: Question = questions[currentStep];
+    
+    return (
+      <AkinatorQuestion
+        question={currentQuestion}
+        currentStep={currentStep}
+        totalSteps={questions.length}
+        onAnswer={handleAnswer}
+        onGoBack={handleGoBack}
+        canGoBack={currentStep > 0}
+      />
+    );
+  }
+
+  // Fallback (não deveria chegar aqui)
   return (
-    <div>
-      {currentStep < questions.length ? (
-        <AnalysisProgressScreen currentStep={currentStep} totalSteps={questions.length} state={state} />
-      ) : (
-        <div>
-          <h2>Obrigado por responder!</h2>
-          <p>Estamos processando suas respostas...</p>
-        </div>
-      )}
+    <div className="text-center">
+      <h2>Carregando...</h2>
     </div>
   );
 };

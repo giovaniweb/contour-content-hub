@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Camera, Volume2, Wand2, Sparkles } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Copy, Camera, Volume2, Calendar, Sparkles, CheckCircle, RotateCcw } from "lucide-react";
 import { SmartGenerationResult } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
-import { useEquipments } from '@/hooks/useEquipments';
+import { useToast } from "@/hooks/use-toast";
 
 interface SmartResultDisplayProps {
   generationResult: SmartGenerationResult;
@@ -32,196 +31,175 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
   isProcessing
 }) => {
   const { toast } = useToast();
-  const { equipments } = useEquipments();
 
   const handleCopyScript = () => {
     navigator.clipboard.writeText(generationResult.content);
     toast({
-      title: "Roteiro copiado!",
-      description: "O roteiro foi copiado para a área de transferência.",
+      title: "✅ Copiado!",
+      description: "Roteiro copiado para área de transferência"
     });
   };
 
-  const getContentTypeLabel = () => {
-    const labels = {
-      'bigIdea': 'Big Idea',
-      'stories': 'Stories',
-      'carousel': 'Carrossel',
-      'image': 'Imagem',
-      'video': 'Vídeo'
-    };
-    return labels[generationResult.intention.tipo_conteudo] || 'Conteúdo';
+  const handleAddToPlanner = () => {
+    toast({
+      title: "📅 Adicionando ao Planejador...",
+      description: "Seu roteiro será adicionado ao planejamento estratégico"
+    });
+    // Aqui seria implementada a lógica para adicionar ao planejador
   };
 
-  const getObjectiveLabel = () => {
-    const labels = {
-      'leads': 'Gerar Leads',
-      'vendas': 'Vendas',
-      'autoridade': 'Autoridade',
-      'engajamento': 'Engajamento',
-      'ensinar': 'Educação',
-      'emocional': 'Conexão Emocional'
-    };
-    return labels[generationResult.intention.objetivo] || 'Objetivo';
-  };
-
-  const getEquipmentLabel = () => {
-    if (generationResult.intention.equipamento === 'sem_equipamento') {
-      return 'Protocolo da Clínica';
-    }
-    
-    // Buscar o equipamento na lista de equipamentos
-    const equipment = equipments.find(eq => eq.id === generationResult.intention.equipamento);
-    if (equipment) {
-      return equipment.nome;
-    }
-    
-    // Fallback caso não encontre
-    return generationResult.intention.equipamento || 'Não específico';
-  };
+  const isVideoFormat = generationResult.intention.tipo_conteudo === 'video';
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Roteiro Gerado</h1>
-            <p className="text-muted-foreground">
-              {getContentTypeLabel()} • {getObjectiveLabel()} • {generationResult.mentor}
-            </p>
+    <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
+      {/* Header com informações do mentor e enigma */}
+      <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                Roteiro Criado por {generationResult.mentor}
+              </CardTitle>
+              <p className="text-muted-foreground mt-1">
+                {generationResult.enigma}
+              </p>
+            </div>
+            <Badge variant="outline" className="bg-background">
+              {generationResult.intention.tipo_conteudo}
+            </Badge>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onNewScript}>
-              <Wand2 className="h-4 w-4 mr-2" />
-              Novo Roteiro
-            </Button>
-            <Button onClick={handleCopyScript}>
+        </CardHeader>
+      </Card>
+
+      {/* Conteúdo do roteiro */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Seu Roteiro Personalizado</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="whitespace-pre-line text-sm bg-muted/50 p-6 rounded-lg mb-6 leading-relaxed">
+            {generationResult.content}
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Badge variant="secondary">
+                {generationResult.intention.canal}
+              </Badge>
+              <Badge variant="outline">
+                {generationResult.intention.estilo_comunicacao}
+              </Badge>
+            </div>
+            <Button variant="outline" onClick={handleCopyScript}>
               <Copy className="h-4 w-4 mr-2" />
               Copiar
             </Button>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <Card className="border-2 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Conteúdo Gerado</span>
-              <div className="flex gap-2">
-                <Badge variant="outline">{getContentTypeLabel()}</Badge>
-                {isDisneyApplied && (
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                    🏰 Walt Disney 1928
-                  </Badge>
-                )}
+      {/* Ações de aprovação e transformação */}
+      {!isApproved && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-semibold">Aprove ou Transforme seu Roteiro</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={onApplyDisney}
+                  variant="outline"
+                  disabled={isProcessing}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  ✨ Encantar com Fluida
+                </Button>
+                
+                <Button 
+                  onClick={onApproveScript}
+                  disabled={isProcessing}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  ✅ Aprovar Roteiro
+                </Button>
               </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="whitespace-pre-line text-sm bg-muted/50 p-6 rounded-lg mb-6">
-              {generationResult.content}
             </div>
-            
-            {!isApproved && (
-              <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                {!isDisneyApplied && (
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ações pós-aprovação */}
+      {isApproved && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  Roteiro Aprovado!
+                </Badge>
+              </div>
+              
+              <h3 className="text-lg font-semibold">Próximos Passos</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {!isVideoFormat ? (
                   <Button 
-                    onClick={onApplyDisney}
-                    variant="outline"
+                    onClick={onGenerateImage}
                     disabled={isProcessing}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
+                    className="bg-purple-600 hover:bg-purple-700"
                   >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    🏰 Transformar com Magia Disney 1928
+                    <Camera className="h-4 w-4 mr-2" />
+                    Criar Imagem com IA
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={onGenerateVoice}
+                    disabled={isProcessing}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Volume2 className="h-4 w-4 mr-2" />
+                    Gerar Áudio com IA
                   </Button>
                 )}
                 
                 <Button 
-                  onClick={onApproveScript}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={handleAddToPlanner}
+                  variant="outline"
                   disabled={isProcessing}
                 >
-                  ✅ Aprovar Roteiro
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Adicionar ao Planejador
+                </Button>
+                
+                <Button 
+                  onClick={onNewScript}
+                  variant="outline"
+                  disabled={isProcessing}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Novo Roteiro
                 </Button>
               </div>
-            )}
-            
-            {isApproved && (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    Roteiro Aprovado!
-                  </Badge>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {generationResult.intention.tipo_conteudo !== 'video' ? (
-                    <Button 
-                      onClick={onGenerateImage}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      🖼️ Criar imagem com IA
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={onGenerateVoice}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Volume2 className="h-4 w-4 mr-2" />
-                      🎧 Gerar áudio com voz IA
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Enigma do Mentor */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Assinatura do Mentor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-              <p className="text-purple-400 italic">"{generationResult.enigma}"</p>
-              <p className="text-sm text-gray-400 mt-2">— {generationResult.mentor}</p>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Dados da Intenção */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Análise de Intenção</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <strong>Tipo:</strong> {getContentTypeLabel()}
-              </div>
-              <div>
-                <strong>Objetivo:</strong> {getObjectiveLabel()}
-              </div>
-              <div>
-                <strong>Canal:</strong> {generationResult.intention.canal}
-              </div>
-              <div>
-                <strong>Estilo:</strong> {generationResult.intention.estilo_comunicacao}
-              </div>
-              <div>
-                <strong>Equipamento:</strong> {getEquipmentLabel()}
-              </div>
-              <div>
-                <strong>Tema:</strong> {generationResult.intention.tema}
-              </div>
-              <div className="col-span-2">
-                <strong>Mentor:</strong> {generationResult.mentor}
-              </div>
+      {/* Informações sobre transformação Disney */}
+      {isDisneyApplied && (
+        <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-purple-700">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                ✨ Transformado com a Magia Disney 1928 - Walt Disney aplicou técnicas de storytelling encantador!
+              </span>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 };

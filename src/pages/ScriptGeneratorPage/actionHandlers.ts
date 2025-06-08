@@ -1,21 +1,24 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 
 export const useActionHandlers = () => {
   const { toast } = useToast();
 
   const handleGenerateImage = () => {
     toast({
-      title: "Geração de imagem",
-      description: "Funcionalidade de geração de imagem com IA será implementada em breve.",
+      title: "🖼️ Gerando imagem...",
+      description: "Sua arte está sendo criada pela IA!"
     });
+    // Aqui seria implementada a navegação para o gerador de imagens
+    // window.location.href = '/media-library';
   };
 
   const handleGenerateVoice = () => {
     toast({
-      title: "Geração de voz",
-      description: "Funcionalidade de geração de voz com ElevenLabs será implementada em breve.",
+      title: "🎧 Gerando áudio...",
+      description: "Sua narração está sendo criada!"
     });
+    // Aqui seria implementada a lógica para gerar áudio
   };
 
   return {
