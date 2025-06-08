@@ -19,6 +19,10 @@ import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
 import EquipmentsPage from '@/pages/EquipmentsPage';
 import EquipmentDetailsPage from '@/pages/EquipmentDetailsPage';
 import AdminEquipments from '@/pages/admin/AdminEquipments';
+import ContentStrategy from '@/pages/ContentStrategy';
+import ContentScripts from '@/pages/ContentScripts';
+import MarketingConsultant from '@/pages/MarketingConsultant';
+import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +69,34 @@ function App() {
                   <Route path="/equipment/:id" element={
                     <PrivateRoute>
                       <EquipmentDetailsPage />
+                    </PrivateRoute>
+                  } />
+
+                  {/* Content Strategy Route */}
+                  <Route path="/content-strategy" element={
+                    <PrivateRoute>
+                      <ContentStrategy />
+                    </PrivateRoute>
+                  } />
+
+                  {/* Content Scripts Route */}
+                  <Route path="/scripts" element={
+                    <PrivateRoute>
+                      <ContentScripts />
+                    </PrivateRoute>
+                  } />
+
+                  {/* Marketing Consultant Route */}
+                  <Route path="/marketing-consultant" element={
+                    <PrivateRoute>
+                      <MarketingConsultant />
+                    </PrivateRoute>
+                  } />
+
+                  {/* Consultant Panel Route */}
+                  <Route path="/consultant-panel" element={
+                    <PrivateRoute>
+                      <ConsultantPanel />
                     </PrivateRoute>
                   } />
                   
