@@ -158,7 +158,7 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
   const generateFallbackDiagnostic = () => {
     const clinicType = consultantData.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
     const specialty = consultantData.medicalSpecialty || consultantData.aestheticFocus || 'especialização selecionada';
-    const service = consultantData.mainService || 'seus serviços principais';
+    const mainService = getMainService(consultantData);
     const revenue = formatRevenue(consultantData.currentRevenue);
     const goal = formatGoal(consultantData.revenueGoal);
     
@@ -167,14 +167,14 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
 Baseado nas suas respostas, identificamos oportunidades específicas para sua clínica de ${specialty} crescer de forma estratégica e sustentável.
 
 ## 📊 **Análise do Perfil**
-Sua clínica tem potencial para crescimento através de uma comunicação mais direcionada, especialmente destacando os benefícios de ${service}.
+Sua clínica tem potencial para crescimento através de uma comunicação mais direcionada, especialmente destacando os benefícios de ${mainService}.
 
 **Situação Atual:** ${revenue}  
 **Meta:** ${goal}
 
 ## 💡 **Ações Táticas Prioritárias**
 
-1. **Criar conteúdo educativo** sobre ${service} focando nos resultados reais
+1. **Criar conteúdo educativo** sobre ${mainService} focando nos resultados reais
 2. **Desenvolver storytelling** com casos de sucesso de pacientes  
 3. **Implementar estratégia de engajamento** nas redes sociais
 4. **Otimizar processo de conversão** de leads em consultas
@@ -191,6 +191,14 @@ Sua clínica tem potencial para crescimento através de uma comunicação mais d
 Foque em mostrar transformações reais, educar sobre procedimentos e criar conexão emocional com seu público através de comunicação humanizada e próxima.
 
 **Próximo passo:** Implemente as 3 primeiras ações táticas na próxima semana e monitore os resultados.`;
+  };
+
+  const getMainService = (data: MarketingConsultantState): string => {
+    if (data.clinicType === 'clinica_medica') {
+      return data.medicalProcedures || data.medicalSpecialty || 'procedimentos médicos';
+    } else {
+      return data.aestheticFocus || data.aestheticBestSeller || 'tratamentos estéticos';
+    }
   };
 
   const formatRevenue = (revenue?: string) => {

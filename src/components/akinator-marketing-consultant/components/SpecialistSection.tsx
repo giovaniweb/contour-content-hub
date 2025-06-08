@@ -30,129 +30,146 @@ const SpecialistSection: React.FC<SpecialistSectionProps> = ({ state }) => {
       ];
     }
 
-    // 1. Análise de Tráfego Pago - PRIORIDADE ALTA
-    if (state.paidTraffic === 'nunca_usei') {
-      specialists.push({
-        name: "Especialista em Conversão",
-        specialty: "Estruturação de Tráfego Pago",
-        reason: "pois você nunca usou tráfego pago e precisa começar do zero",
-        status: "criando estratégia de captação inicial"
-      });
-    } else if (state.paidTraffic === 'uso_pouco') {
-      specialists.push({
-        name: "Especialista em Conversão",
-        specialty: "Otimização de Campanhas",
-        reason: "para melhorar seus resultados atuais no tráfego pago",
-        status: "analisando campanhas existentes"
-      });
-    } else if (state.paidTraffic === 'sim_regular') {
-      specialists.push({
-        name: "Analista de Performance",
-        specialty: "ROI e Escalabilidade",
-        reason: "para escalar suas campanhas que já funcionam",
-        status: "calculando métricas avançadas"
-      });
-    }
-
-    // 2. Análise de Marca Pessoal
-    if (state.personalBrand === 'nunca') {
-      specialists.push({
-        name: "Expert em Storytelling",
-        specialty: "Construção de Autoridade",
-        reason: "pois você precisa começar a aparecer e construir credibilidade",
-        status: "desenvolvendo sua narrativa pessoal"
-      });
-    } else if (state.personalBrand === 'raramente') {
+    // 1. Análise baseada na frequência de conteúdo
+    if (state.contentFrequency === 'raramente' || state.contentFrequency === 'nao_posto') {
       specialists.push({
         name: "Estrategista Digital",
-        specialty: "Presença Consistente",
-        reason: "para criar um cronograma regular de aparições",
-        status: "organizando calendário de conteúdo"
+        specialty: "Estruturação de Conteúdo",
+        reason: "pois você precisa organizar sua estratégia de comunicação",
+        status: "criando cronograma editorial"
       });
-    } else if (state.personalBrand === 'sim_sempre') {
+    } else if (state.contentFrequency === 'diario') {
       specialists.push({
         name: "Expert em Engajamento",
-        specialty: "Crescimento Orgânico",
-        reason: "para maximizar o alcance da sua presença ativa",
-        status: "identificando oportunidades virais"
+        specialty: "Otimização de Alcance",
+        reason: "para maximizar o resultado da sua produção constante",
+        status: "analisando métricas de engajamento"
       });
     }
 
-    // 3. Análise por Tipo de Clínica
+    // 2. Análise por Tipo de Clínica e Objetivos
     if (state.clinicType === 'clinica_estetica') {
-      if (state.aestheticObjective === 'mais_leads') {
+      if (state.aestheticObjective === 'atrair_leads') {
         specialists.push({
-          name: "Consultor Criativo",
-          specialty: "Marketing Visual para Estética",
-          reason: "para destacar transformações e atrair mais clientes",
-          status: "desenvolvendo conceito visual impactante"
+          name: "Especialista em Conversão",
+          specialty: "Geração de Leads Estéticos",
+          reason: "para atrair mais clientes interessados em tratamentos estéticos",
+          status: "estruturando funil de captação"
         });
-      } else if (state.aestheticObjective === 'autoridade') {
+      } else if (state.aestheticObjective === 'aumentar_recorrencia') {
         specialists.push({
           name: "Expert em Storytelling",
-          specialty: "Autoridade em Estética",
-          reason: "para posicionar você como referência no mercado estético",
-          status: "criando casos de sucesso memoráveis"
+          specialty: "Fidelização de Clientes",
+          reason: "para criar conexão emocional e aumentar retorno",
+          status: "desenvolvendo narrativas de transformação"
+        });
+      }
+
+      // Baseado no foco estético
+      if (state.aestheticFocus === 'ambos') {
+        specialists.push({
+          name: "Consultor Criativo",
+          specialty: "Marketing Visual Completo",
+          reason: "para comunicar efetivamente tratamentos faciais e corporais",
+          status: "criando conceito visual unificado"
         });
       }
     }
 
     if (state.clinicType === 'clinica_medica') {
-      if (state.medicalObjective === 'autoridade') {
+      if (state.medicalObjective === 'aumentar_autoridade') {
         specialists.push({
-          name: "Consultor de Grandes Ideias",
-          specialty: "Posicionamento Médico Premium",
-          reason: "para elevar sua reputação médica no mercado",
-          status: "conceptualizando diferenciação premium"
+          name: "Expert em Storytelling",
+          specialty: "Autoridade Médica",
+          reason: "para posicionar você como referência na sua especialidade",
+          status: "desenvolvendo conteúdo técnico acessível"
         });
-      } else if (state.medicalObjective === 'escala') {
+      } else if (state.medicalObjective === 'escalar_negocio') {
         specialists.push({
           name: "Analista de Performance",
           specialty: "Escala Estruturada",
-          reason: "para crescer mantendo qualidade médica",
+          reason: "para crescer mantendo a qualidade médica",
           status: "estruturando sistemas de crescimento"
+        });
+      }
+
+      // Baseado na especialidade médica
+      if (state.medicalSpecialty === 'medicina_estetica' || state.medicalSpecialty === 'dermatologia') {
+        specialists.push({
+          name: "Consultor Criativo",
+          specialty: "Marketing Médico Visual",
+          reason: "para comunicar procedimentos estéticos com credibilidade médica",
+          status: "equilibrando ciência e apelo visual"
         });
       }
     }
 
-    // 4. Análise de Posicionamento
-    if (state.clinicPosition === 'premium') {
+    // 3. Análise baseada no estilo da clínica
+    const clinicStyle = state.clinicType === 'clinica_medica' ? state.medicalClinicStyle : state.aestheticClinicStyle;
+    
+    if (clinicStyle === 'premium') {
       specialists.push({
         name: "Consultor de Grandes Ideias",
         specialty: "Branding Premium",
         reason: "para comunicar exclusividade e alto valor",
         status: "refinando posicionamento de luxo"
       });
-    } else if (state.clinicPosition === 'moderna') {
-      specialists.push({
-        name: "Consultor Criativo",
-        specialty: "Inovação Visual",
-        reason: "para transmitir modernidade e tecnologia",
-        status: "criando identidade moderna"
-      });
-    } else if (state.clinicPosition === 'humanizada') {
+    } else if (clinicStyle === 'humanizada') {
       specialists.push({
         name: "Expert em Storytelling",
         specialty: "Conexão Emocional",
         reason: "para fortalecer relacionamento com pacientes",
         status: "desenvolvendo narrativa empática"
       });
+    } else if (clinicStyle === 'moderna' || clinicStyle === 'inovadora') {
+      specialists.push({
+        name: "Consultor Criativo",
+        specialty: "Inovação Visual",
+        reason: "para transmitir modernidade e tecnologia",
+        status: "criando identidade contemporânea"
+      });
     }
 
-    // 5. Análise de Frequência de Conteúdo
-    if (state.contentFrequency === 'irregular') {
+    // 4. Análise baseada no faturamento e metas
+    if (state.currentRevenue === 'ate_15k' && (state.revenueGoal === 'dobrar' || state.revenueGoal === 'triplicar')) {
+      specialists.push({
+        name: "Especialista em Conversão",
+        specialty: "Crescimento Acelerado",
+        reason: "para estruturar estratégias de crescimento rápido",
+        status: "mapeando oportunidades de escala"
+      });
+    }
+
+    if (state.currentRevenue === 'acima_60k') {
+      specialists.push({
+        name: "Analista de Performance",
+        specialty: "Otimização de Alto Faturamento",
+        reason: "para maximizar eficiência em operações consolidadas",
+        status: "analisando métricas avançadas"
+      });
+    }
+
+    // 5. Análise baseada no estilo de comunicação
+    if (state.communicationStyle === 'tecnico') {
       specialists.push({
         name: "Estrategista Digital",
-        specialty: "Organização de Conteúdo",
-        reason: "para criar consistência na sua comunicação",
-        status: "estruturando calendário editorial"
+        specialty: "Comunicação Técnica Acessível",
+        reason: "para tornar conteúdo técnico mais digestível",
+        status: "simplificando linguagem especializada"
       });
-    } else if (state.contentFrequency === 'diario') {
+    } else if (state.communicationStyle === 'emocional') {
+      specialists.push({
+        name: "Expert em Storytelling",
+        specialty: "Narrativas Emocionais",
+        reason: "para amplificar conexões emocionais",
+        status: "criando histórias impactantes"
+      });
+    } else if (state.communicationStyle === 'divertido') {
       specialists.push({
         name: "Expert em Engajamento",
-        specialty: "Maximização de Alcance",
-        reason: "para aproveitar melhor sua produção constante",
-        status: "otimizando estratégia de engajamento"
+        specialty: "Conteúdo Viral",
+        reason: "para criar conteúdos que engajam e divertem",
+        status: "desenvolvendo estratégias virais"
       });
     }
 

@@ -98,60 +98,55 @@ export class MarketingMentorInference {
 
   private static getInferenceRules() {
     return [
-      // Regras para clínicas médicas
+      // Regras para clínicas médicas - foco em autoridade
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_medica' && 
-          state.medicalObjective === 'autoridade',
+          state.medicalObjective === 'aumentar_autoridade',
         mentorKey: 'expert_storytelling',
         confidence: 0.9
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_medica' && 
-          state.clinicPosition === 'premium',
+          state.medicalClinicStyle === 'premium',
         mentorKey: 'consultor_grandes_ideias',
         confidence: 0.85
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_medica' && 
-          state.medicalObjective === 'escala' &&
-          state.paidTraffic === 'nunca_usei',
+          state.medicalObjective === 'escalar_negocio',
         mentorKey: 'analista_performance',
         confidence: 0.88
       },
 
-      // Regras para clínicas estéticas
+      // Regras para clínicas estéticas - foco em conversão
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_estetica' && 
-          state.aestheticObjective === 'mais_leads' &&
-          state.paidTraffic === 'nunca_usei',
+          state.aestheticObjective === 'atrair_leads',
         mentorKey: 'especialista_conversao',
         confidence: 0.9
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_estetica' && 
-          state.personalBrand === 'nunca' &&
-          state.contentFrequency === 'irregular',
+          (state.contentFrequency === 'raramente' || state.contentFrequency === 'nao_posto'),
         mentorKey: 'estrategista_digital',
         confidence: 0.85
       },
       {
         condition: (state: MarketingConsultantState) => 
           state.clinicType === 'clinica_estetica' && 
-          state.aestheticObjective === 'autoridade' &&
-          state.clinicPosition === 'moderna',
+          state.aestheticClinicStyle === 'moderna',
         mentorKey: 'consultor_criativo',
         confidence: 0.87
       },
       {
         condition: (state: MarketingConsultantState) => 
-          state.personalBrand === 'sim_sempre' && 
           state.contentFrequency === 'diario' &&
-          state.clinicPosition === 'humanizada',
+          state.aestheticClinicStyle === 'humanizada',
         mentorKey: 'expert_engajamento',
         confidence: 0.82
       },
@@ -167,25 +162,50 @@ export class MarketingMentorInference {
       {
         condition: (state: MarketingConsultantState) => 
           state.currentRevenue === 'ate_15k' && 
-          state.contentFrequency === 'irregular',
+          (state.contentFrequency === 'raramente' || state.contentFrequency === 'nao_posto'),
         mentorKey: 'estrategista_digital',
         confidence: 0.83
       },
 
-      // Regras baseadas em presença digital
+      // Regras baseadas em comunicação
       {
         condition: (state: MarketingConsultantState) => 
-          state.paidTraffic === 'sim_regular' && 
-          state.personalBrand === 'sim_sempre',
-        mentorKey: 'especialista_conversao',
-        confidence: 0.85
+          state.communicationStyle === 'emocional',
+        mentorKey: 'expert_storytelling',
+        confidence: 0.75
       },
       {
         condition: (state: MarketingConsultantState) => 
-          state.personalBrand === 'raramente' && 
-          state.clinicPosition === 'premium',
+          state.communicationStyle === 'tecnico',
+        mentorKey: 'analista_performance',
+        confidence: 0.75
+      },
+      {
+        condition: (state: MarketingConsultantState) => 
+          state.communicationStyle === 'divertido',
+        mentorKey: 'expert_engajamento',
+        confidence: 0.78
+      },
+
+      // Regras baseadas no estilo da clínica
+      {
+        condition: (state: MarketingConsultantState) => 
+          (state.medicalClinicStyle === 'premium' || state.aestheticClinicStyle === 'premium'),
         mentorKey: 'consultor_grandes_ideias',
         confidence: 0.8
+      },
+      {
+        condition: (state: MarketingConsultantState) => 
+          (state.medicalClinicStyle === 'humanizada' || state.aestheticClinicStyle === 'humanizada'),
+        mentorKey: 'expert_storytelling',
+        confidence: 0.75
+      },
+      {
+        condition: (state: MarketingConsultantState) => 
+          (state.medicalClinicStyle === 'moderna' || state.aestheticClinicStyle === 'moderna' || 
+           state.medicalClinicStyle === 'inovadora'),
+        mentorKey: 'consultor_criativo',
+        confidence: 0.77
       }
     ];
   }
