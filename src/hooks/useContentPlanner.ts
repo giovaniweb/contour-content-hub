@@ -35,26 +35,14 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
       items: items.filter(item => item.status === 'idea')
     },
     {
-      id: 'script_generated',
-      title: '✍️ Roteiro Gerado',
-      icon: '✍️',
-      items: items.filter(item => item.status === 'script_generated')
-    },
-    {
       id: 'approved',
-      title: '✅ Aprovado',
-      icon: '✅',
+      title: '⚡ Executar',
+      icon: '⚡',
       items: items.filter(item => item.status === 'approved')
     },
     {
-      id: 'scheduled',
-      title: '📅 Agendado',
-      icon: '📅',
-      items: items.filter(item => item.status === 'scheduled')
-    },
-    {
       id: 'published',
-      title: '📢 Publicado',
+      title: '📢 Publicar',
       icon: '📢',
       items: items.filter(item => item.status === 'published')
     }
@@ -171,21 +159,7 @@ export function useContentPlanner(initialFilters: ContentPlannerFilter = {}) {
         return false;
       }
       
-      // If moving to scheduled, handle calendar integration
-      if (targetStatus === 'scheduled' && item.status !== 'scheduled') {
-        const date = new Date();
-        const updatedItem = await scheduleContentPlannerItem(item, date);
-        if (updatedItem) {
-          setItems(prev => prev.map(i => i.id === itemId ? updatedItem : i));
-          toast.success("Conteúdo agendado", {
-            description: "O conteúdo foi agendado no calendário."
-          });
-          return true;
-        }
-        return false;
-      }
-      
-      // For other status changes
+      // Update the item status
       const updatedItem = await updateContentPlannerItem(itemId, { status: targetStatus });
       if (updatedItem) {
         setItems(prev => prev.map(i => i.id === itemId ? updatedItem : i));

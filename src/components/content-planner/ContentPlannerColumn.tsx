@@ -50,7 +50,7 @@ const ContentPlannerColumn: React.FC<ContentPlannerColumnProps> = ({
                 onEdit={onEditItem}
                 onDelete={onDeleteItem}
                 onGenerateScript={column.id === 'idea' ? onGenerateScript : undefined}
-                onValidate={column.id === 'script_generated' ? onValidateScript : undefined}
+                onValidate={column.id === 'approved' ? onValidateScript : undefined}
                 onSchedule={column.id === 'approved' ? onScheduleItem : undefined}
               />
             ))}

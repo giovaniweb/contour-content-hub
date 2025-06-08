@@ -173,8 +173,8 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     </div>
                   )}
                   
-                  {/* Checklist progress - Only show for items with scripts */}
-                  {item.scriptId && (
+                  {/* Checklist progress - Show for approved items */}
+                  {item.status === 'approved' && (
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                         <span className="flex items-center gap-1">
@@ -245,7 +245,7 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     </Button>
                   )}
                   
-                  {item.status === 'script_generated' && onValidate && (
+                  {item.status === 'approved' && onValidate && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -275,7 +275,7 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                     </Button>
                   )}
                   
-                  {item.status === 'scheduled' && (
+                  {item.status === 'published' && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -284,7 +284,7 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ArrowRight className="h-3 w-3 mr-1" />
-                      Publicar
+                      Publicado
                     </Button>
                   )}
                 </div>
@@ -336,8 +336,8 @@ const ContentPlannerCard: React.FC<ContentPlannerCardProps> = ({
               )}
             </div>
             
-            {/* Checklist - Only show for items with scripts */}
-            {item.scriptId && (
+            {/* Checklist - Show for approved items */}
+            {item.status === 'approved' && (
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <CheckSquare className="h-4 w-4" /> 

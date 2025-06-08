@@ -49,10 +49,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const getStatusLabel = (status: ContentPlannerStatus): string => {
     const labels = {
       'idea': 'Ideias',
-      'script_generated': 'Roteiro Gerado',
-      'approved': 'Aprovado',
-      'scheduled': 'Agendado',
-      'published': 'Publicado'
+      'approved': 'Executar',
+      'published': 'Publicar'
     };
     return labels[status] || status;
   };
@@ -75,8 +73,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   const handleScheduleItem = (item: ContentPlannerItem) => {
-    // Mover para status "scheduled"
-    moveItem(item.id, 'scheduled');
+    // Move item to published status
+    moveItem(item.id, 'published');
   };
 
   // Filtrar colunas baseado na busca

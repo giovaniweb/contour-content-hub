@@ -5,10 +5,8 @@ import { ContentPlannerStatus } from '@/types/content-planner';
 export const getStatusLabel = (status: ContentPlannerStatus): string => {
   switch (status) {
     case 'idea': return 'Ideia';
-    case 'script_generated': return 'Roteiro Gerado';
-    case 'approved': return 'Aprovado';
-    case 'scheduled': return 'Agendado';
-    case 'published': return 'Publicado';
+    case 'approved': return 'Executar';
+    case 'published': return 'Publicar';
     default: return 'Desconhecido';
   }
 };

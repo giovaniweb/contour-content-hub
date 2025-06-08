@@ -41,7 +41,7 @@ const ScriptToPlannerModal: React.FC<ScriptToPlannerModalProps> = ({
   const [title, setTitle] = useState(scriptTitle);
   const [description, setDescription] = useState(scriptContent);
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [status, setStatus] = useState<ContentPlannerStatus>("script_generated");
+  const [status, setStatus] = useState<ContentPlannerStatus>("approved");
   const [platforms, setPlatforms] = useState({
     instagram: true,
     youtube: false,
@@ -182,16 +182,12 @@ const ScriptToPlannerModal: React.FC<ScriptToPlannerModalProps> = ({
                 <Label htmlFor="status-idea">Ideia</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="script_generated" id="status-script" />
-                <Label htmlFor="status-script">Roteiro Pronto</Label>
-              </div>
-              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="approved" id="status-approved" />
-                <Label htmlFor="status-approved">Aprovado</Label>
+                <Label htmlFor="status-approved">Executar</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="scheduled" id="status-scheduled" />
-                <Label htmlFor="status-scheduled">Agendado</Label>
+                <RadioGroupItem value="published" id="status-published" />
+                <Label htmlFor="status-published">Publicar</Label>
               </div>
             </RadioGroup>
           </div>
@@ -237,7 +233,6 @@ const ScriptToPlannerModal: React.FC<ScriptToPlannerModalProps> = ({
                 )}
                 onClick={() => handlePlatformChange("tiktok")}
               >
-                {/* Using a text label instead of an icon since TikTok icon isn't available in lucide-react */}
                 <span className="text-xs font-bold">TT</span>
                 TikTok
                 {platforms.tiktok && <Check className="h-3 w-3 ml-1" />}
