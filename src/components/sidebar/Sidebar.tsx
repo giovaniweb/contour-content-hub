@@ -2,6 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from '@/routes';
+import { motion } from 'framer-motion';
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -16,15 +17,15 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   Menu,
-  Cog,
   User,
   HelpCircle,
-  PlusCircle
+  PlusCircle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { sidebarData, adminItems } from "./SidebarData";
+import { sidebarData, adminItems } from "../sidebar/SidebarData";
 
 export default function Sidebar() {
   const { open, setOpen } = useSidebar();
@@ -41,112 +42,295 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent>
-      <SidebarHeader className="border-b p-3">
-        <div className="flex items-center justify-between">
-          {open && (
-            <div className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-[#0094fb] to-[#f300fc]">
-              Fluida
-            </div>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="ml-auto h-8 w-8"
-            onClick={() => setOpen(!open)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-      </SidebarHeader>
+    <div className="h-screen flex flex-col relative overflow-hidden">
+      {/* Aurora Background */}
+      <div className="absolute inset-0 aurora-dark-bg">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/50" />
+      </div>
       
-      <SidebarContent className="p-1 overflow-y-auto">
-        {sidebarData.map((group) => (
-          <SidebarGroup key={group.name} className="mb-2">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs px-2 py-1")}>
-              {group.icon && <group.icon className="mr-2 h-3 w-3" />}
-              {group.name}
-            </SidebarGroupLabel>
-            <SidebarMenu>
-              {group.links.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive(item.path)}
-                    className={cn(
-                      "h-8 text-sm",
-                      item.highlight ? "relative before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:bg-gradient-to-b before:from-[#0094fb] before:to-[#f300fc] before:rounded-r-sm z-10" : ""
-                    )}
-                  >
-                    <Link to={item.path}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                      {item.highlight && open && (
-                        <span className="absolute right-2 top-1 h-1.5 w-1.5 rounded-full bg-[#f300fc] animate-pulse" />
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-
-              {/* Link para criar vídeo quando estiver no grupo de vídeos */}
-              {group.name === "Downloads" && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive("/videos/create")}
-                    className="h-8 text-sm"
-                  >
-                    <Link to="/videos/create" className="text-blue-500 hover:text-blue-600">
-                      <PlusCircle className="h-4 w-4" />
-                      <span>Criar Vídeo</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroup>
+      {/* Animated particles overlay */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white/30 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.3, 0.8, 0.3],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
         ))}
-        
-        {isAdmin && (
-          <SidebarGroup className="mt-2">
-            <SidebarGroupLabel className={cn(!open && "sr-only", "flex items-center text-xs px-2 py-1")}>
-              <Cog className="mr-2 h-3 w-3" /> Admin
-            </SidebarGroupLabel>
-            <SidebarMenu>
-              {adminItems.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive(item.path)}
-                    className="h-8 text-sm"
-                  >
-                    <Link to={item.path}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
-      </SidebarContent>
-      
-      <SidebarFooter className="border-t p-3">
-        {open ? (
-          <div className="space-y-1">
-            <Link to={ROUTES.PROFILE} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors text-sm">
-              <User className="h-3 w-3" />
-              <span>Profile</span>
-            </Link>
-            <Link to="/help" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted transition-colors text-sm">
-              <HelpCircle className="h-3 w-3" />
-              <span>Help</span>
-            </Link>
+      </div>
+
+      <SidebarComponent className="bg-transparent border-r border-white/20 relative z-10">
+        <SidebarHeader className="border-b border-white/20 p-6">
+          <div className="flex items-center justify-between">
+            <motion.div 
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div 
+                className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg"
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              >
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Sparkles className="w-6 h-6 text-white" />
+                </motion.div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 opacity-50 blur-md" />
+              </motion.div>
+              <div className={cn("transition-all duration-300", !open && "opacity-0 w-0 overflow-hidden")}>
+                <div className="font-bold text-2xl text-white mb-1 drop-shadow-lg">
+                  Fluida
+                </div>
+                <div className="text-xs text-white/80 font-medium">
+                  Plataforma de Conteúdo
+                </div>
+              </div>
+            </motion.div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="ml-auto text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-105"
+              onClick={() => setOpen(!open)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
-        ) : null}
-      </SidebarFooter>
-    </SidebarComponent>
+        </SidebarHeader>
+        
+        <SidebarContent className="p-4 overflow-y-auto scrollbar-hide">
+          {/* Display all sidebar groups from our data */}
+          {sidebarData.map((group, groupIndex) => (
+            <SidebarGroup key={group.name} className="mb-6">
+              <SidebarGroupLabel className={cn("text-sm font-bold text-white/90 uppercase tracking-widest mb-3 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
+                {group.name}
+              </SidebarGroupLabel>
+              <SidebarMenu className="space-y-1">
+                {group.links.map((item, itemIndex) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      delay: (groupIndex * 0.1) + (itemIndex * 0.05),
+                      ease: "easeOut"
+                    }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive(item.path)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
+                          "text-white hover:text-white",
+                          isActive(item.path) 
+                            ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg backdrop-blur-sm border border-white/20" 
+                            : "hover:bg-white/15 hover:backdrop-blur-sm text-white/85 hover:text-white",
+                          item.highlight && "relative"
+                        )}
+                      >
+                        <Link to={item.path} className="flex items-center gap-3 w-full">
+                          {/* Gradient background for active items */}
+                          {isActive(item.path) && (
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          )}
+                          
+                          {/* Icon with improved visibility */}
+                          <div className={cn(
+                            "relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-5 h-5",
+                            isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]"
+                          )}>
+                            <item.icon className="h-5 w-5 text-white" />
+                          </div>
+                          
+                          {/* Text always visible */}
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-white transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            {item.name}
+                          </span>
+                          
+                          {item.highlight && open && (
+                            <motion.div
+                              className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg flex-shrink-0"
+                              animate={{ 
+                                scale: [1, 1.3, 1], 
+                                opacity: [0.7, 1, 0.7] 
+                              }}
+                              transition={{ 
+                                duration: 2, 
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </motion.div>
+                ))}
+
+                {/* Only add Create Video button to the Videos group */}
+                {group.name === "Vídeos" && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      delay: (groupIndex * 0.1) + (group.links.length * 0.05),
+                      ease: "easeOut" 
+                    }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive(ROUTES.VIDEOS.CREATE)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
+                          "text-cyan-200 hover:text-cyan-100",
+                          isActive(ROUTES.VIDEOS.CREATE) 
+                            ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-100 shadow-lg backdrop-blur-sm border border-cyan-400/30" 
+                            : "hover:bg-cyan-500/15 hover:backdrop-blur-sm"
+                        )}
+                      >
+                        <Link to={ROUTES.VIDEOS.CREATE} className="flex items-center gap-3 w-full">
+                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-5 h-5">
+                            <PlusCircle className="h-5 w-5 text-cyan-200" />
+                          </div>
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-cyan-200 transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            Criar Vídeo
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </motion.div>
+                )}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
+          
+          {/* Admin menu */}
+          {isAdmin && (
+            <SidebarGroup className="mt-6 pt-4 border-t border-white/20">
+              <SidebarGroupLabel className={cn("text-sm font-bold text-orange-200 uppercase tracking-widest mb-3 px-3 drop-shadow-md transition-all duration-300", !open && "opacity-0 h-0 overflow-hidden")}>
+                Administração
+              </SidebarGroupLabel>
+              <SidebarMenu className="space-y-1">
+                {adminItems.map((item, itemIndex) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      delay: itemIndex * 0.05,
+                      ease: "easeOut" 
+                    }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive(item.path)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
+                          "text-orange-100 hover:text-orange-50",
+                          isActive(item.path) 
+                            ? "bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-50 shadow-lg backdrop-blur-sm border border-orange-400/30" 
+                            : "hover:bg-orange-500/15 hover:backdrop-blur-sm text-orange-200/85 hover:text-orange-100"
+                        )}
+                      >
+                        <Link to={item.path} className="flex items-center gap-3 w-full">
+                          <div className="relative flex-shrink-0 transition-all duration-300 flex items-center justify-center w-5 h-5">
+                            <item.icon className="h-5 w-5 text-orange-100" />
+                          </div>
+                          <span className={cn(
+                            "flex-1 relative z-10 font-medium text-orange-100 transition-all duration-300",
+                            !open && "opacity-0 w-0 overflow-hidden"
+                          )}>
+                            {item.name}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </motion.div>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          )}
+        </SidebarContent>
+        
+        <SidebarFooter className="border-t border-white/20 p-4">
+          <motion.div 
+            className="space-y-1"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Link 
+              to={ROUTES.PROFILE} 
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group min-h-[36px]"
+            >
+              <User className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+              <span className={cn(
+                "flex-1 text-white transition-all duration-300",
+                !open && "opacity-0 w-0 overflow-hidden"
+              )}>
+                Perfil
+              </span>
+            </Link>
+            <Link 
+              to="/help" 
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group min-h-[36px]"
+            >
+              <HelpCircle className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+              <span className={cn(
+                "flex-1 text-white transition-all duration-300",
+                !open && "opacity-0 w-0 overflow-hidden"
+              )}>
+                Ajuda
+              </span>
+            </Link>
+          </motion.div>
+        </SidebarFooter>
+      </SidebarComponent>
+    </div>
   );
 }
