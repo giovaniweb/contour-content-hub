@@ -126,7 +126,11 @@ export default function Sidebar() {
           </div>
         </SidebarHeader>
         
-        <SidebarContent className="p-4 overflow-y-auto scrollbar-hide">
+        <SidebarContent className="p-4 scrollbar-hide" style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none',
+          overflowY: 'auto'
+        }}>
           {/* Display all sidebar groups from our data */}
           {sidebarData.map((group, groupIndex) => (
             <SidebarGroup key={group.name} className="mb-6">
