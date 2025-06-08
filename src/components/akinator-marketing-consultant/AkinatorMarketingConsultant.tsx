@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
@@ -129,7 +128,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
     return (
       <AnalysisProgressScreen 
         currentStep={state.currentStep} 
-        totalSteps={MARKETING_STEPS.length} 
+        totalSteps={MARKETING_STEPS.length}
+        state={state}
       />
     );
   }

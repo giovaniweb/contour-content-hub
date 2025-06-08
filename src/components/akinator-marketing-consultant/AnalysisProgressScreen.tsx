@@ -2,13 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Brain, Users, Target, Lightbulb, Zap, CheckCircle, Sparkles, Clock } from "lucide-react";
+import { MarketingConsultantState } from './types';
+import { MARKETING_MENTORS } from './mentorInference';
 
 interface AnalysisProgressScreenProps {
   currentStep: number;
   totalSteps: number;
+  state?: MarketingConsultantState;
 }
 
-const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ currentStep, totalSteps }) => {
+const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ 
+  currentStep, 
+  totalSteps, 
+  state 
+}) => {
   const [currentPhase, setCurrentPhase] = useState(0);
   const progress = Math.round((currentStep / totalSteps) * 100);
 
@@ -23,8 +30,8 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ current
     },
     {
       icon: Users,
-      title: "Mentores em reunião estratégica",
-      description: "Especialistas estão avaliando seu caso específico...",
+      title: "Convocando especialistas",
+      description: "Reunindo mentores estratégicos específicos para seu caso...",
       color: "text-purple-600",
       bgColor: "bg-purple-100",
       duration: 2500
@@ -65,6 +72,81 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ current
 
     return () => clearInterval(interval);
   }, [currentPhase, currentPhaseData.duration]);
+
+  // Função para obter especialistas relevantes baseados no perfil
+  const getRelevantSpecialists = (): Array<{name: string; specialty: string; reason: string; status: string}> => {
+    if (!state) {
+      return [
+        { name: "Leandro Ladeira", specialty: "Conversão", reason: "para otimizar captação de leads", status: "analisando" },
+        { name: "Ícaro de Carvalho", specialty: "Storytelling", reason: "para construir autoridade", status: "avaliando" },
+        { name: "Paulo Cuenca", specialty: "Criatividade", reason: "para diferenciação visual", status: "estrategizando" },
+        { name: "Camila Porto", specialty: "Digital", reason: "para estruturação inicial", status: "planejando" }
+      ];
+    }
+
+    const specialists = [];
+    
+    // Especialista em conversão - sempre relevante para captação
+    if (state.paidTraffic === 'nunca_usei' || state.clinicType === 'clinica_estetica') {
+      specialists.push({
+        name: "Leandro Ladeira",
+        specialty: "Conversão e Tráfego Pago",
+        reason: state.paidTraffic === 'nunca_usei' 
+          ? "pois você precisa estruturar captação de leads"
+          : "para otimizar suas campanhas de conversão",
+        status: "analisando seu funil"
+      });
+    }
+
+    // Especialista em storytelling - para autoridade
+    if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente' || state.clinicType === 'clinica_medica') {
+      specialists.push({
+        name: "Ícaro de Carvalho",
+        specialty: "Storytelling e Autoridade",
+        reason: state.personalBrand === 'nunca' 
+          ? "pois você precisa construir sua marca pessoal"
+          : "para fortalecer seu posicionamento como autoridade",
+        status: "avaliando narrativa"
+      });
+    }
+
+    // Especialista em criatividade - para diferenciação
+    if (state.clinicPosition === 'moderna' || state.clinicType === 'clinica_estetica') {
+      specialists.push({
+        name: "Paulo Cuenca",
+        specialty: "Criatividade Visual",
+        reason: state.clinicPosition === 'moderna'
+          ? "pois você precisa de diferenciação criativa moderna"
+          : "para destacar transformações visuais",
+        status: "estrategizando visual"
+      });
+    }
+
+    // Especialista digital - para iniciantes
+    if (state.contentFrequency === 'irregular' || state.personalBrand === 'nunca') {
+      specialists.push({
+        name: "Camila Porto",
+        specialty: "Marketing Digital Estruturado",
+        reason: "pois você precisa organizar sua presença digital",
+        status: "planejando cronograma"
+      });
+    }
+
+    // Garantir pelo menos 4 especialistas
+    while (specialists.length < 4) {
+      const remaining = [
+        { name: "Hyeser Souza", specialty: "Engajamento Orgânico", reason: "para aumentar alcance natural", status: "idealizando trends" },
+        { name: "Washington Olivetto", specialty: "Big Ideas", reason: "para conceitos memoráveis", status: "conceptualizando" },
+        { name: "Pedro Sobral", specialty: "Performance ROI", reason: "para métricas estruturadas", status: "calculando ROI" }
+      ];
+      
+      specialists.push(remaining[specialists.length - 1]);
+    }
+
+    return specialists.slice(0, 4);
+  };
+
+  const specialists = getRelevantSpecialists();
 
   return (
     <div className="max-w-2xl mx-auto p-8 space-y-8">
@@ -108,26 +190,41 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ current
         </div>
       </div>
 
-      {/* Mentors Working */}
+      {/* Specialists Working */}
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
           <Users className="h-5 w-5 text-purple-600" />
-          <h4 className="font-medium text-purple-900">Mentores Estratégicos Ativos</h4>
+          <h4 className="font-medium text-purple-900">Especialistas Convocados Para Seu Caso</h4>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { name: "Leandro Ladeira", specialty: "Conversão", status: "analisando" },
-            { name: "Ícaro de Carvalho", specialty: "Storytelling", status: "avaliando" },
-            { name: "Paulo Cuenca", specialty: "Criatividade", status: "estrategizando" },
-            { name: "Camila Porto", specialty: "Digital", status: "planejando" }
-          ].map((mentor, index) => (
-            <div key={mentor.name} className="flex items-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="font-medium">{mentor.name}</span>
-              <span className="text-muted-foreground">• {mentor.status}</span>
+        <div className="space-y-3">
+          {specialists.map((specialist, index) => (
+            <div key={specialist.name} className="bg-white/60 rounded-lg p-3 border border-purple-100">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mt-2 flex-shrink-0"></div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-purple-900">{specialist.name}</span>
+                    <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                      {specialist.specialty}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <strong>{specialist.reason}</strong>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Status: {specialist.status}
+                  </p>
+                </div>
+              </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-xs text-purple-600 font-medium">
+            ✨ Cada especialista foi selecionado baseado no seu perfil específico
+          </p>
         </div>
       </div>
 
@@ -171,7 +268,7 @@ const AnalysisProgressScreen: React.FC<AnalysisProgressScreenProps> = ({ current
           <span>Tempo estimado: 30-45 segundos</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          ✨ Criando uma análise única baseada no seu perfil específico
+          🎯 Criando estratégias específicas com os melhores especialistas para seu caso
         </p>
       </div>
     </div>
