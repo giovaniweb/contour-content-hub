@@ -6,11 +6,10 @@ import { Button } from '@/components/ui/button';
 import { MarketingConsultantState } from './types';
 import DiagnosticCards from './dashboard/DiagnosticCards';
 import ContentIdeasSection from './dashboard/ContentIdeasSection';
-import StrategicActionsSection from './dashboard/StrategicActionsSection';
+import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection';
 import PersonalizedStrategiesSection from './dashboard/PersonalizedStrategiesSection';
 import ActionButtons from './dashboard/ActionButtons';
 import MentorSection from './dashboard/MentorSection';
-import FluidAnalysisCards from './dashboard/FluidAnalysisCards';
 import ClinicTypeIndicator from './dashboard/ClinicTypeIndicator';
 import ActiveStrategiesSection from './dashboard/ActiveStrategiesSection';
 import ActionPlanSection from './dashboard/ActionPlanSection';
@@ -33,7 +32,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     if (!aiSections?.diagnostico_estrategico) {
       return (
         <div className="text-sm text-foreground/60 italic">
-          Diagnóstico sendo processado...
+          Diagnóstico sendo processado pelo Consultor Fluida...
         </div>
       );
     }
@@ -49,7 +48,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </p>
         {text.length > summary.length && (
           <p className="text-xs text-aurora-electric-purple">
-            Ver análise completa abaixo →
+            Ver análise completa no relatório abaixo →
           </p>
         )}
       </div>
@@ -90,32 +89,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     console.log('Download PDF');
   };
 
-  // Prepare aiSections with safe defaults and mock data for demonstration
-  const safeAiSections = {
-    diagnostico_estrategico: aiSections?.diagnostico_estrategico || state.generatedDiagnostic || 
-      'Análise profunda dos dados da clínica realizada. Identificamos oportunidades estratégicas de crescimento baseadas no perfil específico da sua clínica.',
-    ativacao_especialistas: aiSections?.ativacao_especialistas || 
-      'Especialistas ativados para análise completa da estratégia de marketing da clínica.',
-    sugestoes_conteudo: aiSections?.sugestoes_conteudo || [
-      'Criação de conteúdo educativo sobre procedimentos estéticos',
-      'Posts sobre cuidados pós-procedimento para engajamento',
-      'Stories mostrando antes e depois dos tratamentos',
-      'Vídeos explicativos sobre equipamentos utilizados',
-      'Depoimentos de clientes satisfeitos',
-      'Dicas de skincare para diferentes tipos de pele'
-    ],
-    acoes_estrategicas: aiSections?.acoes_estrategicas || [
-      'Implementar estratégia de conteúdo educativo nas redes sociais',
-      'Criar campanha de depoimentos de clientes',
-      'Desenvolver programa de fidelização de pacientes',
-      'Otimizar presença digital com SEO local'
-    ],
-    estrategias: aiSections?.estrategias || [
-      'Estratégia de diferenciação baseada em expertise técnica',
-      'Programa de educação continuada para clientes',
-      'Sistema de follow-up pós-procedimento automatizado'
-    ]
-  };
+  // Preparar dados do diagnóstico
+  const safeDiagnostic = state.generatedDiagnostic || 
+    'Análise completa realizada pelo Consultor Fluida. Estratégias personalizadas baseadas no perfil específico da sua clínica.';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -142,7 +118,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               <ClinicTypeIndicator clinicType={state.clinicType || 'clinica_estetica'} />
             </div>
             <p className="aurora-body text-lg">
-              Estratégias personalizadas para sua clínica
+              Estratégias personalizadas pelo Consultor Fluida
             </p>
           </div>
         </div>
@@ -167,7 +143,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       >
         <DiagnosticCards 
           state={state} 
-          aiSections={safeAiSections}
+          aiSections={aiSections}
           renderAIDiagnosticSummary={renderAIDiagnosticSummary}
         />
       </motion.div>
@@ -187,14 +163,25 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         </motion.div>
       )}
 
-      {/* Estratégias Ativas (substituindo Especialistas Ativados) */}
+      {/* Relatório Estruturado do Consultor Fluida */}
+      {safeDiagnostic && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <StructuredDiagnosticSection diagnostic={safeDiagnostic} />
+        </motion.div>
+      )}
+
+      {/* Estratégias Ativas */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.3 }}
       >
         <ActiveStrategiesSection 
-          aiSections={safeAiSections} 
+          aiSections={aiSections} 
           clinicType={state.clinicType || 'clinica_estetica'} 
         />
       </motion.div>
@@ -203,22 +190,9 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <ActionPlanSection clinicType={state.clinicType || 'clinica_estetica'} />
-      </motion.div>
-
-      {/* Ideias de Conteúdo */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <ContentIdeasSection 
-          aiSections={safeAiSections}
-          cleanText={cleanText}
-          formatTitle={formatTitle}
-        />
+        <ActionPlanSection clinicType={state.clinicType || 'clinica_estetica'} />
       </motion.div>
 
       {/* Mentor Section */}
@@ -233,23 +207,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         />
       </motion.div>
 
-      {/* Estratégias Personalizadas */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        <PersonalizedStrategiesSection 
-          aiSections={safeAiSections}
-          formatTitle={formatTitle}
-        />
-      </motion.div>
-
       {/* Action Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.6 }}
       >
         <ActionButtons 
           onCreateScript={handleCreateScript}

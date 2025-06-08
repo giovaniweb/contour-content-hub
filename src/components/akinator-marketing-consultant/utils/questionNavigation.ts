@@ -2,36 +2,60 @@
 import { MARKETING_STEPS } from '../constants';
 import { MarketingConsultantState } from '../types';
 
-// Função para determinar se uma pergunta deve ser exibida baseada no estado atual
-export const shouldShowQuestion = (questionIndex: number, currentState: MarketingConsultantState): boolean => {
-  const question = MARKETING_STEPS[questionIndex];
+export const shouldShowQuestion = (stepIndex: number, state: MarketingConsultantState): boolean => {
+  if (stepIndex >= MARKETING_STEPS.length) return false;
   
-  if (!question.condition) {
-    return true; // Sem condição, sempre exibir
-  }
-
-  // Chamar a função de condição com o estado atual
-  return question.condition(currentState);
+  const currentQuestion = MARKETING_STEPS[stepIndex];
+  
+  // Se não tem condição, sempre mostra
+  if (!currentQuestion.condition) return true;
+  
+  // Verifica se a condição é atendida
+  return currentQuestion.condition(state);
 };
 
-// Função para encontrar a próxima pergunta válida
-export const getNextValidQuestion = (currentIndex: number, currentState: MarketingConsultantState): number => {
-  for (let i = currentIndex + 1; i < MARKETING_STEPS.length; i++) {
-    if (shouldShowQuestion(i, currentState)) {
-      console.log(`Próxima pergunta válida encontrada: ${i}`, MARKETING_STEPS[i]);
-      return i;
+export const getNextValidQuestion = (currentStep: number, state: MarketingConsultantState): number => {
+  let nextStep = currentStep + 1;
+  
+  // Procura a próxima pergunta válida
+  while (nextStep < MARKETING_STEPS.length) {
+    if (shouldShowQuestion(nextStep, state)) {
+      return nextStep;
     }
+    nextStep++;
   }
-  console.log('Nenhuma próxima pergunta válida encontrada');
+  
+  // Se não encontrou nenhuma pergunta válida, retorna o comprimento do array (fim)
   return MARKETING_STEPS.length;
 };
 
-// Função para encontrar a pergunta anterior válida
-export const getPreviousValidQuestion = (currentIndex: number, currentState: MarketingConsultantState): number => {
-  for (let i = currentIndex - 1; i >= 0; i--) {
-    if (shouldShowQuestion(i, currentState)) {
-      return i;
+export const getPreviousValidQuestion = (currentStep: number, state: MarketingConsultantState): number => {
+  let previousStep = currentStep - 1;
+  
+  // Procura a pergunta anterior válida
+  while (previousStep >= 0) {
+    if (shouldShowQuestion(previousStep, state)) {
+      return previousStep;
+    }
+    previousStep--;
+  }
+  
+  // Se não encontrou nenhuma pergunta válida anterior, retorna 0
+  return 0;
+};
+
+export const getTotalValidQuestions = (state: MarketingConsultantState): number => {
+  return MARKETING_STEPS.filter((_, index) => shouldShowQuestion(index, state)).length;
+};
+
+export const getCurrentQuestionNumber = (currentStep: number, state: MarketingConsultantState): number => {
+  let questionNumber = 0;
+  
+  for (let i = 0; i <= currentStep && i < MARKETING_STEPS.length; i++) {
+    if (shouldShowQuestion(i, state)) {
+      questionNumber++;
     }
   }
-  return 0;
+  
+  return questionNumber;
 };
