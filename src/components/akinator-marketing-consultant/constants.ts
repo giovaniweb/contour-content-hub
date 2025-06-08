@@ -1,4 +1,3 @@
-
 import { MarketingStep } from './types';
 
 export const MARKETING_STEPS: MarketingStep[] = [
@@ -179,7 +178,8 @@ export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'mainService',
     question: 'Qual serviço você mais quer promover?',
-    isOpen: true
+    isOpen: true,
+    options: []
   },
   {
     id: 'personalBrand',
@@ -228,6 +228,7 @@ export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'clinicPosition',
     question: 'Como sua clínica se diferencia da concorrência?',
-    isOpen: true
+    isOpen: true,
+    options: []
   }
 ];
