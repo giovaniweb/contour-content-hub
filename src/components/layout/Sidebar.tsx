@@ -45,7 +45,7 @@ export default function Sidebar() {
     <div className="h-screen flex flex-col relative overflow-hidden">
       {/* Aurora Background */}
       <div className="absolute inset-0 aurora-dark-bg">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/50" />
       </div>
       
       {/* Animated particles overlay */}
@@ -53,14 +53,14 @@ export default function Sidebar() {
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
+            className="absolute w-1 h-1 bg-white/30 rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
             }}
             animate={{
               y: [0, -20, 0],
-              opacity: [0.2, 0.8, 0.2],
+              opacity: [0.3, 0.8, 0.3],
               scale: [1, 1.2, 1],
             }}
             transition={{
@@ -72,8 +72,8 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <SidebarComponent className="bg-transparent border-r border-white/10 relative z-10">
-        <SidebarHeader className="border-b border-white/10 p-6">
+      <SidebarComponent className="bg-transparent border-r border-white/20 relative z-10">
+        <SidebarHeader className="border-b border-white/20 p-6">
           <div className="flex items-center justify-between">
             {open && (
               <motion.div 
@@ -108,10 +108,10 @@ export default function Sidebar() {
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 opacity-50 blur-md" />
                 </motion.div>
                 <div>
-                  <div className="font-bold text-2xl text-white mb-1">
+                  <div className="font-bold text-2xl text-white mb-1 drop-shadow-lg">
                     Fluida
                   </div>
-                  <div className="text-xs text-white/60 font-medium">
+                  <div className="text-xs text-white/80 font-medium">
                     Plataforma de Conteúdo
                   </div>
                 </div>
@@ -120,7 +120,7 @@ export default function Sidebar() {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="ml-auto text-white hover:bg-white/10 rounded-xl transition-all duration-300 hover:scale-105"
+              className="ml-auto text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-105"
               onClick={() => setOpen(!open)}
             >
               <Menu className="h-5 w-5" />
@@ -132,7 +132,7 @@ export default function Sidebar() {
           {/* Display all sidebar groups from our data */}
           {sidebarData.map((group, groupIndex) => (
             <SidebarGroup key={group.name} className="mb-8">
-              <SidebarGroupLabel className={cn(!open && "sr-only", "text-xs font-semibold text-white/50 uppercase tracking-widest mb-4 px-3")}>
+              <SidebarGroupLabel className={cn(!open && "sr-only", "text-sm font-bold text-white/90 uppercase tracking-widest mb-4 px-3 drop-shadow-md")}>
                 {group.name}
               </SidebarGroupLabel>
               <SidebarMenu className="space-y-2">
@@ -152,11 +152,11 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(item.path)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden",
-                          "text-white/70 hover:text-white",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "text-white hover:text-white",
                           isActive(item.path) 
-                            ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-white shadow-lg backdrop-blur-sm border border-white/10" 
-                            : "hover:bg-white/10 hover:backdrop-blur-sm",
+                            ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 text-white shadow-lg backdrop-blur-sm border border-white/20" 
+                            : "hover:bg-white/15 hover:backdrop-blur-sm text-white/85 hover:text-white",
                           item.highlight && "relative"
                         )}
                       >
@@ -164,24 +164,24 @@ export default function Sidebar() {
                           {/* Gradient background for active items */}
                           {isActive(item.path) && (
                             <motion.div
-                              className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl"
+                              className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.3 }}
                             />
                           )}
                           
-                          {/* Icon with glow effect */}
+                          {/* Icon with improved visibility */}
                           <div className={cn(
                             "relative flex-shrink-0 transition-all duration-300",
-                            isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]"
+                            isActive(item.path) && "drop-shadow-[0_0_8px_rgba(147,51,234,0.7)]"
                           )}>
-                            <item.icon className="h-5 w-5" />
+                            <item.icon className="h-6 w-6" />
                           </div>
                           
                           {open && (
                             <>
-                              <span className="flex-1 relative z-10">{item.name}</span>
+                              <span className="flex-1 relative z-10 font-medium">{item.name}</span>
                               {item.highlight && (
                                 <motion.div
                                   className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg"
@@ -220,18 +220,18 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(ROUTES.VIDEOS.CREATE)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden",
-                          "text-cyan-300 hover:text-cyan-200",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "text-cyan-200 hover:text-cyan-100",
                           isActive(ROUTES.VIDEOS.CREATE) 
-                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-200 shadow-lg backdrop-blur-sm border border-cyan-400/20" 
-                            : "hover:bg-cyan-500/10 hover:backdrop-blur-sm"
+                            ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-100 shadow-lg backdrop-blur-sm border border-cyan-400/30" 
+                            : "hover:bg-cyan-500/15 hover:backdrop-blur-sm"
                         )}
                       >
                         <Link to={ROUTES.VIDEOS.CREATE}>
                           <div className="relative flex-shrink-0 transition-all duration-300">
-                            <PlusCircle className="h-5 w-5" />
+                            <PlusCircle className="h-6 w-6" />
                           </div>
-                          {open && <span className="flex-1 relative z-10">Criar Vídeo</span>}
+                          {open && <span className="flex-1 relative z-10 font-medium">Criar Vídeo</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -243,8 +243,8 @@ export default function Sidebar() {
           
           {/* Admin menu */}
           {isAdmin && (
-            <SidebarGroup className="mt-8 pt-6 border-t border-white/10">
-              <SidebarGroupLabel className={cn(!open && "sr-only", "text-xs font-semibold text-orange-300/70 uppercase tracking-widest mb-4 px-3")}>
+            <SidebarGroup className="mt-8 pt-6 border-t border-white/20">
+              <SidebarGroupLabel className={cn(!open && "sr-only", "text-sm font-bold text-orange-200 uppercase tracking-widest mb-4 px-3 drop-shadow-md")}>
                 Administração
               </SidebarGroupLabel>
               <SidebarMenu className="space-y-2">
@@ -264,18 +264,18 @@ export default function Sidebar() {
                         asChild 
                         isActive={isActive(item.path)}
                         className={cn(
-                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden",
-                          "text-orange-200/70 hover:text-orange-200",
+                          "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                          "text-orange-100 hover:text-orange-50",
                           isActive(item.path) 
-                            ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-200 shadow-lg backdrop-blur-sm border border-orange-400/20" 
-                            : "hover:bg-orange-500/10 hover:backdrop-blur-sm"
+                            ? "bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-50 shadow-lg backdrop-blur-sm border border-orange-400/30" 
+                            : "hover:bg-orange-500/15 hover:backdrop-blur-sm text-orange-200/85 hover:text-orange-100"
                         )}
                       >
                         <Link to={item.path}>
                           <div className="relative flex-shrink-0 transition-all duration-300">
-                            <item.icon className="h-5 w-5" />
+                            <item.icon className="h-6 w-6" />
                           </div>
-                          {open && <span className="flex-1 relative z-10">{item.name}</span>}
+                          {open && <span className="flex-1 relative z-10 font-medium">{item.name}</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -286,7 +286,7 @@ export default function Sidebar() {
           )}
         </SidebarContent>
         
-        <SidebarFooter className="border-t border-white/10 p-4">
+        <SidebarFooter className="border-t border-white/20 p-4">
           {open ? (
             <motion.div 
               className="space-y-2"
@@ -296,16 +296,16 @@ export default function Sidebar() {
             >
               <Link 
                 to={ROUTES.PROFILE} 
-                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group"
               >
-                <User className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
                 <span className="flex-1">Perfil</span>
               </Link>
               <Link 
                 to="/help" 
-                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:text-white hover:bg-white/15 transition-all duration-300 group"
               >
-                <HelpCircle className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                <HelpCircle className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
                 <span className="flex-1">Ajuda</span>
               </Link>
             </motion.div>
@@ -313,15 +313,15 @@ export default function Sidebar() {
             <div className="flex flex-col items-center space-y-3">
               <Link 
                 to={ROUTES.PROFILE} 
-                className="p-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110"
+                className="p-3 rounded-xl text-white hover:text-white hover:bg-white/15 transition-all duration-300 hover:scale-110"
               >
-                <User className="h-5 w-5" />
+                <User className="h-6 w-6" />
               </Link>
               <Link 
                 to="/help" 
-                className="p-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110"
+                className="p-3 rounded-xl text-white hover:text-white hover:bg-white/15 transition-all duration-300 hover:scale-110"
               >
-                <HelpCircle className="h-5 w-5" />
+                <HelpCircle className="h-6 w-6" />
               </Link>
             </div>
           )}
