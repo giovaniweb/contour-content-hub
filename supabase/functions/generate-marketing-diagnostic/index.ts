@@ -37,7 +37,7 @@ serve(async (req) => {
     }
 
     // Criar o prompt personalizado com os dados do diagnóstico
-    const prompt = createEnhancedDiagnosticPrompt(diagnosticData);
+    const prompt = createUltraPersonalizedPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
     console.log('🤖 Chamando OpenAI API...');
@@ -48,15 +48,15 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
-            content: 'Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas. Sempre inclua sátiras criativas dos mentores e ideias super personalizadas baseadas no perfil específico da clínica.' 
+            content: 'Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas. SEMPRE inclua as 4 seções obrigatórias: Diagnóstico, Ideias de Conteúdo, Plano de Ação e OBRIGATORIAMENTE a Sátira do Mentor no final.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.8,
+        temperature: 0.85,
         max_tokens: 4000
       }),
     });
@@ -96,7 +96,7 @@ serve(async (req) => {
   }
 });
 
-function createEnhancedDiagnosticPrompt(data: any): string {
+function createUltraPersonalizedPrompt(data: any): string {
   // Mapear os dados para o formato do prompt
   const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
   const especialidade = data.medicalSpecialty || 'Não especificado';
@@ -115,85 +115,81 @@ function createEnhancedDiagnosticPrompt(data: any): string {
   const contextoCriativo = generateCreativeContext(data);
   const mentorSugerido = inferBestMentor(data);
 
-  const prompt = `Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e clínicas estéticas.
+  const prompt = `🎯 CONSULTOR FLUIDA — DIAGNÓSTICO PERSONALIZADO
 
-IMPORTANTE: Gere ideias TOTALMENTE PERSONALIZADAS baseadas nos dados específicos desta clínica. NÃO use sugestões genéricas!
-
-Com base no briefing abaixo, gere uma resposta completa dividida em seções claras:
-
-1. Diagnóstico Estratégico da Clínica
-2. Sugestões de Conteúdo Inteligente (PERSONALIZADAS)
-3. Plano de Ação de 3 Semanas
-4. Mentor Estratégico + Enigma Satírico
-
----
-
-📥 Dados específicos desta clínica:
-- Tipo de clínica: ${tipoClinica}
-- Especialidade (se médica): ${especialidade}
-- Procedimentos oferecidos: ${procedimentos}
-- Equipamentos utilizados: ${equipamentos}
-- Objetivo principal: ${objetivo}
-- Faturamento atual: ${faturamento}
-- Meta de crescimento: ${meta}
-- Frequência de conteúdo: ${frequencia}
-- Aparece no conteúdo? ${aparece}
-- Público ideal: ${publico}
-- Posicionamento da clínica: ${posicionamento}
-- Usa tráfego pago? ${trafegoReq}
-
-🎯 Contexto único desta clínica: ${contextoCriativo}
-🧠 Mentor mais adequado: ${mentorSugerido}
-
----
-
-📦 INSTRUÇÕES ESPECÍFICAS:
-
-## 📊 Diagnóstico Estratégico
-- Analise OS DADOS ESPECÍFICOS desta clínica (não seja genérico)
-- Identifique gargalos únicos baseados no faturamento ${faturamento} e meta ${meta}
-- Use tom consultivo e adapte ao perfil (${tipoClinica})
-
-## 💡 Sugestões de Conteúdo SUPER PERSONALIZADAS
-OBRIGATÓRIO: Gere 4-5 ideias ÚNICAS baseadas em:
-- Especialidade específica: ${especialidade || procedimentos}
-- Equipamentos da clínica: ${equipamentos}
+DADOS EXCLUSIVOS DESTA CLÍNICA:
+- Tipo: ${tipoClinica}
+- Especialidade: ${especialidade}
+- Procedimentos: ${procedimentos}
+- Equipamentos: ${equipamentos}
 - Objetivo: ${objetivo}
+- Faturamento atual: ${faturamento}
+- Meta: ${meta}
+- Frequência de conteúdo: ${frequencia}
+- Aparece em vídeos: ${aparece}
+- Público: ${publico}
 - Posicionamento: ${posicionamento}
-- Público-alvo: ${publico}
+- Tráfego pago: ${trafegoReq}
 
-Inclua:
-- Pelo menos 1 ideia relacionada aos equipamentos específicos
-- Pelo menos 1 ideia para aumentar faturamento de ${faturamento} para ${meta}
-- Ideias adaptadas ao fato de que ${aparece} aparece no conteúdo
-- Formatos específicos para ${tipoClinica} (médica = científico, estética = emocional)
-
-## 📅 Plano de Ação – 3 Semanas ESPECÍFICO
-Baseado na frequência atual (${frequencia}) e objetivo (${objetivo}):
-- Semana 1: Ações para ${posicionamento} + ${especialidade || procedimentos}
-- Semana 2: Estratégias para público ${publico} + equipamentos ${equipamentos}
-- Semana 3: Conversão específica para meta ${meta}
-
-## 🧩 Mentor Estratégico + Enigma Satírico
-**Mentor escolhido:** ${mentorSugerido}
-**Por que foi escolhido:** Baseado no perfil ${tipoClinica} + objetivo ${objetivo} + posicionamento ${posicionamento}
-
-**Enigma Satírico OBRIGATÓRIO:**
-Crie uma frase misteriosa com trocadilho/sátira usando o SOBRENOME do mentor (SEM citar o nome completo), relacionada aos desafios específicos desta clínica:
-
-Exemplos do que fazer:
-- "Quem tem visão para enxergar além, sempre encontra uma 'CARVALHO' sólida para crescer..."
-- "Estratégia que funciona vem de quem sabe fazer uma 'LADEIRA' virar subida de sucesso..."
-- "Criatividade que converte vem de quem tem 'PORTO' seguro para navegar no digital..."
+CONTEXTO ÚNICO: ${contextoCriativo}
+MENTOR IDENTIFICADO: ${mentorSugerido}
 
 ---
+
+GERE UM DIAGNÓSTICO COMPLETO COM EXATAMENTE 4 SEÇÕES:
+
+## 📊 DIAGNÓSTICO ESTRATÉGICO DA CLÍNICA
+Analise OS DADOS ESPECÍFICOS desta clínica ${tipoClinica}. Identifique:
+- Gargalos únicos baseado no faturamento ${faturamento} vs meta ${meta}
+- Oportunidades específicas para ${especialidade || procedimentos}
+- Análise do posicionamento ${posicionamento} no mercado
+- Status da presença digital atual (${aparece} aparece, frequência ${frequencia})
+
+## 💡 IDEIAS DE CONTEÚDO SUPER PERSONALIZADAS
+OBRIGATÓRIO: Gere 4-5 ideias EXCLUSIVAS para esta clínica:
+
+1. UMA ideia relacionada aos equipamentos: ${equipamentos}
+2. UMA ideia para aumentar faturamento de ${faturamento} para ${meta}
+3. UMA ideia específica para o público ${publico}
+4. UMA ideia baseada no posicionamento ${posicionamento}
+5. UMA ideia para melhorar ${objetivo}
+
+Cada ideia deve incluir:
+- Formato específico (Reel, Carrossel, Story, Live)
+- Título exato do conteúdo
+- Como executar na prática
+- Por que vai funcionar para este perfil
+
+## 📅 PLANO DE AÇÃO - 3 SEMANAS ESPECÍFICO
+Baseado na frequência ${frequencia} e objetivo ${objetivo}:
+
+**SEMANA 1:** Ações para ${posicionamento} + ${especialidade || procedimentos}
+- 3 ações práticas específicas
+
+**SEMANA 2:** Estratégias para público ${publico} + equipamentos ${equipamentos}
+- 3 ações práticas específicas
+
+**SEMANA 3:** Conversão para meta ${meta} + otimização
+- 3 ações práticas específicas
+
+## 🧩 SÁTIRA DO MENTOR - OBRIGATÓRIO
+**Mentor escolhido:** ${mentorSugerido}
+**Por que:** Baseado no perfil ${tipoClinica} + objetivo ${objetivo}
+
+**ENIGMA SATÍRICO:**
+Crie uma frase misteriosa com trocadilho usando APENAS O SOBRENOME do mentor (sem citar nome completo), relacionada aos desafios específicos desta clínica.
+
+Exemplos do formato:
+- "Quem tem visão estratégica sempre encontra uma 'CARVALHO' sólida para crescer..."
+- "Marketing que converte vem de quem sabe navegar no 'PORTO' digital..."
+- "Criatividade que funciona vem de quem domina a 'LADEIRA' do sucesso..."
 
 ⚠️ REGRAS CRÍTICAS:
-- NUNCA cite o nome completo do mentor, apenas faça trocadilho com o sobrenome
+- NUNCA cite o nome completo do mentor
+- Use APENAS o sobrenome em trocadilho
 - Gere ideias ESPECÍFICAS desta clínica, não genéricas
-- Use os dados reais fornecidos para personalizar tudo
-- Organize com títulos claros e tom humano/profissional
-- Foque em ações que realmente aumentem o faturamento de ${faturamento} para ${meta}`;
+- TODAS as 4 seções são obrigatórias
+- Foque em ações que realmente aumentem o faturamento`;
 
   return prompt;
 }
@@ -203,67 +199,76 @@ function generateCreativeContext(data: any): string {
   
   if (data.clinicType === 'clinica_medica') {
     if (data.medicalSpecialty === 'dermatologia') {
-      contexts.push('Clínica com potencial para autoridade em pele e rejuvenescimento');
+      contexts.push('Clínica dermatológica com potencial para autoridade em rejuvenescimento e saúde da pele');
     } else if (data.medicalSpecialty === 'nutrologia') {
-      contexts.push('Nicho premium com foco em longevidade e qualidade de vida');
+      contexts.push('Nicho premium em nutrologia com foco em longevidade e qualidade de vida');
     } else if (data.medicalSpecialty === 'cirurgia_plastica') {
-      contexts.push('Alto valor agregado, público exigente, resultados definitivos');
+      contexts.push('Cirurgia plástica de alto valor agregado, público exigente, resultados definitivos');
+    } else if (data.medicalSpecialty === 'ginecoestetica') {
+      contexts.push('Ginecoestética especializada, mercado específico com alta demanda');
+    } else {
+      contexts.push('Clínica médica especializada com potencial de diferenciação técnica');
     }
   } else {
     if (data.aestheticFocus === 'corporal') {
-      contexts.push('Mercado sazonal com picos no verão, foco em transformação');
+      contexts.push('Estética corporal com mercado sazonal, picos no verão, foco em transformação');
     } else if (data.aestheticFocus === 'facial') {
-      contexts.push('Demanda constante, relacionamento duradouro, autoestima');
+      contexts.push('Estética facial com demanda constante, relacionamento duradouro, autoestima');
     } else if (data.aestheticFocus === 'depilacao') {
-      contexts.push('Base recorrente sólida, fidelização natural');
+      contexts.push('Depilação com base recorrente sólida, fidelização natural');
+    } else {
+      contexts.push('Estética completa com múltiplas oportunidades de cross-selling');
     }
   }
   
   if (data.currentRevenue === 'ate_15k') {
-    contexts.push('Fase de estruturação, precisa profissionalizar marketing');
+    contexts.push('Fase inicial de crescimento, precisa estruturar marketing e processos');
+  } else if (data.currentRevenue === '15k_30k') {
+    contexts.push('Crescimento consistente, momento de profissionalizar e escalar');
+  } else if (data.currentRevenue === '30k_60k') {
+    contexts.push('Faturamento sólido, foco em eficiência e diferenciação');
   } else if (data.currentRevenue === 'acima_60k') {
-    contexts.push('Alto faturamento, foco em eficiência e liderança');
+    contexts.push('Alto faturamento, oportunidade de liderança e expansão');
   }
   
   if (data.personalBrand === 'nunca') {
-    contexts.push('Oportunidade inexplorada de marca pessoal');
+    contexts.push('Grande oportunidade inexplorada de marca pessoal para autoridade');
   } else if (data.personalBrand === 'sim_sempre') {
-    contexts.push('Marca pessoal ativa, otimizar alcance');
+    contexts.push('Marca pessoal ativa, otimizar alcance e conversão');
+  }
+
+  if (data.paidTraffic === 'nunca_usei') {
+    contexts.push('Oportunidade de crescimento acelerado com tráfego pago estruturado');
+  } else if (data.paidTraffic === 'sim_regular') {
+    contexts.push('Tráfego pago ativo, focar em otimização de ROI e escalabilidade');
   }
   
-  return contexts.join('. ') || 'Clínica com potencial de crescimento único';
+  return contexts.join('. ') || 'Clínica com perfil único e potencial de crescimento diferenciado';
 }
 
 function inferBestMentor(data: any): string {
-  // Lógica para inferir o mentor mais adequado
+  // Lógica mais robusta para inferir o mentor
   if (data.clinicType === 'clinica_medica') {
     if (data.medicalObjective === 'autoridade') {
-      return 'Ícaro de Carvalho (Storytelling e Autoridade)';
+      return 'Ícaro de Carvalho (Storytelling e Autoridade Médica)';
     } else if (data.medicalObjective === 'escala') {
-      return 'Pedro Sobral (Performance e Estruturação)';
-    } else {
+      return 'Pedro Sobral (Performance e Estruturação Médica)';
+    } else if (data.medicalObjective === 'diferenciacao') {
       return 'Washington Olivetto (Big Ideas Médicas)';
+    } else {
+      return 'Dr. Ícaro de Carvalho (Comunicação Médica)';
     }
   } else {
     if (data.aestheticObjective === 'mais_leads') {
       return 'Leandro Ladeira (Conversão e Tráfego)';
     } else if (data.aestheticObjective === 'autoridade') {
       return 'Ícaro de Carvalho (Storytelling e Posicionamento)';
+    } else if (data.aestheticObjective === 'ticket_medio') {
+      return 'Paulo Cuenca (Criatividade e Valor)';
     } else if (data.clinicPosition === 'premium') {
       return 'Washington Olivetto (Branding Premium)';
     } else {
-      return 'Paulo Cuenca (Criatividade Visual)';
+      return 'Camila Porto (Marketing Estético Estruturado)';
     }
   }
-  
-  // Fallbacks baseados em outros critérios
-  if (data.personalBrand === 'nunca' || data.contentFrequency === 'irregular') {
-    return 'Camila Porto (Marketing Básico Estruturado)';
-  }
-  
-  if (data.paidTraffic === 'nunca_usei') {
-    return 'Leandro Ladeira (Conversão e Tráfego Pago)';
-  }
-  
-  return 'Hyeser Souza (Engajamento e Viralização)';
 }
