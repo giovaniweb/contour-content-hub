@@ -1,9 +1,9 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, DollarSign, Target, Brain, Users } from "lucide-react";
 import { MarketingConsultantState } from '../types';
+import DiagnosticModal from './DiagnosticModal';
 
 interface DiagnosticCardsProps {
   state: MarketingConsultantState;
@@ -16,6 +16,8 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
   aiSections, 
   renderAIDiagnosticSummary 
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const getClinicProfile = () => {
     if (state.clinicType === 'clinica_medica') {
       const profiles = {
@@ -114,6 +116,14 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
     }
   };
 
+  const openDiagnosticModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeDiagnosticModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <section>
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
@@ -182,10 +192,10 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
               {aiSections?.diagnostico_estrategico && (
                 <div className="pt-2 border-t border-purple-500/20">
                   <button
-                    onClick={scrollToFullDiagnostic}
+                    onClick={openDiagnosticModal}
                     className="text-sm text-aurora-electric-purple hover:text-aurora-electric-purple/80 transition-colors cursor-pointer underline block"
                   >
-                    Ver diagnóstico completo abaixo →
+                    Ver diagnóstico completo →
                   </button>
                 </div>
               )}
@@ -206,6 +216,12 @@ const DiagnosticCards: React.FC<DiagnosticCardsProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      <DiagnosticModal
+        isOpen={isModalOpen}
+        onClose={closeDiagnosticModal}
+        diagnosticContent={aiSections?.diagnostico_estrategico || ''}
+      />
     </section>
   );
 };

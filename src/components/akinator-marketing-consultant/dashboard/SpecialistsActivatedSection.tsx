@@ -126,28 +126,6 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
         🧠 Especialistas Ativados
       </h2>
       {renderSpecialists()}
-      
-      {aiSections?.diagnostico_estrategico && (
-        <Card className="mt-6 aurora-glass border-aurora-electric-purple/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-foreground">
-              <Brain className="h-5 w-5 text-aurora-electric-purple" />
-              Diagnóstico Estratégico Completo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none text-foreground/80">
-              {aiSections.diagnostico_estrategico.split('\n').map((paragraph: string, index: number) => (
-                paragraph.trim() && (
-                  <p key={index} className="mb-3 leading-relaxed">
-                    {paragraph.replace(/[*#]/g, '')}
-                  </p>
-                )
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </section>
   );
 };
