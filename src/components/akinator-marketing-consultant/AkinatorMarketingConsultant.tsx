@@ -5,7 +5,7 @@ import { MarketingConsultantState } from './types';
 import { MARKETING_STEPS } from './constants';
 import { generateMarketingDiagnostic } from './marketingGenerator';
 import { useAIDiagnostic } from '@/hooks/useAIDiagnostic';
-import MarketingDashboard from './MarketingDashboard';
+import AkinatorProgress from '../akinator-script-generator/AkinatorProgress';
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
@@ -84,6 +84,20 @@ const AkinatorMarketingConsultant: React.FC = () => {
     setState({ ...state, currentStep: state.currentStep - 1 });
   };
 
+  const handleGenerateStrategy = () => {
+    toast({
+      title: "📋 Gerando Estratégia Completa...",
+      description: "Criando seu plano estratégico personalizado!"
+    });
+  };
+
+  const handleGeneratePlan = () => {
+    toast({
+      title: "📅 Criando Plano de Ação...",
+      description: "Desenvolvendo cronograma de implementação!"
+    });
+  };
+
   console.log('Renderizando - isComplete:', state.isComplete, 'isGenerating:', isGenerating);
 
   // Mostrar tela de análise/progresso quando estiver gerando
@@ -101,6 +115,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
     return (
       <MarketingResult
         state={state}
+        onGenerateStrategy={handleGenerateStrategy}
+        onGeneratePlan={handleGeneratePlan}
         onReset={resetConsultant}
       />
     );
@@ -108,7 +124,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   return (
     <div>
-      <MarketingDashboard currentStep={state.currentStep} totalSteps={MARKETING_STEPS.length} />
+      <AkinatorProgress currentStep={state.currentStep} totalSteps={MARKETING_STEPS.length} />
       <MarketingQuestion
         stepData={currentStepData}
         currentStep={state.currentStep}
