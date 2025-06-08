@@ -42,7 +42,7 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <FileText className="h-4 w-4 mr-2" />
-              📋 Gerar Estratégia Completa
+              📋 Ver Dashboard Estratégico
             </Button>
             
             <Button 

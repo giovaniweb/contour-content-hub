@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
@@ -8,10 +9,12 @@ import AkinatorProgress from '../akinator-script-generator/AkinatorProgress';
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
+import MarketingDashboard from './MarketingDashboard';
 
 const AkinatorMarketingConsultant: React.FC = () => {
   const { toast } = useToast();
   const { generateDiagnostic, isGenerating } = useAIDiagnostic();
+  const [showDashboard, setShowDashboard] = useState(false);
   
   const [state, setState] = useState<MarketingConsultantState>({
     currentStep: 0,
@@ -101,6 +104,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       currentStep: 0,
       isComplete: false
     });
+    setShowDashboard(false);
   };
 
   const handleGoBack = () => {
@@ -108,20 +112,63 @@ const AkinatorMarketingConsultant: React.FC = () => {
   };
 
   const handleGenerateStrategy = () => {
-    toast({
-      title: "📋 Gerando Estratégia Completa...",
-      description: "Criando seu plano estratégico personalizado!"
-    });
+    console.log('Navegando para dashboard estratégico');
+    setShowDashboard(true);
   };
 
   const handleGeneratePlan = () => {
+    console.log('Navegando para dashboard de plano');
+    setShowDashboard(true);
+  };
+
+  const handleBackFromDashboard = () => {
+    setShowDashboard(false);
+  };
+
+  const handleCreateScript = () => {
     toast({
-      title: "📅 Criando Plano de Ação...",
-      description: "Desenvolvendo cronograma de implementação!"
+      title: "🎬 Criando Roteiro...",
+      description: "Redirecionando para o gerador de roteiros!"
+    });
+    // Aqui pode navegar para a página de geração de roteiros
+  };
+
+  const handleGenerateImage = () => {
+    toast({
+      title: "🎨 Gerando Imagem...",
+      description: "Funcionalidade de geração de imagens em desenvolvimento!"
     });
   };
 
-  console.log('Renderizando - isComplete:', state.isComplete, 'isGenerating:', isGenerating);
+  const handleDownloadPDF = () => {
+    toast({
+      title: "📄 Gerando PDF...",
+      description: "Criando seu relatório em PDF!"
+    });
+  };
+
+  const handleViewHistory = () => {
+    toast({
+      title: "📊 Abrindo histórico...",
+      description: "Carregando seus diagnósticos anteriores!"
+    });
+  };
+
+  console.log('Renderizando - isComplete:', state.isComplete, 'isGenerating:', isGenerating, 'showDashboard:', showDashboard);
+
+  // Mostrar dashboard se solicitado
+  if (showDashboard && state.isComplete) {
+    return (
+      <MarketingDashboard
+        state={state}
+        onBack={handleBackFromDashboard}
+        onCreateScript={handleCreateScript}
+        onGenerateImage={handleGenerateImage}
+        onDownloadPDF={handleDownloadPDF}
+        onViewHistory={handleViewHistory}
+      />
+    );
+  }
 
   // Mostrar tela de análise/progresso quando estiver gerando
   if (isGenerating) {
