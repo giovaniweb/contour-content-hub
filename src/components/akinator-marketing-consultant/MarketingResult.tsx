@@ -3,19 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { motion } from 'framer-motion';
 import { 
-  Target, 
-  Lightbulb, 
-  Calendar,
-  TrendingUp,
-  Download,
-  Share2,
-  Copy,
   CheckCircle2,
+  Copy,
+  Share2,
+  Download,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  RotateCcw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MarketingConsultantState } from './types';
@@ -188,17 +184,19 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
 
   if (isGenerating) {
     return (
-      <Card className="max-w-4xl mx-auto">
-        <CardContent className="p-8">
-          <div className="text-center space-y-4">
-            <Sparkles className="h-8 w-8 animate-spin text-primary mx-auto" />
-            <h3 className="text-lg font-medium">Gerando seu diagnóstico personalizado...</h3>
-            <p className="text-muted-foreground">
-              Analisando suas respostas para criar estratégias específicas
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center space-y-4">
+              <Sparkles className="h-8 w-8 animate-spin text-primary mx-auto" />
+              <h3 className="text-lg font-medium">Gerando seu diagnóstico personalizado...</h3>
+              <p className="text-muted-foreground">
+                Analisando suas respostas para criar estratégias específicas
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -243,7 +241,7 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
             <div className="flex items-center space-x-2 flex-wrap">
               {hasError && (
                 <Button onClick={handleRetryGeneration} variant="outline" size="sm">
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <RotateCcw className="h-4 w-4 mr-2" />
                   Tentar Novamente
                 </Button>
               )}
