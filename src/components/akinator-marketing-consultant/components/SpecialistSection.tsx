@@ -16,7 +16,12 @@ interface Specialist {
 
 const SpecialistSection: React.FC<SpecialistSectionProps> = ({ state }) => {
   const getRelevantSpecialists = (): Specialist[] => {
+    const specialists: Specialist[] = [];
+    
+    console.log('🔍 Analisando state para especialistas:', state);
+    
     if (!state) {
+      console.log('⚠️ State vazio, usando especialistas padrão');
       return [
         { name: "Especialista em Conversão", specialty: "Tráfego Pago e Vendas", reason: "para otimizar captação de leads", status: "analisando funil" },
         { name: "Expert em Storytelling", specialty: "Autoridade e Branding", reason: "para construir credibilidade", status: "avaliando narrativa" },
@@ -25,66 +30,155 @@ const SpecialistSection: React.FC<SpecialistSectionProps> = ({ state }) => {
       ];
     }
 
-    const specialists = [];
-    
-    // Especialista em conversão - sempre relevante para captação
-    if (state.paidTraffic === 'nunca_usei' || state.clinicType === 'clinica_estetica') {
+    // 1. Análise de Tráfego Pago - PRIORIDADE ALTA
+    if (state.paidTraffic === 'nunca_usei') {
       specialists.push({
         name: "Especialista em Conversão",
-        specialty: "Tráfego Pago e Vendas Diretas",
-        reason: state.paidTraffic === 'nunca_usei' 
-          ? "pois você precisa estruturar captação de leads qualificados"
-          : "para otimizar suas campanhas e aumentar conversões",
-        status: "analisando seu funil de vendas"
+        specialty: "Estruturação de Tráfego Pago",
+        reason: "pois você nunca usou tráfego pago e precisa começar do zero",
+        status: "criando estratégia de captação inicial"
+      });
+    } else if (state.paidTraffic === 'uso_pouco') {
+      specialists.push({
+        name: "Especialista em Conversão",
+        specialty: "Otimização de Campanhas",
+        reason: "para melhorar seus resultados atuais no tráfego pago",
+        status: "analisando campanhas existentes"
+      });
+    } else if (state.paidTraffic === 'sim_regular') {
+      specialists.push({
+        name: "Analista de Performance",
+        specialty: "ROI e Escalabilidade",
+        reason: "para escalar suas campanhas que já funcionam",
+        status: "calculando métricas avançadas"
       });
     }
 
-    // Especialista em storytelling - para autoridade
-    if (state.personalBrand === 'nunca' || state.personalBrand === 'raramente' || state.clinicType === 'clinica_medica') {
+    // 2. Análise de Marca Pessoal
+    if (state.personalBrand === 'nunca') {
       specialists.push({
         name: "Expert em Storytelling",
-        specialty: "Autoridade e Marca Pessoal",
-        reason: state.personalBrand === 'nunca' 
-          ? "pois você precisa construir sua credibilidade no mercado"
-          : "para fortalecer seu posicionamento como referência",
-        status: "avaliando sua narrativa pessoal"
+        specialty: "Construção de Autoridade",
+        reason: "pois você precisa começar a aparecer e construir credibilidade",
+        status: "desenvolvendo sua narrativa pessoal"
       });
-    }
-
-    // Especialista em criatividade - para diferenciação
-    if (state.clinicPosition === 'moderna' || state.clinicType === 'clinica_estetica') {
-      specialists.push({
-        name: "Consultor Criativo",
-        specialty: "Identidade Visual e Diferenciação",
-        reason: state.clinicPosition === 'moderna'
-          ? "pois você precisa de comunicação visual inovadora"
-          : "para destacar transformações e resultados",
-        status: "desenvolvendo conceito visual"
-      });
-    }
-
-    // Especialista digital - para iniciantes
-    if (state.contentFrequency === 'irregular' || state.personalBrand === 'nunca') {
+    } else if (state.personalBrand === 'raramente') {
       specialists.push({
         name: "Estrategista Digital",
-        specialty: "Marketing Digital Estruturado",
-        reason: "pois você precisa organizar e sistematizar sua presença online",
-        status: "planejando cronograma de conteúdo"
+        specialty: "Presença Consistente",
+        reason: "para criar um cronograma regular de aparições",
+        status: "organizando calendário de conteúdo"
+      });
+    } else if (state.personalBrand === 'sim_sempre') {
+      specialists.push({
+        name: "Expert em Engajamento",
+        specialty: "Crescimento Orgânico",
+        reason: "para maximizar o alcance da sua presença ativa",
+        status: "identificando oportunidades virais"
       });
     }
 
-    // Garantir pelo menos 4 especialistas
-    while (specialists.length < 4) {
-      const remaining = [
-        { name: "Expert em Engajamento", specialty: "Crescimento Orgânico", reason: "para aumentar alcance natural", status: "identificando trends" },
-        { name: "Consultor de Grandes Ideias", specialty: "Conceitos Memoráveis", reason: "para criar campanhas marcantes", status: "conceptualizando" },
-        { name: "Analista de Performance", specialty: "ROI e Métricas", reason: "para estruturar acompanhamento", status: "calculando indicadores" }
-      ];
-      
-      specialists.push(remaining[specialists.length - 1]);
+    // 3. Análise por Tipo de Clínica
+    if (state.clinicType === 'clinica_estetica') {
+      if (state.aestheticObjective === 'mais_leads') {
+        specialists.push({
+          name: "Consultor Criativo",
+          specialty: "Marketing Visual para Estética",
+          reason: "para destacar transformações e atrair mais clientes",
+          status: "desenvolvendo conceito visual impactante"
+        });
+      } else if (state.aestheticObjective === 'autoridade') {
+        specialists.push({
+          name: "Expert em Storytelling",
+          specialty: "Autoridade em Estética",
+          reason: "para posicionar você como referência no mercado estético",
+          status: "criando casos de sucesso memoráveis"
+        });
+      }
     }
 
-    return specialists.slice(0, 4);
+    if (state.clinicType === 'clinica_medica') {
+      if (state.medicalObjective === 'autoridade') {
+        specialists.push({
+          name: "Consultor de Grandes Ideias",
+          specialty: "Posicionamento Médico Premium",
+          reason: "para elevar sua reputação médica no mercado",
+          status: "conceptualizando diferenciação premium"
+        });
+      } else if (state.medicalObjective === 'escala') {
+        specialists.push({
+          name: "Analista de Performance",
+          specialty: "Escala Estruturada",
+          reason: "para crescer mantendo qualidade médica",
+          status: "estruturando sistemas de crescimento"
+        });
+      }
+    }
+
+    // 4. Análise de Posicionamento
+    if (state.clinicPosition === 'premium') {
+      specialists.push({
+        name: "Consultor de Grandes Ideias",
+        specialty: "Branding Premium",
+        reason: "para comunicar exclusividade e alto valor",
+        status: "refinando posicionamento de luxo"
+      });
+    } else if (state.clinicPosition === 'moderna') {
+      specialists.push({
+        name: "Consultor Criativo",
+        specialty: "Inovação Visual",
+        reason: "para transmitir modernidade e tecnologia",
+        status: "criando identidade moderna"
+      });
+    } else if (state.clinicPosition === 'humanizada') {
+      specialists.push({
+        name: "Expert em Storytelling",
+        specialty: "Conexão Emocional",
+        reason: "para fortalecer relacionamento com pacientes",
+        status: "desenvolvendo narrativa empática"
+      });
+    }
+
+    // 5. Análise de Frequência de Conteúdo
+    if (state.contentFrequency === 'irregular') {
+      specialists.push({
+        name: "Estrategista Digital",
+        specialty: "Organização de Conteúdo",
+        reason: "para criar consistência na sua comunicação",
+        status: "estruturando calendário editorial"
+      });
+    } else if (state.contentFrequency === 'diario') {
+      specialists.push({
+        name: "Expert em Engajamento",
+        specialty: "Maximização de Alcance",
+        reason: "para aproveitar melhor sua produção constante",
+        status: "otimizando estratégia de engajamento"
+      });
+    }
+
+    // Remover duplicatas mantendo o primeiro
+    const uniqueSpecialists = specialists.filter((specialist, index, self) => 
+      index === self.findIndex(s => s.name === specialist.name)
+    );
+
+    console.log('✅ Especialistas selecionados:', uniqueSpecialists.map(s => s.name));
+
+    // Garantir 3-4 especialistas
+    if (uniqueSpecialists.length < 3) {
+      const fallbackSpecialists = [
+        { name: "Estrategista Digital", specialty: "Marketing Básico", reason: "para organizar sua estratégia", status: "estruturando fundamentos" },
+        { name: "Consultor Criativo", specialty: "Identidade Visual", reason: "para melhorar sua comunicação", status: "desenvolvendo conceito" },
+        { name: "Expert em Engajamento", specialty: "Relacionamento", reason: "para conectar com seu público", status: "analisando audiência" }
+      ];
+      
+      fallbackSpecialists.forEach(fallback => {
+        if (uniqueSpecialists.length < 4 && !uniqueSpecialists.find(s => s.name === fallback.name)) {
+          uniqueSpecialists.push(fallback);
+        }
+      });
+    }
+
+    return uniqueSpecialists.slice(0, 4);
   };
 
   const specialists = getRelevantSpecialists();
