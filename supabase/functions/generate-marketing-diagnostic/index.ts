@@ -37,7 +37,7 @@ serve(async (req) => {
     }
 
     // Criar o prompt personalizado com os dados do diagnóstico
-    const prompt = createHumanizedPrompt(diagnosticData);
+    const prompt = createConsultorFluidaPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
     console.log('🤖 Chamando OpenAI API...');
@@ -96,21 +96,15 @@ serve(async (req) => {
   }
 });
 
-function createHumanizedPrompt(data: any): string {
-  // Mapear os dados para o formato do prompt humanizado
-  const tipoClinica = data.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
-  const especialidade = data.medicalSpecialty || data.aestheticFocus || 'Não especificado';
+function createConsultorFluidaPrompt(data: any): string {
+  // Mapear os dados para o formato específico do Consultor Fluida
+  const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
   const equipamentos = formatEquipments(data);
-  const problemas = extractProblems(data);
-  const publico = data.targetAudience || 'Não definido claramente';
-  const estilo = data.personalBrand === 'sim_sempre' ? 'Comunicação com rosto, próxima e humanizada' : 
-                data.personalBrand === 'sim_pouco' ? 'Comunicação mista, com e sem rosto' : 
-                'Comunicação institucional, sem aparecer';
+  const problemasResolvidos = extractProblems(data);
+  const publicoIdeal = data.targetAudience || 'Não definido claramente';
+  const estilo = getStyleDescription(data.personalBrand);
   const faturamentoAtual = formatRevenue(data.currentRevenue);
   const meta = formatGoal(data.revenueGoal);
-  
-  // Gerar contexto único e mentor sugerido
-  const mentorSugerido = inferBestMentor(data);
 
   const prompt = `Você é o CONSULTOR FLUIDA — um estrategista de marketing especializado em clínicas médicas e estéticas, com foco total em atrair, encantar e fidelizar o público final.
 
@@ -126,10 +120,9 @@ Com base no briefing abaixo, gere uma resposta dividida nas seções:
 
 📥 Dados do briefing:
 - Tipo de clínica: ${tipoClinica}
-- Especialidade: ${especialidade}
 - Equipamentos: ${equipamentos}
-- Problemas que resolve: ${problemas}
-- Público ideal: ${publico}
+- Problemas resolvidos: ${problemasResolvidos}
+- Público ideal: ${publicoIdeal}
 - Estilo de linguagem desejado: ${estilo}
 - Faturamento atual: ${faturamentoAtual}, Meta: ${meta}
 
@@ -144,7 +137,7 @@ Com base no briefing abaixo, gere uma resposta dividida nas seções:
 - Foque nos pontos que impedem o crescimento e nas oportunidades não exploradas
 
 ### 2. 💡 Ideias de Conteúdo Humanizado (foco: TikTok, Instagram e YouTube Shorts)
-- Crie 5 ideias ESPECÍFICAS para esta clínica ${tipoClinica} de ${especialidade}
+- Crie 5 ideias ESPECÍFICAS para esta clínica ${tipoClinica}
 - Formatos prioritários: Reels, vídeos curtos ou carrossel com rosto
 - Conecte cada conteúdo aos equipamentos: ${equipamentos}
 - Exemplos de formato:
@@ -159,11 +152,11 @@ Com base no briefing abaixo, gere uma resposta dividida nas seções:
 Baseado no perfil desta clínica, crie ações específicas e práticas:
 
 **SEMANA 1:** Estruturação de conteúdo
-- 3 ações práticas para ${especialidade}
+- 3 ações práticas específicas para ${tipoClinica}
 - Foco em ${equipamentos}
 
 **SEMANA 2:** Engajamento e autoridade  
-- 3 ações para conectar com ${publico}
+- 3 ações para conectar com ${publicoIdeal}
 - Estratégias para ${estilo}
 
 **SEMANA 3:** Conversão e crescimento
@@ -174,24 +167,22 @@ Baseado no perfil desta clínica, crie ações específicas e práticas:
 Analise especificamente para esta clínica ${tipoClinica}:
 
 **Identidade Visual:**
-- Nome e logotipo: transparecem autoridade para ${especialidade}?
-- Cores combinam com ${publico}?
+- Nome e logotipo: transparecem autoridade para tratar ${problemasResolvidos}?
+- Cores combinam com ${publicoIdeal}?
 - Coerência com ${estilo}?
 
 **Experiência do Cliente:**
-- Jornada tem acolhimento adequado para ${problemas}?
-- Follow-up pós ${equipamentos}?
-- Programa de indicação para ${publico}?
+- Jornada tem acolhimento adequado para ${problemasResolvidos}?
+- Follow-up pós tratamento com ${equipamentos}?
+- Programa de indicação para ${publicoIdeal}?
 - Coleta de feedbacks e avaliações públicas?
 
 **Recomendações específicas** para tornar a jornada mais encantadora e coerente.
 
 ### 5. 🧩 Enigma Satírico do Mentor
-**Mentor identificado:** ${mentorSugerido}
+Crie um enigma com trocadilho sutil relacionado aos desafios específicos desta clínica ${tipoClinica} que resolve ${problemasResolvidos}.
 
-Crie um enigma com trocadilho sutil usando APENAS O SOBRENOME do mentor (sem citar o nome completo), relacionado aos desafios específicos desta clínica ${tipoClinica} de ${especialidade}.
-
-Formato: "Marketing que converte ${problemas} vem de quem sabe [TROCADILHO COM SOBRENOME]..."
+Formato sugerido: "Marketing que converte ${problemasResolvidos} vem de quem sabe [TROCADILHO CRIATIVO]..."
 
 ---
 
@@ -206,13 +197,16 @@ Formato: "Marketing que converte ${problemas} vem de quem sabe [TROCADILHO COM S
 }
 
 function formatEquipments(data: any): string {
-  if (data.aestheticEquipments && Array.isArray(data.aestheticEquipments)) {
-    return data.aestheticEquipments.join(', ');
+  const equipments = [];
+  
+  if (data.aestheticEquipments) {
+    equipments.push(data.aestheticEquipments);
   }
-  if (data.medicalProcedures && Array.isArray(data.medicalProcedures)) {
-    return data.medicalProcedures.join(', ');
+  if (data.medicalEquipments) {
+    equipments.push(data.medicalEquipments);
   }
-  return 'Não especificado';
+  
+  return equipments.length > 0 ? equipments.join(', ') : 'Não especificado';
 }
 
 function extractProblems(data: any): string {
@@ -224,7 +218,8 @@ function extractProblems(data: any): string {
       'nutrologia': 'Sobrepeso, deficiências nutricionais, metabolismo lento',
       'cirurgia_plastica': 'Insatisfação corporal, autoestima baixa, marcas do tempo',
       'ginecoestetica': 'Flacidez íntima, ressecamento, baixa autoestima sexual',
-      'medicina_estetica': 'Sinais de envelhecimento, flacidez, volume facial'
+      'medicina_estetica': 'Sinais de envelhecimento, flacidez, volume facial',
+      'outras': 'Problemas de saúde e estética'
     };
     problems.push(medicalProblems[data.medicalSpecialty] || 'Problemas de saúde e estética');
   } else {
@@ -237,7 +232,22 @@ function extractProblems(data: any): string {
     problems.push(aestheticProblems[data.aestheticFocus] || 'Problemas estéticos');
   }
   
+  // Adicionar serviço principal se especificado
+  if (data.mainService) {
+    problems.push(`Foco especial em: ${data.mainService}`);
+  }
+  
   return problems.join(', ');
+}
+
+function getStyleDescription(personalBrand: string): string {
+  const styleMap = {
+    'sim_sempre': 'Comunicação humanizada com presença pessoal constante',
+    'as_vezes': 'Comunicação mista, equilibrando presença pessoal e institucional',
+    'raramente': 'Comunicação mais institucional, com aparições pontuais',
+    'nunca': 'Comunicação institucional, sem exposição pessoal'
+  };
+  return styleMap[personalBrand] || 'Estilo de comunicação não definido';
 }
 
 function formatRevenue(revenue: string): string {
@@ -255,34 +265,7 @@ function formatGoal(goal: string): string {
     'dobrar': 'Dobrar o faturamento',
     'crescer_50': 'Crescer 50%',
     'crescer_30': 'Crescer 30%',
-    'manter': 'Manter estabilidade'
+    'manter_estavel': 'Manter estabilidade'
   };
   return goalMap[goal] || 'Não informado';
-}
-
-function inferBestMentor(data: any): string {
-  // Lógica aprimorada para inferir o mentor baseado no perfil
-  if (data.clinicType === 'clinica_medica') {
-    if (data.medicalObjective === 'autoridade') {
-      return 'Ícaro de Carvalho (Storytelling e Autoridade Médica)';
-    } else if (data.medicalObjective === 'escala') {
-      return 'Pedro Sobral (Performance e Estruturação)';
-    } else if (data.medicalObjective === 'diferenciacao') {
-      return 'Washington Olivetto (Big Ideas e Criatividade)';
-    } else {
-      return 'Ícaro de Carvalho (Comunicação Médica Humanizada)';
-    }
-  } else {
-    if (data.aestheticObjective === 'mais_leads') {
-      return 'Leandro Ladeira (Conversão e Tráfego)';
-    } else if (data.aestheticObjective === 'autoridade') {
-      return 'Ícaro de Carvalho (Storytelling e Posicionamento)';
-    } else if (data.aestheticObjective === 'ticket_medio') {
-      return 'Paulo Cuenca (Criatividade e Valor Agregado)';
-    } else if (data.currentRevenue === 'acima_60k') {
-      return 'Washington Olivetto (Branding Premium)';
-    } else {
-      return 'Camila Porto (Marketing Estético Estruturado)';
-    }
-  }
 }
