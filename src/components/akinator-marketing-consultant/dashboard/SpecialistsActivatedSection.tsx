@@ -30,21 +30,21 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
       return [
         {
           title: 'Etapa 1 - Diagnóstico Estratégico',
-          subtitle: 'Análise Completa do Perfil',
+          subtitle: 'Especialista Ativado',
           description: 'Realizando análise profunda dos dados da clínica para identificar oportunidades de crescimento e pontos de melhoria estratégicos.',
-          actionText: 'Analisando dados',
-          actionColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+          actionText: 'Executando estratégia',
+          actionColor: 'bg-green-500/20 text-green-400 border-green-500/30',
           icon: 'diagnostico',
-          status: 'Processando...'
+          status: 'Ativo'
         },
         {
           title: 'Etapa 2 - Sugestões de Conteúdo',
-          subtitle: 'Estratégias Personalizadas',
+          subtitle: 'Especialista Ativado',
           description: 'Criando sugestões de conteúdo baseadas no perfil da clínica e objetivos definidos para maximizar o engajamento.',
-          actionText: 'Criando estratégias',
-          actionColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+          actionText: 'Executando estratégia',
+          actionColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
           icon: 'criativo',
-          status: 'Aguardando...'
+          status: 'Ativo'
         }
       ];
     }
@@ -96,16 +96,30 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
   const specialistData = getSpecialistData();
 
   return (
-    <section data-section="specialists-activated" className="space-y-6">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-          🧠
+    <section data-section="specialists-activated" className="space-y-8">
+      {/* Enhanced Title Section */}
+      <div className="flex items-center gap-4 mb-10">
+        <div className="relative">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <span className="text-2xl">🧠</span>
+          </div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-background animate-pulse"></div>
         </div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Especialistas Ativados
-        </h2>
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold text-foreground mb-1">
+            Especialistas Ativados
+          </h2>
+          <p className="text-foreground/60 text-lg">
+            IA especializada trabalhando em suas estratégias personalizadas
+          </p>
+        </div>
+        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full border border-purple-500/30">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium text-foreground/80">Sistema Ativo</span>
+        </div>
       </div>
 
+      {/* Specialists Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {specialistData.map((specialist, index) => {
           const IconComponent = getSpecialistIcon(specialist.icon);
@@ -113,19 +127,28 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
           return (
             <Card 
               key={index} 
-              className="aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group"
+              className="group relative overflow-hidden aurora-glass border-purple-500/30 bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1"
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
-                      <IconComponent className="h-5 w-5 text-aurora-electric-purple" />
+              {/* Background gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <CardHeader className="pb-4 relative z-10">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-purple-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <IconComponent className="h-6 w-6 text-aurora-electric-purple" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">{index + 1}</span>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg text-foreground font-semibold leading-tight">
+                    
+                    <div className="flex-1">
+                      <CardTitle className="text-xl text-foreground font-bold leading-tight mb-2">
                         {specialist.title}
                       </CardTitle>
-                      <p className="text-sm text-foreground/60 mt-1">
+                      <p className="text-sm text-foreground/60 font-medium">
                         {specialist.subtitle}
                       </p>
                     </div>
@@ -133,24 +156,33 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
                   
                   <Badge 
                     variant="outline" 
-                    className={`${specialist.actionColor} text-xs px-3 py-1 rounded-full font-medium`}
+                    className={`${specialist.actionColor} text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm`}
                   >
                     {specialist.actionText}
                   </Badge>
                 </div>
               </CardHeader>
               
-              <CardContent className="pt-0">
-                <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+              <CardContent className="pt-0 relative z-10">
+                <p className="text-sm text-foreground/80 leading-relaxed mb-6 line-height-relaxed">
                   {specialist.description}
                 </p>
                 
-                <div className="flex items-center justify-between pt-3 border-t border-purple-500/20">
-                  <span className="text-xs text-foreground/60">
-                    Status: <span className="text-aurora-electric-purple font-medium">{specialist.status}</span>
-                  </span>
+                <div className="flex items-center justify-between pt-4 border-t border-purple-500/20">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-foreground/60 font-medium">
+                      Status: 
+                    </span>
+                    <span className="text-aurora-electric-purple font-semibold text-sm">
+                      {specialist.status}
+                    </span>
+                  </div>
                   
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
+                    <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse animation-delay-150"></div>
+                    <div className="w-1 h-1 bg-green-200 rounded-full animate-pulse animation-delay-300"></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -158,24 +190,29 @@ const SpecialistsActivatedSection: React.FC<SpecialistsActivatedSectionProps> = 
         })}
       </div>
 
-      {/* Progress indicator */}
-      <div className="mt-8 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-aurora-electric-purple rounded-full flex items-center justify-center">
-            <Brain className="h-3 w-3 text-white" />
+      {/* Enhanced Progress indicator */}
+      <div className="mt-10 p-6 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-pink-500/10 rounded-2xl border border-purple-500/20 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-10 h-10 bg-gradient-to-br from-aurora-electric-purple to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+              <Brain className="h-5 w-5 text-white" />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-aurora-electric-purple to-pink-500 rounded-full animate-ping opacity-20"></div>
           </div>
+          
           <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">
-              Análise em andamento
+            <p className="text-base font-semibold text-foreground mb-1">
+              🧠 Análise Fluida em Andamento
             </p>
-            <p className="text-xs text-foreground/60">
-              Os especialistas estão processando seus dados para gerar estratégias personalizadas
+            <p className="text-sm text-foreground/70 leading-relaxed">
+              Os especialistas estão processando seus dados para gerar estratégias personalizadas e insights únicos para sua clínica
             </p>
           </div>
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-aurora-electric-purple rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-aurora-electric-purple rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-aurora-electric-purple rounded-full animate-bounce"></div>
+          
+          <div className="flex items-center space-x-2">
+            <div className="w-2.5 h-2.5 bg-aurora-electric-purple rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2.5 h-2.5 bg-aurora-electric-purple rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2.5 h-2.5 bg-aurora-electric-purple rounded-full animate-bounce"></div>
           </div>
         </div>
       </div>
