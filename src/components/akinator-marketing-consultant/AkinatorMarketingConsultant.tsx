@@ -172,7 +172,13 @@ const AkinatorMarketingConsultant: React.FC = () => {
   }
 
   if (isAnalyzing) {
-    return <AnalysisProgressScreen />;
+    return (
+      <AnalysisProgressScreen 
+        currentStep={state.currentStep} 
+        totalSteps={steps.length}
+        state={state}
+      />
+    );
   }
 
   if (state.isComplete) {
