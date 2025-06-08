@@ -1,210 +1,252 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowLeft, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { MarketingConsultantState } from './types';
-import { MARKETING_STEPS } from './constants';
-import { generateMarketingDiagnostic } from './marketingGenerator';
-import { useAIDiagnostic } from '@/hooks/useAIDiagnostic';
-import AkinatorProgress from '../akinator-script-generator/AkinatorProgress';
+import { useUserEquipments } from "@/hooks/useUserEquipments";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
-import MarketingDashboard from './MarketingDashboard';
+import { MARKETING_STEPS } from './constants';
+import { MarketingConsultantState, MarketingStep } from './types';
 
 const AkinatorMarketingConsultant: React.FC = () => {
   const { toast } = useToast();
-  const { generateDiagnostic, isGenerating } = useAIDiagnostic();
-  const [showDashboard, setShowDashboard] = useState(false);
+  const { equipments, loading: equipmentsLoading } = useUserEquipments();
   
   const [state, setState] = useState<MarketingConsultantState>({
     currentStep: 0,
     isComplete: false
   });
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [steps, setSteps] = useState<MarketingStep[]>([]);
 
-  console.log('AkinatorMarketingConsultant - Estado atual:', state);
-  console.log('showDashboard:', showDashboard);
-
-  const currentStepData = MARKETING_STEPS[state.currentStep];
-
-  const handleOptionSelect = async (value: string) => {
-    const newState = { ...state, [currentStepData.id]: value };
-    
-    console.log('handleOptionSelect - newState:', newState);
-    console.log('handleOptionSelect - currentStep:', state.currentStep, 'MARKETING_STEPS.length:', MARKETING_STEPS.length);
-    
-    if (state.currentStep < MARKETING_STEPS.length - 1) {
-      console.log('Avançando para próximo step');
-      setState({ ...newState, currentStep: state.currentStep + 1 });
-    } else {
-      console.log('Gerando diagnóstico - última etapa');
-      
-      try {
-        // Gerar diagnóstico usando IA primeiro, depois fallback
-        console.log('🔄 Tentando IA primeiro...');
-        const aiDiagnostic = await generateDiagnostic(newState);
-        
-        let finalDiagnostic;
-        if (aiDiagnostic) {
-          console.log('✅ IA funcionou! Usando diagnóstico da OpenAI');
-          finalDiagnostic = aiDiagnostic;
-        } else {
-          console.log('⚠️ IA falhou, usando fallback estático');
-          // Fallback para sistema local se IA falhar
-          finalDiagnostic = await generateMarketingDiagnostic(newState, false);
+  // Initialize steps with real equipment data
+  useEffect(() => {
+    if (!equipmentsLoading && equipments.length > 0) {
+      const updatedSteps = MARKETING_STEPS.map(step => {
+        if (step.id === 'aestheticEquipments') {
+          return {
+            ...step,
+            options: equipments.map(equipment => ({
+              value: equipment.id,
+              label: equipment.nome
+            }))
+          };
         }
-        
-        const finalState = {
-          ...newState,
-          isComplete: true,
-          generatedDiagnostic: finalDiagnostic
-        };
-        
-        console.log('Estado final sendo definido:', finalState);
-        setState(finalState);
+        return step;
+      });
+      setSteps(updatedSteps);
+    } else if (!equipmentsLoading) {
+      setSteps(MARKETING_STEPS);
+    }
+  }, [equipments, equipmentsLoading]);
+
+  const currentStepData = getCurrentStep();
+  const progress = ((state.currentStep + 1) / steps.length) * 100;
+
+  function getCurrentStep(): MarketingStep | null {
+    if (steps.length === 0) return null;
+    
+    const step = steps[state.currentStep];
+    if (!step) return null;
+
+    // Check conditions for conditional steps
+    if (step.condition) {
+      if (step.condition === 'clinica_medica' && state.clinicType !== 'clinica_medica') {
+        return getNextValidStep();
+      }
+      if (step.condition === 'clinica_estetica' && state.clinicType !== 'clinica_estetica') {
+        return getNextValidStep();
+      }
+    }
+
+    return step;
+  }
+
+  function getNextValidStep(): MarketingStep | null {
+    let nextIndex = state.currentStep + 1;
+    
+    while (nextIndex < steps.length) {
+      const nextStep = steps[nextIndex];
+      
+      if (!nextStep.condition) {
+        setState(prev => ({ ...prev, currentStep: nextIndex }));
+        return nextStep;
+      }
+      
+      if (nextStep.condition === 'clinica_medica' && state.clinicType === 'clinica_medica') {
+        setState(prev => ({ ...prev, currentStep: nextIndex }));
+        return nextStep;
+      }
+      
+      if (nextStep.condition === 'clinica_estetica' && state.clinicType === 'clinica_estetica') {
+        setState(prev => ({ ...prev, currentStep: nextIndex }));
+        return nextStep;
+      }
+      
+      nextIndex++;
+    }
+    
+    return null;
+  }
+
+  const handleOptionSelect = (value: string) => {
+    const stepId = currentStepData?.id;
+    if (!stepId) return;
+
+    const newState = { ...state, [stepId]: value };
+    setState(newState);
+
+    // Check if this is the last question
+    if (state.currentStep >= steps.length - 1) {
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        setState(prev => ({ ...prev, isComplete: true }));
+        setIsAnalyzing(false);
         
         toast({
-          title: "🎯 Diagnóstico Concluído!",
-          description: "Sua análise estratégica foi gerada com sucesso."
+          title: "🎯 Diagnóstico completo!",
+          description: "Seu plano estratégico está pronto!"
         });
-        
-      } catch (error) {
-        console.error('💥 Erro CRÍTICO ao gerar diagnóstico:', error);
-        
-        // Em caso de erro crítico, usar o fallback
-        console.log('🆘 Usando fallback de emergência...');
-        try {
-          const emergencyDiagnostic = await generateMarketingDiagnostic(newState, false);
-          
-          const finalState = {
-            ...newState,
-            isComplete: true,
-            generatedDiagnostic: emergencyDiagnostic
-          };
-          
-          setState(finalState);
+      }, 3000);
+    } else {
+      const nextStep = getNextValidStep();
+      if (!nextStep) {
+        // No more valid steps, complete the process
+        setIsAnalyzing(true);
+        setTimeout(() => {
+          setState(prev => ({ ...prev, isComplete: true }));
+          setIsAnalyzing(false);
           
           toast({
-            title: "⚠️ Diagnóstico gerado (modo offline)",
-            description: "IA indisponível, mas seu diagnóstico foi criado com sucesso."
+            title: "🎯 Diagnóstico completo!",
+            description: "Seu plano estratégico está pronto!"
           });
-        } catch (emergencyError) {
-          console.error('💥 Erro no fallback de emergência:', emergencyError);
-          toast({
-            variant: "destructive",
-            title: "Erro na geração",
-            description: "Não foi possível gerar o diagnóstico. Tente novamente."
-          });
-        }
+        }, 3000);
       }
     }
   };
 
-  const resetConsultant = () => {
-    console.log('resetConsultant chamado');
+  const handleGoBack = () => {
+    if (state.currentStep > 0) {
+      setState(prev => ({ ...prev, currentStep: prev.currentStep - 1 }));
+    }
+  };
+
+  const handleRestart = () => {
     setState({
       currentStep: 0,
       isComplete: false
     });
-    setShowDashboard(false);
+    setIsAnalyzing(false);
   };
 
-  const handleGoBack = () => {
-    setState({ ...state, currentStep: state.currentStep - 1 });
-  };
-
-  const handleGenerateStrategy = () => {
-    console.log('🚀 Navegando para dashboard estratégico');
-    setShowDashboard(true);
-  };
-
-  const handleGeneratePlan = () => {
-    console.log('🚀 Navegando para dashboard de plano');
-    setShowDashboard(true);
-  };
-
-  const handleBackFromDashboard = () => {
-    console.log('🔙 Voltando do dashboard');
-    setShowDashboard(false);
-  };
-
-  const handleCreateScript = () => {
-    toast({
-      title: "🎬 Criando Roteiro...",
-      description: "Redirecionando para o gerador de roteiros!"
-    });
-  };
-
-  const handleGenerateImage = () => {
-    toast({
-      title: "🎨 Gerando Imagem...",
-      description: "Funcionalidade de geração de imagens em desenvolvimento!"
-    });
-  };
-
-  const handleDownloadPDF = () => {
-    toast({
-      title: "📄 Gerando PDF...",
-      description: "Criando seu relatório em PDF!"
-    });
-  };
-
-  const handleViewHistory = () => {
-    toast({
-      title: "📊 Abrindo histórico...",
-      description: "Carregando seus diagnósticos anteriores!"
-    });
-  };
-
-  console.log('Renderizando - isComplete:', state.isComplete, 'isGenerating:', isGenerating, 'showDashboard:', showDashboard);
-
-  // Mostrar dashboard se solicitado
-  if (showDashboard && state.isComplete) {
-    console.log('📊 Renderizando MarketingDashboard');
+  if (equipmentsLoading) {
     return (
-      <MarketingDashboard
-        state={state}
-        onBack={handleBackFromDashboard}
-        onCreateScript={handleCreateScript}
-        onGenerateImage={handleGenerateImage}
-        onDownloadPDF={handleDownloadPDF}
-        onViewHistory={handleViewHistory}
-      />
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center space-x-2">
+            <Sparkles className="h-5 w-5 animate-spin text-primary" />
+            <span>Carregando equipamentos...</span>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
-  // Mostrar tela de análise/progresso quando estiver gerando
-  if (isGenerating) {
+  if (steps.length === 0) {
     return (
-      <AnalysisProgressScreen 
-        currentStep={state.currentStep} 
-        totalSteps={MARKETING_STEPS.length}
-        state={state}
-      />
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p className="text-muted-foreground">Nenhum equipamento encontrado. Configure seus equipamentos primeiro.</p>
+          </div>
+        </CardContent>
+      </Card>
     );
+  }
+
+  if (isAnalyzing) {
+    return <AnalysisProgressScreen />;
   }
 
   if (state.isComplete) {
-    console.log('Renderizando MarketingResult com state:', state);
     return (
-      <MarketingResult
-        state={state}
-        onGenerateStrategy={handleGenerateStrategy}
-        onGeneratePlan={handleGeneratePlan}
-        onReset={resetConsultant}
-      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            <Sparkles className="h-3 w-3 mr-1" />
+            Diagnóstico Completo
+          </Badge>
+          <Button onClick={handleRestart} variant="outline" size="sm">
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Novo Diagnóstico
+          </Button>
+        </div>
+        <MarketingResult consultantData={state} equipments={equipments} />
+      </div>
+    );
+  }
+
+  if (!currentStepData) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p className="text-muted-foreground">Erro ao carregar pergunta. Tente reiniciar.</p>
+            <Button onClick={handleRestart} className="mt-4">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reiniciar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div>
-      <AkinatorProgress currentStep={state.currentStep} totalSteps={MARKETING_STEPS.length} />
-      <MarketingQuestion
-        stepData={currentStepData}
-        currentStep={state.currentStep}
-        onOptionSelect={handleOptionSelect}
-        onGoBack={handleGoBack}
-        canGoBack={state.currentStep > 0}
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Consultor Fluida</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pergunta {state.currentStep + 1} de {steps.length}
+              </p>
+            </div>
+            <Badge variant="outline">
+              {Math.round(progress)}% completo
+            </Badge>
+          </div>
+          <Progress value={progress} className="mt-3" />
+        </CardHeader>
+      </Card>
+
+      {/* Question */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={state.currentStep}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <MarketingQuestion
+            stepData={currentStepData}
+            currentStep={state.currentStep}
+            onOptionSelect={handleOptionSelect}
+            onGoBack={handleGoBack}
+            canGoBack={state.currentStep > 0}
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };
