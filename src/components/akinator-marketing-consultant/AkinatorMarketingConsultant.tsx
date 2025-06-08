@@ -4,9 +4,9 @@ import { questions } from './questions';
 import AnalysisProgressScreen from './AnalysisProgressScreen';
 import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
+import MarketingQuestion from './MarketingQuestion';
 import { MarketingConsultantState } from './types';
 import { useEquipments } from '@/hooks/useEquipments';
-import AkinatorQuestion from './AkinatorQuestion';
 
 const initialState: MarketingConsultantState = {
   clinicType: '',
@@ -105,7 +105,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         setTimeout(() => {
           setIsProcessing(false);
           setShowResult(true);
-        }, 2000);
+        }, 3000);
       }
     }
   };
@@ -134,10 +134,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   const handleDownloadPDF = () => {
     console.log('Generate PDF');
-  };
-
-  const handleAddToPlanner = () => {
-    console.log('Adicionar ao planejador');
   };
 
   if (showDashboard) {
@@ -173,16 +169,15 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  // Mostrar apenas perguntas válidas baseadas no estado atual
+  // Verificar se a pergunta atual deve ser exibida
   if (currentStep < questions.length && shouldShowQuestion(currentStep)) {
     const currentQuestion = questions[currentStep];
     
     return (
-      <AkinatorQuestion
-        question={currentQuestion}
+      <MarketingQuestion
+        stepData={currentQuestion}
         currentStep={currentStep}
-        totalSteps={questions.length}
-        onAnswer={handleAnswer}
+        onOptionSelect={handleAnswer}
         onGoBack={handleGoBack}
         canGoBack={currentStep > 0}
       />

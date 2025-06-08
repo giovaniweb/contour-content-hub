@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,12 +139,18 @@ const MarketingResult: React.FC<MarketingResultProps> = ({
       // Fallback diagnostic
       const fallbackDiagnostic = generateFallbackDiagnostic();
       setDiagnosticResult(fallbackDiagnostic);
-      setIsGenerating(false);
+      
+      // Complete progress and show result
+      setProgress(100);
+      setCurrentPhase(4);
+      setTimeout(() => {
+        setIsGenerating(false);
+      }, 1000);
       
       toast({
         variant: "destructive",
-        title: "Erro ao gerar diagnóstico personalizado",
-        description: "Usando diagnóstico padrão. Verifique sua conexão e tente novamente.",
+        title: "Usando diagnóstico padrão",
+        description: "Não foi possível gerar diagnóstico personalizado. Usando modelo padrão.",
       });
     }
   };
@@ -235,7 +240,7 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
   };
 
   const handleViewDashboard = () => {
-    if (onViewDashboard) {
+    if (onViewDashboard && diagnosticResult) {
       onViewDashboard(diagnosticResult);
     }
   };
@@ -426,6 +431,7 @@ Foque em mostrar transformações reais, educar sobre procedimentos e criar cone
             onClick={handleViewDashboard}
             size="lg"
             className="bg-primary hover:bg-primary/90"
+            disabled={!diagnosticResult}
           >
             <Sparkles className="h-5 w-5 mr-2" />
             Abrir Dashboard Completo

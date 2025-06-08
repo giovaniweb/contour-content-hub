@@ -4,200 +4,230 @@ import { MarketingStep } from './types';
 export const MARKETING_STEPS: MarketingStep[] = [
   {
     id: 'clinicType',
-    question: '🏥 Qual é o seu tipo de clínica?',
+    question: 'Qual é o tipo da sua clínica?',
     options: [
-      { value: 'clinica_medica', label: 'Clínica Médica (com médico responsável)' },
-      { value: 'clinica_estetica', label: 'Clínica Estética (sem procedimentos médicos)' }
+      { value: 'clinica_medica', label: '🏥 Clínica Médica' },
+      { value: 'clinica_estetica', label: '✨ Clínica Estética' }
     ]
   },
-  // Perguntas específicas para Clínica Médica
   {
     id: 'medicalSpecialty',
-    question: '🩺 Qual sua especialidade principal?',
+    question: 'Qual é a sua especialidade médica principal?',
+    condition: 'clinica_medica',
     options: [
-      { value: 'dermatologia', label: 'Dermatologia' },
-      { value: 'nutrologia', label: 'Nutrologia' },
-      { value: 'ginecoestetica', label: 'Ginecoestética' },
-      { value: 'cirurgia_plastica', label: 'Cirurgia Plástica' },
-      { value: 'medicina_estetica', label: 'Medicina Estética' },
-      { value: 'outras', label: 'Outras especialidades' }
-    ],
-    condition: 'clinica_medica'
+      { value: 'dermatologia', label: '🧴 Dermatologia' },
+      { value: 'cirurgia_plastica', label: '🏥 Cirurgia Plástica' },
+      { value: 'ortopedia', label: '🦴 Ortopedia' },
+      { value: 'cardiologia', label: '❤️ Cardiologia' },
+      { value: 'ginecologia', label: '👩‍⚕️ Ginecologia' },
+      { value: 'oftalmologia', label: '👁️ Oftalmologia' },
+      { value: 'medicina_geral', label: '🩺 Medicina Geral' },
+      { value: 'outras', label: '🏥 Outras Especialidades' }
+    ]
+  },
+  {
+    id: 'aestheticFocus',
+    question: 'Qual é o foco principal da sua clínica estética?',
+    condition: 'clinica_estetica',
+    options: [
+      { value: 'facial', label: '😊 Estética Facial' },
+      { value: 'corporal', label: '💪 Estética Corporal' },
+      { value: 'capilar', label: '💇‍♀️ Estética Capilar' },
+      { value: 'harmonizacao', label: '💎 Harmonização Facial' },
+      { value: 'depilacao', label: '🪒 Depilação' },
+      { value: 'todos', label: '🌟 Todos os Tratamentos' }
+    ]
   },
   {
     id: 'medicalEquipments',
-    question: '🔧 Quais equipamentos você utiliza na sua clínica?',
-    options: [], // Será preenchido dinamicamente com equipamentos do sistema
-    condition: 'clinica_medica'
-  },
-  {
-    id: 'medicalProcedures',
-    question: '💉 Que tipo de procedimentos você realiza?',
+    question: 'Quais equipamentos médicos você possui?',
+    condition: 'clinica_medica',
     options: [
-      { value: 'invasivos', label: 'Procedimentos invasivos (cirurgias)' },
-      { value: 'injetaveis', label: 'Injetáveis (botox, preenchimento)' },
-      { value: 'tecnologicos', label: 'Tecnológicos (lasers, radiofrequência)' },
-      { value: 'combinados', label: 'Combinação de procedimentos' }
-    ],
-    condition: 'clinica_medica'
-  },
-  {
-    id: 'medicalTicket',
-    question: '💰 Qual seu ticket médio estimado?',
-    options: [
-      { value: 'ate_500', label: 'Até R$ 500' },
-      { value: '500_1500', label: 'R$ 500 - R$ 1.500' },
-      { value: '1500_5000', label: 'R$ 1.500 - R$ 5.000' },
-      { value: 'acima_5000', label: 'Acima de R$ 5.000' }
-    ],
-    condition: 'clinica_medica'
-  },
-  {
-    id: 'medicalModel',
-    question: '📋 Como você trabalha com seus pacientes?',
-    options: [
-      { value: 'planos_tratamento', label: 'Planos de tratamento estruturados' },
-      { value: 'recorrencia', label: 'Consultas de retorno/manutenção' },
-      { value: 'procedimento_unico', label: 'Procedimentos únicos' },
-      { value: 'combinado', label: 'Modelo combinado' }
-    ],
-    condition: 'clinica_medica'
-  },
-  {
-    id: 'medicalObjective',
-    question: '🎯 Qual seu objetivo principal?',
-    options: [
-      { value: 'diferenciacao', label: 'Diferenciação no mercado' },
-      { value: 'escala', label: 'Escalar atendimentos' },
-      { value: 'retencao', label: 'Melhorar retenção de pacientes' },
-      { value: 'autoridade', label: 'Construir autoridade médica' }
-    ],
-    condition: 'clinica_medica'
-  },
-  // Perguntas específicas para Clínica Estética
-  {
-    id: 'aestheticFocus',
-    question: '💆‍♀️ Qual o foco da sua clínica estética?',
-    options: [
-      { value: 'corporal', label: 'Tratamentos corporais' },
-      { value: 'facial', label: 'Tratamentos faciais' },
-      { value: 'ambos', label: 'Facial e corporal' },
-      { value: 'depilacao', label: 'Depilação a laser' }
-    ],
-    condition: 'clinica_estetica'
+      { value: 'laser_cirurgico', label: '🔬 Laser Cirúrgico' },
+      { value: 'ultrassom', label: '📊 Ultrassom' },
+      { value: 'raio_x', label: '📷 Raio-X' },
+      { value: 'endoscopio', label: '🔍 Endoscópio' },
+      { value: 'desfibrilador', label: '⚡ Desfibrilador' },
+      { value: 'ventilador', label: '🫁 Ventilador' },
+      { value: 'equipamento_basico', label: '🩺 Equipamentos Básicos' },
+      { value: 'outros', label: '🏥 Outros' }
+    ]
   },
   {
     id: 'aestheticEquipments',
-    question: '🔧 Quais equipamentos você utiliza?',
-    options: [], // Será preenchido dinamicamente com equipamentos do sistema
-    condition: 'clinica_estetica'
+    question: 'Quais equipamentos estéticos você possui?',
+    condition: 'clinica_estetica',
+    options: [
+      { value: 'laser_diodo', label: '💎 Laser Diodo' },
+      { value: 'ipl', label: '✨ IPL (Luz Pulsada)' },
+      { value: 'radiofrequencia', label: '📡 Radiofrequência' },
+      { value: 'criolipolise', label: '❄️ Criolipólise' },
+      { value: 'hifu', label: '🔊 HIFU' },
+      { value: 'microagulhamento', label: '📍 Microagulhamento' },
+      { value: 'led_therapy', label: '💡 LED Therapy' },
+      { value: 'peeling', label: '🧴 Peeling' },
+      { value: 'massagem', label: '💆‍♀️ Equipamentos de Massagem' },
+      { value: 'outros', label: '✨ Outros' }
+    ]
+  },
+  {
+    id: 'medicalProcedures',
+    question: 'Quais procedimentos médicos você mais realiza?',
+    condition: 'clinica_medica',
+    options: [
+      { value: 'consultas', label: '👩‍⚕️ Consultas Clínicas' },
+      { value: 'cirurgias_menores', label: '🔪 Cirurgias Menores' },
+      { value: 'exames', label: '🔬 Exames Diagnósticos' },
+      { value: 'tratamentos_cronicos', label: '📅 Tratamentos Crônicos' },
+      { value: 'emergencias', label: '🚨 Emergências' },
+      { value: 'preventivos', label: '🛡️ Cuidados Preventivos' }
+    ]
+  },
+  {
+    id: 'medicalTicket',
+    question: 'Qual é o ticket médio dos seus procedimentos médicos?',
+    condition: 'clinica_medica',
+    options: [
+      { value: 'ate_200', label: '💰 Até R$ 200' },
+      { value: '200_500', label: '💸 R$ 200 - R$ 500' },
+      { value: '500_1000', label: '💵 R$ 500 - R$ 1.000' },
+      { value: 'acima_1000', label: '💎 Acima de R$ 1.000' }
+    ]
+  },
+  {
+    id: 'medicalModel',
+    question: 'Qual é o modelo de atendimento da sua clínica médica?',
+    condition: 'clinica_medica',
+    options: [
+      { value: 'convenios', label: '🏥 Convênios Médicos' },
+      { value: 'particular', label: '💳 Particular' },
+      { value: 'misto', label: '🔄 Misto (Convênios + Particular)' },
+      { value: 'sus', label: '🏛️ SUS' }
+    ]
+  },
+  {
+    id: 'medicalObjective',
+    question: 'Qual é o principal objetivo para sua clínica médica?',
+    condition: 'clinica_medica',
+    options: [
+      { value: 'aumentar_pacientes', label: '👥 Aumentar número de pacientes' },
+      { value: 'fidelizar_pacientes', label: '❤️ Fidelizar pacientes atuais' },
+      { value: 'melhorar_reputacao', label: '⭐ Melhorar reputação' },
+      { value: 'expandir_servicos', label: '📈 Expandir serviços' },
+      { value: 'aumentar_faturamento', label: '💰 Aumentar faturamento' }
+    ]
   },
   {
     id: 'aestheticBestSeller',
-    question: '⭐ Qual seu protocolo mais vendido?',
+    question: 'Qual é o procedimento mais vendido na sua clínica estética?',
+    condition: 'clinica_estetica',
     options: [
-      { value: 'emagrecimento', label: 'Protocolos de emagrecimento' },
-      { value: 'rejuvenescimento', label: 'Rejuvenescimento facial' },
-      { value: 'flacidez', label: 'Tratamento de flacidez' },
-      { value: 'depilacao_definitiva', label: 'Depilação definitiva' },
-      { value: 'celulite', label: 'Tratamento de celulite' }
-    ],
-    condition: 'clinica_estetica'
+      { value: 'depilacao_laser', label: '🪒 Depilação a Laser' },
+      { value: 'botox', label: '💉 Botox' },
+      { value: 'preenchimento', label: '💎 Preenchimento' },
+      { value: 'limpeza_pele', label: '🧴 Limpeza de Pele' },
+      { value: 'radiofrequencia', label: '📡 Radiofrequência' },
+      { value: 'peeling', label: '✨ Peeling' },
+      { value: 'microagulhamento', label: '📍 Microagulhamento' },
+      { value: 'massagem', label: '💆‍♀️ Massagem' }
+    ]
   },
   {
     id: 'aestheticSalesModel',
-    question: '💳 Como você vende seus tratamentos?',
+    question: 'Como você comercializa seus serviços estéticos?',
+    condition: 'clinica_estetica',
     options: [
-      { value: 'pacotes', label: 'Pacotes de sessões' },
-      { value: 'sessoes_unicas', label: 'Sessões únicas' },
-      { value: 'ambos', label: 'Pacotes e sessões' },
-      { value: 'protocolos', label: 'Protocolos completos' }
-    ],
-    condition: 'clinica_estetica'
+      { value: 'sessoes_avulsas', label: '🎯 Sessões Avulsas' },
+      { value: 'pacotes', label: '📦 Pacotes de Sessões' },
+      { value: 'planos_mensais', label: '📅 Planos Mensais' },
+      { value: 'promocoes', label: '🎉 Promoções Sazonais' },
+      { value: 'misto', label: '🔄 Modelo Misto' }
+    ]
   },
   {
     id: 'aestheticObjective',
-    question: '🎯 Qual seu objetivo principal?',
+    question: 'Qual é o principal objetivo para sua clínica estética?',
+    condition: 'clinica_estetica',
     options: [
-      { value: 'mais_leads', label: 'Atrair mais leads qualificados' },
-      { value: 'recorrencia', label: 'Aumentar recorrência de clientes' },
-      { value: 'ticket_medio', label: 'Aumentar ticket médio' },
-      { value: 'autoridade', label: 'Construir autoridade na região' }
-    ],
-    condition: 'clinica_estetica'
+      { value: 'aumentar_clientes', label: '👥 Aumentar número de clientes' },
+      { value: 'fidelizar_clientes', label: '❤️ Fidelizar clientes atuais' },
+      { value: 'aumentar_ticket', label: '💰 Aumentar ticket médio' },
+      { value: 'melhorar_marca', label: '⭐ Fortalecer marca' },
+      { value: 'expandir_servicos', label: '📈 Expandir serviços' }
+    ]
   },
-  // Perguntas comuns para ambos os tipos
   {
     id: 'currentRevenue',
-    question: '💰 Qual seu faturamento médio atual?',
+    question: 'Qual é o faturamento mensal atual da sua clínica?',
     options: [
-      { value: 'ate_15k', label: 'Até R$ 15.000' },
-      { value: '15k_30k', label: 'R$ 15.000 - R$ 30.000' },
-      { value: '30k_60k', label: 'R$ 30.000 - R$ 60.000' },
-      { value: 'acima_60k', label: 'Acima de R$ 60.000' }
+      { value: 'ate_15k', label: '💰 Até R$ 15.000' },
+      { value: '15k_30k', label: '💸 R$ 15.000 - R$ 30.000' },
+      { value: '30k_60k', label: '💵 R$ 30.000 - R$ 60.000' },
+      { value: 'acima_60k', label: '💎 Acima de R$ 60.000' }
     ]
   },
   {
     id: 'revenueGoal',
-    question: '🎯 Meta de faturamento para os próximos 3 meses?',
+    question: 'Qual é sua meta de crescimento?',
     options: [
-      { value: 'crescer_30', label: 'Crescer 30%' },
-      { value: 'crescer_50', label: 'Crescer 50%' },
-      { value: 'dobrar', label: 'Dobrar o faturamento' },
-      { value: 'manter_estavel', label: 'Manter estável' }
+      { value: 'crescer_30', label: '📈 Crescer 30%' },
+      { value: 'crescer_50', label: '🚀 Crescer 50%' },
+      { value: 'dobrar', label: '⚡ Dobrar o faturamento' },
+      { value: 'manter_estavel', label: '📊 Manter estabilidade' }
     ]
   },
   {
     id: 'mainService',
-    question: '⭐ Qual serviço você mais deseja vender?',
-    options: [], // Campo aberto
+    question: 'Qual serviço você mais quer promover?',
     isOpen: true
   },
   {
     id: 'personalBrand',
-    question: '📹 Você aparece nos conteúdos? Grava vídeos?',
+    question: 'Como você se posiciona no mercado?',
     options: [
-      { value: 'sim_sempre', label: 'Sim, sempre apareço' },
-      { value: 'as_vezes', label: 'Às vezes apareço' },
-      { value: 'raramente', label: 'Raramente apareço' },
-      { value: 'nunca', label: 'Nunca apareço' }
+      { value: 'premium', label: '💎 Premium/Luxo' },
+      { value: 'acessivel', label: '💰 Acessível' },
+      { value: 'especialista', label: '🎯 Especialista' },
+      { value: 'completa', label: '🌟 Clínica Completa' },
+      { value: 'inovadora', label: '🚀 Inovadora' }
     ]
   },
   {
     id: 'contentFrequency',
-    question: '📱 Frequência atual de conteúdo?',
+    question: 'Com que frequência você posta conteúdo?',
     options: [
-      { value: 'diario', label: 'Diariamente' },
-      { value: 'varios_por_semana', label: 'Várias vezes por semana' },
-      { value: 'semanal', label: 'Semanalmente' },
-      { value: 'irregular', label: 'Irregular/raramente' }
+      { value: 'diario', label: '📅 Diariamente' },
+      { value: 'semanal', label: '📊 Semanalmente' },
+      { value: 'quinzenal', label: '🗓️ Quinzenalmente' },
+      { value: 'mensal', label: '📆 Mensalmente' },
+      { value: 'raramente', label: '❌ Raramente' }
     ]
   },
   {
     id: 'paidTraffic',
-    question: '🎯 Usa tráfego pago?',
+    question: 'Você investe em tráfego pago?',
     options: [
-      { value: 'sim_regular', label: 'Sim, regularmente' },
-      { value: 'esporadico', label: 'Esporadicamente' },
-      { value: 'ja_testei', label: 'Já testei, mas parei' },
-      { value: 'nunca_usei', label: 'Nunca usei' }
+      { value: 'google_ads', label: '🔍 Google Ads' },
+      { value: 'facebook_ads', label: '📘 Facebook/Instagram Ads' },
+      { value: 'ambos', label: '🔄 Ambos' },
+      { value: 'nao_invisto', label: '❌ Não invisto' },
+      { value: 'planejo_investir', label: '💭 Planejo investir' }
     ]
   },
   {
     id: 'targetAudience',
-    question: '👥 Quem é seu público ideal?',
-    options: [], // Campo aberto
-    isOpen: true
+    question: 'Quem é seu público-alvo principal?',
+    options: [
+      { value: 'mulheres_25_40', label: '👩 Mulheres 25-40 anos' },
+      { value: 'mulheres_40_plus', label: '👩‍🦳 Mulheres 40+ anos' },
+      { value: 'homens_adultos', label: '👨 Homens adultos' },
+      { value: 'jovens', label: '👧 Jovens 18-25 anos' },
+      { value: 'publico_geral', label: '👥 Público geral' }
+    ]
   },
   {
     id: 'clinicPosition',
-    question: '🏷️ Como você define sua clínica?',
-    options: [
-      { value: 'premium', label: 'Premium/Luxo' },
-      { value: 'humanizada', label: 'Humanizada/Acolhedora' },
-      { value: 'acessivel', label: 'Acessível/Popular' },
-      { value: 'tecnica', label: 'Técnica/Científica' },
-      { value: 'moderna', label: 'Moderna/Inovadora' }
-    ]
+    question: 'Como sua clínica se diferencia da concorrência?',
+    isOpen: true
   }
 ];
