@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { LayoutDashboard, Users, Settings, BarChart3, Database } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, BarChart3, Database, Film, Brain, LinkIcon, Video, TestTube } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
   const adminCards = [
@@ -11,28 +12,64 @@ const AdminDashboard: React.FC = () => {
       description: "Gerencie usuários e permissões",
       icon: Users,
       count: "24",
-      action: "Gerenciar Usuários"
+      action: "Gerenciar Usuários",
+      path: "/admin/users"
     },
     {
       title: "Equipamentos",
       description: "Configure equipamentos do sistema",
       icon: Settings,
       count: "12",
-      action: "Ver Equipamentos"
+      action: "Ver Equipamentos",
+      path: "/admin/equipments"
     },
     {
       title: "Conteúdos",
       description: "Administre conteúdos da plataforma",
       icon: Database,
       count: "156",
-      action: "Gerenciar Conteúdo"
+      action: "Gerenciar Conteúdo",
+      path: "/admin/content"
     },
     {
-      title: "Relatórios",
-      description: "Visualize métricas e relatórios",
-      icon: BarChart3,
+      title: "Vídeos",
+      description: "Gerencie biblioteca de vídeos",
+      icon: Film,
+      count: "89",
+      action: "Ver Vídeos",
+      path: "/admin/videos"
+    },
+    {
+      title: "IA do Sistema",
+      description: "Configure módulos de inteligência artificial",
+      icon: Brain,
+      count: "5",
+      action: "Configurar IA",
+      path: "/admin/ai"
+    },
+    {
+      title: "Integrações",
+      description: "Gerencie integrações externas",
+      icon: LinkIcon,
       count: "8",
-      action: "Ver Relatórios"
+      action: "Ver Integrações",
+      path: "/admin/integrations"
+    },
+    {
+      title: "Config. Vimeo",
+      description: "Configurações do Vimeo",
+      icon: Video,
+      count: "1",
+      action: "Configurar Vimeo",
+      path: "/admin/vimeo-settings"
+    },
+    {
+      title: "Diagnóstico",
+      description: "Diagnósticos do sistema",
+      icon: TestTube,
+      count: "3",
+      action: "Ver Diagnósticos",
+      path: "/admin/diagnostics"
     }
   ];
 
@@ -51,7 +88,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Admin Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {adminCards.map((card, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -65,8 +102,10 @@ const AdminDashboard: React.FC = () => {
                 <CardDescription className="mb-4">
                   {card.description}
                 </CardDescription>
-                <Button variant="outline" size="sm" className="w-full">
-                  {card.action}
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link to={card.path}>
+                    {card.action}
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -77,17 +116,23 @@ const AdminDashboard: React.FC = () => {
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
-              <Users className="h-6 w-6" />
-              <span>Adicionar Usuário</span>
+            <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>
+              <Link to="/admin/users">
+                <Users className="h-6 w-6" />
+                <span>Adicionar Usuário</span>
+              </Link>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
-              <Settings className="h-6 w-6" />
-              <span>Configurações do Sistema</span>
+            <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>
+              <Link to="/admin/ai">
+                <Brain className="h-6 w-6" />
+                <span>Configurar IA</span>
+              </Link>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
-              <BarChart3 className="h-6 w-6" />
-              <span>Gerar Relatório</span>
+            <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>
+              <Link to="/admin/diagnostics">
+                <TestTube className="h-6 w-6" />
+                <span>Executar Diagnóstico</span>
+              </Link>
             </Button>
           </div>
         </div>
