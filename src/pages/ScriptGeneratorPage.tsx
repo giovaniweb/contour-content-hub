@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, TestTube } from "lucide-react";
-import { useSmartScriptGeneration } from './ScriptGeneratorPage/useSmartScriptGeneration';
+import { useScriptGeneration } from './ScriptGeneratorPage/useScriptGeneration';
 import { useActionHandlers } from './ScriptGeneratorPage/actionHandlers';
 
 type GeneratorMode = 'selection' | 'smart';
@@ -21,14 +21,18 @@ const ScriptGeneratorPage: React.FC = () => {
   
   const {
     currentStep,
+    intention,
     generatedResult,
     isGenerating,
     isDisneyMode,
     isApproved,
+    handleThemeInput,
     applyDisneyMagic,
     approveScript,
-    resetGeneration
-  } = useSmartScriptGeneration();
+    resetGeneration,
+    setCurrentStep,
+    setIntention
+  } = useScriptGeneration();
   
   const { handleGenerateImage, handleGenerateVoice } = useActionHandlers();
 
@@ -74,15 +78,8 @@ const ScriptGeneratorPage: React.FC = () => {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">
-                Sistema avançado baseado em OpenAI para gerar roteiros personalizados com análise estruturada e validação automática.
+                Sistema avançado baseado em OpenAI para gerar roteiros personalizados.
               </p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• 🧠 Análise de intenção com IA</li>
-                <li>• 🎯 Seleção inteligente de mentor</li>
-                <li>• ⚡ Prompts dinâmicos personalizados</li>
-                <li>• ✨ Validação emocional Disney</li>
-                <li>• 🚀 Powered by OpenAI GPT</li>
-              </ul>
               <Button 
                 onClick={() => setGeneratorMode('smart')}
                 className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -101,6 +98,8 @@ const ScriptGeneratorPage: React.FC = () => {
       </Tabs>
     </div>
   );
+
+  console.log('🎬 ScriptGeneratorPage render - isGenerating:', isGenerating, 'generatedResult:', !!generatedResult);
 
   return (
     <Layout title="Gerador de Roteiros IA" fullWidth={false}>
@@ -122,7 +121,20 @@ const ScriptGeneratorPage: React.FC = () => {
                   </Button>
                 </div>
                 <SmartScriptGenerator
-                  onGenerate={() => {}} // Não usado - lógica interna
+                  currentStep={currentStep}
+                  intention={intention}
+                  onAnswer={(step, value) => {
+                    console.log('📝 Resposta recebida:', step, value);
+                    // Lógica de navegação entre passos do formulário
+                    if (step === 'tema') {
+                      handleThemeInput(value);
+                    } else {
+                      // Atualizar intenção e navegar
+                      setIntention(prev => ({ ...prev, [step]: value }));
+                      // Navegar para próximo passo conforme lógica da árvore
+                    }
+                  }}
+                  onThemeSubmit={handleThemeInput}
                   isGenerating={isGenerating}
                 />
               </div>

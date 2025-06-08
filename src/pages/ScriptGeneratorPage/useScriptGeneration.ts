@@ -1,109 +1,176 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { ScriptGenerationData, GeneratedContent } from '@/components/smart-script-generator/types';
+import { ScriptIntention } from '@/components/smart-script-generator/intentionTree';
+import { MentorInferenceEngine } from '@/components/smart-script-generator/mentorInference';
+import { DynamicPromptGenerator } from '@/components/smart-script-generator/dynamicPrompts';
 import { generateScript, ScriptResponse } from '@/services/supabaseService';
-import { mapContentTypeToScriptType, mapObjectiveToMarketingType, buildAdditionalInfo, getMentorName, getSuggestionsForType } from './utils';
+
+export interface SmartGenerationResult {
+  content: string;
+  mentor: string;
+  enigma: string;
+  intention: ScriptIntention;
+}
 
 export const useScriptGeneration = () => {
   const { toast } = useToast();
-  const [step, setStep] = useState<'smartInput' | 'generating' | 'result' | 'smartResult'>('smartInput');
-  const [generationData, setGenerationData] = useState<ScriptGenerationData | null>(null);
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+  const [currentStep, setCurrentStep] = useState('root');
+  const [intention, setIntention] = useState<Partial<ScriptIntention>>({});
+  const [generatedResult, setGeneratedResult] = useState<SmartGenerationResult | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isDisneyMode, setIsDisneyMode] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
 
-  const handleSmartGenerate = async (data: ScriptGenerationData) => {
-    console.log('🚀 Iniciando geração inteligente de roteiro:', data);
+  const handleThemeInput = async (tema: string) => {
+    console.log('🚀 handleThemeInput iniciado com tema:', tema);
+    console.log('📋 Intenção atual:', intention);
     
-    setGenerationData(data);
-    setStep('generating');
+    // IMPORTANTE: Definir loading IMEDIATAMENTE
+    setIsGenerating(true);
     
     try {
-      // Preparar requisição para OpenAI
-      const scriptRequest = {
-        type: mapContentTypeToScriptType(data.contentType),
-        topic: data.theme,
-        tone: data.style.toLowerCase(),
-        marketingObjective: mapObjectiveToMarketingType(data.objective),
-        additionalInfo: buildAdditionalInfo(data),
-        contentType: data.contentType,
-        objective: data.objective,
-        channel: data.channel,
-        style: data.style,
-        mentor: data.selectedMentor
+      // Finalizar intenção completa
+      const completeIntention: ScriptIntention = {
+        ...intention,
+        tema
+      } as ScriptIntention;
+
+      console.log('✅ Intenção finalizada:', completeIntention);
+
+      // Inferir mentor
+      const mentorInference = MentorInferenceEngine.inferMentor(completeIntention);
+      
+      const finalIntention: ScriptIntention = {
+        ...completeIntention,
+        mentor_inferido: mentorInference.mentor,
+        enigma_mentor: mentorInference.enigma
       };
 
-      console.log('📡 Enviando para OpenAI:', scriptRequest);
+      console.log('🧠 Mentor inferido:', finalIntention);
 
-      // Timeout estendido para geração complexa
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('⏰ Timeout na geração - OpenAI demorou mais que esperado')), 90000);
-      });
+      // Gerar prompts
+      const { systemPrompt, userPrompt } = DynamicPromptGenerator.generateMentorPrompt(finalIntention);
+      
+      console.log('📝 Prompts gerados, chamando OpenAI...');
 
-      const scriptPromise = generateScript(scriptRequest);
+      // Chamar API OpenAI
+      const response = await generateScript({
+        type: 'custom',
+        systemPrompt,
+        userPrompt,
+        topic: finalIntention.tema,
+        additionalInfo: `Tipo: ${finalIntention.tipo_conteudo}, Objetivo: ${finalIntention.objetivo}`,
+        tone: finalIntention.estilo_comunicacao,
+        marketingObjective: finalIntention.objetivo as any
+      }) as ScriptResponse;
+
+      console.log('✨ Resposta OpenAI recebida:', response);
+
+      const mentorProfile = MentorInferenceEngine.getMentorProfile(finalIntention.mentor_inferido);
       
-      console.log('⚡ Processando com OpenAI...');
-      const response = await Promise.race([scriptPromise, timeoutPromise]) as ScriptResponse;
-      
-      console.log('✅ Resposta OpenAI recebida:', response);
-      
-      if (!response.content || response.content.trim().length < 50) {
-        throw new Error('Resposta inválida da OpenAI - conteúdo muito curto');
-      }
-      
-      const smartContent: GeneratedContent = {
-        type: data.contentType,
+      const result: SmartGenerationResult = {
         content: response.content,
-        mentor: getMentorName(data.selectedMentor),
-        suggestions: getSuggestionsForType(data.contentType)
+        mentor: mentorProfile.name,
+        enigma: finalIntention.enigma_mentor,
+        intention: finalIntention
       };
-
-      setGeneratedContent(smartContent);
-      setStep('smartResult');
-
+      
+      setGeneratedResult(result);
+      
       toast({
-        title: "🎉 Roteiro gerado com sucesso!",
-        description: `✨ Conteúdo ${data.contentType} criado com IA no estilo ${getMentorName(data.selectedMentor)}.`,
+        title: "✨ Roteiro gerado com sucesso!",
+        description: `Criado no estilo ${mentorProfile.name}.`,
       });
 
     } catch (error) {
-      console.error('❌ Erro na geração OpenAI:', error);
-      
-      setStep('smartInput');
-      
-      // Tratamento específico de erros OpenAI
-      let errorMessage = "Ocorreu um erro inesperado. Tente novamente.";
-      
-      if (error.message?.includes('rate_limit_exceeded')) {
-        errorMessage = "🚫 Limite OpenAI atingido. Aguarde alguns instantes e tente novamente.";
-      } else if (error.message?.includes('insufficient_quota')) {
-        errorMessage = "💳 Cota OpenAI insuficiente. Verifique sua conta OpenAI.";
-      } else if (error.message?.includes('invalid_api_key')) {
-        errorMessage = "🔑 Chave OpenAI inválida. Verifique a configuração.";
-      } else if (error.message?.includes('Timeout')) {
-        errorMessage = "⏰ OpenAI demorou mais que o esperado. Tente novamente.";
-      }
+      console.error('❌ Erro na geração:', error);
       
       toast({
-        title: "❌ Erro na geração OpenAI",
-        description: errorMessage,
+        title: "❌ Erro na geração",
+        description: "Tente novamente em alguns instantes.",
         variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleNewScript = () => {
-    console.log('🔄 Iniciando novo roteiro');
-    setStep('smartInput');
-    setGenerationData(null);
-    setGeneratedContent(null);
+  const applyDisneyMagic = async () => {
+    if (!generatedResult) return;
+    
+    setIsGenerating(true);
+    
+    try {
+      const { systemPrompt, userPrompt } = DynamicPromptGenerator.generateDisneyPrompt(
+        generatedResult.content, 
+        generatedResult.intention
+      );
+      
+      const response = await generateScript({
+        type: 'custom',
+        systemPrompt,
+        userPrompt,
+        topic: generatedResult.intention.tema,
+        additionalInfo: 'Transformação Disney 1928',
+        tone: 'magical',
+        marketingObjective: generatedResult.intention.objetivo as any
+      }) as ScriptResponse;
+
+      setGeneratedResult({
+        ...generatedResult,
+        content: response.content
+      });
+      
+      setIsDisneyMode(true);
+      
+      toast({
+        title: "✨ Magia Disney 1928 Aplicada!",
+        description: "Walt Disney transformou seu roteiro.",
+      });
+
+    } catch (error) {
+      console.error('Erro ao aplicar magia Disney:', error);
+      toast({
+        title: "Erro na transformação",
+        description: "Não foi possível aplicar a magia Disney.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const approveScript = () => {
+    setIsApproved(true);
+    toast({
+      title: "✅ Roteiro Aprovado!",
+      description: "Agora você pode gerar conteúdo adicional.",
+    });
+  };
+
+  const resetGeneration = () => {
+    console.log('🔄 Reset geração');
+    setCurrentStep('root');
+    setIntention({});
+    setGeneratedResult(null);
+    setIsGenerating(false);
+    setIsDisneyMode(false);
+    setIsApproved(false);
   };
 
   return {
-    step,
-    generationData,
-    generatedContent,
-    handleSmartGenerate,
-    handleNewScript,
-    setStep
+    currentStep,
+    intention,
+    generatedResult,
+    isGenerating,
+    isDisneyMode,
+    isApproved,
+    handleThemeInput,
+    applyDisneyMagic,
+    approveScript,
+    resetGeneration,
+    setCurrentStep,
+    setIntention
   };
 };
