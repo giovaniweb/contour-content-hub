@@ -40,7 +40,7 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent className="bg-gradient-to-b from-aurora-dark via-aurora-darker to-aurora-darkest border-r border-white/10">
+    <SidebarComponent className="aurora-glass border-r border-white/10">
       <SidebarHeader className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           {open && (
