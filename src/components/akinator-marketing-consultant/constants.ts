@@ -25,6 +25,22 @@ export const MARKETING_STEPS: MarketingStep[] = [
     condition: 'clinica_medica'
   },
   {
+    id: 'medicalEquipments',
+    question: '🔧 Quais equipamentos você utiliza na sua clínica?',
+    options: [
+      { value: 'laser_co2', label: 'Laser CO2' },
+      { value: 'laser_diodo', label: 'Laser Diodo' },
+      { value: 'radiofrequencia', label: 'Radiofrequência' },
+      { value: 'ultrassom_microfocado', label: 'Ultrassom Microfocado (HIFU)' },
+      { value: 'criolipolise', label: 'Criolipólise' },
+      { value: 'microagulhamento', label: 'Microagulhamento' },
+      { value: 'luz_pulsada', label: 'Luz Pulsada (IPL)' },
+      { value: 'sem_equipamentos', label: 'Não uso equipamentos tecnológicos' },
+      { value: 'varios', label: 'Diversos equipamentos' }
+    ],
+    condition: 'clinica_medica'
+  },
+  {
     id: 'medicalProcedures',
     question: '💉 Que tipo de procedimentos você realiza?',
     options: [
