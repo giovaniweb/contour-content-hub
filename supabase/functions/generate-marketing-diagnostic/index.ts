@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -94,12 +95,13 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: getSystemPrompt()
+            content: getOptimizedSystemPrompt()
           },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 4000 // Aumentado para diagnósticos mais completos
+        max_tokens: 2800, // Reduzido conforme prompt otimizado
+        stream: false // Explicitamente definido
       }),
     });
 
@@ -110,12 +112,14 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('❌ OpenAI API error:', response.status, errorText);
       
+      // Fallback conforme especificado no prompt otimizado
       return new Response(JSON.stringify({ 
-        error: `Erro na OpenAI: ${response.status}`,
+        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
         success: false,
-        details: errorText
+        fallback: true,
+        details: `Erro OpenAI: ${response.status}`
       }), {
-        status: 500,
+        status: 200, // Retorna 200 para o fallback ser processado
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -126,10 +130,11 @@ serve(async (req) => {
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error('❌ Estrutura de resposta inválida da OpenAI');
       return new Response(JSON.stringify({ 
-        error: 'Resposta inválida da OpenAI',
-        success: false 
+        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
+        success: false,
+        fallback: true
       }), {
-        status: 500,
+        status: 200, // Retorna 200 para o fallback ser processado
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -139,7 +144,8 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       diagnostic: diagnosticResult,
-      success: true 
+      success: true,
+      timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -149,54 +155,85 @@ serve(async (req) => {
     
     if (error.name === 'AbortError') {
       return new Response(JSON.stringify({ 
-        error: 'Timeout - IA demorou mais que 60 segundos para responder',
+        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
         success: false,
-        details: 'Tente novamente em alguns minutos'
+        fallback: true,
+        details: 'Timeout - IA demorou mais que 60 segundos para responder'
       }), {
-        status: 500,
+        status: 200, // Retorna 200 para o fallback ser processado
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
     return new Response(JSON.stringify({ 
-      error: 'Erro interno do servidor',
+      diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
       success: false,
+      fallback: true,
       details: error.message 
     }), {
-      status: 500,
+      status: 200, // Retorna 200 para o fallback ser processado
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
 
-function getSystemPrompt(): string {
-  return `Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
+function getOptimizedSystemPrompt(): string {
+  return `// PROMPT OTIMIZADO – CONSULTOR FLUIDA 🎯
+// Versão final para LOVABLE com resiliência, segurança e estrutura modular
 
-Sua missão é gerar um diagnóstico completo com base nas respostas fornecidas, adaptando a linguagem e recomendações ao tipo de clínica (médica ou estética).
+Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma Fluida para clínicas estéticas e clínicas médicas.
 
-📦 ESTRUTURA OBRIGATÓRIA DO RESULTADO:
+Sua missão é:
+1. Entender o tipo de clínica (via dados recebidos)
+2. Aplicar o diagnóstico conforme regras e variáveis abaixo
+3. Gerar relatório estruturado SEM modificar o fluxo original
+4. Garantir que as informações geradas sejam salvas com timestamp no histórico do usuário
 
-## 📊 Diagnóstico Estratégico da Clínica
-[Identifique gargalos, analise desalinhamento entre público/oferta/visual/autoridade, use tom consultivo adaptado]
+---
 
-## 💡 Sugestões de Conteúdo Personalizado
-[3-5 ideias práticas SOMENTE para Instagram, Reels, TikTok, Shorts - incluir pelo menos 3 ideias com equipamentos citados]
+📦 Entregáveis (estrutura imutável):
+1. Diagnóstico Estratégico da Clínica
+2. Sugestões de Conteúdo (Instagram, TikTok, Shorts)
+3. Plano de Ação Semanal (4 semanas)
+4. Avaliação de Marca e Atendimento
+5. Enigma do Mentor
+6. Insights Estratégicos Fluida
 
-## 📅 Plano de Ação Semanal
-Semana 1: Autoridade e visibilidade
-Semana 2: Prova social e diferencial  
-Semana 3: Conversão e campanha
-Semana 4: Aceleração e fidelização
-[3-4 tarefas práticas por semana]
+---
 
-## 🎨 Avaliação de Marca e Atendimento
-[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
+📊 Diagnóstico Estratégico
+- Apontar gargalos
+- Verificar desalinhamento entre marca, público e oferta
 
-## 🧩 Enigma do Mentor
-[Frase misteriosa com trocadilho - NUNCA revele o nome verdadeiro do mentor]
+💡 Sugestões de Conteúdo
+- 3 a 5 ideias aplicáveis em Instagram, TikTok ou Shorts
+- Incluir sempre pelo menos 1 ideia por equipamento válido
 
-## 📈 Insights Estratégicos Fluida
-[3-5 insights práticos com tom de consultoria]
+📅 Plano de Ação Semanal
+- Baseado em recomendações dos mentores
+- Semana 1: Autoridade | 2: Prova Social | 3: Conversão | 4: Aceleração
+
+🎨 Avaliação de Marca
+- Comentários sobre logo, atendimento, identidade e programa de indicação
+
+🧩 Enigma do Mentor
+- Criar frase divertida sem citar o nome (ex: "O mentor por trás dessa estratégia parece ter vindo do storytelling das estrelas…")
+
+📈 Insights Fluida
+- Críticas construtivas (ex: ausência de vídeos, desalinhamento de preço x promessa etc)
+
+---
+
+🛡️ Validações obrigatórias:
+1. Equipamentos devem existir no banco oficial. Se inválido: 
+> "Equipamento {{equipamento}} não validado. Verifique ortografia ou consulte o time Fluida."
+
+2. Respeite regras:
+- Clínicas Estéticas não podem acessar equipamentos médicos
+- Não gerar conteúdo sobre live, blog, ebook ou webinar
+- Mantenha a linguagem fiel ao estilo informado
+
+---
 
 ⚠️ RESTRIÇÕES:
 - Proibido citar live, blog, ebook ou webinar
@@ -265,29 +302,51 @@ function createConsultorFluidaPrompt(data: any): string {
 
   const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
-📋 DADOS DE BRIEFING:
+📋 Dados recebidos (preenchidos pelo usuário):
 
-• Tipo: ${tipoClinica}
-• Especialidade: ${especialidade}
-• Procedimentos: ${procedimentos}
-• Equipamentos: ${equipamentos}
-• Problemas que os equipamentos resolvem: ${problemasEquipamentos}
-• Protocolo mais vendido: ${protocolo}
-• Ticket médio: ${ticketMedio}
-• Modelo de venda: ${modeloVenda}
-• Faturamento atual: ${faturamento}
-• Meta 3 meses: ${meta}
-• Objetivo de marketing: ${objetivo}
-• Frequência de conteúdo: ${frequencia}
-• Aparece nos vídeos: ${apareceVideos}
-• Público ideal: ${publicoIdeal}
-• Estilo da clínica: ${estiloClinica}
-• Estilo de linguagem desejado: ${estiloLinguagem}
-• Principais desafios: ${desafios}
+- Tipo: ${tipoClinica}
+- Especialidade: ${especialidade}
+- Procedimentos: ${procedimentos}
+- Equipamentos: ${equipamentos}
+- Problemas que os equipamentos resolvem: ${problemasEquipamentos}
+- Protocolo mais vendido: ${protocolo}
+- Ticket médio: ${ticketMedio}
+- Modelo de venda: ${modeloVenda}
+- Faturamento atual: ${faturamento}
+- Meta 3 meses: ${meta}
+- Objetivo: ${objetivo}
+- Frequência de conteúdo: ${frequencia}
+- Aparece nos vídeos: ${apareceVideos}
+- Público ideal: ${publicoIdeal}
+- Estilo da clínica: ${estiloClinica}
+- Estilo de linguagem desejado: ${estiloLinguagem}
+- Principais desafios: ${desafios}
 
 ---
 
 🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA:
+
+## 📊 Diagnóstico Estratégico da Clínica
+[Identifique gargalos, analise desalinhamento entre público/oferta/visual/autoridade, use tom consultivo adaptado]
+
+## 💡 Sugestões de Conteúdo Personalizado
+[3-5 ideias práticas SOMENTE para Instagram, Reels, TikTok, Shorts - incluir pelo menos 1 ideia com equipamentos citados]
+
+## 📅 Plano de Ação Semanal
+Semana 1: Autoridade e visibilidade
+Semana 2: Prova social e diferencial  
+Semana 3: Conversão e campanha
+Semana 4: Aceleração e fidelização
+[3-4 tarefas práticas por semana]
+
+## 🎨 Avaliação de Marca e Atendimento
+[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
+
+## 🧩 Enigma do Mentor
+[Frase misteriosa com trocadilho - NUNCA revele o nome verdadeiro do mentor]
+
+## 📈 Insights Estratégicos Fluida
+[3-5 insights práticos com tom de consultoria]
 
 Use a linguagem adequada:
 - ${isClinicaMedica ? 'TÉCNICO-CONSULTIVA (clínica médica)' : 'EMOCIONAL-INSPIRADORA (clínica estética)'}
