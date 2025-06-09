@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { MarketingDiagnostic } from './types';
@@ -6,35 +5,74 @@ import { MarketingDiagnostic } from './types';
 // Map para controle de operações em andamento (previne duplicações)
 const ongoingOperations = new Map<string, Promise<MarketingDiagnostic | null>>();
 
+// Map para rastrear tentativas de salvamento por contexto único
+const saveAttempts = new Map<string, number>();
+
+// Gerar chave única para operações baseada no contexto do usuário
+const generateOperationKey = (userId: string, clinicType: string, specialty: string, isCompleted: boolean): string => {
+  return `${userId}_${clinicType}_${specialty}_${isCompleted}`;
+};
+
 export const saveDiagnosticToDatabase = async (
   sessionId: string,
   state: MarketingConsultantState,
   isCompleted: boolean = false
 ): Promise<MarketingDiagnostic | null> => {
-  // Verificar se já existe uma operação em andamento para este sessionId
-  if (ongoingOperations.has(sessionId)) {
-    console.log('🔄 Operação já em andamento para sessionId:', sessionId);
-    return await ongoingOperations.get(sessionId)!;
+  const user = await supabase.auth.getUser();
+  const userId = user.data.user?.id;
+  
+  if (!userId) {
+    console.error('❌ Usuário não autenticado');
+    return null;
   }
 
-  const operation = performSaveDiagnostic(sessionId, state, isCompleted);
-  ongoingOperations.set(sessionId, operation);
+  const clinicType = state.clinicType || '';
+  const specialty = state.clinicType === 'clinica_medica' 
+    ? state.medicalSpecialty || '' 
+    : state.aestheticFocus || '';
+
+  const operationKey = generateOperationKey(userId, clinicType, specialty, isCompleted);
+
+  // Verificar se já existe uma operação em andamento para este contexto específico
+  if (ongoingOperations.has(operationKey)) {
+    console.log('🔄 Operação já em andamento para contexto:', operationKey);
+    return await ongoingOperations.get(operationKey)!;
+  }
+
+  // Contar tentativas para este contexto
+  const attempts = saveAttempts.get(operationKey) || 0;
+  saveAttempts.set(operationKey, attempts + 1);
+
+  if (attempts > 3) {
+    console.warn('⚠️ Muitas tentativas para contexto:', operationKey, 'Ignorando salvamento');
+    return null;
+  }
+
+  const operation = performSaveDiagnostic(sessionId, state, isCompleted, userId, operationKey);
+  ongoingOperations.set(operationKey, operation);
 
   try {
     const result = await operation;
+    // Resetar contador em caso de sucesso
+    saveAttempts.delete(operationKey);
     return result;
+  } catch (error) {
+    console.error('❌ Erro na operação:', error);
+    return null;
   } finally {
-    ongoingOperations.delete(sessionId);
+    ongoingOperations.delete(operationKey);
   }
 };
 
 const performSaveDiagnostic = async (
   sessionId: string,
   state: MarketingConsultantState,
-  isCompleted: boolean = false
+  isCompleted: boolean = false,
+  userId: string,
+  operationKey: string
 ): Promise<MarketingDiagnostic | null> => {
   try {
-    console.log('💾 Iniciando salvamento de diagnóstico:', { sessionId, isCompleted });
+    console.log('💾 Iniciando salvamento protegido:', { sessionId, operationKey, isCompleted });
 
     const clinicType = state.clinicType || '';
     const specialty = state.clinicType === 'clinica_medica' 
@@ -48,10 +86,54 @@ const performSaveDiagnostic = async (
       state_data: state as any,
       generated_diagnostic: state.generatedDiagnostic,
       is_completed: isCompleted,
-      user_id: (await supabase.auth.getUser()).data.user?.id
+      user_id: userId
     };
 
-    // Primeiro, verificar se já existe no banco
+    // Verificar duplicações por contexto antes de salvar
+    const { data: existingByContext, error: contextError } = await supabase
+      .from('marketing_diagnostics')
+      .select('id, session_id, created_at')
+      .eq('user_id', userId)
+      .eq('clinic_type', clinicType)
+      .eq('specialty', specialty)
+      .eq('is_completed', isCompleted)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (contextError && contextError.code !== 'PGRST116') {
+      console.error('❌ Erro ao verificar contexto:', contextError);
+      return null;
+    }
+
+    // Se encontrou registro similar muito recente (menos de 5 minutos), não criar novo
+    if (existingByContext && existingByContext.length > 0) {
+      const existingRecord = existingByContext[0];
+      const timeDiff = Date.now() - new Date(existingRecord.created_at).getTime();
+      
+      if (timeDiff < 5 * 60 * 1000) { // 5 minutos
+        console.log('⚠️ Registro similar muito recente encontrado, atualizando existente:', existingRecord.session_id);
+        
+        const { data, error } = await supabase
+          .from('marketing_diagnostics')
+          .update(diagnosticData)
+          .eq('id', existingRecord.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ Erro ao atualizar registro existente:', error);
+          return null;
+        }
+
+        console.log('✅ Registro existente atualizado (anti-duplicação):', data?.session_id);
+        return {
+          ...data,
+          state_data: data.state_data as unknown as MarketingConsultantState
+        } as MarketingDiagnostic;
+      }
+    }
+
+    // Primeiro, verificar se já existe pelo session_id
     const { data: existing, error: checkError } = await supabase
       .from('marketing_diagnostics')
       .select('id, is_completed, created_at')
@@ -68,7 +150,6 @@ const performSaveDiagnostic = async (
     if (existing) {
       console.log('🔄 Atualizando diagnóstico existente:', sessionId);
       
-      // Atualizar registro existente
       ({ data, error } = await supabase
         .from('marketing_diagnostics')
         .update(diagnosticData)
@@ -76,24 +157,23 @@ const performSaveDiagnostic = async (
         .select()
         .single());
       
-      console.log('✅ Diagnóstico atualizado (sem duplicação):', sessionId);
+      console.log('✅ Diagnóstico atualizado (protegido contra duplicação):', sessionId);
     } else {
-      console.log('✨ Criando novo diagnóstico:', sessionId);
+      console.log('✨ Criando novo diagnóstico protegido:', sessionId);
       
-      // Criar novo registro
       ({ data, error } = await supabase
         .from('marketing_diagnostics')
         .insert(diagnosticData)
         .select()
         .single());
       
-      console.log('✅ Novo diagnóstico criado:', sessionId);
+      console.log('✅ Novo diagnóstico criado (protegido):', sessionId);
     }
 
     if (error) {
       // Se for erro de violação de constraint única, tentar atualizar
       if (error.code === '23505') {
-        console.log('🔄 Constraint violada, tentando atualizar:', sessionId);
+        console.log('🔄 Violação de constraint detectada, tentando atualizar:', sessionId);
         
         ({ data, error } = await supabase
           .from('marketing_diagnostics')
@@ -112,7 +192,7 @@ const performSaveDiagnostic = async (
       }
     }
 
-    console.log('✅ Diagnóstico salvo com sucesso (protegido contra duplicação):', data);
+    console.log('✅ Diagnóstico salvo com sucesso (anti-duplicação ativa):', data?.session_id);
     return {
       ...data,
       state_data: data.state_data as unknown as MarketingConsultantState
@@ -137,12 +217,25 @@ export const loadDiagnosticsFromDatabase = async (): Promise<MarketingDiagnostic
       return [];
     }
 
-    const diagnostics = (data || []).map(item => ({
+    // Filtrar duplicações no lado do cliente como camada extra de proteção
+    const uniqueDiagnostics = new Map<string, any>();
+    
+    (data || []).forEach(item => {
+      const contextKey = `${item.user_id}_${item.clinic_type}_${item.specialty}_${item.is_completed}`;
+      
+      // Manter apenas o mais recente por contexto
+      if (!uniqueDiagnostics.has(contextKey) || 
+          new Date(item.created_at) > new Date(uniqueDiagnostics.get(contextKey).created_at)) {
+        uniqueDiagnostics.set(contextKey, item);
+      }
+    });
+
+    const diagnostics = Array.from(uniqueDiagnostics.values()).map(item => ({
       ...item,
       state_data: item.state_data as unknown as MarketingConsultantState
     })) as MarketingDiagnostic[];
 
-    console.log(`📋 ${diagnostics.length} diagnósticos carregados`);
+    console.log(`📋 ${diagnostics.length} diagnósticos únicos carregados (filtro anti-duplicação aplicado)`);
     return diagnostics;
   } catch (error) {
     console.error('❌ Erro ao carregar diagnósticos:', error);

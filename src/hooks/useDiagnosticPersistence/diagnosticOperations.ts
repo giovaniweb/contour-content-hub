@@ -1,10 +1,16 @@
-
 import { useState, useCallback } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { marketingDiagnosticsService } from '@/services/marketingDiagnostics';
 import { DiagnosticSession } from './types';
-import { generateUniqueSessionId, createSessionFromState } from './sessionUtils';
+import { 
+  generateUniqueSessionId, 
+  createSessionFromState, 
+  clearSessionIdCache,
+  checkForExistingSession,
+  detectContentDuplication
+} from './sessionUtils';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 // Map para controle de debounce das operações
 const debouncedOperations = new Map<string, NodeJS.Timeout>();
@@ -13,6 +19,7 @@ export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
   const [currentSession, setCurrentSession] = useState<DiagnosticSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const loadSavedDiagnostics = useCallback(async () => {
     if (isLoading) return; // Evitar múltiplas chamadas simultâneas
@@ -23,13 +30,34 @@ export const useDiagnosticOperations = () => {
       
       const diagnostics = await marketingDiagnosticsService.loadDiagnostics();
       
-      // Filtrar duplicações por session_id antes de definir no estado
-      const uniqueDiagnostics = diagnostics.filter((diagnostic, index, self) => 
-        index === self.findIndex(d => d.id === diagnostic.id)
-      );
+      // Aplicar filtro anti-duplicação adicional no frontend
+      const uniqueDiagnostics = diagnostics.filter((diagnostic, index, self) => {
+        // Primeiro filtro: por ID único
+        const isUniqueById = index === self.findIndex(d => d.id === diagnostic.id);
+        if (!isUniqueById) return false;
+        
+        // Segundo filtro: por contexto de conteúdo similar
+        const hasSimilarContent = self.some((other, otherIndex) => {
+          if (otherIndex >= index) return false; // Evitar comparar com si mesmo e duplicar trabalho
+          
+          return (
+            other.state?.clinicType === diagnostic.state?.clinicType &&
+            (other.state?.medicalSpecialty === diagnostic.state?.medicalSpecialty ||
+             other.state?.aestheticFocus === diagnostic.state?.aestheticFocus) &&
+            other.isCompleted === diagnostic.isCompleted &&
+            Math.abs(new Date(other.timestamp).getTime() - new Date(diagnostic.timestamp).getTime()) < 10 * 60 * 1000 // 10 minutos
+          );
+        });
+        
+        return !hasSimilarContent;
+      });
       
       setSavedDiagnostics(uniqueDiagnostics);
-      console.log(`✅ ${uniqueDiagnostics.length} diagnósticos únicos carregados`);
+      console.log(`✅ ${uniqueDiagnostics.length} diagnósticos únicos carregados (filtro duplo aplicado)`);
+      
+      if (diagnostics.length !== uniqueDiagnostics.length) {
+        console.warn(`⚠️ ${diagnostics.length - uniqueDiagnostics.length} duplicações detectadas e filtradas no frontend`);
+      }
     } catch (error) {
       console.error('❌ Erro ao carregar diagnósticos salvos:', error);
       // Fallback para localStorage se houver erro
@@ -51,8 +79,38 @@ export const useDiagnosticOperations = () => {
     state: MarketingConsultantState, 
     isCompleted: boolean = false
   ) => {
-    const sessionId = currentSession?.id || generateUniqueSessionId();
-    const operationKey = `save_${sessionId}`;
+    if (!user?.id) {
+      console.warn('⚠️ Usuário não autenticado, salvando apenas localmente');
+      const sessionId = currentSession?.id || generateUniqueSessionId();
+      const session = createSessionFromState(sessionId, state, isCompleted);
+      saveCurrentSessionToStorage(session);
+      setCurrentSession(session);
+      return session;
+    }
+
+    const clinicType = state.clinicType || '';
+    const specialty = state.clinicType === 'clinica_medica' 
+      ? state.medicalSpecialty || '' 
+      : state.aestheticFocus || '';
+
+    // Verificar se já existe uma sessão similar nos dados salvos
+    const existingSession = checkForExistingSession(savedDiagnostics, user.id, clinicType, specialty, isCompleted);
+    
+    let sessionId: string;
+    
+    if (existingSession && !isCompleted) {
+      // Reutilizar session_id existente para rascunhos
+      sessionId = existingSession.id;
+      console.log('🔄 Reutilizando session_id existente para rascunho:', sessionId);
+    } else if (currentSession?.id && !isCompleted) {
+      // Manter session_id atual se for um rascunho
+      sessionId = currentSession.id;
+    } else {
+      // Gerar novo session_id usando informações do contexto
+      sessionId = generateUniqueSessionId(user.id, clinicType, specialty);
+    }
+
+    const operationKey = `save_${user.id}_${clinicType}_${specialty}_${isCompleted}`;
 
     // Cancelar operação anterior se existir
     if (debouncedOperations.has(operationKey)) {
@@ -63,7 +121,7 @@ export const useDiagnosticOperations = () => {
     // Debounce para evitar múltiplas chamadas rápidas
     const timeoutId = setTimeout(async () => {
       try {
-        console.log('💾 Salvando sessão com debounce:', { sessionId, isCompleted });
+        console.log('💾 Salvando sessão com proteção anti-duplicação:', { sessionId, isCompleted, operationKey });
         
         // Salvar no banco de dados
         const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
@@ -78,6 +136,8 @@ export const useDiagnosticOperations = () => {
           // Marcar como dados pagos se for um diagnóstico completo
           if (isCompleted) {
             session.isPaidData = true;
+            // Limpar cache para permitir novos diagnósticos
+            clearSessionIdCache(user.id, clinicType, specialty);
           }
 
           // Manter cache local para melhor UX
@@ -89,7 +149,7 @@ export const useDiagnosticOperations = () => {
             setTimeout(() => loadSavedDiagnostics(), 500);
           }
 
-          console.log('✅ Sessão salva com sucesso (protegida):', session);
+          console.log('✅ Sessão salva com sucesso (protegida contra duplicação):', session);
           return session;
         } else {
           // Fallback para localStorage se houver erro
@@ -110,17 +170,27 @@ export const useDiagnosticOperations = () => {
     }, 300); // Debounce de 300ms
 
     debouncedOperations.set(operationKey, timeoutId);
-  }, [currentSession?.id, loadSavedDiagnostics]);
+  }, [currentSession?.id, loadSavedDiagnostics, user?.id, savedDiagnostics]);
 
   const clearCurrentSession = useCallback(() => {
     try {
       clearCurrentSessionFromStorage();
       setCurrentSession(null);
-      console.log('🗑️ Sessão atual limpa');
+      
+      // Limpar também o cache de session_id
+      if (user?.id && currentSession?.state) {
+        const clinicType = currentSession.state.clinicType || '';
+        const specialty = currentSession.state.clinicType === 'clinica_medica' 
+          ? currentSession.state.medicalSpecialty || '' 
+          : currentSession.state.aestheticFocus || '';
+        clearSessionIdCache(user.id, clinicType, specialty);
+      }
+      
+      console.log('🗑️ Sessão atual limpa (cache incluído)');
     } catch (error) {
       console.error('❌ Erro ao limpar sessão:', error);
     }
-  }, []);
+  }, [user?.id, currentSession?.state]);
 
   const deleteDiagnostic = useCallback(async (id: string) => {
     try {
@@ -203,13 +273,17 @@ export const useDiagnosticOperations = () => {
       if (success) {
         // Limpar localStorage apenas se não for dados pagos
         if (!currentSession?.isPaidData && !currentSession?.isCompleted) {
-          clearCurrentSessionFromStorage();
-          setCurrentSession(null);
+          clearCurrentSession();
         }
         
         // Manter apenas diagnósticos completos/pagos
         const protectedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
         setSavedDiagnostics(protectedDiagnostics);
+        
+        // Limpar cache de session_ids para rascunhos
+        if (user?.id) {
+          clearSessionIdCache();
+        }
         
         console.log(`✅ ${drafts.length} rascunhos removidos. ${protectedDiagnostics.length} diagnósticos pagos preservados.`);
       }
@@ -219,7 +293,7 @@ export const useDiagnosticOperations = () => {
       console.error('❌ Erro ao limpar rascunhos:', error);
       return false;
     }
-  }, [savedDiagnostics, currentSession?.isPaidData, currentSession?.isCompleted]);
+  }, [savedDiagnostics, currentSession?.isPaidData, currentSession?.isCompleted, clearCurrentSession, user?.id]);
 
   return {
     savedDiagnostics,
