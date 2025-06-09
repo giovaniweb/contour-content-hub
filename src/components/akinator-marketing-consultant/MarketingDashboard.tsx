@@ -12,6 +12,8 @@ import DiagnosticCards from './dashboard/DiagnosticCards';
 import FluidAnalysisCards from './dashboard/FluidAnalysisCards';
 import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection';
 import ActionButtons from './dashboard/ActionButtons';
+import ContentSuggestionCards from './dashboard/ContentSuggestionCards';
+import QuickActionCards from './dashboard/QuickActionCards';
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
   mentor: any;
@@ -149,7 +151,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           <Badge variant="outline" className="border-aurora-sage text-aurora-sage">
             {getMainSpecialty()}
           </Badge>
-          <Badge variant="outline" className="border-aurora-electric-purple text-aurora-electric-purple">
+          <Badge variant="outline" className="border-aurora-deep-purple text-aurora-deep-purple">
             {getCurrentRevenue()}
           </Badge>
         </div>
@@ -242,41 +244,52 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
         {activeTab === 'diagnostic' && <StructuredDiagnosticSection diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'} state={safeState} onDiagnosticUpdate={handleDiagnosticUpdate} />}
 
-        {activeTab === 'actions' && <Card className="aurora-card">
-            <CardHeader>
-              <CardTitle className="aurora-heading flex items-center gap-2">
-                <Zap className="h-5 w-5 text-aurora-electric-purple" />
-                Próximos Passos Recomendados
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 aurora-glass rounded-lg">
-                  <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-aurora-sage" />
-                    Imediato (Esta Semana)
-                  </h4>
-                  <ul className="text-sm aurora-body space-y-1 opacity-80">
-                    <li>• Otimizar perfil nas redes sociais</li>
-                    <li>• Criar 3 posts sobre {getMainSpecialty()}</li>
-                    <li>• Definir público-alvo específico</li>
-                  </ul>
+        {activeTab === 'actions' && (
+          <div className="space-y-8">
+            <ContentSuggestionCards 
+              state={safeState} 
+              diagnostic={safeState.generatedDiagnostic || ''} 
+            />
+            
+            <QuickActionCards state={safeState} />
+            
+            <Card className="aurora-card">
+              <CardHeader>
+                <CardTitle className="aurora-heading flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-aurora-electric-purple" />
+                  Próximos Passos Recomendados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 aurora-glass rounded-lg">
+                    <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-aurora-sage" />
+                      Imediato (Esta Semana)
+                    </h4>
+                    <ul className="text-sm aurora-body space-y-1 opacity-80">
+                      <li>• Otimizar perfil nas redes sociais</li>
+                      <li>• Criar 3 posts sobre {getMainSpecialty()}</li>
+                      <li>• Definir público-alvo específico</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-4 aurora-glass rounded-lg">
+                    <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-aurora-electric-purple" />
+                      Médio Prazo (30 dias)
+                    </h4>
+                    <ul className="text-sm aurora-body space-y-1 opacity-80">
+                      <li>• Implementar estratégia de conteúdo</li>
+                      <li>• Criar landing page otimizada</li>
+                      <li>• Desenvolver funil de vendas</li>
+                    </ul>
+                  </div>
                 </div>
-                
-                <div className="p-4 aurora-glass rounded-lg">
-                  <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-aurora-electric-purple" />
-                    Médio Prazo (30 dias)
-                  </h4>
-                  <ul className="text-sm aurora-body space-y-1 opacity-80">
-                    <li>• Implementar estratégia de conteúdo</li>
-                    <li>• Criar landing page otimizada</li>
-                    <li>• Desenvolver funil de vendas</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </motion.div>
 
       {/* Action Buttons */}
