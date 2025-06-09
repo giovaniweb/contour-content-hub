@@ -56,12 +56,17 @@ export const checkForExistingSession = (
   specialty: string,
   isCompleted: boolean = false
 ): DiagnosticSession | null => {
-  return sessions.find(session => 
-    session.state?.user_id === userId &&
-    session.state?.clinicType === clinicType &&
-    (session.state?.medicalSpecialty === specialty || session.state?.aestheticFocus === specialty) &&
-    session.isCompleted === isCompleted
-  ) || null;
+  return sessions.find(session => {
+    // Verificar se a sessão corresponde ao contexto buscado
+    const sessionClinicType = session.state?.clinicType;
+    const sessionSpecialty = session.state?.clinicType === 'clinica_medica' 
+      ? session.state?.medicalSpecialty 
+      : session.state?.aestheticFocus;
+    
+    return sessionClinicType === clinicType &&
+           sessionSpecialty === specialty &&
+           session.isCompleted === isCompleted;
+  }) || null;
 };
 
 export const createSessionFromState = (
