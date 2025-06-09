@@ -124,7 +124,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       >
         <Card className={`aurora-card border-${color}/30`}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 aurora-heading">
+            <CardTitle className="flex items-center gap-3 text-white font-semibold">
               <div className={`p-2 bg-${color}/20 rounded-lg`}>
                 {icon}
               </div>
@@ -139,7 +139,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 // Headers
                 if (line.startsWith('##')) {
                   return (
-                    <h3 key={index} className="text-lg font-semibold aurora-heading mt-6 mb-3 text-aurora-electric-purple">
+                    <h3 key={index} className="text-lg font-semibold text-white mt-6 mb-3">
                       {line.replace('##', '').trim()}
                     </h3>
                   );
@@ -150,7 +150,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   return (
                     <div key={index} className="flex items-start gap-2 mb-2">
                       <CheckCircle2 className="h-4 w-4 text-aurora-sage mt-1 flex-shrink-0" />
-                      <span className="aurora-body text-sm">
+                      <span className="text-white/90 text-sm">
                         {line.replace(/^[•\-*]\s*/, '').trim()}
                       </span>
                     </div>
@@ -161,7 +161,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 if (line.includes('Semana')) {
                   return (
                     <div key={index} className="bg-aurora-electric-purple/10 rounded-lg p-4 mb-4">
-                      <h4 className="font-semibold text-aurora-electric-purple mb-2">
+                      <h4 className="font-semibold text-white mb-2">
                         {line.trim()}
                       </h4>
                     </div>
@@ -170,7 +170,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 
                 // Parágrafo normal
                 return (
-                  <p key={index} className="aurora-body mb-3 leading-relaxed">
+                  <p key={index} className="text-white/85 mb-3 leading-relaxed">
                     {line.trim()}
                   </p>
                 );
@@ -197,13 +197,13 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
               <WifiOff className="h-16 w-16 text-amber-500" />
             </div>
             
-            <h3 className="text-2xl font-bold aurora-heading mb-4 text-amber-400">
+            <h3 className="text-2xl font-bold text-white mb-4">
               ⚠️ Consultor Fluida Temporariamente Indisponível
             </h3>
             
-            <p className="aurora-body mb-6 opacity-90 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-white/90 mb-6 leading-relaxed max-w-2xl mx-auto">
               O Consultor Fluida está momentaneamente sobrecarregado ou há problema de conectividade. 
-              Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
+              Suas respostas foram <strong className="text-white">salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
             </p>
 
             <div className="space-y-6">
@@ -229,13 +229,13 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 </Button>
                 
                 <div className="flex items-center justify-center gap-4 text-sm">
-                  <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+                  <Badge variant="outline" className="border-amber-500/30 text-white bg-amber-500/20">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Dados seguros
                   </Badge>
                   
                   {retryCount > 0 && (
-                    <Badge variant="outline" className="border-purple-500/30 text-purple-400">
+                    <Badge variant="outline" className="border-purple-500/30 text-white bg-purple-500/20">
                       <RefreshCw className="h-3 w-3 mr-1" />
                       {retryCount} tentativas
                     </Badge>
@@ -259,10 +259,10 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
             <BrainCircuit className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold aurora-heading mb-1">
+            <h2 className="text-3xl font-bold text-white mb-1">
               🎯 Diagnóstico Consultor Fluida
             </h2>
-            <p className="aurora-body opacity-80">
+            <p className="text-white/80">
               Análise estratégica personalizada para sua clínica
             </p>
           </div>
@@ -313,7 +313,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
 
       {/* Badge de validação */}
       <div className="text-center pt-6">
-        <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple px-6 py-2">
+        <Badge variant="outline" className="border-aurora-electric-purple/30 text-white bg-aurora-electric-purple/20 px-6 py-2">
           <Sparkles className="h-4 w-4 mr-2" />
           Diagnóstico validado pelo Consultor Fluida
         </Badge>
