@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -10,12 +9,12 @@ import { toast } from "sonner";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
+import LoadingMessages from './dashboard/LoadingMessages';
 import { useAkinatorFlow } from './hooks/useAkinatorFlow';
+import { useAIDiagnostic } from '@/hooks/useAIDiagnostic';
 import { getNextValidQuestion, getPreviousValidQuestion, shouldShowQuestion, getCurrentQuestionNumber, getTotalValidQuestions } from './utils/questionNavigation';
 import { MARKETING_STEPS } from './constants';
 import { MarketingConsultantState } from './types';
-import { generateMarketingDiagnostic } from './api/generateMarketingDiagnostic';
-import { generateAIMarketingSections } from './api/generateAIMarketingSections';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 const AkinatorMarketingConsultant: React.FC = () => {
@@ -35,6 +34,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   } = useAkinatorFlow();
 
   const { profile } = useUserProfile();
+  const { generateDiagnostic, isGenerating } = useAIDiagnostic();
   const [mentor, setMentor] = useState<any>(null);
   const [aiSections, setAiSections] = useState<any>(null);
   const [processingError, setProcessingError] = useState<string | null>(null);
@@ -77,28 +77,25 @@ const AkinatorMarketingConsultant: React.FC = () => {
       setProcessingError(null);
       
       try {
-        // Gerar diagnóstico usando IA
-        toast.loading("Processando seu diagnóstico...", { id: "processing" });
-        console.log('🟣 Chamando generateMarketingDiagnostic com estado:', newState);
+        // Gerar diagnóstico usando IA via hook
+        console.log('🟣 Chamando generateDiagnostic via hook com estado:', newState);
         
-        const diagnostic = await generateMarketingDiagnostic(newState);
+        const diagnostic = await generateDiagnostic(newState);
         console.log('🟣 Diagnóstico recebido:', diagnostic);
         
-        const sections = await generateAIMarketingSections(newState);
-        console.log('🟣 Seções AI recebidas:', sections);
+        if (diagnostic) {
+          const finalState = {
+            ...newState,
+            generatedDiagnostic: diagnostic
+          };
+          
+          setState(finalState);
+          console.log('🟢 Processamento concluído - indo para dashboard');
+          setShowDashboard(true);
+        } else {
+          throw new Error('Diagnóstico não foi gerado');
+        }
         
-        const finalState = {
-          ...newState,
-          generatedDiagnostic: diagnostic
-        };
-        
-        setState(finalState);
-        setAiSections(sections);
-        
-        toast.success("Diagnóstico concluído!", { id: "processing" });
-        console.log('🟢 Processamento concluído - indo para dashboard');
-        setShowDashboard(true);
-        setIsProcessing(false);
       } catch (error) {
         console.error('🔴 ERRO no processamento:', error);
         setProcessingError('Erro ao processar diagnóstico com IA');
@@ -110,14 +107,14 @@ const AkinatorMarketingConsultant: React.FC = () => {
         };
         
         setState(finalState);
-        toast.error("Erro na IA, mas suas respostas foram salvas", { id: "processing" });
         
         // Continuar para o dashboard mesmo com erro
         console.log('🟡 Continuando para dashboard mesmo com erro da IA');
         setTimeout(() => {
           setShowDashboard(true);
-          setIsProcessing(false);
         }, 2000);
+      } finally {
+        setIsProcessing(false);
       }
     } else {
       console.log('🟢 Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
@@ -211,6 +208,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   console.log('🔹 showDashboard:', showDashboard);
   console.log('🔹 showResult:', showResult);
   console.log('🔹 isProcessing:', isProcessing);
+  console.log('🔹 isGenerating:', isGenerating);
 
   if (showDashboard) {
     console.log('📊 Renderizando Dashboard');
@@ -232,6 +230,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         mentor={safeMentor}
         aiSections={safeAiSections}
         onRestart={handleRestart}
+        onStateUpdate={setState}
       />
     );
   }
@@ -246,60 +245,33 @@ const AkinatorMarketingConsultant: React.FC = () => {
     );
   }
 
-  if (isProcessing) {
-    console.log('⏳ Renderizando Processing');
+  if (isProcessing || isGenerating) {
+    console.log('⏳ Renderizando Processing com LoadingMessages');
     return (
       <div className="container mx-auto max-w-4xl py-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center space-y-8"
-        >
-          <div className="flex justify-center">
-            <div className="relative">
-              <div className="w-24 h-24 border-4 border-aurora-electric-purple/30 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 border-4 border-transparent border-t-aurora-electric-purple rounded-full animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <BrainCircuit className="h-8 w-8 text-aurora-electric-purple" />
-              </div>
+        <LoadingMessages isLoading={true} />
+        
+        {processingError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6 max-w-md mx-auto mt-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <h3 className="text-lg font-medium text-yellow-600">IA Temporariamente Indisponível</h3>
             </div>
-          </div>
-          
-          <div className="space-y-4">
-            <h2 className="text-3xl font-bold aurora-heading">
-              🧠 Analisando seu perfil...
-            </h2>
-            <p className="text-xl aurora-body opacity-80">
-              O Consultor Fluida está processando suas respostas
+            <p className="text-sm text-yellow-700 mb-4">
+              Não foi possível processar seu diagnóstico com IA, mas você pode continuar e ver as recomendações básicas baseadas em suas respostas.
             </p>
-            <div className="flex justify-center items-center gap-2 text-aurora-electric-purple">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Gerando diagnóstico personalizado</span>
-            </div>
-          </div>
-
-          {processingError && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6 max-w-md mx-auto"
+            <Button 
+              onClick={handleContinueWithoutAI}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                <h3 className="text-lg font-medium text-yellow-600">IA Temporariamente Indisponível</h3>
-              </div>
-              <p className="text-sm text-yellow-700 mb-4">
-                Não foi possível processar seu diagnóstico com IA, mas você pode continuar e ver as recomendações básicas baseadas em suas respostas.
-              </p>
-              <Button 
-                onClick={handleContinueWithoutAI}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
-              >
-                Continuar com Diagnóstico Básico
-              </Button>
-            </motion.div>
-          )}
-        </motion.div>
+              Continuar com Diagnóstico Básico
+            </Button>
+          </motion.div>
+        )}
       </div>
     );
   }

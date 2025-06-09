@@ -1,54 +1,23 @@
-
 import { MarketingConsultantState } from './types';
 import { MarketingMentorInference } from './mentorInference';
 
+// Esta função agora apenas serve como fallback estático
+// A geração principal é feita via useAIDiagnostic hook
 export const generateMarketingDiagnostic = async (
   state: MarketingConsultantState, 
-  useAI: boolean = true
+  useAI: boolean = false
 ): Promise<string> => {
-  console.log('🎯 generateMarketingDiagnostic chamado');
-  console.log('🤖 useAI:', useAI);
+  console.log('🎯 generateMarketingDiagnostic (fallback) chamado');
   console.log('📊 Estado recebido:', JSON.stringify(state, null, 2));
 
-  // Se usar IA estiver habilitado, tentar gerar via OpenAI primeiro
-  if (useAI) {
-    try {
-      console.log('🤖 Tentando gerar diagnóstico via IA/OpenAI...');
-      
-      const { supabase } = await import('@/integrations/supabase/client');
-      
-      console.log('🌐 Chamando edge function generate-marketing-diagnostic diretamente...');
-      
-      const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
-        body: state
-      });
-
-      console.log('📡 Resposta da edge function (marketingGenerator):');
-      console.log('📄 Data:', JSON.stringify(data, null, 2));
-      console.log('❌ Error:', JSON.stringify(error, null, 2));
-
-      if (error) {
-        console.error('❌ Erro na edge function (marketingGenerator):', error);
-        throw new Error(`Edge function error: ${JSON.stringify(error)}`);
-      }
-
-      if (!data || !data.success) {
-        console.log('⚠️ Edge function falhou ou retornou sucesso=false');
-        console.log('⚠️ Data.error:', data?.error);
-        throw new Error(data?.error || 'Falha na geração via IA');
-      }
-
-      console.log('✅ IA funcionou! Retornando diagnóstico gerado pela OpenAI');
-      console.log('📝 Tamanho:', data.diagnostic?.length || 0);
-      return data.diagnostic;
-      
-    } catch (error) {
-      console.error('💥 Erro na geração via IA (marketingGenerator):', error);
-      console.log('🔄 Caindo para fallback estático...');
-    }
+  // Esta versão é apenas para fallback local
+  if (!useAI) {
+    console.log('🔄 Usando sistema de fallback (diagnóstico estático)');
+    return generateStaticDiagnostic(state);
   }
 
-  console.log('🔄 Usando sistema de fallback (diagnóstico estático)');
+  // Para IA, usar o hook useAIDiagnostic
+  console.log('⚠️ Para usar IA, utilize o hook useAIDiagnostic');
   return generateStaticDiagnostic(state);
 };
 

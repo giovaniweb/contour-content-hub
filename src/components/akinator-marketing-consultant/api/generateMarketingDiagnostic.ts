@@ -1,24 +1,36 @@
 
 import { MarketingConsultantState } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 
 export const generateMarketingDiagnostic = async (state: MarketingConsultantState): Promise<string> => {
   try {
-    const response = await fetch('/api/generate-marketing-diagnostic', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(state),
+    console.log('🎯 Chamando edge function generate-marketing-diagnostic via Supabase');
+    console.log('📊 Estado enviado:', state);
+
+    const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
+      body: state
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    console.log('📡 Resposta da edge function:', { data, error });
+
+    if (error) {
+      console.error('❌ Erro na edge function:', error);
+      throw new Error(`Erro na edge function: ${error.message}`);
     }
 
-    const data = await response.json();
-    return data.diagnostic || 'Diagnóstico gerado com sucesso!';
+    if (!data.success) {
+      console.error('❌ Edge function retornou erro:', data.error);
+      if (data.fallback) {
+        console.log('🔄 Usando fallback devido a:', data.error);
+        return data.diagnostic;
+      }
+      throw new Error(data.error || 'Falha na geração do diagnóstico');
+    }
+
+    console.log('✅ Diagnóstico gerado com sucesso');
+    return data.diagnostic;
   } catch (error) {
-    console.error('Erro ao gerar diagnóstico:', error);
-    throw new Error('Erro ao gerar diagnóstico');
+    console.error('💥 Erro na geração do diagnóstico:', error);
+    throw error;
   }
 };
