@@ -26,10 +26,10 @@ serve(async (req) => {
     if (!openAIApiKey) {
       console.error('❌ OPENAI_API_KEY não configurada!');
       return new Response(JSON.stringify({ 
-        error: 'OPENAI_API_KEY não configurada - Configure a chave da OpenAI nas configurações do projeto',
+        diagnostic: 'Para gerar o diagnóstico completo, configure a chave da OpenAI nas configurações do projeto. Por enquanto, você pode visualizar as recomendações básicas abaixo.',
         success: false,
-        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
-        fallback: true
+        fallback: true,
+        error: 'OPENAI_API_KEY não configurada'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -40,11 +40,32 @@ serve(async (req) => {
     const prompt = createConsultorFluidaPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
-    console.log('🌐 Chamando OpenAI...');
+    console.log('🌐 Iniciando chamada OpenAI...');
     
-    // Chamada para OpenAI com timeout de 55 segundos (menor que os 60s do frontend)
+    // Configurações otimizadas para melhor estabilidade
+    const requestBody = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: getOptimizedSystemPrompt()
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 2800,
+      stream: false,
+      timeout: 50000 // 50 segundos
+    };
+
+    console.log('📦 Request configurado:', { model: requestBody.model, max_tokens: requestBody.max_tokens });
+    
+    // Chamada para OpenAI com timeout de 50 segundos
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 55000);
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Timeout de 50s atingido');
+      controller.abort();
+    }, 50000);
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -53,19 +74,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       signal: controller.signal,
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', // Modelo mais estável e rápido
-        messages: [
-          { 
-            role: 'system', 
-            content: getOptimizedSystemPrompt()
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2800,
-        stream: false
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     clearTimeout(timeoutId);
@@ -75,12 +84,21 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('❌ OpenAI API error:', response.status, errorText);
       
-      // Fallback conforme especificado no prompt otimizado
+      let errorMessage = 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.';
+      
+      if (response.status === 401) {
+        errorMessage = 'Chave da OpenAI inválida. Verifique a configuração nos secrets.';
+      } else if (response.status === 429) {
+        errorMessage = 'Limite de uso da OpenAI atingido. Tente novamente em alguns minutos.';
+      } else if (response.status >= 500) {
+        errorMessage = 'Serviço da OpenAI temporariamente indisponível. Tente novamente.';
+      }
+      
       return new Response(JSON.stringify({ 
-        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
+        diagnostic: errorMessage,
         success: false,
         fallback: true,
-        details: `Erro OpenAI: ${response.status}`
+        error: `OpenAI Error ${response.status}: ${errorText}`
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -95,7 +113,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
         success: false,
-        fallback: true
+        fallback: true,
+        error: 'Estrutura de resposta inválida'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -105,10 +124,25 @@ serve(async (req) => {
     const diagnosticResult = data.choices[0].message.content;
     console.log('✅ Diagnóstico gerado com sucesso, tamanho:', diagnosticResult?.length || 0);
 
+    // Validar se o diagnóstico tem conteúdo mínimo
+    if (!diagnosticResult || diagnosticResult.length < 100) {
+      console.error('❌ Diagnóstico muito curto ou vazio');
+      return new Response(JSON.stringify({ 
+        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
+        success: false,
+        fallback: true,
+        error: 'Resposta muito curta da OpenAI'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ 
       diagnostic: diagnosticResult,
       success: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      model_used: 'gpt-4o-mini'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -116,23 +150,26 @@ serve(async (req) => {
   } catch (error) {
     console.error('💥 Erro geral:', error);
     
+    let errorMessage = 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.';
+    let errorDetails = 'Erro desconhecido';
+    
     if (error.name === 'AbortError') {
-      return new Response(JSON.stringify({ 
-        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
-        success: false,
-        fallback: true,
-        details: 'Timeout - IA demorou mais que 55 segundos para responder'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      errorMessage = 'Consultor Fluida demorou para responder. Tente novamente em alguns minutos.';
+      errorDetails = 'Timeout na chamada da OpenAI';
+    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      errorMessage = 'Problema de conexão. Verifique sua internet e tente novamente.';
+      errorDetails = 'Erro de rede';
+    } else if (error.message?.includes('JSON')) {
+      errorMessage = 'Erro no processamento dos dados. Tente novamente.';
+      errorDetails = 'Erro de parsing JSON';
     }
     
     return new Response(JSON.stringify({ 
-      diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
+      diagnostic: errorMessage,
       success: false,
       fallback: true,
-      details: error.message 
+      error: errorDetails,
+      error_message: error.message 
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -189,7 +226,9 @@ Sua missão é:
 - Clínica Médica → Pode ver todos os equipamentos
 - Clínica Estética → Apenas equipamentos não invasivos
 
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.
+
+SEMPRE gere um diagnóstico completo e estruturado, mesmo com dados limitados.`;
 }
 
 function createConsultorFluidaPrompt(data: any): string {
