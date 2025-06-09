@@ -21,11 +21,10 @@ export const useAIDiagnostic = () => {
     
     try {
       console.log('🚀 Chamando edge function generate-marketing-diagnostic...');
-      console.log('🔑 Verificando se OPENAI_API_KEY está configurada...');
       
-      // Aumentar timeout para 45 segundos para dar tempo para a IA processar
+      // Timeout aumentado para 60 segundos
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na chamada da IA - Tente novamente')), 45000);
+        setTimeout(() => reject(new Error('Timeout - IA demorou mais que 60 segundos')), 60000);
       });
 
       const supabasePromise = supabase.functions.invoke('generate-marketing-diagnostic', {
@@ -34,80 +33,77 @@ export const useAIDiagnostic = () => {
 
       const { data, error } = await Promise.race([supabasePromise, timeoutPromise]) as any;
 
-      console.log('📥 Resposta COMPLETA da edge function:');
-      console.log('📄 Data:', JSON.stringify(data, null, 2));
-      console.log('❌ Error:', JSON.stringify(error, null, 2));
+      console.log('📥 Resposta da edge function:');
+      console.log('📄 Data:', data);
+      console.log('❌ Error:', error);
 
       if (error) {
         console.error('❌ ERRO na edge function:', error);
         
-        // Verificar se é erro de timeout específico
+        // Tratar diferentes tipos de erro
         if (error.message?.includes('timeout') || error.message?.includes('FunctionsTimeout')) {
-          throw new Error('A IA está demorando mais que o esperado. Tente novamente em alguns segundos.');
+          throw new Error('OpenAI demorou para processar. Tente novamente.');
         }
         
-        throw new Error(`Edge function error: ${JSON.stringify(error)}`);
+        if (error.message?.includes('OPENAI_API_KEY')) {
+          throw new Error('Chave da OpenAI não configurada. Configure nas variáveis de ambiente.');
+        }
+        
+        throw new Error(`Erro na IA: ${error.message || JSON.stringify(error)}`);
       }
 
       if (!data) {
-        console.error('❌ DADOS VAZIOS retornados da edge function');
-        throw new Error('Dados vazios retornados da edge function');
+        console.error('❌ Dados vazios da edge function');
+        throw new Error('Resposta vazia da IA');
       }
 
-      // Verificar se é uma resposta de sucesso da IA
+      // Verificar se a resposta indica falha
       if (data.success === false) {
-        console.error('❌ Edge function retornou sucesso = false');
-        console.error('❌ Erro específico:', data.error);
-        console.error('❌ Detalhes:', data.details);
+        console.error('❌ IA retornou erro:', data.error);
         
-        // Tratar erros específicos da OpenAI
         if (data.error?.includes('OPENAI_API_KEY')) {
-          throw new Error('Chave da OpenAI não configurada. Entre em contato com o suporte.');
+          throw new Error('Chave da OpenAI não está configurada');
         }
         
-        throw new Error(data.error || 'Erro na geração do diagnóstico via IA');
+        throw new Error(data.error || 'Erro desconhecido na IA');
       }
 
       if (!data.diagnostic || data.diagnostic.trim() === '') {
-        console.error('❌ Diagnóstico vazio ou inválido retornado pela IA');
-        throw new Error('Diagnóstico vazio retornado pela IA');
+        console.error('❌ Diagnóstico vazio da IA');
+        throw new Error('IA retornou diagnóstico vazio');
       }
 
       console.log('✅ SUCESSO! Diagnóstico IA gerado!');
-      console.log('📝 Tamanho do diagnóstico:', data.diagnostic?.length || 0, 'caracteres');
-      console.log('🎯 Primeiros 200 chars:', data.diagnostic?.substring(0, 200) + '...');
+      console.log('📝 Tamanho:', data.diagnostic.length, 'caracteres');
 
       toast({
         title: "🎯 Diagnóstico IA gerado!",
-        description: "Sua análise personalizada foi criada com sucesso usando OpenAI."
+        description: "Análise personalizada criada com sucesso."
       });
 
       return data.diagnostic;
+      
     } catch (error) {
-      console.error('💥 ERRO COMPLETO ao gerar diagnóstico com IA:');
-      console.error('💥 Error object:', error);
-      console.error('💥 Error message:', error.message);
-      console.error('💥 Error stack:', error.stack);
+      console.error('💥 ERRO ao gerar diagnóstico:', error);
       
-      // Mensagens de erro mais específicas
-      let errorMessage = 'OpenAI indisponível. Gerando com sistema local.';
+      let errorMessage = 'IA temporariamente indisponível';
       
-      if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+      if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
         errorMessage = 'IA demorou para responder. Tente novamente.';
-      } else if (error.message?.includes('OPENAI_API_KEY')) {
-        errorMessage = 'Configuração da OpenAI pendente.';
+      } else if (error.message?.includes('OPENAI_API_KEY') || error.message?.includes('OpenAI')) {
+        errorMessage = 'Chave da OpenAI não configurada corretamente.';
       } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        errorMessage = 'Problema de conexão. Tente novamente.';
+        errorMessage = 'Problema de conexão. Verifique sua internet.';
       }
       
       toast({
         variant: "destructive",
-        title: "⚠️ IA temporariamente indisponível",
+        title: "⚠️ Erro na IA",
         description: errorMessage
       });
       
-      // Retorna null para usar fallback
       return null;
+      
     } finally {
       setIsGenerating(false);
     }
