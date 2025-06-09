@@ -63,7 +63,7 @@ export const marketingDiagnosticsService = {
       console.log('✅ Diagnóstico salvo no banco:', data);
       return {
         ...data,
-        state_data: data.state_data as MarketingConsultantState
+        state_data: data.state_data as unknown as MarketingConsultantState
       } as MarketingDiagnostic;
     } catch (error) {
       console.error('❌ Erro ao salvar diagnóstico:', error);
@@ -86,7 +86,7 @@ export const marketingDiagnosticsService = {
       return data.map(diagnostic => ({
         id: diagnostic.session_id,
         timestamp: diagnostic.created_at,
-        state: diagnostic.state_data as MarketingConsultantState,
+        state: diagnostic.state_data as unknown as MarketingConsultantState,
         isCompleted: diagnostic.is_completed,
         clinicTypeLabel: diagnostic.clinic_type === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
         specialty: diagnostic.specialty
@@ -112,7 +112,7 @@ export const marketingDiagnosticsService = {
       return {
         id: data.session_id,
         timestamp: data.created_at,
-        state: data.state_data as MarketingConsultantState,
+        state: data.state_data as unknown as MarketingConsultantState,
         isCompleted: data.is_completed,
         clinicTypeLabel: data.clinic_type === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
         specialty: data.specialty
