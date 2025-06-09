@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,9 @@ import {
   Sparkles,
   RefreshCw,
   AlertCircle,
-  Clock
+  Clock,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
@@ -34,35 +35,54 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
   onDiagnosticUpdate 
 }) => {
   const [isRetrying, setIsRetrying] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { generateDiagnostic, isGenerating } = useAIDiagnostic();
 
   const handleRetryDiagnostic = async () => {
     if (!state) {
-      toast.error("Dados do diagnóstico não disponíveis para regenerar");
+      toast.error("❌ Dados do diagnóstico não disponíveis para regenerar");
       return;
     }
 
     setIsRetrying(true);
+    setRetryCount(prev => prev + 1);
+    
     try {
-      console.log('🔄 Tentando regenerar diagnóstico com estado:', state);
+      console.log(`🔄 Tentativa ${retryCount + 1} - Regenerando diagnóstico com estado:`, state);
+      
       toast.info("🤖 Regenerando diagnóstico com IA...", {
-        description: "Pode levar até 45 segundos para processar"
+        description: `Tentativa ${retryCount + 1} - Pode levar até 90 segundos`,
+        id: "retry-diagnostic"
       });
+      
+      // Limpar cache do navegador
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.update();
+        }
+      }
       
       const newDiagnostic = await generateDiagnostic(state);
       
       if (newDiagnostic && newDiagnostic.trim() !== '' && !newDiagnostic.includes('temporariamente indisponível')) {
         onDiagnosticUpdate?.(newDiagnostic);
-        toast.success("✅ Diagnóstico regenerado com sucesso!");
+        toast.success("✅ Diagnóstico regenerado com sucesso!", {
+          description: `Concluído na tentativa ${retryCount + 1}`,
+          id: "retry-diagnostic"
+        });
+        setRetryCount(0); // Reset counter on success
       } else {
         toast.warning("⚠️ IA ainda indisponível", {
-          description: "Tente novamente em alguns minutos"
+          description: `Tentativa ${retryCount + 1} falhou. Tente novamente em alguns minutos.`,
+          id: "retry-diagnostic"
         });
       }
     } catch (error) {
-      console.error('Erro ao regenerar diagnóstico:', error);
+      console.error(`Erro na tentativa ${retryCount + 1}:`, error);
       toast.error("❌ Erro ao regenerar", {
-        description: "Verifique sua conexão e tente novamente"
+        description: `Tentativa ${retryCount + 1} falhou. Verifique os logs do console.`,
+        id: "retry-diagnostic"
       });
     } finally {
       setIsRetrying(false);
@@ -193,7 +213,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
           <CardContent className="p-8">
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <AlertCircle className="h-16 w-16 text-amber-500" />
+                <WifiOff className="h-16 w-16 text-amber-500" />
                 <Clock className="h-6 w-6 text-amber-600 absolute -bottom-1 -right-1 bg-amber-100 rounded-full p-1" />
               </div>
             </div>
@@ -203,7 +223,8 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
             </h3>
             
             <p className="aurora-body mb-6 opacity-90 leading-relaxed max-w-2xl mx-auto">
-              A IA do Consultor Fluida está momentaneamente sobrecarregada. Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima, ou tentar regenerar o diagnóstico completo.
+              A IA do Consultor Fluida está momentaneamente sobrecarregada ou há problema de conectividade. 
+              Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
             </p>
 
             <div className="space-y-6">
@@ -223,14 +244,14 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 
                 <div className="p-4 aurora-glass rounded-lg">
                   <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    ⏳ Temporariamente off:
+                    <WifiOff className="h-4 w-4" />
+                    ⏳ Possíveis causas:
                   </h4>
                   <ul className="text-left space-y-2 opacity-80">
-                    <li>• Diagnóstico completo estruturado</li>
-                    <li>• Sugestões personalizadas detalhadas</li>
-                    <li>• Plano de ação semanal específico</li>
-                    <li>• Insights estratégicos avançados</li>
+                    <li>• Chave OpenAI não configurada</li>
+                    <li>• Problema de rede/conectividade</li>
+                    <li>• Cache do navegador</li>
+                    <li>• Sobrecarga temporária da IA</li>
                   </ul>
                 </div>
               </div>
@@ -245,12 +266,13 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   {(isRetrying || isGenerating) ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Regenerando... (até 45s)
+                      Tentativa {retryCount + 1}... (até 90s)
                     </>
                   ) : (
                     <>
                       <BrainCircuit className="h-4 w-4 mr-2" />
                       🤖 Tentar Regenerar com IA
+                      {retryCount > 0 && ` (${retryCount} tentativas)`}
                     </>
                   )}
                 </Button>
@@ -258,13 +280,20 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 <div className="flex items-center justify-center gap-4 text-sm">
                   <Badge variant="outline" className="border-amber-500/30 text-amber-400">
                     <AlertTriangle className="h-3 w-3 mr-1" />
-                    Seus dados estão seguros
+                    Dados seguros
                   </Badge>
                   
                   <Badge variant="outline" className="border-blue-500/30 text-blue-400">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    IA será restaurada automaticamente
+                    <Wifi className="h-3 w-3 mr-1" />
+                    Verificando conectividade
                   </Badge>
+                  
+                  {retryCount > 0 && (
+                    <Badge variant="outline" className="border-purple-500/30 text-purple-400">
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      {retryCount} tentativas
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
