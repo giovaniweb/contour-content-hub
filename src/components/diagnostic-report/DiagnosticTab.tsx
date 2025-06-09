@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Brain, Target, TrendingUp, CheckCircle2 } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import DiagnosticContentFormatter from './DiagnosticContentFormatter';
+import GrowthStrategySection from './GrowthStrategySection';
 
 interface DiagnosticTabProps {
   session: DiagnosticSession;
@@ -96,6 +97,9 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
           content={session.state.generatedDiagnostic || ''} 
         />
       </div>
+
+      {/* Nova seção de estratégia de crescimento */}
+      <GrowthStrategySection session={session} />
     </div>
   );
 };
