@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,8 @@ import {
   AlertTriangle,
   Sparkles,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from "lucide-react";
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
@@ -32,7 +34,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
   onDiagnosticUpdate 
 }) => {
   const [isRetrying, setIsRetrying] = useState(false);
-  const { generateDiagnostic } = useAIDiagnostic();
+  const { generateDiagnostic, isGenerating } = useAIDiagnostic();
 
   const handleRetryDiagnostic = async () => {
     if (!state) {
@@ -42,19 +44,26 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
 
     setIsRetrying(true);
     try {
-      toast.info("🤖 Tentando regenerar diagnóstico com IA...");
+      console.log('🔄 Tentando regenerar diagnóstico com estado:', state);
+      toast.info("🤖 Regenerando diagnóstico com IA...", {
+        description: "Pode levar até 45 segundos para processar"
+      });
       
       const newDiagnostic = await generateDiagnostic(state);
       
-      if (newDiagnostic && newDiagnostic.trim() !== '') {
+      if (newDiagnostic && newDiagnostic.trim() !== '' && !newDiagnostic.includes('temporariamente indisponível')) {
         onDiagnosticUpdate?.(newDiagnostic);
         toast.success("✅ Diagnóstico regenerado com sucesso!");
       } else {
-        toast.error("❌ Não foi possível regenerar o diagnóstico via IA");
+        toast.warning("⚠️ IA ainda indisponível", {
+          description: "Tente novamente em alguns minutos"
+        });
       }
     } catch (error) {
       console.error('Erro ao regenerar diagnóstico:', error);
-      toast.error("❌ Erro ao tentar regenerar diagnóstico");
+      toast.error("❌ Erro ao regenerar", {
+        description: "Verifique sua conexão e tente novamente"
+      });
     } finally {
       setIsRetrying(false);
     }
@@ -180,64 +189,83 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
   if (diagnostic.includes('temporariamente indisponível') || diagnostic.includes('Diagnóstico temporariamente indisponível')) {
     return (
       <div className="text-center py-12">
-        <Card className="aurora-card border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
+        <Card className="aurora-card border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 max-w-4xl mx-auto">
           <CardContent className="p-8">
-            <div className="flex items-center justify-center mb-4">
-              <AlertCircle className="h-12 w-12 text-amber-500" />
+            <div className="flex items-center justify-center mb-6">
+              <div className="relative">
+                <AlertCircle className="h-16 w-16 text-amber-500" />
+                <Clock className="h-6 w-6 text-amber-600 absolute -bottom-1 -right-1 bg-amber-100 rounded-full p-1" />
+              </div>
             </div>
             
-            <h3 className="text-xl font-semibold aurora-heading mb-3 text-amber-400">
+            <h3 className="text-2xl font-bold aurora-heading mb-4 text-amber-400">
               ⚠️ Diagnóstico IA Temporariamente Indisponível
             </h3>
             
-            <p className="aurora-body mb-6 opacity-90 leading-relaxed">
-              A IA do Consultor Fluida está momentaneamente indisponível. Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
+            <p className="aurora-body mb-6 opacity-90 leading-relaxed max-w-2xl mx-auto">
+              A IA do Consultor Fluida está momentaneamente sobrecarregada. Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima, ou tentar regenerar o diagnóstico completo.
             </p>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="p-3 aurora-glass rounded-lg">
-                  <h4 className="font-medium text-aurora-sage mb-2">✅ O que funciona:</h4>
-                  <ul className="text-left space-y-1 opacity-80">
-                    <li>• Análise básica do perfil</li>
-                    <li>• Cards informativos</li>
-                    <li>• Dados salvos</li>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm max-w-3xl mx-auto">
+                <div className="p-4 aurora-glass rounded-lg">
+                  <h4 className="font-semibold text-aurora-sage mb-3 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    ✅ O que está funcionando:
+                  </h4>
+                  <ul className="text-left space-y-2 opacity-80">
+                    <li>• Análise básica do perfil da clínica</li>
+                    <li>• Cards informativos e insights</li>
+                    <li>• Dados salvos com segurança</li>
+                    <li>• Recomendações gerais</li>
                   </ul>
                 </div>
                 
-                <div className="p-3 aurora-glass rounded-lg">
-                  <h4 className="font-medium text-amber-400 mb-2">⏳ Temporariamente off:</h4>
-                  <ul className="text-left space-y-1 opacity-80">
-                    <li>• Diagnóstico completo da IA</li>
-                    <li>• Sugestões personalizadas</li>
-                    <li>• Plano de ação detalhado</li>
+                <div className="p-4 aurora-glass rounded-lg">
+                  <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    ⏳ Temporariamente off:
+                  </h4>
+                  <ul className="text-left space-y-2 opacity-80">
+                    <li>• Diagnóstico completo estruturado</li>
+                    <li>• Sugestões personalizadas detalhadas</li>
+                    <li>• Plano de ação semanal específico</li>
+                    <li>• Insights estratégicos avançados</li>
                   </ul>
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 space-y-4">
                 <Button 
                   onClick={handleRetryDiagnostic}
-                  disabled={isRetrying || !state}
+                  disabled={isRetrying || isGenerating || !state}
                   className="aurora-button mr-3"
+                  size="lg"
                 >
-                  {isRetrying ? (
+                  {(isRetrying || isGenerating) ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Regenerando...
+                      Regenerando... (até 45s)
                     </>
                   ) : (
                     <>
                       <BrainCircuit className="h-4 w-4 mr-2" />
-                      Tentar Regenerar IA
+                      🤖 Tentar Regenerar com IA
                     </>
                   )}
                 </Button>
                 
-                <Badge variant="outline" className="border-amber-500/30 text-amber-400">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Seus dados estão seguros
-                </Badge>
+                <div className="flex items-center justify-center gap-4 text-sm">
+                  <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Seus dados estão seguros
+                  </Badge>
+                  
+                  <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    IA será restaurada automaticamente
+                  </Badge>
+                </div>
               </div>
             </div>
           </CardContent>
