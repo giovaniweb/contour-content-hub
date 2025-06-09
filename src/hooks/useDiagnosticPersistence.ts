@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { marketingDiagnosticsService, DiagnosticSession } from '@/services/marketingDiagnosticsService';
@@ -60,7 +61,10 @@ export const useDiagnosticPersistence = () => {
 
   const saveCurrentSession = async (state: MarketingConsultantState, isCompleted: boolean = false) => {
     try {
-      const sessionId = currentSession?.id || generateSessionId();
+      const sessionId = currentSession?.id || generateUniqueSessionId();
+      
+      // Verificar se já existe para evitar duplicação
+      const existingDiagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(sessionId);
       
       // Salvar no banco de dados
       const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
@@ -79,6 +83,11 @@ export const useDiagnosticPersistence = () => {
           specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
         };
 
+        // Marcar como dados pagos se for um diagnóstico completo
+        if (isCompleted) {
+          session.isPaidData = true;
+        }
+
         // Manter cache local para melhor UX
         localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
         setCurrentSession(session);
@@ -88,7 +97,7 @@ export const useDiagnosticPersistence = () => {
           await loadSavedDiagnostics();
         }
 
-        console.log('✅ Sessão salva no banco:', session);
+        console.log('✅ Sessão salva no banco (protegida):', session);
         return session;
       } else {
         // Fallback para localStorage se houver erro
@@ -98,13 +107,14 @@ export const useDiagnosticPersistence = () => {
           state,
           isCompleted,
           clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
+          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus,
+          isPaidData: isCompleted // Marcar como dados pagos se completo
         };
 
         localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
         setCurrentSession(session);
         
-        console.log('⚠️ Sessão salva localmente (fallback):', session);
+        console.log('⚠️ Sessão salva localmente (fallback protegido):', session);
         return session;
       }
     } catch (error) {
@@ -125,6 +135,14 @@ export const useDiagnosticPersistence = () => {
 
   const deleteDiagnostic = async (id: string) => {
     try {
+      // Verificar se é um diagnóstico pago antes de deletar
+      const diagnosticToDelete = savedDiagnostics.find(d => d.id === id);
+      
+      if (diagnosticToDelete?.isPaidData || diagnosticToDelete?.isCompleted) {
+        console.warn('⚠️ Tentativa de deletar dados pagos/completos bloqueada:', id);
+        return false; // Bloquear deletar dados pagos
+      }
+
       const success = await marketingDiagnosticsService.deleteDiagnostic(id);
       
       if (success) {
@@ -132,8 +150,8 @@ export const useDiagnosticPersistence = () => {
         const filtered = savedDiagnostics.filter(d => d.id !== id);
         setSavedDiagnostics(filtered);
         
-        // Se for a sessão atual, limpar também
-        if (currentSession?.id === id) {
+        // Se for a sessão atual, limpar também (apenas se não for dados pagos)
+        if (currentSession?.id === id && !currentSession?.isPaidData) {
           clearCurrentSession();
         }
         
@@ -153,6 +171,11 @@ export const useDiagnosticPersistence = () => {
       const diagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(id);
       
       if (diagnostic) {
+        // Marcar como dados pagos se for completo
+        if (diagnostic.isCompleted) {
+          diagnostic.isPaidData = true;
+        }
+        
         setCurrentSession(diagnostic);
         localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(diagnostic));
         return diagnostic;
@@ -175,15 +198,29 @@ export const useDiagnosticPersistence = () => {
 
   const clearAllData = async () => {
     try {
+      // PROTEÇÃO: Não limpar dados pagos/completos
+      const paidDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
+      
+      if (paidDiagnostics.length > 0) {
+        console.warn('🛡️ Dados pagos detectados - limpeza bloqueada para proteção');
+        return false;
+      }
+
       const success = await marketingDiagnosticsService.clearAllDiagnostics();
       
       if (success) {
-        // Limpar estado local também
+        // Limpar apenas dados não pagos
         localStorage.removeItem('fluida_marketing_diagnostics');
-        localStorage.removeItem(CURRENT_SESSION_KEY);
-        setSavedDiagnostics([]);
-        setCurrentSession(null);
-        console.log('🗑️ Todos os dados limpos');
+        if (!currentSession?.isPaidData) {
+          localStorage.removeItem(CURRENT_SESSION_KEY);
+          setCurrentSession(null);
+        }
+        
+        // Manter apenas diagnósticos pagos
+        const protectedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
+        setSavedDiagnostics(protectedDiagnostics);
+        
+        console.log('🗑️ Dados não pagos limpos (dados pagos protegidos)');
       }
       
       return success;
@@ -193,8 +230,17 @@ export const useDiagnosticPersistence = () => {
     }
   };
 
-  const generateSessionId = (): string => {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const generateUniqueSessionId = (): string => {
+    // Usar crypto.randomUUID se disponível para maior unicidade
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return `session_${crypto.randomUUID()}`;
+    }
+    
+    // Fallback com timestamp mais preciso e mais entropia
+    const timestamp = Date.now();
+    const random1 = Math.random().toString(36).substr(2, 12);
+    const random2 = Math.random().toString(36).substr(2, 8);
+    return `session_${timestamp}_${random1}_${random2}`;
   };
 
   const hasSavedData = (): boolean => {
@@ -207,6 +253,10 @@ export const useDiagnosticPersistence = () => {
 
   const isSessionCompleted = (): boolean => {
     return currentSession?.isCompleted === true;
+  };
+
+  const isPaidData = (): boolean => {
+    return currentSession?.isPaidData === true || currentSession?.isCompleted === true;
   };
 
   return {
@@ -222,6 +272,7 @@ export const useDiagnosticPersistence = () => {
     hasSavedData,
     hasCurrentSession,
     isSessionCompleted,
+    isPaidData,
     loadSavedDiagnostics
   };
 };

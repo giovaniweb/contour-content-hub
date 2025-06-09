@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Clock, Trash2, Eye, Download, AlertCircle, Calendar, FileText, ArrowLeft } from "lucide-react";
+import { History, Clock, Trash2, Eye, Download, AlertCircle, Calendar, FileText, ArrowLeft, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useDiagnosticPersistence, DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { useNavigate } from 'react-router-dom';
@@ -29,11 +28,21 @@ const DiagnosticHistory: React.FC = () => {
     }
   };
 
-  const handleDeleteDiagnostic = (id: string) => {
-    deleteDiagnostic(id);
-    toast.success("🗑️ Diagnóstico removido", {
-      description: "Diagnóstico deletado com sucesso"
-    });
+  const handleDeleteDiagnostic = (session: DiagnosticSession) => {
+    // Verificar se é dados pagos antes de permitir deletar
+    if (session.isPaidData || session.isCompleted) {
+      toast.error("🛡️ Dados Protegidos", {
+        description: "Este diagnóstico completo não pode ser deletado por segurança."
+      });
+      return;
+    }
+
+    if (confirm('Tem certeza que deseja deletar este diagnóstico?')) {
+      deleteDiagnostic(session.id);
+      toast.success("🗑️ Diagnóstico removido", {
+        description: "Diagnóstico deletado com sucesso"
+      });
+    }
   };
 
   const handleDownloadDiagnostic = (session: DiagnosticSession) => {
@@ -81,10 +90,19 @@ Relatório gerado pelo Consultor Fluida
   };
 
   const handleClearAllData = () => {
-    if (confirm('Tem certeza que deseja apagar todos os diagnósticos salvos? Esta ação não pode ser desfeita.')) {
+    const paidDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
+    
+    if (paidDiagnostics.length > 0) {
+      toast.error("🛡️ Dados Protegidos", {
+        description: "Não é possível limpar dados pagos. Apenas rascunhos podem ser removidos."
+      });
+      return;
+    }
+
+    if (confirm('Tem certeza que deseja apagar todos os rascunhos? Dados completos serão preservados.')) {
       clearAllData();
-      toast.success("🗑️ Todos os dados foram removidos", {
-        description: "Histórico completamente limpo"
+      toast.success("🗑️ Rascunhos removidos", {
+        description: "Dados pagos foram preservados com segurança"
       });
     }
   };
@@ -132,6 +150,12 @@ Relatório gerado pelo Consultor Fluida
                       <Badge variant={currentSession.isCompleted ? "default" : "secondary"}>
                         {currentSession.isCompleted ? "Completo" : "Em progresso"}
                       </Badge>
+                      {(currentSession.isPaidData || currentSession.isCompleted) && (
+                        <Badge variant="outline" className="border-green-500/30 text-green-400">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Protegido
+                        </Badge>
+                      )}
                     </CardTitle>
                     <p className="text-sm text-white/70 mt-1">
                       {currentSession.specialty}
@@ -174,7 +198,7 @@ Relatório gerado pelo Consultor Fluida
               
               <Button onClick={handleClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
                 <Trash2 className="h-3 w-3" />
-                Limpar Tudo
+                Limpar Rascunhos
               </Button>
             </div>
 
@@ -198,6 +222,12 @@ Relatório gerado pelo Consultor Fluida
                             {session.id === currentSession?.id && (
                               <Badge variant="outline" className="border-blue-500/30 text-blue-400">
                                 Atual
+                              </Badge>
+                            )}
+                            {(session.isPaidData || session.isCompleted) && (
+                              <Badge variant="outline" className="border-green-500/30 text-green-400">
+                                <Shield className="h-3 w-3 mr-1" />
+                                Protegido
                               </Badge>
                             )}
                           </CardTitle>
@@ -224,9 +254,15 @@ Relatório gerado pelo Consultor Fluida
                           Download
                         </Button>
                         
-                        <Button onClick={() => handleDeleteDiagnostic(session.id)} size="sm" variant="destructive" className="flex items-center gap-1">
+                        <Button 
+                          onClick={() => handleDeleteDiagnostic(session)} 
+                          size="sm" 
+                          variant={session.isPaidData || session.isCompleted ? "outline" : "destructive"}
+                          disabled={session.isPaidData || session.isCompleted}
+                          className="flex items-center gap-1"
+                        >
                           <Trash2 className="h-3 w-3" />
-                          Deletar
+                          {session.isPaidData || session.isCompleted ? 'Protegido' : 'Deletar'}
                         </Button>
                       </div>
                     </CardContent>

@@ -16,18 +16,10 @@ const MarketingConsultantHome: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
   const navigate = useNavigate();
   const {
-    savedDiagnostics,
-    clearAllData
+    savedDiagnostics
   } = useDiagnosticPersistence();
 
-  // Limpar diagnósticos ao carregar (apenas uma vez)
-  React.useEffect(() => {
-    const hasCleared = localStorage.getItem('diagnostics_cleared_v2');
-    if (!hasCleared) {
-      clearAllData();
-      localStorage.setItem('diagnostics_cleared_v2', 'true');
-    }
-  }, [clearAllData]);
+  // REMOVIDO: Sistema de limpeza automática que estava apagando dados pagos
 
   if (currentView === 'performance') {
     return (
