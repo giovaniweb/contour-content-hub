@@ -28,7 +28,7 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
 
     const interval = setInterval(() => {
       setCurrentMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 3000); // Troca a cada 3 segundos conforme especificado
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [isLoading]);
