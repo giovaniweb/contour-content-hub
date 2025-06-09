@@ -7,10 +7,12 @@ import { Video, Image, PlayCircle, Calendar, Plus, Sparkles, Target, TrendingUp,
 import { toast } from "sonner";
 import { useContentPlanner } from "@/hooks/useContentPlanner";
 import { MarketingConsultantState } from '../types';
+
 interface ContentSuggestionCardsProps {
   state: MarketingConsultantState;
   diagnostic: string;
 }
+
 interface ContentSuggestion {
   id: string;
   title: string;
@@ -21,13 +23,12 @@ interface ContentSuggestion {
   estimatedTime: string;
   difficulty: 'Fácil' | 'Médio' | 'Avançado';
 }
+
 const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
   state,
   diagnostic
 }) => {
-  const {
-    addItem
-  } = useContentPlanner();
+  const { addItem } = useContentPlanner();
 
   // Extrair sugestões do diagnóstico IA
   const extractSuggestionsFromDiagnostic = (): ContentSuggestion[] => {
@@ -39,38 +40,41 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
     const especialidade = isClinicaMedica ? state.medicalSpecialty : state.aestheticFocus;
 
     // Sugestões padrão baseadas no perfil
-    const baseSuggestions = [{
-      id: 'before-after',
-      title: `Antes e Depois: ${especialidade}`,
-      description: `Showcase transformador de resultados reais com ${especialidade}`,
-      format: 'carrossel' as const,
-      objective: '🔴 Fazer Comprar',
-      estimatedTime: '15-30min',
-      difficulty: 'Fácil' as const
-    }, {
-      id: 'education-reels',
-      title: `Mitos vs Verdades: ${especialidade}`,
-      description: 'Reel educativo desmistificando dúvidas comuns',
-      format: 'reels' as const,
-      objective: '🟡 Atrair Atenção',
-      estimatedTime: '20-40min',
-      difficulty: 'Médio' as const
-    }, {
-      id: 'process-video',
-      title: `Como funciona: Processo Completo`,
-      description: 'Vídeo explicativo do atendimento da consulta ao resultado',
-      format: 'vídeo' as const,
-      objective: '🟢 Criar Conexão',
-      estimatedTime: '45-60min',
-      difficulty: 'Avançado' as const
-    }];
+    const baseSuggestions = [
+      {
+        id: 'before-after',
+        title: `Antes e Depois: ${especialidade}`,
+        description: `Showcase transformador de resultados reais com ${especialidade}`,
+        format: 'carrossel' as const,
+        objective: '🔴 Fazer Comprar',
+        estimatedTime: '15-30min',
+        difficulty: 'Fácil' as const
+      },
+      {
+        id: 'education-reels',
+        title: `Mitos vs Verdades: ${especialidade}`,
+        description: 'Reel educativo desmistificando dúvidas comuns',
+        format: 'reels' as const,
+        objective: '🟡 Atrair Atenção',
+        estimatedTime: '20-40min',
+        difficulty: 'Médio' as const
+      },
+      {
+        id: 'process-video',
+        title: `Como funciona: Processo Completo`,
+        description: 'Vídeo explicativo do atendimento da consulta ao resultado',
+        format: 'vídeo' as const,
+        objective: '🟢 Criar Conexão',
+        estimatedTime: '45-60min',
+        difficulty: 'Avançado' as const
+      }
+    ];
 
     // Adicionar sugestões específicas por equipamento
     if (equipamentos) {
       const equipList = equipamentos.split(',').map(eq => eq.trim());
       equipList.forEach((equip, index) => {
-        if (equip && index < 2) {
-          // Máximo 2 equipamentos para não poluir
+        if (equip && index < 2) { // Máximo 2 equipamentos para não poluir
           baseSuggestions.push({
             id: `equipment-${index}`,
             title: `Destaque: ${equip}`,
@@ -97,8 +101,10 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
         difficulty: 'Fácil' as const
       });
     }
+
     return baseSuggestions.slice(0, 6); // Máximo 6 sugestões
   };
+
   const suggestions = extractSuggestionsFromDiagnostic();
   const getFormatIcon = (format: string) => {
     switch (format) {
@@ -152,6 +158,7 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
         equipmentName: suggestion.equipment,
         aiGenerated: true
       });
+
       if (newItem) {
         toast.success("💡 Ideia adicionada ao planejador!", {
           description: `"${suggestion.title}" foi adicionada às suas ideias`
@@ -163,7 +170,8 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
       });
     }
   };
-  return <div className="space-y-6">
+  return (
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-semibold aurora-heading flex items-center gap-2 text-slate-50">
@@ -180,15 +188,13 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {suggestions.map((suggestion, index) => <motion.div key={suggestion.id} initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: index * 0.1
-      }}>
+        {suggestions.map((suggestion, index) => (
+          <motion.div
+            key={suggestion.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
             <Card className="aurora-card h-full hover:shadow-lg transition-all duration-300 group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between mb-2">
@@ -224,21 +230,28 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
                     <span className="aurora-body">{suggestion.estimatedTime}</span>
                   </div>
                   
-                  {suggestion.equipment && <div className="flex items-center justify-between text-xs">
+                  {suggestion.equipment && (
+                    <div className="flex items-center justify-between text-xs">
                       <span className="aurora-body opacity-70">Equipamento:</span>
                       <Badge variant="outline" className="text-xs bg-aurora-sage/20 text-aurora-sage border-aurora-sage/30">
                         {suggestion.equipment}
                       </Badge>
-                    </div>}
+                    </div>
+                  )}
                 </div>
                 
-                <Button onClick={() => handleAddToPlanner(suggestion)} className="w-full aurora-button text-xs h-8 group-hover:scale-105 transition-transform" size="sm">
+                <Button
+                  onClick={() => handleAddToPlanner(suggestion)}
+                  className="w-full aurora-button text-xs h-8 group-hover:scale-105 transition-transform"
+                  size="sm"
+                >
                   <Plus className="h-3 w-3 mr-1" />
                   Adicionar ao Planejador
                 </Button>
               </CardContent>
             </Card>
-          </motion.div>)}
+          </motion.div>
+        ))}
       </div>
 
       <div className="text-center pt-4">
@@ -246,6 +259,8 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
           💡 Dica: Essas sugestões foram criadas com base no seu diagnóstico. Personalize conforme sua audiência!
         </p>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ContentSuggestionCards;
