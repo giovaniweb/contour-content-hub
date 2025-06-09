@@ -40,33 +40,33 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
     const especialidade = isClinicaMedica ? state.medicalSpecialty : state.aestheticFocus;
 
     // Sugestões padrão baseadas no perfil
-    const baseSuggestions = [
+    const baseSuggestions: ContentSuggestion[] = [
       {
         id: 'before-after',
         title: `Antes e Depois: ${especialidade}`,
         description: `Showcase transformador de resultados reais com ${especialidade}`,
-        format: 'carrossel' as const,
+        format: 'carrossel',
         objective: '🔴 Fazer Comprar',
         estimatedTime: '15-30min',
-        difficulty: 'Fácil' as const
+        difficulty: 'Fácil'
       },
       {
         id: 'education-reels',
         title: `Mitos vs Verdades: ${especialidade}`,
         description: 'Reel educativo desmistificando dúvidas comuns',
-        format: 'reels' as const,
+        format: 'reels',
         objective: '🟡 Atrair Atenção',
         estimatedTime: '20-40min',
-        difficulty: 'Médio' as const
+        difficulty: 'Médio'
       },
       {
         id: 'process-video',
         title: `Como funciona: Processo Completo`,
         description: 'Vídeo explicativo do atendimento da consulta ao resultado',
-        format: 'vídeo' as const,
+        format: 'vídeo',
         objective: '🟢 Criar Conexão',
         estimatedTime: '45-60min',
-        difficulty: 'Avançado' as const
+        difficulty: 'Avançado'
       }
     ];
 
@@ -79,11 +79,11 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
             id: `equipment-${index}`,
             title: `Destaque: ${equip}`,
             description: `Conteúdo focado nos diferenciais e benefícios do ${equip}`,
-            format: index % 2 === 0 ? 'vídeo' : 'carrossel' as const,
+            format: index % 2 === 0 ? 'vídeo' : 'carrossel',
             objective: '🔴 Fazer Comprar',
             equipment: equip,
             estimatedTime: '25-45min',
-            difficulty: 'Médio' as const
+            difficulty: 'Médio'
           });
         }
       });
@@ -95,10 +95,10 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
         id: 'credibility',
         title: 'Construindo Credibilidade',
         description: 'Stories mostrando certificações, cursos e experiência',
-        format: 'story' as const,
+        format: 'story',
         objective: '🟢 Criar Conexão',
         estimatedTime: '10-20min',
-        difficulty: 'Fácil' as const
+        difficulty: 'Fácil'
       });
     }
 
@@ -106,6 +106,7 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
   };
 
   const suggestions = extractSuggestionsFromDiagnostic();
+
   const getFormatIcon = (format: string) => {
     switch (format) {
       case 'vídeo':
@@ -170,6 +171,7 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
       });
     }
   };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
