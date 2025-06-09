@@ -58,7 +58,7 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
             transition={{ duration: 0.5 }}
             className="mb-4"
           >
-            <p className="text-sm text-white/90 leading-relaxed italic">
+            <p className="text-sm text-white leading-relaxed italic">
               {LOADING_MESSAGES[currentMessageIndex]}
             </p>
           </motion.div>
@@ -70,7 +70,7 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
           <div className="w-2 h-2 bg-aurora-deep-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
         </div>
         
-        <p className="text-xs text-white/60 mt-4">
+        <p className="text-xs text-white mt-4">
           Pode levar até 60 segundos para análises complexas
         </p>
       </div>

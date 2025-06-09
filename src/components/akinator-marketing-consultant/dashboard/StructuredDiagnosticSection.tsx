@@ -150,7 +150,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   return (
                     <div key={index} className="flex items-start gap-2 mb-2">
                       <CheckCircle2 className="h-4 w-4 text-aurora-sage mt-1 flex-shrink-0" />
-                      <span className="text-white/90 text-sm">
+                      <span className="text-white text-sm">
                         {line.replace(/^[•\-*]\s*/, '').trim()}
                       </span>
                     </div>
@@ -170,7 +170,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                 
                 // Parágrafo normal
                 return (
-                  <p key={index} className="text-white/85 mb-3 leading-relaxed">
+                  <p key={index} className="text-white mb-3 leading-relaxed">
                     {line.trim()}
                   </p>
                 );
@@ -201,7 +201,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
               ⚠️ Consultor Fluida Temporariamente Indisponível
             </h3>
             
-            <p className="text-white/90 mb-6 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-white mb-6 leading-relaxed max-w-2xl mx-auto">
               O Consultor Fluida está momentaneamente sobrecarregado ou há problema de conectividade. 
               Suas respostas foram <strong className="text-white">salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
             </p>
@@ -262,7 +262,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
             <h2 className="text-3xl font-bold text-white mb-1">
               🎯 Diagnóstico Consultor Fluida
             </h2>
-            <p className="text-white/80">
+            <p className="text-white">
               Análise estratégica personalizada para sua clínica
             </p>
           </div>
