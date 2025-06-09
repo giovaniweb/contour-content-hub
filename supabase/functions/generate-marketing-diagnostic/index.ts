@@ -44,7 +44,7 @@ serve(async (req) => {
     
     // Configurações corrigidas com timeout de 60s
     const requestBody = {
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         { 
           role: 'system', 
@@ -53,7 +53,7 @@ serve(async (req) => {
         { role: 'user', content: prompt }
       ],
       temperature: 0.7,
-      max_tokens: 4000 // Aumentado para garantir resposta completa
+      max_tokens: 4000
     };
 
     console.log('📦 Request configurado:', { model: requestBody.model, max_tokens: requestBody.max_tokens });
@@ -131,7 +131,7 @@ serve(async (req) => {
       diagnostic: diagnosticResult,
       success: true,
       timestamp: new Date().toISOString(),
-      model_used: 'gpt-4',
+      model_used: 'gpt-4o-mini',
       clinic_type: diagnosticData.clinicType,
       equipments_validated: await validateEquipments(diagnosticData)
     }), {
@@ -141,8 +141,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('💥 Erro geral:', error);
     
+    const diagnosticData = await req.json().catch(() => ({}));
+    
     return new Response(JSON.stringify({ 
-      diagnostic: generateFallbackDiagnostic(diagnosticData || {}),
+      diagnostic: generateFallbackDiagnostic(diagnosticData),
       success: false,
       fallback: true,
       error: error.message || 'Erro desconhecido',
@@ -183,24 +185,9 @@ Semana 4: Aceleração e fidelização
 ## 📈 Insights Estratégicos Fluida
 [3-5 insights práticos com tom de consultoria]
 
-🎯 Fluxo de Segmentação:
-- Clínica Médica → Pode ver todos os equipamentos
-- Clínica Estética → Apenas equipamentos não invasivos
+Use a linguagem adequada ao tipo de clínica e personalize com base nos dados fornecidos.
 
-Use a linguagem adequada:
-- Clínica médica = técnico-consultiva
-- Clínica estética = emocional-inspiradora
-
-⚠️ RESTRIÇÕES:
-- Proibido citar live, blog, ebook ou webinar
-- Tudo deve caber em conteúdo de rede social
-- Use linguagem adaptada: médica = técnico-consultivo, estética = emocional-inspirador
-- Não alucine equipamentos ou formatos não citados
-- Continue sempre a partir da estrutura atual
-
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.
-
-SEMPRE gere um diagnóstico completo e estruturado, mesmo com dados limitados.`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
 }
 
 function createConsolidatedFluidaPrompt(data: any): string {
@@ -220,10 +207,6 @@ function createConsolidatedFluidaPrompt(data: any): string {
     ? (data.medicalEquipments || 'Não informado')
     : (data.aestheticEquipments || 'Não informado');
 
-  const protocolo = isClinicaMedica
-    ? (data.medicalBestSeller || 'Não informado')
-    : (data.aestheticBestSeller || 'Não informado');
-
   const ticketMedio = isClinicaMedica
     ? formatMedicalTicket(data.medicalTicket)
     : formatAestheticTicket(data.aestheticTicket);
@@ -232,20 +215,12 @@ function createConsolidatedFluidaPrompt(data: any): string {
     ? formatMedicalObjective(data.medicalObjective)
     : formatAestheticObjective(data.aestheticObjective);
 
-  const modelo_venda = isClinicaMedica
-    ? (data.medicalSalesModel || 'Não informado')
-    : (data.aestheticSalesModel || 'Não informado');
-
-  const frequencia = data.contentFrequency || 'Não informado';
   const faturamento = formatRevenue(data.currentRevenue);
   const meta = formatGoal(data.revenueGoal);
   const publicoIdeal = data.targetAudience || 'Não definido';
-  const estiloClinica = data.clinicType === 'clinica_medica' ? data.medicalClinicStyle : data.aestheticClinicStyle || 'Não definido';
   const desafios = data.mainChallenges || 'Não informado';
-  const estiloLinguagem = data.communicationStyle || (isClinicaMedica ? 'técnico-consultivo' : 'emocional e inspirador');
-  const apareceVideos = data.contentFrequency === 'diario' ? 'Sim' : 'Raramente';
 
-  const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
+  return `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
 📋 Dados de briefing disponíveis:
 
@@ -253,53 +228,21 @@ function createConsolidatedFluidaPrompt(data: any): string {
 - Especialidade: ${especialidade}
 - Procedimentos: ${procedimentos}
 - Equipamentos: ${equipamentos}
-- Protocolo mais vendido: ${protocolo}
 - Ticket médio: ${ticketMedio}
-- Modelo de venda: ${modelo_venda}
 - Faturamento atual: ${faturamento}
 - Meta 3 meses: ${meta}
 - Objetivo de marketing: ${objetivo}
-- Frequência de conteúdo: ${frequencia}
-- Aparece nos vídeos: ${apareceVideos}
 - Público ideal: ${publicoIdeal}
-- Estilo da clínica: ${estiloClinica}
-- Estilo de linguagem desejado: ${estiloLinguagem}
 - Principais desafios: ${desafios}
 
-🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA:
-
-## 📊 Diagnóstico Estratégico da Clínica
-[Identifique gargalos, analise desalinhamento entre público/oferta/visual/autoridade, use tom consultivo adaptado]
-
-## 💡 Sugestões de Conteúdo Personalizado
-[3-5 ideias práticas SOMENTE para Instagram, Reels, TikTok, Shorts - incluir pelo menos 3 ideias com equipamentos citados]
-
-## 📅 Plano de Ação Semanal
-Semana 1: Autoridade e visibilidade
-Semana 2: Prova social e diferencial  
-Semana 3: Conversão e campanha
-Semana 4: Aceleração e fidelização
-[3-4 tarefas práticas por semana]
-
-## 🎨 Avaliação de Marca e Atendimento
-[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
-
-## 🧩 Enigma do Mentor
-[Frase misteriosa com trocadilho - NUNCA revele o nome verdadeiro do mentor]
-
-## 📈 Insights Estratégicos Fluida
-[3-5 insights práticos com tom de consultoria]
+🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA das 6 seções.
 
 Use a linguagem adequada:
 - ${isClinicaMedica ? 'TÉCNICO-CONSULTIVA (clínica médica)' : 'EMOCIONAL-INSPIRADORA (clínica estética)'}
 
-Foque nos equipamentos mencionados: ${equipamentos}
-
 Personalize tudo com base no perfil fornecido acima.
 
 ⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
-
-  return prompt;
 }
 
 // Função para validar se o diagnóstico tem as 6 seções obrigatórias
@@ -321,7 +264,7 @@ function validateDiagnosticStructure(diagnostic: string): boolean {
   });
   
   console.log(`🔍 Estrutura validada: ${foundSections}/6 seções encontradas`);
-  return foundSections >= 5; // Aceita se pelo menos 5 das 6 seções estão presentes
+  return foundSections >= 5;
 }
 
 // Função para gerar fallback estruturado
@@ -378,20 +321,10 @@ async function validateEquipments(data: any): Promise<string[]> {
     
   if (!equipments) return [];
   
-  // Lista básica de equipamentos conhecidos (pode ser expandida)
-  const knownEquipments = [
-    'unyque_pro', 'reverso', 'enygma', 'crystal_3d_plus', 'crio', 'multishape',
-    'laser_co2', 'microagulhamento', 'peeling_quimico', 'toxina_botulinica',
-    'preenchimento', 'sculptra', 'harmonizacao_facial', 'criolipolise',
-    'adélla_laser', 'lasers_co2'
-  ];
-  
-  return equipments.split(',').map((eq: string) => eq.trim()).filter((eq: string) => 
-    knownEquipments.includes(eq.toLowerCase().replace(' ', '_'))
-  );
+  return equipments.split(',').map((eq: string) => eq.trim()).filter(Boolean);
 }
 
-// Funções auxiliares de formatação (mantidas iguais)
+// Funções auxiliares de formatação
 function formatRevenue(revenue: string): string {
   const map: { [key: string]: string } = {
     'ate_15k': 'Até R$ 15.000/mês',
