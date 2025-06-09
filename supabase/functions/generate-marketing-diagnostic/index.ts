@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -91,7 +90,7 @@ serve(async (req) => {
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14', // Modelo mais recente e potente
         messages: [
           { 
             role: 'system', 
@@ -100,7 +99,7 @@ serve(async (req) => {
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 3000 // Otimizado para evitar truncamentos
+        max_tokens: 4000 // Aumentado para diagnósticos mais completos
       }),
     });
 
