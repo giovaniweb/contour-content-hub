@@ -7,13 +7,14 @@ import { loadCurrentSessionFromStorage } from './sessionStorage';
 export type { DiagnosticSession } from './types';
 
 export const useDiagnosticPersistence = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
   const { user } = useAuth();
   
   const {
     savedDiagnostics,
     currentSession,
     setCurrentSession,
+    isLoading,
     loadSavedDiagnostics,
     saveCurrentSession,
     clearCurrentSession,
@@ -25,16 +26,28 @@ export const useDiagnosticPersistence = () => {
   // Carregar dados ao inicializar
   useEffect(() => {
     if (user) {
-      loadSavedDiagnostics();
-      const session = loadCurrentSessionFromStorage();
-      if (session) {
-        setCurrentSession(session);
-      }
-      setIsLoading(false);
+      const initializeData = async () => {
+        try {
+          // Carregar sessão atual do localStorage primeiro para UX rápida
+          const session = loadCurrentSessionFromStorage();
+          if (session) {
+            setCurrentSession(session);
+          }
+          
+          // Carregar dados do banco em paralelo
+          await loadSavedDiagnostics();
+        } catch (error) {
+          console.error('❌ Erro ao inicializar dados:', error);
+        } finally {
+          setIsInitializing(false);
+        }
+      };
+
+      initializeData();
     } else {
-      setIsLoading(false);
+      setIsInitializing(false);
     }
-  }, [user]);
+  }, [user, loadSavedDiagnostics, setCurrentSession]);
 
   const hasSavedData = (): boolean => {
     return currentSession !== null || savedDiagnostics.length > 0;
@@ -55,7 +68,7 @@ export const useDiagnosticPersistence = () => {
   return {
     savedDiagnostics,
     currentSession,
-    isLoading,
+    isLoading: isLoading || isInitializing,
     saveCurrentSession,
     loadCurrentSession: () => loadCurrentSessionFromStorage(),
     clearCurrentSession,

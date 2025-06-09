@@ -1,20 +1,37 @@
-import { useState } from 'react';
+
+import { useState, useCallback } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { marketingDiagnosticsService } from '@/services/marketingDiagnostics';
 import { DiagnosticSession } from './types';
 import { generateUniqueSessionId, createSessionFromState } from './sessionUtils';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
 
+// Map para controle de debounce das operações
+const debouncedOperations = new Map<string, NodeJS.Timeout>();
+
 export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
   const [currentSession, setCurrentSession] = useState<DiagnosticSession | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const loadSavedDiagnostics = async () => {
+  const loadSavedDiagnostics = useCallback(async () => {
+    if (isLoading) return; // Evitar múltiplas chamadas simultâneas
+    
     try {
+      setIsLoading(true);
+      console.log('📚 Carregando diagnósticos salvos...');
+      
       const diagnostics = await marketingDiagnosticsService.loadDiagnostics();
-      setSavedDiagnostics(diagnostics);
+      
+      // Filtrar duplicações por session_id antes de definir no estado
+      const uniqueDiagnostics = diagnostics.filter((diagnostic, index, self) => 
+        index === self.findIndex(d => d.id === diagnostic.id)
+      );
+      
+      setSavedDiagnostics(uniqueDiagnostics);
+      console.log(`✅ ${uniqueDiagnostics.length} diagnósticos únicos carregados`);
     } catch (error) {
-      console.error('Erro ao carregar diagnósticos salvos:', error);
+      console.error('❌ Erro ao carregar diagnósticos salvos:', error);
       // Fallback para localStorage se houver erro
       const saved = localStorage.getItem('fluida_marketing_diagnostics');
       if (saved) {
@@ -22,62 +39,80 @@ export const useDiagnosticOperations = () => {
           const localDiagnostics = JSON.parse(saved);
           setSavedDiagnostics(localDiagnostics);
         } catch (e) {
-          console.error('Erro ao carregar do localStorage:', e);
+          console.error('❌ Erro ao carregar do localStorage:', e);
         }
       }
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [isLoading]);
 
-  const saveCurrentSession = async (state: MarketingConsultantState, isCompleted: boolean = false) => {
-    try {
-      const sessionId = currentSession?.id || generateUniqueSessionId();
-      
-      // Verificar se já existe para evitar duplicação
-      const existingDiagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(sessionId);
-      
-      // Salvar no banco de dados
-      const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
-        sessionId,
-        state,
-        isCompleted
-      );
+  const saveCurrentSession = useCallback(async (
+    state: MarketingConsultantState, 
+    isCompleted: boolean = false
+  ) => {
+    const sessionId = currentSession?.id || generateUniqueSessionId();
+    const operationKey = `save_${sessionId}`;
 
-      if (savedDiagnostic) {
-        const session = createSessionFromState(sessionId, state, isCompleted, savedDiagnostic.created_at);
+    // Cancelar operação anterior se existir
+    if (debouncedOperations.has(operationKey)) {
+      clearTimeout(debouncedOperations.get(operationKey)!);
+      debouncedOperations.delete(operationKey);
+    }
 
-        // Marcar como dados pagos se for um diagnóstico completo
-        if (isCompleted) {
-          session.isPaidData = true;
-        }
-
-        // Manter cache local para melhor UX
-        saveCurrentSessionToStorage(session);
-        setCurrentSession(session);
-
-        // Recarregar lista se foi completado
-        if (isCompleted) {
-          await loadSavedDiagnostics();
-        }
-
-        console.log('✅ Sessão salva no banco (protegida):', session);
-        return session;
-      } else {
-        // Fallback para localStorage se houver erro
-        const session = createSessionFromState(sessionId, state, isCompleted);
-
-        saveCurrentSessionToStorage(session);
-        setCurrentSession(session);
+    // Debounce para evitar múltiplas chamadas rápidas
+    const timeoutId = setTimeout(async () => {
+      try {
+        console.log('💾 Salvando sessão com debounce:', { sessionId, isCompleted });
         
-        console.log('⚠️ Sessão salva localmente (fallback protegido):', session);
-        return session;
-      }
-    } catch (error) {
-      console.error('❌ Erro ao salvar sessão:', error);
-      return null;
-    }
-  };
+        // Salvar no banco de dados
+        const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
+          sessionId,
+          state,
+          isCompleted
+        );
 
-  const clearCurrentSession = () => {
+        if (savedDiagnostic) {
+          const session = createSessionFromState(sessionId, state, isCompleted, savedDiagnostic.created_at);
+
+          // Marcar como dados pagos se for um diagnóstico completo
+          if (isCompleted) {
+            session.isPaidData = true;
+          }
+
+          // Manter cache local para melhor UX
+          saveCurrentSessionToStorage(session);
+          setCurrentSession(session);
+
+          // Recarregar lista se foi completado (com debounce)
+          if (isCompleted) {
+            setTimeout(() => loadSavedDiagnostics(), 500);
+          }
+
+          console.log('✅ Sessão salva com sucesso (protegida):', session);
+          return session;
+        } else {
+          // Fallback para localStorage se houver erro
+          const session = createSessionFromState(sessionId, state, isCompleted);
+
+          saveCurrentSessionToStorage(session);
+          setCurrentSession(session);
+          
+          console.log('⚠️ Sessão salva localmente (fallback protegido):', session);
+          return session;
+        }
+      } catch (error) {
+        console.error('❌ Erro ao salvar sessão:', error);
+        return null;
+      } finally {
+        debouncedOperations.delete(operationKey);
+      }
+    }, 300); // Debounce de 300ms
+
+    debouncedOperations.set(operationKey, timeoutId);
+  }, [currentSession?.id, loadSavedDiagnostics]);
+
+  const clearCurrentSession = useCallback(() => {
     try {
       clearCurrentSessionFromStorage();
       setCurrentSession(null);
@@ -85,9 +120,9 @@ export const useDiagnosticOperations = () => {
     } catch (error) {
       console.error('❌ Erro ao limpar sessão:', error);
     }
-  };
+  }, []);
 
-  const deleteDiagnostic = async (id: string) => {
+  const deleteDiagnostic = useCallback(async (id: string) => {
     try {
       // Verificar se é um diagnóstico pago antes de deletar
       const diagnosticToDelete = savedDiagnostics.find(d => d.id === id);
@@ -109,7 +144,7 @@ export const useDiagnosticOperations = () => {
           clearCurrentSession();
         }
         
-        console.log('🗑️ Diagnóstico deletado:', id);
+        console.log('✅ Diagnóstico deletado:', id);
       }
       
       return success;
@@ -117,9 +152,9 @@ export const useDiagnosticOperations = () => {
       console.error('❌ Erro ao deletar diagnóstico:', error);
       return false;
     }
-  };
+  }, [savedDiagnostics, currentSession?.id, currentSession?.isPaidData, clearCurrentSession]);
 
-  const loadDiagnostic = async (id: string): Promise<DiagnosticSession | null> => {
+  const loadDiagnostic = useCallback(async (id: string): Promise<DiagnosticSession | null> => {
     try {
       // Primeiro tentar carregar do banco
       const diagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(id);
@@ -148,9 +183,9 @@ export const useDiagnosticOperations = () => {
       console.error('❌ Erro ao carregar diagnóstico:', error);
       return null;
     }
-  };
+  }, [savedDiagnostics]);
 
-  const clearAllData = async () => {
+  const clearAllData = useCallback(async () => {
     try {
       // Identificar rascunhos (diagnósticos incompletos)
       const drafts = savedDiagnostics.filter(d => !d.isPaidData && !d.isCompleted);
@@ -176,7 +211,7 @@ export const useDiagnosticOperations = () => {
         const protectedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
         setSavedDiagnostics(protectedDiagnostics);
         
-        console.log(`✅ ${drafts.length} rascunhos removidos com sucesso. ${protectedDiagnostics.length} diagnósticos pagos preservados.`);
+        console.log(`✅ ${drafts.length} rascunhos removidos. ${protectedDiagnostics.length} diagnósticos pagos preservados.`);
       }
       
       return success;
@@ -184,13 +219,14 @@ export const useDiagnosticOperations = () => {
       console.error('❌ Erro ao limpar rascunhos:', error);
       return false;
     }
-  };
+  }, [savedDiagnostics, currentSession?.isPaidData, currentSession?.isCompleted]);
 
   return {
     savedDiagnostics,
     setSavedDiagnostics,
     currentSession,
     setCurrentSession,
+    isLoading,
     loadSavedDiagnostics,
     saveCurrentSession,
     clearCurrentSession,
