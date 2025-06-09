@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
-import { marketingDiagnosticsService } from '@/services/marketingDiagnosticsService';
+import { marketingDiagnosticsService } from '@/services/marketingDiagnostics';
 import { DiagnosticSession } from './types';
 import { generateUniqueSessionId, createSessionFromState } from './sessionUtils';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
