@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -46,7 +45,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: `🧠 Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
+            content: `Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
 
 Sua missão é gerar um diagnóstico completo seguindo EXATAMENTE as 6 etapas estruturadas:
 
@@ -159,8 +158,12 @@ function createConsultorFluidaPrompt(data: any): string {
     ? (data.medicalClinicStyle || 'Não definido')
     : (data.aestheticClinicStyle || 'Não definido');
 
-  const prompt = `🎯 CONSULTOR FLUIDA - PROMPT FINAL
-Gere um diagnóstico estratégico completo seguindo EXATAMENTE as 6 etapas estruturadas:
+  // Detectar estilo de linguagem (com default)
+  const estiloLinguagem = data.communicationStyle 
+    ? formatCommunicationStyle(data.communicationStyle)
+    : (isClinicaMedica ? 'Técnico e Consultivo' : 'Emocional e Inspirador');
+
+  const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
 📥 DADOS DE BRIEFING:
 • Tipo: ${tipoClinica}
@@ -177,11 +180,11 @@ Gere um diagnóstico estratégico completo seguindo EXATAMENTE as 6 etapas estru
 • Aparece nos vídeos? ${apareceVideos}
 • Público ideal: ${data.targetAudience || 'Não definido'}
 • Estilo da clínica: ${estiloClinica}
-• Estilo de linguagem desejado: ${formatCommunicationStyle(data.communicationStyle)}
+• Estilo de linguagem: ${estiloLinguagem}
 
 ---
 
-🎯 RESPONDA COM AS 6 ETAPAS OBRIGATÓRIAS:
+🎯 GERE UM DIAGNÓSTICO SEGUINDO AS 6 ETAPAS OBRIGATÓRIAS:
 
 ## 📊 Diagnóstico Estratégico da Clínica
 [Identifique gargalos do negócio, desalinhamento entre público/oferta/visual/autoridade. Use tom ${isClinicaMedica ? 'técnico e consultivo' : 'emocional e humanizado'}]
