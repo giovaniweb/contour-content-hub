@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,13 +32,15 @@ interface MarketingDashboardProps {
   mentor: any;
   aiSections: any;
   onRestart: () => void;
+  onStateUpdate?: (newState: MarketingConsultantState) => void;
 }
 
 const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   state,
   mentor,
   aiSections,
-  onRestart
+  onRestart,
+  onStateUpdate
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -80,6 +81,14 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     safeMentor,
     safeAiSections
   });
+
+  const handleDiagnosticUpdate = (newDiagnostic: string) => {
+    const updatedState = {
+      ...safeState,
+      generatedDiagnostic: newDiagnostic
+    };
+    onStateUpdate?.(updatedState);
+  };
 
   const handleDownloadReport = () => {
     toast.success("📄 Relatório baixado!", {
@@ -265,6 +274,8 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
         {activeTab === 'diagnostic' && (
           <StructuredDiagnosticSection 
             diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'}
+            state={safeState}
+            onDiagnosticUpdate={handleDiagnosticUpdate}
           />
         )}
 

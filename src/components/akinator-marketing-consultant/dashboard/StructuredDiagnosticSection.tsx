@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   BrainCircuit, 
   Lightbulb, 
@@ -12,15 +12,54 @@ import {
   Target,
   CheckCircle2,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
+import { useAIDiagnostic } from "@/hooks/useAIDiagnostic";
 
 interface StructuredDiagnosticSectionProps {
   diagnostic: string;
+  state?: any;
+  onDiagnosticUpdate?: (newDiagnostic: string) => void;
 }
 
-const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = ({ diagnostic }) => {
+const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = ({ 
+  diagnostic, 
+  state,
+  onDiagnosticUpdate 
+}) => {
+  const [isRetrying, setIsRetrying] = useState(false);
+  const { generateDiagnostic } = useAIDiagnostic();
+
+  const handleRetryDiagnostic = async () => {
+    if (!state) {
+      toast.error("Dados do diagnóstico não disponíveis para regenerar");
+      return;
+    }
+
+    setIsRetrying(true);
+    try {
+      toast.info("🤖 Tentando regenerar diagnóstico com IA...");
+      
+      const newDiagnostic = await generateDiagnostic(state);
+      
+      if (newDiagnostic && newDiagnostic.trim() !== '') {
+        onDiagnosticUpdate?.(newDiagnostic);
+        toast.success("✅ Diagnóstico regenerado com sucesso!");
+      } else {
+        toast.error("❌ Não foi possível regenerar o diagnóstico via IA");
+      }
+    } catch (error) {
+      console.error('Erro ao regenerar diagnóstico:', error);
+      toast.error("❌ Erro ao tentar regenerar diagnóstico");
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   // Função para extrair seções do diagnóstico
   const extractSections = (text: string) => {
     const sections = {
@@ -52,8 +91,6 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
 
     return sections;
   };
-
-  const sections = extractSections(diagnostic);
 
   const renderSection = (title: string, content: string, icon: React.ReactNode, color: string) => {
     if (!content) return null;
@@ -138,6 +175,78 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       </div>
     );
   }
+
+  // Verificar se é o diagnóstico temporário/fallback
+  if (diagnostic.includes('temporariamente indisponível') || diagnostic.includes('Diagnóstico temporariamente indisponível')) {
+    return (
+      <div className="text-center py-12">
+        <Card className="aurora-card border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center mb-4">
+              <AlertCircle className="h-12 w-12 text-amber-500" />
+            </div>
+            
+            <h3 className="text-xl font-semibold aurora-heading mb-3 text-amber-400">
+              ⚠️ Diagnóstico IA Temporariamente Indisponível
+            </h3>
+            
+            <p className="aurora-body mb-6 opacity-90 leading-relaxed">
+              A IA do Consultor Fluida está momentaneamente indisponível. Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
+            </p>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="p-3 aurora-glass rounded-lg">
+                  <h4 className="font-medium text-aurora-sage mb-2">✅ O que funciona:</h4>
+                  <ul className="text-left space-y-1 opacity-80">
+                    <li>• Análise básica do perfil</li>
+                    <li>• Cards informativos</li>
+                    <li>• Dados salvos</li>
+                  </ul>
+                </div>
+                
+                <div className="p-3 aurora-glass rounded-lg">
+                  <h4 className="font-medium text-amber-400 mb-2">⏳ Temporariamente off:</h4>
+                  <ul className="text-left space-y-1 opacity-80">
+                    <li>• Diagnóstico completo da IA</li>
+                    <li>• Sugestões personalizadas</li>
+                    <li>• Plano de ação detalhado</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  onClick={handleRetryDiagnostic}
+                  disabled={isRetrying || !state}
+                  className="aurora-button mr-3"
+                >
+                  {isRetrying ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Regenerando...
+                    </>
+                  ) : (
+                    <>
+                      <BrainCircuit className="h-4 w-4 mr-2" />
+                      Tentar Regenerar IA
+                    </>
+                  )}
+                </Button>
+                
+                <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Seus dados estão seguros
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const sections = extractSections(diagnostic);
 
   return (
     <div className="space-y-8">
