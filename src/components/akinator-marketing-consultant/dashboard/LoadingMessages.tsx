@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { BrainCircuit, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Mensagens otimizadas conforme o prompt
-const LOADING_MESSAGES = [
-  "O mentor está analisando seus dados...",
-  "Mentor Fluida consultando os arquivos secretos...",
-  "A estratégia está sendo arquitetada com precisão cirúrgica...",
-  "Conectando com inteligência estratégica...",
-  "Respire fundo, a mágica está quase pronta ✨",
+// Mensagens consolidadas dos mentores conforme prompt
+const MENTOR_LOADING_MESSAGES = [
+  "Respira fundo... O Mentor Estratégico está afinando a estratégia como uma sinfonia.",
+  "Enquanto carrega, visualize sua clínica dominando o Instagram...",
+  "A IA está analisando cada detalhe — tipo um peeling digital profundo!",
+  "'O sucesso é um hábito... de quem posta com propósito.' — Mentor Expert",
+  "Se fosse fácil, qualquer um faria. Mas você tem o Fluida.",
   "🎯 Calibrando os ganchos virais para sua especialidade...",
   "⚡ Mapeando o perfil da sua audiência ideal...",
   "🧠 Processando insights de marketing de alto impacto...",
@@ -19,7 +19,12 @@ const LOADING_MESSAGES = [
   "🎭 Decodificando o DNA da sua clínica...",
   "💎 Lapidando estratégias exclusivas para você...",
   "🔮 Prevendo tendências do seu mercado...",
-  "⭐ Acessando inteligência de marketing premium..."
+  "⭐ Acessando inteligência de marketing premium...",
+  "🎪 'Transformação não é mágica, é método' — Mentor Misterioso",
+  "🎯 'Quem não aparece, não vende. Quem aparece mal, vende menos' — Estrategista",
+  "🌟 'Autoridade se constrói compartilhando conhecimento' — Consultor Expert",
+  "💼 'A consistência vence a perfeição em marketing digital' — Mentor Digital",
+  "🎨 'Humanizar é mais importante que vender' — Especialista em Conexão"
 ];
 
 interface LoadingMessagesProps {
@@ -41,9 +46,9 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
       setTimeElapsed(prev => prev + 1);
     }, 1000);
 
-    // Mudança de mensagens a cada 3 segundos
+    // Mudança de mensagens a cada 3 segundos conforme especificado
     const messageInterval = setInterval(() => {
-      setCurrentMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+      setCurrentMessageIndex((prev) => (prev + 1) % MENTOR_LOADING_MESSAGES.length);
     }, 3000);
 
     return () => {
@@ -83,8 +88,8 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
             transition={{ duration: 0.5 }}
             className="mb-4"
           >
-            <p className="text-sm text-white leading-relaxed italic">
-              {LOADING_MESSAGES[currentMessageIndex]}
+            <p className="text-sm text-white leading-relaxed italic min-h-[3rem] flex items-center justify-center">
+              {MENTOR_LOADING_MESSAGES[currentMessageIndex]}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -105,6 +110,12 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
               style={{ width: `${Math.min((timeElapsed / 60) * 100, 100)}%` }}
             />
           </div>
+          
+          <p className="text-xs text-white opacity-70 mt-2">
+            {timeElapsed < 30 ? '📊 Analisando perfil da clínica...' : 
+             timeElapsed < 45 ? '🎯 Criando estratégias personalizadas...' : 
+             '✨ Finalizando diagnóstico...'}
+          </p>
         </div>
       </div>
     </div>
