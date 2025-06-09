@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,9 +47,9 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
     setRetryCount(prev => prev + 1);
     
     try {
-      console.log(`🔄 Tentativa ${retryCount + 1} - Regenerando diagnóstico`);
+      console.log(`🔄 Tentativa ${retryCount + 1} - Reanalisando com IA Fluida`);
       
-      toast.info("🎯 Regenerando diagnóstico com Consultor Fluida...", {
+      toast.info("🎯 Reanalisando com IA Fluida...", {
         description: `Tentativa ${retryCount + 1} - Pode levar até 60 segundos`,
         id: "retry-diagnostic"
       });
@@ -57,7 +58,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       
       if (newDiagnostic && newDiagnostic.trim() !== '' && !newDiagnostic.includes('temporariamente indisponível')) {
         onDiagnosticUpdate?.(newDiagnostic);
-        toast.success("✅ Diagnóstico regenerado com sucesso!", {
+        toast.success("✅ Diagnóstico reanalisado com sucesso!", {
           description: `Concluído na tentativa ${retryCount + 1}`,
           id: "retry-diagnostic"
         });
@@ -70,7 +71,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       }
     } catch (error) {
       console.error(`Erro na tentativa ${retryCount + 1}:`, error);
-      toast.error("❌ Erro ao regenerar", {
+      toast.error("❌ Erro ao reanalisar", {
         description: `Tentativa ${retryCount + 1} falhou.`,
         id: "retry-diagnostic"
       });
@@ -79,7 +80,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
     }
   };
 
-  // Função para extrair seções do diagnóstico
+  // Função para extrair seções do diagnóstico com os títulos exatos
   const extractSections = (text: string) => {
     const sections = {
       estrategico: '',
@@ -90,21 +91,26 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       insights: ''
     };
 
-    // Regex patterns para cada seção obrigatória
+    // Regex patterns para cada seção obrigatória com títulos exatos
     const patterns = {
-      estrategico: /📊 Diagnóstico Estratégico.*?(?=💡|$)/s,
-      conteudo: /💡 Sugestões de Conteúdo.*?(?=📅|$)/s,
-      planoAcao: /📅 Plano de Ação.*?(?=🎨|$)/s,
-      marca: /🎨 Avaliação de Marca.*?(?=🧩|$)/s,
-      enigma: /🧩 Enigma do Mentor.*?(?=📈|$)/s,
-      insights: /📈 Insights Estratégicos.*?$/s
+      estrategico: /## 📊 Diagnóstico Estratégico da Clínica[\s\S]*?(?=## 💡|$)/,
+      conteudo: /## 💡 Sugestões de Conteúdo Personalizado[\s\S]*?(?=## 📅|$)/,
+      planoAcao: /## 📅 Plano de Ação Semanal[\s\S]*?(?=## 🎨|$)/,
+      marca: /## 🎨 Avaliação de Marca e Atendimento[\s\S]*?(?=## 🧩|$)/,
+      enigma: /## 🧩 Enigma do Mentor[\s\S]*?(?=## 📈|$)/,
+      insights: /## 📈 Insights Estratégicos Fluida[\s\S]*?$/
     };
+
+    console.log('🔍 Extraindo seções do diagnóstico...');
 
     // Extrair cada seção
     Object.entries(patterns).forEach(([key, pattern]) => {
       const match = text.match(pattern);
       if (match) {
         sections[key as keyof typeof sections] = match[0].trim();
+        console.log(`✅ Seção ${key} encontrada`);
+      } else {
+        console.log(`❌ Seção ${key} não encontrada`);
       }
     });
 
@@ -221,7 +227,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   ) : (
                     <>
                       <BrainCircuit className="h-4 w-4 mr-2" />
-                      🎯 Tentar Regenerar com Consultor Fluida
+                      🎯 Reanalisar com IA Fluida
                       {retryCount > 0 && ` (${retryCount} tentativas)`}
                     </>
                   )}
@@ -265,6 +271,25 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
               Análise estratégica personalizada para sua clínica
             </p>
           </div>
+          <Button 
+            onClick={handleRetryDiagnostic}
+            disabled={isRetrying || isGenerating || !state}
+            variant="outline"
+            size="sm"
+            className="bg-aurora-electric-purple/10 border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20"
+          >
+            {(isRetrying || isGenerating) ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Reanalisando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reanalisar com IA Fluida
+              </>
+            )}
+          </Button>
         </div>
       </div>
 

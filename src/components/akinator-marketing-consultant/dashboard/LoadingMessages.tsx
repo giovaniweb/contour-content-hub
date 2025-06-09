@@ -1,31 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { BrainCircuit, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Mensagens consolidadas dos mentores conforme prompt
-const MENTOR_LOADING_MESSAGES = [
-  "Respira fundo... O Mentor Estratégico está afinando a estratégia como uma sinfonia.",
-  "Enquanto carrega, visualize sua clínica dominando o Instagram...",
-  "A IA está analisando cada detalhe — tipo um peeling digital profundo!",
-  "'O sucesso é um hábito... de quem posta com propósito.' — Mentor Expert",
-  "Se fosse fácil, qualquer um faria. Mas você tem o Fluida.",
-  "🎯 Calibrando os ganchos virais para sua especialidade...",
-  "⚡ Mapeando o perfil da sua audiência ideal...",
-  "🧠 Processando insights de marketing de alto impacto...",
-  "💡 Conectando estratégias que convertem visualizações em consultas...",
-  "🚀 Construindo seu plano de dominação digital...",
-  "📊 Analisando dados com precisão de mentor estratégico...",
-  "🎭 Decodificando o DNA da sua clínica...",
-  "💎 Lapidando estratégias exclusivas para você...",
-  "🔮 Prevendo tendências do seu mercado...",
-  "⭐ Acessando inteligência de marketing premium...",
-  "🎪 'Transformação não é mágica, é método' — Mentor Misterioso",
-  "🎯 'Quem não aparece, não vende. Quem aparece mal, vende menos' — Estrategista",
-  "🌟 'Autoridade se constrói compartilhando conhecimento' — Consultor Expert",
-  "💼 'A consistência vence a perfeição em marketing digital' — Mentor Digital",
-  "🎨 'Humanizar é mais importante que vender' — Especialista em Conexão"
-];
+import { BrainCircuit, Sparkles, Target, TrendingUp, Users, Lightbulb } from 'lucide-react';
 
 interface LoadingMessagesProps {
   isLoading: boolean;
@@ -33,91 +9,130 @@ interface LoadingMessagesProps {
 
 const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [timeElapsed, setTimeElapsed] = useState(0);
+
+  const mentorMessages = [
+    { 
+      text: "Respira fundo... O Consultor Fluida está afinando a estratégia como uma sinfonia.", 
+      icon: <BrainCircuit className="h-5 w-5" /> 
+    },
+    { 
+      text: "Enquanto carrega, visualize sua clínica dominando o Instagram...", 
+      icon: <Target className="h-5 w-5" /> 
+    },
+    { 
+      text: "A IA está analisando cada detalhe — tipo um peeling digital profundo!", 
+      icon: <Sparkles className="h-5 w-5" /> 
+    },
+    { 
+      text: "'O sucesso é um hábito... de quem posta com propósito.' — Mentor Expert", 
+      icon: <TrendingUp className="h-5 w-5" /> 
+    },
+    { 
+      text: "Se fosse fácil, qualquer um faria. Mas você tem o Fluida.", 
+      icon: <Users className="h-5 w-5" /> 
+    },
+    { 
+      text: "Criando insights que vão fazer sua concorrência se perguntar: 'Como eles fazem isso?'", 
+      icon: <Lightbulb className="h-5 w-5" /> 
+    },
+    { 
+      text: "Processando dados como um mentor experiente analisa o mercado...", 
+      icon: <BrainCircuit className="h-5 w-5" /> 
+    },
+    { 
+      text: "Sua estratégia está sendo moldada com precisão cirúrgica.", 
+      icon: <Target className="h-5 w-5" /> 
+    }
+  ];
 
   useEffect(() => {
-    if (!isLoading) {
-      setTimeElapsed(0);
-      return;
-    }
+    if (!isLoading) return;
 
-    // Contador de tempo mais preciso
-    const timeInterval = setInterval(() => {
-      setTimeElapsed(prev => prev + 1);
-    }, 1000);
+    const interval = setInterval(() => {
+      setCurrentMessageIndex((prev) => (prev + 1) % mentorMessages.length);
+    }, 3000); // Rotaciona a cada 3 segundos
 
-    // Mudança de mensagens a cada 3 segundos conforme especificado
-    const messageInterval = setInterval(() => {
-      setCurrentMessageIndex((prev) => (prev + 1) % MENTOR_LOADING_MESSAGES.length);
-    }, 3000);
-
-    return () => {
-      clearInterval(timeInterval);
-      clearInterval(messageInterval);
-    };
-  }, [isLoading]);
+    return () => clearInterval(interval);
+  }, [isLoading, mentorMessages.length]);
 
   if (!isLoading) return null;
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
-  };
-
   return (
-    <div className="text-center py-12">
-      <div className="aurora-glass rounded-xl p-8 max-w-md mx-auto">
-        <div className="flex items-center justify-center mb-6">
-          <div className="relative">
-            <BrainCircuit className="h-16 w-16 text-aurora-electric-purple animate-pulse" />
-            <Sparkles className="h-6 w-6 text-aurora-sage absolute -top-1 -right-1 animate-ping" />
+    <div className="container mx-auto max-w-4xl py-12">
+      <div className="text-center">
+        <div className="relative mb-8">
+          {/* Círculo pulsante principal */}
+          <div className="w-32 h-32 mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-aurora-electric-purple to-aurora-sage rounded-full animate-pulse"></div>
+            <div className="absolute inset-2 bg-gradient-to-r from-aurora-deep-purple to-aurora-electric-purple rounded-full animate-ping"></div>
+            <div className="absolute inset-4 bg-aurora-dark rounded-full flex items-center justify-center">
+              <BrainCircuit className="h-12 w-12 text-aurora-sage animate-spin" />
+            </div>
+          </div>
+
+          {/* Partículas flutuantes */}
+          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 bg-aurora-sage rounded-full opacity-70"
+                style={{
+                  left: `${20 + (i * 15)}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animation: 'float 3s ease-in-out infinite'
+                }}
+              />
+            ))}
           </div>
         </div>
-        
-        <h3 className="text-xl font-bold text-white mb-4">
+
+        <h2 className="text-3xl font-bold text-white mb-4">
           🎯 Consultor Fluida Trabalhando
-        </h3>
-        
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentMessageIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="mb-4"
-          >
-            <p className="text-sm text-white leading-relaxed italic min-h-[3rem] flex items-center justify-center">
-              {MENTOR_LOADING_MESSAGES[currentMessageIndex]}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-        
-        <div className="flex justify-center items-center space-x-1 mt-6">
-          <div className="w-2 h-2 bg-aurora-electric-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-aurora-sage rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-aurora-deep-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        </h2>
+
+        <p className="text-aurora-sage mb-8 text-lg">
+          Analisando seu perfil e gerando estratégias personalizadas...
+        </p>
+
+        {/* Container das mensagens rotativas */}
+        <div className="bg-aurora-electric-purple/10 rounded-2xl p-6 max-w-2xl mx-auto min-h-[120px] flex items-center justify-center border border-aurora-electric-purple/20">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentMessageIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-4"
+            >
+              <div className="p-3 bg-aurora-sage/20 rounded-full text-aurora-sage">
+                {mentorMessages[currentMessageIndex]?.icon}
+              </div>
+              <p className="text-white text-lg font-medium italic">
+                {mentorMessages[currentMessageIndex]?.text}
+              </p>
+            </motion.div>
+          </AnimatePresence>
         </div>
-        
-        <div className="mt-4 space-y-2">
-          <p className="text-xs text-white">
-            Tempo: {formatTime(timeElapsed)} / 60s máximo
-          </p>
-          <div className="w-full bg-aurora-deep-purple/30 rounded-full h-1">
-            <div 
-              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-sage h-1 rounded-full transition-all duration-1000"
-              style={{ width: `${Math.min((timeElapsed / 60) * 100, 100)}%` }}
-            />
+
+        {/* Barra de progresso indeterminada */}
+        <div className="mt-8 max-w-md mx-auto">
+          <div className="h-2 bg-aurora-electric-purple/20 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-aurora-electric-purple to-aurora-sage rounded-full animate-pulse"></div>
           </div>
-          
-          <p className="text-xs text-white opacity-70 mt-2">
-            {timeElapsed < 30 ? '📊 Analisando perfil da clínica...' : 
-             timeElapsed < 45 ? '🎯 Criando estratégias personalizadas...' : 
-             '✨ Finalizando diagnóstico...'}
+          <p className="text-aurora-sage text-sm mt-2">
+            Pode levar até 60 segundos...
           </p>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-20px) rotate(120deg); }
+          66% { transform: translateY(-10px) rotate(240deg); }
+        }
+      `}</style>
     </div>
   );
 };
