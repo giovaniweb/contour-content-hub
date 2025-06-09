@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { marketingDiagnosticsService, DiagnosticSession } from '@/services/marketingDiagnosticsService';
@@ -6,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const CURRENT_SESSION_KEY = 'fluida_current_diagnostic';
 
-export { DiagnosticSession };
+export type { DiagnosticSession };
 
 export const useDiagnosticPersistence = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);

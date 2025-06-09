@@ -34,8 +34,8 @@ const DiagnosticHistoryModal: React.FC<DiagnosticHistoryModalProps> = ({
     clearAllData 
   } = useDiagnosticPersistence();
 
-  const handleLoadDiagnostic = (session: DiagnosticSession) => {
-    const loaded = loadDiagnostic(session.id);
+  const handleLoadDiagnostic = async (session: DiagnosticSession) => {
+    const loaded = await loadDiagnostic(session.id);
     if (loaded) {
       onLoadDiagnostic?.(loaded);
       toast.success("📂 Diagnóstico carregado!", {

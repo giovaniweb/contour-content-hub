@@ -40,7 +40,7 @@ export const marketingDiagnosticsService = {
         session_id: sessionId,
         clinic_type: clinicType,
         specialty: specialty,
-        state_data: state,
+        state_data: state as any, // Type assertion for JSON compatibility
         generated_diagnostic: state.generatedDiagnostic,
         is_completed: isCompleted,
         user_id: (await supabase.auth.getUser()).data.user?.id
@@ -61,7 +61,10 @@ export const marketingDiagnosticsService = {
       }
 
       console.log('✅ Diagnóstico salvo no banco:', data);
-      return data;
+      return {
+        ...data,
+        state_data: data.state_data as MarketingConsultantState
+      } as MarketingDiagnostic;
     } catch (error) {
       console.error('❌ Erro ao salvar diagnóstico:', error);
       return null;
@@ -83,7 +86,7 @@ export const marketingDiagnosticsService = {
       return data.map(diagnostic => ({
         id: diagnostic.session_id,
         timestamp: diagnostic.created_at,
-        state: diagnostic.state_data,
+        state: diagnostic.state_data as MarketingConsultantState,
         isCompleted: diagnostic.is_completed,
         clinicTypeLabel: diagnostic.clinic_type === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
         specialty: diagnostic.specialty
@@ -109,7 +112,7 @@ export const marketingDiagnosticsService = {
       return {
         id: data.session_id,
         timestamp: data.created_at,
-        state: data.state_data,
+        state: data.state_data as MarketingConsultantState,
         isCompleted: data.is_completed,
         clinicTypeLabel: data.clinic_type === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
         specialty: data.specialty
