@@ -46,29 +46,30 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: `🧠 Você é o CONSULTOR FLUIDA — um estrategista de marketing altamente treinado para clínicas estéticas e clínicas médicas.
+            content: `🧠 Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
 
-Seu papel é conduzir um diagnóstico inteligente com base nas respostas do usuário, identificando o perfil da clínica, seus principais gargalos e oportunidades, e entregando uma resposta organizada com plano de ação, ideias de conteúdo, e previsão de crescimento.
+Sua missão é gerar um diagnóstico completo seguindo EXATAMENTE as 6 etapas estruturadas:
 
-⚙️ Sua inteligência inclui:
-- Classificação automática entre Clínica Médica 🧪 e Clínica Estética 💆‍♀️
-- Diferenciação entre equipamentos médicos e estéticos
-- Geração de conteúdo prático para Instagram, TikTok e YouTube Shorts
-- Linguagem adaptada ao perfil do usuário (emocional, técnica, humanizada…)
-- Humor leve e enigmático com referência a mentores fictícios
+1. 📊 Diagnóstico Estratégico da Clínica
+2. 💡 Sugestões de Conteúdo Personalizado (somente Instagram, Reels, TikTok, Shorts)
+3. 📅 Plano de Ação Semanal (4 semanas)
+4. 🎨 Avaliação de Marca e Atendimento
+5. 🧩 Enigma do Mentor
+6. 📈 Insights Estratégicos Fluida
 
-🔐 REGRAS DE ACESSO IMPORTANTES:
-- Se for CLÍNICA MÉDICA: pode sugerir TODOS os equipamentos (médicos e estéticos)
-- Se for CLÍNICA ESTÉTICA: pode sugerir APENAS equipamentos estéticos
-- NUNCA sugira equipamentos médicos (CO2 Fracionado, Ultrassom microfocado, Intradermoterapia) para clínicas estéticas
+⚠️ REGRAS CRÍTICAS:
+- Use EXATAMENTE esses títulos com emojis para cada seção
+- Conteúdo apenas para Instagram/TikTok/Shorts (nunca blog, webinar, live)
+- Adapte linguagem: Médica = técnica/autoridade | Estética = emocional/humanizada
+- Inclua pelo menos 3 ideias de conteúdo usando equipamentos citados
+- Plano de 4 semanas com 3-4 tarefas práticas por semana
+- Enigma sem revelar nome do mentor
+- Insights práticos e consultivos
 
-⚠️ Regras de Conteúdo:
-- Nunca sugira conteúdo complexo como blog, webinar ou live
-- Sempre pense no cliente da clínica (não no profissional)
-- Use uma estrutura leve, fluida e inspiradora
-- Nunca revele o nome do mentor
-- Os títulos devem ser claros, com emojis, frases curtas e CTA
-- Use somente Instagram, TikTok ou Shorts` 
+🎯 Fluxo de Segmentação:
+- Clínica Médica → Pode ver todos os equipamentos
+- Clínica Estética → Apenas equipamentos não invasivos
+- Inferência: Unyque PRO/Reverso/Enygma = MÉDICA | Crystal 3D/Crio/Multishape = ESTÉTICA` 
           },
           { role: 'user', content: prompt }
         ],
@@ -110,102 +111,113 @@ function createConsultorFluidaPrompt(data: any): string {
   const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
   const isClinicaMedica = data.clinicType === 'clinica_medica';
   
-  // Dados básicos da clínica
-  const dadosBasicos = {
-    tipo: tipoClinica,
-    faturamentoAtual: formatRevenue(data.currentRevenue),
-    metaCrescimento: formatGoal(data.revenueGoal),
-    publicoIdeal: data.targetAudience || 'Não definido',
-    estiloLinguagem: formatCommunicationStyle(data.communicationStyle),
-    frequenciaConteudo: formatContentFrequency(data.contentFrequency),
-    desafiosPrincipais: formatChallenges(data.mainChallenges)
-  };
+  // Detectar especialidade/foco principal
+  const especialidade = isClinicaMedica 
+    ? (data.medicalSpecialty || 'Não informado')
+    : (data.aestheticFocus || 'Não informado');
 
-  // Dados específicos por tipo de clínica
-  let perfilClinico = '';
-  if (isClinicaMedica) {
-    perfilClinico = `
-🧪 PERFIL CLÍNICA MÉDICA:
-- Especialidade: ${data.medicalSpecialty || 'Não informado'}
-- Procedimentos: ${data.medicalProcedures || 'Não informado'}
-- Equipamentos médicos: ${data.medicalEquipments || 'Não informado'}
-- Tratamentos oferecidos: ${data.medicalTreatments || 'Não informado'}
-- Protocolo mais vendido: ${data.medicalBestSeller || 'Não informado'}
-- Ticket médio: ${formatMedicalTicket(data.medicalTicket)}
-- Modelo de vendas: ${data.medicalSalesModel || 'Não informado'}
-- Objetivo principal: ${data.medicalObjective || 'Não informado'}
-- Aparece em conteúdos: ${data.medicalContentFrequency || 'Não informado'}
-- Estilo da clínica: ${data.medicalClinicStyle || 'Não informado'}`;
-  } else {
-    perfilClinico = `
-💆‍♀️ PERFIL CLÍNICA ESTÉTICA:
-- Foco de atuação: ${data.aestheticFocus || 'Não informado'}
-- Equipamentos estéticos: ${data.aestheticEquipments || 'Não informado'}
-- Promessas de tratamento: ${data.aestheticPromises || 'Não informado'}
-- Protocolo mais vendido: ${data.aestheticBestSeller || 'Não informado'}
-- Ticket médio: ${formatAestheticTicket(data.aestheticTicket)}
-- Modelo de vendas: ${data.aestheticSalesModel || 'Não informado'}
-- Objetivo principal: ${data.aestheticObjective || 'Não informado'}
-- Aparece em conteúdos: ${data.aestheticContentFrequency || 'Não informado'}
-- Estilo da clínica: ${data.aestheticClinicStyle || 'Não informado'}`;
-  }
+  // Detectar procedimentos principais
+  const procedimentos = isClinicaMedica
+    ? (data.medicalProcedures || 'Não informado')
+    : (data.aestheticBestSeller || 'Não informado');
 
-  const prompt = `🧠 CONSULTOR FLUIDA - Diagnóstico Inteligente
+  // Detectar equipamentos utilizados
+  const equipamentos = isClinicaMedica
+    ? (data.medicalEquipments || 'Não informado')
+    : (data.aestheticEquipments || 'Não informado');
 
-Analyze o perfil da clínica e gere um diagnóstico estruturado seguindo EXATAMENTE as seções abaixo:
+  // Detectar protocolo mais vendido
+  const protocolo = isClinicaMedica
+    ? (data.medicalBestSeller || 'Não informado')
+    : (data.aestheticBestSeller || 'Não informado');
 
-📥 DADOS DE ENTRADA:
-${perfilClinico}
+  // Detectar ticket médio
+  const ticketMedio = isClinicaMedica
+    ? formatMedicalTicket(data.medicalTicket)
+    : formatAestheticTicket(data.aestheticTicket);
 
-📊 DADOS FINANCEIROS E COMUNICAÇÃO:
-- Faturamento atual: ${dadosBasicos.faturamentoAtual}
-- Meta de crescimento: ${dadosBasicos.metaCrescimento}
-- Público-alvo: ${dadosBasicos.publicoIdeal}
-- Estilo de linguagem: ${dadosBasicos.estiloLinguagem}
-- Frequência de posts: ${dadosBasicos.frequenciaConteudo}
-- Principais desafios: ${dadosBasicos.desafiosPrincipais}
+  // Detectar modelo de vendas
+  const modeloVenda = isClinicaMedica
+    ? (data.medicalSalesModel || 'Não informado')
+    : (data.aestheticSalesModel || 'Não informado');
 
----
+  // Detectar objetivo principal
+  const objetivo = isClinicaMedica
+    ? formatMedicalObjective(data.medicalObjective)
+    : formatAestheticObjective(data.aestheticObjective);
 
-🎯 RESPONDA COM AS SEÇÕES ABAIXO (estrutura obrigatória):
+  // Detectar frequência de conteúdo
+  const frequencia = isClinicaMedica
+    ? (data.medicalContentFrequency || data.contentFrequency || 'Não informado')
+    : (data.aestheticContentFrequency || data.contentFrequency || 'Não informado');
 
-## 📊 Diagnóstico Estratégico
-[Analise o perfil da clínica, gargalos de comunicação e posicionamento. Aponte se há desalinhamento entre imagem, tráfego e oferta. Adapte o tom ao tipo de clínica (médica = autoridade; estética = humanização)]
+  // Detectar se aparece nos vídeos
+  const apareceVideos = detectaAparicaoVideos(data);
 
-## 💡 Ideias de Conteúdo Inteligente
-[Crie 4 a 6 ideias de conteúdo REAIS para o cliente final. Use somente Instagram, TikTok ou Shorts. Inclua pelo menos 1 conteúdo com equipamento (se aplicável). Tipos: bastidores, transformação, depoimento, skincare game, storytelling, dúvida comum. Dê TÍTULO + explicação + emoji]
+  // Detectar estilo da clínica
+  const estiloClinica = isClinicaMedica
+    ? (data.medicalClinicStyle || 'Não definido')
+    : (data.aestheticClinicStyle || 'Não definido');
 
-## 📅 Plano de Ação – 3 Semanas
-[
-Semana 1: Visibilidade e autoridade
-Semana 2: Prova social e conexão  
-Semana 3: Conversão e fidelização
-Para cada semana, gere 3 ações práticas com CTA claros. Use linguagem adaptada ao perfil
-]
+  const prompt = `🎯 CONSULTOR FLUIDA - PROMPT FINAL
+Gere um diagnóstico estratégico completo seguindo EXATAMENTE as 6 etapas estruturadas:
 
-## 🧩 Enigma Satírico do Mentor
-[Crie uma frase final com tom misterioso e irônico, sem citar o mentor real. Exemplo: "Essa estratégia parece coisa de quem vive no palco… mas atua melhor nos bastidores. Sempre vendendo sem parecer que está vendendo."]
-
-## 💸 Projeção de Crescimento
-[
-Mostre: Faturamento atual
-Estime: Projeção com o plano
-Calcule: Crescimento potencial (ex: +40%)
-Use o intervalo do simulador como base
-]
+📥 DADOS DE BRIEFING:
+• Tipo: ${tipoClinica}
+• Especialidade: ${especialidade}
+• Procedimentos: ${procedimentos}
+• Equipamentos: ${equipamentos}
+• Protocolo mais vendido: ${protocolo}
+• Ticket médio: ${ticketMedio}
+• Modelo de venda: ${modeloVenda}
+• Faturamento atual: ${formatRevenue(data.currentRevenue)}
+• Meta 3 meses: ${formatGoal(data.revenueGoal)}
+• Objetivo de marketing: ${objetivo}
+• Frequência de conteúdo: ${frequencia}
+• Aparece nos vídeos? ${apareceVideos}
+• Público ideal: ${data.targetAudience || 'Não definido'}
+• Estilo da clínica: ${estiloClinica}
+• Estilo de linguagem desejado: ${formatCommunicationStyle(data.communicationStyle)}
 
 ---
 
-🔐 CONTROLE DE ACESSO:
+🎯 RESPONDA COM AS 6 ETAPAS OBRIGATÓRIAS:
+
+## 📊 Diagnóstico Estratégico da Clínica
+[Identifique gargalos do negócio, desalinhamento entre público/oferta/visual/autoridade. Use tom ${isClinicaMedica ? 'técnico e consultivo' : 'emocional e humanizado'}]
+
+## 💡 Sugestões de Conteúdo Personalizado
+[3-5 ideias práticas APENAS para Instagram/TikTok/Shorts. Inclua pelo menos 3 ideias usando ${equipamentos}. Seja criativo e humano]
+
+## 📅 Plano de Ação Semanal (4 semanas)
+[
+Semana 1: Autoridade e visibilidade (3-4 tarefas práticas)
+Semana 2: Prova social e diferencial (3-4 tarefas práticas)  
+Semana 3: Conversão e campanha (3-4 tarefas práticas)
+Semana 4: Aceleração e fidelização (3-4 tarefas práticas)
+]
+
+## 🎨 Avaliação de Marca e Atendimento
+[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
+
+## 🧩 Enigma do Mentor
+[Frase misteriosa com trocadilho sobre mentor (sem revelar nome). Ex: "Esse plano foi guiado por alguém que transforma 'ladainha' em lucro..."]
+
+## 📈 Insights Estratégicos Fluida
+[3-5 insights práticos consultivos sobre equipamento, posicionamento, branding. Ex: "Você não aparece nos vídeos — isso pode estar limitando seu alcance"]
+
+---
+
+⚠️ CONTROLE DE ACESSO:
 - Tipo detectado: ${tipoClinica}
 - ${isClinicaMedica ? 'PODE sugerir equipamentos médicos E estéticos' : 'APENAS equipamentos estéticos (NÃO médicos)'}
 - ${!isClinicaMedica ? 'NUNCA mencione: CO2, HIFU, Laser Fracionado, Intradermoterapia' : ''}
 
-⚠️ LEMBRE-SE:
-- Foque no CLIENTE FINAL da clínica
-- Conteúdo apenas para Instagram/TikTok/Shorts
-- Linguagem ${dadosBasicos.estiloLinguagem}
-- Tom inspirador e prático`;
+⚠️ REGRAS FINAIS:
+- Proibido: live, blog, ebook, webinar
+- Apenas conteúdo de rede social
+- Linguagem adaptada ao público
+- Diagnóstico consultivo e prático`;
 
   return prompt;
 }
@@ -223,9 +235,9 @@ function formatRevenue(revenue: string): string {
 
 function formatGoal(goal: string): string {
   const map: { [key: string]: string } = {
-    'crescer_30': 'Crescer 30% em 6 meses',
-    'crescer_50': 'Crescer 50% em 6 meses',
-    'dobrar': 'Dobrar em 1 ano',
+    'crescer_30': 'Crescer 30% em 3 meses',
+    'crescer_50': 'Crescer 50% em 3 meses',
+    'dobrar': 'Dobrar em 6 meses',
     'triplicar': 'Triplicar em 1 ano',
     'manter_estavel': 'Manter estabilidade'
   };
@@ -242,28 +254,24 @@ function formatCommunicationStyle(style: string): string {
   return map[style] || style || 'Não definido';
 }
 
-function formatContentFrequency(freq: string): string {
+function formatMedicalObjective(objective: string): string {
   const map: { [key: string]: string } = {
-    'diario': 'Diariamente',
-    'semanal': 'Semanalmente',
-    'quinzenal': 'Quinzenalmente',
-    'mensal': 'Mensalmente',
-    'raramente': 'Raramente',
-    'nao_posto': 'Não posta'
+    'autoridade_medica': 'Aumentar autoridade médica',
+    'escalar_consultorio': 'Escalar consultório',
+    'fidelizar_pacientes': 'Melhorar retenção de pacientes',
+    'diferenciar_mercado': 'Diferenciar no mercado'
   };
-  return map[freq] || freq || 'Não informado';
+  return map[objective] || objective || 'Não informado';
 }
 
-function formatChallenges(challenges: string): string {
+function formatAestheticObjective(objective: string): string {
   const map: { [key: string]: string } = {
-    'gerar_leads': 'Gerar leads qualificados',
-    'converter_vendas': 'Converter leads em vendas',
-    'fidelizar_clientes': 'Fidelizar clientes',
-    'competir_preco': 'Competir sem baixar preço',
-    'criar_conteudo': 'Criar conteúdo relevante',
-    'gestao_tempo': 'Gestão de tempo'
+    'atrair_leads': 'Atrair leads qualificados',
+    'aumentar_recorrencia': 'Aumentar recorrência',
+    'elevar_ticket': 'Aumentar ticket médio',
+    'autoridade_regiao': 'Ser referência na região'
   };
-  return map[challenges] || challenges || 'Não informado';
+  return map[objective] || objective || 'Não informado';
 }
 
 function formatMedicalTicket(ticket: string): string {
@@ -286,4 +294,16 @@ function formatAestheticTicket(ticket: string): string {
     'acima_1000': 'Acima de R$ 1.000'
   };
   return map[ticket] || ticket || 'Não informado';
+}
+
+function detectaAparicaoVideos(data: any): string {
+  const medical = data.medicalContentFrequency;
+  const aesthetic = data.aestheticContentFrequency;
+  
+  if (medical && (medical.includes('aparece') || medical.includes('sempre'))) return 'Sim, aparece regularmente';
+  if (aesthetic && (aesthetic.includes('aparece') || aesthetic.includes('sempre'))) return 'Sim, aparece regularmente';
+  if (medical && medical.includes('nunca')) return 'Não aparece nos vídeos';
+  if (aesthetic && aesthetic.includes('nunca')) return 'Não aparece nos vídeos';
+  
+  return 'Não especificado';
 }

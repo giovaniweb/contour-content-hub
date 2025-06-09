@@ -2,212 +2,192 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Target, Users, Zap, BarChart3, Lightbulb } from "lucide-react";
+import { 
+  Zap, 
+  Target, 
+  TrendingUp,
+  Users,
+  Crown,
+  Sparkles,
+  MessageSquare,
+  Calendar
+} from "lucide-react";
+import { MarketingConsultantState } from '../types';
 
 interface FluidAnalysisCardsProps {
-  state: any;
+  state: MarketingConsultantState;
   aiSections: any;
 }
 
-const FluidAnalysisCards: React.FC<FluidAnalysisCardsProps> = ({ 
-  state, 
-  aiSections 
-}) => {
-  const getAnalysisCards = () => {
-    const baseCards = [
-      {
-        icon: Target,
-        title: "Foco Estratégico",
-        subtitle: "Direcionamento Principal",
-        content: "Clínica com potencial de crescimento através de estratégias de diferenciação e autoridade no mercado local.",
-        color: "text-red-400",
-        bgColor: "border-red-500/30",
-        badgeColor: "bg-red-500/20 text-red-400 border-red-500/30"
-      },
-      {
-        icon: Users,
-        title: "Análise de Público",
-        subtitle: "Perfil dos Clientes",
-        content: "Público interessado em tratamentos de qualidade, valoriza expertise técnica e resultados comprovados.",
-        color: "text-blue-400",
-        bgColor: "border-blue-500/30",
-        badgeColor: "bg-blue-500/20 text-blue-400 border-blue-500/30"
-      },
-      {
-        icon: TrendingUp,
-        title: "Oportunidades",
-        subtitle: "Pontos de Crescimento",
-        content: "Mercado em expansão com demanda crescente por procedimentos especializados e atendimento personalizado.",
-        color: "text-green-400",
-        bgColor: "border-green-500/30",
-        badgeColor: "bg-green-500/20 text-green-400 border-green-500/30"
-      },
-      {
-        icon: Zap,
-        title: "Diferenciais",
-        subtitle: "Vantagens Competitivas",
-        content: "Expertise técnica, equipamentos modernos e abordagem personalizada são os principais diferenciais identificados.",
-        color: "text-yellow-400",
-        bgColor: "border-yellow-500/30",
-        badgeColor: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-      },
-      {
-        icon: BarChart3,
-        title: "Performance Atual",
-        subtitle: "Situação do Negócio",
-        content: `Faturamento atual em ${state.currentRevenue ? 'crescimento' : 'estabilização'}, com meta de expansão definida.`,
-        color: "text-purple-400",
-        bgColor: "border-purple-500/30",
-        badgeColor: "bg-purple-500/20 text-purple-400 border-purple-500/30"
-      },
-      {
-        icon: Lightbulb,
-        title: "Recomendações",
-        subtitle: "Próximos Passos",
-        content: "Focar em conteúdo educativo, depoimentos de clientes e otimização da presença digital para maximizar resultados.",
-        color: "text-cyan-400",
-        bgColor: "border-cyan-500/30",
-        badgeColor: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-      }
-    ];
+const FluidAnalysisCards: React.FC<FluidAnalysisCardsProps> = ({ state, aiSections }) => {
+  const isClinicaMedica = state.clinicType === 'clinica_medica';
 
-    // Se houver diagnóstico da IA, tentar extrair insights específicos
-    if (aiSections?.diagnostico_estrategico) {
-      const diagnosticText = aiSections.diagnostico_estrategico;
-      const sentences = diagnosticText.split('.').filter(s => s.trim().length > 20);
-      
-      if (sentences.length >= 3) {
-        return baseCards.map((card, index) => ({
-          ...card,
-          content: sentences[index] || card.content
-        }));
-      }
+  const getMainEquipment = () => {
+    if (isClinicaMedica) {
+      return state.medicalEquipments || 'Não informado';
     }
-
-    return baseCards;
+    return state.aestheticEquipments || 'Não informado';
   };
 
-  const analysisCards = getAnalysisCards();
+  const getMainObjective = () => {
+    if (isClinicaMedica) {
+      const objectiveMap: { [key: string]: string } = {
+        'autoridade_medica': 'Aumentar autoridade médica',
+        'escalar_consultorio': 'Escalar consultório',
+        'fidelizar_pacientes': 'Melhorar retenção',
+        'diferenciar_mercado': 'Diferenciar no mercado'
+      };
+      return objectiveMap[state.medicalObjective] || 'Não informado';
+    } else {
+      const objectiveMap: { [key: string]: string } = {
+        'atrair_leads': 'Atrair leads qualificados',
+        'aumentar_recorrencia': 'Aumentar recorrência',
+        'elevar_ticket': 'Aumentar ticket médio',
+        'autoridade_regiao': 'Ser referência na região'
+      };
+      return objectiveMap[state.aestheticObjective] || 'Não informado';
+    }
+  };
+
+  const getContentFrequency = () => {
+    if (isClinicaMedica) {
+      return state.medicalContentFrequency || state.contentFrequency || 'Não informado';
+    }
+    return state.aestheticContentFrequency || state.contentFrequency || 'Não informado';
+  };
+
+  const getRecommendedActions = () => {
+    const actions = [];
+    
+    if (!state.contentFrequency || state.contentFrequency === 'raramente') {
+      actions.push('Aumentar frequência de conteúdo');
+    }
+    
+    if (getMainEquipment() === 'Não informado') {
+      actions.push('Definir equipamentos principais');
+    }
+    
+    if (!state.targetAudience) {
+      actions.push('Especificar público-alvo');
+    }
+    
+    return actions.length ? actions : ['Otimizar estratégia atual'];
+  };
 
   return (
-    <section className="space-y-8">
-      {/* Header */}
+    <section>
       <div className="flex items-center gap-4 mb-8">
-        <div className="relative">
-          <div className="w-12 h-12 bg-gradient-to-br from-aurora-electric-purple to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-2xl">🧠</span>
-          </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-background animate-pulse"></div>
+        <div className="w-12 h-12 bg-gradient-to-br from-aurora-sage to-aurora-electric-purple rounded-2xl flex items-center justify-center shadow-lg">
+          <Zap className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1">
           <h2 className="text-3xl font-bold text-foreground mb-1">
-            Análise Fluida Completa
+            ⚡ Análise Inteligente Fluida
           </h2>
           <p className="text-foreground/60 text-lg">
-            Insights estratégicos baseados no perfil da sua clínica
+            Insights personalizados baseados no seu perfil
           </p>
         </div>
-        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-aurora-electric-purple/20 to-pink-500/20 rounded-full border border-aurora-electric-purple/30">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-foreground/80">Análise Concluída</span>
-        </div>
       </div>
 
-      {/* Analysis Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {analysisCards.map((analysis, index) => {
-          const IconComponent = analysis.icon;
-          
-          return (
-            <Card 
-              key={index} 
-              className={`group relative overflow-hidden aurora-glass ${analysis.bgColor} bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-md hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 hover:-translate-y-1`}
-            >
-              {/* Background gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              <CardHeader className="pb-4 relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="relative">
-                      <div className={`w-12 h-12 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-purple-500/40 group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent className={`h-6 w-6 ${analysis.color}`} />
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-bold text-white">{index + 1}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <CardTitle className="text-lg text-foreground font-bold leading-tight mb-2">
-                        {analysis.title}
-                      </CardTitle>
-                      <p className="text-sm text-foreground/60 font-medium">
-                        {analysis.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <Badge 
-                    variant="outline" 
-                    className={`${analysis.badgeColor} text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm`}
-                  >
-                    Analisado
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0 relative z-10">
-                <p className="text-sm text-foreground/80 leading-relaxed line-height-relaxed">
-                  {analysis.content.replace(/[*#]/g, '').trim()}
-                </p>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-purple-500/20 mt-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-foreground/60 font-medium">
-                      Status: 
-                    </span>
-                    <span className="text-aurora-electric-purple font-semibold text-sm">
-                      Concluído
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full shadow-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-green-300 rounded-full"></div>
-                    <div className="w-1 h-1 bg-green-200 rounded-full"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Summary Footer */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-aurora-electric-purple/10 via-blue-500/10 to-pink-500/10 rounded-2xl border border-aurora-electric-purple/20 backdrop-blur-sm">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-aurora-electric-purple to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-              <BarChart3 className="h-5 w-5 text-white" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <Card className="aurora-glass border-aurora-sage/30 bg-gradient-to-br from-aurora-sage/20 to-green-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Foco Estratégico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-lg font-bold text-foreground">
+                {getMainObjective()}
+              </p>
+              <Badge variant="secondary" className="text-xs">
+                {isClinicaMedica ? '🧪 Médica' : '💆‍♀️ Estética'}
+              </Badge>
             </div>
-          </div>
-          
-          <div className="flex-1">
-            <p className="text-base font-semibold text-foreground mb-1">
-              🎯 Análise Estratégica Finalizada
-            </p>
-            <p className="text-sm text-foreground/70 leading-relaxed">
-              Todos os aspectos do seu negócio foram analisados. Agora você tem um panorama completo para tomar decisões estratégicas informadas.
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <div className="w-2.5 h-2.5 bg-green-400 rounded-full"></div>
-            <span className="text-sm text-green-400 font-medium">Completo</span>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card className="aurora-glass border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Equipamento Principal
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-foreground leading-tight">
+                {getMainEquipment()}
+              </p>
+              <div className="flex items-center gap-1">
+                <Crown className="h-3 w-3 text-purple-400" />
+                <span className="text-xs text-purple-400">
+                  Diferencial competitivo
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="aurora-glass border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-foreground/70 flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Estratégia de Conteúdo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-foreground leading-tight">
+                {getContentFrequency()}
+              </p>
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-blue-400" />
+                <span className="text-xs text-blue-400">
+                  Frequência atual
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className="aurora-glass border-aurora-electric-purple/50 bg-gradient-to-br from-gray-900/60 to-gray-800/40">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <TrendingUp className="h-5 w-5 text-aurora-sage" />
+            🎯 Próximas Ações Recomendadas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getRecommendedActions().map((action, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 aurora-glass rounded-lg">
+                <div className="w-8 h-8 bg-aurora-sage/20 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-aurora-sage">{index + 1}</span>
+                </div>
+                <span className="text-sm aurora-body">{action}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 p-4 bg-aurora-electric-purple/10 rounded-lg border border-aurora-electric-purple/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
+              <span className="text-sm font-medium text-aurora-electric-purple">Insight Fluida</span>
+            </div>
+            <p className="text-sm aurora-body opacity-90">
+              {isClinicaMedica 
+                ? "Clínicas médicas que mostram autoridade técnica e resultados científicos convertem 40% mais leads."
+                : "Clínicas estéticas que humanizam o atendimento e mostram transformações reais aumentam em 60% a taxa de conversão."
+              }
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 };
