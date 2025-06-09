@@ -209,7 +209,13 @@ Semana 4: Aceleração e fidelização
 🎯 SEGMENTAÇÃO:
 - Clínica Médica → Pode ver todos os equipamentos
 - Clínica Estética → Apenas equipamentos não invasivos
-- Inferência: Unyque PRO/Reverso/Enygma = MÉDICA | Crystal 3D Plus/Crio/Multishape = ESTÉTICA`;
+- Inferência: Unyque PRO/Reverso/Enygma = MÉDICA | Crystal 3D Plus/Crio/Multishape = ESTÉTICA
+
+⚠️ VALIDAÇÃO DE EQUIPAMENTOS:
+Todo equipamento citado deve ser validado com base no banco oficial. Se não reconhecido, gere alerta:
+"Equipamento não validado no banco de dados oficial. Verifique a ortografia ou consulte o time técnico Fluida."
+
+Se múltiplos equipamentos, gere pelo menos 1 sugestão de conteúdo e 1 insight para cada um.`;
 }
 
 function createConsultorFluidaPrompt(data: any): string {
@@ -220,6 +226,10 @@ function createConsultorFluidaPrompt(data: any): string {
   const especialidade = isClinicaMedica 
     ? (data.medicalSpecialty || 'Não informado')
     : (data.aestheticFocus || 'Não informado');
+
+  const procedimentos = isClinicaMedica
+    ? (data.medicalProcedures || 'Não informado')
+    : (data.aestheticTreatments || 'Não informado');
 
   const equipamentos = isClinicaMedica
     ? (data.medicalEquipments || 'Não informado')
@@ -243,19 +253,29 @@ function createConsultorFluidaPrompt(data: any): string {
   const publicoIdeal = data.targetAudience || 'Não definido';
   const estiloClinica = data.clinicStyle || 'Não definido';
   const desafios = data.mainChallenges || 'Não informado';
+  const estiloLinguagem = data.communicationStyle || (isClinicaMedica ? 'técnico-consultivo' : 'emocional e inspirador');
 
   // Detectar se aparece nos vídeos
   const apareceVideos = data.showsInVideos ? 'Sim' : 'Não definido';
+
+  // Problemas que os equipamentos resolvem
+  const problemasEquipamentos = data.equipmentProblems || 'Não informado';
+
+  // Modelo de venda
+  const modeloVenda = data.salesModel || 'Não informado';
 
   const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
 📋 DADOS DE BRIEFING:
 
 • Tipo: ${tipoClinica}
-• Especialidade: ${especialidade}  
+• Especialidade: ${especialidade}
+• Procedimentos: ${procedimentos}
 • Equipamentos: ${equipamentos}
+• Problemas que os equipamentos resolvem: ${problemasEquipamentos}
 • Protocolo mais vendido: ${protocolo}
 • Ticket médio: ${ticketMedio}
+• Modelo de venda: ${modeloVenda}
 • Faturamento atual: ${faturamento}
 • Meta 3 meses: ${meta}
 • Objetivo de marketing: ${objetivo}
@@ -263,6 +283,7 @@ function createConsultorFluidaPrompt(data: any): string {
 • Aparece nos vídeos: ${apareceVideos}
 • Público ideal: ${publicoIdeal}
 • Estilo da clínica: ${estiloClinica}
+• Estilo de linguagem desejado: ${estiloLinguagem}
 • Principais desafios: ${desafios}
 
 ---
@@ -276,7 +297,13 @@ Foque nos equipamentos mencionados: ${equipamentos}
 
 Personalize tudo com base no perfil fornecido acima.
 
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.
+
+Se houver múltiplos equipamentos, gere pelo menos 1 sugestão de conteúdo e 1 insight para cada um.
+
+O plano deve ser dinâmico e alinhado com as recomendações, personalizando linguagem e abordagem.
+
+Para o Enigma do Mentor, crie uma frase misteriosa com trocadilho, mas NUNCA revele o nome verdadeiro do mentor.`;
 
   return prompt;
 }
