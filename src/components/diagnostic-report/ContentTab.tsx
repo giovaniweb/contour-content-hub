@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Instagram, Youtube, Facebook, Camera, Video, FileText, Copy } from "lucide-react";
+import { Instagram, Youtube, Facebook, Camera, Video, FileText, Copy, Calendar } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 
 interface ContentTabProps {
