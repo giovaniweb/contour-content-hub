@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2, AlertTriangle } from "lucide-react";
+import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2, AlertTriangle, Save, History } from "lucide-react";
 import { toast } from "sonner";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
@@ -12,6 +12,7 @@ import MarketingDashboard from './MarketingDashboard';
 import LoadingMessages from './dashboard/LoadingMessages';
 import { useAkinatorFlow } from './hooks/useAkinatorFlow';
 import { useAIDiagnostic } from '@/hooks/useAIDiagnostic';
+import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
 import { getNextValidQuestion, getPreviousValidQuestion, shouldShowQuestion, getCurrentQuestionNumber, getTotalValidQuestions } from './utils/questionNavigation';
 import { MARKETING_STEPS } from './constants';
 import { MarketingConsultantState } from './types';
@@ -35,9 +36,54 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   const { profile } = useUserProfile();
   const { generateDiagnostic, isGenerating } = useAIDiagnostic();
+  const { 
+    currentSession, 
+    saveCurrentSession, 
+    clearCurrentSession, 
+    loadCurrentSession,
+    hasCurrentSession,
+    isSessionCompleted 
+  } = useDiagnosticPersistence();
+
   const [mentor, setMentor] = useState<any>(null);
   const [aiSections, setAiSections] = useState<any>(null);
   const [processingError, setProcessingError] = useState<string | null>(null);
+  const [hasLoadedSavedData, setHasLoadedSavedData] = useState(false);
+
+  // Carregar dados salvos ao inicializar
+  useEffect(() => {
+    if (!hasLoadedSavedData) {
+      const saved = loadCurrentSession();
+      if (saved && saved.isCompleted) {
+        console.log('📂 Carregando diagnóstico salvo completo');
+        setState(saved.state);
+        setShowDashboard(true);
+        
+        toast.success("📂 Diagnóstico anterior carregado!", {
+          description: `Diagnóstico de ${new Date(saved.timestamp).toLocaleString('pt-BR')}`
+        });
+      } else if (saved && !saved.isCompleted) {
+        console.log('📂 Carregando sessão em progresso');
+        setState(saved.state);
+        
+        // Encontrar a próxima pergunta válida baseada no estado salvo
+        let nextStep = 0;
+        for (let i = 0; i < MARKETING_STEPS.length; i++) {
+          const question = MARKETING_STEPS[i];
+          if (!saved.state[question.id as keyof MarketingConsultantState]) {
+            nextStep = i;
+            break;
+          }
+        }
+        setCurrentStep(nextStep);
+        
+        toast.success("📂 Sessão anterior recuperada!", {
+          description: "Continuando de onde você parou"
+        });
+      }
+      setHasLoadedSavedData(true);
+    }
+  }, [hasLoadedSavedData, loadCurrentSession, setState, setCurrentStep, setShowDashboard]);
 
   // Atualizar o perfil do usuário quando o tipo de clínica for selecionado
   useEffect(() => {
@@ -46,6 +92,14 @@ const AkinatorMarketingConsultant: React.FC = () => {
       updateClinicType(clinicType);
     }
   }, [state.clinicType, profile?.clinic_type, updateClinicType]);
+
+  // Salvar automaticamente o progresso a cada alteração no estado
+  useEffect(() => {
+    if (hasLoadedSavedData && Object.keys(state).some(key => state[key as keyof MarketingConsultantState])) {
+      saveCurrentSession(state, showDashboard);
+      console.log('💾 Progresso salvo automaticamente');
+    }
+  }, [state, showDashboard, hasLoadedSavedData, saveCurrentSession]);
 
   const handleOptionSelect = async (value: string) => {
     const currentQuestion = MARKETING_STEPS[currentStep];
@@ -64,6 +118,9 @@ const AkinatorMarketingConsultant: React.FC = () => {
     
     setState(newState);
     console.log('🟡 Estado atualizado:', newState);
+    
+    // Salvar progresso
+    saveCurrentSession(newState, false);
     
     // Encontrar a próxima pergunta válida
     const nextStep = getNextValidQuestion(currentStep, newState);
@@ -90,8 +147,16 @@ const AkinatorMarketingConsultant: React.FC = () => {
           };
           
           setState(finalState);
+          
+          // Salvar diagnóstico completo
+          saveCurrentSession(finalState, true);
+          
           console.log('🟢 Processamento concluído - indo para dashboard');
           setShowDashboard(true);
+          
+          toast.success("✅ Diagnóstico concluído e salvo!", {
+            description: "Seu relatório está sempre disponível"
+          });
         } else {
           throw new Error('Diagnóstico não foi gerado');
         }
@@ -107,6 +172,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         };
         
         setState(finalState);
+        saveCurrentSession(finalState, true);
         
         // Continuar para o dashboard mesmo com erro
         console.log('🟡 Continuando para dashboard mesmo com erro da IA');
@@ -121,7 +187,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       setCurrentStep(nextStep);
       
       toast.success("Resposta salva!", {
-        description: "Continuando para a próxima pergunta..."
+        description: "Progresso salvo automaticamente"
       });
     }
     
@@ -140,6 +206,10 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   const handleRestart = () => {
     console.log('🔄 Reiniciando diagnóstico...');
+    
+    // Limpar dados salvos
+    clearCurrentSession();
+    
     setState({
       clinicType: '',
       medicalSpecialty: '',
@@ -173,6 +243,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
     setMentor(null);
     setAiSections(null);
     setProcessingError(null);
+    setHasLoadedSavedData(true); // Evitar recarregar dados após restart
     
     toast.success("Diagnóstico reiniciado!", {
       description: "Vamos começar um novo diagnóstico."
@@ -186,6 +257,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
     };
     
     setState(finalState);
+    saveCurrentSession(finalState, true);
     setShowDashboard(true);
     setIsProcessing(false);
     
@@ -209,6 +281,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   console.log('🔹 showResult:', showResult);
   console.log('🔹 isProcessing:', isProcessing);
   console.log('🔹 isGenerating:', isGenerating);
+  console.log('🔹 hasCurrentSession:', hasCurrentSession());
 
   if (showDashboard) {
     console.log('📊 Renderizando Dashboard');
@@ -316,6 +389,20 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   return (
     <div className="container mx-auto max-w-6xl py-6">
+      {/* Indicador de progresso salvo */}
+      {hasCurrentSession() && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 text-center"
+        >
+          <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
+            <Save className="h-3 w-3 mr-1" />
+            Progresso salvo automaticamente
+          </Badge>
+        </motion.div>
+      )}
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
