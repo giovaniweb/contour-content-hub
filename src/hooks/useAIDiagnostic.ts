@@ -22,9 +22,9 @@ export const useAIDiagnostic = () => {
     try {
       console.log('🚀 Chamando edge function generate-marketing-diagnostic...');
       
-      // Timeout aumentado para 60 segundos
+      // Timeout de 75 segundos
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout - IA demorou mais que 60 segundos')), 60000);
+        setTimeout(() => reject(new Error('Timeout - IA demorou mais que 75 segundos')), 75000);
       });
 
       const supabasePromise = supabase.functions.invoke('generate-marketing-diagnostic', {
@@ -45,8 +45,8 @@ export const useAIDiagnostic = () => {
           throw new Error('OpenAI demorou para processar. Tente novamente.');
         }
         
-        if (error.message?.includes('OPENAI_API_KEY')) {
-          throw new Error('Chave da OpenAI não configurada. Configure nas variáveis de ambiente.');
+        if (error.message?.includes('OPENAI_API_KEY') || error.message?.includes('sk-')) {
+          throw new Error('❌ Chave da OpenAI inválida ou não configurada. Verifique os secrets do Supabase.');
         }
         
         throw new Error(`Erro na IA: ${error.message || JSON.stringify(error)}`);
@@ -61,8 +61,12 @@ export const useAIDiagnostic = () => {
       if (data.success === false) {
         console.error('❌ IA retornou erro:', data.error);
         
-        if (data.error?.includes('OPENAI_API_KEY')) {
-          throw new Error('Chave da OpenAI não está configurada');
+        if (data.error?.includes('OPENAI_API_KEY') || data.error?.includes('sk-')) {
+          throw new Error('❌ Chave da OpenAI inválida. Configure nos secrets do Supabase.');
+        }
+        
+        if (data.error?.includes('Chave OpenAI inválida')) {
+          throw new Error('❌ Chave OpenAI inválida ou sem permissão. Verifique se está correta.');
         }
         
         throw new Error(data.error || 'Erro desconhecido na IA');
@@ -89,9 +93,9 @@ export const useAIDiagnostic = () => {
       let errorMessage = 'IA temporariamente indisponível';
       
       if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
-        errorMessage = 'IA demorou para responder. Tente novamente.';
-      } else if (error.message?.includes('OPENAI_API_KEY') || error.message?.includes('OpenAI')) {
-        errorMessage = 'Chave da OpenAI não configurada corretamente.';
+        errorMessage = 'IA demorou para responder. Tente novamente em alguns minutos.';
+      } else if (error.message?.includes('OPENAI_API_KEY') || error.message?.includes('sk-') || error.message?.includes('Chave OpenAI')) {
+        errorMessage = '❌ Chave da OpenAI não configurada ou inválida. Configure nos secrets do Supabase.';
       } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
         errorMessage = 'Problema de conexão. Verifique sua internet.';
       }

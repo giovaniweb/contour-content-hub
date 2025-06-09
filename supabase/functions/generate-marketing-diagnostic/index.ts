@@ -13,6 +13,8 @@ serve(async (req) => {
   console.log('🚀 CONSULTOR FLUIDA - Diagnóstico iniciado');
   console.log('📝 Method:', req.method);
   console.log('🔑 OpenAI Key present:', !!openAIApiKey);
+  console.log('🔑 OpenAI Key length:', openAIApiKey ? openAIApiKey.length : 0);
+  console.log('🔑 OpenAI Key starts with sk-:', openAIApiKey ? openAIApiKey.startsWith('sk-') : false);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -34,10 +36,48 @@ serve(async (req) => {
       });
     }
 
+    if (!openAIApiKey.startsWith('sk-')) {
+      console.error('❌ OPENAI_API_KEY inválida - deve começar com sk-');
+      return new Response(JSON.stringify({ 
+        error: 'Chave OpenAI inválida - deve começar com sk-',
+        success: false,
+        details: 'Verifique se a chave da OpenAI foi configurada corretamente'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const prompt = createConsultorFluidaPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
-    console.log('🌐 Chamando OpenAI API...');
+    console.log('🌐 Testando conexão com OpenAI...');
+    
+    // Primeiro, fazer um teste simples para verificar se a chave funciona
+    const testResponse = await fetch('https://api.openai.com/v1/models', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('🔍 Teste de conexão OpenAI status:', testResponse.status);
+    
+    if (!testResponse.ok) {
+      const testError = await testResponse.text();
+      console.error('❌ Falha no teste da chave OpenAI:', testError);
+      return new Response(JSON.stringify({ 
+        error: 'Chave OpenAI inválida ou sem permissão',
+        success: false,
+        details: `Status: ${testResponse.status} - ${testError}`
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('✅ Chave OpenAI válida, gerando diagnóstico...');
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,7 +112,8 @@ REGRAS:
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 3500
+        max_tokens: 4000,
+        timeout: 45000 // 45 segundos
       }),
     });
 
@@ -94,6 +135,7 @@ REGRAS:
 
     const data = await response.json();
     console.log('📄 Resposta OpenAI recebida');
+    console.log('🔍 Estrutura da resposta:', JSON.stringify(data, null, 2));
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error('❌ Estrutura de resposta inválida da OpenAI');
