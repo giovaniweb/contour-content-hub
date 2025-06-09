@@ -89,21 +89,34 @@ Relatório gerado pelo Consultor Fluida
     }
   };
 
-  const handleClearAllData = () => {
+  const handleClearAllData = async () => {
+    // Contar rascunhos (diagnósticos incompletos)
+    const drafts = savedDiagnostics.filter(d => !d.isPaidData && !d.isCompleted);
     const paidDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
     
-    if (paidDiagnostics.length > 0) {
-      toast.error("🛡️ Dados Protegidos", {
-        description: "Não é possível limpar dados pagos. Apenas rascunhos podem ser removidos."
+    if (drafts.length === 0) {
+      toast.info("📝 Nenhum rascunho encontrado", {
+        description: "Todos os seus diagnósticos são dados completos protegidos."
       });
       return;
     }
 
-    if (confirm('Tem certeza que deseja apagar todos os rascunhos? Dados completos serão preservados.')) {
-      clearAllData();
-      toast.success("🗑️ Rascunhos removidos", {
-        description: "Dados pagos foram preservados com segurança"
-      });
+    const message = `Tem certeza que deseja apagar ${drafts.length} rascunho${drafts.length > 1 ? 's' : ''}? ${paidDiagnostics.length > 0 ? `${paidDiagnostics.length} diagnóstico${paidDiagnostics.length > 1 ? 's' : ''} completo${paidDiagnostics.length > 1 ? 's' : ''} será${paidDiagnostics.length > 1 ? 'ão' : ''} preservado${paidDiagnostics.length > 1 ? 's' : ''}.` : ''}`;
+
+    if (confirm(message)) {
+      const success = await clearAllData();
+      
+      if (success) {
+        toast.success(`🗑️ ${drafts.length} rascunho${drafts.length > 1 ? 's' : ''} removido${drafts.length > 1 ? 's' : ''}`, {
+          description: paidDiagnostics.length > 0 
+            ? `${paidDiagnostics.length} diagnóstico${paidDiagnostics.length > 1 ? 's' : ''} completo${paidDiagnostics.length > 1 ? 's' : ''} preservado${paidDiagnostics.length > 1 ? 's' : ''} com segurança`
+            : "Limpeza concluída com sucesso"
+        });
+      } else {
+        toast.error("❌ Erro ao limpar rascunhos", {
+          description: "Tente novamente em alguns instantes"
+        });
+      }
     }
   };
 
@@ -196,10 +209,12 @@ Relatório gerado pelo Consultor Fluida
                 Diagnósticos Salvos ({savedDiagnostics.length})
               </h3>
               
-              <Button onClick={handleClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
-                <Trash2 className="h-3 w-3" />
-                Limpar Rascunhos
-              </Button>
+              {savedDiagnostics.some(d => !d.isPaidData && !d.isCompleted) && (
+                <Button onClick={handleClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
+                  <Trash2 className="h-3 w-3" />
+                  Limpar Rascunhos
+                </Button>
+              )}
             </div>
 
             <div className="grid gap-4">

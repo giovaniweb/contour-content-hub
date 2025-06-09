@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { marketingDiagnosticsService, DiagnosticSession } from '@/services/marketingDiagnosticsService';
@@ -198,34 +197,36 @@ export const useDiagnosticPersistence = () => {
 
   const clearAllData = async () => {
     try {
-      // PROTEÇÃO: Não limpar dados pagos/completos
-      const paidDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
+      // Identificar rascunhos (diagnósticos incompletos)
+      const drafts = savedDiagnostics.filter(d => !d.isPaidData && !d.isCompleted);
       
-      if (paidDiagnostics.length > 0) {
-        console.warn('🛡️ Dados pagos detectados - limpeza bloqueada para proteção');
-        return false;
+      if (drafts.length === 0) {
+        console.log('📝 Nenhum rascunho encontrado para limpar');
+        return true; // Sucesso, mas não havia nada para limpar
       }
 
-      const success = await marketingDiagnosticsService.clearAllDiagnostics();
+      console.log(`🗑️ Limpando ${drafts.length} rascunhos...`);
+
+      // Deletar apenas os rascunhos do banco de dados
+      const success = await marketingDiagnosticsService.clearDraftsOnly();
       
       if (success) {
-        // Limpar apenas dados não pagos
-        localStorage.removeItem('fluida_marketing_diagnostics');
-        if (!currentSession?.isPaidData) {
+        // Limpar localStorage apenas se não for dados pagos
+        if (!currentSession?.isPaidData && !currentSession?.isCompleted) {
           localStorage.removeItem(CURRENT_SESSION_KEY);
           setCurrentSession(null);
         }
         
-        // Manter apenas diagnósticos pagos
+        // Manter apenas diagnósticos completos/pagos
         const protectedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
         setSavedDiagnostics(protectedDiagnostics);
         
-        console.log('🗑️ Dados não pagos limpos (dados pagos protegidos)');
+        console.log(`✅ ${drafts.length} rascunhos removidos com sucesso. ${protectedDiagnostics.length} diagnósticos pagos preservados.`);
       }
       
       return success;
     } catch (error) {
-      console.error('❌ Erro ao limpar dados:', error);
+      console.error('❌ Erro ao limpar rascunhos:', error);
       return false;
     }
   };

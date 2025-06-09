@@ -198,5 +198,26 @@ export const marketingDiagnosticsService = {
       console.error('❌ Erro ao limpar diagnósticos:', error);
       return false;
     }
+  },
+
+  async clearDraftsOnly(): Promise<boolean> {
+    try {
+      // Deletar apenas rascunhos (diagnósticos incompletos)
+      const { error } = await supabase
+        .from('marketing_diagnostics')
+        .delete()
+        .eq('is_completed', false);
+
+      if (error) {
+        console.error('Erro ao limpar rascunhos:', error);
+        return false;
+      }
+
+      console.log('🗑️ Rascunhos limpos com sucesso (dados pagos preservados)');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao limpar rascunhos:', error);
+      return false;
+    }
   }
 };
