@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, Shield } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
-import DiagnosticReportModal from '@/components/ui/DiagnosticReportModal';
 
 interface CurrentSessionCardProps {
   currentSession: DiagnosticSession;
@@ -21,18 +21,10 @@ const CurrentSessionCard: React.FC<CurrentSessionCardProps> = ({
   onDownloadDiagnostic,
   formatDate
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleViewReport = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleDownloadFromModal = () => {
-    onDownloadDiagnostic(currentSession);
+    navigate(`/diagnostic-report/${currentSession.id}`);
   };
 
   return (
@@ -83,13 +75,6 @@ const CurrentSessionCard: React.FC<CurrentSessionCardProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      <DiagnosticReportModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        session={currentSession}
-        onDownload={handleDownloadFromModal}
-      />
     </div>
   );
 };

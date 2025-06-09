@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { FileText, Trash2, Download, Shield } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
-import DiagnosticReportModal from '@/components/ui/DiagnosticReportModal';
 
 interface SavedDiagnosticsSectionProps {
   savedDiagnostics: DiagnosticSession[];
@@ -28,23 +28,10 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
   onClearAllData,
   formatDate
 }) => {
-  const [selectedSession, setSelectedSession] = useState<DiagnosticSession | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleViewReport = (session: DiagnosticSession) => {
-    setSelectedSession(session);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedSession(null);
-  };
-
-  const handleDownloadFromModal = () => {
-    if (selectedSession) {
-      onDownloadDiagnostic(selectedSession);
-    }
+    navigate(`/diagnostic-report/${session.id}`);
   };
 
   return (
@@ -131,13 +118,6 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
           </motion.div>
         ))}
       </div>
-
-      <DiagnosticReportModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        session={selectedSession}
-        onDownload={handleDownloadFromModal}
-      />
     </div>
   );
 };

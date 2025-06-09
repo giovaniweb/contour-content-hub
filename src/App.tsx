@@ -25,6 +25,7 @@ import ContentStrategy from '@/pages/ContentStrategy';
 import ContentScripts from '@/pages/ContentScripts';
 import MarketingConsultant from '@/pages/MarketingConsultant';
 import DiagnosticHistory from '@/pages/DiagnosticHistory';
+import DiagnosticReport from '@/pages/DiagnosticReport';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
 import ReportsPage from '@/pages/ReportsPage';
 import PhotosPage from '@/pages/PhotosPage';
@@ -126,6 +127,14 @@ function App() {
                       <PrivateRoute>
                         <AppLayout>
                           <DiagnosticHistory />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+
+                    <Route path="/diagnostic-report/:sessionId" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <DiagnosticReport />
                         </AppLayout>
                       </PrivateRoute>
                     } />
