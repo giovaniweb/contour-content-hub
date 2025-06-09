@@ -1,16 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReportHeader from '@/components/diagnostic-report/ReportHeader';
 import QuickMetrics from '@/components/diagnostic-report/QuickMetrics';
-import DiagnosticContentFormatter from '@/components/diagnostic-report/DiagnosticContentFormatter';
+import DiagnosticTab from '@/components/diagnostic-report/DiagnosticTab';
+import ActionsTab from '@/components/diagnostic-report/ActionsTab';
+import ContentTab from '@/components/diagnostic-report/ContentTab';
+import MetricsTab from '@/components/diagnostic-report/MetricsTab';
 
 const DiagnosticReport: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { savedDiagnostics, currentSession } = useDiagnosticPersistence();
+  const [activeTab, setActiveTab] = useState('diagnostic');
 
   // Encontrar a sessão pelo ID
   const session = savedDiagnostics.find(s => s.id === sessionId) || 
@@ -45,49 +50,39 @@ const DiagnosticReport: React.FC = () => {
           <QuickMetrics state={session.state} />
         </div>
 
-        {/* Conteúdo do diagnóstico */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">Análise Detalhada</h2>
-            {session.isCompleted && (
-              <div className="flex items-center gap-2 text-sm text-foreground/60">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                Diagnóstico Completo
-              </div>
-            )}
-          </div>
+        {/* Tabs de conteúdo */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 aurora-glass">
+            <TabsTrigger value="diagnostic" className="text-sm">
+              🎯 Diagnóstico
+            </TabsTrigger>
+            <TabsTrigger value="actions" className="text-sm">
+              ⚡ Ações
+            </TabsTrigger>
+            <TabsTrigger value="content" className="text-sm">
+              📝 Conteúdo
+            </TabsTrigger>
+            <TabsTrigger value="metrics" className="text-sm">
+              📊 Métricas
+            </TabsTrigger>
+          </TabsList>
 
-          <DiagnosticContentFormatter 
-            content={session.state.generatedDiagnostic || ''} 
-          />
-        </div>
+          <TabsContent value="diagnostic">
+            <DiagnosticTab session={session} />
+          </TabsContent>
 
-        {/* Ações recomendadas */}
-        {session.isCompleted && (
-          <div className="mt-8 p-6 aurora-glass rounded-xl">
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              🎯 Próximos Passos Recomendados
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Imediato (Esta Semana)</h4>
-                <ul className="text-sm text-foreground/80 space-y-1">
-                  <li>• Otimizar perfil nas redes sociais</li>
-                  <li>• Criar conteúdo sobre sua especialidade</li>
-                  <li>• Definir público-alvo específico</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Médio Prazo (30 dias)</h4>
-                <ul className="text-sm text-foreground/80 space-y-1">
-                  <li>• Implementar estratégia de conteúdo</li>
-                  <li>• Criar landing page otimizada</li>
-                  <li>• Desenvolver funil de vendas</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
+          <TabsContent value="actions">
+            <ActionsTab session={session} />
+          </TabsContent>
+
+          <TabsContent value="content">
+            <ContentTab session={session} />
+          </TabsContent>
+
+          <TabsContent value="metrics">
+            <MetricsTab session={session} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
