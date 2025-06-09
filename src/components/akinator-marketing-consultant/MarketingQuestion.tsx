@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,19 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const { showNotification } = useSlideNotifications();
   
   // Buscar equipamentos reais do banco de dados
-  const { equipments, loading: equipmentsLoading } = useEquipments();
+  const { equipments, loading: equipmentsLoading, error: equipmentsError } = useEquipments();
+
+  // Debug dos equipamentos
+  useEffect(() => {
+    if (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') {
+      console.log('🔧 DEBUG EQUIPAMENTOS:');
+      console.log('- Step ID:', stepData.id);
+      console.log('- Equipamentos carregados:', equipments);
+      console.log('- Loading state:', equipmentsLoading);
+      console.log('- Error state:', equipmentsError);
+      console.log('- Mock equipments fallback:', mockEquipments);
+    }
+  }, [stepData.id, equipments, equipmentsLoading, equipmentsError]);
 
   // Efeito para mostrar notificação de boas-vindas na primeira pergunta
   useEffect(() => {
@@ -178,11 +191,18 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       return stepData.options || [];
     }
 
-    console.log('Equipamentos carregados:', equipments);
-    console.log('Loading state:', equipmentsLoading);
-
-    // Usar equipamentos reais do banco de dados se disponíveis, senão usar mocks
-    const availableEquipments = equipments && equipments.length > 0 ? equipments : mockEquipments;
+    console.log('🔧 Gerando opções de equipamentos...');
+    
+    // Primeiro, tentar usar equipamentos do banco de dados
+    let availableEquipments = [];
+    
+    if (equipments && equipments.length > 0) {
+      console.log('✅ Usando equipamentos do banco de dados:', equipments.length);
+      availableEquipments = equipments;
+    } else {
+      console.log('⚠️ Banco vazio ou com erro, usando mock equipments:', mockEquipments.length);
+      availableEquipments = mockEquipments;
+    }
     
     // Filtrar equipamentos por categoria
     const filteredEquipments = availableEquipments.filter(equipment => {
@@ -192,25 +212,30 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
           return equipment.categoria === 'estetico';
         }
         if (stepData.id === 'medicalEquipments') {
-          return equipment.categoria === 'medico';
+          return equipment.categoria === 'medico' || !equipment.categoria; // Se não tem categoria, assumir médico para compatibilidade
         }
       }
-      // Se não tem categoria definida, assumir que pode ser usado por ambos
-      return true;
+      return true; // Se não tem categoria definida, incluir
     });
 
-    console.log('Equipamentos filtrados:', filteredEquipments);
+    console.log('🔧 Equipamentos após filtro:', filteredEquipments.length);
 
+    // Criar opções baseadas nos equipamentos filtrados
     const equipmentOptions = filteredEquipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
       label: `🔬 ${equipment.nome}`
     }));
 
-    return [
+    // Adicionar opções fixas
+    const finalOptions = [
       ...equipmentOptions,
       { value: 'outros', label: '🔧 Outros Equipamentos' },
       { value: 'nao_utilizo', label: '❌ Não utilizo equipamentos' }
     ];
+
+    console.log('🔧 Opções finais geradas:', finalOptions.length);
+    
+    return finalOptions;
   };
 
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
@@ -420,16 +445,28 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
                   </div>
                 ) : (
                   <motion.div 
-                    className="flex items-center justify-center py-12 text-white/60"
+                    className="text-center py-12"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    <div className="text-center">
-                      <AlertCircle className="h-8 w-8 mx-auto mb-3 text-aurora-electric-purple/60" />
-                      <span className="text-lg">Nenhum equipamento encontrado</span>
-                      <p className="text-sm mt-2 opacity-75">
-                        {shouldUseDynamicEquipments ? "Usando dados de exemplo para continuar" : ""}
+                    <div className="aurora-glass p-8 rounded-xl">
+                      <AlertCircle className="h-12 w-12 mx-auto mb-4 text-aurora-electric-purple/60" />
+                      <h3 className="text-lg font-medium aurora-heading mb-2">Equipamentos não encontrados</h3>
+                      <p className="text-sm aurora-body opacity-75 mb-4">
+                        Não foi possível carregar a lista de equipamentos.
                       </p>
+                      {equipmentsError && (
+                        <p className="text-xs text-red-400 mb-4">
+                          Erro: {equipmentsError.message}
+                        </p>
+                      )}
+                      <Button 
+                        onClick={() => setShowCustomInput(true)}
+                        className="aurora-button"
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        Adicionar Equipamento Manual
+                      </Button>
                     </div>
                   </motion.div>
                 )}
