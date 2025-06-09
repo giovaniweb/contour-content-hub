@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrainCircuit, Sparkles, Target, TrendingUp, Users, Lightbulb } from 'lucide-react';
@@ -56,7 +57,12 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({
 
           {/* 6 pontinhos em onda abaixo do círculo */}
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-6 flex space-x-3">
-            {[...Array(6)].map((_, i) => {})}
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="w-3 h-3 bg-aurora-sage rounded-full wave-dot"
+              />
+            ))}
           </div>
         </div>
 
