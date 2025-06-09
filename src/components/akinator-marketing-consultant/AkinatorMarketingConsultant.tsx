@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -162,11 +161,16 @@ const AkinatorMarketingConsultant: React.FC = () => {
           // Salvar diagnóstico completo no banco
           await saveCurrentSession(finalState, true);
           
-          console.log('🟢 Processamento concluído - indo para dashboard');
-          setShowDashboard(true);
+          console.log('🟢 Processamento concluído - redirecionando para dashboard');
           
-          toast.success("✅ Diagnóstico concluído e salvo!", {
-            description: "Seu relatório está sempre disponível no banco de dados"
+          // Garantir redirecionamento para dashboard
+          setTimeout(() => {
+            setShowDashboard(true);
+            setIsProcessing(false);
+          }, 1000);
+          
+          toast.success("✅ Diagnóstico concluído!", {
+            description: "Redirecionando para o dashboard..."
           });
         } else {
           throw new Error('Diagnóstico não foi gerado');
@@ -185,13 +189,16 @@ const AkinatorMarketingConsultant: React.FC = () => {
         setState(finalState);
         await saveCurrentSession(finalState, true);
         
-        // Continuar para o dashboard mesmo com erro
-        console.log('🟡 Continuando para dashboard mesmo com erro da IA');
+        // Forçar redirecionamento para dashboard mesmo com erro
+        console.log('🟡 Forçando redirecionamento para dashboard após erro');
         setTimeout(() => {
           setShowDashboard(true);
+          setIsProcessing(false);
         }, 2000);
-      } finally {
-        setIsProcessing(false);
+        
+        toast.warning("Diagnóstico salvo!", {
+          description: "Indo para o dashboard com suas respostas..."
+        });
       }
     } else {
       console.log('🟢 Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
@@ -269,11 +276,15 @@ const AkinatorMarketingConsultant: React.FC = () => {
     
     setState(finalState);
     await saveCurrentSession(finalState, true);
-    setShowDashboard(true);
-    setIsProcessing(false);
+    
+    // Garantir redirecionamento
+    setTimeout(() => {
+      setShowDashboard(true);
+      setIsProcessing(false);
+    }, 500);
     
     toast.success("Continuando com diagnóstico básico", {
-      description: "Você pode ver suas respostas e recomendações gerais."
+      description: "Redirecionando para dashboard..."
     });
   };
 
