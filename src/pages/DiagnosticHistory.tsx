@@ -1,12 +1,13 @@
+
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { History, Clock, Trash2, Eye, Download, AlertCircle, Calendar, FileText, ArrowLeft, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useDiagnosticPersistence, DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { useNavigate } from 'react-router-dom';
+import DiagnosticHistoryHeader from './DiagnosticHistory/DiagnosticHistoryHeader';
+import CurrentSessionCard from './DiagnosticHistory/CurrentSessionCard';
+import SavedDiagnosticsSection from './DiagnosticHistory/SavedDiagnosticsSection';
+import EmptyState from './DiagnosticHistory/EmptyState';
+import { formatDate, generateDownloadContent } from './DiagnosticHistory/utils';
 
 const DiagnosticHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -47,28 +48,7 @@ const DiagnosticHistory: React.FC = () => {
 
   const handleDownloadDiagnostic = (session: DiagnosticSession) => {
     try {
-      const content = `
-RELATÓRIO DE DIAGNÓSTICO - CONSULTOR FLUIDA
-============================================
-
-Data: ${new Date(session.timestamp).toLocaleString('pt-BR')}
-Tipo: ${session.clinicTypeLabel}
-Especialidade: ${session.specialty}
-
-RESPOSTAS COLETADAS
--------------------
-${Object.entries(session.state).filter(([key, value]) => value && key !== 'generatedDiagnostic').map(([key, value]) => `${key}: ${value}`).join('\n')}
-
-${session.state.generatedDiagnostic ? `
-
-DIAGNÓSTICO IA
---------------
-${session.state.generatedDiagnostic}
-` : ''}
-
----
-Relatório gerado pelo Consultor Fluida
-      `;
+      const content = generateDownloadContent(session);
       const blob = new Blob([content], {
         type: 'text/plain;charset=utf-8'
       });
@@ -120,186 +100,36 @@ Relatório gerado pelo Consultor Fluida
     }
   };
 
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return {
-      date: date.toLocaleDateString('pt-BR'),
-      time: date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    };
-  };
-
   return (
     <div className="container mx-auto py-6 space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="outline" onClick={() => navigate('/marketing-consultant')} className="flex items-center gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Button>
-        <div className="flex items-center gap-3">
-          <History className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-slate-50">Histórico de Diagnósticos</h1>
-        </div>
-      </div>
+      <DiagnosticHistoryHeader />
 
       <div className="space-y-6">
         {/* Sessão atual */}
         {currentSession && (
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-400" />
-              Sessão Atual
-            </h3>
-            
-            <Card className="aurora-card border-blue-500/30">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      {currentSession.clinicTypeLabel}
-                      <Badge variant={currentSession.isCompleted ? "default" : "secondary"}>
-                        {currentSession.isCompleted ? "Completo" : "Em progresso"}
-                      </Badge>
-                      {(currentSession.isPaidData || currentSession.isCompleted) && (
-                        <Badge variant="outline" className="border-green-500/30 text-green-400">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Protegido
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <p className="text-sm text-white/70 mt-1">
-                      {currentSession.specialty}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm text-white/60">
-                    {formatDate(currentSession.timestamp).date}
-                    <br />
-                    {formatDate(currentSession.timestamp).time}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-2">
-                  {currentSession.isCompleted && (
-                    <Button onClick={() => handleLoadDiagnostic(currentSession)} size="sm" className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      Ver Relatório
-                    </Button>
-                  )}
-                  
-                  <Button onClick={() => handleDownloadDiagnostic(currentSession)} size="sm" variant="outline" className="flex items-center gap-1">
-                    <Download className="h-3 w-3" />
-                    Download
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <CurrentSessionCard
+            currentSession={currentSession}
+            onLoadDiagnostic={handleLoadDiagnostic}
+            onDownloadDiagnostic={handleDownloadDiagnostic}
+            formatDate={formatDate}
+          />
         )}
 
         {/* Histórico de diagnósticos salvos */}
         {savedDiagnostics.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-green-400" />
-                Diagnósticos Salvos ({savedDiagnostics.length})
-              </h3>
-              
-              {savedDiagnostics.some(d => !d.isPaidData && !d.isCompleted) && (
-                <Button onClick={handleClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
-                  <Trash2 className="h-3 w-3" />
-                  Limpar Rascunhos
-                </Button>
-              )}
-            </div>
-
-            <div className="grid gap-4">
-              {savedDiagnostics.map((session, index) => (
-                <motion.div
-                  key={session.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="aurora-card hover:border-aurora-electric-purple/40 transition-colors">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-white flex items-center gap-2">
-                            {session.clinicTypeLabel}
-                            <Badge variant={session.isCompleted ? "default" : "secondary"}>
-                              {session.isCompleted ? "Completo" : "Incompleto"}
-                            </Badge>
-                            {session.id === currentSession?.id && (
-                              <Badge variant="outline" className="border-blue-500/30 text-blue-400">
-                                Atual
-                              </Badge>
-                            )}
-                            {(session.isPaidData || session.isCompleted) && (
-                              <Badge variant="outline" className="border-green-500/30 text-green-400">
-                                <Shield className="h-3 w-3 mr-1" />
-                                Protegido
-                              </Badge>
-                            )}
-                          </CardTitle>
-                          <p className="text-sm text-white/70 mt-1">
-                            {session.specialty}
-                          </p>
-                        </div>
-                        <div className="text-right text-sm text-white/60">
-                          {formatDate(session.timestamp).date}
-                          <br />
-                          {formatDate(session.timestamp).time}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex gap-2">
-                        <Button onClick={() => handleLoadDiagnostic(session)} size="sm" className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {session.isCompleted ? 'Ver Relatório' : 'Continuar'}
-                        </Button>
-                        
-                        <Button onClick={() => handleDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1">
-                          <Download className="h-3 w-3" />
-                          Download
-                        </Button>
-                        
-                        <Button 
-                          onClick={() => handleDeleteDiagnostic(session)} 
-                          size="sm" 
-                          variant={session.isPaidData || session.isCompleted ? "outline" : "destructive"}
-                          disabled={session.isPaidData || session.isCompleted}
-                          className="flex items-center gap-1"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          {session.isPaidData || session.isCompleted ? 'Protegido' : 'Deletar'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          <SavedDiagnosticsSection
+            savedDiagnostics={savedDiagnostics}
+            currentSession={currentSession}
+            onLoadDiagnostic={handleLoadDiagnostic}
+            onDownloadDiagnostic={handleDownloadDiagnostic}
+            onDeleteDiagnostic={handleDeleteDiagnostic}
+            onClearAllData={handleClearAllData}
+            formatDate={formatDate}
+          />
         )}
 
         {/* Estado vazio */}
-        {!currentSession && savedDiagnostics.length === 0 && (
-          <div className="text-center py-12">
-            <AlertCircle className="h-16 w-16 text-white/30 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">
-              Nenhum diagnóstico encontrado
-            </h3>
-            <p className="text-white/70">
-              Inicie um novo diagnóstico para começar a usar o Consultor Fluida
-            </p>
-          </div>
-        )}
+        {!currentSession && savedDiagnostics.length === 0 && <EmptyState />}
       </div>
     </div>
   );

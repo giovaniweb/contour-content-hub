@@ -82,7 +82,10 @@ export const loadDiagnosticsFromDatabase = async (): Promise<MarketingDiagnostic
       return [];
     }
 
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      state_data: item.state_data as unknown as MarketingConsultantState
+    })) as MarketingDiagnostic[];
   } catch (error) {
     console.error('❌ Erro ao carregar diagnósticos:', error);
     return [];
@@ -101,7 +104,10 @@ export const loadDiagnosticBySessionIdFromDatabase = async (sessionId: string): 
       return null;
     }
 
-    return data as MarketingDiagnostic;
+    return {
+      ...data,
+      state_data: data.state_data as unknown as MarketingConsultantState
+    } as MarketingDiagnostic;
   } catch (error) {
     console.error('❌ Erro ao carregar diagnóstico por session_id:', error);
     return null;
