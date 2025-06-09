@@ -56,11 +56,11 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({
 
           {/* 6 pontinhos em onda abaixo do círculo */}
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-6 flex space-x-3">
-            {[...Array(6)].map((_, i) => <div key={i} className="w-3 h-3 bg-aurora-sage rounded-full wave-dot" />)}
+            {[...Array(6)].map((_, i) => <div key={i} className="w-3 h-3 bg-aurora-sage rounded-full wave-dot py-0 my-0" />)}
           </div>
         </div>
 
-        <h2 className="text-3xl font-bold text-white mb-4">
+        <h2 className="text-3xl font-bold text-white mb-4 my-[21px]">
           🎯 Consultor Fluida Trabalhando
         </h2>
 
