@@ -1,27 +1,14 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
-import { marketingDiagnosticsService, DiagnosticSession } from '@/services/marketingDiagnosticsService';
-import { useAuth } from '@/hooks/useAuth';
+import { marketingDiagnosticsService } from '@/services/marketingDiagnosticsService';
+import { DiagnosticSession } from './types';
+import { generateUniqueSessionId, createSessionFromState } from './sessionUtils';
+import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
 
-const CURRENT_SESSION_KEY = 'fluida_current_diagnostic';
-
-export type { DiagnosticSession };
-
-export const useDiagnosticPersistence = () => {
+export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
   const [currentSession, setCurrentSession] = useState<DiagnosticSession | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
-
-  // Carregar dados ao inicializar
-  useEffect(() => {
-    if (user) {
-      loadSavedDiagnostics();
-      loadCurrentSession();
-    } else {
-      setIsLoading(false);
-    }
-  }, [user]);
 
   const loadSavedDiagnostics = async () => {
     try {
@@ -39,23 +26,7 @@ export const useDiagnosticPersistence = () => {
           console.error('Erro ao carregar do localStorage:', e);
         }
       }
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const loadCurrentSession = (): DiagnosticSession | null => {
-    try {
-      const current = localStorage.getItem(CURRENT_SESSION_KEY);
-      if (current) {
-        const session = JSON.parse(current);
-        setCurrentSession(session);
-        return session;
-      }
-    } catch (error) {
-      console.error('Erro ao carregar sessão atual:', error);
-    }
-    return null;
   };
 
   const saveCurrentSession = async (state: MarketingConsultantState, isCompleted: boolean = false) => {
@@ -73,14 +44,7 @@ export const useDiagnosticPersistence = () => {
       );
 
       if (savedDiagnostic) {
-        const session: DiagnosticSession = {
-          id: sessionId,
-          timestamp: savedDiagnostic.created_at,
-          state,
-          isCompleted,
-          clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
-        };
+        const session = createSessionFromState(sessionId, state, isCompleted, savedDiagnostic.created_at);
 
         // Marcar como dados pagos se for um diagnóstico completo
         if (isCompleted) {
@@ -88,7 +52,7 @@ export const useDiagnosticPersistence = () => {
         }
 
         // Manter cache local para melhor UX
-        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
+        saveCurrentSessionToStorage(session);
         setCurrentSession(session);
 
         // Recarregar lista se foi completado
@@ -100,17 +64,9 @@ export const useDiagnosticPersistence = () => {
         return session;
       } else {
         // Fallback para localStorage se houver erro
-        const session: DiagnosticSession = {
-          id: sessionId,
-          timestamp: new Date().toISOString(),
-          state,
-          isCompleted,
-          clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus,
-          isPaidData: isCompleted // Marcar como dados pagos se completo
-        };
+        const session = createSessionFromState(sessionId, state, isCompleted);
 
-        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
+        saveCurrentSessionToStorage(session);
         setCurrentSession(session);
         
         console.log('⚠️ Sessão salva localmente (fallback protegido):', session);
@@ -124,7 +80,7 @@ export const useDiagnosticPersistence = () => {
 
   const clearCurrentSession = () => {
     try {
-      localStorage.removeItem(CURRENT_SESSION_KEY);
+      clearCurrentSessionFromStorage();
       setCurrentSession(null);
       console.log('🗑️ Sessão atual limpa');
     } catch (error) {
@@ -176,7 +132,7 @@ export const useDiagnosticPersistence = () => {
         }
         
         setCurrentSession(diagnostic);
-        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(diagnostic));
+        saveCurrentSessionToStorage(diagnostic);
         return diagnostic;
       }
 
@@ -184,7 +140,7 @@ export const useDiagnosticPersistence = () => {
       const localDiagnostic = savedDiagnostics.find(d => d.id === id);
       if (localDiagnostic) {
         setCurrentSession(localDiagnostic);
-        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(localDiagnostic));
+        saveCurrentSessionToStorage(localDiagnostic);
         return localDiagnostic;
       }
 
@@ -213,7 +169,7 @@ export const useDiagnosticPersistence = () => {
       if (success) {
         // Limpar localStorage apenas se não for dados pagos
         if (!currentSession?.isPaidData && !currentSession?.isCompleted) {
-          localStorage.removeItem(CURRENT_SESSION_KEY);
+          clearCurrentSessionFromStorage();
           setCurrentSession(null);
         }
         
@@ -231,49 +187,16 @@ export const useDiagnosticPersistence = () => {
     }
   };
 
-  const generateUniqueSessionId = (): string => {
-    // Usar crypto.randomUUID se disponível para maior unicidade
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-      return `session_${crypto.randomUUID()}`;
-    }
-    
-    // Fallback com timestamp mais preciso e mais entropia
-    const timestamp = Date.now();
-    const random1 = Math.random().toString(36).substr(2, 12);
-    const random2 = Math.random().toString(36).substr(2, 8);
-    return `session_${timestamp}_${random1}_${random2}`;
-  };
-
-  const hasSavedData = (): boolean => {
-    return currentSession !== null || savedDiagnostics.length > 0;
-  };
-
-  const hasCurrentSession = (): boolean => {
-    return currentSession !== null;
-  };
-
-  const isSessionCompleted = (): boolean => {
-    return currentSession?.isCompleted === true;
-  };
-
-  const isPaidData = (): boolean => {
-    return currentSession?.isPaidData === true || currentSession?.isCompleted === true;
-  };
-
   return {
     savedDiagnostics,
+    setSavedDiagnostics,
     currentSession,
-    isLoading,
+    setCurrentSession,
+    loadSavedDiagnostics,
     saveCurrentSession,
-    loadCurrentSession,
     clearCurrentSession,
     deleteDiagnostic,
     loadDiagnostic,
-    clearAllData,
-    hasSavedData,
-    hasCurrentSession,
-    isSessionCompleted,
-    isPaidData,
-    loadSavedDiagnostics
+    clearAllData
   };
 };
