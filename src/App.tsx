@@ -122,6 +122,14 @@ function App() {
                       </PrivateRoute>
                     } />
 
+                    <Route path="/diagnostic-history" element={
+                      <PrivateRoute>
+                        <AppLayout>
+                          <DiagnosticHistory />
+                        </AppLayout>
+                      </PrivateRoute>
+                    } />
+
                     <Route path="/reports" element={
                       <PrivateRoute>
                         <AppLayout>
