@@ -166,3 +166,95 @@
     transform: translateY(10px) rotate(240deg);
   }
 }
+
+/* Esfera Místico Boreal - Aurora Loading Sphere */
+.aurora-sphere-outer {
+  background: conic-gradient(
+    from 0deg,
+    rgba(139, 92, 246, 0.8),  /* aurora-electric-purple */
+    rgba(59, 130, 246, 0.8),  /* blue */
+    rgba(16, 185, 129, 0.8),  /* emerald/sage */
+    rgba(236, 72, 153, 0.8),  /* pink */
+    rgba(168, 85, 247, 0.8),  /* violet */
+    rgba(139, 92, 246, 0.8)   /* back to purple */
+  );
+  animation: auroraRotate 4s linear infinite, auroraPulse 2s ease-in-out infinite;
+  filter: blur(8px);
+}
+
+.aurora-sphere-middle {
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.6) 0%,
+    rgba(59, 130, 246, 0.4) 30%,
+    rgba(16, 185, 129, 0.3) 60%,
+    transparent 100%
+  );
+  animation: auroraRotate 6s linear infinite reverse, auroraPulse 3s ease-in-out infinite;
+  filter: blur(4px);
+}
+
+.aurora-sphere-core {
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(139, 92, 246, 0.5) 40%,
+    rgba(59, 130, 246, 0.3) 70%,
+    transparent 100%
+  );
+  animation: auroraPulse 1.5s ease-in-out infinite;
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.5),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.aurora-sphere-nucleus {
+  animation: auroraPulse 1s ease-in-out infinite;
+  box-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(139, 92, 246, 0.6),
+    0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+@keyframes auroraRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced aurora pulse with color changes */
+@keyframes auroraPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  75% {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+/* Particle floating around sphere */
+.aurora-particles {
+  animation: particleOrbit 8s linear infinite;
+}
+
+@keyframes particleOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
