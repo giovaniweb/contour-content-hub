@@ -70,17 +70,12 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
             </div>
           </div>
 
-          {/* Partículas flutuantes */}
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          {/* 6 pontinhos em onda abaixo do círculo */}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-6 flex space-x-3">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-2 h-2 bg-aurora-sage rounded-full opacity-70"
-                style={{
-                  left: `${20 + (i * 15)}%`,
-                  animationDelay: `${i * 0.5}s`,
-                  animation: 'float 3s ease-in-out infinite'
-                }}
+                className="w-3 h-3 bg-aurora-sage rounded-full wave-dot"
               />
             ))}
           </div>
@@ -127,11 +122,28 @@ const LoadingMessages: React.FC<LoadingMessagesProps> = ({ isLoading }) => {
       </div>
 
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-20px) rotate(120deg); }
-          66% { transform: translateY(-10px) rotate(240deg); }
+        @keyframes waveAnimation {
+          0%, 60%, 100% { 
+            transform: scale(1);
+            opacity: 0.7;
+          }
+          30% { 
+            transform: scale(1.4);
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+          }
         }
+        
+        .wave-dot {
+          animation: waveAnimation 1.8s ease-in-out infinite;
+        }
+        
+        .wave-dot:nth-child(1) { animation-delay: 0s; }
+        .wave-dot:nth-child(2) { animation-delay: 0.3s; }
+        .wave-dot:nth-child(3) { animation-delay: 0.6s; }
+        .wave-dot:nth-child(4) { animation-delay: 0.9s; }
+        .wave-dot:nth-child(5) { animation-delay: 1.2s; }
+        .wave-dot:nth-child(6) { animation-delay: 1.5s; }
       `}</style>
     </div>
   );
