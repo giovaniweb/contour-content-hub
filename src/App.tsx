@@ -24,6 +24,7 @@ import AdminEquipments from '@/pages/admin/AdminEquipments';
 import ContentStrategy from '@/pages/ContentStrategy';
 import ContentScripts from '@/pages/ContentScripts';
 import MarketingConsultant from '@/pages/MarketingConsultant';
+import DiagnosticHistory from '@/pages/DiagnosticHistory';
 import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
 import ReportsPage from '@/pages/ReportsPage';
 import PhotosPage from '@/pages/PhotosPage';
