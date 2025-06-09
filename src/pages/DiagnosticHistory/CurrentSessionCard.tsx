@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Eye, Download, Shield } from "lucide-react";
+import { Clock, Download, Shield } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
+import ReportViewButton from '@/components/ui/ReportViewButton';
+import DiagnosticReportModal from '@/components/ui/DiagnosticReportModal';
 
 interface CurrentSessionCardProps {
   currentSession: DiagnosticSession;
@@ -19,6 +21,20 @@ const CurrentSessionCard: React.FC<CurrentSessionCardProps> = ({
   onDownloadDiagnostic,
   formatDate
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewReport = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleDownloadFromModal = () => {
+    onDownloadDiagnostic(currentSession);
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
@@ -55,12 +71,10 @@ const CurrentSessionCard: React.FC<CurrentSessionCardProps> = ({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex gap-2">
-            {currentSession.isCompleted && (
-              <Button onClick={() => onLoadDiagnostic(currentSession)} size="sm" className="flex items-center gap-1">
-                <Eye className="h-3 w-3" />
-                Ver Relatório
-              </Button>
-            )}
+            <ReportViewButton
+              session={currentSession}
+              onClick={handleViewReport}
+            />
             
             <Button onClick={() => onDownloadDiagnostic(currentSession)} size="sm" variant="outline" className="flex items-center gap-1">
               <Download className="h-3 w-3" />
@@ -69,6 +83,13 @@ const CurrentSessionCard: React.FC<CurrentSessionCardProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      <DiagnosticReportModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        session={currentSession}
+        onDownload={handleDownloadFromModal}
+      />
     </div>
   );
 };
