@@ -1,16 +1,20 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, History, TrendingUp, Sparkles, ArrowRight, BarChart3, Target, FileText, Plus } from "lucide-react";
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import AkinatorMarketingConsultant from "@/components/akinator-marketing-consultant/AkinatorMarketingConsultant";
-import DiagnosticHistoryModal from "@/components/akinator-marketing-consultant/DiagnosticHistoryModal";
 import PerformanceMetrics from "./PerformanceMetrics";
 import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
-type ViewMode = 'home' | 'performance' | 'new-diagnostic' | 'history';
+
+type ViewMode = 'home' | 'performance' | 'new-diagnostic';
+
 const MarketingConsultantHome: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
+  const navigate = useNavigate();
   const {
     savedDiagnostics,
     clearAllData
@@ -24,8 +28,10 @@ const MarketingConsultantHome: React.FC = () => {
       localStorage.setItem('diagnostics_cleared_v2', 'true');
     }
   }, [clearAllData]);
+
   if (currentView === 'performance') {
-    return <div className="container mx-auto py-6 space-y-8">
+    return (
+      <div className="container mx-auto py-6 space-y-8">
         <div className="flex items-center gap-3 mb-6">
           <Button variant="outline" onClick={() => setCurrentView('home')} className="flex items-center gap-2">
             <ArrowRight className="h-4 w-4 rotate-180" />
@@ -37,10 +43,13 @@ const MarketingConsultantHome: React.FC = () => {
           </div>
         </div>
         <PerformanceMetrics />
-      </div>;
+      </div>
+    );
   }
+
   if (currentView === 'new-diagnostic') {
-    return <div className="container mx-auto py-6 space-y-8">
+    return (
+      <div className="container mx-auto py-6 space-y-8">
         <div className="flex items-center gap-3 mb-6 bg-transparent">
           <Button variant="outline" onClick={() => setCurrentView('home')} className="flex items-center gap-2 text-slate-50">
             <ArrowRight className="h-4 w-4 rotate-180" />
@@ -52,9 +61,12 @@ const MarketingConsultantHome: React.FC = () => {
           </div>
         </div>
         <AkinatorMarketingConsultant />
-      </div>;
+      </div>
+    );
   }
-  return <div className="container mx-auto py-6 space-y-8">
+
+  return (
+    <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-3">
@@ -72,15 +84,11 @@ const MarketingConsultantHome: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         
         {/* Card Performance */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <Card className="aurora-card border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer group" onClick={() => setCurrentView('performance')}>
             <CardHeader className="text-center pb-3">
               <div className="mx-auto p-4 bg-blue-500/20 rounded-full w-fit mb-3 group-hover:bg-blue-500/30 transition-colors">
@@ -106,10 +114,10 @@ const MarketingConsultantHome: React.FC = () => {
                 </Badge>
               </div>
               
-              <Button className="w-full group-hover:bg-blue-600 transition-colors" onClick={e => {
-              e.stopPropagation();
-              setCurrentView('performance');
-            }}>
+              <Button className="w-full group-hover:bg-blue-600 transition-colors" onClick={(e) => {
+                e.stopPropagation();
+                setCurrentView('performance');
+              }}>
                 Ver Performance
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -118,15 +126,11 @@ const MarketingConsultantHome: React.FC = () => {
         </motion.div>
 
         {/* Card Novo Diagnóstico */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2
-      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card className="aurora-card border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer group" onClick={() => setCurrentView('new-diagnostic')}>
             <CardHeader className="text-center pb-3">
               <div className="mx-auto p-4 bg-aurora-electric-purple/20 rounded-full w-fit mb-3 group-hover:bg-aurora-electric-purple/30 transition-colors">
@@ -152,10 +156,10 @@ const MarketingConsultantHome: React.FC = () => {
                 </Badge>
               </div>
               
-              <Button className="w-full bg-aurora-electric-purple hover:bg-aurora-electric-purple/80 transition-colors" onClick={e => {
-              e.stopPropagation();
-              setCurrentView('new-diagnostic');
-            }}>
+              <Button className="w-full bg-aurora-electric-purple hover:bg-aurora-electric-purple/80 transition-colors" onClick={(e) => {
+                e.stopPropagation();
+                setCurrentView('new-diagnostic');
+              }}>
                 Iniciar Diagnóstico
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -164,16 +168,12 @@ const MarketingConsultantHome: React.FC = () => {
         </motion.div>
 
         {/* Card Histórico */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.3
-      }}>
-          <Card className="aurora-card border-green-500/30 hover:border-green-400/50 transition-all group">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="aurora-card border-green-500/30 hover:border-green-400/50 transition-all group cursor-pointer" onClick={() => navigate('/diagnostic-history')}>
             <CardHeader className="text-center pb-3">
               <div className="mx-auto p-4 bg-green-500/20 rounded-full w-fit mb-3 group-hover:bg-green-500/30 transition-colors">
                 <History className="h-8 w-8 text-green-400" />
@@ -192,12 +192,20 @@ const MarketingConsultantHome: React.FC = () => {
                   <FileText className="h-3 w-3 mr-1" />
                   {savedDiagnostics.length} Diagnósticos
                 </Badge>
-                {savedDiagnostics.length > 0 && <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+                {savedDiagnostics.length > 0 && (
+                  <Badge variant="outline" className="border-blue-500/30 text-blue-400">
                     Download Disponível
-                  </Badge>}
+                  </Badge>
+                )}
               </div>
               
-              <DiagnosticHistoryModal onLoadDiagnostic={() => setCurrentView('new-diagnostic')} />
+              <Button className="w-full group-hover:bg-green-600 transition-colors" onClick={(e) => {
+                e.stopPropagation();
+                navigate('/diagnostic-history');
+              }}>
+                Ver Histórico
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -231,6 +239,8 @@ const MarketingConsultantHome: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default MarketingConsultantHome;

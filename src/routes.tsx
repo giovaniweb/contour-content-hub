@@ -61,7 +61,8 @@ export const ROUTES = {
   // Marketing
   MARKETING: {
     CONSULTANT: "/marketing-consultant",
-    REPORTS: "/reports"
+    REPORTS: "/reports",
+    DIAGNOSTIC_HISTORY: "/diagnostic-history"
   },
   
   // Consultant
