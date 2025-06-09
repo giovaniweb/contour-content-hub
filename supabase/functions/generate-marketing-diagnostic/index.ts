@@ -28,21 +28,10 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         error: 'OPENAI_API_KEY não configurada - Configure a chave da OpenAI nas configurações do projeto',
         success: false,
-        details: 'A chave da OpenAI precisa ser configurada nos secrets do Supabase'
+        diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
+        fallback: true
       }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!openAIApiKey.startsWith('sk-')) {
-      console.error('❌ OPENAI_API_KEY inválida - deve começar com sk-');
-      return new Response(JSON.stringify({ 
-        error: 'Chave OpenAI inválida - deve começar com sk-',
-        success: false,
-        details: 'Verifique se a chave da OpenAI foi configurada corretamente'
-      }), {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -51,37 +40,11 @@ serve(async (req) => {
     const prompt = createConsultorFluidaPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
-    console.log('🌐 Testando conexão com OpenAI...');
+    console.log('🌐 Chamando OpenAI...');
     
-    // Teste da chave OpenAI
-    const testResponse = await fetch('https://api.openai.com/v1/models', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('🔍 Teste de conexão OpenAI status:', testResponse.status);
-    
-    if (!testResponse.ok) {
-      const testError = await testResponse.text();
-      console.error('❌ Falha no teste da chave OpenAI:', testError);
-      return new Response(JSON.stringify({ 
-        error: 'Chave OpenAI inválida ou sem permissão',
-        success: false,
-        details: `Status: ${testResponse.status} - ${testError}`
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('✅ Chave OpenAI válida, gerando diagnóstico...');
-    
-    // Chamada para OpenAI com timeout de 60 segundos
+    // Chamada para OpenAI com timeout de 55 segundos (menor que os 60s do frontend)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 55000);
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -91,7 +54,7 @@ serve(async (req) => {
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14', // Modelo mais recente e potente
+        model: 'gpt-4o-mini', // Modelo mais estável e rápido
         messages: [
           { 
             role: 'system', 
@@ -100,8 +63,8 @@ serve(async (req) => {
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 2800, // Reduzido conforme prompt otimizado
-        stream: false // Explicitamente definido
+        max_tokens: 2800,
+        stream: false
       }),
     });
 
@@ -119,7 +82,7 @@ serve(async (req) => {
         fallback: true,
         details: `Erro OpenAI: ${response.status}`
       }), {
-        status: 200, // Retorna 200 para o fallback ser processado
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -134,7 +97,7 @@ serve(async (req) => {
         success: false,
         fallback: true
       }), {
-        status: 200, // Retorna 200 para o fallback ser processado
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -158,9 +121,9 @@ serve(async (req) => {
         diagnostic: 'Diagnóstico temporariamente indisponível. Suas respostas foram salvas com segurança.',
         success: false,
         fallback: true,
-        details: 'Timeout - IA demorou mais que 60 segundos para responder'
+        details: 'Timeout - IA demorou mais que 55 segundos para responder'
       }), {
-        status: 200, // Retorna 200 para o fallback ser processado
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -171,25 +134,20 @@ serve(async (req) => {
       fallback: true,
       details: error.message 
     }), {
-      status: 200, // Retorna 200 para o fallback ser processado
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
 
 function getOptimizedSystemPrompt(): string {
-  return `// PROMPT OTIMIZADO – CONSULTOR FLUIDA 🎯
-// Versão final para LOVABLE com resiliência, segurança e estrutura modular
-
-Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma Fluida para clínicas estéticas e clínicas médicas.
+  return `Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma Fluida para clínicas estéticas e clínicas médicas.
 
 Sua missão é:
 1. Entender o tipo de clínica (via dados recebidos)
 2. Aplicar o diagnóstico conforme regras e variáveis abaixo
 3. Gerar relatório estruturado SEM modificar o fluxo original
 4. Garantir que as informações geradas sejam salvas com timestamp no histórico do usuário
-
----
 
 📦 Entregáveis (estrutura imutável):
 1. Diagnóstico Estratégico da Clínica
@@ -198,8 +156,6 @@ Sua missão é:
 4. Avaliação de Marca e Atendimento
 5. Enigma do Mentor
 6. Insights Estratégicos Fluida
-
----
 
 📊 Diagnóstico Estratégico
 - Apontar gargalos
@@ -222,19 +178,6 @@ Sua missão é:
 📈 Insights Fluida
 - Críticas construtivas (ex: ausência de vídeos, desalinhamento de preço x promessa etc)
 
----
-
-🛡️ Validações obrigatórias:
-1. Equipamentos devem existir no banco oficial. Se inválido: 
-> "Equipamento {{equipamento}} não validado. Verifique ortografia ou consulte o time Fluida."
-
-2. Respeite regras:
-- Clínicas Estéticas não podem acessar equipamentos médicos
-- Não gerar conteúdo sobre live, blog, ebook ou webinar
-- Mantenha a linguagem fiel ao estilo informado
-
----
-
 ⚠️ RESTRIÇÕES:
 - Proibido citar live, blog, ebook ou webinar
 - Tudo deve caber em conteúdo de rede social
@@ -245,13 +188,8 @@ Sua missão é:
 🎯 SEGMENTAÇÃO:
 - Clínica Médica → Pode ver todos os equipamentos
 - Clínica Estética → Apenas equipamentos não invasivos
-- Inferência: Unyque PRO/Reverso/Enygma = MÉDICA | Crystal 3D Plus/Crio/Multishape = ESTÉTICA
 
-⚠️ VALIDAÇÃO DE EQUIPAMENTOS:
-Todo equipamento citado deve ser validado com base no banco oficial. Se não reconhecido, gere alerta:
-"Equipamento não validado no banco de dados oficial. Verifique a ortografia ou consulte o time técnico Fluida."
-
-Se múltiplos equipamentos, gere pelo menos 1 sugestão de conteúdo e 1 insight para cada um.`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
 }
 
 function createConsultorFluidaPrompt(data: any): string {
@@ -291,15 +229,6 @@ function createConsultorFluidaPrompt(data: any): string {
   const desafios = data.mainChallenges || 'Não informado';
   const estiloLinguagem = data.communicationStyle || (isClinicaMedica ? 'técnico-consultivo' : 'emocional e inspirador');
 
-  // Detectar se aparece nos vídeos
-  const apareceVideos = data.showsInVideos ? 'Sim' : 'Não definido';
-
-  // Problemas que os equipamentos resolvem
-  const problemasEquipamentos = data.equipmentProblems || 'Não informado';
-
-  // Modelo de venda
-  const modeloVenda = data.salesModel || 'Não informado';
-
   const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
 📋 Dados recebidos (preenchidos pelo usuário):
@@ -308,21 +237,16 @@ function createConsultorFluidaPrompt(data: any): string {
 - Especialidade: ${especialidade}
 - Procedimentos: ${procedimentos}
 - Equipamentos: ${equipamentos}
-- Problemas que os equipamentos resolvem: ${problemasEquipamentos}
 - Protocolo mais vendido: ${protocolo}
 - Ticket médio: ${ticketMedio}
-- Modelo de venda: ${modeloVenda}
 - Faturamento atual: ${faturamento}
 - Meta 3 meses: ${meta}
 - Objetivo: ${objetivo}
 - Frequência de conteúdo: ${frequencia}
-- Aparece nos vídeos: ${apareceVideos}
 - Público ideal: ${publicoIdeal}
 - Estilo da clínica: ${estiloClinica}
 - Estilo de linguagem desejado: ${estiloLinguagem}
 - Principais desafios: ${desafios}
-
----
 
 🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA:
 
@@ -355,13 +279,7 @@ Foque nos equipamentos mencionados: ${equipamentos}
 
 Personalize tudo com base no perfil fornecido acima.
 
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.
-
-Se houver múltiplos equipamentos, gere pelo menos 1 sugestão de conteúdo e 1 insight para cada um.
-
-O plano deve ser dinâmico e alinhado com as recomendações, personalizando linguagem e abordagem.
-
-Para o Enigma do Mentor, crie uma frase misteriosa com trocadilho, mas NUNCA revele o nome verdadeiro do mentor.`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
 
   return prompt;
 }
