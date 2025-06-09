@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Target, TrendingUp, CheckCircle2 } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
-import DiagnosticContentFormatter from './DiagnosticContentFormatter';
+import StructuredDiagnosticSections from './StructuredDiagnosticSections';
 import GrowthStrategySection from './GrowthStrategySection';
 
 interface DiagnosticTabProps {
@@ -28,7 +28,7 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Score estratégico */}
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="aurora-card border-aurora-electric-purple/30">
@@ -87,18 +87,19 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
         </Card>
       )}
 
-      {/* Conteúdo do diagnóstico */}
+      {/* Seções do diagnóstico estruturadas */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-foreground">Análise Detalhada</h2>
         </div>
 
-        <DiagnosticContentFormatter 
-          content={session.state.generatedDiagnostic || ''} 
+        <StructuredDiagnosticSections 
+          diagnostic={session.state.generatedDiagnostic || ''}
+          state={session.state}
         />
       </div>
 
-      {/* Nova seção de estratégia de crescimento */}
+      {/* Estratégia de crescimento separada */}
       <GrowthStrategySection session={session} />
     </div>
   );
