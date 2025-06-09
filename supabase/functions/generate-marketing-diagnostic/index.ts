@@ -10,11 +10,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  console.log('🚀 CONSULTOR FLUIDA - Diagnóstico iniciado');
+  console.log('🎯 CONSULTOR FLUIDA - Diagnóstico iniciado');
   console.log('📝 Method:', req.method);
   console.log('🔑 OpenAI Key present:', !!openAIApiKey);
-  console.log('🔑 OpenAI Key length:', openAIApiKey ? openAIApiKey.length : 0);
-  console.log('🔑 OpenAI Key starts with sk-:', openAIApiKey ? openAIApiKey.startsWith('sk-') : false);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,6 +22,7 @@ serve(async (req) => {
     const diagnosticData = await req.json();
     console.log('📊 Dados do diagnóstico recebidos:', JSON.stringify(diagnosticData, null, 2));
 
+    // Validação da chave OpenAI
     if (!openAIApiKey) {
       console.error('❌ OPENAI_API_KEY não configurada!');
       return new Response(JSON.stringify({ 
@@ -48,12 +47,13 @@ serve(async (req) => {
       });
     }
 
+    // Criar prompt seguindo as especificações completas
     const prompt = createConsultorFluidaPrompt(diagnosticData);
     console.log('📝 Prompt criado, tamanho:', prompt.length);
 
     console.log('🌐 Testando conexão com OpenAI...');
     
-    // Primeiro, fazer um teste simples para verificar se a chave funciona
+    // Teste da chave OpenAI
     const testResponse = await fetch('https://api.openai.com/v1/models', {
       method: 'GET',
       headers: {
@@ -79,44 +79,32 @@ serve(async (req) => {
 
     console.log('✅ Chave OpenAI válida, gerando diagnóstico...');
     
+    // Chamada para OpenAI com timeout de 60 segundos
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
-            content: `Você é o CONSULTOR FLUIDA — especialista em marketing para clínicas médicas e estéticas.
-
-MISSÃO: Gerar diagnóstico seguindo EXATAMENTE as 6 seções obrigatórias:
-
-1. 📊 Diagnóstico Estratégico
-2. 💡 Sugestões de Conteúdo Personalizado  
-3. 📅 Plano de Ação Semanal
-4. 🎨 Avaliação de Marca e Atendimento
-5. 🧩 Enigma do Mentor
-6. 📈 Insights Estratégicos Fluida
-
-REGRAS:
-- Use EXATAMENTE esses títulos com emojis
-- Conteúdo apenas para Instagram/TikTok/Shorts
-- Adapte linguagem: Médica = técnica | Estética = emocional
-- Plano de 4 semanas com tarefas práticas
-- Enigma inspirador sem revelar mentor
-- Seja consultivo e prático` 
+            content: getSystemPrompt()
           },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 4000,
-        timeout: 45000 // 45 segundos
+        max_tokens: 3000 // Otimizado para evitar truncamentos
       }),
     });
 
+    clearTimeout(timeoutId);
     console.log('📡 Status da resposta OpenAI:', response.status);
 
     if (!response.ok) {
@@ -135,7 +123,6 @@ REGRAS:
 
     const data = await response.json();
     console.log('📄 Resposta OpenAI recebida');
-    console.log('🔍 Estrutura da resposta:', JSON.stringify(data, null, 2));
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error('❌ Estrutura de resposta inválida da OpenAI');
@@ -160,7 +147,17 @@ REGRAS:
     
   } catch (error) {
     console.error('💥 Erro geral:', error);
-    console.error('💥 Stack:', error.stack);
+    
+    if (error.name === 'AbortError') {
+      return new Response(JSON.stringify({ 
+        error: 'Timeout - IA demorou mais que 60 segundos para responder',
+        success: false,
+        details: 'Tente novamente em alguns minutos'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     return new Response(JSON.stringify({ 
       error: 'Erro interno do servidor',
@@ -173,11 +170,53 @@ REGRAS:
   }
 });
 
+function getSystemPrompt(): string {
+  return `Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
+
+Sua missão é gerar um diagnóstico completo com base nas respostas fornecidas, adaptando a linguagem e recomendações ao tipo de clínica (médica ou estética).
+
+📦 ESTRUTURA OBRIGATÓRIA DO RESULTADO:
+
+## 📊 Diagnóstico Estratégico da Clínica
+[Identifique gargalos, analise desalinhamento entre público/oferta/visual/autoridade, use tom consultivo adaptado]
+
+## 💡 Sugestões de Conteúdo Personalizado
+[3-5 ideias práticas SOMENTE para Instagram, Reels, TikTok, Shorts - incluir pelo menos 3 ideias com equipamentos citados]
+
+## 📅 Plano de Ação Semanal
+Semana 1: Autoridade e visibilidade
+Semana 2: Prova social e diferencial  
+Semana 3: Conversão e campanha
+Semana 4: Aceleração e fidelização
+[3-4 tarefas práticas por semana]
+
+## 🎨 Avaliação de Marca e Atendimento
+[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
+
+## 🧩 Enigma do Mentor
+[Frase misteriosa com trocadilho - NUNCA revele o nome verdadeiro do mentor]
+
+## 📈 Insights Estratégicos Fluida
+[3-5 insights práticos com tom de consultoria]
+
+⚠️ RESTRIÇÕES:
+- Proibido citar live, blog, ebook ou webinar
+- Tudo deve caber em conteúdo de rede social
+- Use linguagem adaptada: médica = técnico-consultivo, estética = emocional-inspirador
+- Não alucine equipamentos ou formatos não citados
+- Foque no que foi fornecido nos dados de briefing
+
+🎯 SEGMENTAÇÃO:
+- Clínica Médica → Pode ver todos os equipamentos
+- Clínica Estética → Apenas equipamentos não invasivos
+- Inferência: Unyque PRO/Reverso/Enygma = MÉDICA | Crystal 3D Plus/Crio/Multishape = ESTÉTICA`;
+}
+
 function createConsultorFluidaPrompt(data: any): string {
   const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
   const isClinicaMedica = data.clinicType === 'clinica_medica';
   
-  // Detectar dados principais
+  // Detectar dados principais com base no tipo de clínica
   const especialidade = isClinicaMedica 
     ? (data.medicalSpecialty || 'Não informado')
     : (data.aestheticFocus || 'Não informado');
@@ -201,52 +240,43 @@ function createConsultorFluidaPrompt(data: any): string {
   const frequencia = data.contentFrequency || 'Não informado';
   const faturamento = formatRevenue(data.currentRevenue);
   const meta = formatGoal(data.revenueGoal);
+  const publicoIdeal = data.targetAudience || 'Não definido';
+  const estiloClinica = data.clinicStyle || 'Não definido';
+  const desafios = data.mainChallenges || 'Não informado';
+
+  // Detectar se aparece nos vídeos
+  const apareceVideos = data.showsInVideos ? 'Sim' : 'Não definido';
 
   const prompt = `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
 
-📋 BRIEFING DA CLÍNICA:
+📋 DADOS DE BRIEFING:
+
 • Tipo: ${tipoClinica}
-• Especialidade: ${especialidade}
+• Especialidade: ${especialidade}  
 • Equipamentos: ${equipamentos}
-• Protocolo principal: ${protocolo}
+• Protocolo mais vendido: ${protocolo}
 • Ticket médio: ${ticketMedio}
-• Faturamento: ${faturamento}
-• Meta: ${meta}
-• Objetivo: ${objetivo}
+• Faturamento atual: ${faturamento}
+• Meta 3 meses: ${meta}
+• Objetivo de marketing: ${objetivo}
 • Frequência de conteúdo: ${frequencia}
-• Público-alvo: ${data.targetAudience || 'Não definido'}
-• Desafios: ${data.mainChallenges || 'Não informado'}
+• Aparece nos vídeos: ${apareceVideos}
+• Público ideal: ${publicoIdeal}
+• Estilo da clínica: ${estiloClinica}
+• Principais desafios: ${desafios}
 
 ---
 
-🎯 GERE UM DIAGNÓSTICO COMPLETO COM AS 6 SEÇÕES:
+🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA:
 
-## 📊 Diagnóstico Estratégico
-[Analise o perfil da clínica, identifique gargalos e oportunidades]
+Use a linguagem adequada:
+- ${isClinicaMedica ? 'TÉCNICO-CONSULTIVA (clínica médica)' : 'EMOCIONAL-INSPIRADORA (clínica estética)'}
 
-## 💡 Sugestões de Conteúdo Personalizado
-[3-5 ideias práticas para Instagram/TikTok/Shorts usando os equipamentos mencionados]
+Foque nos equipamentos mencionados: ${equipamentos}
 
-## 📅 Plano de Ação Semanal
-[4 semanas com 3-4 tarefas práticas cada:
-Semana 1: Autoridade e visibilidade
-Semana 2: Prova social e diferencial  
-Semana 3: Conversão e campanha
-Semana 4: Aceleração e fidelização]
+Personalize tudo com base no perfil fornecido acima.
 
-## 🎨 Avaliação de Marca e Atendimento
-[Analise identidade visual, atendimento vs posicionamento, sugira melhorias]
-
-## 🧩 Enigma do Mentor
-[Frase inspiradora sobre marketing/crescimento sem revelar nome do mentor]
-
-## 📈 Insights Estratégicos Fluida
-[3-5 insights práticos sobre equipamentos, posicionamento, crescimento]
-
-⚠️ IMPORTANTE:
-- Linguagem ${isClinicaMedica ? 'técnica e consultiva' : 'emocional e humanizada'}
-- Apenas conteúdo para redes sociais (nunca blog/webinar)
-- ${!isClinicaMedica ? 'APENAS equipamentos estéticos (não médicos)' : 'Pode mencionar equipamentos médicos e estéticos'}`;
+⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
 
   return prompt;
 }

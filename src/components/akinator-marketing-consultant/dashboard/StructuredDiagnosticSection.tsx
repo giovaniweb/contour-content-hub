@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,14 +15,12 @@ import {
   AlertTriangle,
   Sparkles,
   RefreshCw,
-  AlertCircle,
-  Clock,
-  Wifi,
   WifiOff
 } from "lucide-react";
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import { useAIDiagnostic } from "@/hooks/useAIDiagnostic";
+import LoadingMessages from "./LoadingMessages";
 
 interface StructuredDiagnosticSectionProps {
   diagnostic: string;
@@ -48,20 +47,12 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
     setRetryCount(prev => prev + 1);
     
     try {
-      console.log(`🔄 Tentativa ${retryCount + 1} - Regenerando diagnóstico com estado:`, state);
+      console.log(`🔄 Tentativa ${retryCount + 1} - Regenerando diagnóstico`);
       
-      toast.info("🤖 Regenerando diagnóstico com IA...", {
-        description: `Tentativa ${retryCount + 1} - Pode levar até 90 segundos`,
+      toast.info("🎯 Regenerando diagnóstico com Consultor Fluida...", {
+        description: `Tentativa ${retryCount + 1} - Pode levar até 60 segundos`,
         id: "retry-diagnostic"
       });
-      
-      // Limpar cache do navegador
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
-          await registration.update();
-        }
-      }
       
       const newDiagnostic = await generateDiagnostic(state);
       
@@ -71,9 +62,9 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
           description: `Concluído na tentativa ${retryCount + 1}`,
           id: "retry-diagnostic"
         });
-        setRetryCount(0); // Reset counter on success
+        setRetryCount(0);
       } else {
-        toast.warning("⚠️ IA ainda indisponível", {
+        toast.warning("⚠️ Consultor Fluida ainda indisponível", {
           description: `Tentativa ${retryCount + 1} falhou. Tente novamente em alguns minutos.`,
           id: "retry-diagnostic"
         });
@@ -81,7 +72,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
     } catch (error) {
       console.error(`Erro na tentativa ${retryCount + 1}:`, error);
       toast.error("❌ Erro ao regenerar", {
-        description: `Tentativa ${retryCount + 1} falhou. Verifique os logs do console.`,
+        description: `Tentativa ${retryCount + 1} falhou.`,
         id: "retry-diagnostic"
       });
     } finally {
@@ -100,7 +91,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       insights: ''
     };
 
-    // Regex patterns para cada seção
+    // Regex patterns para cada seção obrigatória
     const patterns = {
       estrategico: /📊 Diagnóstico Estratégico.*?(?=💡|$)/s,
       conteudo: /💡 Sugestões de Conteúdo.*?(?=📅|$)/s,
@@ -191,18 +182,9 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
     );
   };
 
-  if (!diagnostic || diagnostic === 'Diagnóstico sendo processado...') {
-    return (
-      <div className="text-center py-12">
-        <div className="aurora-glass rounded-xl p-8">
-          <BrainCircuit className="h-12 w-12 mx-auto mb-4 text-aurora-electric-purple animate-pulse" />
-          <h3 className="text-lg font-medium aurora-heading mb-2">Processando Diagnóstico</h3>
-          <p className="text-sm aurora-body opacity-75">
-            O Consultor Fluida está analisando suas respostas...
-          </p>
-        </div>
-      </div>
-    );
+  // Mostrar loading messages durante geração
+  if (!diagnostic || diagnostic === 'Diagnóstico sendo processado...' || isGenerating || isRetrying) {
+    return <LoadingMessages isLoading={true} />;
   }
 
   // Verificar se é o diagnóstico temporário/fallback
@@ -212,50 +194,19 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
         <Card className="aurora-card border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 max-w-4xl mx-auto">
           <CardContent className="p-8">
             <div className="flex items-center justify-center mb-6">
-              <div className="relative">
-                <WifiOff className="h-16 w-16 text-amber-500" />
-                <Clock className="h-6 w-6 text-amber-600 absolute -bottom-1 -right-1 bg-amber-100 rounded-full p-1" />
-              </div>
+              <WifiOff className="h-16 w-16 text-amber-500" />
             </div>
             
             <h3 className="text-2xl font-bold aurora-heading mb-4 text-amber-400">
-              ⚠️ Diagnóstico IA Temporariamente Indisponível
+              ⚠️ Consultor Fluida Temporariamente Indisponível
             </h3>
             
             <p className="aurora-body mb-6 opacity-90 leading-relaxed max-w-2xl mx-auto">
-              A IA do Consultor Fluida está momentaneamente sobrecarregada ou há problema de conectividade. 
+              O Consultor Fluida está momentaneamente sobrecarregado ou há problema de conectividade. 
               Suas respostas foram <strong>salvas com segurança</strong> e você pode ver as análises básicas nos cards acima.
             </p>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm max-w-3xl mx-auto">
-                <div className="p-4 aurora-glass rounded-lg">
-                  <h4 className="font-semibold text-aurora-sage mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    ✅ O que está funcionando:
-                  </h4>
-                  <ul className="text-left space-y-2 opacity-80">
-                    <li>• Análise básica do perfil da clínica</li>
-                    <li>• Cards informativos e insights</li>
-                    <li>• Dados salvos com segurança</li>
-                    <li>• Recomendações gerais</li>
-                  </ul>
-                </div>
-                
-                <div className="p-4 aurora-glass rounded-lg">
-                  <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                    <WifiOff className="h-4 w-4" />
-                    ⏳ Possíveis causas:
-                  </h4>
-                  <ul className="text-left space-y-2 opacity-80">
-                    <li>• Chave OpenAI não configurada</li>
-                    <li>• Problema de rede/conectividade</li>
-                    <li>• Cache do navegador</li>
-                    <li>• Sobrecarga temporária da IA</li>
-                  </ul>
-                </div>
-              </div>
-
               <div className="pt-4 space-y-4">
                 <Button 
                   onClick={handleRetryDiagnostic}
@@ -266,12 +217,12 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   {(isRetrying || isGenerating) ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Tentativa {retryCount + 1}... (até 90s)
+                      Tentativa {retryCount + 1}... (até 60s)
                     </>
                   ) : (
                     <>
                       <BrainCircuit className="h-4 w-4 mr-2" />
-                      🤖 Tentar Regenerar com IA
+                      🎯 Tentar Regenerar com Consultor Fluida
                       {retryCount > 0 && ` (${retryCount} tentativas)`}
                     </>
                   )}
@@ -281,11 +232,6 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
                   <Badge variant="outline" className="border-amber-500/30 text-amber-400">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Dados seguros
-                  </Badge>
-                  
-                  <Badge variant="outline" className="border-blue-500/30 text-blue-400">
-                    <Wifi className="h-3 w-3 mr-1" />
-                    Verificando conectividade
                   </Badge>
                   
                   {retryCount > 0 && (
@@ -314,10 +260,10 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold aurora-heading mb-1">
-              🧠 Diagnóstico Completo
+              🎯 Diagnóstico Consultor Fluida
             </h2>
             <p className="aurora-body opacity-80">
-              Análise estratégica personalizada do Consultor Fluida
+              Análise estratégica personalizada para sua clínica
             </p>
           </div>
         </div>
@@ -369,7 +315,7 @@ const StructuredDiagnosticSection: React.FC<StructuredDiagnosticSectionProps> = 
       <div className="text-center pt-6">
         <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple px-6 py-2">
           <Sparkles className="h-4 w-4 mr-2" />
-          Diagnóstico validado pela IA
+          Diagnóstico validado pelo Consultor Fluida
         </Badge>
       </div>
     </div>
