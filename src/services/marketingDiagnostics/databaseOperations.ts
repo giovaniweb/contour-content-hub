@@ -62,7 +62,7 @@ export const saveDiagnosticToDatabase = async (
     console.log('✅ Diagnóstico salvo no banco (protegido contra duplicação):', data);
     return {
       ...data,
-      state_data: data.state_data as MarketingConsultantState
+      state_data: data.state_data as unknown as MarketingConsultantState
     } as MarketingDiagnostic;
   } catch (error) {
     console.error('❌ Erro ao salvar diagnóstico:', error);
@@ -84,7 +84,7 @@ export const loadDiagnosticsFromDatabase = async (): Promise<MarketingDiagnostic
 
     return (data || []).map(item => ({
       ...item,
-      state_data: item.state_data as MarketingConsultantState
+      state_data: item.state_data as unknown as MarketingConsultantState
     })) as MarketingDiagnostic[];
   } catch (error) {
     console.error('❌ Erro ao carregar diagnósticos:', error);
@@ -106,7 +106,7 @@ export const loadDiagnosticBySessionIdFromDatabase = async (sessionId: string): 
 
     return {
       ...data,
-      state_data: data.state_data as MarketingConsultantState
+      state_data: data.state_data as unknown as MarketingConsultantState
     } as MarketingDiagnostic;
   } catch (error) {
     console.error('❌ Erro ao carregar diagnóstico por session_id:', error);
