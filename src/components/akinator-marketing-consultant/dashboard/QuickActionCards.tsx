@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
+import { useContentPlanner } from '@/hooks/useContentPlanner';
 import { MarketingConsultantState } from '../types';
 
 interface QuickActionCardsProps {
@@ -34,6 +35,93 @@ interface QuickAction {
 
 const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
   const navigate = useNavigate();
+  const { generateSuggestions } = useContentPlanner();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateMoreIdeas = async () => {
+    setIsGenerating(true);
+    try {
+      toast.info("🤖 Gerando novas ideias...", {
+        description: "Consultor Fluida criando sugestões personalizadas"
+      });
+      
+      const suggestions = await generateSuggestions(4);
+      
+      if (suggestions.length > 0) {
+        toast.success(`🎯 ${suggestions.length} novas ideias geradas!`, {
+          description: "Sugestões inteligentes adicionadas ao seu planejador"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao gerar sugestões:', error);
+      toast.error("❌ Erro na geração", {
+        description: "Não foi possível gerar novas sugestões"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleExportDiagnostic = () => {
+    try {
+      // Criar dados do diagnóstico para export
+      const diagnosticData = {
+        tipoClinica: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
+        especialidade: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus,
+        equipamentos: state.clinicType === 'clinica_medica' ? state.medicalEquipments : state.aestheticEquipments,
+        receitaAtual: state.currentRevenue,
+        metaReceita: state.revenueGoal,
+        experienciaMarketing: state.marketingExperience,
+        dataGeracao: new Date().toLocaleString('pt-BR')
+      };
+
+      // Criar conteúdo do relatório
+      const reportContent = `
+RELATÓRIO DE DIAGNÓSTICO - CONSULTOR FLUIDA
+============================================
+
+Data de Geração: ${diagnosticData.dataGeracao}
+
+PERFIL DA CLÍNICA
+-----------------
+Tipo: ${diagnosticData.tipoClinica}
+Especialidade: ${diagnosticData.especialidade || 'Não informado'}
+Equipamentos: ${diagnosticData.equipamentos || 'Não informado'}
+
+SITUAÇÃO FINANCEIRA
+-------------------
+Receita Atual: ${diagnosticData.receitaAtual || 'Não informado'}
+Meta de Receita: ${diagnosticData.metaReceita || 'Não informado'}
+
+EXPERIÊNCIA EM MARKETING
+------------------------
+Nível: ${diagnosticData.experienciaMarketing || 'Não informado'}
+
+---
+Relatório gerado pelo Consultor Fluida
+      `;
+
+      // Criar e baixar arquivo
+      const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `diagnostico-fluida-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("📄 Relatório exportado!", {
+        description: "Download do diagnóstico iniciado automaticamente"
+      });
+    } catch (error) {
+      console.error('Erro ao exportar diagnóstico:', error);
+      toast.error("❌ Erro no export", {
+        description: "Não foi possível exportar o relatório"
+      });
+    }
+  };
 
   const quickActions: QuickAction[] = [
     {
@@ -42,7 +130,12 @@ const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
       description: 'Organize suas ideias no planejador de conteúdo',
       icon: <Calendar className="h-5 w-5" />,
       color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      action: () => navigate('/content-planner')
+      action: () => {
+        toast.success("📋 Redirecionando...", {
+          description: "Abrindo o planejador de conteúdo"
+        });
+        navigate('/content-planner');
+      }
     },
     {
       id: 'calendar',
@@ -51,7 +144,7 @@ const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
       icon: <Target className="h-5 w-5" />,
       color: 'bg-green-500/20 text-green-400 border-green-500/30',
       action: () => {
-        toast.success("📅 Calendário em desenvolvimento!", {
+        toast.info("📅 Calendário em desenvolvimento!", {
           description: "Funcionalidade será liberada em breve"
         });
       },
@@ -63,24 +156,15 @@ const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
       description: 'Peça ao Consultor Fluida mais sugestões',
       icon: <Lightbulb className="h-5 w-5" />,
       color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      action: () => {
-        toast.info("🤖 Gerando novas ideias...", {
-          description: "Consultor Fluida criando sugestões personalizadas"
-        });
-        // Aqui poderia integrar com a geração de mais sugestões
-      }
+      action: handleGenerateMoreIdeas
     },
     {
       id: 'export',
       title: 'Exportar Diagnóstico',
-      description: 'Baixe seu relatório completo em PDF',
+      description: 'Baixe seu relatório completo em arquivo',
       icon: <Download className="h-5 w-5" />,
       color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      action: () => {
-        toast.success("📄 Exportando relatório!", {
-          description: "Download iniciado automaticamente"
-        });
-      }
+      action: handleExportDiagnostic
     },
     {
       id: 'notifications',
@@ -154,12 +238,22 @@ const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
                 
                 <Button 
                   onClick={action.action}
+                  disabled={action.id === 'ideas' && isGenerating}
                   variant="outline"
                   className="w-full aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 text-xs h-8 group-hover:scale-105 transition-transform"
                   size="sm"
                 >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Executar
+                  {action.id === 'ideas' && isGenerating ? (
+                    <>
+                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Executar
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>

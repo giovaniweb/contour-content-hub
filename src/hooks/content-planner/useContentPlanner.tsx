@@ -1,67 +1,26 @@
+
 import { useState, useEffect } from 'react';
 import { ContentPlannerFilter, ContentPlannerItem, ContentPlannerStatus, ContentFormat, ContentDistribution } from '@/types/content-planner';
-import { initialColumns, mockItems } from './initialState';
+import { initialColumns } from './initialState';
 import { toast } from "sonner";
+import { 
+  createContentPlannerItem,
+  updateContentPlannerItem,
+  deleteContentPlannerItem
+} from '@/services/content-planner/itemService';
 
 export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => {
   const [columns, setColumns] = useState(initialColumns);
   const [items, setItems] = useState<ContentPlannerItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ContentPlannerFilter>(initialFilters);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
-
-  // Carregar dados iniciais
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setItems(mockItems);
-        setError(null);
-        
-        console.log("📋 Dados do planejador carregados:", mockItems);
-        
-        toast.success("Planejador carregado", {
-          description: "Dados atualizados com sucesso!"
-        });
-      } catch (err) {
-        console.error("Erro ao carregar dados:", err);
-        setError("Falha ao carregar os itens do planner");
-        toast.error("Erro no planejador", {
-          description: "Não foi possível carregar os dados"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  // Auto-refresh a cada 30 segundos se ativo
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      console.log("🔄 Auto-refresh do planejador");
-      // Simular pequenas atualizações
-      setItems(prevItems => 
-        prevItems.map(item => ({
-          ...item,
-          updatedAt: new Date().toISOString()
-        }))
-      );
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh]);
 
   // Atualizar colunas quando items mudam
   useEffect(() => {
     const updatedColumns = initialColumns.map(column => {
       const columnItems = items.filter(item => item.status === column.id);
-      console.log(`📊 Coluna ${column.title}: ${columnItems.length} itens`);
       
       return {
         ...column,
@@ -70,15 +29,12 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
     });
     
     setColumns(updatedColumns);
-    console.log("🔄 Colunas atualizadas:", updatedColumns);
   }, [items]);
 
   // Gerar sugestões de conteúdo com IA
   const generateSuggestions = async (count = 3, objective?: string, format?: string): Promise<ContentPlannerItem[]> => {
     try {
       setLoading(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
       const suggestions: ContentPlannerItem[] = [];
       
@@ -99,28 +55,27 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
         const formats: ContentFormat[] = ['vídeo', 'reels', 'carrossel', 'story'];
         const objectives = ['🟡 Atrair Atenção', '🔴 Fazer Comprar', '🟢 Criar Conexão'];
         
-        const newItem: ContentPlannerItem = {
-          id: `item-ai-${Date.now()}-${i}`,
+        const newItemData = {
           title: randomTopics[i] || `Sugestão IA: Conteúdo ${i+1}`,
           description: "Conteúdo gerado por IA baseado em tendências de mercado e dados de engajamento. Personalize conforme sua audiência.",
-          status: 'idea',
+          status: 'idea' as ContentPlannerStatus,
           tags: ['ia', 'sugestão', 'trend', 'engajamento'],
           format: (format as ContentFormat) || formats[Math.floor(Math.random() * formats.length)],
           objective: objective || objectives[Math.floor(Math.random() * objectives.length)],
           distribution: 'Instagram' as ContentDistribution,
-          authorId: 'ai-assistant',
-          authorName: '🤖 Assistente IA',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
           aiGenerated: true
         };
         
-        suggestions.push(newItem);
+        // Usar o serviço real para criar o item
+        const createdItem = await createContentPlannerItem(newItemData);
+        if (createdItem) {
+          suggestions.push(createdItem);
+        }
       }
       
       setItems(prevItems => [...suggestions, ...prevItems]);
       
-      toast.success(`🎯 ${count} sugestões geradas!`, {
+      toast.success(`🎯 ${suggestions.length} sugestões geradas!`, {
         description: "Novas ideias inteligentes adicionadas ao planejador"
       });
       
@@ -136,133 +91,103 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
     }
   };
 
-  // Adicionar item
+  // Adicionar item usando o serviço real
   const addItem = async (newItem: Partial<ContentPlannerItem>): Promise<ContentPlannerItem | null> => {
     try {
-      const item: ContentPlannerItem = {
-        id: `item-${Date.now()}`,
-        title: newItem.title || 'Novo conteúdo',
-        description: newItem.description || '',
-        status: newItem.status || 'idea',
-        tags: newItem.tags || [],
-        format: (newItem.format || 'vídeo') as ContentFormat,
-        objective: newItem.objective || '🟡 Atrair Atenção',
-        distribution: (newItem.distribution || 'Instagram') as ContentDistribution,
-        authorId: newItem.authorId || 'user-1',
-        authorName: newItem.authorName || 'Usuário',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        aiGenerated: newItem.aiGenerated || false,
-        ...(newItem.scriptId && { scriptId: newItem.scriptId }),
-        ...(newItem.scheduledDate && { scheduledDate: newItem.scheduledDate })
-      };
-
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setLoading(true);
       
-      setItems(prevItems => [item, ...prevItems]);
+      // Usar o serviço real para criar o item
+      const createdItem = await createContentPlannerItem(newItem);
       
-      toast.success("✨ Item adicionado!", {
-        description: `${item.title} foi adicionado ao planejador`
-      });
-      
-      return item;
-    } catch (err) {
-      console.error("Erro ao adicionar item:", err);
-      toast.error("❌ Erro ao adicionar", {
-        description: "Não foi possível adicionar o item"
-      });
-      return null;
-    }
-  };
-
-  // Atualizar item
-  const updateItem = async (id: string, updates: Partial<ContentPlannerItem>): Promise<ContentPlannerItem | null> => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      let updatedItem: ContentPlannerItem | null = null;
-      
-      setItems(prevItems => 
-        prevItems.map(item => {
-          if (item.id === id) {
-            updatedItem = { ...item, ...updates, updatedAt: new Date().toISOString() };
-            return updatedItem;
-          }
-          return item;
-        })
-      );
-      
-      if (updatedItem) {
-        toast.success("✅ Item atualizado!", {
-          description: "Alterações salvas com sucesso"
-        });
+      if (createdItem) {
+        setItems(prevItems => [createdItem, ...prevItems]);
+        return createdItem;
       }
       
-      return updatedItem;
+      return null;
+    } catch (err) {
+      console.error("Erro ao adicionar item:", err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Atualizar item usando o serviço real
+  const updateItem = async (id: string, updates: Partial<ContentPlannerItem>): Promise<ContentPlannerItem | null> => {
+    try {
+      setLoading(true);
+      
+      // Usar o serviço real para atualizar o item
+      const updatedItem = await updateContentPlannerItem(id, updates);
+      
+      if (updatedItem) {
+        setItems(prevItems => 
+          prevItems.map(item => item.id === id ? updatedItem : item)
+        );
+        return updatedItem;
+      }
+      
+      return null;
     } catch (err) {
       console.error("Erro ao atualizar item:", err);
-      toast.error("❌ Erro na atualização", {
-        description: "Não foi possível salvar as alterações"
-      });
       return null;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Remover item
+  // Remover item usando o serviço real
   const removeItem = async (id: string): Promise<boolean> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 400));
+      setLoading(true);
       
-      setItems(prevItems => prevItems.filter(item => item.id !== id));
+      // Usar o serviço real para deletar o item
+      const success = await deleteContentPlannerItem(id);
       
-      toast.success("🗑️ Item removido!", {
-        description: "Item removido do planejador"
-      });
+      if (success) {
+        setItems(prevItems => prevItems.filter(item => item.id !== id));
+        return true;
+      }
       
-      return true;
+      return false;
     } catch (err) {
       console.error("Erro ao remover item:", err);
-      toast.error("❌ Erro ao remover", {
-        description: "Não foi possível remover o item"
-      });
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Mover item de status
+  // Mover item de status usando o serviço real
   const moveItem = async (id: string, targetStatus: ContentPlannerStatus): Promise<ContentPlannerItem | null> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      setLoading(true);
       
-      let movedItem: ContentPlannerItem | null = null;
+      // Usar o serviço real para atualizar o status
+      const updatedItem = await updateContentPlannerItem(id, { status: targetStatus });
       
-      setItems(prevItems => 
-        prevItems.map(item => {
-          if (item.id === id) {
-            movedItem = { 
-              ...item, 
-              status: targetStatus, 
-              updatedAt: new Date().toISOString() 
-            };
-            return movedItem;
-          }
-          return item;
-        })
-      );
-      
-      if (movedItem) {
+      if (updatedItem) {
+        setItems(prevItems => 
+          prevItems.map(item => item.id === id ? updatedItem : item)
+        );
+        
         toast.success("🚀 Item movido!", {
           description: `Status alterado para ${targetStatus}`
         });
+        
+        return updatedItem;
       }
       
-      return movedItem;
+      return null;
     } catch (err) {
       console.error("Erro ao mover item:", err);
       toast.error("❌ Erro ao mover", {
         description: "Não foi possível alterar o status"
       });
       return null;
+    } finally {
+      setLoading(false);
     }
   };
 

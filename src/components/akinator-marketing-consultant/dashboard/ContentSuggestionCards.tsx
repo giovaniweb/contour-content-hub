@@ -24,25 +24,33 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
 
   const handleAddToPlanner = async (suggestion: ContentSuggestion) => {
     try {
+      console.log('🚀 Adicionando sugestão ao planejador:', suggestion);
+      
       const newItem = await addItem({
         title: suggestion.title,
         description: suggestion.description,
         format: suggestion.format,
         objective: suggestion.objective,
         status: 'idea',
-        tags: ['sugestão-ia', 'diagnóstico', suggestion.equipment].filter(Boolean),
+        tags: ['sugestão-ia', 'diagnóstico', ...(suggestion.equipment ? [suggestion.equipment] : [])],
         equipmentName: suggestion.equipment,
-        aiGenerated: true
+        aiGenerated: true,
+        distribution: 'Instagram'
       });
 
       if (newItem) {
-        toast.success("💡 Ideia adicionada ao planejador!", {
-          description: `"${suggestion.title}" foi adicionada às suas ideias`
+        toast.success("💡 Sugestão adicionada ao planejador!", {
+          description: `"${suggestion.title}" foi adicionada às suas ideias. Acesse o Planejador para organizar.`
         });
+        
+        console.log('✅ Item criado com sucesso:', newItem);
+      } else {
+        throw new Error('Falha ao criar item no planejador');
       }
     } catch (error) {
+      console.error('❌ Erro ao adicionar ao planejador:', error);
       toast.error("❌ Erro ao adicionar ao planejador", {
-        description: "Tente novamente em alguns instantes"
+        description: "Não foi possível adicionar a sugestão. Tente novamente."
       });
     }
   };
@@ -76,8 +84,8 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
       </div>
 
       <div className="text-center pt-4">
-        <p className="text-xs aurora-body opacity-60">
-          💡 Dica: Essas sugestões foram criadas com base no seu diagnóstico. Personalize conforme sua audiência!
+        <p className="text-xs aurora-body opacity-60 text-slate-400">
+          💡 Dica: Essas sugestões foram criadas com base no seu diagnóstico. Adicione ao planejador e personalize conforme sua audiência!
         </p>
       </div>
     </div>
