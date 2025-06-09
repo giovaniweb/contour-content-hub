@@ -71,7 +71,9 @@ const QuickActionCards: React.FC<QuickActionCardsProps> = ({ state }) => {
         equipamentos: state.clinicType === 'clinica_medica' ? state.medicalEquipments : state.aestheticEquipments,
         receitaAtual: state.currentRevenue,
         metaReceita: state.revenueGoal,
-        experienciaMarketing: state.marketingExperience,
+        publicoAlvo: state.targetAudience,
+        frequenciaConteudo: state.contentFrequency,
+        estiloComuncacao: state.communicationStyle,
         dataGeracao: new Date().toLocaleString('pt-BR')
       };
 
@@ -93,9 +95,11 @@ SITUAÇÃO FINANCEIRA
 Receita Atual: ${diagnosticData.receitaAtual || 'Não informado'}
 Meta de Receita: ${diagnosticData.metaReceita || 'Não informado'}
 
-EXPERIÊNCIA EM MARKETING
-------------------------
-Nível: ${diagnosticData.experienciaMarketing || 'Não informado'}
+ESTRATÉGIA DE MARKETING
+-----------------------
+Público Alvo: ${diagnosticData.publicoAlvo || 'Não informado'}
+Frequência de Conteúdo: ${diagnosticData.frequenciaConteudo || 'Não informado'}
+Estilo de Comunicação: ${diagnosticData.estiloComuncacao || 'Não informado'}
 
 ---
 Relatório gerado pelo Consultor Fluida
