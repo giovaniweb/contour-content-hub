@@ -805,6 +805,45 @@ export type Database = {
           },
         ]
       }
+      marketing_diagnostics: {
+        Row: {
+          clinic_type: string
+          created_at: string
+          generated_diagnostic: string | null
+          id: string
+          is_completed: boolean
+          session_id: string
+          specialty: string
+          state_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clinic_type: string
+          created_at?: string
+          generated_diagnostic?: string | null
+          id?: string
+          is_completed?: boolean
+          session_id: string
+          specialty: string
+          state_data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clinic_type?: string
+          created_at?: string
+          generated_diagnostic?: string | null
+          id?: string
+          is_completed?: boolean
+          session_id?: string
+          specialty?: string
+          state_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       materiais: {
         Row: {
           arquivo_url: string | null

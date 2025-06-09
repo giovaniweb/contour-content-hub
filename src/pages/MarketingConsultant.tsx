@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainCircuit, History, Shield, AlertCircle, FileText, Play } from "lucide-react";
+import { BrainCircuit, History, Shield, AlertCircle, FileText, Play, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,8 @@ const MarketingConsultant: React.FC = () => {
     savedDiagnostics, 
     hasCurrentSession, 
     isSessionCompleted,
-    loadDiagnostic 
+    loadDiagnostic,
+    isLoading
   } = useDiagnosticPersistence();
 
   const handleViewHistory = () => {
@@ -59,6 +60,20 @@ const MarketingConsultant: React.FC = () => {
       minute: '2-digit'
     });
   };
+
+  // Mostrar loading enquanto carrega dados do banco
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6 space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="text-slate-50">Carregando diagnósticos...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-8">

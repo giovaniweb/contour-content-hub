@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2, AlertTriangle, Save, History } from "lucide-react";
+import { BrainCircuit, Sparkles, Target, Users, TrendingUp, ArrowLeft, ArrowRight, RotateCcw, Loader2, AlertTriangle, Save, History, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import MarketingQuestion from './MarketingQuestion';
 import MarketingResult from './MarketingResult';
@@ -42,17 +43,19 @@ const AkinatorMarketingConsultant: React.FC = () => {
     clearCurrentSession, 
     loadCurrentSession,
     hasCurrentSession,
-    isSessionCompleted 
+    isSessionCompleted,
+    isLoading: isDiagnosticLoading
   } = useDiagnosticPersistence();
 
   const [mentor, setMentor] = useState<any>(null);
   const [aiSections, setAiSections] = useState<any>(null);
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [hasLoadedSavedData, setHasLoadedSavedData] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Carregar dados salvos ao inicializar
   useEffect(() => {
-    if (!hasLoadedSavedData) {
+    if (!hasLoadedSavedData && !isDiagnosticLoading) {
       const saved = loadCurrentSession();
       if (saved && saved.isCompleted) {
         console.log('📂 Carregando diagnóstico salvo completo');
@@ -83,7 +86,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       }
       setHasLoadedSavedData(true);
     }
-  }, [hasLoadedSavedData, loadCurrentSession, setState, setCurrentStep, setShowDashboard]);
+  }, [hasLoadedSavedData, isDiagnosticLoading, loadCurrentSession, setState, setCurrentStep, setShowDashboard]);
 
   // Atualizar o perfil do usuário quando o tipo de clínica for selecionado
   useEffect(() => {
@@ -96,8 +99,19 @@ const AkinatorMarketingConsultant: React.FC = () => {
   // Salvar automaticamente o progresso a cada alteração no estado
   useEffect(() => {
     if (hasLoadedSavedData && Object.keys(state).some(key => state[key as keyof MarketingConsultantState])) {
-      saveCurrentSession(state, showDashboard);
-      console.log('💾 Progresso salvo automaticamente');
+      const syncData = async () => {
+        setIsSyncing(true);
+        try {
+          await saveCurrentSession(state, showDashboard);
+          console.log('💾 Progresso sincronizado com banco');
+        } catch (error) {
+          console.error('❌ Erro na sincronização:', error);
+        } finally {
+          setIsSyncing(false);
+        }
+      };
+      
+      syncData();
     }
   }, [state, showDashboard, hasLoadedSavedData, saveCurrentSession]);
 
@@ -118,9 +132,6 @@ const AkinatorMarketingConsultant: React.FC = () => {
     
     setState(newState);
     console.log('🟡 Estado atualizado:', newState);
-    
-    // Salvar progresso
-    saveCurrentSession(newState, false);
     
     // Encontrar a próxima pergunta válida
     const nextStep = getNextValidQuestion(currentStep, newState);
@@ -148,14 +159,14 @@ const AkinatorMarketingConsultant: React.FC = () => {
           
           setState(finalState);
           
-          // Salvar diagnóstico completo
-          saveCurrentSession(finalState, true);
+          // Salvar diagnóstico completo no banco
+          await saveCurrentSession(finalState, true);
           
           console.log('🟢 Processamento concluído - indo para dashboard');
           setShowDashboard(true);
           
           toast.success("✅ Diagnóstico concluído e salvo!", {
-            description: "Seu relatório está sempre disponível"
+            description: "Seu relatório está sempre disponível no banco de dados"
           });
         } else {
           throw new Error('Diagnóstico não foi gerado');
@@ -172,7 +183,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
         };
         
         setState(finalState);
-        saveCurrentSession(finalState, true);
+        await saveCurrentSession(finalState, true);
         
         // Continuar para o dashboard mesmo com erro
         console.log('🟡 Continuando para dashboard mesmo com erro da IA');
@@ -187,7 +198,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       setCurrentStep(nextStep);
       
       toast.success("Resposta salva!", {
-        description: "Progresso salvo automaticamente"
+        description: "Progresso sincronizado automaticamente"
       });
     }
     
@@ -204,11 +215,11 @@ const AkinatorMarketingConsultant: React.FC = () => {
     });
   };
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
     console.log('🔄 Reiniciando diagnóstico...');
     
     // Limpar dados salvos
-    clearCurrentSession();
+    await clearCurrentSession();
     
     setState({
       clinicType: '',
@@ -243,21 +254,21 @@ const AkinatorMarketingConsultant: React.FC = () => {
     setMentor(null);
     setAiSections(null);
     setProcessingError(null);
-    setHasLoadedSavedData(true); // Evitar recarregar dados após restart
+    setHasLoadedSavedData(true);
     
     toast.success("Diagnóstico reiniciado!", {
       description: "Vamos começar um novo diagnóstico."
     });
   };
 
-  const handleContinueWithoutAI = () => {
+  const handleContinueWithoutAI = async () => {
     const finalState = {
       ...state,
       generatedDiagnostic: 'Modo básico: Suas respostas foram processadas localmente.'
     };
     
     setState(finalState);
-    saveCurrentSession(finalState, true);
+    await saveCurrentSession(finalState, true);
     setShowDashboard(true);
     setIsProcessing(false);
     
@@ -389,17 +400,30 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   return (
     <div className="container mx-auto max-w-6xl py-6">
-      {/* Indicador de progresso salvo */}
+      {/* Indicador de progresso salvo e sincronização */}
       {hasCurrentSession() && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 text-center"
         >
-          <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
-            <Save className="h-3 w-3 mr-1" />
-            Progresso salvo automaticamente
-          </Badge>
+          <div className="flex items-center justify-center gap-2">
+            <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
+              <Save className="h-3 w-3 mr-1" />
+              Progresso salvo
+            </Badge>
+            {isSyncing ? (
+              <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10">
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Sincronizando...
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
+                <Wifi className="h-3 w-3 mr-1" />
+                Sincronizado
+              </Badge>
+            )}
+          </div>
         </motion.div>
       )}
 

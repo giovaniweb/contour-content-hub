@@ -1,38 +1,47 @@
 
 import { useState, useEffect } from 'react';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
+import { marketingDiagnosticsService, DiagnosticSession } from '@/services/marketingDiagnosticsService';
+import { useAuth } from '@/hooks/useAuth';
 
-export interface DiagnosticSession {
-  id: string;
-  timestamp: string;
-  state: MarketingConsultantState;
-  isCompleted: boolean;
-  clinicTypeLabel: string;
-  specialty: string;
-}
-
-const STORAGE_KEY = 'fluida_marketing_diagnostics';
 const CURRENT_SESSION_KEY = 'fluida_current_diagnostic';
+
+export { DiagnosticSession };
 
 export const useDiagnosticPersistence = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
   const [currentSession, setCurrentSession] = useState<DiagnosticSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Carregar dados salvos ao inicializar
+  // Carregar dados ao inicializar
   useEffect(() => {
-    loadSavedDiagnostics();
-    loadCurrentSession();
-  }, []);
+    if (user) {
+      loadSavedDiagnostics();
+      loadCurrentSession();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
 
-  const loadSavedDiagnostics = () => {
+  const loadSavedDiagnostics = async () => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const diagnostics = JSON.parse(saved);
-        setSavedDiagnostics(diagnostics);
-      }
+      const diagnostics = await marketingDiagnosticsService.loadDiagnostics();
+      setSavedDiagnostics(diagnostics);
     } catch (error) {
       console.error('Erro ao carregar diagnósticos salvos:', error);
+      // Fallback para localStorage se houver erro
+      const saved = localStorage.getItem('fluida_marketing_diagnostics');
+      if (saved) {
+        try {
+          const localDiagnostics = JSON.parse(saved);
+          setSavedDiagnostics(localDiagnostics);
+        } catch (e) {
+          console.error('Erro ao carregar do localStorage:', e);
+        }
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -50,52 +59,58 @@ export const useDiagnosticPersistence = () => {
     return null;
   };
 
-  const saveCurrentSession = (state: MarketingConsultantState, isCompleted: boolean = false) => {
+  const saveCurrentSession = async (state: MarketingConsultantState, isCompleted: boolean = false) => {
     try {
-      const session: DiagnosticSession = {
-        id: currentSession?.id || generateSessionId(),
-        timestamp: new Date().toISOString(),
+      const sessionId = currentSession?.id || generateSessionId();
+      
+      // Salvar no banco de dados
+      const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
+        sessionId,
         state,
-        isCompleted,
-        clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-        specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
-      };
+        isCompleted
+      );
 
-      localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
-      setCurrentSession(session);
+      if (savedDiagnostic) {
+        const session: DiagnosticSession = {
+          id: sessionId,
+          timestamp: savedDiagnostic.created_at,
+          state,
+          isCompleted,
+          clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
+          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
+        };
 
-      // Se o diagnóstico está completo, salvar no histórico
-      if (isCompleted) {
-        saveToHistory(session);
+        // Manter cache local para melhor UX
+        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
+        setCurrentSession(session);
+
+        // Recarregar lista se foi completado
+        if (isCompleted) {
+          await loadSavedDiagnostics();
+        }
+
+        console.log('✅ Sessão salva no banco:', session);
+        return session;
+      } else {
+        // Fallback para localStorage se houver erro
+        const session: DiagnosticSession = {
+          id: sessionId,
+          timestamp: new Date().toISOString(),
+          state,
+          isCompleted,
+          clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
+          specialty: state.clinicType === 'clinica_medica' ? state.medicalSpecialty : state.aestheticFocus
+        };
+
+        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
+        setCurrentSession(session);
+        
+        console.log('⚠️ Sessão salva localmente (fallback):', session);
+        return session;
       }
-
-      console.log('✅ Sessão salva:', session);
-      return session;
     } catch (error) {
       console.error('❌ Erro ao salvar sessão:', error);
       return null;
-    }
-  };
-
-  const saveToHistory = (session: DiagnosticSession) => {
-    try {
-      const existing = [...savedDiagnostics];
-      
-      // Remover sessão anterior com mesmo ID se existir
-      const filteredExisting = existing.filter(d => d.id !== session.id);
-      
-      // Adicionar nova sessão no início
-      const updated = [session, ...filteredExisting];
-      
-      // Manter apenas os últimos 10 diagnósticos
-      const limited = updated.slice(0, 10);
-      
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(limited));
-      setSavedDiagnostics(limited);
-
-      console.log('📚 Diagnóstico salvo no histórico');
-    } catch (error) {
-      console.error('❌ Erro ao salvar no histórico:', error);
     }
   };
 
@@ -109,42 +124,73 @@ export const useDiagnosticPersistence = () => {
     }
   };
 
-  const deleteDiagnostic = (id: string) => {
+  const deleteDiagnostic = async (id: string) => {
     try {
-      const filtered = savedDiagnostics.filter(d => d.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-      setSavedDiagnostics(filtered);
+      const success = await marketingDiagnosticsService.deleteDiagnostic(id);
       
-      // Se for a sessão atual, limpar também
-      if (currentSession?.id === id) {
-        clearCurrentSession();
+      if (success) {
+        // Atualizar estado local
+        const filtered = savedDiagnostics.filter(d => d.id !== id);
+        setSavedDiagnostics(filtered);
+        
+        // Se for a sessão atual, limpar também
+        if (currentSession?.id === id) {
+          clearCurrentSession();
+        }
+        
+        console.log('🗑️ Diagnóstico deletado:', id);
       }
       
-      console.log('🗑️ Diagnóstico deletado:', id);
+      return success;
     } catch (error) {
       console.error('❌ Erro ao deletar diagnóstico:', error);
+      return false;
     }
   };
 
-  const loadDiagnostic = (id: string): DiagnosticSession | null => {
-    const diagnostic = savedDiagnostics.find(d => d.id === id);
-    if (diagnostic) {
-      setCurrentSession(diagnostic);
-      localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(diagnostic));
-      return diagnostic;
-    }
-    return null;
-  };
-
-  const clearAllData = () => {
+  const loadDiagnostic = async (id: string): Promise<DiagnosticSession | null> => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(CURRENT_SESSION_KEY);
-      setSavedDiagnostics([]);
-      setCurrentSession(null);
-      console.log('🗑️ Todos os dados limpos');
+      // Primeiro tentar carregar do banco
+      const diagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(id);
+      
+      if (diagnostic) {
+        setCurrentSession(diagnostic);
+        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(diagnostic));
+        return diagnostic;
+      }
+
+      // Fallback para buscar na lista local
+      const localDiagnostic = savedDiagnostics.find(d => d.id === id);
+      if (localDiagnostic) {
+        setCurrentSession(localDiagnostic);
+        localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(localDiagnostic));
+        return localDiagnostic;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Erro ao carregar diagnóstico:', error);
+      return null;
+    }
+  };
+
+  const clearAllData = async () => {
+    try {
+      const success = await marketingDiagnosticsService.clearAllDiagnostics();
+      
+      if (success) {
+        // Limpar estado local também
+        localStorage.removeItem('fluida_marketing_diagnostics');
+        localStorage.removeItem(CURRENT_SESSION_KEY);
+        setSavedDiagnostics([]);
+        setCurrentSession(null);
+        console.log('🗑️ Todos os dados limpos');
+      }
+      
+      return success;
     } catch (error) {
       console.error('❌ Erro ao limpar dados:', error);
+      return false;
     }
   };
 
@@ -167,6 +213,7 @@ export const useDiagnosticPersistence = () => {
   return {
     savedDiagnostics,
     currentSession,
+    isLoading,
     saveCurrentSession,
     loadCurrentSession,
     clearCurrentSession,
