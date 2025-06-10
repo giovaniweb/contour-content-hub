@@ -3,14 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, History, TrendingUp, Sparkles, ArrowRight, BarChart3, Target, FileText, Plus } from "lucide-react";
+import { BrainCircuit, History, Sparkles, ArrowRight, FileText, Plus } from "lucide-react";
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import AkinatorMarketingConsultant from "@/components/akinator-marketing-consultant/AkinatorMarketingConsultant";
-import PerformanceMetrics from "./PerformanceMetrics";
 import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
 
-type ViewMode = 'home' | 'performance' | 'new-diagnostic';
+type ViewMode = 'home' | 'new-diagnostic';
 
 const MarketingConsultantHome: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
@@ -24,24 +23,6 @@ const MarketingConsultantHome: React.FC = () => {
     setForceNewDiagnostic(true);
     setCurrentView('new-diagnostic');
   };
-
-  if (currentView === 'performance') {
-    return (
-      <div className="container mx-auto py-6 space-y-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Button variant="outline" onClick={() => setCurrentView('home')} className="flex items-center gap-2">
-            <ArrowRight className="h-4 w-4 rotate-180" />
-            Voltar
-          </Button>
-          <div className="flex items-center gap-3">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-slate-50">Performance Marketing</h1>
-          </div>
-        </div>
-        <PerformanceMetrics />
-      </div>
-    );
-  }
 
   if (currentView === 'new-diagnostic') {
     return (
@@ -80,55 +61,13 @@ const MarketingConsultantHome: React.FC = () => {
       </div>
 
       {/* Cards de Ação Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         
-        {/* Card Performance */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="aurora-card border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer group" onClick={() => setCurrentView('performance')}>
-            <CardHeader className="text-center pb-3">
-              <div className="mx-auto p-4 bg-blue-500/20 rounded-full w-fit mb-3 group-hover:bg-blue-500/30 transition-colors">
-                <TrendingUp className="h-8 w-8 text-blue-400" />
-              </div>
-              <CardTitle className="text-white">
-                📊 Performance Marketing
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <p className="text-white/70 text-sm">
-                Mensure o que foi executado vs planejado. Acompanhe métricas de leads, vendas e estratégias ativas.
-              </p>
-              
-              <div className="space-y-2">
-                <Badge variant="outline" className="border-blue-500/30 text-blue-400">
-                  <BarChart3 className="h-3 w-3 mr-1" />
-                  Métricas em Tempo Real
-                </Badge>
-                <Badge variant="outline" className="border-green-500/30 text-green-400">
-                  <Target className="h-3 w-3 mr-1" />
-                  Metas vs Resultados
-                </Badge>
-              </div>
-              
-              <Button className="w-full group-hover:bg-blue-600 transition-colors" onClick={(e) => {
-                e.stopPropagation();
-                setCurrentView('performance');
-              }}>
-                Ver Performance
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Card Novo Diagnóstico */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
         >
           <Card className="aurora-card border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer group" onClick={handleStartNewDiagnostic}>
             <CardHeader className="text-center pb-3">
@@ -166,11 +105,11 @@ const MarketingConsultantHome: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Card Histórico */}
+        {/* Card Performance e Diagnósticos */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
         >
           <Card className="aurora-card border-green-500/30 hover:border-green-400/50 transition-all group cursor-pointer" onClick={() => navigate('/diagnostic-history')}>
             <CardHeader className="text-center pb-3">
@@ -178,12 +117,12 @@ const MarketingConsultantHome: React.FC = () => {
                 <History className="h-8 w-8 text-green-400" />
               </div>
               <CardTitle className="text-white">
-                📋 Histórico de Diagnósticos
+                📊 Performance e Diagnósticos
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-white/70 text-sm">
-                Acesse seus diagnósticos anteriores, baixe relatórios e continue de onde parou.
+                Acompanhe sua performance, acesse diagnósticos anteriores e baixe relatórios completos.
               </p>
               
               <div className="space-y-2">
@@ -202,7 +141,7 @@ const MarketingConsultantHome: React.FC = () => {
                 e.stopPropagation();
                 navigate('/diagnostic-history');
               }}>
-                Ver Histórico
+                Ver Performance
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </CardContent>
