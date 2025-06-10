@@ -34,9 +34,9 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Botão para adicionar tudo ao planejador */}
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-8">
         <Button
           onClick={handleAddAllToPlanner}
           disabled={isAdding}
@@ -47,10 +47,10 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
         </Button>
       </div>
 
-      <Accordion type="multiple" defaultValue={["immediate"]} className="space-y-4">
+      <Accordion type="multiple" defaultValue={["immediate"]} className="space-y-8">
         {/* Ações Imediatas */}
         <AccordionItem value="immediate" className="aurora-glass border-aurora-electric-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/5 hover:shadow-aurora-glow transition-all duration-300">
-          <AccordionTrigger className="px-6 py-4 hover:no-underline group">
+          <AccordionTrigger className="px-6 py-6 hover:no-underline group">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-aurora-electric-purple/20 group-hover:bg-aurora-electric-purple/30 transition-colors">
                 <Zap className="h-5 w-5 text-aurora-electric-purple group-hover:animate-pulse" />
@@ -61,19 +61,19 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6">
-            <div className="space-y-4">
+          <AccordionContent className="px-6 pb-8">
+            <div className="space-y-6 pt-2">
               {immediateActions.map((action, index) => (
-                <div key={index} className="aurora-glass border-aurora-electric-purple/20 rounded-lg p-4 hover:border-aurora-electric-purple/40 hover:shadow-aurora-glow transition-all duration-300 group">
+                <div key={index} className="aurora-glass border-aurora-electric-purple/20 rounded-lg p-6 hover:border-aurora-electric-purple/40 hover:shadow-aurora-glow transition-all duration-300 group">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <h4 className="font-medium text-white group-hover:text-aurora-electric-purple transition-colors">{action.title}</h4>
                         <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
                           {action.priority}
                         </Badge>
                       </div>
-                      <p className="text-sm text-white/80 mb-3 leading-relaxed">{action.description}</p>
+                      <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
                       <div className="flex items-center gap-4 text-xs text-white/70">
                         <span className="flex items-center gap-1">
                           ⏱️ <span className="text-aurora-sage">{action.time}</span>
@@ -102,7 +102,7 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
 
         {/* Ações de Médio Prazo */}
         <AccordionItem value="medium" className="aurora-glass border-aurora-sage/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-sage/10 to-aurora-emerald/5 hover:shadow-aurora-glow transition-all duration-300">
-          <AccordionTrigger className="px-6 py-4 hover:no-underline group">
+          <AccordionTrigger className="px-6 py-6 hover:no-underline group">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-aurora-sage/20 group-hover:bg-aurora-sage/30 transition-colors">
                 <Calendar className="h-5 w-5 text-aurora-sage group-hover:animate-pulse" />
@@ -113,19 +113,19 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6">
-            <div className="space-y-4">
+          <AccordionContent className="px-6 pb-8">
+            <div className="space-y-6 pt-2">
               {mediumTermActions.map((action, index) => (
-                <div key={index} className="aurora-glass border-aurora-sage/20 rounded-lg p-4 hover:border-aurora-sage/40 hover:shadow-aurora-glow transition-all duration-300 group">
+                <div key={index} className="aurora-glass border-aurora-sage/20 rounded-lg p-6 hover:border-aurora-sage/40 hover:shadow-aurora-glow transition-all duration-300 group">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <h4 className="font-medium text-white group-hover:text-aurora-sage transition-colors">{action.title}</h4>
                         <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
                           {action.priority}
                         </Badge>
                       </div>
-                      <p className="text-sm text-white/80 mb-3 leading-relaxed">{action.description}</p>
+                      <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
                       <div className="flex items-center gap-4 text-xs text-white/70">
                         <span className="flex items-center gap-1">
                           ⏱️ <span className="text-aurora-sage">{action.time}</span>
@@ -154,7 +154,7 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
 
         {/* Estratégia de Crescimento */}
         <AccordionItem value="growth" className="aurora-glass border-aurora-lavender/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-lavender/10 to-aurora-deep-purple/5 hover:shadow-aurora-glow transition-all duration-300">
-          <AccordionTrigger className="px-6 py-4 hover:no-underline group">
+          <AccordionTrigger className="px-6 py-6 hover:no-underline group">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-aurora-lavender/20 group-hover:bg-aurora-lavender/30 transition-colors aurora-glow-intense">
                 <Lightbulb className="h-5 w-5 text-aurora-lavender group-hover:animate-pulse" />
@@ -165,14 +165,16 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6">
-            <GrowthStrategyAccordion session={session} />
+          <AccordionContent className="px-6 pb-8">
+            <div className="pt-2">
+              <GrowthStrategyAccordion session={session} />
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
 
       {/* Dicas de Implementação */}
-      <div className="aurora-glass border-aurora-deep-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-deep-purple/10 to-aurora-electric-purple/5 p-6 hover:shadow-aurora-glow transition-all duration-300">
+      <div className="aurora-glass border-aurora-deep-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-deep-purple/10 to-aurora-electric-purple/5 p-8 hover:shadow-aurora-glow transition-all duration-300 mt-8">
         <ImplementationTips />
       </div>
     </div>
