@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -19,7 +20,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const [formato, setFormato] = useState<'carrossel' | 'stories' | 'imagem'>('carrossel');
   const [objetivo, setObjetivo] = useState('atrair');
-  const [mentor, setMentor] = useState('Criativo');
+  const [selectedMentor, setSelectedMentor] = useState<string | null>(null);
 
   const { equipments, loading: equipmentsLoading } = useEquipments();
   const { clinicType, allowedEquipments, recommendation, hasInvasiveEquipments } = 
@@ -41,11 +42,14 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
       equipments.find(eq => eq.id === id)?.nome || id
     );
 
+    // Determinar mentor: usar selecionado ou deixar sistema inferir
+    const mentorToUse = selectedMentor || 'auto'; // 'auto' indica inferência automática
+
     await generateFluidaScript({
       tema,
       equipamentos: equipmentNames,
       objetivo,
-      mentor,
+      mentor: mentorToUse,
       formato
     });
   };
@@ -61,7 +65,8 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
 
   // Mostrar loading durante geração
   if (isGenerating) {
-    return <AuroraLoadingScreen isLoading={true} mentor={mentor.toLowerCase()} />;
+    const displayMentor = selectedMentor || 'inteligente';
+    return <AuroraLoadingScreen isLoading={true} mentor={displayMentor} />;
   }
 
   // Mostrar resultados se houver
@@ -101,6 +106,8 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
           selectedEquipments={selectedEquipments}
           onEquipmentChange={handleEquipmentChange}
           allowedEquipments={allowedEquipments}
+          selectedMentor={selectedMentor}
+          onMentorChange={setSelectedMentor}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
         />

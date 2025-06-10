@@ -8,6 +8,7 @@ import { Wand2 } from 'lucide-react';
 import FormatsSelector from './FormatsSelector';
 import ScriptObjectiveSelector from './ScriptObjectiveSelector';
 import EquipmentsList from './EquipmentsList';
+import MentorSelector from './MentorSelector';
 
 interface Equipment {
   id: string;
@@ -24,6 +25,8 @@ interface ScriptGeneratorFormProps {
   selectedEquipments: string[];
   onEquipmentChange: (equipmentId: string) => void;
   allowedEquipments: Equipment[];
+  selectedMentor: string | null;
+  onMentorChange: (mentorId: string | null) => void;
   onGenerate: () => void;
   isGenerating: boolean;
 }
@@ -38,6 +41,8 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
   selectedEquipments,
   onEquipmentChange,
   allowedEquipments,
+  selectedMentor,
+  onMentorChange,
   onGenerate,
   isGenerating
 }) => {
@@ -77,6 +82,12 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
         <ScriptObjectiveSelector
           selectedObjective={objetivo}
           onObjectiveChange={onObjetivoChange}
+        />
+
+        {/* Seletor de Mentores */}
+        <MentorSelector
+          selectedMentor={selectedMentor}
+          onMentorChange={onMentorChange}
         />
 
         {/* Equipamentos */}
