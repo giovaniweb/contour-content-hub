@@ -797,6 +797,87 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_analytics: {
+        Row: {
+          analysis_result: string | null
+          created_at: string
+          data_snapshot: Json | null
+          engagement_rate: number | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          impressions: number | null
+          instagram_user_id: string
+          media_count: number | null
+          post_frequency: number | null
+          reach: number | null
+          user_id: string
+        }
+        Insert: {
+          analysis_result?: string | null
+          created_at?: string
+          data_snapshot?: Json | null
+          engagement_rate?: number | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          impressions?: number | null
+          instagram_user_id: string
+          media_count?: number | null
+          post_frequency?: number | null
+          reach?: number | null
+          user_id: string
+        }
+        Update: {
+          analysis_result?: string | null
+          created_at?: string
+          data_snapshot?: Json | null
+          engagement_rate?: number | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          impressions?: number | null
+          instagram_user_id?: string
+          media_count?: number | null
+          post_frequency?: number | null
+          reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      instagram_configs: {
+        Row: {
+          access_token: string
+          account_type: string | null
+          created_at: string
+          id: string
+          instagram_user_id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token: string
+          account_type?: string | null
+          created_at?: string
+          id?: string
+          instagram_user_id: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          account_type?: string | null
+          created_at?: string
+          id?: string
+          instagram_user_id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       integracao_configs: {
         Row: {
           atualizado_em: string
