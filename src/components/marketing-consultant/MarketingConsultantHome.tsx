@@ -14,12 +14,16 @@ type ViewMode = 'home' | 'performance' | 'new-diagnostic';
 
 const MarketingConsultantHome: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
+  const [forceNewDiagnostic, setForceNewDiagnostic] = useState(false);
   const navigate = useNavigate();
   const {
     savedDiagnostics
   } = useDiagnosticPersistence();
 
-  // REMOVIDO: Sistema de limpeza automática que estava apagando dados pagos
+  const handleStartNewDiagnostic = () => {
+    setForceNewDiagnostic(true);
+    setCurrentView('new-diagnostic');
+  };
 
   if (currentView === 'performance') {
     return (
@@ -43,7 +47,10 @@ const MarketingConsultantHome: React.FC = () => {
     return (
       <div className="container mx-auto py-6 space-y-8">
         <div className="flex items-center gap-3 mb-6 bg-transparent">
-          <Button variant="outline" onClick={() => setCurrentView('home')} className="flex items-center gap-2 text-slate-50">
+          <Button variant="outline" onClick={() => {
+            setCurrentView('home');
+            setForceNewDiagnostic(false);
+          }} className="flex items-center gap-2 text-slate-50">
             <ArrowRight className="h-4 w-4 rotate-180" />
             Voltar
           </Button>
@@ -52,7 +59,7 @@ const MarketingConsultantHome: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-50">Novo Diagnóstico</h1>
           </div>
         </div>
-        <AkinatorMarketingConsultant />
+        <AkinatorMarketingConsultant forceNew={forceNewDiagnostic} />
       </div>
     );
   }
@@ -123,7 +130,7 @@ const MarketingConsultantHome: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="aurora-card border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer group" onClick={() => setCurrentView('new-diagnostic')}>
+          <Card className="aurora-card border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer group" onClick={handleStartNewDiagnostic}>
             <CardHeader className="text-center pb-3">
               <div className="mx-auto p-4 bg-aurora-electric-purple/20 rounded-full w-fit mb-3 group-hover:bg-aurora-electric-purple/30 transition-colors">
                 <BrainCircuit className="h-8 w-8 text-aurora-electric-purple" />
@@ -150,7 +157,7 @@ const MarketingConsultantHome: React.FC = () => {
               
               <Button className="w-full bg-aurora-electric-purple hover:bg-aurora-electric-purple/80 transition-colors" onClick={(e) => {
                 e.stopPropagation();
-                setCurrentView('new-diagnostic');
+                handleStartNewDiagnostic();
               }}>
                 Iniciar Diagnóstico
                 <ArrowRight className="h-4 w-4 ml-2" />

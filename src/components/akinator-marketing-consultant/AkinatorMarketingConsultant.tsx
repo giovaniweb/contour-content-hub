@@ -18,7 +18,11 @@ import { MARKETING_STEPS } from './constants';
 import { MarketingConsultantState } from './types';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
-const AkinatorMarketingConsultant: React.FC = () => {
+interface AkinatorMarketingConsultantProps {
+  forceNew?: boolean;
+}
+
+const AkinatorMarketingConsultant: React.FC<AkinatorMarketingConsultantProps> = ({ forceNew = false }) => {
   const {
     currentStep,
     setCurrentStep,
@@ -52,40 +56,51 @@ const AkinatorMarketingConsultant: React.FC = () => {
   const [hasLoadedSavedData, setHasLoadedSavedData] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Carregar dados salvos ao inicializar
+  // Carregar dados salvos ao inicializar (apenas se não forçar novo)
   useEffect(() => {
     if (!hasLoadedSavedData && !isDiagnosticLoading) {
-      const saved = loadCurrentSession();
-      if (saved && saved.isCompleted) {
-        console.log('📂 Carregando diagnóstico salvo completo');
-        setState(saved.state);
-        setShowDashboard(true);
+      if (forceNew) {
+        // Se forçar novo diagnóstico, limpar dados salvos e começar do zero
+        console.log('🔄 Forçando novo diagnóstico - limpando dados salvos');
+        clearCurrentSession();
+        setHasLoadedSavedData(true);
         
-        toast.success("📂 Diagnóstico anterior carregado!", {
-          description: `Diagnóstico de ${new Date(saved.timestamp).toLocaleString('pt-BR')}`
+        toast.success("🆕 Novo diagnóstico iniciado!", {
+          description: "Vamos começar do zero"
         });
-      } else if (saved && !saved.isCompleted) {
-        console.log('📂 Carregando sessão em progresso');
-        setState(saved.state);
-        
-        // Encontrar a próxima pergunta válida baseada no estado salvo
-        let nextStep = 0;
-        for (let i = 0; i < MARKETING_STEPS.length; i++) {
-          const question = MARKETING_STEPS[i];
-          if (!saved.state[question.id as keyof MarketingConsultantState]) {
-            nextStep = i;
-            break;
+      } else {
+        const saved = loadCurrentSession();
+        if (saved && saved.isCompleted) {
+          console.log('📂 Carregando diagnóstico salvo completo');
+          setState(saved.state);
+          setShowDashboard(true);
+          
+          toast.success("📂 Diagnóstico anterior carregado!", {
+            description: `Diagnóstico de ${new Date(saved.timestamp).toLocaleString('pt-BR')}`
+          });
+        } else if (saved && !saved.isCompleted) {
+          console.log('📂 Carregando sessão em progresso');
+          setState(saved.state);
+          
+          // Encontrar a próxima pergunta válida baseada no estado salvo
+          let nextStep = 0;
+          for (let i = 0; i < MARKETING_STEPS.length; i++) {
+            const question = MARKETING_STEPS[i];
+            if (!saved.state[question.id as keyof MarketingConsultantState]) {
+              nextStep = i;
+              break;
+            }
           }
+          setCurrentStep(nextStep);
+          
+          toast.success("📂 Sessão anterior recuperada!", {
+            description: "Continuando de onde você parou"
+          });
         }
-        setCurrentStep(nextStep);
-        
-        toast.success("📂 Sessão anterior recuperada!", {
-          description: "Continuando de onde você parou"
-        });
+        setHasLoadedSavedData(true);
       }
-      setHasLoadedSavedData(true);
     }
-  }, [hasLoadedSavedData, isDiagnosticLoading, loadCurrentSession, setState, setCurrentStep, setShowDashboard]);
+  }, [hasLoadedSavedData, isDiagnosticLoading, loadCurrentSession, setState, setCurrentStep, setShowDashboard, forceNew, clearCurrentSession]);
 
   // Atualizar o perfil do usuário quando o tipo de clínica for selecionado
   useEffect(() => {
@@ -95,9 +110,9 @@ const AkinatorMarketingConsultant: React.FC = () => {
     }
   }, [state.clinicType, profile?.clinic_type, updateClinicType]);
 
-  // Salvar automaticamente o progresso a cada alteração no estado
+  // Salvar automaticamente o progresso a cada alteração no estado (apenas se não forçar novo)
   useEffect(() => {
-    if (hasLoadedSavedData && Object.keys(state).some(key => state[key as keyof MarketingConsultantState])) {
+    if (hasLoadedSavedData && !forceNew && Object.keys(state).some(key => state[key as keyof MarketingConsultantState])) {
       const syncData = async () => {
         setIsSyncing(true);
         try {
@@ -112,7 +127,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
       
       syncData();
     }
-  }, [state, showDashboard, hasLoadedSavedData, saveCurrentSession]);
+  }, [state, showDashboard, hasLoadedSavedData, saveCurrentSession, forceNew]);
 
   const handleOptionSelect = async (value: string) => {
     const currentQuestion = MARKETING_STEPS[currentStep];
@@ -304,6 +319,7 @@ const AkinatorMarketingConsultant: React.FC = () => {
   console.log('🔹 isProcessing:', isProcessing);
   console.log('🔹 isGenerating:', isGenerating);
   console.log('🔹 hasCurrentSession:', hasCurrentSession());
+  console.log('🔹 forceNew:', forceNew);
 
   if (showDashboard) {
     console.log('📊 Renderizando Dashboard');
@@ -411,8 +427,8 @@ const AkinatorMarketingConsultant: React.FC = () => {
 
   return (
     <div className="container mx-auto max-w-6xl py-6">
-      {/* Indicador de progresso salvo e sincronização */}
-      {hasCurrentSession() && (
+      {/* Indicador de progresso salvo e sincronização (apenas se não forçar novo) */}
+      {!forceNew && hasCurrentSession() && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
