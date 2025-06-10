@@ -1,6 +1,33 @@
 
 import { ContentPlannerItem, ContentPlannerFilter } from '@/types/content-planner';
 import { supabase } from '@/integrations/supabase/client';
+import { safeQueryResult } from '@/utils/validation/supabaseHelpers';
+
+// Raw database row type for content_planner_items
+interface ContentPlannerItemRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  tags: string[] | null;
+  format: string;
+  objective: string;
+  distribution: string;
+  equipment_id: string | null;
+  equipment_name: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  calendar_event_id: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  responsible_id: string | null;
+  responsible_name: string | null;
+  ai_generated: boolean | null;
+  script_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Fetch content planner items based on filter
 export const fetchContentPlannerItems = async (
@@ -14,8 +41,9 @@ export const fetchContentPlannerItems = async (
       return [];
     }
 
+    // Build the query using explicit type casting to avoid deep type inference
     let query = supabase
-      .from('content_planner_items')
+      .from('content_planner_items' as any)
       .select('*')
       .eq('user_id', user.user.id)
       .order('created_at', { ascending: false });
@@ -53,24 +81,25 @@ export const fetchContentPlannerItems = async (
       query = query.lte('scheduled_date', filters.dateRange.to.toISOString().split('T')[0]);
     }
 
-    const { data, error } = await query;
+    const response = await query;
+    const data = safeQueryResult<ContentPlannerItemRow>(response);
 
-    if (error) {
-      console.error('Error fetching content planner items:', error);
+    if (!data) {
+      console.error('Error fetching content planner items');
       return [];
     }
 
     // Convert database format to ContentPlannerItem format
-    const items: ContentPlannerItem[] = (data || []).map(item => ({
+    const items: ContentPlannerItem[] = data.map(item => ({
       id: item.id,
       title: item.title,
       description: item.description || '',
-      status: item.status,
+      status: item.status as any,
       tags: item.tags || [],
       scriptId: item.script_id,
-      format: item.format,
+      format: item.format as any,
       objective: item.objective,
-      distribution: item.distribution,
+      distribution: item.distribution as any,
       equipmentId: item.equipment_id,
       equipmentName: item.equipment_name,
       scheduledDate: item.scheduled_date,
@@ -80,7 +109,7 @@ export const fetchContentPlannerItems = async (
       authorName: item.author_name,
       createdAt: item.created_at,
       updatedAt: item.updated_at,
-      aiGenerated: item.ai_generated,
+      aiGenerated: item.ai_generated || false,
       createdById: item.user_id,
       responsibleId: item.responsible_id,
       responsibleName: item.responsible_name

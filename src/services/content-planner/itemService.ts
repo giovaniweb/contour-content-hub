@@ -2,6 +2,33 @@
 import { toast } from 'sonner';
 import { ContentPlannerItem, ContentPlannerStatus } from '@/types/content-planner';
 import { supabase } from '@/integrations/supabase/client';
+import { safeSingleResult } from '@/utils/validation/supabaseHelpers';
+
+// Raw database row type for content_planner_items
+interface ContentPlannerItemRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  tags: string[] | null;
+  format: string;
+  objective: string;
+  distribution: string;
+  equipment_id: string | null;
+  equipment_name: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  calendar_event_id: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  responsible_id: string | null;
+  responsible_name: string | null;
+  ai_generated: boolean | null;
+  script_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Create a new content planner item
 export const createContentPlannerItem = async (
@@ -37,15 +64,17 @@ export const createContentPlannerItem = async (
       script_id: item.scriptId
     };
 
-    const { data, error } = await supabase
-      .from('content_planner_items')
+    const response = await supabase
+      .from('content_planner_items' as any)
       .insert(itemData)
       .select()
       .single();
 
-    if (error) {
-      console.error('Erro ao criar item:', error);
-      toast.error("Erro ao criar item: " + error.message);
+    const data = safeSingleResult<ContentPlannerItemRow>(response);
+
+    if (!data) {
+      console.error('Error creating item');
+      toast.error("Erro ao criar item");
       return null;
     }
 
@@ -69,7 +98,7 @@ export const createContentPlannerItem = async (
       authorName: data.author_name,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      aiGenerated: data.ai_generated,
+      aiGenerated: data.ai_generated || false,
       createdById: data.user_id,
       responsibleId: data.responsible_id,
       responsibleName: data.responsible_name
@@ -108,16 +137,18 @@ export const updateContentPlannerItem = async (
     if (item.responsibleId !== undefined) updateData.responsible_id = item.responsibleId;
     if (item.responsibleName !== undefined) updateData.responsible_name = item.responsibleName;
 
-    const { data, error } = await supabase
-      .from('content_planner_items')
+    const response = await supabase
+      .from('content_planner_items' as any)
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) {
-      console.error('Erro ao atualizar item:', error);
-      toast.error("Erro ao atualizar item: " + error.message);
+    const data = safeSingleResult<ContentPlannerItemRow>(response);
+
+    if (!data) {
+      console.error('Error updating item');
+      toast.error("Erro ao atualizar item");
       return null;
     }
 
@@ -141,7 +172,7 @@ export const updateContentPlannerItem = async (
       authorName: data.author_name,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      aiGenerated: data.ai_generated,
+      aiGenerated: data.ai_generated || false,
       createdById: data.user_id,
       responsibleId: data.responsible_id,
       responsibleName: data.responsible_name
@@ -160,12 +191,12 @@ export const updateContentPlannerItem = async (
 export const deleteContentPlannerItem = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('content_planner_items')
+      .from('content_planner_items' as any)
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('Erro ao deletar item:', error);
+      console.error('Error deleting item:', error);
       toast.error("Erro ao remover item: " + error.message);
       return false;
     }
