@@ -2,6 +2,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { FileText, Video, Image } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Format {
   id: 'carrossel' | 'stories' | 'imagem';
@@ -26,23 +27,35 @@ const FormatsSelector: React.FC<FormatsSelectorProps> = ({
   onFormatChange
 }) => {
   return (
-    <div className="space-y-2">
-      <Label>Formato do Conteúdo</Label>
-      <div className="grid grid-cols-3 gap-3">
+    <div className="space-y-3">
+      <Label className="aurora-accent font-semibold text-base">
+        Formato do Conteúdo
+      </Label>
+      <div className="grid grid-cols-3 gap-4">
         {FORMATOS.map((fmt) => (
-          <button
+          <motion.button
             key={fmt.id}
             onClick={() => onFormatChange(fmt.id)}
-            className={`p-3 rounded-lg border-2 transition-all ${
+            className={`p-4 rounded-xl border-2 transition-all aurora-glass backdrop-blur-sm ${
               selectedFormat === fmt.id
-                ? 'border-purple-500 bg-purple-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-purple-500/70 aurora-glow bg-purple-500/10'
+                : 'border-purple-300/20 hover:border-purple-400/40'
             }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <fmt.icon className="h-6 w-6 mx-auto mb-2" />
-            <div className="text-sm font-medium">{fmt.label}</div>
-            <div className="text-xs text-gray-500">{fmt.description}</div>
-          </button>
+            <fmt.icon className={`h-8 w-8 mx-auto mb-3 ${
+              selectedFormat === fmt.id ? 'aurora-electric-purple' : 'aurora-body'
+            }`} />
+            <div className={`text-sm font-semibold mb-1 ${
+              selectedFormat === fmt.id ? 'aurora-electric-purple' : 'aurora-body'
+            }`}>
+              {fmt.label}
+            </div>
+            <div className="text-xs aurora-body opacity-70">
+              {fmt.description}
+            </div>
+          </motion.button>
         ))}
       </div>
     </div>

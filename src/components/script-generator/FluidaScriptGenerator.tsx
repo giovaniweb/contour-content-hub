@@ -5,9 +5,9 @@ import { useEquipments } from '@/hooks/useEquipments';
 import { useClinicSegmentation } from '@/hooks/useClinicSegmentation';
 import { useFluidaRoteirista } from '@/hooks/useFluidaRoteirista';
 import EquipmentValidationAlert from './EquipmentValidationAlert';
-import FluidaLoadingMessages from './FluidaLoadingMessages';
+import AuroraLoadingScreen from './AuroraLoadingScreen';
 import ScriptGeneratorForm from './ScriptGeneratorForm';
-import ScriptResults from './ScriptResults';
+import EnhancedScriptResults from './EnhancedScriptResults';
 
 interface FluidaScriptGeneratorProps {
   onScriptGenerated?: (script: any) => void;
@@ -52,62 +52,76 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   };
 
   const handleNewScript = () => {
-    // Reset form but keep current inputs
-    // This allows users to generate variations
+    // Reset form but keep current inputs for variations
+  };
+
+  const handleGenerateImage = (script: any) => {
+    console.log('🖼️ Gerar imagem para script:', script);
+    // TODO: Implementar geração de imagem
   };
 
   // Mostrar loading durante geração
   if (isGenerating) {
-    return <FluidaLoadingMessages isLoading={true} mentor={mentor.toLowerCase()} />;
+    return <AuroraLoadingScreen isLoading={true} mentor={mentor.toLowerCase()} />;
   }
 
   // Mostrar resultados se houver
   if (results.length > 0) {
     return (
-      <ScriptResults
+      <EnhancedScriptResults
         results={results}
         onScriptApproved={onScriptGenerated}
         onNewScript={handleNewScript}
+        onGenerateImage={handleGenerateImage}
       />
     );
   }
 
   return (
-    <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <h1 className="text-3xl font-bold mb-4 flex items-center justify-center gap-2">
-          <Wand2 className="h-8 w-8 text-purple-600" />
-          FLUIDAROTEIRISTA
-        </h1>
-        <p className="text-gray-600">
-          Roteiros criativos e impactantes para clínicas estéticas e médicas
-        </p>
-      </motion.div>
+    <div className="min-h-screen aurora-gradient-bg aurora-particles">
+      <div className="relative z-10 space-y-8 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="aurora-heading text-4xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Wand2 className="h-10 w-10 aurora-electric-purple aurora-float" />
+            FLUIDAROTEIRISTA
+          </h1>
+          <p className="aurora-body text-xl">
+            Roteiros criativos e impactantes para clínicas estéticas e médicas
+          </p>
+        </motion.div>
 
-      <EquipmentValidationAlert
-        clinicType={clinicType}
-        selectedEquipments={selectedEquipments}
-        recommendation={recommendation}
-        hasInvasiveEquipments={hasInvasiveEquipments}
-      />
+        <EquipmentValidationAlert
+          clinicType={clinicType}
+          selectedEquipments={selectedEquipments}
+          recommendation={recommendation}
+          hasInvasiveEquipments={hasInvasiveEquipments}
+        />
 
-      <ScriptGeneratorForm
-        tema={tema}
-        onTemaChange={setTema}
-        formato={formato}
-        onFormatoChange={setFormato}
-        objetivo={objetivo}
-        onObjetivoChange={setObjetivo}
-        selectedEquipments={selectedEquipments}
-        onEquipmentChange={handleEquipmentChange}
-        allowedEquipments={allowedEquipments}
-        onGenerate={handleGenerate}
-        isGenerating={isGenerating}
-      />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-4xl mx-auto"
+        >
+          <ScriptGeneratorForm
+            tema={tema}
+            onTemaChange={setTema}
+            formato={formato}
+            onFormatoChange={setFormato}
+            objetivo={objetivo}
+            onObjetivoChange={setObjetivo}
+            selectedEquipments={selectedEquipments}
+            onEquipmentChange={handleEquipmentChange}
+            allowedEquipments={allowedEquipments}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 };

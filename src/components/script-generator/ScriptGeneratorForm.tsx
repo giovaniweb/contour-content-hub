@@ -42,20 +42,28 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
   isGenerating
 }) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Configuração do Roteiro</CardTitle>
+    <Card className="aurora-card border-2 relative overflow-hidden">
+      {/* Efeito Aurora de fundo */}
+      <div className="absolute inset-0 aurora-gradient-bg opacity-5 pointer-events-none" />
+      
+      <CardHeader className="relative z-10">
+        <CardTitle className="aurora-text-gradient text-2xl">
+          Configuração do Roteiro
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      
+      <CardContent className="relative z-10 space-y-6">
         {/* Tema Principal */}
-        <div className="space-y-2">
-          <Label htmlFor="tema">Tema/Assunto Principal*</Label>
+        <div className="space-y-3">
+          <Label htmlFor="tema" className="aurora-accent font-semibold text-base">
+            Tema/Assunto Principal*
+          </Label>
           <Input
             id="tema"
             value={tema}
             onChange={(e) => onTemaChange(e.target.value)}
             placeholder="Ex: Tratamento para manchas faciais com laser"
-            className="w-full"
+            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm"
           />
         </div>
 
@@ -82,10 +90,10 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
         <Button
           onClick={onGenerate}
           disabled={!tema.trim() || selectedEquipments.length === 0 || isGenerating}
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          className="w-full aurora-button bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 py-4 text-lg font-semibold aurora-glow"
           size="lg"
         >
-          <Wand2 className="h-4 w-4 mr-2" />
+          <Wand2 className="h-5 w-5 mr-3 aurora-pulse" />
           Gerar Roteiro FLUIDA
         </Button>
       </CardContent>
