@@ -13,7 +13,7 @@ import {
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import { useAIDiagnostic } from "@/hooks/useAIDiagnostic";
-import LoadingMessages from "./dashboard/LoadingMessages";
+import LoadingMessages from "@/components/akinator-marketing-consultant/dashboard/LoadingMessages";
 import { extractDiagnosticSections } from './diagnostic-sections/diagnosticSectionUtils';
 import { InsightsSection } from './diagnostic-sections/InsightsSection';
 import { MentorEnigmaSection } from './diagnostic-sections/MentorEnigmaSection';
@@ -189,12 +189,12 @@ const StructuredDiagnosticSections: React.FC<StructuredDiagnosticSectionsProps> 
 
       {/* Sections Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InsightsSection content={sections.insights} />
+        <MentorEnigmaSection content={sections.enigma} />
+        <BrandEvaluationSection content={sections.marca} />
         <StrategicDiagnosticSection content={sections.estrategico} />
         <ContentSuggestionsSection content={sections.conteudo} />
         <ActionPlanSection content={sections.planoAcao} />
-        <BrandEvaluationSection content={sections.marca} />
-        <MentorEnigmaSection content={sections.enigma} />
-        <InsightsSection content={sections.insights} />
       </div>
 
       {/* Badge de validação */}
