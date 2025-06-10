@@ -2,14 +2,10 @@
 import React from 'react';
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { MetricsCards } from './metrics-tab/MetricsCards';
-import { KPISection } from './metrics-tab/KPISection';
-import { EngagementMetrics } from './metrics-tab/EngagementMetrics';
 import { StrategicGoals } from './metrics-tab/StrategicGoals';
 import { 
   generateCurrentMetrics, 
-  generateProjectedMetrics, 
-  kpis, 
-  engagementMetrics 
+  generateProjectedMetrics
 } from './metrics-tab/metricsData';
 
 interface MetricsTabProps {
@@ -28,12 +24,6 @@ const MetricsTab: React.FC<MetricsTabProps> = ({ session }) => {
         currentMetrics={currentMetrics}
         projectedMetrics={projectedMetrics}
       />
-
-      {/* KPIs Principais */}
-      <KPISection kpis={kpis} />
-
-      {/* Métricas de Engajamento */}
-      <EngagementMetrics metrics={engagementMetrics} />
 
       {/* Objetivos e Metas */}
       <StrategicGoals />
