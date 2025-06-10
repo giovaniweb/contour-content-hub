@@ -1,8 +1,10 @@
+
 export const ROUTES = {
   HOME: '/',
   DASHBOARD: '/dashboard',
   CONTENT: {
     SCRIPTS: {
+      ROOT: '/content/scripts',
       LIST: '/content/scripts',
       GENERATOR: '/content/scripts/generator',
       FLUIA_AKINATOR: '/content/scripts/fluia-akinator',
@@ -19,6 +21,15 @@ export const ROUTES = {
       CREATE: '/content/emails/create',
       EDIT: '/content/emails/edit',
     },
+    PLANNER: '/content/planner',
+    IDEAS: '/content/ideas',
+    STRATEGY: '/content/strategy',
+    CALENDAR: '/content/calendar'
+  },
+  VIDEOS: {
+    ROOT: '/videos',
+    PLAYER: '/videos/player',
+    IMPORT: '/videos/import'
   },
   AUTH: {
     LOGIN: '/auth/login',
@@ -26,6 +37,8 @@ export const ROUTES = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
   },
+  LOGIN: '/login',
+  REGISTER: '/register',
   PROFILE: '/profile',
   SETTINGS: '/settings',
   PLANS: '/plans',
@@ -46,4 +59,13 @@ export const ROUTES = {
   CAREERS: '/careers',
   COMING_SOON: '/coming-soon',
   NOT_FOUND: '/404',
+  SCIENTIFIC_ARTICLES: '/scientific-articles',
+  MEDIA: '/media',
+  WORKSPACE_SETTINGS: '/workspace/settings',
+  MARKETING: {
+    REPORTS: '/marketing/reports'
+  },
+  ADMIN: {
+    ROOT: '/admin'
+  }
 } as const;
