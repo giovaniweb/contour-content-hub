@@ -1,24 +1,18 @@
 
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Lightbulb, Trello, Plus, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Lightbulb } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { GrowthStrategyAccordion } from './actions-tab/GrowthStrategyAccordion';
 import { ImplementationTips } from './actions-tab/ImplementationTips';
-import { generateImmediateActions, mediumTermActions } from './actions-tab/actionData';
-import { getPriorityColor } from './actions-tab/utils';
-import { useDiagnosticToPlanner } from '@/hooks/useDiagnosticToPlanner';
 
 interface ActionsTabProps {
   session: DiagnosticSession;
 }
 
 const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
-  const { addActionToPlanner, addMultipleActionsToPlanner, isAdding } = useDiagnosticToPlanner(session);
-  
   const getMainSpecialty = () => {
     if (session.state.clinicType === 'clinica_medica') {
       return session.state.medicalSpecialty || 'Medicina';
@@ -26,82 +20,9 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
     return session.state.aestheticFocus || 'Estética';
   };
 
-  const immediateActions = generateImmediateActions(getMainSpecialty());
-  // Combinar ações imediatas com as de médio prazo numa única seção expandida
-  const expandedActions = [...immediateActions, ...mediumTermActions];
-
-  const handleAddAllToPlanner = async () => {
-    await addMultipleActionsToPlanner(expandedActions);
-  };
-
   return (
     <div className="space-y-8">
-      {/* Botão para adicionar tudo ao planejador */}
-      <div className="flex justify-end mb-8">
-        <Button
-          onClick={handleAddAllToPlanner}
-          disabled={isAdding}
-          className="bg-aurora-gradient-primary hover:shadow-aurora-glow transition-all duration-300"
-        >
-          <Trello className="h-4 w-4 mr-2" />
-          {isAdding ? "Criando Plano..." : "Enviar Tudo para o Planejador"}
-        </Button>
-      </div>
-
-      {/* Ações Imediatas Expandidas - Agora como Card sempre visível */}
-      <Card className="aurora-glass border-aurora-electric-purple/30 backdrop-blur-xl bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/5 hover:shadow-aurora-glow transition-all duration-300">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-aurora-electric-purple/20">
-                <Zap className="h-5 w-5 text-aurora-electric-purple" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-white">Plano de Ação Prioritário</CardTitle>
-              <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10 backdrop-blur-sm animate-pulse">
-                Ações Estratégicas
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {expandedActions.map((action, index) => (
-            <div key={index} className="aurora-glass border-aurora-electric-purple/20 rounded-lg p-6 hover:border-aurora-electric-purple/40 hover:shadow-aurora-glow transition-all duration-300 group">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h4 className="font-medium text-white group-hover:text-aurora-electric-purple transition-colors">{action.title}</h4>
-                    <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
-                      {action.priority}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-white/70">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-aurora-electric-purple" />
-                      <span className="text-aurora-electric-purple">{action.time}</span>
-                    </span>
-                    <Badge variant="secondary" className="text-xs bg-aurora-deep-purple/20 border-aurora-deep-purple/30 text-white">
-                      {action.category}
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addActionToPlanner(action)}
-                  disabled={isAdding}
-                  className="ml-4 shrink-0 bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow text-white"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Planejador
-                </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Estratégia de Crescimento - Mantém como accordion */}
+      {/* Estratégia de Crescimento */}
       <Accordion type="multiple" defaultValue={["growth"]} className="space-y-8">
         <AccordionItem value="growth" className="aurora-glass border-aurora-lavender/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-lavender/10 to-aurora-deep-purple/5 hover:shadow-aurora-glow transition-all duration-300">
           <AccordionTrigger className="px-6 py-6 hover:no-underline group">
