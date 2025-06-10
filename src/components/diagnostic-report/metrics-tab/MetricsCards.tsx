@@ -2,97 +2,82 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, TrendingUp } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, BarChart3 } from "lucide-react";
 
-interface MetricsCardsProps {
-  currentMetrics: {
-    followers: number;
-    engagement: string;
-    reach: number;
-    leads: number;
-  };
-  projectedMetrics: {
-    followers: number;
-    engagement: string;
-    reach: number;
-    leads: number;
-  };
+interface Metric {
+  name: string;
+  current: string;
+  projected: string;
+  growth: string;
+  icon: string;
+  color: string;
 }
 
-export const MetricsCards: React.FC<MetricsCardsProps> = ({ 
-  currentMetrics, 
-  projectedMetrics 
-}) => {
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <Card className="aurora-card border-aurora-electric-purple/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <Users className="h-5 w-5 text-aurora-electric-purple" />
-            Métricas Atuais
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Seguidores</span>
-            <span className="font-medium text-foreground">{currentMetrics.followers.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Taxa de Engajamento</span>
-            <span className="font-medium text-foreground">{currentMetrics.engagement}%</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Alcance Mensal</span>
-            <span className="font-medium text-foreground">{currentMetrics.reach.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Leads/Mês</span>
-            <span className="font-medium text-foreground">{currentMetrics.leads}</span>
-          </div>
-        </CardContent>
-      </Card>
+interface MetricsCardsProps {
+  currentMetrics: Metric[];
+  projectedMetrics: Metric[];
+}
 
-      <Card className="aurora-card border-aurora-sage/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <TrendingUp className="h-5 w-5 text-aurora-sage" />
-            Projeção (6 meses)
-            <Badge variant="outline" className="border-green-500/30 text-green-400">
-              Crescimento
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Seguidores</span>
-            <div className="text-right">
-              <span className="font-medium text-foreground">{projectedMetrics.followers.toLocaleString()}</span>
-              <div className="text-xs text-green-400">+{Math.floor(((projectedMetrics.followers - currentMetrics.followers) / currentMetrics.followers) * 100)}%</div>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Taxa de Engajamento</span>
-            <div className="text-right">
-              <span className="font-medium text-foreground">{projectedMetrics.engagement}%</span>
-              <div className="text-xs text-green-400">+30%</div>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Alcance Mensal</span>
-            <div className="text-right">
-              <span className="font-medium text-foreground">{projectedMetrics.reach.toLocaleString()}</span>
-              <div className="text-xs text-green-400">+100%</div>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-foreground/70">Leads/Mês</span>
-            <div className="text-right">
-              <span className="font-medium text-foreground">{projectedMetrics.leads}</span>
-              <div className="text-xs text-green-400">+150%</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+export const MetricsCards: React.FC<MetricsCardsProps> = ({ currentMetrics, projectedMetrics }) => {
+  const iconMap = {
+    'Target': Target,
+    'BarChart3': BarChart3,
+    'TrendingUp': TrendingUp,
+    'TrendingDown': TrendingDown
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-foreground mb-4">📊 Métricas Principais</h3>
+      
+      <div className="space-y-3">
+        {currentMetrics.map((metric, index) => {
+          const IconComponent = iconMap[metric.icon as keyof typeof iconMap] || BarChart3;
+          const projectedMetric = projectedMetrics[index];
+          
+          return (
+            <Card key={index} className="aurora-glass border-aurora-turquoise/30 hover:shadow-aurora-glow transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  {/* Left side - Icon and metric name */}
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${metric.color} bg-opacity-20`}>
+                      <IconComponent className={`h-6 w-6 ${metric.color}`} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground text-lg">{metric.name}</h4>
+                      <p className="text-foreground/60 text-sm">Comparação atual vs projetada</p>
+                    </div>
+                  </div>
+
+                  {/* Right side - Current and projected values */}
+                  <div className="flex items-center gap-8">
+                    {/* Current value */}
+                    <div className="text-center">
+                      <div className="text-sm text-foreground/60 mb-1">Atual</div>
+                      <div className="text-2xl font-bold text-foreground">{metric.current}</div>
+                    </div>
+
+                    {/* Arrow */}
+                    <TrendingUp className="h-5 w-5 text-green-400" />
+
+                    {/* Projected value */}
+                    <div className="text-center">
+                      <div className="text-sm text-foreground/60 mb-1">Projetado</div>
+                      <div className="text-2xl font-bold text-green-400">{projectedMetric.projected}</div>
+                    </div>
+
+                    {/* Growth badge */}
+                    <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10 px-3 py-1">
+                      {metric.growth}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 };
