@@ -1,91 +1,152 @@
+import { lazy } from "react";
 
-import React from "react";
-import { RouteObject } from "react-router-dom";
+import { Main } from "@/components/layouts/Main";
+import { AuthGuard } from "@/components/auth/AuthGuard";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 
-// Routes constants
-export const ROUTES = {
-  // Public routes
-  HOME: "/",
-  LOGIN: "/login",
-  REGISTER: "/register",
-  FORGOT_PASSWORD: "/forgot-password",
-  RESET_PASSWORD: "/reset-password",
-  
-  // Auth callback routes
-  AUTH: {
-    VIMEO_CALLBACK: "/vimeo/callback"
+const Home = lazy(() => import("@/pages/Home"));
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Diagnostic = lazy(() => import("@/pages/Diagnostic"));
+const CreativeAgenda = lazy(() => import("@/pages/CreativeAgenda"));
+const Integrations = lazy(() => import("@/pages/Integrations"));
+const Billing = lazy(() => import("@/pages/Billing"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+import InstagramCallback from "@/pages/auth/InstagramCallback";
+
+const routes = [
+  {
+    path: "/",
+    element: (
+      <Main>
+        <Home />
+      </Main>
+    ),
+    protected: true,
   },
-  
-  // Protected routes
-  DASHBOARD: "/dashboard",
-  PROFILE: "/profile",
-  WORKSPACE_SETTINGS: "/workspace-settings",
-  INVITES: "/invites",
-  
-  // Content
-  CONTENT: {
-    STRATEGY: "/content-strategy",
-    PLANNER: "/content-planner",
-    IDEAS: "/content-ideas",
-    SCRIPTS: {
-      ROOT: "/scripts",
-      GENERATOR: "/script-generator",
-      VALIDATION: "/script-validation"
-    },
-    CALENDAR: "/calendar"
+  {
+    path: "/login",
+    element: (
+      <GuestGuard>
+        <Login />
+      </GuestGuard>
+    ),
   },
-  
-  // Videos
-  VIDEOS: {
-    ROOT: "/videos",
-    STORAGE: "/videos/storage",
-    BATCH: "/videos/batch",
-    IMPORT: "/videos/import",
-    SWIPE: "/videos/swipe",
-    PLAYER: "/video-player",
-    CREATE: "/videos/create"
+  {
+    path: "/register",
+    element: (
+      <GuestGuard>
+        <Register />
+      </GuestGuard>
+    ),
   },
-  
-  // Knowledge Base
-  EQUIPMENT: {
-    LIST: "/equipments",
-    DETAILS: (id: string = ":id") => `/equipment/${id}`
+  {
+    path: "/forgot-password",
+    element: (
+      <GuestGuard>
+        <ForgotPassword />
+      </GuestGuard>
+    ),
   },
-  MEDIA: "/media",
-  DOCUMENTS: {
-    ROOT: "/docs",
-    DETAILS: (id: string = ":id") => `/document/${id}`
+  {
+    path: "/reset-password",
+    element: (
+      <GuestGuard>
+        <ResetPassword />
+      </GuestGuard>
+    ),
   },
-  SCIENTIFIC_ARTICLES: "/scientific-articles",
-  
-  // Marketing
-  MARKETING: {
-    CONSULTANT: "/marketing-consultant",
-    REPORTS: "/reports",
-    DIAGNOSTIC_HISTORY: "/diagnostic-history"
+  {
+    path: "/profile",
+    element: (
+      <AuthGuard>
+        <Main>
+          <Profile />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
   },
-  
-  // Consultant
-  CONSULTANT: {
-    PANEL: "/consultant-panel"
+  {
+    path: "/diagnostic",
+    element: (
+      <AuthGuard>
+        <Main>
+          <Diagnostic />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
   },
-  
-  // Admin routes
-  ADMIN: {
-    ROOT: "/admin",
-    EQUIPMENT: "/admin/equipments",
-    CONTENT: "/admin/content",
-    AI: "/admin/ai",
-    SYSTEM: {
-      DIAGNOSTICS: "/admin/system-diagnostics",
-      INTELLIGENCE: "/admin/system-intelligence"
-    },
-    VIMEO: {
-      SETTINGS: "/admin/vimeo-settings"
-    },
-    WORKSPACE: "/admin/workspace"
+  {
+    path: "/creative-agenda",
+    element: (
+      <AuthGuard>
+        <Main>
+          <CreativeAgenda />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
   },
-  
-  // Admin videos
-  ADMIN_VIDEOS: '/admin/videos'
-};
+  {
+    path: "/integrations",
+    element: (
+      <AuthGuard>
+        <Main>
+          <Integrations />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  {
+    path: "/billing",
+    element: (
+      <AuthGuard>
+        <Main>
+          <Billing />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  {
+    path: "/pricing",
+    element: (
+      <Main>
+        <Pricing />
+      </Main>
+    ),
+  },
+  {
+    path: "/onboarding",
+    element: (
+      <AuthGuard>
+        <Main>
+          <Onboarding />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  {
+    path: "*",
+    element: (
+      <Main>
+        <NotFound />
+      </Main>
+    ),
+  },
+  {
+    path: "/auth/instagram/callback",
+    element: <InstagramCallback />
+  },
+];
+
+export default routes;
