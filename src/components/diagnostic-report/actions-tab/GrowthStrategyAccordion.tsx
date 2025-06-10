@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Clock, Play, Plus, Trello, Pause, Square, Timer } from "lucide-react";
+import { CheckCircle2, Clock, Play, Plus, Trello, RotateCcw } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { growthWeeks } from '../growth-strategy/strategyData';
 import { getPriorityColor } from './utils';
@@ -21,14 +21,11 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
   
   const {
     startAction,
-    pauseAction,
     completeAction,
+    resetAction,
     getActionStatus,
-    getActionTime,
-    formatTime,
     getWeekProgress,
-    getOverallProgress,
-    activeActionId
+    getOverallProgress
   } = useGrowthStrategyProgress();
 
   const getTypeColor = (type: string) => {
@@ -83,16 +80,16 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
     const actionId = `week-${weekNumber}-action-${actionIndex}`;
     const status = getActionStatus(actionId);
     
-    if (status === 'not_started' || status === 'paused') {
+    if (status === 'not_started') {
       startAction(actionId, action.action);
     } else if (status === 'in_progress') {
-      pauseAction(actionId);
+      completeAction(actionId, action.action);
     }
   };
 
-  const handleCompleteAction = (action: typeof growthWeeks[0]['actions'][0], weekNumber: number, actionIndex: number) => {
+  const handleResetAction = (action: typeof growthWeeks[0]['actions'][0], weekNumber: number, actionIndex: number) => {
     const actionId = `week-${weekNumber}-action-${actionIndex}`;
-    completeAction(actionId, action.action);
+    resetAction(actionId, action.action);
   };
 
   const overallProgress = getOverallProgress(growthWeeks);
@@ -122,25 +119,25 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                 <div className="text-2xl font-bold text-green-400">
                   {overallProgress.completedActions}
                 </div>
-                <div className="text-xs text-white/80">Concluídas</div>
+                <div className="text-xs text-white">Concluídas</div>
               </div>
               <div className="space-y-1">
                 <div className="text-2xl font-bold text-aurora-electric-purple">
-                  {overallProgress.totalActions - overallProgress.completedActions}
+                  {overallProgress.inProgressActions}
                 </div>
-                <div className="text-xs text-white/80">Pendentes</div>
+                <div className="text-xs text-white">Em Progresso</div>
               </div>
               <div className="space-y-1">
                 <div className="text-2xl font-bold text-aurora-sage">
-                  {overallProgress.formattedTime}
+                  {overallProgress.pendingActions}
                 </div>
-                <div className="text-xs text-white/80">Tempo Total</div>
+                <div className="text-xs text-white">Pendentes</div>
               </div>
               <div className="space-y-1">
                 <div className="text-2xl font-bold text-aurora-lavender">
                   {growthWeeks.length}
                 </div>
-                <div className="text-xs text-white/80">Semanas</div>
+                <div className="text-xs text-white">Semanas</div>
               </div>
             </div>
           </div>
@@ -169,10 +166,10 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                       </div>
                       <span className="font-semibold text-white">Semana {week.week}</span>
                     </div>
-                    <span className="text-sm font-medium text-white/90">{week.title}</span>
+                    <span className="text-sm font-medium text-white">{week.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="text-right text-xs text-white/80">
+                    <div className="text-right text-xs text-white">
                       <div className="font-semibold text-aurora-electric-purple">{weekPercentage}%</div>
                       <div>{weekProgress.completedActions}/{week.actions.length}</div>
                     </div>
@@ -198,8 +195,6 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                   {week.actions.map((action, actionIndex) => {
                     const actionId = `week-${week.week}-action-${actionIndex}`;
                     const status = getActionStatus(actionId);
-                    const actionTime = getActionTime(actionId);
-                    const isActive = activeActionId === actionId;
                     
                     return (
                       <Card 
@@ -212,20 +207,33 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 flex-shrink-0 mt-0.5 hover:bg-aurora-electric-purple/20"
-                              onClick={() => handleCompleteAction(action, week.week, actionIndex)}
-                            >
-                              <CheckCircle2 
-                                className={`h-5 w-5 transition-all duration-300 ${
-                                  status === 'completed'
-                                    ? 'text-green-400 fill-green-400/20 animate-pulse' 
-                                    : 'text-white/40 hover:text-green-400 hover:scale-110'
-                                }`} 
-                              />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 flex-shrink-0 mt-0.5 hover:bg-aurora-electric-purple/20"
+                                onClick={() => handleActionClick(action, week.week, actionIndex)}
+                              >
+                                <CheckCircle2 
+                                  className={`h-5 w-5 transition-all duration-300 ${
+                                    status === 'completed'
+                                      ? 'text-green-400 fill-green-400/20' 
+                                      : 'text-white/40 hover:text-green-400 hover:scale-110'
+                                  }`} 
+                                />
+                              </Button>
+                              
+                              {status === 'completed' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 flex-shrink-0 mt-0.5 hover:bg-orange-500/20"
+                                  onClick={() => handleResetAction(action, week.week, actionIndex)}
+                                >
+                                  <RotateCcw className="h-4 w-4 text-orange-400 hover:scale-110 transition-all duration-300" />
+                                </Button>
+                              )}
+                            </div>
                             
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm font-medium mb-2 leading-relaxed transition-colors ${
@@ -242,7 +250,7 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                                   {action.type}
                                 </Badge>
                                 
-                                <div className="flex items-center gap-1 text-xs text-white/70">
+                                <div className="flex items-center gap-1 text-xs text-white">
                                   <Clock className="h-3 w-3 text-aurora-sage" />
                                   <span className="text-aurora-sage">{action.time}</span>
                                 </div>
@@ -254,10 +262,16 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                                   {action.priority}
                                 </Badge>
 
-                                {actionTime > 0 && (
-                                  <Badge variant="outline" className="text-xs border-aurora-lavender/30 text-aurora-lavender bg-aurora-lavender/10">
-                                    <Timer className="h-3 w-3 mr-1" />
-                                    {formatTime(actionTime)}
+                                {status !== 'not_started' && (
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs backdrop-blur-sm ${
+                                      status === 'completed' 
+                                        ? 'border-green-500/30 text-green-400 bg-green-500/10'
+                                        : 'border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10'
+                                    }`}
+                                  >
+                                    {status === 'completed' ? '✓ Concluída' : '⚡ Em Progresso'}
                                   </Badge>
                                 )}
                               </div>
@@ -281,27 +295,16 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                                 onClick={() => handleActionClick(action, week.week, actionIndex)}
                                 className={`h-7 px-3 text-xs flex-shrink-0 transition-all duration-300 ${
                                   status === 'completed'
-                                    ? 'bg-green-500/20 border-green-500/30 text-green-400 cursor-not-allowed' 
+                                    ? 'bg-green-500/20 border-green-500/30 text-green-400' 
                                     : status === 'in_progress'
                                     ? 'bg-aurora-electric-purple/20 border-aurora-electric-purple/30 text-aurora-electric-purple shadow-aurora-glow-blue'
-                                    : status === 'paused'
-                                    ? 'bg-orange-500/20 border-orange-500/30 text-orange-400'
                                     : 'bg-aurora-electric-purple/10 border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue text-white'
                                 }`}
-                                disabled={status === 'completed'}
                               >
                                 {status === 'completed' ? (
-                                  "Concluída ✓"
+                                  "✓ Concluída"
                                 ) : status === 'in_progress' ? (
-                                  <>
-                                    <Pause className="h-3 w-3 mr-1" />
-                                    {isActive ? "Pausar" : "Em Progresso"}
-                                  </>
-                                ) : status === 'paused' ? (
-                                  <>
-                                    <Play className="h-3 w-3 mr-1" />
-                                    Retomar
-                                  </>
+                                  "Finalizar"
                                 ) : (
                                   <>
                                     <Play className="h-3 w-3 mr-1" />
