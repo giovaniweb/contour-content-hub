@@ -9,13 +9,13 @@ const DiagnosticHistoryHeader: React.FC = () => {
 
   return (
     <div className="flex items-center gap-3 mb-6">
-      <Button variant="outline" onClick={() => navigate('/marketing-consultant')} className="flex items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/marketing-consultant')} className="flex items-center gap-2 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
         <ArrowLeft className="h-4 w-4" />
         Voltar
       </Button>
       <div className="flex items-center gap-3">
-        <History className="h-8 w-8 text-primary" />
-        <h1 className="text-2xl font-bold text-slate-50">Histórico de Diagnósticos</h1>
+        <History className="h-8 w-8 text-aurora-electric-purple" />
+        <h1 className="text-2xl font-bold text-white aurora-text-gradient">Histórico de Diagnósticos</h1>
       </div>
     </div>
   );

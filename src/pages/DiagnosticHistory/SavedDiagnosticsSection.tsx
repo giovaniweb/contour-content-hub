@@ -58,32 +58,32 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="aurora-card hover:border-aurora-electric-purple/40 transition-colors">
+            <Card className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/40 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-white flex items-center gap-2">
                       {session.clinicTypeLabel}
-                      <Badge variant={session.isCompleted ? "default" : "secondary"}>
+                      <Badge variant={session.isCompleted ? "default" : "secondary"} className={session.isCompleted ? "bg-aurora-gradient-primary text-white" : "bg-gray-500/20 text-white"}>
                         {session.isCompleted ? "Completo" : "Incompleto"}
                       </Badge>
                       {session.id === currentSession?.id && (
-                        <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+                        <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10">
                           Atual
                         </Badge>
                       )}
                       {(session.isPaidData || session.isCompleted) && (
-                        <Badge variant="outline" className="border-green-500/30 text-green-400">
+                        <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
                           <Shield className="h-3 w-3 mr-1" />
                           Protegido
                         </Badge>
                       )}
                     </CardTitle>
-                    <p className="text-sm text-white/70 mt-1">
+                    <p className="text-sm text-white/80 mt-1">
                       {session.specialty}
                     </p>
                   </div>
-                  <div className="text-right text-sm text-white/60">
+                  <div className="text-right text-sm text-white/70">
                     {formatDate(session.timestamp).date}
                     <br />
                     {formatDate(session.timestamp).time}
@@ -97,7 +97,7 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     onClick={() => handleViewReport(session)}
                   />
                   
-                  <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1">
+                  <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
                     <Download className="h-3 w-3" />
                     Download
                   </Button>
