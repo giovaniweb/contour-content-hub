@@ -1,4 +1,5 @@
 
+
 export const ROUTES = {
   HOME: '/',
   DASHBOARD: '/dashboard',
@@ -29,7 +30,10 @@ export const ROUTES = {
   VIDEOS: {
     ROOT: '/videos',
     PLAYER: '/videos/player',
-    IMPORT: '/videos/import'
+    IMPORT: '/videos/import',
+    CREATE: '/videos/create',
+    STORAGE: '/videos/storage',
+    BATCH: '/videos/batch'
   },
   AUTH: {
     LOGIN: '/auth/login',
@@ -62,10 +66,29 @@ export const ROUTES = {
   SCIENTIFIC_ARTICLES: '/scientific-articles',
   MEDIA: '/media',
   WORKSPACE_SETTINGS: '/workspace/settings',
+  EQUIPMENT: {
+    LIST: '/equipment'
+  },
+  ADMIN_VIDEOS: '/admin/videos',
   MARKETING: {
-    REPORTS: '/marketing/reports'
+    REPORTS: '/marketing/reports',
+    CONSULTANT: '/marketing/consultant'
+  },
+  CONSULTANT: {
+    PANEL: '/consultant/panel'
   },
   ADMIN: {
-    ROOT: '/admin'
+    ROOT: '/admin',
+    EQUIPMENT: '/admin/equipment',
+    CONTENT: '/admin/content',
+    AI: '/admin/ai',
+    SYSTEM: {
+      INTELLIGENCE: '/admin/system/intelligence',
+      DIAGNOSTICS: '/admin/system/diagnostics'
+    },
+    VIMEO: {
+      SETTINGS: '/admin/vimeo/settings'
+    }
   }
 } as const;
+
