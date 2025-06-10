@@ -68,6 +68,25 @@ const EnhancedScriptResults: React.FC<EnhancedScriptResultsProps> = ({
     }
   };
 
+  const handleApproveScript = (script: FluidaScriptResult) => {
+    console.log('📝 Aprovando script no EnhancedScriptResults:', script);
+    
+    // Transformar o script no formato esperado pelo SmartResultDisplay
+    const approvedScript = {
+      roteiro: script.roteiro,
+      formato: script.formato,
+      emocao_central: script.emocao_central,
+      intencao: script.intencao,
+      objetivo: script.objetivo,
+      mentor: script.mentor,
+      disney_applied: false
+    };
+    
+    if (onScriptApproved) {
+      onScriptApproved(approvedScript);
+    }
+  };
+
   const isVideoFormat = (formato: string) => {
     return formato.toLowerCase().includes('stories') || formato.toLowerCase().includes('video');
   };
@@ -175,11 +194,11 @@ const EnhancedScriptResults: React.FC<EnhancedScriptResultsProps> = ({
               <div className="flex flex-wrap gap-3">
                 {/* Botão principal de aprovação */}
                 <Button 
-                  onClick={() => onScriptApproved?.(result)}
+                  onClick={() => handleApproveScript(result)}
                   className="aurora-button bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex-1 min-w-fit"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Aprovar Roteiro
+                  ✨ Aprovar e Acessar FluiA Encantador
                 </Button>
 
                 {/* Botão de gerar imagem (para formatos de imagem) */}

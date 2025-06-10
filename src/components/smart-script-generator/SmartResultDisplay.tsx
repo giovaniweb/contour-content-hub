@@ -107,7 +107,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* FluiA Encantador - só aparece se aprovado e não aplicou Disney ainda */}
+      {/* FluiA Encantador - SEMPRE aparece se aprovado e não aplicou Disney ainda */}
       {isApproved && !isDisneyApplied && (
         <FluiAEncantadorSection
           onActivate={onApplyDisney}
@@ -125,7 +125,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
         />
       )}
 
-      {/* Ações pós-aprovação */}
+      {/* Ações pós-aprovação - SEMPRE mostrar se aprovado */}
       {isApproved && (
         <Card>
           <CardContent className="p-6">
