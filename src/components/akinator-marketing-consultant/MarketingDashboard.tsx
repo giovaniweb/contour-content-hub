@@ -14,6 +14,7 @@ import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection
 import ActionButtons from './dashboard/ActionButtons';
 import ContentSuggestionCards from './dashboard/ContentSuggestionCards';
 import QuickActionCards from './dashboard/QuickActionCards';
+
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
   mentor: any;
@@ -21,6 +22,7 @@ interface MarketingDashboardProps {
   onRestart: () => void;
   onStateUpdate?: (newState: MarketingConsultantState) => void;
 }
+
 const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   state,
   mentor,
@@ -58,16 +60,20 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     mainChallenges: state?.mainChallenges || '',
     generatedDiagnostic: state?.generatedDiagnostic || ''
   };
+
   const safeMentor = mentor || {
     name: 'Mentor Fluida',
     speciality: 'Marketing Digital'
   };
+
   const safeAiSections = aiSections || {};
+
   console.log('📊 MarketingDashboard renderizando com dados:', {
     safeState,
     safeMentor,
     safeAiSections
   });
+
   const handleDiagnosticUpdate = (newDiagnostic: string) => {
     const updatedState = {
       ...safeState,
@@ -75,26 +81,31 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     };
     onStateUpdate?.(updatedState);
   };
+
   const handleDownloadReport = () => {
     toast.success("📄 Relatório baixado!", {
       description: "Seu diagnóstico foi salvo em PDF."
     });
   };
+
   const handleShareReport = () => {
     toast.success("🔗 Link copiado!", {
       description: "Link do relatório copiado para a área de transferência."
     });
   };
+
   const getClinicTypeLabel = () => {
     if (!safeState.clinicType) return 'Não definido';
     return safeState.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética';
   };
+
   const getMainSpecialty = () => {
     if (safeState.clinicType === 'clinica_medica') {
       return safeState.medicalSpecialty || 'Não informado';
     }
     return safeState.aestheticFocus || 'Não informado';
   };
+
   const getCurrentRevenue = () => {
     const revenueMap = {
       'ate_15k': 'Até R$ 15.000',
@@ -104,6 +115,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     };
     return revenueMap[safeState.currentRevenue as keyof typeof revenueMap] || 'Não informado';
   };
+
   const getRevenueGoal = () => {
     const goalMap = {
       'crescer_30': 'Crescer 30% em 6 meses',
@@ -119,23 +131,27 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   const renderAIDiagnosticSummary = () => {
     if (safeState.generatedDiagnostic && safeState.generatedDiagnostic !== 'Diagnóstico sendo processado...') {
       const firstParagraph = safeState.generatedDiagnostic.split('\n')[0];
-      return <p className="text-sm aurora-body opacity-90 leading-relaxed">
+      return (
+        <p className="text-sm aurora-body opacity-90 leading-relaxed">
           {firstParagraph.replace(/[#*]/g, '').trim()}
-        </p>;
+        </p>
+      );
     }
-    return <p className="text-sm aurora-body opacity-70">
+    return (
+      <p className="text-sm aurora-body opacity-70">
         Análise estratégica baseada no perfil da sua clínica em processamento...
-      </p>;
+      </p>
+    );
   };
-  return <div className="container mx-auto max-w-7xl py-8 space-y-8">
+
+  return (
+    <div className="container mx-auto max-w-7xl py-8 space-y-8">
       {/* Header */}
-      <motion.div initial={{
-      opacity: 0,
-      y: -20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} className="text-center space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center space-y-4"
+      >
         <div className="flex justify-center mb-4">
           <div className="p-3 bg-aurora-gradient-primary rounded-full shadow-lg aurora-glow">
             <BrainCircuit className="h-8 w-8 text-white" />
@@ -158,15 +174,12 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       </motion.div>
 
       {/* Quick Stats */}
-      <motion.div initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      delay: 0.2
-    }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
         <Card className="aurora-card border-aurora-electric-purple/20">
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 text-aurora-electric-purple mx-auto mb-3" />
@@ -195,54 +208,62 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       </motion.div>
 
       {/* Tabs Navigation */}
-      <motion.div initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} transition={{
-      delay: 0.3
-    }} className="flex justify-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="flex justify-center"
+      >
         <div className="aurora-glass rounded-full p-1">
           <div className="flex gap-1">
-            {[{
-            id: 'overview',
-            label: '📊 Visão Geral',
-            icon: BrainCircuit
-          }, {
-            id: 'diagnostic',
-            label: '🎯 Diagnóstico',
-            icon: Target
-          }, {
-            id: 'actions',
-            label: '⚡ Ações',
-            icon: Zap
-          }].map(tab => <Button key={tab.id} variant={activeTab === tab.id ? "default" : "ghost"} className={`
+            {[
+              { id: 'overview', label: '📊 Visão Geral', icon: BrainCircuit },
+              { id: 'diagnostic', label: '🎯 Diagnóstico', icon: Target },
+              { id: 'actions', label: '⚡ Ações', icon: Zap }
+            ].map(tab => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                className={`
                   px-6 py-2 rounded-full transition-all duration-300
                   ${activeTab === tab.id ? 'aurora-button' : 'text-white/70 hover:text-white hover:bg-white/10'}
-                `} onClick={() => setActiveTab(tab.id)}>
+                `}
+                onClick={() => setActiveTab(tab.id)}
+              >
                 <tab.icon className="h-4 w-4 mr-2" />
                 {tab.label}
-              </Button>)}
+              </Button>
+            ))}
           </div>
         </div>
       </motion.div>
 
       {/* Tab Content */}
-      <motion.div key={activeTab} initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      duration: 0.3
-    }} className="space-y-8">
-        {activeTab === 'overview' && <>
-            <DiagnosticCards state={safeState} aiSections={safeAiSections} renderAIDiagnosticSummary={renderAIDiagnosticSummary} />
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
+      >
+        {activeTab === 'overview' && (
+          <>
+            <DiagnosticCards 
+              state={safeState} 
+              aiSections={safeAiSections} 
+              renderAIDiagnosticSummary={renderAIDiagnosticSummary} 
+            />
             <FluidAnalysisCards state={safeState} aiSections={safeAiSections} />
-          </>}
+          </>
+        )}
 
-        {activeTab === 'diagnostic' && <StructuredDiagnosticSection diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'} state={safeState} onDiagnosticUpdate={handleDiagnosticUpdate} />}
+        {activeTab === 'diagnostic' && (
+          <StructuredDiagnosticSection 
+            diagnostic={safeState.generatedDiagnostic || 'Diagnóstico sendo processado...'} 
+            state={safeState} 
+            onDiagnosticUpdate={handleDiagnosticUpdate} 
+          />
+        )}
 
         {activeTab === 'actions' && (
           <div className="space-y-8">
@@ -261,7 +282,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="p-4 aurora-glass rounded-lg">
                     <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-aurora-sage" />
@@ -273,18 +294,6 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
                       <li>• Definir público-alvo específico</li>
                     </ul>
                   </div>
-                  
-                  <div className="p-4 aurora-glass rounded-lg">
-                    <h4 className="font-semibold aurora-heading mb-2 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-aurora-electric-purple" />
-                      Médio Prazo (30 dias)
-                    </h4>
-                    <ul className="text-sm aurora-body space-y-1 opacity-80">
-                      <li>• Implementar estratégia de conteúdo</li>
-                      <li>• Criar landing page otimizada</li>
-                      <li>• Desenvolver funil de vendas</li>
-                    </ul>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -293,7 +302,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       </motion.div>
 
       {/* Action Buttons */}
-      <ActionButtons onDownload={handleDownloadReport} onShare={handleShareReport} onRestart={onRestart} />
-    </div>;
+      <ActionButtons 
+        onDownload={handleDownloadReport} 
+        onShare={handleShareReport} 
+        onRestart={onRestart} 
+      />
+    </div>
+  );
 };
+
 export default MarketingDashboard;
