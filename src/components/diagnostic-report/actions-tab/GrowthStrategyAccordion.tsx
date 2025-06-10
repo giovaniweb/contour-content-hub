@@ -28,24 +28,24 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
 
   const getTypeColor = (type: string) => {
     const colors = {
-      'Setup': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      'Conteúdo': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      'Credibilidade': 'bg-green-500/20 text-green-400 border-green-500/30',
-      'Networking': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      'Resultados': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      'Testimonials': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-      'Posicionamento': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-      'Inovação': 'bg-violet-500/20 text-violet-400 border-violet-500/30',
-      'Promoção': 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-      'CTA': 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-      'Automação': 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-      'Website': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-      'Retenção': 'bg-lime-500/20 text-lime-400 border-lime-500/30',
-      'Partnerships': 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-      'Otimização': 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30',
-      'Vendas': 'bg-red-500/20 text-red-400 border-red-500/30'
+      'Setup': 'bg-blue-500/20 text-blue-400 border-blue-500/30 backdrop-blur-sm',
+      'Conteúdo': 'bg-purple-500/20 text-purple-400 border-purple-500/30 backdrop-blur-sm',
+      'Credibilidade': 'bg-green-500/20 text-green-400 border-green-500/30 backdrop-blur-sm',
+      'Networking': 'bg-orange-500/20 text-orange-400 border-orange-500/30 backdrop-blur-sm',
+      'Resultados': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 backdrop-blur-sm',
+      'Testimonials': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 backdrop-blur-sm',
+      'Posicionamento': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30 backdrop-blur-sm',
+      'Inovação': 'bg-violet-500/20 text-violet-400 border-violet-500/30 backdrop-blur-sm',
+      'Promoção': 'bg-pink-500/20 text-pink-400 border-pink-500/30 backdrop-blur-sm',
+      'CTA': 'bg-rose-500/20 text-rose-400 border-rose-500/30 backdrop-blur-sm',
+      'Automação': 'bg-teal-500/20 text-teal-400 border-teal-500/30 backdrop-blur-sm',
+      'Website': 'bg-amber-500/20 text-amber-400 border-amber-500/30 backdrop-blur-sm',
+      'Retenção': 'bg-lime-500/20 text-lime-400 border-lime-500/30 backdrop-blur-sm',
+      'Partnerships': 'bg-sky-500/20 text-sky-400 border-sky-500/30 backdrop-blur-sm',
+      'Otimização': 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30 backdrop-blur-sm',
+      'Vendas': 'bg-red-500/20 text-red-400 border-red-500/30 backdrop-blur-sm'
     };
-    return colors[type as keyof typeof colors] || 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    return colors[type as keyof typeof colors] || 'bg-gray-500/20 text-gray-400 border-gray-500/30 backdrop-blur-sm';
   };
 
   return (
@@ -55,22 +55,24 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
           <AccordionItem 
             key={week.week} 
             value={`week-${week.week}`} 
-            className={`aurora-glass ${week.color} border rounded-lg`}
+            className={`aurora-glass ${week.color} border rounded-lg backdrop-blur-xl hover:shadow-aurora-glow transition-all duration-300`}
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline group">
               <div className="flex items-center justify-between w-full mr-4">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <week.icon className={`h-5 w-5 ${week.iconColor}`} />
-                    <span className="font-semibold">Semana {week.week}</span>
+                    <div className={`p-2 rounded-lg bg-gradient-to-r ${week.iconColor.replace('text-', 'from-')}/20 to-transparent group-hover:shadow-lg transition-all`}>
+                      <week.icon className={`h-5 w-5 ${week.iconColor} group-hover:animate-pulse`} />
+                    </div>
+                    <span className="font-semibold aurora-text-gradient">Semana {week.week}</span>
                   </div>
-                  <span className="text-sm font-medium">{week.title}</span>
+                  <span className="text-sm font-medium text-foreground/80">{week.title}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={`${week.iconColor} text-xs border-current/30`}>
+                  <Badge variant="outline" className={`${week.iconColor.replace('text-', 'border-')}/30 text-xs backdrop-blur-sm`}>
                     {week.actions.length} ações
                   </Badge>
-                  <Badge variant="outline" className="text-xs border-current/30">
+                  <Badge variant="outline" className="text-xs border-current/30 bg-aurora-electric-purple/10 backdrop-blur-sm">
                     {week.actions.filter(action => 
                       completedActions.has(`week-${week.week}-action-${week.actions.indexOf(action)}`)
                     ).length}/{week.actions.length} concluídas
@@ -88,8 +90,8 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                   return (
                     <Card 
                       key={actionIndex} 
-                      className={`aurora-glass border-white/10 hover:border-white/20 transition-colors ${
-                        isCompleted ? 'opacity-75 bg-green-500/10' : ''
+                      className={`aurora-glass border-white/10 hover:border-aurora-electric-purple/40 transition-all duration-300 group backdrop-blur-xl ${
+                        isCompleted ? 'opacity-75 bg-green-500/10 border-green-500/30' : 'hover:shadow-aurora-glow-blue'
                       }`}
                     >
                       <CardContent className="p-4">
@@ -97,21 +99,21 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0 flex-shrink-0 mt-0.5"
+                            className="h-6 w-6 p-0 flex-shrink-0 mt-0.5 hover:bg-aurora-electric-purple/20"
                             onClick={() => toggleAction(actionId)}
                           >
                             <CheckCircle2 
-                              className={`h-5 w-5 transition-colors ${
+                              className={`h-5 w-5 transition-all duration-300 ${
                                 isCompleted 
-                                  ? 'text-green-400 fill-green-400/20' 
-                                  : 'text-foreground/40 hover:text-green-400'
+                                  ? 'text-green-400 fill-green-400/20 animate-pulse' 
+                                  : 'text-foreground/40 hover:text-green-400 hover:scale-110'
                               }`} 
                             />
                           </Button>
                           
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium mb-2 leading-relaxed ${
-                              isCompleted ? 'line-through text-foreground/60' : 'text-foreground'
+                            <p className={`text-sm font-medium mb-2 leading-relaxed transition-colors ${
+                              isCompleted ? 'line-through text-foreground/60' : 'text-foreground group-hover:text-aurora-electric-purple'
                             }`}>
                               {action.action}
                             </p>
@@ -125,13 +127,13 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                               </Badge>
                               
                               <div className="flex items-center gap-1 text-xs text-foreground/60">
-                                <Clock className="h-3 w-3" />
-                                {action.time}
+                                <Clock className="h-3 w-3 text-aurora-sage" />
+                                <span className="text-aurora-sage">{action.time}</span>
                               </div>
                               
                               <Badge 
                                 variant="outline" 
-                                className={`text-xs ${getPriorityColor(action.priority)}`}
+                                className={`text-xs ${getPriorityColor(action.priority)} backdrop-blur-sm`}
                               >
                                 {action.priority}
                               </Badge>
@@ -141,11 +143,15 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 px-3 text-xs flex-shrink-0"
+                            className={`h-7 px-3 text-xs flex-shrink-0 transition-all duration-300 ${
+                              isCompleted 
+                                ? 'bg-green-500/20 border-green-500/30 text-green-400 cursor-not-allowed' 
+                                : 'bg-aurora-electric-purple/10 border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue'
+                            }`}
                             disabled={isCompleted}
                           >
                             {isCompleted ? (
-                              "Concluída"
+                              "Concluída ✓"
                             ) : (
                               <>
                                 <Play className="h-3 w-3 mr-1" />
@@ -165,18 +171,18 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
       </Accordion>
 
       {/* Progress Summary */}
-      <Card className="aurora-glass border-aurora-lavender/30">
+      <Card className="aurora-glass border-aurora-lavender/30 backdrop-blur-xl bg-gradient-to-r from-aurora-lavender/10 to-aurora-electric-purple/5 hover:shadow-aurora-glow-intense transition-all duration-300">
         <CardContent className="p-4">
           <div className="text-center">
-            <h4 className="font-semibold text-foreground mb-2">Progresso Geral da Estratégia</h4>
+            <h4 className="font-semibold text-foreground mb-2 aurora-text-gradient">Progresso Geral da Estratégia</h4>
             <div className="flex items-center justify-center gap-4 text-sm">
               <div className="flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
-                <span>{completedActions.size} ações concluídas</span>
+                <CheckCircle2 className="h-4 w-4 text-green-400 animate-pulse" />
+                <span className="text-aurora-sage">{completedActions.size} ações concluídas</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4 text-foreground/60" />
-                <span>{growthWeeks.reduce((total, week) => total + week.actions.length, 0) - completedActions.size} pendentes</span>
+                <span className="text-aurora-electric-purple">{growthWeeks.reduce((total, week) => total + week.actions.length, 0) - completedActions.size} pendentes</span>
               </div>
             </div>
           </div>
