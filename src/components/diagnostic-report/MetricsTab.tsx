@@ -13,7 +13,7 @@ interface MetricsTabProps {
 }
 
 const MetricsTab: React.FC<MetricsTabProps> = ({ session }) => {
-  // Simular métricas baseadas no perfil
+  // Gerar métricas baseadas no perfil
   const currentMetrics = generateCurrentMetrics();
   const projectedMetrics = generateProjectedMetrics(currentMetrics);
 
