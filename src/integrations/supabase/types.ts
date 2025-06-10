@@ -476,6 +476,81 @@ export type Database = {
         }
         Relationships: []
       }
+      content_planner_items: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          author_name: string | null
+          calendar_event_id: string | null
+          created_at: string
+          description: string | null
+          distribution: string
+          equipment_id: string | null
+          equipment_name: string | null
+          format: string
+          id: string
+          objective: string
+          responsible_id: string | null
+          responsible_name: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          script_id: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          author_name?: string | null
+          calendar_event_id?: string | null
+          created_at?: string
+          description?: string | null
+          distribution?: string
+          equipment_id?: string | null
+          equipment_name?: string | null
+          format?: string
+          id?: string
+          objective?: string
+          responsible_id?: string | null
+          responsible_name?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          script_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          author_name?: string | null
+          calendar_event_id?: string | null
+          created_at?: string
+          description?: string | null
+          distribution?: string
+          equipment_id?: string | null
+          equipment_name?: string | null
+          format?: string
+          id?: string
+          objective?: string
+          responsible_id?: string | null
+          responsible_name?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          script_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_strategy_items: {
         Row: {
           categoria: string
