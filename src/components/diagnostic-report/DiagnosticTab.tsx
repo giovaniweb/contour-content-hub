@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Target, TrendingUp, CheckCircle2 } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import StructuredDiagnosticSections from './StructuredDiagnosticSections';
-import GrowthStrategySection from './GrowthStrategySection';
 import { calculateStrategicScore } from '@/utils/calculateStrategicScore';
 
 interface DiagnosticTabProps {
@@ -88,9 +88,6 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
           state={session.state}
         />
       </div>
-
-      {/* Estratégia de crescimento separada */}
-      <GrowthStrategySection session={session} />
     </div>
   );
 };
