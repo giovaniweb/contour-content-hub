@@ -73,7 +73,7 @@ const ScriptGeneratorPage: React.FC = () => {
           <div className="text-center">
             <h1 className="aurora-text-gradient text-4xl font-bold mb-4 flex items-center justify-center gap-3 relative z-10 text-slate-50 aurora-glow">
               <Wand2 className="h-10 w-10 text-purple-400 aurora-float aurora-glow" />
-              FLUIDAROTEIRISTA
+              Gerador de Roteiros FLUIDA
             </h1>
             <p className="aurora-body text-xl text-white/85 relative z-10">
               Roteiros criativos e impactantes com mentores especialistas
@@ -81,7 +81,7 @@ const ScriptGeneratorPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Resultado final com ações ou Gerador */}
+        {/* Conteúdo principal - Resultado com ações ou Gerador */}
         {approvedScript ? (
           <SmartResultDisplay 
             generationResult={{
