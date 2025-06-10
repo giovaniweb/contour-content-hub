@@ -75,11 +75,11 @@ const ScriptGeneratorPage: React.FC = () => {
           </Button>
           
           <div className="text-center">
-            <h1 className="aurora-heading text-4xl font-bold mb-4 flex items-center justify-center gap-3">
-              <Wand2 className="h-10 w-10 aurora-electric-purple aurora-float" />
+            <h1 className="aurora-text-gradient text-4xl font-bold mb-4 flex items-center justify-center gap-3 relative z-10">
+              <Wand2 className="h-10 w-10 text-purple-400 aurora-float aurora-glow" />
               FLUIDAROTEIRISTA
             </h1>
-            <p className="aurora-body text-xl">
+            <p className="aurora-body text-xl text-white/85 relative z-10">
               Roteiros criativos e impactantes para clínicas estéticas e médicas
             </p>
           </div>
