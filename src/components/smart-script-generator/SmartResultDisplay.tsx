@@ -33,6 +33,13 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
 }) => {
   const { toast } = useToast();
 
+  console.log('🎭 SmartResultDisplay - Props:', {
+    isApproved,
+    isDisneyApplied,
+    isProcessing,
+    mentor: generationResult.mentor
+  });
+
   const handleCopyScript = () => {
     navigator.clipboard.writeText(generationResult.content);
     toast({
@@ -100,28 +107,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* Ações de aprovação e transformação */}
-      {!isApproved && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <h3 className="text-lg font-semibold">Aprove seu Roteiro</h3>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
-                  onClick={onApproveScript}
-                  disabled={isProcessing}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  ✅ Aprovar Roteiro
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* FluiA Encantador - só aparece após aprovação */}
+      {/* FluiA Encantador - só aparece se aprovado e não aplicou Disney ainda */}
       {isApproved && !isDisneyApplied && (
         <FluiAEncantadorSection
           onActivate={onApplyDisney}
@@ -131,7 +117,7 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
       )}
 
       {/* Confirmação Disney ativado */}
-      {isDisneyApplied && (
+      {isApproved && isDisneyApplied && (
         <FluiAEncantadorSection
           onActivate={() => {}}
           isActive={true}

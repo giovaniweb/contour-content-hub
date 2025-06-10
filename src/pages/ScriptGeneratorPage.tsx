@@ -27,13 +27,22 @@ const ScriptGeneratorPage: React.FC = () => {
   const handleApplyDisneyMagic = () => {
     if (!approvedScript) return;
 
+    console.log('✨ Aplicando magia Disney ao script:', approvedScript);
+
     // Aplicar transformação Disney
     const disneyScript = {
       ...approvedScript,
-      roteiro: approvedScript.roteiro.replace(/tratamento/g, 'jornada de transformação').replace(/procedimento/g, 'ritual de beleza').replace(/resultado/g, 'metamorfose').replace(/cliente/g, 'pessoa especial'),
+      roteiro: approvedScript.roteiro
+        .replace(/tratamento/g, 'jornada de transformação')
+        .replace(/procedimento/g, 'ritual de beleza')
+        .replace(/resultado/g, 'metamorfose')
+        .replace(/cliente/g, 'pessoa especial'),
       emocao_central: 'encantamento',
-      mentor: 'Fluida Encantadora'
+      mentor: 'Fluida Encantadora',
+      disney_applied: true
     };
+    
+    console.log('✨ Script transformado:', disneyScript);
     setApprovedScript(disneyScript);
   };
 
@@ -103,7 +112,7 @@ const ScriptGeneratorPage: React.FC = () => {
             onNewScript={handleNewScript}
             onApplyDisney={handleApplyDisneyMagic}
             onApproveScript={() => {}}
-            isDisneyApplied={approvedScript.mentor === 'Fluida Encantadora'}
+            isDisneyApplied={approvedScript.disney_applied || approvedScript.mentor === 'Fluida Encantadora'}
             isApproved={true}
             isProcessing={false}
           />
