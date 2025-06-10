@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Brain, Calendar, Clock, Shield, Star } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
+import { calculateStrategicScore } from '@/utils/calculateStrategicScore';
+import ScoreBreakdownTooltip from './ScoreBreakdownTooltip';
 
 interface ReportHeaderProps {
   session: DiagnosticSession;
@@ -29,21 +31,7 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({ session, onBack }) => {
 
   const isPaid = session.isPaidData || session.isCompleted;
   const { date, time } = formatDate(session.timestamp);
-
-  // Simular score baseado no estado do diagnóstico
-  const strategicScore = session.isCompleted ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40) + 30;
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-orange-400';
-  };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excelente';
-    if (score >= 60) return 'Bom';
-    return 'Precisa Melhorar';
-  };
+  const scoreBreakdown = calculateStrategicScore(session);
 
   return (
     <div className="space-y-6">
@@ -75,16 +63,18 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({ session, onBack }) => {
               </div>
             </div>
 
-            {/* Score estratégico */}
-            <div className="text-right">
-              <div className="text-xs text-foreground/60 mb-1">Score Estratégico</div>
-              <div className={`text-3xl font-bold ${getScoreColor(strategicScore)}`}>
-                {strategicScore}
+            {/* Score estratégico com tooltip */}
+            <ScoreBreakdownTooltip session={session}>
+              <div className="text-right">
+                <div className="text-xs text-foreground/60 mb-1">Score Estratégico</div>
+                <div className={`text-3xl font-bold ${scoreBreakdown.color}`}>
+                  {scoreBreakdown.totalScore}
+                </div>
+                <div className={`text-sm ${scoreBreakdown.color}`}>
+                  {scoreBreakdown.label}
+                </div>
               </div>
-              <div className={`text-sm ${getScoreColor(strategicScore)}`}>
-                {getScoreLabel(strategicScore)}
-              </div>
-            </div>
+            </ScoreBreakdownTooltip>
           </div>
 
           {/* Informações da clínica */}

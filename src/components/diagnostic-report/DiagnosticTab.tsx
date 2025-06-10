@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,26 +5,15 @@ import { Brain, Target, TrendingUp, CheckCircle2 } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import StructuredDiagnosticSections from './StructuredDiagnosticSections';
 import GrowthStrategySection from './GrowthStrategySection';
+import { calculateStrategicScore } from '@/utils/calculateStrategicScore';
 
 interface DiagnosticTabProps {
   session: DiagnosticSession;
 }
 
 const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
-  // Simular score baseado no estado do diagnóstico
-  const strategicScore = session.isCompleted ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40) + 30;
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-orange-400';
-  };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excelente';
-    if (score >= 60) return 'Bom';
-    return 'Precisa Melhorar';
-  };
+  // Usar cálculo real do score
+  const scoreBreakdown = calculateStrategicScore(session);
 
   return (
     <div className="space-y-8">
@@ -35,11 +23,11 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
           <CardContent className="p-6 text-center">
             <Brain className="h-8 w-8 text-aurora-electric-purple mx-auto mb-3" />
             <h3 className="font-semibold text-foreground mb-2">Score Estratégico</h3>
-            <div className={`text-3xl font-bold ${getScoreColor(strategicScore)}`}>
-              {strategicScore}
+            <div className={`text-3xl font-bold ${scoreBreakdown.color}`}>
+              {scoreBreakdown.totalScore}
             </div>
-            <div className={`text-sm ${getScoreColor(strategicScore)}`}>
-              {getScoreLabel(strategicScore)}
+            <div className={`text-sm ${scoreBreakdown.color}`}>
+              {scoreBreakdown.label}
             </div>
           </CardContent>
         </Card>
@@ -48,7 +36,9 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
           <CardContent className="p-6 text-center">
             <Target className="h-8 w-8 text-aurora-sage mx-auto mb-3" />
             <h3 className="font-semibold text-foreground mb-2">Potencial de Crescimento</h3>
-            <div className="text-3xl font-bold text-aurora-sage">Alto</div>
+            <div className="text-3xl font-bold text-aurora-sage">
+              {scoreBreakdown.totalScore >= 70 ? 'Alto' : scoreBreakdown.totalScore >= 50 ? 'Médio' : 'Emergente'}
+            </div>
             <div className="text-sm text-foreground/60">
               Baseado no perfil da clínica
             </div>
@@ -60,7 +50,7 @@ const DiagnosticTab: React.FC<DiagnosticTabProps> = ({ session }) => {
             <TrendingUp className="h-8 w-8 text-aurora-deep-purple mx-auto mb-3" />
             <h3 className="font-semibold text-foreground mb-2">Prioridade</h3>
             <Badge variant="default" className="text-lg px-4 py-2">
-              Urgente
+              {scoreBreakdown.totalScore >= 80 ? 'Manutenção' : scoreBreakdown.totalScore >= 60 ? 'Otimização' : 'Urgente'}
             </Badge>
             <div className="text-sm text-foreground/60 mt-2">
               Implementação recomendada
