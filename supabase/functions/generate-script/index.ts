@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -18,7 +17,6 @@ serve(async (req) => {
   }
 
   try {
-    // Use only the official OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error("OPENAI_API_KEY não encontrado");
@@ -28,7 +26,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Edge function iniciada com chave oficial OpenAI");
+    console.log("🎬 FLUIDAROTEIRISTA Edge function iniciada");
     
     // Parse request
     let requestData;
@@ -53,25 +51,18 @@ serve(async (req) => {
     
     const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective, systemPrompt, userPrompt } = request;
     
-    if (!type) {
-      return new Response(
-        JSON.stringify({ error: '"type" é obrigatório na requisição' }), 
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    console.log(`Processando requisição para tipo: ${type}, tópico: ${topic}, objetivo: ${marketingObjective}`);
+    console.log(`🎬 Processando ${type === 'custom' ? 'FLUIDAROTEIRISTA' : 'roteiro padrão'}`);
 
     let finalSystemPrompt: string;
     let finalUserPrompt: string;
 
-    // Handle custom prompts or build standard prompts
+    // Handle FLUIDAROTEIRISTA custom prompts
     if (type === 'custom' && systemPrompt && userPrompt) {
-      console.log("Usando prompts customizados fornecidos");
+      console.log("🎬 Usando prompts FLUIDAROTEIRISTA customizados");
       finalSystemPrompt = systemPrompt;
       finalUserPrompt = userPrompt;
     } else {
-      console.log("Construindo prompts padrão");
+      console.log("📝 Construindo prompts padrão");
       const prompts = buildPrompt({
         type,
         topic,
@@ -87,11 +78,14 @@ serve(async (req) => {
       finalUserPrompt = prompts.userPrompt;
     }
 
-    console.log("System Prompt:", finalSystemPrompt.substring(0, 200) + "...");
-    console.log("User Prompt:", finalUserPrompt.substring(0, 200) + "...");
-    console.log("Enviando requisição para OpenAI com chave oficial");
+    console.log("System Prompt preview:", finalSystemPrompt.substring(0, 200) + "...");
+    console.log("User Prompt preview:", finalUserPrompt.substring(0, 200) + "...");
     
-    // Call OpenAI API with the official key only
+    // Usar modelo mais adequado para FLUIDAROTEIRISTA
+    const modelToUse = type === 'custom' ? "gpt-4o" : "gpt-4o-mini";
+    console.log(`🤖 Usando modelo: ${modelToUse}`);
+    
+    // Call OpenAI API
     let response;
     try {
       response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -101,13 +95,14 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: modelToUse,
           messages: [
             { role: "system", content: finalSystemPrompt },
             { role: "user", content: finalUserPrompt }
           ],
-          temperature: 0.7,
-          max_tokens: 2000
+          temperature: type === 'custom' ? 0.8 : 0.7, // Mais criatividade para FLUIDAROTEIRISTA
+          max_tokens: type === 'custom' ? 2500 : 2000,
+          response_format: type === 'custom' && systemPrompt.includes('JSON') ? { type: "json_object" } : undefined
         })
       });
     } catch (fetchError) {
@@ -118,7 +113,6 @@ serve(async (req) => {
       );
     }
 
-    // Get response from OpenAI
     console.log("Status da resposta OpenAI:", response.status);
     if (!response.ok) {
       const errorText = await response.text();
@@ -132,7 +126,7 @@ serve(async (req) => {
     let data;
     try {
       data = await response.json();
-      console.log("Resposta OpenAI recebida:", JSON.stringify(data).substring(0, 500) + "...");
+      console.log("✅ Resposta OpenAI recebida com sucesso");
     } catch (parseError) {
       console.error("Erro ao processar resposta da OpenAI:", parseError);
       return new Response(
@@ -158,7 +152,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Conteúdo gerado com sucesso:", content.substring(0, 200) + "...");
+    console.log("🎬 Conteúdo FLUIDAROTEIRISTA gerado com sucesso");
     
     // Format the response
     const scriptResponse = formatScriptResponse({
@@ -169,7 +163,7 @@ serve(async (req) => {
       bodyArea
     });
 
-    // Save to database if authenticated
+    // Save to database with enhanced metadata for FLUIDAROTEIRISTA
     try {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
@@ -182,13 +176,31 @@ serve(async (req) => {
         const user = await getUserFromToken(supabaseAdmin, token);
         
         if (user) {
+          // Extract metadata if JSON response
+          let metadata = {};
+          if (type === 'custom') {
+            try {
+              const parsed = JSON.parse(content);
+              metadata = {
+                formato: parsed.formato,
+                emocao_central: parsed.emocao_central,
+                intencao: parsed.intencao,
+                mentor_usado: parsed.mentor,
+                equipamento_principal: equipment
+              };
+            } catch {
+              // Keep empty metadata if not JSON
+            }
+          }
+
           await saveScriptToDatabase(supabaseAdmin, {
             usuario_id: user.id,
-            tipo: type,
+            tipo: type === 'custom' ? 'fluidaroteirista' : type,
             titulo: scriptResponse.title,
             conteudo: content,
             status: 'gerado',
-            objetivo_marketing: marketingObjective || null
+            objetivo_marketing: marketingObjective || null,
+            ...metadata
           });
         }
       }
@@ -197,15 +209,14 @@ serve(async (req) => {
       // Continue even if db save fails
     }
 
-    console.log("Enviando resposta para o cliente");
+    console.log("📤 Enviando resposta FLUIDAROTEIRISTA para o cliente");
     
-    // Return the response
     return new Response(JSON.stringify(scriptResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in generate-script function:', error);
+    console.error('🔥 Error in FLUIDAROTEIRISTA function:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
