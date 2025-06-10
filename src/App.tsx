@@ -1,21 +1,18 @@
+
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { AuthProvider } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { Toaster } from '@/components/ui/toaster';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
-import UpdatePassword from './pages/UpdatePassword';
 import PrivateRoute from './components/PrivateRoute';
-import PublicRoute from './components/PublicRoute';
 import Home from './pages/Home';
-import ContentLayout from './layouts/ContentLayout';
 import ContentScripts from './pages/ContentScripts';
 import ScriptGeneratorPage from './pages/ScriptGeneratorPage';
-import { SlideNotificationProvider } from './contexts/SlideNotificationContext';
 import FluiAAkinatorPage from '@/pages/FluiAAkinatorPage';
 
 const queryClient = new QueryClient();
@@ -27,15 +24,13 @@ function App() {
         <LanguageProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             <Toaster />
-            <SlideNotificationProvider />
             <BrowserRouter>
               <Routes>
                 {/* Public routes */}
-                <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
-                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-                <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
-                <Route path="/update-password/:token" element={<PublicRoute><UpdatePassword /></PublicRoute>} />
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* Private routes */}
                 <Route path="/dashboard" element={
@@ -47,25 +42,19 @@ function App() {
                 {/* Content routes */}
                 <Route path="/content/scripts" element={
                   <PrivateRoute>
-                    <ContentLayout>
-                      <ContentScripts />
-                    </ContentLayout>
+                    <ContentScripts />
                   </PrivateRoute>
                 } />
                 
                 <Route path="/content/scripts/generator" element={
                   <PrivateRoute>
-                    <ContentLayout>
-                      <ScriptGeneratorPage />
-                    </ContentLayout>
+                    <ScriptGeneratorPage />
                   </PrivateRoute>
                 } />
                 
                 <Route path="/content/scripts/fluia-akinator" element={
                   <PrivateRoute>
-                    <ContentLayout>
-                      <FluiAAkinatorPage />
-                    </ContentLayout>
+                    <FluiAAkinatorPage />
                   </PrivateRoute>
                 } />
                 

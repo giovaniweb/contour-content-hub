@@ -1,108 +1,124 @@
 
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 const Register: React.FC = () => {
-  const { register } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { register } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    name: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast("Senhas não conferem", {
-        description: "A senha e a confirmação de senha precisam ser iguais."
-      });
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('As senhas não coincidem');
       return;
     }
-    
+
     setIsLoading(true);
+
     try {
       await register({
-        email,
-        password,
+        email: formData.email,
+        password: formData.password,
+        name: formData.name
       });
-      toast("Conta criada com sucesso", {
-        description: "Você será redirecionado para a página de login."
-      });
-      // Redirect to login page after successful registration
-      navigate('/login');
-    } catch (error) {
-      toast("Erro ao criar conta", {
-        description: "Não foi possível criar sua conta. Tente novamente."
-      });
+      toast.success('Conta criada com sucesso!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao criar conta');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-3xl font-light">Criar conta</CardTitle>
-          <CardDescription>Cadastre-se para começar a usar o sistema</CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com" 
-                required 
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                required
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Senha</label>
-              <Input 
-                id="password" 
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)} 
-                placeholder="••••••••" 
-                required 
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirme sua senha</label>
-              <Input 
-                id="confirmPassword" 
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-                placeholder="••••••••" 
-                required 
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              disabled={isLoading}
-            >
-              {isLoading ? "Criando conta..." : "Registrar"}
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Criando conta...' : 'Criar Conta'}
             </Button>
-            <div className="text-center text-sm">
-              Já tem uma conta?{" "}
-              <Link to="/login" className="text-blue-600 hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
+          </form>
+
+          <div className="mt-4 text-center">
+            <span className="text-sm text-muted-foreground">Já tem uma conta? </span>
+            <Link to="/login" className="text-sm text-primary hover:underline">
+              Entrar
+            </Link>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
