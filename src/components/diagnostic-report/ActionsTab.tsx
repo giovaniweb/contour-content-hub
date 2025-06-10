@@ -3,12 +3,11 @@ import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Calendar, Lightbulb, Trello, Plus, Clock } from "lucide-react";
+import { Zap, Lightbulb, Trello, Plus, Clock } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ActionsSection } from './actions-tab/ActionsSection';
-import { ImplementationTips } from './actions-tab/ImplementationTips';
 import { GrowthStrategyAccordion } from './actions-tab/GrowthStrategyAccordion';
+import { ImplementationTips } from './actions-tab/ImplementationTips';
 import { generateImmediateActions, mediumTermActions } from './actions-tab/actionData';
 import { getPriorityColor } from './actions-tab/utils';
 import { useDiagnosticToPlanner } from '@/hooks/useDiagnosticToPlanner';
@@ -28,14 +27,11 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
   };
 
   const immediateActions = generateImmediateActions(getMainSpecialty());
-  const allActions = [...immediateActions, ...mediumTermActions];
+  // Combinar ações imediatas com as de médio prazo numa única seção expandida
+  const expandedActions = [...immediateActions, ...mediumTermActions];
 
   const handleAddAllToPlanner = async () => {
-    await addMultipleActionsToPlanner(allActions);
-  };
-
-  const handleAddMediumTermToPlanner = async () => {
-    await addMultipleActionsToPlanner(mediumTermActions);
+    await addMultipleActionsToPlanner(expandedActions);
   };
 
   return (
@@ -52,60 +48,61 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
         </Button>
       </div>
 
-      <Accordion type="multiple" defaultValue={["immediate"]} className="space-y-8">
-        {/* Ações Imediatas */}
-        <AccordionItem value="immediate" className="aurora-glass border-aurora-electric-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/5 hover:shadow-aurora-glow transition-all duration-300">
-          <AccordionTrigger className="px-6 py-6 hover:no-underline group">
+      {/* Ações Imediatas Expandidas - Agora como Card sempre visível */}
+      <Card className="aurora-glass border-aurora-electric-purple/30 backdrop-blur-xl bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/5 hover:shadow-aurora-glow transition-all duration-300">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-aurora-electric-purple/20 group-hover:bg-aurora-electric-purple/30 transition-colors">
-                <Zap className="h-5 w-5 text-aurora-electric-purple group-hover:animate-pulse" />
+              <div className="p-2 rounded-lg bg-aurora-electric-purple/20">
+                <Zap className="h-5 w-5 text-aurora-electric-purple" />
               </div>
-              <span className="text-lg font-semibold text-white">Ações Imediatas (Esta Semana)</span>
-              <Badge variant="outline" className="border-red-500/30 text-red-400 bg-red-500/10 backdrop-blur-sm animate-pulse">
-                Urgente
+              <CardTitle className="text-lg font-semibold text-white">Plano de Ação Prioritário</CardTitle>
+              <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10 backdrop-blur-sm animate-pulse">
+                Ações Estratégicas
               </Badge>
             </div>
-          </AccordionTrigger>
-          <AccordionContent className="px-6 pb-8">
-            <div className="space-y-6 pt-2">
-              {immediateActions.map((action, index) => (
-                <div key={index} className="aurora-glass border-aurora-electric-purple/20 rounded-lg p-6 hover:border-aurora-electric-purple/40 hover:shadow-aurora-glow transition-all duration-300 group">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <h4 className="font-medium text-white group-hover:text-aurora-electric-purple transition-colors">{action.title}</h4>
-                        <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
-                          {action.priority}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-white/70">
-                        <span className="flex items-center gap-1">
-                          ⏱️ <span className="text-aurora-sage">{action.time}</span>
-                        </span>
-                        <Badge variant="secondary" className="text-xs bg-aurora-deep-purple/20 border-aurora-deep-purple/30 text-white">
-                          {action.category}
-                        </Badge>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => addActionToPlanner(action)}
-                      disabled={isAdding}
-                      className="ml-4 shrink-0 bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow text-white"
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Planejador
-                    </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {expandedActions.map((action, index) => (
+            <div key={index} className="aurora-glass border-aurora-electric-purple/20 rounded-lg p-6 hover:border-aurora-electric-purple/40 hover:shadow-aurora-glow transition-all duration-300 group">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="font-medium text-white group-hover:text-aurora-electric-purple transition-colors">{action.title}</h4>
+                    <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
+                      {action.priority}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-white/70">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-aurora-electric-purple" />
+                      <span className="text-aurora-electric-purple">{action.time}</span>
+                    </span>
+                    <Badge variant="secondary" className="text-xs bg-aurora-deep-purple/20 border-aurora-deep-purple/30 text-white">
+                      {action.category}
+                    </Badge>
                   </div>
                 </div>
-              ))}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => addActionToPlanner(action)}
+                  disabled={isAdding}
+                  className="ml-4 shrink-0 bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow text-white"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Planejador
+                </Button>
+              </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
+          ))}
+        </CardContent>
+      </Card>
 
-        {/* Estratégia de Crescimento */}
+      {/* Estratégia de Crescimento - Mantém como accordion */}
+      <Accordion type="multiple" defaultValue={["growth"]} className="space-y-8">
         <AccordionItem value="growth" className="aurora-glass border-aurora-lavender/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-lavender/10 to-aurora-deep-purple/5 hover:shadow-aurora-glow transition-all duration-300">
           <AccordionTrigger className="px-6 py-6 hover:no-underline group">
             <div className="flex items-center gap-3">
@@ -125,68 +122,6 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      {/* Ações de Médio Prazo - Agora como Box/Card */}
-      <Card className="aurora-glass border-aurora-sage/30 backdrop-blur-xl bg-gradient-to-br from-aurora-sage/10 to-aurora-emerald/5 hover:shadow-aurora-glow transition-all duration-300">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-aurora-sage/20">
-                <Calendar className="h-5 w-5 text-aurora-sage" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-white">Médio Prazo (30 dias)</CardTitle>
-              <Badge variant="outline" className="border-aurora-sage/30 text-aurora-sage bg-aurora-sage/10 backdrop-blur-sm">
-                Planejamento
-              </Badge>
-            </div>
-            <Button
-              onClick={handleAddMediumTermToPlanner}
-              disabled={isAdding}
-              size="sm"
-              className="bg-aurora-glass border-aurora-sage/30 hover:bg-aurora-sage/20 hover:shadow-aurora-glow text-white"
-            >
-              <Trello className="h-4 w-4 mr-2" />
-              Enviar para Planejador
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {mediumTermActions.map((action, index) => (
-            <div key={index} className="aurora-glass border-aurora-sage/20 rounded-lg p-6 hover:border-aurora-sage/40 hover:shadow-aurora-glow transition-all duration-300 group">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h4 className="font-medium text-white group-hover:text-aurora-sage transition-colors">{action.title}</h4>
-                    <Badge variant="outline" className={`${getPriorityColor(action.priority)} backdrop-blur-sm`}>
-                      {action.priority}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-white/80 mb-4 leading-relaxed">{action.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-white/70">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-aurora-sage" />
-                      <span className="text-aurora-sage">{action.time}</span>
-                    </span>
-                    <Badge variant="secondary" className="text-xs bg-aurora-sage/20 border-aurora-sage/30 text-white">
-                      {action.category}
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addActionToPlanner(action)}
-                  disabled={isAdding}
-                  className="ml-4 shrink-0 bg-aurora-glass border-aurora-sage/30 hover:bg-aurora-sage/20 hover:shadow-aurora-glow text-white"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Planejador
-                </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Dicas de Implementação */}
       <div className="aurora-glass border-aurora-deep-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-deep-purple/10 to-aurora-electric-purple/5 p-8 hover:shadow-aurora-glow transition-all duration-300 mt-8">
