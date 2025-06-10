@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { Zap, Calendar, Lightbulb } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Zap, Calendar, Lightbulb, Trello, Plus } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ActionsSection } from './actions-tab/ActionsSection';
@@ -9,12 +10,15 @@ import { ImplementationTips } from './actions-tab/ImplementationTips';
 import { GrowthStrategyAccordion } from './actions-tab/GrowthStrategyAccordion';
 import { generateImmediateActions, mediumTermActions } from './actions-tab/actionData';
 import { getPriorityColor } from './actions-tab/utils';
+import { useDiagnosticToPlanner } from '@/hooks/useDiagnosticToPlanner';
 
 interface ActionsTabProps {
   session: DiagnosticSession;
 }
 
 const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
+  const { addActionToPlanner, addMultipleActionsToPlanner, isAdding } = useDiagnosticToPlanner(session);
+  
   const getMainSpecialty = () => {
     if (session.state.clinicType === 'clinica_medica') {
       return session.state.medicalSpecialty || 'Medicina';
@@ -23,9 +27,26 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
   };
 
   const immediateActions = generateImmediateActions(getMainSpecialty());
+  const allActions = [...immediateActions, ...mediumTermActions];
+
+  const handleAddAllToPlanner = async () => {
+    await addMultipleActionsToPlanner(allActions);
+  };
 
   return (
     <div className="space-y-6">
+      {/* Botão para adicionar tudo ao planejador */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleAddAllToPlanner}
+          disabled={isAdding}
+          className="bg-aurora-gradient-primary hover:shadow-aurora-glow transition-all duration-300"
+        >
+          <Trello className="h-4 w-4 mr-2" />
+          {isAdding ? "Criando Plano..." : "Enviar Tudo para o Planejador"}
+        </Button>
+      </div>
+
       <Accordion type="multiple" defaultValue={["immediate"]} className="space-y-4">
         {/* Ações Imediatas */}
         <AccordionItem value="immediate" className="aurora-card border-aurora-electric-purple/30 rounded-lg backdrop-blur-xl bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/5 hover:shadow-aurora-glow transition-all duration-300">
@@ -62,6 +83,16 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
                         </Badge>
                       </div>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addActionToPlanner(action)}
+                      disabled={isAdding}
+                      className="ml-4 shrink-0 bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue transition-all duration-300"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Planejador
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -104,6 +135,16 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ session }) => {
                         </Badge>
                       </div>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addActionToPlanner(action)}
+                      disabled={isAdding}
+                      className="ml-4 shrink-0 bg-aurora-glass border-aurora-sage/30 hover:bg-aurora-sage/20 hover:shadow-aurora-glow-emerald transition-all duration-300"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Planejador
+                    </Button>
                   </div>
                 </div>
               ))}

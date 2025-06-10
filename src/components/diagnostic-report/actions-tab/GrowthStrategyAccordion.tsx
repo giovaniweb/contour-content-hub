@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Clock, Play } from "lucide-react";
+import { CheckCircle2, Clock, Play, Plus, Trello } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { growthWeeks } from '../growth-strategy/strategyData';
 import { getPriorityColor } from './utils';
+import { useDiagnosticToPlanner } from '@/hooks/useDiagnosticToPlanner';
 
 interface GrowthStrategyAccordionProps {
   session: DiagnosticSession;
@@ -15,6 +16,7 @@ interface GrowthStrategyAccordionProps {
 
 export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = ({ session }) => {
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
+  const { addActionToPlanner, addMultipleActionsToPlanner, isAdding } = useDiagnosticToPlanner(session);
 
   const toggleAction = (actionId: string) => {
     const newCompleted = new Set(completedActions);
@@ -48,6 +50,32 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
     return colors[type as keyof typeof colors] || 'bg-gray-500/20 text-gray-400 border-gray-500/30 backdrop-blur-sm';
   };
 
+  const handleAddWeekToPlanner = async (week: typeof growthWeeks[0]) => {
+    const weekActions = week.actions.map(action => ({
+      title: `Semana ${week.week}: ${action.action}`,
+      description: action.action,
+      priority: action.priority,
+      time: action.time,
+      category: action.type,
+      type: action.type
+    }));
+    
+    await addMultipleActionsToPlanner(weekActions);
+  };
+
+  const handleAddActionToPlanner = async (action: typeof growthWeeks[0]['actions'][0], weekNumber: number) => {
+    const actionData = {
+      title: `Semana ${weekNumber}: ${action.action}`,
+      description: action.action,
+      priority: action.priority,
+      time: action.time,
+      category: action.type,
+      type: action.type
+    };
+    
+    await addActionToPlanner(actionData);
+  };
+
   return (
     <div className="space-y-4">
       <Accordion type="multiple" className="space-y-3">
@@ -77,6 +105,19 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                       completedActions.has(`week-${week.week}-action-${week.actions.indexOf(action)}`)
                     ).length}/{week.actions.length} concluídas
                   </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddWeekToPlanner(week);
+                    }}
+                    disabled={isAdding}
+                    className="text-xs bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue transition-all duration-300"
+                  >
+                    <Trello className="h-3 w-3 mr-1" />
+                    Semana
+                  </Button>
                 </div>
               </div>
             </AccordionTrigger>
@@ -140,25 +181,38 @@ export const GrowthStrategyAccordion: React.FC<GrowthStrategyAccordionProps> = (
                             </div>
                           </div>
                           
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className={`h-7 px-3 text-xs flex-shrink-0 transition-all duration-300 ${
-                              isCompleted 
-                                ? 'bg-green-500/20 border-green-500/30 text-green-400 cursor-not-allowed' 
-                                : 'bg-aurora-electric-purple/10 border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue'
-                            }`}
-                            disabled={isCompleted}
-                          >
-                            {isCompleted ? (
-                              "Concluída ✓"
-                            ) : (
-                              <>
-                                <Play className="h-3 w-3 mr-1" />
-                                Iniciar
-                              </>
-                            )}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAddActionToPlanner(action, week.week)}
+                              disabled={isAdding}
+                              className="h-7 px-3 text-xs flex-shrink-0 bg-aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue transition-all duration-300"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Planejador
+                            </Button>
+                            
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className={`h-7 px-3 text-xs flex-shrink-0 transition-all duration-300 ${
+                                isCompleted 
+                                  ? 'bg-green-500/20 border-green-500/30 text-green-400 cursor-not-allowed' 
+                                  : 'bg-aurora-electric-purple/10 border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 hover:shadow-aurora-glow-blue'
+                              }`}
+                              disabled={isCompleted}
+                            >
+                              {isCompleted ? (
+                                "Concluída ✓"
+                              ) : (
+                                <>
+                                  <Play className="h-3 w-3 mr-1" />
+                                  Iniciar
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
