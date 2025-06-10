@@ -24,7 +24,7 @@ const EquipmentsList: React.FC<EquipmentsListProps> = ({
       <Label className="aurora-accent font-semibold text-base">
         Equipamentos (Selecione os principais)
       </Label>
-      <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto scrollbar-hide">
+      <div className="grid grid-cols-2 gap-3">
         {equipments.map((equipment, index) => (
           <motion.label
             key={equipment.id}

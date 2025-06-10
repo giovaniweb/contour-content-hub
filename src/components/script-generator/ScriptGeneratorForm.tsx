@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wand2 } from 'lucide-react';
 import FormatsSelector from './FormatsSelector';
-import ObjectiveSelector from './ObjectiveSelector';
+import ScriptObjectiveSelector from './ScriptObjectiveSelector';
 import EquipmentsList from './EquipmentsList';
 
 interface Equipment {
@@ -46,8 +46,8 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
       {/* Efeito Aurora de fundo */}
       <div className="absolute inset-0 aurora-gradient-bg opacity-5 pointer-events-none" />
       
-      <CardHeader className="relative z-10">
-        <CardTitle className="aurora-text-gradient text-2xl">
+      <CardHeader className="relative z-10 pb-4">
+        <CardTitle className="aurora-text-gradient text-2xl text-center">
           Configuração do Roteiro
         </CardTitle>
       </CardHeader>
@@ -63,7 +63,7 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
             value={tema}
             onChange={(e) => onTemaChange(e.target.value)}
             placeholder="Ex: Tratamento para manchas faciais com laser"
-            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm"
+            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm text-white placeholder:text-white/50 bg-black/20"
           />
         </div>
 
@@ -73,8 +73,8 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
           onFormatChange={onFormatoChange}
         />
 
-        {/* Objetivo */}
-        <ObjectiveSelector
+        {/* Objetivo do Roteiro */}
+        <ScriptObjectiveSelector
           selectedObjective={objetivo}
           onObjectiveChange={onObjetivoChange}
         />
@@ -94,7 +94,7 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
           size="lg"
         >
           <Wand2 className="h-5 w-5 mr-3 aurora-pulse" />
-          Gerar Roteiro FLUIDA
+          {isGenerating ? 'Gerando Roteiro...' : 'Gerar Roteiro FLUIDA'}
         </Button>
       </CardContent>
     </Card>
