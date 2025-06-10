@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import { 
   createContentPlannerItem,
   updateContentPlannerItem,
-  deleteContentPlannerItem
-} from '@/services/content-planner/itemService';
+  deleteContentPlannerItem,
+  fetchContentPlannerItems
+} from '@/services/content-planner';
 
 export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => {
   const [columns, setColumns] = useState(initialColumns);
@@ -16,6 +17,26 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ContentPlannerFilter>(initialFilters);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+
+  // Carregar itens do banco de dados
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedItems = await fetchContentPlannerItems(filters);
+      setItems(fetchedItems);
+    } catch (err) {
+      console.error("Erro ao carregar itens:", err);
+      setError("Erro ao carregar itens do planejador");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carregar itens na inicialização e quando filtros mudam
+  useEffect(() => {
+    loadItems();
+  }, [filters]);
 
   // Atualizar colunas quando items mudam
   useEffect(() => {
@@ -73,7 +94,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
         }
       }
       
-      setItems(prevItems => [...suggestions, ...prevItems]);
+      // Recarregar itens para incluir os novos
+      await loadItems();
       
       toast.success(`🎯 ${suggestions.length} sugestões geradas!`, {
         description: "Novas ideias inteligentes adicionadas ao planejador"
@@ -100,7 +122,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
       const createdItem = await createContentPlannerItem(newItem);
       
       if (createdItem) {
-        setItems(prevItems => [createdItem, ...prevItems]);
+        // Recarregar itens para incluir o novo
+        await loadItems();
         return createdItem;
       }
       
@@ -122,9 +145,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
       const updatedItem = await updateContentPlannerItem(id, updates);
       
       if (updatedItem) {
-        setItems(prevItems => 
-          prevItems.map(item => item.id === id ? updatedItem : item)
-        );
+        // Recarregar itens para refletir as mudanças
+        await loadItems();
         return updatedItem;
       }
       
@@ -146,7 +168,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
       const success = await deleteContentPlannerItem(id);
       
       if (success) {
-        setItems(prevItems => prevItems.filter(item => item.id !== id));
+        // Recarregar itens para remover o deletado
+        await loadItems();
         return true;
       }
       
@@ -168,9 +191,8 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
       const updatedItem = await updateContentPlannerItem(id, { status: targetStatus });
       
       if (updatedItem) {
-        setItems(prevItems => 
-          prevItems.map(item => item.id === id ? updatedItem : item)
-        );
+        // Recarregar itens para refletir as mudanças
+        await loadItems();
         
         toast.success("🚀 Item movido!", {
           description: `Status alterado para ${targetStatus}`
@@ -195,7 +217,7 @@ export const useContentPlanner = (initialFilters: ContentPlannerFilter = {}) => 
   const syncData = async () => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await loadItems();
       toast.success("🔄 Dados sincronizados!", {
         description: "Planejador atualizado com últimas alterações"
       });
