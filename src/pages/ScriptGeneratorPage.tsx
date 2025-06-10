@@ -72,7 +72,9 @@ const ScriptGeneratorPage: React.FC = () => {
                   tipo_conteudo: approvedScript.formato,
                   objetivo: approvedScript.intencao,
                   mentor_inferido: approvedScript.mentor,
-                  enigma_mentor: approvedScript.emocao_central
+                  enigma_mentor: approvedScript.emocao_central,
+                  canal: 'instagram_feed', // Valor padrão obrigatório
+                  estilo_comunicacao: 'criativo' // Valor padrão obrigatório
                 }
               }}
               onGenerateImage={handleGenerateImage}

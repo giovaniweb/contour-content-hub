@@ -22,6 +22,21 @@ interface FluidaScriptResult {
   mentor: string;
 }
 
+// Interface para dados do diagnóstico
+interface DiagnosticData {
+  clinicType?: string;
+  medicalSpecialty?: string;
+  aestheticFocus?: string;
+  medicalBestSeller?: string;
+  aestheticBestSeller?: string;
+  medicalTicket?: string;
+  aestheticTicket?: string;
+  targetAudience?: string;
+  medicalClinicStyle?: string;
+  aestheticClinicStyle?: string;
+  communicationStyle?: string;
+}
+
 export const useFluidaRoteirista = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,11 +49,11 @@ export const useFluidaRoteirista = () => {
     setIsGenerating(true);
     
     try {
-      // Usar dados do diagnóstico se disponível
-      const diagnosticData = currentSession?.state || {};
+      // Usar dados do diagnóstico se disponível, com verificação de tipos
+      const diagnosticData: DiagnosticData = currentSession?.state || {};
       const clinicType = diagnosticData.clinicType || 'estetico';
       
-      // Construir contexto enriquecido
+      // Construir contexto enriquecido com verificações seguras
       const enrichedContext = {
         tipo_de_clinica: clinicType,
         especialidade: diagnosticData.medicalSpecialty || diagnosticData.aestheticFocus || '',
