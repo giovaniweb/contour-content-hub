@@ -48,13 +48,13 @@ const ScriptGeneratorPage: React.FC = () => {
 
   return (
     <Layout title="FLUIDAROTEIRISTA 🎬" fullWidth={false}>
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen relative">
+        <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="mb-6">
             <Button 
               variant="ghost" 
               onClick={handleGoBack}
-              className="mb-4"
+              className="mb-4 aurora-glass border-purple-300/30 hover:border-purple-400/50 aurora-body"
             >
               ← Voltar
             </Button>
@@ -73,8 +73,8 @@ const ScriptGeneratorPage: React.FC = () => {
                   objetivo: approvedScript.intencao,
                   mentor_inferido: approvedScript.mentor,
                   enigma_mentor: approvedScript.emocao_central,
-                  canal: 'instagram_feed', // Valor padrão obrigatório
-                  estilo_comunicacao: 'criativo' // Valor padrão obrigatório
+                  canal: 'instagram_feed',
+                  estilo_comunicacao: 'criativo'
                 }
               }}
               onGenerateImage={handleGenerateImage}
@@ -88,12 +88,18 @@ const ScriptGeneratorPage: React.FC = () => {
             />
           ) : (
             <Tabs defaultValue="fluidaroteirista" className="max-w-4xl mx-auto">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-2 aurora-glass border-purple-300/30">
+                <TabsTrigger 
+                  value="fluidaroteirista" 
+                  className="flex items-center gap-2 aurora-body data-[state=active]:aurora-accent data-[state=active]:bg-purple-500/20"
+                >
                   <Wand2 className="h-4 w-4" />
                   FLUIDAROTEIRISTA
                 </TabsTrigger>
-                <TabsTrigger value="test" className="flex items-center gap-2">
+                <TabsTrigger 
+                  value="test" 
+                  className="flex items-center gap-2 aurora-body data-[state=active]:aurora-accent data-[state=active]:bg-purple-500/20"
+                >
                   <TestTube className="h-4 w-4" />
                   Teste OpenAI
                 </TabsTrigger>
