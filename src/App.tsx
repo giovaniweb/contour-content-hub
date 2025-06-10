@@ -12,8 +12,10 @@ import AdminRoute from '@/components/AdminRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import AppLayout from '@/components/layout/AppLayout';
 
+// Components
+import SmartLanding from '@/components/SmartLanding';
+
 // Pages
-import HomePage from '@/pages/HomePage';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
@@ -53,8 +55,10 @@ function App() {
               <Router>
                 <ErrorBoundary>
                   <Routes>
+                    {/* Smart root route - handles auth automatically */}
+                    <Route path="/" element={<SmartLanding />} />
+                    
                     {/* Public routes */}
-                    <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     
