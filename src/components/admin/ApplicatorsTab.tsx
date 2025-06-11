@@ -90,7 +90,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
   };
 
   const ApplicatorForm = () => (
-    <Card className="mb-4 aurora-glass border-aurora-electric-purple/30">
+    <Card className="mb-4 bg-slate-800/50 border-slate-700">
       <CardHeader>
         <CardTitle className="text-sm text-white">
           {editingId ? 'Editar Ponteira' : 'Nova Ponteira'}
@@ -105,7 +105,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Ponteira 15mm"
-              className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+              className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
             />
           </div>
           <div>
@@ -115,7 +115,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
               value={formData.technology}
               onChange={(e) => setFormData({ ...formData, technology: e.target.value })}
               placeholder="Ex: Radiofrequência monopolar"
-              className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+              className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Descrição da ponteira e sua aplicação..."
             rows={2}
-            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
 
@@ -139,14 +139,14 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
             value={formData.image_url}
             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
             placeholder="https://..."
-            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
           />
           {formData.image_url && (
             <div className="mt-2">
               <img 
                 src={formData.image_url} 
                 alt="Preview" 
-                className="w-16 h-16 object-cover rounded border border-aurora-electric-purple/30"
+                className="w-16 h-16 object-cover rounded border border-slate-600"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
@@ -156,7 +156,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
         </div>
 
         <div className="flex gap-2">
-          <Button onClick={saveApplicator} size="sm" className="aurora-button">
+          <Button onClick={saveApplicator} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
             <Save className="h-4 w-4 mr-2" />
             Salvar
           </Button>
@@ -164,7 +164,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
             onClick={cancelEdit} 
             variant="outline" 
             size="sm"
-            className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+            className="border-slate-600 hover:bg-slate-700 text-white"
           >
             <X className="h-4 w-4 mr-2" />
             Cancelar
@@ -179,7 +179,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-white">Ponteiras do Equipamento</h3>
         {!isAdding && !editingId && (
-          <Button onClick={startAdd} size="sm" className="aurora-button">
+          <Button onClick={startAdd} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Ponteira
           </Button>
@@ -190,7 +190,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
 
       <div className="space-y-3">
         {applicators.map((applicator) => (
-          <Card key={applicator.id} className="aurora-glass border-aurora-electric-purple/30">
+          <Card key={applicator.id} className="bg-slate-800/50 border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex gap-4">
@@ -198,25 +198,25 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
                     <img 
                       src={applicator.image_url} 
                       alt={applicator.name}
-                      className="w-16 h-16 object-cover rounded border border-aurora-electric-purple/30"
+                      className="w-16 h-16 object-cover rounded border border-slate-600"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   ) : (
-                    <div className="w-16 h-16 aurora-glass rounded border border-aurora-electric-purple/30 flex items-center justify-center">
-                      <ImageIcon className="h-6 w-6 text-aurora-electric-purple" />
+                    <div className="w-16 h-16 bg-slate-700 rounded border border-slate-600 flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-slate-400" />
                     </div>
                   )}
                   <div className="flex-1">
                     <h4 className="font-medium text-white">{applicator.name}</h4>
                     {applicator.technology && (
-                      <p className="text-sm text-white/70 mt-1">
+                      <p className="text-sm text-slate-300 mt-1">
                         <strong>Tecnologia:</strong> {applicator.technology}
                       </p>
                     )}
                     {applicator.description && (
-                      <p className="text-sm text-white/70 mt-1">{applicator.description}</p>
+                      <p className="text-sm text-slate-300 mt-1">{applicator.description}</p>
                     )}
                   </div>
                 </div>
@@ -225,7 +225,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
                     onClick={() => startEdit(applicator)}
                     variant="outline"
                     size="sm"
-                    className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+                    className="border-slate-600 hover:bg-slate-700 text-white"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -233,7 +233,7 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
                     onClick={() => deleteApplicator(applicator.id)}
                     variant="outline"
                     size="sm"
-                    className="aurora-glass border-aurora-electric-purple/30 hover:bg-red-500/20 text-red-300 hover:text-red-200"
+                    className="border-red-600 hover:bg-red-700 text-red-300 hover:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -246,9 +246,9 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
 
       {applicators.length === 0 && !isAdding && (
         <div className="text-center py-8 text-white">
-          <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50 text-aurora-electric-purple" />
+          <ImageIcon className="h-12 w-12 mx-auto mb-4 text-slate-400" />
           <p>Nenhuma ponteira cadastrada</p>
-          <p className="text-sm text-white/70">Clique em "Adicionar Ponteira" para começar</p>
+          <p className="text-sm text-slate-400">Clique em "Adicionar Ponteira" para começar</p>
         </div>
       )}
     </div>

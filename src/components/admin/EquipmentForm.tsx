@@ -329,7 +329,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       <Form {...form}>
         {/* Show draft notification if available */}
         {!equipment && hasDraft && (
-          <Alert className="mb-4 aurora-glass border-aurora-electric-purple/30">
+          <Alert className="mb-4 bg-slate-800/50 border-slate-700">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <AlertDescription className="text-white">
                 Existe um rascunho salvo em {draftTimestamp && formatTimestamp(draftTimestamp)}. Deseja recuperá-lo?
@@ -340,7 +340,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   variant="outline" 
                   size="sm"
                   onClick={discardDraft}
-                  className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+                  className="border-slate-600 hover:bg-slate-700 text-white"
                 >
                   Descartar
                 </Button>
@@ -349,7 +349,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   variant="default" 
                   size="sm"
                   onClick={loadDraft}
-                  className="aurora-button"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Recuperar
                 </Button>
@@ -359,11 +359,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
         )}
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 aurora-glass border-aurora-electric-purple/30">
-            <TabsTrigger value="basic" className="text-white data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border-slate-700">
+            <TabsTrigger value="basic" className="text-white data-[state=active]:bg-slate-700 data-[state=active]:text-white">
               Informações Básicas
             </TabsTrigger>
-            <TabsTrigger value="applicators" className="text-white data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-white">
+            <TabsTrigger value="applicators" className="text-white data-[state=active]:bg-slate-700 data-[state=active]:text-white">
               Configurações Avançadas
             </TabsTrigger>
           </TabsList>
@@ -383,7 +383,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                             required 
                             {...field} 
                             placeholder="Ex: Hipro" 
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -399,13 +399,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                         <FormLabel className="text-white">Categoria*</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
+                            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                               <SelectValue placeholder="Selecione a categoria" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="aurora-glass border-aurora-electric-purple/30">
-                            <SelectItem value="estetico" className="text-white hover:bg-aurora-electric-purple/20">🌟 Estético</SelectItem>
-                            <SelectItem value="medico" className="text-white hover:bg-aurora-electric-purple/20">🏥 Médico</SelectItem>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="estetico" className="text-white hover:bg-slate-700">🌟 Estético</SelectItem>
+                            <SelectItem value="medico" className="text-white hover:bg-slate-700">🏥 Médico</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage className="text-red-300" />
@@ -423,7 +423,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                           <Input 
                             {...field} 
                             placeholder="Ex: Supremacia tecnológica para tratamentos corporais e faciais" 
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -443,7 +443,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                             {...field} 
                             placeholder="Ex: HIFU – Ultrassom Focalizado de Alta Intensidade" 
                             rows={2}
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -463,7 +463,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                             {...field} 
                             placeholder="Ex: Lifting facial não-cirúrgico; Redução de rugas profundas" 
                             rows={3}
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -479,9 +479,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       Imagem de Capa / Thumbnail
                       <Tooltip>
                         <TooltipTrigger>
-                          <HelpCircle className="h-4 w-4 text-white/70" />
+                          <HelpCircle className="h-4 w-4 text-slate-400" />
                         </TooltipTrigger>
-                        <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                        <TooltipContent className="bg-slate-800 border-slate-700">
                           <p className="text-white">Imagem usada como miniatura nas listagens e no Fluida Akinator</p>
                         </TooltipContent>
                       </Tooltip>
@@ -498,14 +498,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       {!thumbnailPreview ? (
                         <div 
                           onClick={() => thumbnailInputRef.current?.click()}
-                          className="border-2 border-dashed border-aurora-electric-purple/30 aurora-glass rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-aurora-electric-purple/50 transition-colors h-32"
+                          className="border-2 border-dashed border-slate-600 bg-slate-700/50 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-slate-500 transition-colors h-32"
                         >
-                          <ImageIcon className="h-8 w-8 text-aurora-electric-purple mb-2" />
+                          <ImageIcon className="h-8 w-8 text-slate-400 mb-2" />
                           <p className="text-sm text-white text-center">Clique para enviar thumbnail</p>
-                          <p className="text-xs text-white/70 mt-1">JPG, PNG (máximo 5MB)</p>
+                          <p className="text-xs text-slate-400 mt-1">JPG, PNG (máximo 5MB)</p>
                         </div>
                       ) : (
-                        <div className="relative border border-aurora-electric-purple/30 aurora-glass rounded-md overflow-hidden">
+                        <div className="relative border border-slate-600 bg-slate-700/50 rounded-md overflow-hidden">
                           <img 
                             src={thumbnailPreview} 
                             alt="Preview do thumbnail" 
@@ -538,14 +538,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       {!imagePreview ? (
                         <div 
                           onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-aurora-electric-purple/30 aurora-glass rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:border-aurora-electric-purple/50 transition-colors"
+                          className="border-2 border-dashed border-slate-600 bg-slate-700/50 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:border-slate-500 transition-colors"
                         >
-                          <ImageIcon className="h-10 w-10 text-aurora-electric-purple mb-2" />
+                          <ImageIcon className="h-10 w-10 text-slate-400 mb-2" />
                           <p className="text-sm text-white text-center">Clique para fazer upload da imagem principal</p>
-                          <p className="text-xs text-white/70 mt-1">JPG, PNG ou GIF (máximo 5MB)</p>
+                          <p className="text-xs text-slate-400 mt-1">JPG, PNG ou GIF (máximo 5MB)</p>
                         </div>
                       ) : (
-                        <div className="relative border border-aurora-electric-purple/30 aurora-glass rounded-md overflow-hidden">
+                        <div className="relative border border-slate-600 bg-slate-700/50 rounded-md overflow-hidden">
                           <img 
                             src={imagePreview} 
                             alt="Preview da imagem" 
@@ -575,7 +575,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                             {...field} 
                             placeholder="Ex: Efeito lifting visível sem cortes ou agulhas" 
                             rows={3}
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -595,7 +595,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                             {...field} 
                             placeholder="Ex: Focaliza energia ultrassônica em pontos profundos precisos" 
                             rows={3}
-                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                           />
                         </FormControl>
                         <FormMessage className="text-red-300" />
@@ -617,7 +617,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                         {...field} 
                         placeholder="Ex: Convincente e elegante, passando segurança sobre obter rejuvenescimento sem cirurgia" 
                         rows={2}
-                        className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                        className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </FormControl>
                     <FormMessage className="text-red-300" />
@@ -626,14 +626,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
               />
 
               {/* Configurações Avançadas */}
-              <div className="border-t border-aurora-electric-purple/20 pt-6">
+              <div className="border-t border-slate-700 pt-6">
                 <h3 className="text-lg font-medium mb-4 flex items-center gap-2 text-white">
                   Configurações Avançadas
                   <Tooltip>
                     <TooltipTrigger>
-                      <HelpCircle className="h-4 w-4 text-white/70" />
+                      <HelpCircle className="h-4 w-4 text-slate-400" />
                     </TooltipTrigger>
-                    <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                    <TooltipContent className="bg-slate-800 border-slate-700">
                       <p className="text-white">Dados utilizados pela IA para sugestões e recomendações</p>
                     </TooltipContent>
                   </Tooltip>
@@ -645,7 +645,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Área de Aplicação</FormLabel>
-                      <FormDescription className="text-white/70">Selecione onde o equipamento pode ser aplicado</FormDescription>
+                      <FormDescription className="text-slate-400">Selecione onde o equipamento pode ser aplicado</FormDescription>
                       <div className="space-y-2">
                         {['Rosto', 'Corpo', 'Ambos'].map((area) => (
                           <div key={area} className="flex items-center space-x-2">
@@ -676,17 +676,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Tipo de Ação</FormLabel>
-                      <FormDescription className="text-white/70">Classifica o nível de intervenção do tratamento</FormDescription>
+                      <FormDescription className="text-slate-400">Classifica o nível de intervenção do tratamento</FormDescription>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
+                          <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                             <SelectValue placeholder="Selecione o tipo de ação" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="aurora-glass border-aurora-electric-purple/30">
-                          <SelectItem value="Não invasivo" className="text-white hover:bg-aurora-electric-purple/20">Não invasivo</SelectItem>
-                          <SelectItem value="Minimante invasivo" className="text-white hover:bg-aurora-electric-purple/20">Minimante invasivo</SelectItem>
-                          <SelectItem value="Invasivo" className="text-white hover:bg-aurora-electric-purple/20">Invasivo</SelectItem>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          <SelectItem value="Não invasivo" className="text-white hover:bg-slate-700">Não invasivo</SelectItem>
+                          <SelectItem value="Minimante invasivo" className="text-white hover:bg-slate-700">Minimante invasivo</SelectItem>
+                          <SelectItem value="Invasivo" className="text-white hover:bg-slate-700">Invasivo</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage className="text-red-300" />
@@ -700,17 +700,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Nível de Investimento</FormLabel>
-                      <FormDescription className="text-white/70">Estimativa de faixa de investimento</FormDescription>
+                      <FormDescription className="text-slate-400">Estimativa de faixa de investimento</FormDescription>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
+                          <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                             <SelectValue placeholder="Selecione o nível" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="aurora-glass border-aurora-electric-purple/30">
-                          <SelectItem value="Alto" className="text-white hover:bg-aurora-electric-purple/20">Alto</SelectItem>
-                          <SelectItem value="Médio" className="text-white hover:bg-aurora-electric-purple/20">Médio</SelectItem>
-                          <SelectItem value="Baixo" className="text-white hover:bg-aurora-electric-purple/20">Baixo</SelectItem>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          <SelectItem value="Alto" className="text-white hover:bg-slate-700">Alto</SelectItem>
+                          <SelectItem value="Médio" className="text-white hover:bg-slate-700">Médio</SelectItem>
+                          <SelectItem value="Baixo" className="text-white hover:bg-slate-700">Baixo</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage className="text-red-300" />
@@ -724,7 +724,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Contraindicações</FormLabel>
-                      <FormDescription className="text-white/70">Ex: gestantes, marca-passo, problemas circulatórios</FormDescription>
+                      <FormDescription className="text-slate-400">Ex: gestantes, marca-passo, problemas circulatórios</FormDescription>
                       <FormControl>
                         <TagInput
                           value={field.value || []}
@@ -744,7 +744,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Perfil Ideal do Paciente</FormLabel>
-                      <FormDescription className="text-white/70">Ex: Mulheres 35+, Pós-parto, Flacidez</FormDescription>
+                      <FormDescription className="text-slate-400">Ex: Mulheres 35+, Pós-parto, Flacidez</FormDescription>
                       <FormControl>
                         <TagInput
                           value={field.value || []}
@@ -762,10 +762,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   control={form.control}
                   name="possui_consumiveis"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 mt-6">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base text-white">Possui Consumíveis?</FormLabel>
-                        <FormDescription className="text-white/70">
+                        <FormDescription className="text-slate-400">
                           Indica se o equipamento exige consumíveis
                         </FormDescription>
                       </div>
@@ -783,20 +783,20 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   control={form.control}
                   name="akinator_enabled"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 mt-6">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base flex items-center gap-2 text-white">
                           Fluida Akinator
                           <Tooltip>
                             <TooltipTrigger>
-                              <HelpCircle className="h-4 w-4 text-white/70" />
+                              <HelpCircle className="h-4 w-4 text-slate-400" />
                             </TooltipTrigger>
-                            <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                            <TooltipContent className="bg-slate-800 border-slate-700">
                               <p className="text-white">Ativa ou desativa esse equipamento nas sugestões inteligentes</p>
                             </TooltipContent>
                           </Tooltip>
                         </FormLabel>
-                        <FormDescription className="text-white/70">
+                        <FormDescription className="text-slate-400">
                           Pode ser recomendado pelo Akinator?
                         </FormDescription>
                       </div>
@@ -815,10 +815,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                 control={form.control}
                 name="ativo"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 mt-6">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base text-white">Equipamento Ativo</FormLabel>
-                      <FormDescription className="text-white/70">
+                      <FormDescription className="text-slate-400">
                         Determina se este equipamento está disponível para seleção nos roteiros
                       </FormDescription>
                     </div>
@@ -855,7 +855,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       });
                     }}
                     disabled={isSaving || isUploading}
-                    className="flex items-center gap-2 aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+                    className="flex items-center gap-2 border-slate-600 hover:bg-slate-700 text-white"
                   >
                     <Save className="h-4 w-4" />
                     Salvar rascunho
@@ -868,14 +868,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     variant="outline" 
                     onClick={onCancel} 
                     disabled={isSaving || isUploading}
-                    className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+                    className="border-slate-600 hover:bg-slate-700 text-white"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isSaving || isUploading}
-                    className="aurora-button"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     {isSaving ? (
                       <>
