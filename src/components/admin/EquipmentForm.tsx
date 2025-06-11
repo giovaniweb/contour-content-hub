@@ -891,5 +891,3 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
 };
 
 export default EquipmentForm;
-
-}
