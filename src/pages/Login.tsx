@@ -17,8 +17,11 @@ const Login: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redireciona se já estiver autenticado
   useEffect(() => {
+    console.log('Login: Verificando estado de autenticação', { isAuthenticated, authLoading });
     if (isAuthenticated && !authLoading) {
+      console.log('Login: Usuário autenticado, redirecionando para dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, authLoading, navigate]);
@@ -31,12 +34,15 @@ const Login: React.FC = () => {
       return;
     }
 
+    console.log('Login: Iniciando processo de login');
     setIsLoading(true);
 
     try {
       await login(formData.email, formData.password);
+      console.log('Login: Login realizado com sucesso');
       toast.success('Login realizado com sucesso!');
     } catch (error: any) {
+      console.error('Login: Erro ao fazer login:', error);
       const errorMessage = error.message || 'Erro ao fazer login';
       toast.error(errorMessage);
     } finally {
@@ -51,18 +57,22 @@ const Login: React.FC = () => {
     }));
   };
 
+  // Mostra loading apenas durante a verificação inicial de autenticação
   if (authLoading) {
+    console.log('Login: Carregando estado de autenticação');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">Verificando autenticação...</p>
         </div>
       </div>
     );
   }
 
+  // Se já estiver autenticado, mostra loading de redirecionamento
   if (isAuthenticated) {
+    console.log('Login: Usuário autenticado, mostrando loading de redirecionamento');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -73,6 +83,7 @@ const Login: React.FC = () => {
     );
   }
 
+  console.log('Login: Renderizando formulário de login');
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">

@@ -28,131 +28,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    console.log('AuthProvider: Inicializando autenticação');
     
     const initializeAuth = async () => {
       try {
-        // Check initial session
+        // Verifica sessão inicial
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('AuthProvider: Sessão inicial obtida', { session: !!session, error: sessionError });
         
         if (sessionError) {
-          console.error('Error getting initial session:', sessionError);
-          if (mounted) {
-            setUser(null);
-            setIsAuthenticated(false);
-            setError('Erro ao verificar sessão');
-            setIsLoading(false);
-          }
+          console.error('AuthProvider: Erro ao obter sessão inicial:', sessionError);
+          setUser(null);
+          setIsAuthenticated(false);
+          setError('Erro ao verificar sessão');
+          setIsLoading(false);
           return;
         }
         
         if (session?.user) {
+          console.log('AuthProvider: Usuário encontrado na sessão, buscando perfil');
           try {
             const userProfile = await fetchUserProfile(session.user.id);
+            console.log('AuthProvider: Perfil do usuário obtido', { profile: !!userProfile });
             
-            if (mounted) {
-              if (userProfile) {
-                setUser(userProfile);
-                setIsAuthenticated(true);
-                setError(null);
-              } else {
-                setUser(null);
-                setIsAuthenticated(false);
-                setError('Perfil do usuário não encontrado');
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching user profile:', error);
-            if (mounted) {
+            if (userProfile) {
+              setUser(userProfile);
+              setIsAuthenticated(true);
+              setError(null);
+            } else {
+              console.warn('AuthProvider: Perfil do usuário não encontrado');
               setUser(null);
               setIsAuthenticated(false);
-              setError('Erro ao carregar perfil do usuário');
+              setError('Perfil do usuário não encontrado');
             }
-          }
-        } else {
-          if (mounted) {
+          } catch (error) {
+            console.error('AuthProvider: Erro ao carregar perfil do usuário:', error);
             setUser(null);
             setIsAuthenticated(false);
-            setError(null);
+            setError('Erro ao carregar perfil do usuário');
           }
-        }
-        
-        if (mounted) {
-          setIsLoading(false);
-        }
-
-        // Set up auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (!mounted) return;
-
-            if (session?.user) {
-              try {
-                const userProfile = await fetchUserProfile(session.user.id);
-                
-                if (mounted) {
-                  if (userProfile) {
-                    setUser(userProfile);
-                    setIsAuthenticated(true);
-                    setError(null);
-                  } else {
-                    setUser(null);
-                    setIsAuthenticated(false);
-                    setError('Perfil do usuário não encontrado');
-                  }
-                }
-              } catch (error) {
-                console.error('Error fetching user profile:', error);
-                if (mounted) {
-                  setUser(null);
-                  setIsAuthenticated(false);
-                  setError('Erro ao carregar perfil do usuário');
-                }
-              }
-            } else {
-              if (mounted) {
-                setUser(null);
-                setIsAuthenticated(false);
-                setError(null);
-              }
-            }
-          }
-        );
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error('Error setting up auth:', error);
-        if (mounted) {
+        } else {
+          console.log('AuthProvider: Nenhuma sessão ativa encontrada');
           setUser(null);
           setIsAuthenticated(false);
-          setIsLoading(false);
-          setError('Erro ao configurar autenticação');
+          setError(null);
         }
+      } catch (error) {
+        console.error('AuthProvider: Erro durante inicialização:', error);
+        setUser(null);
+        setIsAuthenticated(false);
+        setError('Erro ao configurar autenticação');
+      } finally {
+        console.log('AuthProvider: Inicialização concluída, definindo loading como false');
+        setIsLoading(false);
       }
     };
 
+    // Configura listener para mudanças de estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('AuthProvider: Mudança de estado de autenticação', { event, session: !!session });
+        
+        if (session?.user) {
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            console.log('AuthProvider: Perfil atualizado via listener', { profile: !!userProfile });
+            
+            if (userProfile) {
+              setUser(userProfile);
+              setIsAuthenticated(true);
+              setError(null);
+            } else {
+              setUser(null);
+              setIsAuthenticated(false);
+              setError('Perfil do usuário não encontrado');
+            }
+          } catch (error) {
+            console.error('AuthProvider: Erro ao carregar perfil via listener:', error);
+            setUser(null);
+            setIsAuthenticated(false);
+            setError('Erro ao carregar perfil do usuário');
+          }
+        } else {
+          console.log('AuthProvider: Usuário deslogado via listener');
+          setUser(null);
+          setIsAuthenticated(false);
+          setError(null);
+        }
+      }
+    );
+
+    // Inicializa autenticação
     initializeAuth();
 
+    // Cleanup
     return () => {
-      mounted = false;
+      console.log('AuthProvider: Limpando subscription');
+      subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('AuthProvider: Tentando fazer login');
       setError(null);
       
       const { data, error } = await loginWithEmailAndPassword(email, password);
       
       if (error) {
+        console.error('AuthProvider: Erro no login:', error);
         throw error;
       }
       
+      console.log('AuthProvider: Login realizado com sucesso');
       return;
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao fazer login';
+      console.error('AuthProvider: Erro no login:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -160,10 +152,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log('AuthProvider: Fazendo logout');
       setError(null);
       await logoutUser();
     } catch (error: any) {
-      setError(error.message || 'Erro ao fazer logout');
+      const errorMessage = error.message || 'Erro ao fazer logout';
+      console.error('AuthProvider: Erro no logout:', errorMessage);
+      setError(errorMessage);
       throw error;
     }
   };
@@ -180,11 +175,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     language?: "PT" | "EN" | "ES";
   }) => {
     try {
+      console.log('AuthProvider: Registrando usuário');
       setError(null);
       setIsLoading(true);
       await registerUserService(userData);
     } catch (error: any) {
-      console.error('Register error:', error);
+      console.error('AuthProvider: Erro no registro:', error);
       setError(error.message || 'Error registering user');
       throw error;
     } finally {
@@ -200,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (error: any) {
-      console.error('Update user error:', error);
+      console.error('AuthProvider: Erro ao atualizar usuário:', error);
       setError(error.message || 'Error updating user');
       throw error;
     }
@@ -212,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await updateUserPasswordService(newPassword);
       return true;
     } catch (error: any) {
-      console.error('Update password error:', error);
+      console.error('AuthProvider: Erro ao atualizar senha:', error);
       setError(error.message || 'Error updating password');
       return false;
     }
@@ -224,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      console.error('AuthProvider: Erro ao resetar senha:', error);
       setError(error.message || 'Error resetting password');
       throw error;
     }
@@ -243,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(false);
       }
     } catch (error: any) {
-      console.error('Refresh auth error:', error);
+      console.error('AuthProvider: Erro ao atualizar autenticação:', error);
       setError(error.message || 'Error refreshing authentication');
       throw error;
     }
