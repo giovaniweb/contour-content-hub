@@ -1,53 +1,66 @@
 
-import React from 'react';
-import { Video, Upload, Grid, Search, Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { Video, Upload, Grid, Search, VideoIcon, Filter, Play } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const VideosPage: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3">
+          <VideoIcon className="h-12 w-12 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Biblioteca de Vídeos</h1>
-            <p className="text-muted-foreground">Gerencie seus vídeos e conteúdos audiovisuais</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              Criar Vídeo
-            </Button>
-            <Button className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Enviar Vídeo
-            </Button>
+            <h1 className="text-3xl font-bold text-slate-50">Galeria de Vídeos</h1>
+            <p className="text-slate-400">Gerencie seus vídeos e conteúdo audiovisual</p>
           </div>
         </div>
+      </div>
 
-        {/* Search and Filters */}
-        <div className="flex items-center gap-4 mb-6">
+      {/* Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Pesquisar vídeos..." className="pl-10" />
+            <Input 
+              placeholder="Pesquisar vídeos..." 
+              className="pl-10" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
+          </Button>
           <Button variant="outline" size="icon">
             <Grid className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Empty State */}
-        <EmptyState
-          icon={Video}
-          title="Nenhum vídeo encontrado"
-          description="Comece criando ou enviando seus primeiros vídeos"
-          actionLabel="Criar Primeiro Vídeo"
-          actionIcon={Play}
-          onAction={() => console.log('Create video')}
-        />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Criar Vídeo
+          </Button>
+          <Button className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Enviar Vídeo
+          </Button>
+        </div>
       </div>
+
+      {/* Empty State */}
+      <EmptyState
+        icon={VideoIcon}
+        title="Nenhum vídeo encontrado"
+        description="Comece criando ou enviando seus primeiros vídeos"
+        actionLabel="Criar Primeiro Vídeo"
+        actionIcon={Play}
+        onAction={() => console.log('Create video')}
+      />
     </div>
   );
 };

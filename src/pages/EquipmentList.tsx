@@ -2,82 +2,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Box, 
   Search, 
   Filter, 
   Grid, 
   LayoutList, 
   Plus, 
   Camera, 
-  Tag 
+  Tag,
+  Wrench
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ContentLayout from '@/components/layout/ContentLayout';
-import GlassContainer from '@/components/ui/GlassContainer';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEquipments } from '@/hooks/useEquipments';
 import { ROUTES } from '@/routes';
-
-// Mock data para equipamentos
-const mockEquipments = [
-  {
-    id: "equip-1",
-    nome: "Canon EOS R5",
-    categoria: "cameras",
-    status: "available",
-    tags: ["4K", "Vídeo", "Fotografia"],
-    thumbnail: "https://example.com/images/canon-r5.jpg",
-    description: "Câmera mirrorless full frame de 45MP com gravação 8K"
-  },
-  {
-    id: "equip-2",
-    nome: "Ring Light LED 18\"",
-    categoria: "iluminacao",
-    status: "in-use",
-    tags: ["Iluminação", "Estúdio"],
-    thumbnail: "https://example.com/images/ring-light.jpg",
-    description: "Ring light de 48cm com temperatura ajustável entre 3000K e 6000K"
-  },
-  {
-    id: "equip-3",
-    nome: "Microfone Rode VideoMic Pro",
-    categoria: "audio",
-    status: "available",
-    tags: ["Áudio", "Externo"],
-    thumbnail: "https://example.com/images/rode-mic.jpg",
-    description: "Microfone direcional de alta qualidade para montagem em câmera"
-  },
-  {
-    id: "equip-4",
-    nome: "Tripé Manfrotto 290",
-    categoria: "suportes",
-    status: "maintenance",
-    tags: ["Suporte", "Estúdio"],
-    thumbnail: "https://example.com/images/tripod.jpg",
-    description: "Tripé profissional com altura máxima de 160cm"
-  },
-  {
-    id: "equip-5",
-    nome: "Kit de Iluminação Softbox",
-    categoria: "iluminacao",
-    status: "available",
-    tags: ["Iluminação", "Estúdio", "Kit"],
-    thumbnail: "https://example.com/images/softbox-kit.jpg",
-    description: "Kit com 2 softboxes de 50x70cm e tripés ajustáveis"
-  },
-];
 
 const EquipmentList: React.FC = () => {
   const navigate = useNavigate();
+  const { equipments, loading, error } = useEquipments();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  // Filter equipments based on search term
-  const filteredEquipments = mockEquipments.filter(equipment => 
+  // Filter equipment based on search term
+  const filteredEquipments = equipments.filter(equipment => 
     equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    equipment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    equipment.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    equipment.tecnologia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (equipment.indicacoes && equipment.indicacoes.some(indication => 
+      indication.toLowerCase().includes(searchTerm.toLowerCase())
+    ))
   );
   
   // Filter by category
@@ -95,46 +50,63 @@ const EquipmentList: React.FC = () => {
   
   // Handle add equipment
   const handleAddEquipment = () => {
-    // Navigate to equipment creation page (to be implemented)
-    console.log("Adding new equipment");
+    navigate(ROUTES.ADMIN.EQUIPMENTS.CREATE);
   };
 
   // Status label and color mapping
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'available':
-        return { label: 'Disponível', class: 'bg-green-100 text-green-700' };
-      case 'in-use':
-        return { label: 'Em uso', class: 'bg-blue-100 text-blue-700' };
-      case 'maintenance':
-        return { label: 'Manutenção', class: 'bg-amber-100 text-amber-700' };
-      default:
-        return { label: 'Indisponível', class: 'bg-gray-100 text-gray-700' };
-    }
+  const getStatusInfo = (ativo: boolean) => {
+    return ativo 
+      ? { label: 'Disponível', class: 'bg-green-100 text-green-700' }
+      : { label: 'Indisponível', class: 'bg-gray-100 text-gray-700' };
   };
 
+  // Get category label
+  const getCategoryLabel = (categoria: string) => {
+    return categoria === 'medico' ? '🏥 Médico' : '🌟 Estético';
+  };
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6 space-y-8">
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Wrench className="h-12 w-12 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold text-slate-50">Equipamentos</h1>
+              <p className="text-slate-400">Erro ao carregar equipamentos</p>
+            </div>
+          </div>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-red-400 mb-4">{error.message}</p>
+          <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ContentLayout
-      title="Equipamentos"
-      subtitle="Gerencie e monitore todos os seus equipamentos"
-      actions={
-        <Button 
-          onClick={handleAddEquipment}
-          className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Equipamento
-        </Button>
-      }
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6 md:mb-0">
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3">
+          <Wrench className="h-12 w-12 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold text-slate-50">Equipamentos</h1>
+            <p className="text-slate-400">
+              Gerencie e monitore todos os seus equipamentos
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="cameras">Câmeras</TabsTrigger>
-            <TabsTrigger value="iluminacao">Iluminação</TabsTrigger>
-            <TabsTrigger value="audio">Áudio</TabsTrigger>
-            <TabsTrigger value="suportes">Suportes</TabsTrigger>
+            <TabsTrigger value="medico">Médico</TabsTrigger>
+            <TabsTrigger value="estetico">Estético</TabsTrigger>
           </TabsList>
         </Tabs>
         
@@ -170,100 +142,166 @@ const EquipmentList: React.FC = () => {
               <LayoutList className="h-4 w-4" />
             </Button>
           </div>
+          <Button onClick={handleAddEquipment}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Equipamento
+          </Button>
         </div>
       </div>
       
-      {displayEquipments.length > 0 ? (
-        viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {displayEquipments.map((equipment) => {
-              const statusInfo = getStatusInfo(equipment.status);
-              
-              return (
-                <GlassContainer 
-                  key={equipment.id} 
-                  className="hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => handleViewEquipment(equipment.id)}
-                >
-                  <div className="aspect-square bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Camera className="h-16 w-16 text-gray-400" />
-                  </div>
-                  <h3 className="font-medium text-lg">{equipment.nome}</h3>
-                  <div className="flex items-center mt-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}>
-                      {statusInfo.label}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                    {equipment.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {equipment.tags.map((tag, idx) => (
-                      <span 
-                        key={idx}
-                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </GlassContainer>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {displayEquipments.map((equipment) => {
-              const statusInfo = getStatusInfo(equipment.status);
-              
-              return (
-                <GlassContainer 
-                  key={equipment.id} 
-                  className="hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => handleViewEquipment(equipment.id)}
-                >
-                  <div className="flex items-center">
-                    <div className="mr-4 h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Camera className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-lg">{equipment.nome}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {equipment.description}
-                      </p>
-                      <div className="flex items-center mt-2 text-sm">
-                        <Tag className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {equipment.tags.join(", ")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </GlassContainer>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <Box className="h-8 w-8 text-slate-400" />
-          </div>
-          <h2 className="text-lg font-medium">Nenhum equipamento encontrado</h2>
-          <p className="text-muted-foreground text-center">
-            Não encontramos equipamentos correspondentes à sua busca.
-          </p>
-          <Button variant="outline" className="mt-6" onClick={handleAddEquipment}>
-            Adicionar novo equipamento
-          </Button>
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-slate-400">Carregando equipamentos...</p>
         </div>
       )}
-    </ContentLayout>
+
+      {/* Equipment Grid/List */}
+      {!loading && (
+        <>
+          {displayEquipments.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {displayEquipments.map((equipment) => {
+                  const statusInfo = getStatusInfo(equipment.ativo);
+                  
+                  return (
+                    <Card 
+                      key={equipment.id} 
+                      className="hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => handleViewEquipment(equipment.id)}
+                    >
+                      <div className="aspect-square bg-gray-100 rounded-t-lg flex items-center justify-center">
+                        {equipment.image_url ? (
+                          <img 
+                            src={equipment.image_url} 
+                            alt={equipment.nome}
+                            className="w-full h-full object-cover rounded-t-lg"
+                          />
+                        ) : (
+                          <Camera className="h-16 w-16 text-gray-400" />
+                        )}
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-medium text-lg mb-2">{equipment.nome}</h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className={statusInfo.class}>
+                            {statusInfo.label}
+                          </Badge>
+                          <Badge variant="secondary">
+                            {getCategoryLabel(equipment.categoria)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {equipment.tecnologia}
+                        </p>
+                        {equipment.indicacoes && equipment.indicacoes.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {equipment.indicacoes.slice(0, 2).map((indication, idx) => (
+                              <span 
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                              >
+                                {indication}
+                              </span>
+                            ))}
+                            {equipment.indicacoes.length > 2 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{equipment.indicacoes.length - 2} mais
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {displayEquipments.map((equipment) => {
+                  const statusInfo = getStatusInfo(equipment.ativo);
+                  
+                  return (
+                    <Card 
+                      key={equipment.id} 
+                      className="hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => handleViewEquipment(equipment.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center">
+                          <div className="mr-4 h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                            {equipment.image_url ? (
+                              <img 
+                                src={equipment.image_url} 
+                                alt={equipment.nome}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Camera className="h-8 w-8 text-gray-400" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium text-lg">{equipment.nome}</h3>
+                              <div className="flex gap-2">
+                                <Badge className={statusInfo.class}>
+                                  {statusInfo.label}
+                                </Badge>
+                                <Badge variant="secondary">
+                                  {getCategoryLabel(equipment.categoria)}
+                                </Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {equipment.tecnologia}
+                            </p>
+                            {equipment.indicacoes && equipment.indicacoes.length > 0 && (
+                              <div className="flex items-center mt-2 text-sm">
+                                <Tag className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                                <span className="text-muted-foreground">
+                                  {equipment.indicacoes.slice(0, 3).join(", ")}
+                                  {equipment.indicacoes.length > 3 && ` +${equipment.indicacoes.length - 3} mais`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            <div className="text-center py-16">
+              <Wrench className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+              <h2 className="text-lg font-medium text-slate-50 mb-2">
+                {equipments.length === 0 ? 'Nenhum equipamento cadastrado' : 'Nenhum equipamento encontrado'}
+              </h2>
+              <p className="text-slate-400 mb-6">
+                {searchTerm || activeTab !== "all"
+                  ? "Tente ajustar os filtros de busca" 
+                  : equipments.length === 0 
+                    ? "Cadastre equipamentos na área administrativa"
+                    : "Nenhum equipamento encontrado"}
+              </p>
+              <Button onClick={handleAddEquipment}>
+                Adicionar novo equipamento
+              </Button>
+            </div>
+          )}
+
+          {/* Statistics */}
+          {displayEquipments.length > 0 && (
+            <div className="text-center text-sm text-slate-400">
+              Mostrando {displayEquipments.length} de {equipments.length} equipamentos
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 
