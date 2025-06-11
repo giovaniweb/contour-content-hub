@@ -688,8 +688,12 @@ export type Database = {
       }
       equipamentos: {
         Row: {
+          akinator_enabled: boolean | null
+          area_aplicacao: string[] | null
           ativo: boolean | null
           beneficios: string
+          categoria: string | null
+          contraindicacoes: string[] | null
           data_cadastro: string | null
           diferenciais: string
           efeito: string | null
@@ -697,12 +701,21 @@ export type Database = {
           image_url: string | null
           indicacoes: string
           linguagem: string
+          nivel_investimento: string | null
           nome: string
+          perfil_ideal_paciente: string[] | null
+          possui_consumiveis: boolean | null
           tecnologia: string
+          thumbnail_url: string | null
+          tipo_acao: string | null
         }
         Insert: {
+          akinator_enabled?: boolean | null
+          area_aplicacao?: string[] | null
           ativo?: boolean | null
           beneficios: string
+          categoria?: string | null
+          contraindicacoes?: string[] | null
           data_cadastro?: string | null
           diferenciais: string
           efeito?: string | null
@@ -710,12 +723,21 @@ export type Database = {
           image_url?: string | null
           indicacoes: string
           linguagem: string
+          nivel_investimento?: string | null
           nome: string
+          perfil_ideal_paciente?: string[] | null
+          possui_consumiveis?: boolean | null
           tecnologia: string
+          thumbnail_url?: string | null
+          tipo_acao?: string | null
         }
         Update: {
+          akinator_enabled?: boolean | null
+          area_aplicacao?: string[] | null
           ativo?: boolean | null
           beneficios?: string
+          categoria?: string | null
+          contraindicacoes?: string[] | null
           data_cadastro?: string | null
           diferenciais?: string
           efeito?: string | null
@@ -723,10 +745,62 @@ export type Database = {
           image_url?: string | null
           indicacoes?: string
           linguagem?: string
+          nivel_investimento?: string | null
           nome?: string
+          perfil_ideal_paciente?: string[] | null
+          possui_consumiveis?: boolean | null
           tecnologia?: string
+          thumbnail_url?: string | null
+          tipo_acao?: string | null
         }
         Relationships: []
+      }
+      equipment_applicators: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          equipment_id: string
+          id: string
+          image_url: string | null
+          name: string
+          order_index: number | null
+          technology: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id: string
+          id?: string
+          image_url?: string | null
+          name: string
+          order_index?: number | null
+          technology?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          order_index?: number | null
+          technology?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_applicators_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favoritos: {
         Row: {

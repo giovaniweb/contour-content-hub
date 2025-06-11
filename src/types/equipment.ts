@@ -13,6 +13,30 @@ export interface Equipment {
   ativo: boolean;
   descricao?: string; // Optional
   categoria: 'medico' | 'estetico'; // Required category field
+  
+  // Novos campos adicionados
+  thumbnail_url?: string;
+  area_aplicacao: string[];
+  tipo_acao?: 'Não invasivo' | 'Minimante invasivo' | 'Invasivo';
+  possui_consumiveis: boolean;
+  contraindicacoes: string[];
+  perfil_ideal_paciente: string[];
+  nivel_investimento?: 'Alto' | 'Médio' | 'Baixo';
+  akinator_enabled: boolean;
+}
+
+// Interface para ponteiras
+export interface EquipmentApplicator {
+  id: string;
+  equipment_id: string;
+  name: string;
+  technology?: string;
+  description?: string;
+  image_url?: string;
+  active: boolean;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // Interface for creating new equipment
@@ -28,6 +52,16 @@ export interface EquipmentCreationProps {
   efeito?: string;
   descricao?: string;
   categoria: 'medico' | 'estetico'; // Required category field
+  
+  // Novos campos
+  thumbnail_url?: string;
+  area_aplicacao?: string[];
+  tipo_acao?: 'Não invasivo' | 'Minimante invasivo' | 'Invasivo';
+  possui_consumiveis?: boolean;
+  contraindicacoes?: string[];
+  perfil_ideal_paciente?: string[];
+  nivel_investimento?: 'Alto' | 'Médio' | 'Baixo';
+  akinator_enabled?: boolean;
 }
 
 // Validation error interface
@@ -59,6 +93,16 @@ export function ensureEquipmentFields(equipment: Partial<Equipment>): Equipment 
     ativo: equipment.ativo ?? true,
     descricao: equipment.descricao || '',
     categoria: equipment.categoria || 'estetico', // Default to estético
+    
+    // Novos campos com valores padrão
+    thumbnail_url: equipment.thumbnail_url || '',
+    area_aplicacao: equipment.area_aplicacao || [],
+    tipo_acao: equipment.tipo_acao,
+    possui_consumiveis: equipment.possui_consumiveis ?? false,
+    contraindicacoes: equipment.contraindicacoes || [],
+    perfil_ideal_paciente: equipment.perfil_ideal_paciente || [],
+    nivel_investimento: equipment.nivel_investimento,
+    akinator_enabled: equipment.akinator_enabled ?? true,
   };
 }
 
