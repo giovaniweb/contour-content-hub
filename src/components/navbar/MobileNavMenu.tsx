@@ -134,7 +134,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
               <span>Agenda</span>
             </Link>
             <Link
-              to={ROUTES.EQUIPMENT.LIST}
+              to={ROUTES.EQUIPMENTS.LIST}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
               onClick={() => setIsOpen(false)}
             >

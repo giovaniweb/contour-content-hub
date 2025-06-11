@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +48,7 @@ const Dashboard: React.FC = () => {
       icon: Wrench,
       title: "Ver Equipamentos",
       description: "Explore equipamentos disponíveis",
-      path: ROUTES.EQUIPMENT.LIST,
+      path: ROUTES.EQUIPMENTS.LIST,
       gradient: "from-green-500 to-yellow-500"
     }
   ];
