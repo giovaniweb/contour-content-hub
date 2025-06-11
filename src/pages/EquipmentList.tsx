@@ -90,7 +90,7 @@ const EquipmentList: React.FC = () => {
   
   // Handle view equipment
   const handleViewEquipment = (id: string) => {
-    navigate(ROUTES.EQUIPMENT.DETAILS(id));
+    navigate(`${ROUTES.EQUIPMENT.DETAILS}/${id}`);
   };
   
   // Handle add equipment
