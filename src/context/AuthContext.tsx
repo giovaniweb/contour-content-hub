@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -30,99 +29,80 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('AuthProvider: Inicializando autenticação');
     
-    const initializeAuth = async () => {
-      try {
-        // Verifica sessão inicial
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log('AuthProvider: Sessão inicial obtida', { session: !!session, error: sessionError });
-        
-        if (sessionError) {
-          console.error('AuthProvider: Erro ao obter sessão inicial:', sessionError);
-          setUser(null);
-          setIsAuthenticated(false);
-          setError('Erro ao verificar sessão');
-          setIsLoading(false);
-          return;
-        }
-        
-        if (session?.user) {
-          console.log('AuthProvider: Usuário encontrado na sessão, buscando perfil');
-          try {
-            const userProfile = await fetchUserProfile(session.user.id);
-            console.log('AuthProvider: Perfil do usuário obtido', { profile: !!userProfile });
-            
-            if (userProfile) {
-              setUser(userProfile);
-              setIsAuthenticated(true);
-              setError(null);
-            } else {
-              console.warn('AuthProvider: Perfil do usuário não encontrado');
-              setUser(null);
-              setIsAuthenticated(false);
-              setError('Perfil do usuário não encontrado');
-            }
-          } catch (error) {
-            console.error('AuthProvider: Erro ao carregar perfil do usuário:', error);
-            setUser(null);
-            setIsAuthenticated(false);
-            setError('Erro ao carregar perfil do usuário');
-          }
-        } else {
-          console.log('AuthProvider: Nenhuma sessão ativa encontrada');
-          setUser(null);
-          setIsAuthenticated(false);
-          setError(null);
-        }
-      } catch (error) {
-        console.error('AuthProvider: Erro durante inicialização:', error);
-        setUser(null);
-        setIsAuthenticated(false);
-        setError('Erro ao configurar autenticação');
-      } finally {
-        console.log('AuthProvider: Inicialização concluída, definindo loading como false');
-        setIsLoading(false);
-      }
-    };
+    let mounted = true;
 
-    // Configura listener para mudanças de estado de autenticação
+    // Configura listener para mudanças de estado de autenticação PRIMEIRO
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('AuthProvider: Mudança de estado de autenticação', { event, session: !!session });
         
+        if (!mounted) return;
+
         if (session?.user) {
           try {
+            console.log('AuthProvider: Buscando perfil do usuário');
             const userProfile = await fetchUserProfile(session.user.id);
-            console.log('AuthProvider: Perfil atualizado via listener', { profile: !!userProfile });
             
-            if (userProfile) {
+            if (mounted && userProfile) {
+              console.log('AuthProvider: Perfil carregado com sucesso');
               setUser(userProfile);
               setIsAuthenticated(true);
               setError(null);
-            } else {
+            } else if (mounted) {
+              console.warn('AuthProvider: Perfil não encontrado');
               setUser(null);
               setIsAuthenticated(false);
               setError('Perfil do usuário não encontrado');
             }
           } catch (error) {
-            console.error('AuthProvider: Erro ao carregar perfil via listener:', error);
-            setUser(null);
-            setIsAuthenticated(false);
-            setError('Erro ao carregar perfil do usuário');
+            console.error('AuthProvider: Erro ao carregar perfil:', error);
+            if (mounted) {
+              setUser(null);
+              setIsAuthenticated(false);
+              setError('Erro ao carregar perfil do usuário');
+            }
           }
         } else {
-          console.log('AuthProvider: Usuário deslogado via listener');
-          setUser(null);
-          setIsAuthenticated(false);
-          setError(null);
+          console.log('AuthProvider: Usuário deslogado');
+          if (mounted) {
+            setUser(null);
+            setIsAuthenticated(false);
+            setError(null);
+          }
+        }
+
+        if (mounted) {
+          setIsLoading(false);
         }
       }
     );
 
-    // Inicializa autenticação
-    initializeAuth();
+    // Depois verifica a sessão inicial
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('AuthProvider: Verificação inicial de sessão', { session: !!session, error: sessionError });
+        
+        // O onAuthStateChange já vai lidar com isso, então não precisamos duplicar a lógica aqui
+        // Apenas garantimos que o loading seja definido se não houver sessão
+        if (!session && mounted) {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('AuthProvider: Erro na verificação inicial:', error);
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setError('Erro ao verificar sessão');
+          setIsLoading(false);
+        }
+      }
+    };
 
-    // Cleanup
+    checkInitialSession();
+
     return () => {
+      mounted = false;
       console.log('AuthProvider: Limpando subscription');
       subscription.unsubscribe();
     };
@@ -130,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('AuthProvider: Tentando fazer login');
+      console.log('AuthProvider: Iniciando login para', email);
       setError(null);
       
       const { data, error } = await loginWithEmailAndPassword(email, password);
@@ -141,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       console.log('AuthProvider: Login realizado com sucesso');
+      // O onAuthStateChange vai lidar com a atualização do estado
       return;
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao fazer login';

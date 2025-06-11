@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, UserRole } from '@/types/auth';
 
@@ -46,14 +45,18 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       clinica: data.clinica,
       cidade: data.cidade,
       telefone: data.telefone,
-      equipamentos: data.equipamentos,
+      equipamentos: data.equipamentos || [],
       idioma: (data.idioma as 'PT' | 'EN' | 'ES') || 'PT',
       profilePhotoUrl: data.foto_url || undefined,
       created_at: data.data_criacao,
       updated_at: data.data_criacao
     };
 
-    console.log('fetchUserProfile: UserProfile construído com sucesso');
+    console.log('fetchUserProfile: UserProfile construído com sucesso', { 
+      id: userProfile.id, 
+      email: userProfile.email,
+      nome: userProfile.nome 
+    });
     return userProfile;
   } catch (error) {
     console.error('fetchUserProfile: Erro inesperado:', error);

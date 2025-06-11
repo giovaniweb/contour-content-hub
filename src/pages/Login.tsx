@@ -37,11 +37,29 @@ const Login: React.FC = () => {
     console.log('Login: Iniciando processo de login');
     setIsLoading(true);
 
+    // Timeout de segurança para evitar que fique "Entrando..." indefinidamente
+    const loginTimeout = setTimeout(() => {
+      console.warn('Login: Timeout de login atingido');
+      setIsLoading(false);
+      toast.error('Login demorou muito para responder. Tente novamente.');
+    }, 15000); // 15 segundos
+
     try {
       await login(formData.email, formData.password);
+      clearTimeout(loginTimeout);
       console.log('Login: Login realizado com sucesso');
       toast.success('Login realizado com sucesso!');
+      
+      // Pequeno delay para permitir que o AuthContext processe a mudança
+      setTimeout(() => {
+        if (!isAuthenticated) {
+          console.log('Login: Redirecionando manualmente para dashboard');
+          navigate('/dashboard', { replace: true });
+        }
+      }, 1000);
+      
     } catch (error: any) {
+      clearTimeout(loginTimeout);
       console.error('Login: Erro ao fazer login:', error);
       const errorMessage = error.message || 'Erro ao fazer login';
       toast.error(errorMessage);
