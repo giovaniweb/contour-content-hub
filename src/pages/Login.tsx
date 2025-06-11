@@ -59,9 +59,9 @@ const Login: React.FC = () => {
     }));
   };
 
-  // Don't show loading screen if we're just checking auth state initially
-  // Only show loading if we're in the middle of authentication process
-  if (authLoading && !isAuthenticated && !formData.email) {
+  // Show loading screen while checking authentication state initially
+  if (authLoading) {
+    console.log('Login: Auth is loading, showing loading screen');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>

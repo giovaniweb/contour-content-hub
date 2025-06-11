@@ -1,28 +1,44 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, UserRole } from '@/types/auth';
 
 export const fetchUserProfile = async (userId?: string): Promise<UserProfile | null> => {
   try {
+    console.log('fetchUserProfile: Starting with userId:', userId);
+    
     let targetUserId = userId;
     
     if (!targetUserId) {
+      console.log('fetchUserProfile: No userId provided, getting from session');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) return null;
+      if (!session?.user?.id) {
+        console.log('fetchUserProfile: No session or user ID found');
+        return null;
+      }
       targetUserId = session.user.id;
+      console.log('fetchUserProfile: Got userId from session:', targetUserId);
     }
 
+    console.log('fetchUserProfile: Querying perfis table for userId:', targetUserId);
     const { data, error } = await supabase
       .from('perfis')
       .select('*')
       .eq('id', targetUserId)
       .single();
 
-    if (error || !data) {
-      console.error('Error fetching user profile:', error);
+    if (error) {
+      console.error('fetchUserProfile: Database error:', error);
       return null;
     }
 
-    return {
+    if (!data) {
+      console.log('fetchUserProfile: No profile data found for user:', targetUserId);
+      return null;
+    }
+
+    console.log('fetchUserProfile: Successfully retrieved profile data:', data);
+
+    const userProfile: UserProfile = {
       id: data.id,
       email: data.email,
       nome: data.nome,
@@ -33,16 +49,21 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       equipamentos: data.equipamentos,
       idioma: (data.idioma as 'PT' | 'EN' | 'ES') || 'PT',
       profilePhotoUrl: data.foto_url || undefined,
-      created_at: data.data_criacao,
-      updated_at: data.data_criacao
+      created_at: data.data_criacao, // Corrigido: usando data_criacao da tabela
+      updated_at: data.data_criacao  // Usando data_criacao para ambos já que não há updated_at
     };
+
+    console.log('fetchUserProfile: Mapped user profile:', userProfile);
+    return userProfile;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('fetchUserProfile: Unexpected error:', error);
     return null;
   }
 };
 
 export const updateUserProfile = async (userId: string, data: Partial<UserProfile>): Promise<void> => {
+  console.log('updateUserProfile: Updating profile for userId:', userId, 'with data:', data);
+  
   const { error } = await supabase
     .from('perfis')
     .update({
@@ -57,8 +78,11 @@ export const updateUserProfile = async (userId: string, data: Partial<UserProfil
     .eq('id', userId);
 
   if (error) {
+    console.error('updateUserProfile: Error updating profile:', error);
     throw error;
   }
+
+  console.log('updateUserProfile: Profile updated successfully');
 };
 
 export const validateRole = (userRole: string, requiredRole: string): boolean => {
@@ -90,7 +114,7 @@ export const ensureUserProfile = (user: any): UserProfile => {
     idioma: user.idioma || 'PT',
     workspace_id: user.workspace_id,
     profilePhotoUrl: user.profilePhotoUrl || user.profile_photo_url,
-    created_at: user.created_at,
-    updated_at: user.updated_at
+    created_at: user.created_at || user.data_criacao,
+    updated_at: user.updated_at || user.data_criacao
   };
 };

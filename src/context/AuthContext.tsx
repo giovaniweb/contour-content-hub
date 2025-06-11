@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -38,21 +37,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           async (event, session) => {
             if (!mounted) return;
 
-            console.log('AuthProvider: Auth state changed:', { event, session: !!session, userId: session?.user?.id });
+            console.log('AuthProvider: Auth state changed:', { 
+              event, 
+              sessionExists: !!session, 
+              userId: session?.user?.id 
+            });
             
             if (session?.user) {
+              console.log('AuthProvider: Session found, fetching user profile for:', session.user.id);
+              
               try {
-                console.log('AuthProvider: Fetching user profile for:', session.user.id);
                 const userProfile = await fetchUserProfile(session.user.id);
                 
                 if (mounted) {
                   if (userProfile) {
-                    console.log('AuthProvider: User profile loaded successfully:', userProfile);
+                    console.log('AuthProvider: User profile loaded successfully');
                     setUser(userProfile);
                     setIsAuthenticated(true);
                     setError(null);
                   } else {
-                    console.log('AuthProvider: No user profile found, but user is authenticated');
+                    console.log('AuthProvider: No user profile found');
                     setUser(null);
                     setIsAuthenticated(false);
                     setError('Perfil do usuário não encontrado');
@@ -69,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               }
             } else {
-              console.log('AuthProvider: No session, user is not authenticated');
+              console.log('AuthProvider: No session found');
               if (mounted) {
                 setUser(null);
                 setIsAuthenticated(false);
@@ -97,11 +101,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (mounted) {
           if (session?.user) {
-            console.log('AuthProvider: Initial session found:', session.user.id);
+            console.log('AuthProvider: Initial session found for user:', session.user.id);
             try {
               const userProfile = await fetchUserProfile(session.user.id);
               if (userProfile) {
-                console.log('AuthProvider: Initial user profile loaded:', userProfile);
+                console.log('AuthProvider: Initial user profile loaded');
                 setUser(userProfile);
                 setIsAuthenticated(true);
                 setError(null);
@@ -161,8 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      console.log('AuthProvider: Login successful, session will be handled by auth state change');
-      // Don't set loading here, let the auth state change handler manage it
+      console.log('AuthProvider: Login successful, auth state change will handle profile loading');
       return;
     } catch (error: any) {
       console.error('AuthProvider: Login error:', error);
