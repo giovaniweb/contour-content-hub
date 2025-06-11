@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminEquipments from './pages/AdminEquipments';
-import EquipmentDetail from './pages/EquipmentDetail';
+import EquipmentDetail from './pages/EquipmentDetails';
 import NotFound from './pages/NotFound';
 import CreateEquipment from '@/pages/admin/CreateEquipment';
 import EditEquipment from '@/pages/admin/EditEquipment';
