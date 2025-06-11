@@ -51,7 +51,7 @@ export function SidebarMenuButton({
       {icon && (
         <span className={cn(
           "flex-shrink-0 w-5 h-5",
-          isActive && "text-aurora-lavender"
+          isActive && "text-purple-400"
         )}>
           {icon}
         </span>
@@ -67,8 +67,8 @@ export function SidebarMenuButton({
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
             "text-white/80 hover:text-white hover:bg-white/10",
-            "focus:outline-none focus:ring-2 focus:ring-aurora-lavender/50",
-            isActive && "bg-white/15 text-white shadow-lg shadow-aurora-lavender/20",
+            "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+            isActive && "bg-white/15 text-white shadow-lg shadow-purple-500/20",
             className
           )}
         >
@@ -84,8 +84,8 @@ export function SidebarMenuButton({
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
           "text-white/80 hover:text-white hover:bg-white/10",
-          "focus:outline-none focus:ring-2 focus:ring-aurora-lavender/50",
-          isActive && "bg-white/15 text-white shadow-lg shadow-aurora-lavender/20",
+          "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+          isActive && "bg-white/15 text-white shadow-lg shadow-purple-500/20",
           className
         )}
         {...props}

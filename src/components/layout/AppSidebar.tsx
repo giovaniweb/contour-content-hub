@@ -60,7 +60,7 @@ const AppSidebar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="h-screen aurora-glass border-r border-white/20 flex flex-col">
+    <div className="h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 backdrop-blur-sm border-r border-white/20 flex flex-col">
       {/* Header */}
       <SidebarHeader>
         <motion.div
@@ -69,7 +69,7 @@ const AppSidebar: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="p-2 rounded-lg bg-gradient-to-r from-aurora-lavender to-aurora-teal">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold text-white">Fluida</span>
@@ -146,7 +146,7 @@ const AppSidebar: React.FC = () => {
       {/* Footer */}
       <SidebarFooter>
         <div className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-aurora-soft-pink to-aurora-electric-blue flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center">
             <span className="text-white text-sm font-medium">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </span>
