@@ -43,7 +43,7 @@ export const sidebarData = [
 // Admin menu structure  
 export const adminItems = [
   { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT, highlight: false },
-  { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENT, highlight: false },
+  { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENTS.ROOT, highlight: false },
   { name: "Conteúdo", icon: File, path: ROUTES.ADMIN.CONTENT, highlight: false },
   { name: "Vídeos", icon: Film, path: ROUTES.ADMIN_VIDEOS, highlight: false },
   { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI, highlight: false },
