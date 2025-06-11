@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import Sidebar from '@/components/layout/Sidebar';
+import AppSidebar from '@/components/layout/AppSidebar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/routes';
@@ -22,8 +22,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
       </div>
     );
   }
@@ -40,12 +40,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Sidebar */}
-        <Sidebar />
+        <AppSidebar />
         
         <div className="flex flex-col flex-1 overflow-hidden">
-          <main className="flex-1 overflow-auto bg-background p-6">
+          <main className="flex-1 overflow-auto">
             {children}
           </main>
         </div>
