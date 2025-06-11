@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import EquipmentForm from '@/components/admin/EquipmentForm';
 import { Equipment } from '@/types/equipment';
-import { getEquipment, updateEquipment } from '@/api/equipment';
+import { getEquipmentById, updateEquipment } from '@/api/equipment';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ const EditEquipment: React.FC = () => {
       }
 
       try {
-        const data = await getEquipment(id);
+        const data = await getEquipmentById(id);
         setEquipment(data);
       } catch (error) {
         console.error('Error fetching equipment:', error);
