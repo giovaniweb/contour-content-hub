@@ -16,15 +16,32 @@ const Login: React.FC = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Redirect if already authenticated
+  // Handle initial load and authentication state
   useEffect(() => {
-    console.log('Login: Auth state changed - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
-    if (isAuthenticated && !authLoading) {
+    console.log('Login: Auth state check - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
+    
+    // Mark initial load as complete after a short delay or when auth loading finishes
+    const timer = setTimeout(() => {
+      setInitialLoadComplete(true);
+    }, 1000);
+
+    if (!authLoading) {
+      setInitialLoadComplete(true);
+      clearTimeout(timer);
+    }
+
+    return () => clearTimeout(timer);
+  }, [authLoading]);
+
+  // Redirect if authenticated after initial load is complete
+  useEffect(() => {
+    if (initialLoadComplete && isAuthenticated && !authLoading) {
       console.log('Login: User is authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, initialLoadComplete, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +59,6 @@ const Login: React.FC = () => {
       await login(formData.email, formData.password);
       console.log('Login: Login successful');
       toast.success('Login realizado com sucesso!');
-      // Navigation will be handled by useEffect when isAuthenticated changes
     } catch (error: any) {
       console.error('Login: Login failed:', error);
       const errorMessage = error.message || 'Erro ao fazer login';
@@ -59,12 +75,27 @@ const Login: React.FC = () => {
     }));
   };
 
-  // Show loading screen while checking authentication state initially
-  if (authLoading) {
-    console.log('Login: Auth is loading, showing loading screen');
+  // Show loading screen only during initial auth check
+  if (!initialLoadComplete) {
+    console.log('Login: Initial loading, showing loading screen');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is already authenticated, show a brief loading message
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Redirecionando...</p>
+        </div>
       </div>
     );
   }
@@ -87,6 +118,7 @@ const Login: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                placeholder="Digite seu email"
               />
             </div>
             
@@ -100,6 +132,7 @@ const Login: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                placeholder="Digite sua senha"
               />
             </div>
 

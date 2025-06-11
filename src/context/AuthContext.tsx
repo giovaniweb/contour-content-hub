@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -28,24 +29,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    console.log('AuthProvider: Setting up auth state listener');
+    console.log('AuthProvider: Initializing authentication');
 
-    const setupAuth = async () => {
+    const initializeAuth = async () => {
       try {
-        // Set up auth state listener
+        // First, set up the auth state listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
-            console.log('AuthProvider: Auth state changed:', { 
-              event, 
-              sessionExists: !!session, 
-              userId: session?.user?.id 
-            });
+            console.log('AuthProvider: Auth state changed:', event, !!session);
             
             if (session?.user) {
-              console.log('AuthProvider: Session found, fetching user profile for:', session.user.id);
-              
               try {
                 const userProfile = await fetchUserProfile(session.user.id);
                 
@@ -61,7 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setIsAuthenticated(false);
                     setError('Perfil do usuário não encontrado');
                   }
-                  setIsLoading(false);
                 }
               } catch (error) {
                 console.error('AuthProvider: Error fetching user profile:', error);
@@ -69,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   setUser(null);
                   setIsAuthenticated(false);
                   setError('Erro ao carregar perfil do usuário');
-                  setIsLoading(false);
                 }
               }
             } else {
@@ -78,8 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(null);
                 setIsAuthenticated(false);
                 setError(null);
-                setIsLoading(false);
               }
+            }
+            
+            // Always set loading to false after processing auth state change
+            if (mounted) {
+              setIsLoading(false);
             }
           }
         );
@@ -102,32 +99,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) {
           if (session?.user) {
             console.log('AuthProvider: Initial session found for user:', session.user.id);
-            try {
-              const userProfile = await fetchUserProfile(session.user.id);
-              if (userProfile) {
-                console.log('AuthProvider: Initial user profile loaded');
-                setUser(userProfile);
-                setIsAuthenticated(true);
-                setError(null);
-              } else {
-                console.log('AuthProvider: No initial user profile found');
-                setUser(null);
-                setIsAuthenticated(false);
-                setError('Perfil do usuário não encontrado');
-              }
-            } catch (error) {
-              console.error('AuthProvider: Error fetching initial user profile:', error);
-              setUser(null);
-              setIsAuthenticated(false);
-              setError('Erro ao carregar perfil do usuário');
-            }
+            // Don't fetch profile here, let the auth state change handler do it
+            // Just set loading to false if there's a session
+            setIsLoading(false);
           } else {
             console.log('AuthProvider: No initial session found');
             setUser(null);
             setIsAuthenticated(false);
             setError(null);
+            setIsLoading(false);
           }
-          setIsLoading(false);
         }
 
         return () => {
@@ -145,11 +126,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    setupAuth();
+    initializeAuth();
+
+    // Add timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn('AuthProvider: Timeout reached, forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 5000); // 5 second timeout
 
     return () => {
       console.log('AuthProvider: Component unmounting');
       mounted = false;
+      clearTimeout(timeout);
     };
   }, []);
 

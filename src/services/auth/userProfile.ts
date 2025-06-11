@@ -28,7 +28,14 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
 
     if (error) {
       console.error('fetchUserProfile: Database error:', error);
-      return null;
+      
+      // If no profile found, this might be a new user - handle gracefully
+      if (error.code === 'PGRST116') {
+        console.log('fetchUserProfile: No profile found, user might need to complete registration');
+        return null;
+      }
+      
+      throw error;
     }
 
     if (!data) {
@@ -49,15 +56,15 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       equipamentos: data.equipamentos,
       idioma: (data.idioma as 'PT' | 'EN' | 'ES') || 'PT',
       profilePhotoUrl: data.foto_url || undefined,
-      created_at: data.data_criacao, // Corrigido: usando data_criacao da tabela
-      updated_at: data.data_criacao  // Usando data_criacao para ambos já que não há updated_at
+      created_at: data.data_criacao,
+      updated_at: data.data_criacao
     };
 
     console.log('fetchUserProfile: Mapped user profile:', userProfile);
     return userProfile;
   } catch (error) {
     console.error('fetchUserProfile: Unexpected error:', error);
-    return null;
+    throw error;
   }
 };
 
