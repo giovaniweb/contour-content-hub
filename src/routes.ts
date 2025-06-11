@@ -1,4 +1,5 @@
 
+
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
@@ -29,7 +30,7 @@ export const ROUTES = {
     SWIPE: '/videos/swipe'
   },
 
-  EQUIPMENT: {
+  EQUIPMENTS: {
     LIST: '/equipments',
     DETAILS: (id: string = ':id') => `/equipments/${id}`
   },
@@ -67,3 +68,4 @@ export const ROUTES = {
 
   ADMIN_VIDEOS: '/admin/videos'
 } as const;
+

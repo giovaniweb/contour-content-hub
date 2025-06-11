@@ -35,7 +35,7 @@ export const sidebarData = [
       { name: "Artes", icon: Palette, path: "/arts", highlight: false },
       { name: "Artigo científico", icon: BookOpen, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
       { name: "Planejador", icon: Calendar, path: "/content-planner", highlight: false },
-      { name: "Equipamentos", icon: Wrench, path: "/equipments", highlight: false }
+      { name: "Equipamentos", icon: Wrench, path: ROUTES.EQUIPMENTS.LIST, highlight: false }
     ]
   }
 ];
@@ -51,3 +51,4 @@ export const adminItems = [
   { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS, highlight: false },
   { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS, highlight: false }
 ];
+
