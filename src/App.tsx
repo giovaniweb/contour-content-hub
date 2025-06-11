@@ -26,7 +26,7 @@ function App() {
             <Toaster />
             <BrowserRouter>
               <Routes>
-                {/* Public routes */}
+                {/* Public routes - these should be accessible without auth */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

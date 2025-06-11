@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -29,51 +28,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    console.log('AuthProvider: Setting up auth state listener');
 
     const setupAuth = async () => {
       try {
-        // Get initial session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          if (session?.user) {
-            const userProfile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              setUser(userProfile);
-              setIsAuthenticated(true);
-            }
-          } else {
-            setUser(null);
-            setIsAuthenticated(false);
-          }
-          setIsLoading(false);
-        }
-
-        // Set up auth state listener
+        // Set up auth state listener first
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
-            console.log('Auth state changed:', { event, session: !!session });
+            console.log('AuthProvider: Auth state changed:', { event, session: !!session, userId: session?.user?.id });
             
             if (session?.user) {
               try {
+                console.log('AuthProvider: Fetching user profile for:', session.user.id);
                 const userProfile = await fetchUserProfile(session.user.id);
-                if (mounted) {
+                
+                if (mounted && userProfile) {
+                  console.log('AuthProvider: User profile loaded:', userProfile);
                   setUser(userProfile);
                   setIsAuthenticated(true);
+                  setError(null);
+                } else {
+                  console.error('AuthProvider: No user profile found for authenticated user');
+                  if (mounted) {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                    setError('Perfil do usuário não encontrado');
+                  }
                 }
               } catch (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('AuthProvider: Error fetching user profile:', error);
                 if (mounted) {
                   setUser(null);
                   setIsAuthenticated(false);
+                  setError('Erro ao carregar perfil do usuário');
                 }
               }
             } else {
+              console.log('AuthProvider: No session, user is not authenticated');
               if (mounted) {
                 setUser(null);
                 setIsAuthenticated(false);
+                setError(null);
               }
             }
             
@@ -83,15 +80,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         );
 
+        // Then check the initial session
+        console.log('AuthProvider: Checking initial session');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (session?.user) {
+            console.log('AuthProvider: Initial session found:', session.user.id);
+            try {
+              const userProfile = await fetchUserProfile(session.user.id);
+              if (userProfile) {
+                console.log('AuthProvider: Initial user profile loaded:', userProfile);
+                setUser(userProfile);
+                setIsAuthenticated(true);
+                setError(null);
+              } else {
+                console.error('AuthProvider: No initial user profile found');
+                setUser(null);
+                setIsAuthenticated(false);
+                setError('Perfil do usuário não encontrado');
+              }
+            } catch (error) {
+              console.error('AuthProvider: Error fetching initial user profile:', error);
+              setUser(null);
+              setIsAuthenticated(false);
+              setError('Erro ao carregar perfil do usuário');
+            }
+          } else {
+            console.log('AuthProvider: No initial session found');
+            setUser(null);
+            setIsAuthenticated(false);
+            setError(null);
+          }
+          setIsLoading(false);
+        }
+
         return () => {
+          console.log('AuthProvider: Cleaning up auth subscription');
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('Error setting up auth:', error);
+        console.error('AuthProvider: Error setting up auth:', error);
         if (mounted) {
           setUser(null);
           setIsAuthenticated(false);
           setIsLoading(false);
+          setError('Erro ao configurar autenticação');
         }
       }
     };
@@ -99,24 +133,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setupAuth();
 
     return () => {
+      console.log('AuthProvider: Component unmounting');
       mounted = false;
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('AuthProvider: Login attempt for email:', email);
       setError(null);
       setIsLoading(true);
+      
       const { data, error } = await loginWithEmailAndPassword(email, password);
       
-      if (error) throw error;
+      if (error) {
+        console.error('AuthProvider: Login error:', error);
+        throw error;
+      }
       
+      console.log('AuthProvider: Login successful, session will be handled by auth state change');
       // User profile will be set by the auth state change handler
       return;
     } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Error logging in');
-      throw error;
+      console.error('AuthProvider: Login error:', error);
+      const errorMessage = error.message || 'Erro ao fazer login';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -124,11 +166,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log('AuthProvider: Logout attempt');
       setError(null);
       await logoutUser();
+      console.log('AuthProvider: Logout successful');
     } catch (error: any) {
-      console.error('Logout error:', error);
-      setError(error.message || 'Error logging out');
+      console.error('AuthProvider: Logout error:', error);
+      setError(error.message || 'Erro ao fazer logout');
       throw error;
     }
   };
@@ -244,3 +288,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthProvider;

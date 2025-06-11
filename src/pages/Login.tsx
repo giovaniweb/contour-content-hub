@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,23 +10,43 @@ import { toast } from 'sonner';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    console.log('Login: Auth state changed - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
+    if (isAuthenticated && !authLoading) {
+      console.log('Login: User is authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login: Form submitted with email:', formData.email);
+    
+    if (!formData.email || !formData.password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      console.log('Login: Attempting login...');
       await login(formData.email, formData.password);
+      console.log('Login: Login successful');
       toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      // Navigation will be handled by useEffect when isAuthenticated changes
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login');
+      console.error('Login: Login failed:', error);
+      const errorMessage = error.message || 'Erro ao fazer login';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +58,15 @@ const Login: React.FC = () => {
       [e.target.name]: e.target.value
     }));
   };
+
+  // Show loading screen while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -56,6 +85,7 @@ const Login: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -68,10 +98,11 @@ const Login: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
