@@ -196,92 +196,6 @@
   opacity: 0.4;
 }
 
-/* Aurora Typography Classes - Missing Classes Added */
-.aurora-heading {
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-weight: 300;
-  letter-spacing: 1.5px;
-  line-height: 1.2;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-}
-
-.aurora-body {
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-}
-
-.aurora-accent {
-  color: #c4b5fd;
-  text-shadow: 0 0 6px rgba(196, 181, 253, 0.4);
-  font-weight: 500;
-}
-
-.aurora-electric-purple {
-  color: #8b5cf6;
-  text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
-}
-
-.aurora-neon-blue {
-  color: #3b82f6;
-  text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
-}
-
-.aurora-mint-green {
-  color: #10b981;
-  text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-}
-
-.aurora-subtitle {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 1.1rem;
-  font-weight: 300;
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
-}
-
-/* Animation Classes - Missing Classes Added */
-.aurora-pulse {
-  animation: aurora-pulse 2s ease-in-out infinite;
-}
-
-.aurora-float {
-  animation: aurora-float 8s ease-in-out infinite;
-}
-
-.aurora-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  background-size: 200% 100%;
-  animation: aurora-shimmer 2s infinite;
-}
-
-.aurora-wave-effect {
-  animation: aurora-wave 10s ease-in-out infinite;
-}
-
-.aurora-glow {
-  box-shadow: var(--aurora-glow-purple);
-}
-
-.aurora-glow-blue {
-  box-shadow: var(--aurora-glow-blue);
-}
-
-.aurora-glow-emerald {
-  box-shadow: var(--aurora-glow-emerald);
-}
-
-.aurora-glow-intense {
-  animation: aurora-glow-pulse 3s infinite;
-}
-
 /* Aurora Particles - Enhanced */
 .aurora-particles {
   position: fixed;
@@ -315,11 +229,131 @@
   height: 3px;
 }
 
-/* Aurora Focus States - Enhanced */
-.aurora-focus:focus-visible {
-  outline: 2px solid var(--aurora-electric-purple);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.3);
+/* Aurora Specific Components - Dark Theme */
+.aurora-command-palette {
+  background: rgba(26, 11, 46, 0.15);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(107, 70, 193, 0.25);
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px rgba(0, 5, 17, 0.4),
+    0 0 0 1px rgba(59, 130, 246, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora-command-palette::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: var(--aurora-gradient-primary);
+  animation: aurora-shimmer 4s infinite;
+}
+
+.aurora-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.aurora-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Emotional Rating System - Dark Theme */
+.aurora-emotion-scale {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  background: rgba(26, 11, 46, 0.2);
+  border-radius: 50px;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(107, 70, 193, 0.2);
+}
+
+.aurora-emotion-point {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aurora-emotion-point:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px currentColor;
+}
+
+.aurora-emotion-point.active {
+  animation: aurora-pulse 2s infinite;
+  box-shadow: 0 0 30px currentColor;
+}
+
+/* Aurora Success Confetti - Enhanced */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.aurora-confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 1000;
+  animation: confetti-fall 4s linear;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Responsive Aurora - Enhanced for dark theme */
+@media (max-width: 768px) {
+  .aurora-card {
+    border-radius: 16px;
+  }
+  
+  .aurora-command-palette {
+    border-radius: 20px;
+  }
+  
+  .aurora-particles {
+    display: block; /* Keep particles on mobile for dark theme effect */
+  }
+  
+  .aurora-particle {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* Aurora Typography - Enhanced for dark theme */
+.aurora-heading {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 300;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.aurora-body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* Aurora Loading States - Enhanced */
@@ -329,63 +363,22 @@
   animation: aurora-shimmer 2s infinite;
 }
 
-/* Background Color Classes */
-.aurora-bg-deep-purple {
-  background-color: var(--aurora-deep-purple);
+/* Aurora Focus States - Enhanced */
+.aurora-focus:focus-visible {
+  outline: 2px solid var(--aurora-electric-purple);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.3);
 }
 
-.aurora-bg-electric-purple {
-  background-color: var(--aurora-electric-purple);
+/* Special Aurora Effects */
+.aurora-glow-intense {
+  animation: aurora-glow-pulse 3s infinite;
 }
 
-.aurora-bg-neon-blue {
-  background-color: var(--aurora-neon-blue);
+.aurora-floating {
+  animation: aurora-float 8s ease-in-out infinite;
 }
 
-/* Text Color Classes with Shadows */
-.aurora-text-white {
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-}
-
-.aurora-text-light {
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.15);
-}
-
-/* Responsive Aurora - Enhanced for dark theme */
-@media (max-width: 768px) {
-  .aurora-card {
-    border-radius: 16px;
-  }
-  
-  .aurora-heading {
-    font-size: 1.75rem;
-  }
-  
-  .aurora-particles {
-    display: block;
-  }
-  
-  .aurora-particle {
-    width: 3px;
-    height: 3px;
-  }
-}
-
-/* Additional Utility Classes */
-.aurora-border {
-  border: 1px solid rgba(107, 70, 193, 0.3);
-}
-
-.aurora-border-hover:hover {
-  border-color: rgba(107, 70, 193, 0.5);
-}
-
-.aurora-shadow {
-  box-shadow: var(--aurora-shadow-glass);
-}
-
-.aurora-shadow-hover:hover {
-  box-shadow: var(--aurora-shadow-floating);
+.aurora-wave-effect {
+  animation: aurora-wave 10s ease-in-out infinite;
 }

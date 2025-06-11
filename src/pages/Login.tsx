@@ -1,135 +1,137 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 const Login: React.FC = () => {
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  // Redireciona se já estiver autenticado
-  useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      console.log('Login: Usuário autenticado, redirecionando');
-      navigate('/dashboard', { replace: true });
+  // Redirect if already authenticated and on login page
+  React.useEffect(() => {
+    if (isAuthenticated && location.pathname === '/login') {
+      navigate('/dashboard');
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  const getErrorMessage = (error: any) => {
+    if (error?.message) {
+      switch (error.message) {
+        case 'Invalid login credentials':
+          return 'Email ou senha incorretos. Verifique seus dados e tente novamente.';
+        case 'Email not confirmed':
+          return 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email.';
+        case 'Too many requests':
+          return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+        case 'User not found':
+          return 'Usuário não encontrado. Verifique o email ou crie uma nova conta.';
+        default:
+          return `Erro ao fazer login: ${error.message}`;
+      }
+    }
+    return 'Erro desconhecido ao fazer login. Tente novamente.';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password) {
+    if (!email || !password) {
       toast.error('Por favor, preencha todos os campos');
       return;
     }
 
-    setIsLoading(true);
+    if (!email.includes('@')) {
+      toast.error('Por favor, insira um email válido');
+      return;
+    }
 
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      await login(formData.email, formData.password);
-      toast.success('Login realizado com sucesso!');
+      await login(email, password);
+      toast.success('Login realizado com sucesso');
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error('Login: Erro:', error);
-      toast.error(error.message || 'Erro ao fazer login');
+      console.error('Erro ao fazer login:', error);
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  // Loading inicial
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Verificando autenticação...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Se já autenticado, mostrar loading de redirecionamento
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Redirecionando...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Entrar</CardTitle>
+        <CardHeader>
+          <CardTitle className="text-3xl font-light">Login</CardTitle>
+          <CardDescription>Entre com sua conta para acessar o sistema</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com" 
+                required 
                 disabled={isLoading}
-                placeholder="Digite seu email"
+                autoComplete="email"
               />
             </div>
-            
-            <div>
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                name="password"
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium">Senha</label>
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                  Esqueceu a senha?
+                </Link>
+              </div>
+              <Input 
+                id="password" 
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="••••••••" 
+                required 
                 disabled={isLoading}
-                placeholder="Digite sua senha"
+                autoComplete="current-password"
               />
             </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Entrando...' : 'Entrar'}
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "Autenticando..." : "Entrar"}
             </Button>
-          </form>
-
-          <div className="mt-4 text-center space-y-2">
-            <Link to="/reset-password" className="text-sm text-primary hover:underline">
-              Esqueceu sua senha?
-            </Link>
-            <div>
-              <span className="text-sm text-muted-foreground">Não tem uma conta? </span>
-              <Link to="/register" className="text-sm text-primary hover:underline">
+            <div className="text-center text-sm">
+              Não tem uma conta?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
                 Registre-se
               </Link>
             </div>
-          </div>
-        </CardContent>
+            <div className="text-center text-xs text-gray-600 bg-yellow-50 p-2 rounded">
+              💡 <strong>Dica:</strong> Se você não tem uma conta, clique em "Registre-se" para criar uma nova conta.
+            </div>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );

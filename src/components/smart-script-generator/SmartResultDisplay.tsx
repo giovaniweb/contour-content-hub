@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, Camera, Volume2, Calendar, Sparkles, CheckCircle, RotateCcw } from "lucide-react";
 import { SmartGenerationResult } from '@/pages/ScriptGeneratorPage/useSmartScriptGeneration';
 import { useToast } from "@/hooks/use-toast";
-import FluiAEncantadorSection from '@/components/script-generator/FluiAEncantadorSection';
 
 interface SmartResultDisplayProps {
   generationResult: SmartGenerationResult;
@@ -32,13 +31,6 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
   isProcessing
 }) => {
   const { toast } = useToast();
-
-  console.log('🎭 SmartResultDisplay - Props:', {
-    isApproved,
-    isDisneyApplied,
-    isProcessing,
-    mentor: generationResult.mentor
-  });
 
   const handleCopyScript = () => {
     navigator.clipboard.writeText(generationResult.content);
@@ -107,25 +99,38 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* FluiA Encantador - SEMPRE aparece se aprovado e não aplicou Disney ainda */}
-      {isApproved && !isDisneyApplied && (
-        <FluiAEncantadorSection
-          onActivate={onApplyDisney}
-          isActive={false}
-          isProcessing={isProcessing}
-        />
+      {/* Ações de aprovação e transformação */}
+      {!isApproved && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-semibold">Aprove ou Transforme seu Roteiro</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={onApplyDisney}
+                  variant="outline"
+                  disabled={isProcessing}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  ✨ Encantar com Fluida
+                </Button>
+                
+                <Button 
+                  onClick={onApproveScript}
+                  disabled={isProcessing}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  ✅ Aprovar Roteiro
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Confirmação Disney ativado */}
-      {isApproved && isDisneyApplied && (
-        <FluiAEncantadorSection
-          onActivate={() => {}}
-          isActive={true}
-          isProcessing={false}
-        />
-      )}
-
-      {/* Ações pós-aprovação - SEMPRE mostrar se aprovado */}
+      {/* Ações pós-aprovação */}
       {isApproved && (
         <Card>
           <CardContent className="p-6">
@@ -177,6 +182,20 @@ const SmartResultDisplay: React.FC<SmartResultDisplayProps> = ({
                   Novo Roteiro
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Informações sobre transformação Disney */}
+      {isDisneyApplied && (
+        <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-purple-700">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                ✨ Transformado com a Magia Disney 1928 - Walt Disney aplicou técnicas de storytelling encantador!
+              </span>
             </div>
           </CardContent>
         </Card>

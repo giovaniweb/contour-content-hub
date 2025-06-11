@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Wand2 } from 'lucide-react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { useClinicSegmentation } from '@/hooks/useClinicSegmentation';
 import { useFluidaRoteirista } from '@/hooks/useFluidaRoteirista';
@@ -19,8 +19,8 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   const [tema, setTema] = useState('');
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const [formato, setFormato] = useState<'carrossel' | 'stories' | 'imagem'>('carrossel');
-  const [objetivo, setObjetivo] = useState('atrair');
-  const [selectedMentor, setSelectedMentor] = useState<string | null>(null);
+  const [objetivo, setObjetivo] = useState('🟡 Atrair Atenção');
+  const [mentor, setMentor] = useState('Criativo');
 
   const { equipments, loading: equipmentsLoading } = useEquipments();
   const { clinicType, allowedEquipments, recommendation, hasInvasiveEquipments } = 
@@ -42,14 +42,11 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
       equipments.find(eq => eq.id === id)?.nome || id
     );
 
-    // Determinar mentor: usar selecionado ou deixar sistema inferir
-    const mentorToUse = selectedMentor || 'auto'; // 'auto' indica inferência automática
-
     await generateFluidaScript({
       tema,
       equipamentos: equipmentNames,
       objetivo,
-      mentor: mentorToUse,
+      mentor,
       formato
     });
   };
@@ -65,8 +62,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
 
   // Mostrar loading durante geração
   if (isGenerating) {
-    const displayMentor = selectedMentor || 'inteligente';
-    return <AuroraLoadingScreen isLoading={true} mentor={displayMentor} />;
+    return <AuroraLoadingScreen isLoading={true} mentor={mentor.toLowerCase()} />;
   }
 
   // Mostrar resultados se houver
@@ -82,36 +78,50 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   }
 
   return (
-    <div className="relative z-10 space-y-6">
-      <EquipmentValidationAlert
-        clinicType={clinicType}
-        selectedEquipments={selectedEquipments}
-        recommendation={recommendation}
-        hasInvasiveEquipments={hasInvasiveEquipments}
-      />
+    <div className="min-h-screen aurora-gradient-bg aurora-particles">
+      <div className="relative z-10 space-y-8 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="aurora-heading text-4xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Wand2 className="h-10 w-10 aurora-electric-purple aurora-float" />
+            FLUIDAROTEIRISTA
+          </h1>
+          <p className="aurora-body text-xl">
+            Roteiros criativos e impactantes para clínicas estéticas e médicas
+          </p>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="max-w-4xl mx-auto"
-      >
-        <ScriptGeneratorForm
-          tema={tema}
-          onTemaChange={setTema}
-          formato={formato}
-          onFormatoChange={setFormato}
-          objetivo={objetivo}
-          onObjetivoChange={setObjetivo}
+        <EquipmentValidationAlert
+          clinicType={clinicType}
           selectedEquipments={selectedEquipments}
-          onEquipmentChange={handleEquipmentChange}
-          allowedEquipments={allowedEquipments}
-          selectedMentor={selectedMentor}
-          onMentorChange={setSelectedMentor}
-          onGenerate={handleGenerate}
-          isGenerating={isGenerating}
+          recommendation={recommendation}
+          hasInvasiveEquipments={hasInvasiveEquipments}
         />
-      </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-4xl mx-auto"
+        >
+          <ScriptGeneratorForm
+            tema={tema}
+            onTemaChange={setTema}
+            formato={formato}
+            onFormatoChange={setFormato}
+            objetivo={objetivo}
+            onObjetivoChange={setObjetivo}
+            selectedEquipments={selectedEquipments}
+            onEquipmentChange={handleEquipmentChange}
+            allowedEquipments={allowedEquipments}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 };

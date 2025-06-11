@@ -6,9 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wand2 } from 'lucide-react';
 import FormatsSelector from './FormatsSelector';
-import ScriptObjectiveSelector from './ScriptObjectiveSelector';
+import ObjectiveSelector from './ObjectiveSelector';
 import EquipmentsList from './EquipmentsList';
-import MentorSelector from './MentorSelector';
 
 interface Equipment {
   id: string;
@@ -25,8 +24,6 @@ interface ScriptGeneratorFormProps {
   selectedEquipments: string[];
   onEquipmentChange: (equipmentId: string) => void;
   allowedEquipments: Equipment[];
-  selectedMentor: string | null;
-  onMentorChange: (mentorId: string | null) => void;
   onGenerate: () => void;
   isGenerating: boolean;
 }
@@ -41,8 +38,6 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
   selectedEquipments,
   onEquipmentChange,
   allowedEquipments,
-  selectedMentor,
-  onMentorChange,
   onGenerate,
   isGenerating
 }) => {
@@ -51,8 +46,8 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
       {/* Efeito Aurora de fundo */}
       <div className="absolute inset-0 aurora-gradient-bg opacity-5 pointer-events-none" />
       
-      <CardHeader className="relative z-10 pb-4">
-        <CardTitle className="aurora-text-gradient text-2xl text-center">
+      <CardHeader className="relative z-10">
+        <CardTitle className="aurora-text-gradient text-2xl">
           Configuração do Roteiro
         </CardTitle>
       </CardHeader>
@@ -68,7 +63,7 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
             value={tema}
             onChange={(e) => onTemaChange(e.target.value)}
             placeholder="Ex: Tratamento para manchas faciais com laser"
-            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm text-white placeholder:text-white/50 bg-black/20"
+            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm"
           />
         </div>
 
@@ -78,16 +73,10 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
           onFormatChange={onFormatoChange}
         />
 
-        {/* Objetivo do Roteiro */}
-        <ScriptObjectiveSelector
+        {/* Objetivo */}
+        <ObjectiveSelector
           selectedObjective={objetivo}
           onObjectiveChange={onObjetivoChange}
-        />
-
-        {/* Seletor de Mentores */}
-        <MentorSelector
-          selectedMentor={selectedMentor}
-          onMentorChange={onMentorChange}
         />
 
         {/* Equipamentos */}
@@ -105,7 +94,7 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
           size="lg"
         >
           <Wand2 className="h-5 w-5 mr-3 aurora-pulse" />
-          {isGenerating ? 'Gerando Roteiro...' : 'Gerar Roteiro FLUIDA'}
+          Gerar Roteiro FLUIDA
         </Button>
       </CardContent>
     </Card>

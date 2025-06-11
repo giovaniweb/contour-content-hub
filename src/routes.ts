@@ -1,92 +1,65 @@
+
 export const ROUTES = {
   HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
   DASHBOARD: '/dashboard',
+  PROFILE: '/profile',
+  WORKSPACE_SETTINGS: '/workspace-settings',
+  
   CONTENT: {
     SCRIPTS: {
       ROOT: '/content/scripts',
-      LIST: '/content/scripts',
-      GENERATOR: '/content/scripts/generator',
-      FLUIA_AKINATOR: '/content/scripts/fluia-akinator',
-      HISTORY: '/content/scripts/history',
-      VALIDATION: '/content/scripts/validation'
+      GENERATOR: '/script-generator',
+      VALIDATION: '/script-validation'
     },
-    ARTICLES: {
-      LIST: '/content/articles',
-      CREATE: '/content/articles/create',
-      EDIT: '/content/articles/edit',
-    },
-    EMAILS: {
-      LIST: '/content/emails',
-      CREATE: '/content/emails/create',
-      EDIT: '/content/emails/edit',
-    },
-    PLANNER: '/content/planner',
-    IDEAS: '/content/ideas',
-    STRATEGY: '/content/strategy',
-    CALENDAR: '/content/calendar'
+    PLANNER: '/content-planner',
+    IDEAS: '/content-ideas',
+    STRATEGY: '/content-strategy',
+    CALENDAR: '/calendar'
   },
+  
   VIDEOS: {
     ROOT: '/videos',
-    PLAYER: '/videos/player',
-    IMPORT: '/videos/import',
     CREATE: '/videos/create',
+    PLAYER: '/video-player',
     STORAGE: '/videos/storage',
-    BATCH: '/videos/batch'
+    BATCH: '/videos/batch',
+    IMPORT: '/videos/import',
+    SWIPE: '/videos/swipe'
   },
-  AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
-  },
-  LOGIN: '/login',
-  REGISTER: '/register',
-  PROFILE: '/profile',
-  SETTINGS: '/settings',
-  PLANS: '/plans',
-  PAYMENT: '/payment',
-  CUSTOMERS: '/customers',
-  TEMPLATES: '/templates',
-  FAQ: '/faq',
-  CONTACT: '/contact',
-  TERMS: '/terms',
-  PRIVACY: '/privacy',
-  PRICING: '/pricing',
-  FEATURES: '/features',
-  JOBS: '/jobs',
-  SERVICES: '/services',
-  ABOUT: '/about',
-  SUPPORT: '/support',
-  BLOG: '/blog',
-  CAREERS: '/careers',
-  COMING_SOON: '/coming-soon',
-  NOT_FOUND: '/404',
-  SCIENTIFIC_ARTICLES: '/scientific-articles',
-  MEDIA: '/media',
-  WORKSPACE_SETTINGS: '/workspace/settings',
+
   EQUIPMENT: {
-    LIST: '/equipment',
-    DETAILS: '/equipment/details'
+    LIST: '/equipments',
+    DETAILS: (id: string = ':id') => `/equipment/${id}`
   },
-  ADMIN_VIDEOS: '/admin/videos',
+
+  MEDIA: '/media',
+  SCIENTIFIC_ARTICLES: '/scientific-articles',
+  
   MARKETING: {
-    REPORTS: '/marketing/reports',
-    CONSULTANT: '/marketing/consultant'
+    CONSULTANT: '/marketing-consultant',
+    REPORTS: '/reports'
   },
+
   CONSULTANT: {
-    PANEL: '/consultant/panel'
+    PANEL: '/consultant-panel'
   },
+
   ADMIN: {
     ROOT: '/admin',
-    EQUIPMENT: '/admin/equipment',
+    EQUIPMENT: '/admin/equipments',
     CONTENT: '/admin/content',
     AI: '/admin/ai',
     SYSTEM: {
-      INTELLIGENCE: '/admin/system/intelligence',
-      DIAGNOSTICS: '/admin/system/diagnostics'
+      DIAGNOSTICS: '/admin/system-diagnostics',
+      INTELLIGENCE: '/admin/system-intelligence'
     },
     VIMEO: {
-      SETTINGS: '/admin/vimeo/settings'
-    }
-  }
+      SETTINGS: '/admin/vimeo-settings'
+    },
+    WORKSPACE: '/admin/workspace'
+  },
+
+  ADMIN_VIDEOS: '/admin/videos'
 } as const;

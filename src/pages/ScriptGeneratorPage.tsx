@@ -1,19 +1,20 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Layout from '@/components/Layout';
 import FluidaScriptGenerator from '@/components/script-generator/FluidaScriptGenerator';
 import SmartResultDisplay from '@/components/smart-script-generator/SmartResultDisplay';
+import ScriptGeneratorTest from '@/components/ScriptGeneratorTest';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Wand2, TestTube, Sparkles } from "lucide-react";
 import { useActionHandlers } from './ScriptGeneratorPage/actionHandlers';
 
 const ScriptGeneratorPage: React.FC = () => {
   const navigate = useNavigate();
   const [approvedScript, setApprovedScript] = useState<any>(null);
-  const {
-    handleGenerateImage,
-    handleGenerateVoice
-  } = useActionHandlers();
+  const { handleGenerateImage, handleGenerateVoice } = useActionHandlers();
 
   const handleGoBack = () => {
     navigate(-1);
@@ -26,23 +27,18 @@ const ScriptGeneratorPage: React.FC = () => {
 
   const handleApplyDisneyMagic = () => {
     if (!approvedScript) return;
-
-    console.log('✨ Aplicando magia Disney ao script:', approvedScript);
-
+    
     // Aplicar transformação Disney
     const disneyScript = {
       ...approvedScript,
-      roteiro: approvedScript.roteiro
-        .replace(/tratamento/g, 'jornada de transformação')
+      roteiro: approvedScript.roteiro.replace(/tratamento/g, 'jornada de transformação')
         .replace(/procedimento/g, 'ritual de beleza')
         .replace(/resultado/g, 'metamorfose')
         .replace(/cliente/g, 'pessoa especial'),
       emocao_central: 'encantamento',
-      mentor: 'Fluida Encantadora',
-      disney_applied: true
+      mentor: 'Fluida Encantadora'
     };
     
-    console.log('✨ Script transformado:', disneyScript);
     setApprovedScript(disneyScript);
   };
 
@@ -51,78 +47,70 @@ const ScriptGeneratorPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen aurora-dark-bg relative overflow-hidden">
-      {/* Aurora Particles Background */}
-      <div className="aurora-particles">
-        {Array.from({ length: 20 }, (_, i) => (
-          <div 
-            key={i} 
-            className="aurora-particle" 
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 10}s`,
-              animationDuration: `${15 + Math.random() * 10}s`
-            }} 
-          />
-        ))}
-      </div>
-
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Header com botão voltar */}
-        <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={handleGoBack} 
-            className="mb-6 aurora-glass border-purple-300/30 hover:border-purple-400/50 aurora-body text-white/90 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          
-          <div className="text-center">
-            <h1 className="aurora-text-gradient text-4xl font-bold mb-4 flex items-center justify-center gap-3 relative z-10 text-slate-50 aurora-glow">
-              <Wand2 className="h-10 w-10 text-purple-400 aurora-float aurora-glow" />
-              Gerador de Roteiros FLUIDA
-            </h1>
-            <p className="aurora-body text-xl text-white/85 relative z-10">
-              Roteiros criativos e impactantes com mentores especialistas
-            </p>
+    <Layout title="FLUIDAROTEIRISTA 🎬" fullWidth={false}>
+      <div className="min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={handleGoBack}
+              className="mb-4"
+            >
+              ← Voltar
+            </Button>
           </div>
+
+          {/* Resultado final com ações */}
+          {approvedScript ? (
+            <SmartResultDisplay
+              generationResult={{
+                content: approvedScript.roteiro,
+                mentor: approvedScript.mentor,
+                enigma: `Roteiro ${approvedScript.formato} com emoção ${approvedScript.emocao_central}`,
+                intention: {
+                  tema: approvedScript.objetivo,
+                  tipo_conteudo: approvedScript.formato,
+                  objetivo: approvedScript.intencao,
+                  mentor_inferido: approvedScript.mentor,
+                  enigma_mentor: approvedScript.emocao_central,
+                  canal: 'instagram_feed', // Valor padrão obrigatório
+                  estilo_comunicacao: 'criativo' // Valor padrão obrigatório
+                }
+              }}
+              onGenerateImage={handleGenerateImage}
+              onGenerateVoice={handleGenerateVoice}
+              onNewScript={handleNewScript}
+              onApplyDisney={handleApplyDisneyMagic}
+              onApproveScript={() => {}}
+              isDisneyApplied={approvedScript.mentor === 'Fluida Encantadora'}
+              isApproved={true}
+              isProcessing={false}
+            />
+          ) : (
+            <Tabs defaultValue="fluidaroteirista" className="max-w-4xl mx-auto">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4" />
+                  FLUIDAROTEIRISTA
+                </TabsTrigger>
+                <TabsTrigger value="test" className="flex items-center gap-2">
+                  <TestTube className="h-4 w-4" />
+                  Teste OpenAI
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="fluidaroteirista" className="mt-6">
+                <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
+              </TabsContent>
+              
+              <TabsContent value="test" className="mt-6">
+                <ScriptGeneratorTest />
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
-
-        {/* Conteúdo principal - Resultado com ações ou Gerador */}
-        {approvedScript ? (
-          <SmartResultDisplay 
-            generationResult={{
-              content: approvedScript.roteiro,
-              mentor: approvedScript.mentor,
-              enigma: `Roteiro ${approvedScript.formato} com emoção ${approvedScript.emocao_central}`,
-              intention: {
-                tema: approvedScript.objetivo,
-                tipo_conteudo: approvedScript.formato,
-                objetivo: approvedScript.intencao,
-                mentor_inferido: approvedScript.mentor,
-                enigma_mentor: approvedScript.emocao_central,
-                canal: 'instagram_feed',
-                estilo_comunicacao: 'criativo'
-              }
-            }}
-            onGenerateImage={handleGenerateImage}
-            onGenerateVoice={handleGenerateVoice}
-            onNewScript={handleNewScript}
-            onApplyDisney={handleApplyDisneyMagic}
-            onApproveScript={() => {}}
-            isDisneyApplied={approvedScript.disney_applied || approvedScript.mentor === 'Fluida Encantadora'}
-            isApproved={true}
-            isProcessing={false}
-          />
-        ) : (
-          <div className="max-w-4xl mx-auto">
-            <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
-          </div>
-        )}
       </div>
-    </div>
+    </Layout>
   );
 };
 

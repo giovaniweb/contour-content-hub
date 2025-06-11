@@ -28,62 +28,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('AuthProvider: Inicializando');
-    
-    // Configurar listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('AuthProvider: Estado de auth mudou', { event, hasSession: !!session });
+    let mounted = true;
+
+    const setupAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          try {
+        if (mounted) {
+          if (session?.user) {
             const userProfile = await fetchUserProfile(session.user.id);
-            if (userProfile) {
+            if (mounted) {
               setUser(userProfile);
               setIsAuthenticated(true);
-              console.log('AuthProvider: Usuário autenticado com sucesso');
             }
-          } catch (error) {
-            console.error('AuthProvider: Erro ao buscar perfil:', error);
+          } else {
             setUser(null);
             setIsAuthenticated(false);
           }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    // Verificar sessão inicial
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
           setIsLoading(false);
         }
+
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+
+            console.log('Auth state changed:', { event, session: !!session });
+            
+            if (session?.user) {
+              try {
+                const userProfile = await fetchUserProfile(session.user.id);
+                if (mounted) {
+                  setUser(userProfile);
+                  setIsAuthenticated(true);
+                }
+              } catch (error) {
+                console.error('Error fetching user profile:', error);
+                if (mounted) {
+                  setUser(null);
+                  setIsAuthenticated(false);
+                }
+              }
+            } else {
+              if (mounted) {
+                setUser(null);
+                setIsAuthenticated(false);
+              }
+            }
+            
+            if (mounted) {
+              setIsLoading(false);
+            }
+          }
+        );
+
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        console.error('AuthProvider: Erro ao verificar sessão:', error);
-        setIsLoading(false);
+        console.error('Error setting up auth:', error);
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
       }
     };
 
-    checkSession();
+    setupAuth();
 
     return () => {
-      subscription.unsubscribe();
+      mounted = false;
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const { error } = await loginWithEmailAndPassword(email, password);
+      setIsLoading(true);
+      const { data, error } = await loginWithEmailAndPassword(email, password);
+      
       if (error) throw error;
+      
+      // User profile will be set by the auth state change handler
+      return;
     } catch (error: any) {
-      setError(error.message);
+      console.error('Login error:', error);
+      setError(error.message || 'Error logging in');
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,7 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       await logoutUser();
     } catch (error: any) {
-      setError(error.message);
+      console.error('Logout error:', error);
+      setError(error.message || 'Error logging out');
       throw error;
     }
   };
@@ -113,7 +149,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       await registerUserService(userData);
     } catch (error: any) {
-      setError(error.message);
+      console.error('Register error:', error);
+      setError(error.message || 'Error registering user');
       throw error;
     } finally {
       setIsLoading(false);
@@ -125,9 +162,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user?.id) throw new Error("User is not authenticated");
       
       await updateUserProfileService(user.id, data);
+      
+      // Update local user state with new data
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (error: any) {
-      setError(error.message);
+      console.error('Update user error:', error);
+      setError(error.message || 'Error updating user');
       throw error;
     }
   };
@@ -138,7 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await updateUserPasswordService(newPassword);
       return true;
     } catch (error: any) {
-      setError(error.message);
+      console.error('Update password error:', error);
+      setError(error.message || 'Error updating password');
       return false;
     }
   };
@@ -149,7 +190,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
     } catch (error: any) {
-      setError(error.message);
+      console.error('Reset password error:', error);
+      setError(error.message || 'Error resetting password');
       throw error;
     }
   };
@@ -167,7 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(false);
       }
     } catch (error: any) {
-      setError(error.message);
+      console.error('Refresh auth error:', error);
+      setError(error.message || 'Error refreshing authentication');
       throw error;
     }
   };
@@ -201,5 +244,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-export default AuthProvider;
