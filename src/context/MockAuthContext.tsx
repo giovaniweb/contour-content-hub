@@ -22,8 +22,7 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     id: '1',
     email: 'usuario@exemplo.com',
     nome: 'Usuário de Teste',
-    role: 'admin',
-    name: 'Usuário de Teste'
+    role: 'admin'
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -37,8 +36,7 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         id: '1',
         email: email,
         nome: 'Usuário Logado',
-        role: 'admin',
-        name: 'Usuário Logado'
+        role: 'admin'
       });
       setIsAuthenticated(true);
       setIsLoading(false);
@@ -58,8 +56,7 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         id: '1',
         email: userData.email,
         nome: userData.name || 'Novo Usuário',
-        role: 'admin',
-        name: userData.name || 'Novo Usuário'
+        role: 'admin'
       });
       setIsAuthenticated(true);
       setIsLoading(false);

@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/layout/AppSidebar';
+import Sidebar from '@/components/layout/Sidebar';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/MockAuthContext';
 import { ROUTES } from '@/routes';
 
 interface AppLayoutProps {
@@ -42,7 +42,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     <SidebarProvider>
       <div className="flex h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Sidebar */}
-        <AppSidebar />
+        <Sidebar />
         
         <div className="flex flex-col flex-1 overflow-hidden">
           <main className="flex-1 overflow-auto">
