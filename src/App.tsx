@@ -1,217 +1,88 @@
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
+import { useDispatch } from 'react-redux';
+import { fetchUser } from './store/userSlice';
+import './App.css';
+import './styles/aurora-design-system.css';
+import Home from './pages/Home';
+import Pricing from './pages/Pricing';
+import Contact from './pages/Contact';
+import About from './pages/About';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminEquipments from './pages/AdminEquipments';
+import EquipmentDetail from './pages/EquipmentDetail';
+import NotFound from './pages/NotFound';
+import AccessDenied from './pages/AccessDenied';
+import Loading from './pages/Loading';
+import ComingSoon from './pages/ComingSoon';
+import CreateEquipment from '@/pages/admin/CreateEquipment';
+import EditEquipment from '@/pages/admin/EditEquipment';
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from '@/context/AuthContext';
-import { ThemeProvider } from '@/components/theme-provider';
-import { SlideNotificationProvider } from '@/components/notifications/SlideNotificationProvider';
-import PrivateRoute from '@/components/PrivateRoute';
-import AdminRoute from '@/components/AdminRoute';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import AppLayout from '@/components/layout/AppLayout';
+// Define a type for the admin route check
+type AdminRouteProps = {
+  children: React.ReactNode;
+};
 
-// Pages
-import HomePage from '@/pages/HomePage';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import Dashboard from '@/pages/Dashboard';
-import ScriptGeneratorPage from '@/pages/ScriptGeneratorPage';
-import EquipmentsPage from '@/pages/EquipmentsPage';
-import EquipmentDetailsPage from '@/pages/EquipmentDetailsPage';
-import AdminEquipments from '@/pages/admin/AdminEquipments';
-import ContentStrategy from '@/pages/ContentStrategy';
-import ContentScripts from '@/pages/ContentScripts';
-import MarketingConsultant from '@/pages/MarketingConsultant';
-import DiagnosticHistory from '@/pages/DiagnosticHistory';
-import DiagnosticReport from '@/pages/DiagnosticReport';
-import ConsultantPanel from '@/pages/consultant/ConsultantPanel';
-import ReportsPage from '@/pages/ReportsPage';
-import PhotosPage from '@/pages/PhotosPage';
-import ArtsPage from '@/pages/ArtsPage';
-import VideosPage from '@/pages/VideosPage';
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import ContentPlannerPage from '@/pages/ContentPlannerPage';
+// AdminRoute component to protect admin-only routes
+const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+  const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
+  const dispatch = useDispatch();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-    },
-  },
-});
+  useEffect(() => {
+    if (isSignedIn && user) {
+      dispatch(fetchUser(user.id));
+    }
+  }, [dispatch, isSignedIn, user]);
+
+  if (!isLoaded) {
+    return <Loading />;
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Check if the user has a role and if it includes 'admin'
+  if (user && user.publicMetadata && typeof user.publicMetadata.role === 'string' && user.publicMetadata.role.includes('admin')) {
+    return <>{children}</>;
+  } else if (user && Array.isArray(user.publicMetadata.role) && user.publicMetadata.role.includes('admin')) {
+    return <>{children}</>;
+  } else {
+    return <Navigate to="/access-denied" replace />;
+  }
+};
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="fluida-ui-theme">
-        <TooltipProvider>
-          <AuthProvider>
-            <SlideNotificationProvider>
-              <Router>
-                <ErrorBoundary>
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    
-                    {/* Protected routes - All using AppLayout */}
-                    <Route path="/dashboard" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <Dashboard />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-                    
-                    <Route path="/script-generator" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ScriptGeneratorPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-                    
-                    <Route path="/equipments" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <EquipmentsPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-                    
-                    <Route path="/equipment/:id" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <EquipmentDetailsPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/equipments/:id" element={<EquipmentDetail />} />
+        <Route path="/access-denied" element={<AccessDenied />} />
+        <Route path="/loading" element={<Loading />} />
+        <Route path="/coming-soon" element={<ComingSoon />} />
 
-                    <Route path="/content-strategy" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ContentStrategy />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/scripts" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ContentScripts />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/content/scripts" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ContentScripts />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/marketing-consultant" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <MarketingConsultant />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/diagnostic-history" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <DiagnosticHistory />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/diagnostic-report/:sessionId" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <DiagnosticReport />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/reports" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ReportsPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/consultant-panel" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ConsultantPanel />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/photos" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <PhotosPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/arts" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ArtsPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/videos" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <VideosPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-
-                    <Route path="/content-planner" element={
-                      <PrivateRoute>
-                        <AppLayout>
-                          <ContentPlannerPage />
-                        </AppLayout>
-                      </PrivateRoute>
-                    } />
-                    
-                    {/* Admin routes */}
-                    <Route path="/admin" element={
-                      <AdminRoute>
-                        <AppLayout requireAdmin={true}>
-                          <AdminDashboard />
-                        </AppLayout>
-                      </AdminRoute>
-                    } />
-
-                    <Route path="/admin/equipments" element={
-                      <AdminRoute>
-                        <AppLayout requireAdmin={true}>
-                          <AdminEquipments />
-                        </AppLayout>
-                      </AdminRoute>
-                    } />
-                  </Routes>
-                  <Toaster />
-                </ErrorBoundary>
-              </Router>
-            </SlideNotificationProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+        {/* Admin Routes */}
+        <Route path="/admin/equipments" element={<AdminRoute><AdminEquipments /></AdminRoute>} />
+        <Route path="/admin/equipments/create" element={<AdminRoute><CreateEquipment /></AdminRoute>} />
+        <Route path="/admin/equipments/edit/:id" element={<AdminRoute><EditEquipment /></AdminRoute>} />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }
 
