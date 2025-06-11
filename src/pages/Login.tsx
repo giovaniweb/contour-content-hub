@@ -16,36 +16,15 @@ const Login: React.FC = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Handle initial load and authentication state
   useEffect(() => {
-    console.log('Login: Auth state check - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
-    
-    // Mark initial load as complete after a short delay or when auth loading finishes
-    const timer = setTimeout(() => {
-      setInitialLoadComplete(true);
-    }, 1000);
-
-    if (!authLoading) {
-      setInitialLoadComplete(true);
-      clearTimeout(timer);
-    }
-
-    return () => clearTimeout(timer);
-  }, [authLoading]);
-
-  // Redirect if authenticated after initial load is complete
-  useEffect(() => {
-    if (initialLoadComplete && isAuthenticated && !authLoading) {
-      console.log('Login: User is authenticated, redirecting to dashboard');
+    if (isAuthenticated && !authLoading) {
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, authLoading, initialLoadComplete, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login: Form submitted with email:', formData.email);
     
     if (!formData.email || !formData.password) {
       toast.error('Por favor, preencha todos os campos');
@@ -55,12 +34,9 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Login: Attempting login...');
       await login(formData.email, formData.password);
-      console.log('Login: Login successful');
       toast.success('Login realizado com sucesso!');
     } catch (error: any) {
-      console.error('Login: Login failed:', error);
       const errorMessage = error.message || 'Erro ao fazer login';
       toast.error(errorMessage);
     } finally {
@@ -75,20 +51,17 @@ const Login: React.FC = () => {
     }));
   };
 
-  // Show loading screen only during initial auth check
-  if (!initialLoadComplete) {
-    console.log('Login: Initial loading, showing loading screen');
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Verificando autenticação...</p>
+          <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  // If user is already authenticated, show a brief loading message
   if (isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

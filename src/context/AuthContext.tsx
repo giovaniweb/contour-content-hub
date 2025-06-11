@@ -29,64 +29,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    console.log('AuthProvider: Initializing authentication');
-
+    
     const initializeAuth = async () => {
       try {
-        // First, set up the auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (!mounted) return;
-
-            console.log('AuthProvider: Auth state changed:', event, !!session);
-            
-            if (session?.user) {
-              try {
-                const userProfile = await fetchUserProfile(session.user.id);
-                
-                if (mounted) {
-                  if (userProfile) {
-                    console.log('AuthProvider: User profile loaded successfully');
-                    setUser(userProfile);
-                    setIsAuthenticated(true);
-                    setError(null);
-                  } else {
-                    console.log('AuthProvider: No user profile found');
-                    setUser(null);
-                    setIsAuthenticated(false);
-                    setError('Perfil do usuário não encontrado');
-                  }
-                }
-              } catch (error) {
-                console.error('AuthProvider: Error fetching user profile:', error);
-                if (mounted) {
-                  setUser(null);
-                  setIsAuthenticated(false);
-                  setError('Erro ao carregar perfil do usuário');
-                }
-              }
-            } else {
-              console.log('AuthProvider: No session found');
-              if (mounted) {
-                setUser(null);
-                setIsAuthenticated(false);
-                setError(null);
-              }
-            }
-            
-            // Always set loading to false after processing auth state change
-            if (mounted) {
-              setIsLoading(false);
-            }
-          }
-        );
-
         // Check initial session
-        console.log('AuthProvider: Checking initial session');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error('AuthProvider: Error getting initial session:', sessionError);
+          console.error('Error getting initial session:', sessionError);
           if (mounted) {
             setUser(null);
             setIsAuthenticated(false);
@@ -96,27 +46,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        if (mounted) {
-          if (session?.user) {
-            console.log('AuthProvider: Initial session found for user:', session.user.id);
-            // Don't fetch profile here, let the auth state change handler do it
-            // Just set loading to false if there's a session
-            setIsLoading(false);
-          } else {
-            console.log('AuthProvider: No initial session found');
+        if (session?.user) {
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            
+            if (mounted) {
+              if (userProfile) {
+                setUser(userProfile);
+                setIsAuthenticated(true);
+                setError(null);
+              } else {
+                setUser(null);
+                setIsAuthenticated(false);
+                setError('Perfil do usuário não encontrado');
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
+            if (mounted) {
+              setUser(null);
+              setIsAuthenticated(false);
+              setError('Erro ao carregar perfil do usuário');
+            }
+          }
+        } else {
+          if (mounted) {
             setUser(null);
             setIsAuthenticated(false);
             setError(null);
-            setIsLoading(false);
           }
         }
+        
+        if (mounted) {
+          setIsLoading(false);
+        }
+
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+
+            if (session?.user) {
+              try {
+                const userProfile = await fetchUserProfile(session.user.id);
+                
+                if (mounted) {
+                  if (userProfile) {
+                    setUser(userProfile);
+                    setIsAuthenticated(true);
+                    setError(null);
+                  } else {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                    setError('Perfil do usuário não encontrado');
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching user profile:', error);
+                if (mounted) {
+                  setUser(null);
+                  setIsAuthenticated(false);
+                  setError('Erro ao carregar perfil do usuário');
+                }
+              }
+            } else {
+              if (mounted) {
+                setUser(null);
+                setIsAuthenticated(false);
+                setError(null);
+              }
+            }
+          }
+        );
 
         return () => {
-          console.log('AuthProvider: Cleaning up auth subscription');
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('AuthProvider: Error setting up auth:', error);
+        console.error('Error setting up auth:', error);
         if (mounted) {
           setUser(null);
           setIsAuthenticated(false);
@@ -128,37 +135,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Add timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (mounted && isLoading) {
-        console.warn('AuthProvider: Timeout reached, forcing loading to false');
-        setIsLoading(false);
-      }
-    }, 5000); // 5 second timeout
-
     return () => {
-      console.log('AuthProvider: Component unmounting');
       mounted = false;
-      clearTimeout(timeout);
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('AuthProvider: Login attempt for email:', email);
       setError(null);
       
       const { data, error } = await loginWithEmailAndPassword(email, password);
       
       if (error) {
-        console.error('AuthProvider: Login error:', error);
         throw error;
       }
       
-      console.log('AuthProvider: Login successful, auth state change will handle profile loading');
       return;
     } catch (error: any) {
-      console.error('AuthProvider: Login error:', error);
       const errorMessage = error.message || 'Erro ao fazer login';
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -167,12 +160,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      console.log('AuthProvider: Logout attempt');
       setError(null);
       await logoutUser();
-      console.log('AuthProvider: Logout successful');
     } catch (error: any) {
-      console.error('AuthProvider: Logout error:', error);
       setError(error.message || 'Erro ao fazer logout');
       throw error;
     }
@@ -208,7 +198,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       await updateUserProfileService(user.id, data);
       
-      // Update local user state with new data
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (error: any) {
       console.error('Update user error:', error);
