@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
@@ -44,7 +43,6 @@ function App() {
           <Route path={ROUTES.PROFILE} element={<AppLayout><Profile /></AppLayout>} />
           
           {/* Content Routes */}
-          <Route path={ROUTES.CONTENT.SCRIPTS.ROOT} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Scripts Page</h1><p>Gerencie seus roteiros aqui.</p></div></AppLayout>} />
           <Route path={ROUTES.CONTENT.SCRIPTS.GENERATOR} element={<AppLayout><ScriptGeneratorPage /></AppLayout>} />
           <Route path={ROUTES.CONTENT.SCRIPTS.VALIDATION} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Script Validation</h1><p>Valide seus roteiros aqui.</p></div></AppLayout>} />
           <Route path={ROUTES.CONTENT.PLANNER} element={<AppLayout><ContentPlannerPage /></AppLayout>} />
