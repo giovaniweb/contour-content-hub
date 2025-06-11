@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
 import FluidaScriptGenerator from '@/components/script-generator/FluidaScriptGenerator';
 import SmartResultDisplay from '@/components/smart-script-generator/SmartResultDisplay';
 import ScriptGeneratorTest from '@/components/ScriptGeneratorTest';
@@ -47,70 +46,65 @@ const ScriptGeneratorPage: React.FC = () => {
   };
 
   return (
-    <Layout title="FLUIDAROTEIRISTA 🎬" fullWidth={false}>
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              onClick={handleGoBack}
-              className="mb-4"
-            >
-              ← Voltar
-            </Button>
+    <div className="min-h-screen p-6">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold text-white mb-2">FLUIDAROTEIRISTA 🎬</h1>
+            <p className="text-white/70">Crie roteiros emocionais com inteligência artificial</p>
           </div>
-
-          {/* Resultado final com ações */}
-          {approvedScript ? (
-            <SmartResultDisplay
-              generationResult={{
-                content: approvedScript.roteiro,
-                mentor: approvedScript.mentor,
-                enigma: `Roteiro ${approvedScript.formato} com emoção ${approvedScript.emocao_central}`,
-                intention: {
-                  tema: approvedScript.objetivo,
-                  tipo_conteudo: approvedScript.formato,
-                  objetivo: approvedScript.intencao,
-                  mentor_inferido: approvedScript.mentor,
-                  enigma_mentor: approvedScript.emocao_central,
-                  canal: 'instagram_feed', // Valor padrão obrigatório
-                  estilo_comunicacao: 'criativo' // Valor padrão obrigatório
-                }
-              }}
-              onGenerateImage={handleGenerateImage}
-              onGenerateVoice={handleGenerateVoice}
-              onNewScript={handleNewScript}
-              onApplyDisney={handleApplyDisneyMagic}
-              onApproveScript={() => {}}
-              isDisneyApplied={approvedScript.mentor === 'Fluida Encantadora'}
-              isApproved={true}
-              isProcessing={false}
-            />
-          ) : (
-            <Tabs defaultValue="fluidaroteirista" className="max-w-4xl mx-auto">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
-                  <Wand2 className="h-4 w-4" />
-                  FLUIDAROTEIRISTA
-                </TabsTrigger>
-                <TabsTrigger value="test" className="flex items-center gap-2">
-                  <TestTube className="h-4 w-4" />
-                  Teste OpenAI
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="fluidaroteirista" className="mt-6">
-                <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
-              </TabsContent>
-              
-              <TabsContent value="test" className="mt-6">
-                <ScriptGeneratorTest />
-              </TabsContent>
-            </Tabs>
-          )}
         </div>
+
+        {/* Resultado final com ações */}
+        {approvedScript ? (
+          <SmartResultDisplay
+            generationResult={{
+              content: approvedScript.roteiro,
+              mentor: approvedScript.mentor,
+              enigma: `Roteiro ${approvedScript.formato} com emoção ${approvedScript.emocao_central}`,
+              intention: {
+                tema: approvedScript.objetivo,
+                tipo_conteudo: approvedScript.formato,
+                objetivo: approvedScript.intencao,
+                mentor_inferido: approvedScript.mentor,
+                enigma_mentor: approvedScript.emocao_central,
+                canal: 'instagram_feed', // Valor padrão obrigatório
+                estilo_comunicacao: 'criativo' // Valor padrão obrigatório
+              }
+            }}
+            onGenerateImage={handleGenerateImage}
+            onGenerateVoice={handleGenerateVoice}
+            onNewScript={handleNewScript}
+            onApplyDisney={handleApplyDisneyMagic}
+            onApproveScript={() => {}}
+            isDisneyApplied={approvedScript.mentor === 'Fluida Encantadora'}
+            isApproved={true}
+            isProcessing={false}
+          />
+        ) : (
+          <Tabs defaultValue="fluidaroteirista" className="max-w-4xl mx-auto">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4" />
+                FLUIDAROTEIRISTA
+              </TabsTrigger>
+              <TabsTrigger value="test" className="flex items-center gap-2">
+                <TestTube className="h-4 w-4" />
+                Teste OpenAI
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="fluidaroteirista" className="mt-6">
+              <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
+            </TabsContent>
+            
+            <TabsContent value="test" className="mt-6">
+              <ScriptGeneratorTest />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
-    </Layout>
+    </div>
   );
 };
 
