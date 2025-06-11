@@ -59,8 +59,9 @@ const Login: React.FC = () => {
     }));
   };
 
-  // Show loading screen while checking auth state
-  if (authLoading) {
+  // Don't show loading screen if we're just checking auth state initially
+  // Only show loading if we're in the middle of authentication process
+  if (authLoading && !isAuthenticated && !formData.email) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -102,7 +103,7 @@ const Login: React.FC = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
