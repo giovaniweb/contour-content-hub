@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -27,119 +28,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('AuthProvider: Inicializando autenticação');
+    console.log('AuthProvider: Inicializando');
     
-    let mounted = true;
-
-    // Configura listener para mudanças de estado de autenticação PRIMEIRO
+    // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AuthProvider: Mudança de estado de autenticação', { event, session: !!session });
+        console.log('AuthProvider: Estado de auth mudou', { event, hasSession: !!session });
         
-        if (!mounted) return;
-
         if (session?.user) {
           try {
-            console.log('AuthProvider: Buscando perfil do usuário');
             const userProfile = await fetchUserProfile(session.user.id);
-            
-            if (mounted && userProfile) {
-              console.log('AuthProvider: Perfil carregado com sucesso');
+            if (userProfile) {
               setUser(userProfile);
               setIsAuthenticated(true);
-              setError(null);
-            } else if (mounted) {
-              console.warn('AuthProvider: Perfil não encontrado');
-              setUser(null);
-              setIsAuthenticated(false);
-              setError('Perfil do usuário não encontrado');
+              console.log('AuthProvider: Usuário autenticado com sucesso');
             }
           } catch (error) {
-            console.error('AuthProvider: Erro ao carregar perfil:', error);
-            if (mounted) {
-              setUser(null);
-              setIsAuthenticated(false);
-              setError('Erro ao carregar perfil do usuário');
-            }
-          }
-        } else {
-          console.log('AuthProvider: Usuário deslogado');
-          if (mounted) {
+            console.error('AuthProvider: Erro ao buscar perfil:', error);
             setUser(null);
             setIsAuthenticated(false);
-            setError(null);
           }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
         }
-
-        if (mounted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     );
 
-    // Depois verifica a sessão inicial
-    const checkInitialSession = async () => {
+    // Verificar sessão inicial
+    const checkSession = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log('AuthProvider: Verificação inicial de sessão', { session: !!session, error: sessionError });
-        
-        // O onAuthStateChange já vai lidar com isso, então não precisamos duplicar a lógica aqui
-        // Apenas garantimos que o loading seja definido se não houver sessão
-        if (!session && mounted) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('AuthProvider: Erro na verificação inicial:', error);
-        if (mounted) {
-          setUser(null);
-          setIsAuthenticated(false);
-          setError('Erro ao verificar sessão');
-          setIsLoading(false);
-        }
+        console.error('AuthProvider: Erro ao verificar sessão:', error);
+        setIsLoading(false);
       }
     };
 
-    checkInitialSession();
+    checkSession();
 
     return () => {
-      mounted = false;
-      console.log('AuthProvider: Limpando subscription');
       subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('AuthProvider: Iniciando login para', email);
       setError(null);
-      
-      const { data, error } = await loginWithEmailAndPassword(email, password);
-      
-      if (error) {
-        console.error('AuthProvider: Erro no login:', error);
-        throw error;
-      }
-      
-      console.log('AuthProvider: Login realizado com sucesso');
-      // O onAuthStateChange vai lidar com a atualização do estado
-      return;
+      const { error } = await loginWithEmailAndPassword(email, password);
+      if (error) throw error;
     } catch (error: any) {
-      const errorMessage = error.message || 'Erro ao fazer login';
-      console.error('AuthProvider: Erro no login:', errorMessage);
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError(error.message);
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
-      console.log('AuthProvider: Fazendo logout');
       setError(null);
       await logoutUser();
     } catch (error: any) {
-      const errorMessage = error.message || 'Erro ao fazer logout';
-      console.error('AuthProvider: Erro no logout:', errorMessage);
-      setError(errorMessage);
+      setError(error.message);
       throw error;
     }
   };
@@ -156,13 +109,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     language?: "PT" | "EN" | "ES";
   }) => {
     try {
-      console.log('AuthProvider: Registrando usuário');
       setError(null);
       setIsLoading(true);
       await registerUserService(userData);
     } catch (error: any) {
-      console.error('AuthProvider: Erro no registro:', error);
-      setError(error.message || 'Error registering user');
+      setError(error.message);
       throw error;
     } finally {
       setIsLoading(false);
@@ -174,11 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user?.id) throw new Error("User is not authenticated");
       
       await updateUserProfileService(user.id, data);
-      
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (error: any) {
-      console.error('AuthProvider: Erro ao atualizar usuário:', error);
-      setError(error.message || 'Error updating user');
+      setError(error.message);
       throw error;
     }
   };
@@ -189,8 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await updateUserPasswordService(newPassword);
       return true;
     } catch (error: any) {
-      console.error('AuthProvider: Erro ao atualizar senha:', error);
-      setError(error.message || 'Error updating password');
+      setError(error.message);
       return false;
     }
   };
@@ -201,8 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
     } catch (error: any) {
-      console.error('AuthProvider: Erro ao resetar senha:', error);
-      setError(error.message || 'Error resetting password');
+      setError(error.message);
       throw error;
     }
   };
@@ -220,8 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(false);
       }
     } catch (error: any) {
-      console.error('AuthProvider: Erro ao atualizar autenticação:', error);
-      setError(error.message || 'Error refreshing authentication');
+      setError(error.message);
       throw error;
     }
   };
