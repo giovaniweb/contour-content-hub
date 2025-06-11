@@ -78,50 +78,34 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   }
 
   return (
-    <div className="min-h-screen aurora-gradient-bg aurora-particles">
-      <div className="relative z-10 space-y-8 p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="aurora-heading text-4xl font-bold mb-4 flex items-center justify-center gap-3">
-            <Wand2 className="h-10 w-10 aurora-electric-purple aurora-float" />
-            FLUIDAROTEIRISTA
-          </h1>
-          <p className="aurora-body text-xl">
-            Roteiros criativos e impactantes para clínicas estéticas e médicas
-          </p>
-        </motion.div>
+    <div className="space-y-8">
+      <EquipmentValidationAlert
+        clinicType={clinicType}
+        selectedEquipments={selectedEquipments}
+        recommendation={recommendation}
+        hasInvasiveEquipments={hasInvasiveEquipments}
+      />
 
-        <EquipmentValidationAlert
-          clinicType={clinicType}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="max-w-4xl mx-auto"
+      >
+        <ScriptGeneratorForm
+          tema={tema}
+          onTemaChange={setTema}
+          formato={formato}
+          onFormatoChange={setFormato}
+          objetivo={objetivo}
+          onObjetivoChange={setObjetivo}
           selectedEquipments={selectedEquipments}
-          recommendation={recommendation}
-          hasInvasiveEquipments={hasInvasiveEquipments}
+          onEquipmentChange={handleEquipmentChange}
+          allowedEquipments={allowedEquipments}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
         />
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto"
-        >
-          <ScriptGeneratorForm
-            tema={tema}
-            onTemaChange={setTema}
-            formato={formato}
-            onFormatoChange={setFormato}
-            objetivo={objetivo}
-            onObjetivoChange={setObjetivo}
-            selectedEquipments={selectedEquipments}
-            onEquipmentChange={handleEquipmentChange}
-            allowedEquipments={allowedEquipments}
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-          />
-        </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
