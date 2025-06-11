@@ -26,7 +26,7 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
   const [equipment, setEquipment] = useState<EquipmentCreationProps>({
     nome: '',
     descricao: '',
-    categoria: 'estetico', // Changed from empty string to valid default value
+    categoria: 'estetico',
     tecnologia: '',
     indicacoes: [],
     beneficios: '',
@@ -34,7 +34,16 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
     linguagem: '',
     ativo: true,
     image_url: '',
-    efeito: ''
+    efeito: '',
+    // Add new fields with default values
+    thumbnail_url: '',
+    area_aplicacao: [],
+    tipo_acao: undefined,
+    possui_consumiveis: false,
+    contraindicacoes: [],
+    perfil_ideal_paciente: [],
+    nivel_investimento: undefined,
+    akinator_enabled: true,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -102,7 +111,16 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       linguagem: '',
       ativo: true,
       image_url: '',
-      efeito: ''
+      efeito: '',
+      // Add new fields with default values
+      thumbnail_url: '',
+      area_aplicacao: [],
+      tipo_acao: undefined,
+      possui_consumiveis: false,
+      contraindicacoes: [],
+      perfil_ideal_paciente: [],
+      nivel_investimento: undefined,
+      akinator_enabled: true,
     });
     setImagePreview(null);
     
@@ -262,7 +280,16 @@ const EquipmentCreateForm: React.FC<EquipmentCreateFormProps> = ({ onSuccess, on
       ativo: equipment.ativo !== undefined ? equipment.ativo : true,
       image_url: equipment.image_url || '',
       efeito: equipment.efeito || '',
-      data_cadastro: new Date().toISOString()
+      data_cadastro: new Date().toISOString(),
+      // Include new required fields
+      thumbnail_url: equipment.thumbnail_url || '',
+      area_aplicacao: equipment.area_aplicacao || [],
+      tipo_acao: equipment.tipo_acao,
+      possui_consumiveis: equipment.possui_consumiveis || false,
+      contraindicacoes: equipment.contraindicacoes || [],
+      perfil_ideal_paciente: equipment.perfil_ideal_paciente || [],
+      nivel_investimento: equipment.nivel_investimento,
+      akinator_enabled: equipment.akinator_enabled !== undefined ? equipment.akinator_enabled : true,
     };
 
     try {

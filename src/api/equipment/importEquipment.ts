@@ -13,7 +13,7 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
           id: 'import1',
           nome: 'Equipamento Importado 1',
           descricao: 'Descrição importada',
-          categoria: 'estetico', // Changed from 'Importado' to valid categoria
+          categoria: 'estetico',
           tecnologia: 'Tecnologia importada',
           beneficios: 'Benefícios importados',
           diferenciais: 'Diferenciais importados',
@@ -22,13 +22,22 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
           ativo: true,
           data_cadastro: new Date().toISOString(),
           efeito: '',
-          image_url: ''
+          image_url: '',
+          // New required fields with default values
+          thumbnail_url: '',
+          area_aplicacao: [],
+          tipo_acao: undefined,
+          possui_consumiveis: false,
+          contraindicacoes: [],
+          perfil_ideal_paciente: [],
+          nivel_investimento: undefined,
+          akinator_enabled: true,
         },
         {
           id: 'import2',
           nome: 'Equipamento Importado 2',
           descricao: 'Outra descrição importada',
-          categoria: 'medico', // Changed from 'Importado' to valid categoria
+          categoria: 'medico',
           tecnologia: 'Outra tecnologia importada',
           beneficios: 'Outros benefícios importados',
           diferenciais: 'Outros diferenciais importados',
@@ -37,7 +46,16 @@ export const importEquipments = async (file: File): Promise<Equipment[]> => {
           ativo: true,
           data_cadastro: new Date().toISOString(),
           efeito: '',
-          image_url: ''
+          image_url: '',
+          // New required fields with default values
+          thumbnail_url: '',
+          area_aplicacao: [],
+          tipo_acao: undefined,
+          possui_consumiveis: false,
+          contraindicacoes: [],
+          perfil_ideal_paciente: [],
+          nivel_investimento: undefined,
+          akinator_enabled: true,
         }
       ];
       
