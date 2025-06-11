@@ -1,5 +1,3 @@
-
-
 export const ROUTES = {
   HOME: '/',
   DASHBOARD: '/dashboard',
@@ -67,7 +65,8 @@ export const ROUTES = {
   MEDIA: '/media',
   WORKSPACE_SETTINGS: '/workspace/settings',
   EQUIPMENT: {
-    LIST: '/equipment'
+    LIST: '/equipment',
+    DETAILS: '/equipment/details'
   },
   ADMIN_VIDEOS: '/admin/videos',
   MARKETING: {
@@ -91,4 +90,3 @@ export const ROUTES = {
     }
   }
 } as const;
-
