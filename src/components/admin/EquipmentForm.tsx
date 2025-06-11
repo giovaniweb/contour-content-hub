@@ -329,9 +329,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
       <Form {...form}>
         {/* Show draft notification if available */}
         {!equipment && hasDraft && (
-          <Alert className="mb-4 bg-blue-50 border-blue-200">
+          <Alert className="mb-4 aurora-glass border-aurora-electric-purple/30">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <AlertDescription className="text-blue-800">
+              <AlertDescription className="text-white">
                 Existe um rascunho salvo em {draftTimestamp && formatTimestamp(draftTimestamp)}. Deseja recuperá-lo?
               </AlertDescription>
               <div className="flex gap-2 ml-auto">
@@ -340,6 +340,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   variant="outline" 
                   size="sm"
                   onClick={discardDraft}
+                  className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
                 >
                   Descartar
                 </Button>
@@ -348,6 +349,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                   variant="default" 
                   size="sm"
                   onClick={loadDraft}
+                  className="aurora-button"
                 >
                   Recuperar
                 </Button>
@@ -357,9 +359,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
         )}
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-            <TabsTrigger value="applicators">Ponteiras</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 aurora-glass border-aurora-electric-purple/30">
+            <TabsTrigger value="basic" className="text-white data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-white">
+              Informações Básicas
+            </TabsTrigger>
+            <TabsTrigger value="applicators" className="text-white data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-white">
+              Configurações Avançadas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6 mt-6">
@@ -371,11 +377,16 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="nome"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome do Equipamento*</FormLabel>
+                        <FormLabel className="text-white">Nome do Equipamento*</FormLabel>
                         <FormControl>
-                          <Input required {...field} placeholder="Ex: Hipro" />
+                          <Input 
+                            required 
+                            {...field} 
+                            placeholder="Ex: Hipro" 
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -385,19 +396,19 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="categoria"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Categoria*</FormLabel>
+                        <FormLabel className="text-white">Categoria*</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
                               <SelectValue placeholder="Selecione a categoria" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="estetico">🌟 Estético</SelectItem>
-                            <SelectItem value="medico">🏥 Médico</SelectItem>
+                          <SelectContent className="aurora-glass border-aurora-electric-purple/30">
+                            <SelectItem value="estetico" className="text-white hover:bg-aurora-electric-purple/20">🌟 Estético</SelectItem>
+                            <SelectItem value="medico" className="text-white hover:bg-aurora-electric-purple/20">🏥 Médico</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -407,14 +418,15 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="efeito"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Efeito (Frase de efeito/Tagline)</FormLabel>
+                        <FormLabel className="text-white">Efeito (Frase de efeito/Tagline)</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
                             placeholder="Ex: Supremacia tecnológica para tratamentos corporais e faciais" 
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -424,16 +436,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="tecnologia"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tecnologia*</FormLabel>
+                        <FormLabel className="text-white">Tecnologia*</FormLabel>
                         <FormControl>
                           <Textarea 
                             required 
                             {...field} 
                             placeholder="Ex: HIFU – Ultrassom Focalizado de Alta Intensidade" 
                             rows={2}
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -443,16 +456,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="indicacoes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Indicações*</FormLabel>
+                        <FormLabel className="text-white">Indicações*</FormLabel>
                         <FormControl>
                           <Textarea 
                             required 
                             {...field} 
                             placeholder="Ex: Lifting facial não-cirúrgico; Redução de rugas profundas" 
                             rows={3}
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -461,14 +475,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                 <div className="space-y-4">
                   {/* Thumbnail Upload Section */}
                   <div>
-                    <Label className="flex items-center gap-2">
+                    <Label className="flex items-center gap-2 text-white">
                       Imagem de Capa / Thumbnail
                       <Tooltip>
                         <TooltipTrigger>
-                          <HelpCircle className="h-4 w-4 text-gray-400" />
+                          <HelpCircle className="h-4 w-4 text-white/70" />
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Imagem usada como miniatura nas listagens e no Fluida Akinator</p>
+                        <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                          <p className="text-white">Imagem usada como miniatura nas listagens e no Fluida Akinator</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
@@ -484,14 +498,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       {!thumbnailPreview ? (
                         <div 
                           onClick={() => thumbnailInputRef.current?.click()}
-                          className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors h-32"
+                          className="border-2 border-dashed border-aurora-electric-purple/30 aurora-glass rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-aurora-electric-purple/50 transition-colors h-32"
                         >
-                          <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500 text-center">Clique para enviar thumbnail</p>
-                          <p className="text-xs text-gray-400 mt-1">JPG, PNG (máximo 5MB)</p>
+                          <ImageIcon className="h-8 w-8 text-aurora-electric-purple mb-2" />
+                          <p className="text-sm text-white text-center">Clique para enviar thumbnail</p>
+                          <p className="text-xs text-white/70 mt-1">JPG, PNG (máximo 5MB)</p>
                         </div>
                       ) : (
-                        <div className="relative border border-gray-200 rounded-md overflow-hidden">
+                        <div className="relative border border-aurora-electric-purple/30 aurora-glass rounded-md overflow-hidden">
                           <img 
                             src={thumbnailPreview} 
                             alt="Preview do thumbnail" 
@@ -511,7 +525,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
 
                   {/* Main Image Upload Section */}
                   <div>
-                    <Label>Imagem Principal do Equipamento</Label>
+                    <Label className="text-white">Imagem Principal do Equipamento</Label>
                     <div className="mt-2">
                       <input 
                         ref={fileInputRef}
@@ -524,14 +538,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       {!imagePreview ? (
                         <div 
                           onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                          className="border-2 border-dashed border-aurora-electric-purple/30 aurora-glass rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:border-aurora-electric-purple/50 transition-colors"
                         >
-                          <ImageIcon className="h-10 w-10 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500 text-center">Clique para fazer upload da imagem principal</p>
-                          <p className="text-xs text-gray-400 mt-1">JPG, PNG ou GIF (máximo 5MB)</p>
+                          <ImageIcon className="h-10 w-10 text-aurora-electric-purple mb-2" />
+                          <p className="text-sm text-white text-center">Clique para fazer upload da imagem principal</p>
+                          <p className="text-xs text-white/70 mt-1">JPG, PNG ou GIF (máximo 5MB)</p>
                         </div>
                       ) : (
-                        <div className="relative border border-gray-200 rounded-md overflow-hidden">
+                        <div className="relative border border-aurora-electric-purple/30 aurora-glass rounded-md overflow-hidden">
                           <img 
                             src={imagePreview} 
                             alt="Preview da imagem" 
@@ -554,16 +568,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="beneficios"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Benefícios*</FormLabel>
+                        <FormLabel className="text-white">Benefícios*</FormLabel>
                         <FormControl>
                           <Textarea 
                             required 
                             {...field} 
                             placeholder="Ex: Efeito lifting visível sem cortes ou agulhas" 
                             rows={3}
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -573,16 +588,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                     name="diferenciais"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Diferenciais*</FormLabel>
+                        <FormLabel className="text-white">Diferenciais*</FormLabel>
                         <FormControl>
                           <Textarea 
                             required 
                             {...field} 
                             placeholder="Ex: Focaliza energia ultrassônica em pontos profundos precisos" 
                             rows={3}
+                            className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-300" />
                       </FormItem>
                     )}
                   />
@@ -594,226 +610,215 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                 name="linguagem"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Linguagem Recomendada*</FormLabel>
+                    <FormLabel className="text-white">Linguagem Recomendada*</FormLabel>
                     <FormControl>
                       <Textarea 
                         required 
                         {...field} 
                         placeholder="Ex: Convincente e elegante, passando segurança sobre obter rejuvenescimento sem cirurgia" 
                         rows={2}
+                        className="aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/50"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-300" />
                   </FormItem>
                 )}
               />
 
               {/* Configurações Avançadas */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+              <div className="border-t border-aurora-electric-purple/20 pt-6">
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2 text-white">
                   Configurações Avançadas
                   <Tooltip>
                     <TooltipTrigger>
-                      <HelpCircle className="h-4 w-4 text-gray-400" />
+                      <HelpCircle className="h-4 w-4 text-white/70" />
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Dados utilizados pela IA para sugestões e recomendações</p>
+                    <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                      <p className="text-white">Dados utilizados pela IA para sugestões e recomendações</p>
                     </TooltipContent>
                   </Tooltip>
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    {/* Área de Aplicação */}
-                    <FormField
-                      control={form.control}
-                      name="area_aplicacao"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Área de Aplicação</FormLabel>
-                          <FormDescription>Selecione onde o equipamento pode ser aplicado</FormDescription>
-                          <div className="space-y-2">
-                            {['Rosto', 'Corpo', 'Ambos'].map((area) => (
-                              <div key={area} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`area-${area}`}
-                                  checked={field.value?.includes(area) || false}
-                                  onCheckedChange={(checked) => {
-                                    const current = field.value || [];
-                                    if (checked) {
-                                      field.onChange([...current, area]);
-                                    } else {
-                                      field.onChange(current.filter(item => item !== area));
-                                    }
-                                  }}
-                                />
-                                <Label htmlFor={`area-${area}`}>{area}</Label>
-                              </div>
-                            ))}
+                <FormField
+                  control={form.control}
+                  name="area_aplicacao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Área de Aplicação</FormLabel>
+                      <FormDescription className="text-white/70">Selecione onde o equipamento pode ser aplicado</FormDescription>
+                      <div className="space-y-2">
+                        {['Rosto', 'Corpo', 'Ambos'].map((area) => (
+                          <div key={area} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`area-${area}`}
+                              checked={field.value?.includes(area) || false}
+                              onCheckedChange={(checked) => {
+                                const current = field.value || [];
+                                if (checked) {
+                                  field.onChange([...current, area]);
+                                } else {
+                                  field.onChange(current.filter(item => item !== area));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`area-${area}`} className="text-white">{area}</Label>
                           </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        ))}
+                      </div>
+                      <FormMessage className="text-red-300" />
+                    </FormItem>
+                  )}
+                />
 
-                    {/* Tipo de Ação */}
-                    <FormField
-                      control={form.control}
-                      name="tipo_acao"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tipo de Ação</FormLabel>
-                          <FormDescription>Classifica o nível de intervenção do tratamento</FormDescription>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo de ação" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Não invasivo">Não invasivo</SelectItem>
-                              <SelectItem value="Minimante invasivo">Minimante invasivo</SelectItem>
-                              <SelectItem value="Invasivo">Invasivo</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Nível de Investimento */}
-                    <FormField
-                      control={form.control}
-                      name="nivel_investimento"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nível de Investimento</FormLabel>
-                          <FormDescription>Estimativa de faixa de investimento</FormDescription>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o nível" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Alto">Alto</SelectItem>
-                              <SelectItem value="Médio">Médio</SelectItem>
-                              <SelectItem value="Baixo">Baixo</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Contraindicações */}
-                    <FormField
-                      control={form.control}
-                      name="contraindicacoes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contraindicações</FormLabel>
-                          <FormDescription>Ex: gestantes, marca-passo, problemas circulatórios</FormDescription>
-                          <FormControl>
-                            <TagInput
-                              value={field.value || []}
-                              onChange={field.onChange}
-                              placeholder="Digite e pressione Enter"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Perfil Ideal do Paciente */}
-                    <FormField
-                      control={form.control}
-                      name="perfil_ideal_paciente"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Perfil Ideal do Paciente</FormLabel>
-                          <FormDescription>Ex: Mulheres 35+, Pós-parto, Flacidez</FormDescription>
-                          <FormControl>
-                            <TagInput
-                              value={field.value || []}
-                              onChange={field.onChange}
-                              placeholder="Digite e pressione Enter"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Toggles */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <FormField
-                    control={form.control}
-                    name="possui_consumiveis"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Possui Consumíveis?</FormLabel>
-                          <FormDescription>
-                            Indica se o equipamento exige consumíveis
-                          </FormDescription>
-                        </div>
+                <FormField
+                  control={form.control}
+                  name="tipo_acao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Tipo de Ação</FormLabel>
+                      <FormDescription className="text-white/70">Classifica o nível de intervenção do tratamento</FormDescription>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
+                            <SelectValue placeholder="Selecione o tipo de ação" />
+                          </SelectTrigger>
                         </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent className="aurora-glass border-aurora-electric-purple/30">
+                          <SelectItem value="Não invasivo" className="text-white hover:bg-aurora-electric-purple/20">Não invasivo</SelectItem>
+                          <SelectItem value="Minimante invasivo" className="text-white hover:bg-aurora-electric-purple/20">Minimante invasivo</SelectItem>
+                          <SelectItem value="Invasivo" className="text-white hover:bg-aurora-electric-purple/20">Invasivo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-red-300" />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="akinator_enabled"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base flex items-center gap-2">
-                            Fluida Akinator
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <HelpCircle className="h-4 w-4 text-gray-400" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Ativa ou desativa esse equipamento nas sugestões inteligentes</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </FormLabel>
-                          <FormDescription>
-                            Pode ser recomendado pelo Akinator?
-                          </FormDescription>
-                        </div>
+                <FormField
+                  control={form.control}
+                  name="nivel_investimento"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Nível de Investimento</FormLabel>
+                      <FormDescription className="text-white/70">Estimativa de faixa de investimento</FormDescription>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 text-white">
+                            <SelectValue placeholder="Selecione o nível" />
+                          </SelectTrigger>
                         </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent className="aurora-glass border-aurora-electric-purple/30">
+                          <SelectItem value="Alto" className="text-white hover:bg-aurora-electric-purple/20">Alto</SelectItem>
+                          <SelectItem value="Médio" className="text-white hover:bg-aurora-electric-purple/20">Médio</SelectItem>
+                          <SelectItem value="Baixo" className="text-white hover:bg-aurora-electric-purple/20">Baixo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-red-300" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contraindicacoes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Contraindicações</FormLabel>
+                      <FormDescription className="text-white/70">Ex: gestantes, marca-passo, problemas circulatórios</FormDescription>
+                      <FormControl>
+                        <TagInput
+                          value={field.value || []}
+                          onChange={field.onChange}
+                          placeholder="Digite e pressione Enter"
+                          className="text-white"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-300" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="perfil_ideal_paciente"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Perfil Ideal do Paciente</FormLabel>
+                      <FormDescription className="text-white/70">Ex: Mulheres 35+, Pós-parto, Flacidez</FormDescription>
+                      <FormControl>
+                        <TagInput
+                          value={field.value || []}
+                          onChange={field.onChange}
+                          placeholder="Digite e pressione Enter"
+                          className="text-white"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-300" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="possui_consumiveis"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base text-white">Possui Consumíveis?</FormLabel>
+                        <FormDescription className="text-white/70">
+                          Indica se o equipamento exige consumíveis
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="akinator_enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base flex items-center gap-2 text-white">
+                          Fluida Akinator
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <HelpCircle className="h-4 w-4 text-white/70" />
+                            </TooltipTrigger>
+                            <TooltipContent className="aurora-glass border-aurora-electric-purple/30">
+                              <p className="text-white">Ativa ou desativa esse equipamento nas sugestões inteligentes</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
+                        <FormDescription className="text-white/70">
+                          Pode ser recomendado pelo Akinator?
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
                 control={form.control}
                 name="ativo"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-aurora-electric-purple/30 aurora-glass p-4 mt-6">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Equipamento Ativo</FormLabel>
-                      <FormDescription>
+                      <FormLabel className="text-base text-white">Equipamento Ativo</FormLabel>
+                      <FormDescription className="text-white/70">
                         Determina se este equipamento está disponível para seleção nos roteiros
                       </FormDescription>
                     </div>
@@ -828,7 +833,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
               />
 
               {isUploading && (
-                <div className="flex items-center justify-center mt-2 text-sm text-gray-500">
+                <div className="flex items-center justify-center mt-2 text-sm text-white">
                   <Loader2 className="animate-spin h-4 w-4 mr-2" />
                   <span>Enviando imagem...</span>
                 </div>
@@ -850,7 +855,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                       });
                     }}
                     disabled={isSaving || isUploading}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
                   >
                     <Save className="h-4 w-4" />
                     Salvar rascunho
@@ -858,10 +863,20 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
                 )}
                 
                 <div className="flex ml-auto gap-2">
-                  <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isUploading}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={onCancel} 
+                    disabled={isSaving || isUploading}
+                    className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20 text-white"
+                  >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={isSaving || isUploading}>
+                  <Button 
+                    type="submit" 
+                    disabled={isSaving || isUploading}
+                    className="aurora-button"
+                  >
                     {isSaving ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
