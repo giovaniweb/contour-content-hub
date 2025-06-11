@@ -31,7 +31,7 @@ export const ROUTES = {
 
   EQUIPMENT: {
     LIST: '/equipments',
-    DETAILS: (id: string = ':id') => `/equipment/${id}`
+    DETAILS: (id: string = ':id') => `/equipments/${id}`
   },
 
   MEDIA: '/media',
@@ -48,7 +48,11 @@ export const ROUTES = {
 
   ADMIN: {
     ROOT: '/admin',
-    EQUIPMENT: '/admin/equipments',
+    EQUIPMENTS: {
+      ROOT: '/admin/equipments',
+      CREATE: '/admin/equipments/create',
+      EDIT: (id: string = ':id') => `/admin/equipments/edit/${id}`
+    },
     CONTENT: '/admin/content',
     AI: '/admin/ai',
     SYSTEM: {

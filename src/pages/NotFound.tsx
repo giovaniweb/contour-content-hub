@@ -1,15 +1,12 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/routes";
-import GlassContainer from "@/components/ui/GlassContainer";
-import ContentLayout from "@/components/layout/ContentLayout";
 import { ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-white to-zinc-50 p-4">
-      <GlassContainer className="max-w-md w-full py-12 px-8 text-center">
+      <div className="max-w-md w-full py-12 px-8 text-center bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl">
         <h1 className="text-8xl font-bold text-neutral-900 mb-4">404</h1>
         <p className="text-2xl font-medium text-gray-800 mb-6">Página não encontrada</p>
         <p className="text-gray-600 mb-8">
@@ -21,7 +18,7 @@ const NotFound = () => {
             variant="outline"
             className="flex items-center justify-center gap-2"
           >
-            <Link to={ROUTES.HOME}>
+            <Link to="/">
               <ArrowLeft className="h-4 w-4" />
               <span>Voltar</span>
             </Link>
@@ -31,12 +28,12 @@ const NotFound = () => {
             asChild 
             className="bg-gradient-to-r from-[#0094fb] to-[#f300fc] hover:opacity-90 text-white"
           >
-            <Link to={ROUTES.DASHBOARD}>
+            <Link to="/dashboard">
               Dashboard
             </Link>
           </Button>
         </div>
-      </GlassContainer>
+      </div>
     </div>
   );
 };

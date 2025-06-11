@@ -44,7 +44,6 @@ const AdminEquipments: React.FC = () => {
     try {
       const imported = await importEquipments(file);
       
-      // Updated to check if imported is an array with imported property
       if (Array.isArray(imported)) {
         setEquipment(prev => [...prev, ...imported]);
         
@@ -68,25 +67,49 @@ const AdminEquipments: React.FC = () => {
   if (loading) {
     return (
       <Layout title="Administração de Equipamentos">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
+          <div className="aurora-glass rounded-3xl p-8 flex items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-aurora-electric-purple" />
+            <span className="aurora-body text-white">Carregando equipamentos...</span>
+          </div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Administração de Equipamentos">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Gerenciar Equipamentos</h1>
-          
-          <div className="flex gap-2 items-center">
+    <Layout>
+      <div className="aurora-dark-bg min-h-screen">
+        <div className="aurora-particles">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="aurora-particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDuration: `${10 + Math.random() * 20}s`,
+                animationDelay: `${Math.random() * 10}s`
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="container mx-auto py-8 px-4 relative z-10">
+          <div className="mb-8">
+            <h1 className="aurora-text-gradient text-4xl font-light mb-4">
+              Gerenciar Equipamentos
+            </h1>
+            <p className="aurora-body text-white/70 text-lg">
+              Administre os equipamentos do sistema de forma intuitiva e eficiente.
+            </p>
+          </div>
+
+          <div className="flex justify-end mb-6">
             <div>
               <Label htmlFor="import-file" className="cursor-pointer">
-                <div className="flex items-center gap-1 text-sm px-3 py-1 border rounded-md bg-background hover:bg-accent">
+                <div className="flex items-center gap-2 text-sm px-4 py-2 aurora-glass border border-aurora-electric-purple/30 rounded-lg hover:bg-aurora-electric-purple/20 transition-colors text-white">
                   <Upload className="h-4 w-4" />
-                  {importing ? 'Importando...' : 'Importar'}
+                  {importing ? 'Importando...' : 'Importar Equipamentos'}
                 </div>
                 <Input 
                   id="import-file" 
@@ -99,9 +122,11 @@ const AdminEquipments: React.FC = () => {
               </Label>
             </div>
           </div>
+          
+          <div className="aurora-glass rounded-3xl p-8 backdrop-blur-2xl border border-aurora-electric-purple/20">
+            <EquipmentManager />
+          </div>
         </div>
-
-        <EquipmentManager />
       </div>
     </Layout>
   );
