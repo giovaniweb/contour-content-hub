@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/MockAuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
 import Sidebar from './Sidebar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -16,6 +16,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false })
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Debug: verificar se o contexto está funcionando
+  console.log('🔍 AppLayout - Usuário atual:', user);
+  console.log('🔍 AppLayout - Autenticado:', isAuthenticated);
+  console.log('🔍 AppLayout - Carregando:', isLoading);
 
   // Verificar autenticação
   useEffect(() => {

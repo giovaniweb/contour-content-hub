@@ -170,7 +170,7 @@ const Sidebar: React.FC = () => {
 
         <SidebarSeparator className="border-white/10 my-2" />
 
-        {/* Admin Menu - com verificação corrigida */}
+        {/* Admin Menu - agora deve aparecer */}
         {isUserAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-white/60 text-xs uppercase tracking-wider px-4">
