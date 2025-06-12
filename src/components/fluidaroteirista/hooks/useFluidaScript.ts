@@ -74,17 +74,17 @@ export const useFluidaScript = () => {
       console.log('📊 [useFluidaScript] Elementos universais:', elementosUniversais);
 
       // Construir prompt específico baseado no modo
-      let specificPrompt = '';
+      let promptData: { systemPrompt: string; userPrompt: string };
       if (isRocketMode) {
-        specificPrompt = buildRocketPrompt(data, mentorInferido, elementosUniversais, especialidades);
+        promptData = buildRocketPrompt(data, mentorInferido, elementosUniversais, especialidades);
       } else {
-        specificPrompt = buildFluidaPrompt(normalizedData, mentorInferido, elementosUniversais, especialidades);
+        promptData = buildFluidaPrompt(normalizedData, mentorInferido, elementosUniversais, especialidades);
       }
 
       const requestBody = {
         type: 'custom',
-        systemPrompt: specificPrompt.systemPrompt,
-        userPrompt: specificPrompt.userPrompt,
+        systemPrompt: promptData.systemPrompt,
+        userPrompt: promptData.userPrompt,
         topic: normalizedData.tema,
         additionalInfo: JSON.stringify({
           tipo_de_clinica: 'estetico',
@@ -322,10 +322,10 @@ export const useFluidaScript = () => {
 
   const inferirMentor = (data: any): string => {
     // Verificar se os dados estão definidos antes de acessar propriedades
-    const objetivo = data.objetivo || '';
-    const estilo = data.estilo || '';
-    const tipoConteudo = data.tipo_conteudo || '';
-    const canal = data.canal || '';
+    const objetivo = data?.objetivo || '';
+    const estilo = data?.estilo || '';
+    const tipoConteudo = data?.tipo_conteudo || '';
+    const canal = data?.canal || '';
 
     console.log('🔍 [inferirMentor] Dados para inferência:', { objetivo, estilo, tipoConteudo, canal });
 
