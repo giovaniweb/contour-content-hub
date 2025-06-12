@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,8 @@ import {
   Clock,
   Zap,
   CheckCircle,
-  ThumbsUp
+  ThumbsUp,
+  Loader2
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
