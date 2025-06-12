@@ -25,8 +25,6 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     forceGenerate,
     applyDisneyMagic, 
     clearResults,
-    generateImage,
-    generateAudio,
     validationResult,
     showValidation,
     dismissValidation
@@ -71,8 +69,8 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   };
 
   const handleGenerateImage = async (script: any) => {
-    console.log('🖼️ [FluidaRoteirista] Gerando imagem para script:', script.formato);
-    await generateImage(script);
+    console.log('🖼️ [FluidaRoteirista] Função delegada para FluidaScriptResults');
+    // Esta função agora é apenas um placeholder - a lógica real está no FluidaScriptResults
   };
 
   const handleGenerateAudio = async (script: any) => {
@@ -93,7 +91,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
         onGenerateImage={handleGenerateImage}
         onGenerateAudio={handleGenerateAudio}
         onApplyDisney={applyDisneyMagic}
-        isProcessing={isGenerating || isGeneratingImage}
+        isProcessing={isGenerating}
       />
     );
   }

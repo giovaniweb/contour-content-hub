@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +22,8 @@ import { getMentorNickname } from './constants/mentorNames';
 import ScriptFormatter from './components/ScriptFormatter';
 import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay';
 import DisneyTransformation from './components/DisneyTransformation';
+import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
+import ImageGenerationModal from './components/ImageGenerationModal';
 
 interface FluidaScriptResultsProps {
   results: any[];
@@ -43,7 +44,19 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
 }) => {
   const [disneyAnimating, setDisneyAnimating] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   const script = results[0];
+
+  // Hook para geração múltipla de imagens
+  const { 
+    generateImages, 
+    isGenerating: isGeneratingImages, 
+    generatedImages, 
+    progress, 
+    downloadImage, 
+    downloadAllImages,
+    clearImages 
+  } = useMultipleImageGeneration();
 
   const handleCopyScript = () => {
     const textToCopy = script.roteiro || script.content || '';
@@ -75,6 +88,13 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     toast.success('✅ Roteiro Aprovado!', {
       description: 'Agora você pode gerar conteúdo adicional.'
     });
+  };
+
+  const handleGenerateImages = async () => {
+    console.log('🖼️ [FluidaScriptResults] Iniciando geração de imagens para:', script.formato);
+    clearImages(); // Limpar imagens anteriores
+    setShowImageModal(true);
+    await generateImages(script);
   };
 
   const handleApplyDisney = async () => {
@@ -323,12 +343,16 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Button
-                  onClick={() => onGenerateImage(script)}
-                  disabled={isProcessing}
+                  onClick={handleGenerateImages}
+                  disabled={isProcessing || isGeneratingImages}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Gerar Imagem
+                  {isGeneratingImages ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                  )}
+                  {script.formato === 'carrossel' ? 'Gerar 5 Imagens' : 'Gerar Imagem'}
                 </Button>
 
                 {/* Mostrar áudio apenas para formatos de vídeo */}
@@ -384,6 +408,18 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </motion.div>
         )}
       </div>
+
+      {/* Modal de Geração de Imagens */}
+      <ImageGenerationModal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        isGenerating={isGeneratingImages}
+        progress={progress}
+        generatedImages={generatedImages}
+        onDownloadImage={downloadImage}
+        onDownloadAll={downloadAllImages}
+        formato={script.formato}
+      />
     </>
   );
 };
