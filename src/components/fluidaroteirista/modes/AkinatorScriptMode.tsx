@@ -24,16 +24,19 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   const [stepHistory, setStepHistory] = useState<string[]>(['root']);
   const [generatedScript, setGeneratedScript] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const currentQuestion = SCRIPT_INTENTION_TREE[currentStep];
 
   const handleAnswer = async (value: string | string[]) => {
+    console.log('🎯 [AkinatorScriptMode] handleAnswer chamado com:', value, 'step:', currentStep);
     const newAnswers = { ...answers, [currentStep]: value };
     setAnswers(newAnswers);
 
     // Se for equipamento e for array, avançar diretamente para tema
     if (currentStep === 'equipamento') {
       const nextStep = 'tema';
+      console.log('🎯 [AkinatorScriptMode] Equipamentos selecionados, indo para tema');
       setCurrentStep(nextStep);
       setStepHistory([...stepHistory, nextStep]);
       return;
@@ -45,28 +48,36 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       
       if (selectedOption?.leads_to) {
         const nextStep = selectedOption.leads_to;
+        console.log('🎯 [AkinatorScriptMode] Indo para próxima etapa:', nextStep);
         setCurrentStep(nextStep);
         setStepHistory([...stepHistory, nextStep]);
       } else if (currentStep === 'tema') {
         // Última etapa - gerar roteiro
+        console.log('🎯 [AkinatorScriptMode] Última etapa atingida, gerando roteiro');
         await handleGenerateScript(newAnswers);
       }
     } else if (currentStep === 'tema') {
       // Se chegou no tema (após equipamentos), gerar roteiro
+      console.log('🎯 [AkinatorScriptMode] Tema fornecido, gerando roteiro');
       await handleGenerateScript(newAnswers);
     }
   };
 
   const handleGenerateScript = async (finalAnswers: Record<string, string | string[]>) => {
     try {
+      console.log('🎬 [AkinatorScriptMode] Iniciando geração de roteiro');
+      setError(null);
+      
       // Processar equipamentos selecionados
       let equipamentosTexto = '';
       const equipamentos = finalAnswers.equipamento;
       
       if (Array.isArray(equipamentos)) {
         equipamentosTexto = equipamentos.join(', ');
+        console.log('🎬 [AkinatorScriptMode] Equipamentos (array):', equipamentos);
       } else if (typeof equipamentos === 'string') {
         equipamentosTexto = equipamentos;
+        console.log('🎬 [AkinatorScriptMode] Equipamentos (string):', equipamentos);
       }
 
       const scriptData = {
@@ -78,13 +89,22 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
         tema: finalAnswers.tema || ''
       };
 
-      console.log('🎬 [AkinatorScriptMode] Gerando roteiro com dados:', scriptData);
+      console.log('🎬 [AkinatorScriptMode] Dados para geração:', scriptData);
 
       const result = await generateScript(scriptData);
-      setGeneratedScript(result);
-      setShowPreview(true);
+      console.log('🎬 [AkinatorScriptMode] Resultado recebido:', result);
+      
+      if (result && (result.roteiro || result.content)) {
+        setGeneratedScript(result);
+        setShowPreview(true);
+        console.log('🎬 [AkinatorScriptMode] Preview habilitado, script salvo');
+      } else {
+        console.error('🎬 [AkinatorScriptMode] Resultado inválido recebido:', result);
+        setError('Roteiro gerado está vazio ou inválido');
+      }
     } catch (error) {
-      console.error('Erro ao gerar roteiro:', error);
+      console.error('🔥 [AkinatorScriptMode] Erro ao gerar roteiro:', error);
+      setError('Erro ao gerar roteiro. Tente novamente.');
     }
   };
 
@@ -104,22 +124,45 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   };
 
   const handleApproveScript = () => {
+    console.log('✅ [AkinatorScriptMode] Script aprovado, chamando onScriptGenerated');
     onScriptGenerated(generatedScript);
   };
 
   const handleNewScript = () => {
+    console.log('🔄 [AkinatorScriptMode] Novo roteiro solicitado');
     setGeneratedScript(null);
     setShowPreview(false);
     setCurrentStep('root');
     setAnswers({});
     setStepHistory(['root']);
+    setError(null);
   };
 
+  // Mostrar erro se houver
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 text-center">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6">
+          <h3 className="text-red-400 font-semibold mb-2">Erro na Geração</h3>
+          <p className="text-slate-300 mb-4">{error}</p>
+          <button 
+            onClick={() => setError(null)}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isGenerating) {
+    console.log('⏳ [AkinatorScriptMode] Mostrando tela de loading');
     return <FluidaLoadingScreen mentor={Array.isArray(answers.estilo) ? 'criativo' : (answers.estilo as string) || 'criativo'} />;
   }
 
   if (showPreview && generatedScript) {
+    console.log('📱 [AkinatorScriptMode] Mostrando preview do script');
     return (
       <ScriptPreview
         script={generatedScript}
@@ -141,6 +184,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     );
   }
 
+  console.log('❓ [AkinatorScriptMode] Mostrando pergunta:', currentStep);
   return (
     <motion.div
       initial={{ opacity: 0 }}

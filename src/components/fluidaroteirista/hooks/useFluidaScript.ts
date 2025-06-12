@@ -1,72 +1,39 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { generateScript } from '@/services/supabaseService';
-import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
+import { toast } from 'sonner';
 
-interface FluidaScriptRequest {
+interface FluidaScriptData {
   tipo_conteudo: string;
   objetivo: string;
   canal: string;
   estilo: string;
-  equipamento?: string;
+  equipamento: string;
   tema: string;
-  conversa?: any[];
-}
-
-interface FluidaScriptResult {
-  roteiro: string;
-  formato: string;
-  emocao_central: string;
-  intencao: string;
-  objetivo: string;
-  mentor: string;
 }
 
 export const useFluidaScript = () => {
-  const { toast } = useToast();
+  const [results, setResults] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [results, setResults] = useState<FluidaScriptResult[]>([]);
-  const { currentSession } = useDiagnosticPersistence();
 
-  const generateFluidaScript = async (request: FluidaScriptRequest): Promise<void> => {
-    console.log('🎬 FLUIDAROTEIRISTA - Iniciando geração', request);
-    
+  const generateScript = async (data: FluidaScriptData) => {
+    console.log('🚀 [useFluidaScript] Iniciando geração de roteiro');
     setIsGenerating(true);
     
     try {
-      // Usar dados do diagnóstico se disponível com verificação de propriedades
-      const diagnosticData: any = currentSession?.state || {};
-      const clinicType = diagnosticData?.clinicType || 'estetico';
-      
-      // Construir contexto enriquecido com verificações seguras
-      const enrichedContext = {
-        tipo_de_clinica: clinicType,
-        especialidade: diagnosticData?.medicalSpecialty || diagnosticData?.aestheticFocus || '',
-        equipamentos: request.equipamento || '',
-        protocolo: diagnosticData?.medicalBestSeller || diagnosticData?.aestheticBestSeller || '',
-        ticket_medio: diagnosticData?.medicalTicket || diagnosticData?.aestheticTicket || '',
-        publico_ideal: diagnosticData?.targetAudience || '',
-        estilo_clinica: diagnosticData?.medicalClinicStyle || diagnosticData?.aestheticClinicStyle || '',
-        estilo_linguagem: diagnosticData?.communicationStyle || '',
-        mentor_nome: 'FLUIDAROTEIRISTA'
-      };
-
-      // Prompt FLUIDAROTEIRISTA completo
       const systemPrompt = `
         Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
         
         Sua missão é gerar roteiros criativos, impactantes e prontos para redes sociais.
         
         Contexto da clínica:
-        - Tipo: ${enrichedContext.tipo_de_clinica}
-        - Especialidade: ${enrichedContext.especialidade}
-        - Equipamentos: ${enrichedContext.equipamentos}
-        - Protocolo mais vendido: ${enrichedContext.protocolo}
-        - Ticket médio: ${enrichedContext.ticket_medio}
-        - Público ideal: ${enrichedContext.publico_ideal}
-        - Estilo da clínica: ${enrichedContext.estilo_clinica}
-        - Mentor: ${enrichedContext.mentor_nome}
+        - Tipo: estetico
+        - Especialidade: 
+        - Equipamentos: ${data.equipamento}
+        - Protocolo mais vendido: 
+        - Ticket médio: 
+        - Público ideal: 
+        - Estilo da clínica: 
+        - Mentor: FLUIDAROTEIRISTA
         
         ESTRUTURA OBRIGATÓRIA:
         1. Gancho (capturar atenção)
@@ -74,7 +41,7 @@ export const useFluidaScript = () => {
         3. Virada (mostrar solução)
         4. CTA (chamada para ação)
         
-        FORMATO: ${request.tipo_conteudo || 'carrossel'}
+        FORMATO: ${data.tipo_conteudo}
         
         Retorne APENAS JSON válido:
         {
@@ -88,197 +55,151 @@ export const useFluidaScript = () => {
       `;
 
       const userPrompt = `
-        Tema: ${request.tema}
-        Tipo de conteúdo: ${request.tipo_conteudo}
-        Objetivo: ${request.objetivo || 'Atrair novos clientes'}
-        Canal: ${request.canal || 'Instagram'}
-        Estilo: ${request.estilo || 'Criativo'}
+        Tema: ${data.tema}
+        Tipo de conteúdo: ${data.tipo_conteudo}
+        Objetivo: ${data.objetivo}
+        Canal: ${data.canal}
+        Estilo: ${data.estilo}
         
         Crie um roteiro seguindo o modelo FLUIDAROTEIRISTA com estrutura clara e impactante.
       `;
 
-      const response = await generateScript({
-        type: 'custom',
-        systemPrompt,
-        userPrompt,
-        topic: request.tema,
-        additionalInfo: JSON.stringify(enrichedContext),
-        tone: request.estilo || 'professional',
-        marketingObjective: request.objetivo as any
-      });
-
-      // Tentar parsear como JSON
-      let scriptResult: FluidaScriptResult;
-      try {
-        scriptResult = JSON.parse(response.content);
-      } catch {
-        // Fallback se não for JSON válido
-        scriptResult = {
-          roteiro: response.content,
-          formato: request.tipo_conteudo || 'carrossel',
-          emocao_central: 'confiança',
-          intencao: 'atrair',
-          objetivo: request.objetivo || 'Atrair novos clientes',
-          mentor: 'FLUIDAROTEIRISTA'
-        };
-      }
-
-      const results = [scriptResult];
-      setResults(results);
-
-      toast({
-        title: "🎬 Roteiro FLUIDA gerado!",
-        description: `Criado com ${scriptResult.mentor} - ${scriptResult.formato}`,
-      });
-
-    } catch (error) {
-      console.error('❌ Erro no FLUIDAROTEIRISTA:', error);
-      
-      // Sistema de fallback
-      const fallbackScript: FluidaScriptResult = {
-        roteiro: `Roteiro não pôde ser gerado agora. Suas respostas foram salvas.
-        
-Sugestão básica: Fale sobre ${request.tema} e destaque os benefícios únicos dos seus tratamentos.
-
-📱 Slide 1: Gancho sobre ${request.tema}
-📱 Slide 2: Problema que seu público enfrenta  
-📱 Slide 3: Solução que sua clínica oferece
-📱 Slide 4: CTA para agendar consulta`,
-        formato: request.tipo_conteudo || 'carrossel',
-        emocao_central: 'confiança',
-        intencao: 'educar',
-        objetivo: 'Manter engajamento',
-        mentor: 'Básico'
+      const requestBody = {
+        request: {
+          type: 'custom',
+          systemPrompt,
+          userPrompt,
+          topic: data.tema,
+          additionalInfo: JSON.stringify({
+            tipo_de_clinica: 'estetico',
+            especialidade: '',
+            equipamentos: data.equipamento,
+            protocolo: '',
+            ticket_medio: '',
+            publico_ideal: '',
+            estilo_clinica: '',
+            estilo_linguagem: '',
+            mentor_nome: 'FLUIDAROTEIRISTA'
+          }),
+          tone: data.estilo,
+          marketingObjective: data.objetivo
+        }
       };
 
-      setResults([fallbackScript]);
+      console.log('📤 [useFluidaScript] Enviando request:', requestBody);
 
-      toast({
-        title: "⚠️ Modo Fallback",
-        description: "Sistema básico ativado. Tente novamente em instantes.",
-        variant: "destructive"
+      const response = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+        },
+        body: JSON.stringify(requestBody)
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [useFluidaScript] Erro na resposta:', response.status, errorText);
+        throw new Error(`Erro na API: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ [useFluidaScript] Resultado recebido:', result);
+
+      // Tentar fazer parse do conteúdo se for JSON
+      let scriptData = result;
+      if (result.content) {
+        try {
+          const parsedContent = JSON.parse(result.content);
+          scriptData = { ...result, ...parsedContent };
+          console.log('🔄 [useFluidaScript] Conteúdo JSON parseado:', scriptData);
+        } catch (parseError) {
+          console.log('ℹ️ [useFluidaScript] Conteúdo não é JSON, usando como texto');
+          scriptData = {
+            ...result,
+            roteiro: result.content,
+            formato: data.tipo_conteudo,
+            emocao_central: 'criatividade',
+            intencao: data.objetivo,
+            objetivo: data.tema,
+            mentor: 'FLUIDAROTEIRISTA'
+          };
+        }
+      }
+
+      // Garantir que temos os campos necessários
+      if (!scriptData.roteiro && !scriptData.content) {
+        console.error('❌ [useFluidaScript] Roteiro vazio');
+        throw new Error('Roteiro gerado está vazio');
+      }
+
+      setResults([scriptData]);
+      console.log('✅ [useFluidaScript] Roteiro salvo nos resultados');
+      
+      toast.success('✨ Roteiro gerado com sucesso!', {
+        description: 'Seu roteiro FLUIDA está pronto para ser usado.'
+      });
+
+      return scriptData;
+
+    } catch (error) {
+      console.error('🔥 [useFluidaScript] Erro ao gerar roteiro:', error);
+      
+      toast.error('❌ Erro ao gerar roteiro', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+      
+      throw error;
     } finally {
       setIsGenerating(false);
+      console.log('🏁 [useFluidaScript] Geração finalizada');
     }
   };
 
   const applyDisneyMagic = async (script: any) => {
-    setIsGenerating(true);
+    console.log('✨ [useFluidaScript] Aplicando Disney Magic');
+    const disneyScript = {
+      ...script,
+      roteiro: script.roteiro.replace(/tratamento/g, 'jornada de transformação')
+        .replace(/procedimento/g, 'ritual de beleza')
+        .replace(/resultado/g, 'metamorfose')
+        .replace(/cliente/g, 'pessoa especial'),
+      emocao_central: 'encantamento',
+      mentor: 'Fluida Encantadora'
+    };
     
-    try {
-      // Prompt Disney 1928 em 5 partes
-      const disneySystemPrompt = `
-        Assuma a identidade de Walt Disney em seu estúdio em 1928, criando narrativas mágicas e emocionais.
-        
-        Transform o roteiro usando a estrutura clássica Disney:
-        
-        🏰 Era uma vez... (situação inicial que gera identificação)
-        ⚡ Até que um dia... (conflito/problema que muda tudo)  
-        ✨ Então ela descobriu... (solução mágica/transformação)
-        🌟 E eles viveram felizes... (resultado final inspirador)
-        
-        Adicione:
-        - Elemento Disney Único (metáfora mágica)
-        - Lição Universal (aprendizado inspirador)
-        - Assinatura Disney 1928 (frase motivacional final)
-        
-        Mantenha o mesmo objetivo comercial, mas com alma emocional Disney.
-        Não cite Disney ou IA no resultado.
-        
-        Retorne JSON:
-        {
-          "roteiro": "Roteiro transformado com magia Disney",
-          "formato": "${script.formato}",
-          "emocao_central": "encantamento", 
-          "intencao": "inspirar",
-          "objetivo": "Transformar vidas",
-          "mentor": "Fluida Encantadora"
-        }
-      `;
-
-      const disneyUserPrompt = `
-        Roteiro original para transformar:
-        ${script.roteiro}
-        
-        Contexto:
-        - Tipo: ${script.formato}
-        - Objetivo: ${script.objetivo}
-        - Emoção atual: ${script.emocao_central}
-        
-        Transforme com a magia Disney 1928 mantendo o propósito comercial.
-      `;
-
-      const response = await generateScript({
-        type: 'custom',
-        systemPrompt: disneySystemPrompt,
-        userPrompt: disneyUserPrompt,
-        topic: 'Transformação Disney',
-        additionalInfo: 'Disney Magic 1928',
-        tone: 'magical',
-        marketingObjective: 'inspire' as any
-      });
-
-      let disneyScript;
-      try {
-        disneyScript = JSON.parse(response.content);
-      } catch {
-        disneyScript = {
-          ...script,
-          roteiro: response.content,
-          emocao_central: 'encantamento',
-          mentor: 'Fluida Encantadora'
-        };
-      }
-
-      // Substituir script atual
-      setResults(prev => prev.map((s, i) => i === 0 ? disneyScript : s));
-
-      toast({
-        title: "✨ Magia Disney 1928 Aplicada!",
-        description: "Walt Disney transformou seu roteiro com narrativa encantadora."
-      });
-
-    } catch (error) {
-      console.error('❌ Erro na transformação Disney:', error);
-      toast({
-        title: "Erro na transformação",
-        description: "Não foi possível aplicar a magia Disney.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const generateImage = async (script: any) => {
-    toast({
-      title: "🖼️ Gerando imagem...",
-      description: "Sua arte está sendo criada pela IA!"
+    setResults([disneyScript]);
+    toast.success('🏰 Disney Magic aplicada!', {
+      description: 'Seu roteiro agora tem a magia Disney.'
     });
-    // TODO: Implementar geração de imagem real
-  };
-
-  const generateAudio = async (script: any) => {
-    toast({
-      title: "🎧 Gerando áudio...",
-      description: "Sua narração encantadora está sendo criada!"
-    });
-    // TODO: Implementar geração de áudio com ElevenLabs
   };
 
   const clearResults = () => {
+    console.log('🗑️ [useFluidaScript] Limpando resultados');
     setResults([]);
   };
 
+  const generateImage = async (script: any) => {
+    console.log('🖼️ [useFluidaScript] Gerando imagem para script');
+    toast.info('🖼️ Geração de imagem', {
+      description: 'Funcionalidade em desenvolvimento.'
+    });
+  };
+
+  const generateAudio = async (script: any) => {
+    console.log('🎙️ [useFluidaScript] Gerando áudio para script');
+    toast.info('🎙️ Geração de áudio', {
+      description: 'Funcionalidade em desenvolvimento.'
+    });
+  };
+
   return {
-    generateScript: generateFluidaScript,
-    applyDisneyMagic,
-    generateImage,
-    generateAudio,
-    isGenerating,
     results,
-    clearResults
+    isGenerating,
+    generateScript,
+    applyDisneyMagic,
+    clearResults,
+    generateImage,
+    generateAudio
   };
 };

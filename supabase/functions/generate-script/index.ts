@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -27,9 +28,9 @@ serve(async (req) => {
     let requestData;
     try {
       requestData = await req.json();
-      console.log("Dados recebidos:", JSON.stringify(requestData));
+      console.log("📥 Dados recebidos:", JSON.stringify(requestData));
     } catch (parseError) {
-      console.error("Erro ao processar JSON da requisição:", parseError);
+      console.error("❌ Erro ao processar JSON da requisição:", parseError);
       throw new Error("Formato de requisição inválido: não foi possível processar JSON");
     }
     
@@ -43,12 +44,14 @@ serve(async (req) => {
     const { finalSystemPrompt, finalUserPrompt } = await requestHandler.processRequest(request);
     
     // Call OpenAI API
+    console.log("🤖 Chamando OpenAI API...");
     const content = await requestHandler.callOpenAI(finalSystemPrompt, finalUserPrompt, type);
+    console.log("✅ Resposta recebida da OpenAI");
     
     // Format the response
     const scriptResponse = requestHandler.formatResponse(content, type, topic, equipment, bodyArea);
 
-    // Save to database with enhanced metadata for FLUIDAROTEIRISTA
+    // Tentar salvar no banco (sem quebrar o fluxo se falhar)
     try {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
@@ -61,37 +64,20 @@ serve(async (req) => {
         const user = await getUserFromToken(supabaseAdmin, token);
         
         if (user) {
-          // Extract metadata if JSON response
-          let metadata = {};
-          if (type === 'custom') {
-            try {
-              const parsed = JSON.parse(content);
-              metadata = {
-                formato: parsed.formato,
-                emocao_central: parsed.emocao_central,
-                intencao: parsed.intencao,
-                mentor_usado: parsed.mentor,
-                equipamento_principal: equipment
-              };
-            } catch {
-              // Keep empty metadata if not JSON
-            }
-          }
-
+          console.log("💾 Tentando salvar no banco...");
           await saveScriptToDatabase(supabaseAdmin, {
             usuario_id: user.id,
             tipo: type === 'custom' ? 'fluidaroteirista' : type,
-            titulo: scriptResponse.title,
+            titulo: scriptResponse.title || 'Roteiro FLUIDAROTEIRISTA',
             conteudo: content,
             status: 'gerado',
-            objetivo_marketing: marketingObjective || null,
-            ...metadata
+            objetivo_marketing: marketingObjective || null
           });
         }
       }
     } catch (dbError) {
-      console.error('Erro ao salvar no banco:', dbError);
-      // Continue even if db save fails
+      console.error('⚠️ Erro ao salvar no banco (continuando):', dbError);
+      // Continuar mesmo se o save no banco falhar
     }
 
     console.log("📤 Enviando resposta FLUIDAROTEIRISTA para o cliente");
@@ -101,6 +87,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    console.error("🔥 Erro crítico na função:", error);
     return ErrorHandler.handle(error, corsHeaders);
   }
 });

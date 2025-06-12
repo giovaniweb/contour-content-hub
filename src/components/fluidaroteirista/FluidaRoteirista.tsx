@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,24 +22,40 @@ const FluidaRoteirista: React.FC = () => {
     generateAudio 
   } = useFluidaScript();
 
+  // Monitorar mudanças nos resultados para mudar automaticamente para 'results'
+  useEffect(() => {
+    console.log('📊 [FluidaRoteirista] Results changed:', results.length, 'current mode:', currentMode);
+    if (results.length > 0 && currentMode !== 'results') {
+      console.log('🔄 [FluidaRoteirista] Mudando para modo results');
+      setCurrentMode('results');
+    }
+  }, [results.length, currentMode]);
+
   const handleModeSelect = (mode: 'akinator' | 'chat') => {
+    console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
     setCurrentMode(mode);
   };
 
   const handleScriptGenerated = (script: any) => {
-    setCurrentMode('results');
+    console.log('✅ [FluidaRoteirista] Script gerado recebido:', script);
+    // O useEffect já vai mudar para 'results' quando results.length > 0
   };
 
   const handleNewScript = () => {
+    console.log('🆕 [FluidaRoteirista] Novo script solicitado');
     clearResults();
     setCurrentMode('selection');
   };
 
   const handleGoBack = () => {
+    console.log('⬅️ [FluidaRoteirista] Voltando para seleção');
     setCurrentMode('selection');
   };
 
+  console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
+
   if (currentMode === 'results' && results.length > 0) {
+    console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
       <FluidaScriptResults
         results={results}
@@ -54,6 +69,7 @@ const FluidaRoteirista: React.FC = () => {
   }
 
   if (currentMode === 'akinator') {
+    console.log('❓ [FluidaRoteirista] Renderizando modo Akinator');
     return (
       <AkinatorScriptMode
         onScriptGenerated={handleScriptGenerated}
@@ -65,6 +81,7 @@ const FluidaRoteirista: React.FC = () => {
   }
 
   if (currentMode === 'chat') {
+    console.log('💬 [FluidaRoteirista] Renderizando modo Chat');
     return (
       <ChatScriptMode
         onScriptGenerated={handleScriptGenerated}
@@ -75,6 +92,7 @@ const FluidaRoteirista: React.FC = () => {
     );
   }
 
+  console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
