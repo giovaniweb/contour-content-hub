@@ -11,6 +11,28 @@ import ActionsTab from '@/components/diagnostic-report/ActionsTab';
 import ContentTab from '@/components/diagnostic-report/ContentTab';
 import MetricsTab from '@/components/diagnostic-report/MetricsTab';
 
+// Função para gerar ID determinístico (mesma lógica do hook)
+const generateDeterministicId = (data: any): string => {
+  const clinicName = data.clinicName || data.clinic_name || data.state?.clinicName || 'unknown';
+  const yearsInBusiness = data.yearsInBusiness || data.years_in_business || data.state?.yearsInBusiness || '1';
+  const teamSize = data.teamSize || data.team_size || data.state?.teamSize || '1';
+  const mainServices = data.mainServices || data.main_services || data.state?.mainServices || 'geral';
+  const revenue = data.currentRevenue || data.revenue || data.state?.currentRevenue || '0';
+  const clinicType = data.clinicType || data.clinic_type || data.state?.clinicType || 'geral';
+  
+  const content = `${clinicName}_${yearsInBusiness}_${teamSize}_${mainServices}_${revenue}_${clinicType}`;
+  
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  const fixedTimestamp = Math.abs(hash) * 1000000;
+  return `diagnostic_${Math.abs(hash)}_${fixedTimestamp}`;
+};
+
 const DiagnosticReport: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -42,26 +64,9 @@ const DiagnosticReport: React.FC = () => {
           const parsed = JSON.parse(legacyData);
           console.log('📄 Dados legados encontrados:', parsed);
           
-          // Converter usando a mesma lógica do hook
-          const generateDeterministicId = (data: any): string => {
-            const clinicName = data.clinicName || data.state?.clinicName || 'unknown';
-            const timestamp = data.timestamp || new Date().toISOString();
-            const clinicType = data.clinicType || data.state?.clinicType || 'geral';
-            
-            const content = `${clinicName}_${clinicType}_${timestamp}`;
-            let hash = 0;
-            for (let i = 0; i < content.length; i++) {
-              const char = content.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash = hash & hash;
-            }
-            
-            return `diagnostic_${Math.abs(hash)}_${Date.parse(timestamp) || Date.now()}`;
-          };
-          
+          // Converter usando a mesma lógica determinística
           const state = parsed.state || parsed;
-          const timestamp = parsed.timestamp || new Date().toISOString();
-          const generatedId = generateDeterministicId({ ...state, timestamp });
+          const generatedId = generateDeterministicId(state);
           
           console.log('🆔 ID gerado para dados legados:', generatedId);
           console.log('🔍 Comparando com ID buscado:', sessionId);
@@ -71,17 +76,17 @@ const DiagnosticReport: React.FC = () => {
             let clinicTypeLabel = 'Clínica';
             let specialty = 'Geral';
             
-            if (state.clinicType === 'clinica_medica') {
+            if (state.clinicType === 'clinica_medica' || state.clinic_type === 'clinica_medica') {
               clinicTypeLabel = 'Clínica Médica';
-              specialty = state.medicalSpecialty || 'Geral';
-            } else if (state.clinicType === 'clinica_estetica') {
+              specialty = state.medicalSpecialty || state.medical_specialty || 'Geral';
+            } else if (state.clinicType === 'clinica_estetica' || state.clinic_type === 'clinica_estetica') {
               clinicTypeLabel = 'Clínica Estética';
-              specialty = state.aestheticFocus || 'Geral';
+              specialty = state.aestheticFocus || state.aesthetic_focus || 'Geral';
             }
             
             session = {
               id: generatedId,
-              timestamp: timestamp,
+              timestamp: parsed.timestamp || new Date('2024-01-01').toISOString(),
               state: state,
               isCompleted: true,
               clinicTypeLabel,
@@ -96,20 +101,6 @@ const DiagnosticReport: React.FC = () => {
         console.error('❌ Erro ao tentar conversão em tempo real:', error);
       }
     }
-    
-    // 3. Busca por padrões similares como fallback
-    if (!session) {
-      console.log('🔍 Tentando busca por padrões similares...');
-      
-      const similarSession = savedDiagnostics.find(s => 
-        s.id.includes(sessionId) || sessionId.includes(s.id)
-      );
-      
-      if (similarSession) {
-        console.log('✅ Sessão encontrada por similaridade:', similarSession.id);
-        session = similarSession;
-      }
-    }
   }
 
   console.log('🏥 DiagnosticReport - Sessão encontrada:', !!session);
@@ -122,6 +113,12 @@ const DiagnosticReport: React.FC = () => {
     try {
       const legacyData = localStorage.getItem('marketing_diagnostic_data');
       console.log('📄 Dados legados no localStorage:', legacyData ? JSON.parse(legacyData) : null);
+      
+      if (legacyData) {
+        const parsed = JSON.parse(legacyData);
+        const testId = generateDeterministicId(parsed);
+        console.log('🧪 Teste - ID que seria gerado:', testId);
+      }
     } catch (e) {
       console.error('❌ Erro ao verificar dados legados:', e);
     }

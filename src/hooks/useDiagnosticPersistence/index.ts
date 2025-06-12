@@ -7,15 +7,20 @@ import { DiagnosticSession } from './types';
 
 export type { DiagnosticSession } from './types';
 
-// Função para gerar ID determinístico baseado no conteúdo
+// Função para gerar ID determinístico baseado no conteúdo fixo dos dados
 const generateDeterministicId = (data: any): string => {
   // Usar dados fixos do diagnóstico para gerar um ID consistente
-  const clinicName = data.clinicName || data.state?.clinicName || 'unknown';
-  const timestamp = data.timestamp || new Date().toISOString();
-  const clinicType = data.clinicType || data.state?.clinicType || 'geral';
+  const clinicName = data.clinicName || data.clinic_name || data.state?.clinicName || 'unknown';
+  const yearsInBusiness = data.yearsInBusiness || data.years_in_business || data.state?.yearsInBusiness || '1';
+  const teamSize = data.teamSize || data.team_size || data.state?.teamSize || '1';
+  const mainServices = data.mainServices || data.main_services || data.state?.mainServices || 'geral';
+  const revenue = data.currentRevenue || data.revenue || data.state?.currentRevenue || '0';
+  const clinicType = data.clinicType || data.clinic_type || data.state?.clinicType || 'geral';
   
-  // Criar hash simples baseado no conteúdo
-  const content = `${clinicName}_${clinicType}_${timestamp}`;
+  // Criar uma string única baseada nos dados fixos do diagnóstico
+  const content = `${clinicName}_${yearsInBusiness}_${teamSize}_${mainServices}_${revenue}_${clinicType}`;
+  
+  // Gerar hash simples baseado no conteúdo
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);
@@ -23,7 +28,10 @@ const generateDeterministicId = (data: any): string => {
     hash = hash & hash; // Convert to 32-bit integer
   }
   
-  return `diagnostic_${Math.abs(hash)}_${Date.parse(timestamp) || Date.now()}`;
+  // Usar timestamp fixo baseado no hash para manter consistência
+  const fixedTimestamp = Math.abs(hash) * 1000000; // Timestamp fixo baseado no conteúdo
+  
+  return `diagnostic_${Math.abs(hash)}_${fixedTimestamp}`;
 };
 
 // Função para converter dados do formato antigo para DiagnosticSession
@@ -35,7 +43,6 @@ const convertLegacyDataToSession = (legacyData: any): DiagnosticSession | null =
     
     // Verificar se é formato novo (com .state) ou antigo (dados diretos)
     let state = legacyData.state || legacyData;
-    let timestamp = legacyData.timestamp || new Date().toISOString();
     
     // Se não tem propriedades básicas, não é um diagnóstico válido
     if (!state || typeof state !== 'object') {
@@ -43,19 +50,22 @@ const convertLegacyDataToSession = (legacyData: any): DiagnosticSession | null =
       return null;
     }
     
-    // Gerar ID determinístico baseado no conteúdo
-    const sessionId = legacyData.sessionId || generateDeterministicId({ ...state, timestamp });
+    // Gerar ID determinístico baseado no conteúdo dos dados
+    const sessionId = generateDeterministicId(state);
+    
+    // Usar timestamp fixo baseado no ID para garantir consistência
+    const timestamp = legacyData.timestamp || new Date('2024-01-01').toISOString();
     
     // Determinar clinicTypeLabel e specialty
     let clinicTypeLabel = 'Clínica';
     let specialty = 'Geral';
     
-    if (state.clinicType === 'clinica_medica') {
+    if (state.clinicType === 'clinica_medica' || state.clinic_type === 'clinica_medica') {
       clinicTypeLabel = 'Clínica Médica';
-      specialty = state.medicalSpecialty || 'Geral';
-    } else if (state.clinicType === 'clinica_estetica') {
+      specialty = state.medicalSpecialty || state.medical_specialty || 'Geral';
+    } else if (state.clinicType === 'clinica_estetica' || state.clinic_type === 'clinica_estetica') {
       clinicTypeLabel = 'Clínica Estética';
-      specialty = state.aestheticFocus || 'Geral';
+      specialty = state.aestheticFocus || state.aesthetic_focus || 'Geral';
     }
     
     const session: DiagnosticSession = {
@@ -69,6 +79,7 @@ const convertLegacyDataToSession = (legacyData: any): DiagnosticSession | null =
     };
     
     console.log('✨ Dados legados convertidos para DiagnosticSession:', session);
+    console.log('🆔 ID gerado determinístico:', sessionId);
     return session;
   } catch (error) {
     console.error('❌ Erro ao converter dados legados:', error);
