@@ -14,20 +14,63 @@ import MetricsTab from '@/components/diagnostic-report/MetricsTab';
 const DiagnosticReport: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const { savedDiagnostics, currentSession } = useDiagnosticPersistence();
+  const { savedDiagnostics, currentSession, findSessionById } = useDiagnosticPersistence();
   const [activeTab, setActiveTab] = useState('diagnostic');
 
-  // Encontrar a sessão pelo ID
-  const session = savedDiagnostics.find(s => s.id === sessionId) || 
-                 (currentSession?.id === sessionId ? currentSession : null);
+  console.log('🏥 DiagnosticReport - Parâmetros:', { sessionId });
+  console.log('🏥 DiagnosticReport - Estado:', { 
+    savedDiagnosticsCount: savedDiagnostics.length,
+    currentSessionId: currentSession?.id,
+    searchingForId: sessionId
+  });
+
+  // Buscar a sessão pelo ID com múltiplas estratégias
+  let session = null;
+  
+  if (sessionId) {
+    // Usar a nova função de busca melhorada
+    session = findSessionById(sessionId);
+    
+    // Se ainda não encontrou, tentar busca por padrões similares
+    if (!session) {
+      console.log('🔍 Tentando busca por padrões similares...');
+      
+      // Buscar por ID que contenha parte do sessionId
+      const similarSession = savedDiagnostics.find(s => 
+        s.id.includes(sessionId) || sessionId.includes(s.id)
+      );
+      
+      if (similarSession) {
+        console.log('✅ Sessão encontrada por similaridade:', similarSession.id);
+        session = similarSession;
+      }
+    }
+  }
+
+  console.log('🏥 DiagnosticReport - Sessão encontrada:', !!session);
 
   if (!session) {
+    console.log('❌ DiagnosticReport - Sessão não encontrada');
+    console.log('📊 Diagnósticos disponíveis:', savedDiagnostics.map(d => ({ id: d.id, timestamp: d.timestamp })));
+    
     return (
       <div className="min-h-screen bg-aurora-background">
         <div className="container mx-auto py-6">
           <div className="text-center space-y-4">
             <h1 className="text-2xl font-bold text-foreground">Relatório não encontrado</h1>
-            <p className="text-foreground/60">O relatório solicitado não foi encontrado.</p>
+            <p className="text-foreground/60">
+              O relatório solicitado (ID: {sessionId}) não foi encontrado.
+            </p>
+            <div className="text-sm text-foreground/40">
+              <p>Diagnósticos disponíveis: {savedDiagnostics.length}</p>
+              <p>Sessão atual: {currentSession ? 'Existe' : 'Não existe'}</p>
+            </div>
+            <button 
+              onClick={() => navigate('/diagnostic-history')}
+              className="px-4 py-2 bg-aurora-electric-purple text-white rounded hover:bg-aurora-electric-purple/80"
+            >
+              Voltar ao Histórico
+            </button>
           </div>
         </div>
       </div>
@@ -37,6 +80,8 @@ const DiagnosticReport: React.FC = () => {
   const handleBack = () => {
     navigate('/diagnostic-history');
   };
+
+  console.log('✅ DiagnosticReport - Renderizando relatório para sessão:', session.id);
 
   return (
     <div className="min-h-screen bg-aurora-background">
