@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, CheckCircle2, Wand2 } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2 } from "lucide-react";
 
 interface ScriptSlide {
   number: number;
@@ -23,14 +23,22 @@ interface ScriptPreviewProps {
   };
   onApprove: () => void;
   onNewScript: () => void;
+  onGenerateImage?: () => Promise<void>;
+  onGenerateAudio?: () => Promise<void>;
+  onApplyDisney?: () => Promise<void>;
   isProcessing?: boolean;
+  generatedImageUrl?: string;
 }
 
 const ScriptPreview: React.FC<ScriptPreviewProps> = ({
   script,
   onApprove,
   onNewScript,
-  isProcessing = false
+  onGenerateImage,
+  onGenerateAudio,
+  onApplyDisney,
+  isProcessing = false,
+  generatedImageUrl
 }) => {
   // Parse script content into slides
   const parseScriptSlides = (content: string): ScriptSlide[] => {
@@ -163,6 +171,28 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
         </div>
       </div>
 
+      {/* Generated Image Display */}
+      {generatedImageUrl && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mt-6"
+        >
+          <Card className="aurora-glass">
+            <CardHeader>
+              <CardTitle className="text-white text-center">🖼️ Imagem Gerada</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <img 
+                src={generatedImageUrl} 
+                alt="Imagem gerada para o roteiro" 
+                className="w-full max-w-md mx-auto rounded-lg"
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Action Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -178,6 +208,42 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
           <CheckCircle2 className="h-5 w-5 mr-2" />
           ✨ Aprovar & Fluida Encantadora
         </Button>
+        
+        {onGenerateImage && (
+          <Button
+            onClick={onGenerateImage}
+            disabled={isProcessing}
+            variant="outline"
+            className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 px-6 h-12"
+          >
+            <Image className="h-5 w-5 mr-2" />
+            Gerar Imagem
+          </Button>
+        )}
+        
+        {onGenerateAudio && (
+          <Button
+            onClick={onGenerateAudio}
+            disabled={isProcessing}
+            variant="outline"
+            className="aurora-glass border-aurora-cosmic-teal/30 text-white hover:bg-aurora-cosmic-teal/20 px-6 h-12"
+          >
+            <Volume2 className="h-5 w-5 mr-2" />
+            Gerar Áudio
+          </Button>
+        )}
+        
+        {onApplyDisney && (
+          <Button
+            onClick={onApplyDisney}
+            disabled={isProcessing}
+            variant="outline"
+            className="aurora-glass border-aurora-sage/30 text-white hover:bg-aurora-sage/20 px-6 h-12"
+          >
+            <Sparkles className="h-5 w-5 mr-2" />
+            Disney Magic
+          </Button>
+        )}
         
         <Button
           onClick={onNewScript}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +16,14 @@ const FluidaRoteirista: React.FC = () => {
     results, 
     isGenerating, 
     generateScript, 
+    forceGenerate,
     applyDisneyMagic, 
     clearResults,
     generateImage,
-    generateAudio 
+    generateAudio,
+    validationResult,
+    showValidation,
+    dismissValidation
   } = useFluidaScript();
 
   // Monitorar mudanças nos resultados para mudar automaticamente para 'results'
@@ -88,7 +91,11 @@ const FluidaRoteirista: React.FC = () => {
         onScriptGenerated={handleScriptGenerated}
         onGoBack={handleGoBack}
         generateScript={generateScript}
+        forceGenerate={forceGenerate}
         isGenerating={isGenerating}
+        validationResult={validationResult}
+        showValidation={showValidation}
+        dismissValidation={dismissValidation}
       />
     );
   }
