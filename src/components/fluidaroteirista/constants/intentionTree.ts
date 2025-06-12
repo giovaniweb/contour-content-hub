@@ -97,18 +97,18 @@ export const AKINATOR_TREE: Record<string, any> = {
         exemplo: "Posts informativos, vídeos longos"
       },
       {
-        value: "whatsapp",
-        label: "WhatsApp",
-        emoji: "💬",
-        description: "Comunicação direta e pessoal",
-        exemplo: "Status, grupos, listas de transmissão"
+        value: "tiktok",
+        label: "TikTok",
+        emoji: "🎵",
+        description: "Conteúdo viral e dinâmico",
+        exemplo: "Vídeos curtos, trends, transformações"
       },
       {
-        value: "site",
-        label: "Site/Blog",
-        emoji: "🌐",
-        description: "Conteúdo detalhado e SEO",
-        exemplo: "Artigos, páginas de serviços"
+        value: "youtube",
+        label: "YouTube",
+        emoji: "📺",
+        description: "Conteúdo detalhado e educativo",
+        exemplo: "Tutoriais, explicações, demonstrações"
       }
     ],
     next: "estilo"
