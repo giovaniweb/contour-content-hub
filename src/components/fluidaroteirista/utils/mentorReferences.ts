@@ -17,8 +17,7 @@ export const MENTOR_REFERENCES = {
   'pedro_sobral': 'Pedro "LogicaMaster" Sobrancelha 🧠',
   'camila_porto': 'Camila "DidáticaTop" Portuga 📖',
   'hyeser_souza': 'Hyeser "ComédiaBrasil" Souzinha 😂',
-  'washington_olivetto': 'Washington "BigIdea" Olivetão 💭',
-  'paulo_cuenca': 'Paulo "VisionMaster" Creative 🎨'
+  'washington_olivetto': 'Washington "BigIdea" Olivetão 💭'
 };
 
 export const getMentorReference = (originalMentor: string): string => {
