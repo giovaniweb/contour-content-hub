@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Sparkles, Wand2, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Sparkles, Wand2, Loader2, Check, ArrowRight } from "lucide-react";
 import { useUserEquipments } from '@/hooks/useUserEquipments';
 import { MENTOR_PHRASES } from '../constants/intentionTree';
 
@@ -24,7 +25,7 @@ interface EnhancedAkinatorQuestionProps {
   question: string;
   options: QuestionOption[];
   stepId: string;
-  onOptionSelect: (value: string) => void;
+  onOptionSelect: (value: string | string[]) => void;
   onGoBack: () => void;
   canGoBack: boolean;
   mentorStyle?: string;
@@ -45,6 +46,7 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
 }) => {
   const [themeText, setThemeText] = useState('');
   const [mentorPhrase, setMentorPhrase] = useState('');
+  const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const { equipments, loading: equipmentsLoading } = useUserEquipments();
 
   useEffect(() => {
@@ -57,6 +59,26 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
   const handleThemeSubmit = () => {
     if (themeText.trim()) {
       onOptionSelect(themeText.trim());
+    }
+  };
+
+  const handleEquipmentToggle = (equipmentId: string) => {
+    setSelectedEquipments(prev => {
+      if (prev.includes(equipmentId)) {
+        return prev.filter(id => id !== equipmentId);
+      } else {
+        // Limitar a 4 equipamentos
+        if (prev.length >= 4) {
+          return prev;
+        }
+        return [...prev, equipmentId];
+      }
+    });
+  };
+
+  const handleEquipmentsSubmit = () => {
+    if (selectedEquipments.length > 0) {
+      onOptionSelect(selectedEquipments);
     }
   };
 
@@ -206,6 +228,207 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
     );
   }
 
+  // Etapa de equipamentos com seleção múltipla
+  if (stepId === 'equipamento') {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Progress Bar */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-aurora-electric-purple font-medium">
+              Progresso da Criação
+            </span>
+            <span className="text-sm text-aurora-sage font-medium">
+              {currentStep} de {totalSteps}
+            </span>
+          </div>
+          <div className="h-2 bg-aurora-deep-purple/30 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-gradient-to-r from-aurora-electric-purple to-aurora-sage rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Question Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h2 className="text-2xl font-light text-white leading-relaxed mb-4">
+            {question}
+          </h2>
+          <p className="text-aurora-electric-purple text-sm">
+            Selecione até 4 equipamentos para criar um roteiro personalizado
+          </p>
+          {selectedEquipments.length > 0 && (
+            <Badge variant="outline" className="mt-2 border-aurora-sage/30 text-aurora-sage">
+              {selectedEquipments.length} equipamento{selectedEquipments.length !== 1 ? 's' : ''} selecionado{selectedEquipments.length !== 1 ? 's' : ''}
+            </Badge>
+          )}
+        </motion.div>
+
+        {/* Loading state para equipamentos */}
+        {equipmentsLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3 text-aurora-electric-purple">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Carregando equipamentos...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Options Grid */}
+        {!equipmentsLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <AnimatePresence>
+              {currentOptions.map((option, index) => {
+                const isSelected = selectedEquipments.includes(option.value);
+                
+                return (
+                  <TooltipProvider key={option.value}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <motion.div
+                          variants={cardVariants}
+                          initial="hidden"
+                          animate="visible"
+                          whileHover="hover"
+                          whileTap="tap"
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <Card 
+                            className={`aurora-glass cursor-pointer transition-all h-full relative ${
+                              isSelected 
+                                ? 'border-aurora-sage/60 bg-aurora-sage/10 shadow-lg shadow-aurora-sage/20' 
+                                : 'border-aurora-electric-purple/20 hover:border-aurora-electric-purple/40'
+                            }`}
+                            onClick={() => handleEquipmentToggle(option.value)}
+                          >
+                            {/* Selection Indicator */}
+                            <div className="absolute top-3 right-3 z-10">
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                isSelected 
+                                  ? 'bg-aurora-sage border-aurora-sage' 
+                                  : 'border-slate-500 bg-transparent'
+                              }`}>
+                                {isSelected && <Check className="h-4 w-4 text-white" />}
+                              </div>
+                            </div>
+
+                            <CardContent className="p-6">
+                              <div className="flex items-start gap-4">
+                                {/* Equipment Image or Emoji */}
+                                {option.imageUrl ? (
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-700">
+                                    <img 
+                                      src={option.imageUrl} 
+                                      alt={option.label}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        console.log('🖼️ Erro ao carregar imagem:', option.imageUrl);
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                      }}
+                                    />
+                                    <div className="hidden w-full h-full flex items-center justify-center text-2xl">
+                                      {option.emoji}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <motion.div
+                                    className="text-3xl flex-shrink-0"
+                                    variants={iconVariants}
+                                    whileHover="hover"
+                                  >
+                                    {option.emoji}
+                                  </motion.div>
+                                )}
+                                
+                                <div className="flex-1 pr-8">
+                                  <h3 className={`font-medium mb-2 ${
+                                    isSelected ? 'text-aurora-sage' : 'text-white'
+                                  }`}>
+                                    {option.label}
+                                  </h3>
+                                  <p className="text-sm text-slate-400">{option.description}</p>
+                                  
+                                  {option.sample && (
+                                    <div className="mt-3 p-2 bg-aurora-electric-purple/10 rounded-lg">
+                                      <p className="text-xs text-aurora-electric-purple italic">
+                                        "{option.sample}"
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </TooltipTrigger>
+                      
+                      {option.sample && (
+                        <TooltipContent>
+                          <p className="max-w-xs">{option.sample}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Continue Button */}
+        {!equipmentsLoading && currentOptions.length > 0 && (
+          <div className="flex gap-4 justify-center">
+            <Button
+              onClick={handleEquipmentsSubmit}
+              disabled={selectedEquipments.length === 0}
+              className="bg-aurora-gradient-primary hover:opacity-90 text-white px-8 h-12"
+            >
+              <ArrowRight className="h-5 w-5 mr-2" />
+              Continuar com {selectedEquipments.length} equipamento{selectedEquipments.length !== 1 ? 's' : ''}
+            </Button>
+            
+            {canGoBack && (
+              <Button
+                onClick={onGoBack}
+                variant="outline"
+                className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 px-8 h-12"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Voltar
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Fallback message se não houver equipamentos */}
+        {!equipmentsLoading && currentOptions.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-slate-400 mb-4">
+              Nenhum equipamento encontrado para sua conta.
+            </p>
+            <Button onClick={onGoBack} variant="outline" className="aurora-glass border-aurora-electric-purple/30 text-white">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Outras etapas (não equipamento)
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Progress Bar */}
@@ -243,110 +466,66 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
         </h2>
       </motion.div>
 
-      {/* Loading state para equipamentos */}
-      {stepId === 'equipamento' && equipmentsLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-3 text-aurora-electric-purple">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Carregando equipamentos...</span>
-          </div>
-        </div>
-      )}
-
       {/* Options Grid */}
-      {(!equipmentsLoading || stepId !== 'equipamento') && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <AnimatePresence>
-            {currentOptions.map((option, index) => (
-              <TooltipProvider key={option.value}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <motion.div
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      whileHover="hover"
-                      whileTap="tap"
-                      transition={{ delay: index * 0.1 }}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <AnimatePresence>
+          {currentOptions.map((option, index) => (
+            <TooltipProvider key={option.value}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <motion.div
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    whileTap="tap"
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card 
+                      className="aurora-glass border-aurora-electric-purple/20 hover:border-aurora-electric-purple/40 cursor-pointer transition-all h-full"
+                      onClick={() => onOptionSelect(option.value)}
                     >
-                      <Card 
-                        className="aurora-glass border-aurora-electric-purple/20 hover:border-aurora-electric-purple/40 cursor-pointer transition-all h-full"
-                        onClick={() => onOptionSelect(option.value)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start gap-4">
-                            {/* Equipment Image or Emoji */}
-                            {option.imageUrl ? (
-                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-700">
-                                <img 
-                                  src={option.imageUrl} 
-                                  alt={option.label}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    console.log('🖼️ Erro ao carregar imagem:', option.imageUrl);
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                  }}
-                                />
-                                <div className="hidden w-full h-full flex items-center justify-center text-2xl">
-                                  {option.emoji}
-                                </div>
-                              </div>
-                            ) : (
-                              <motion.div
-                                className="text-3xl flex-shrink-0"
-                                variants={iconVariants}
-                                whileHover="hover"
-                              >
-                                {option.emoji}
-                              </motion.div>
-                            )}
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <motion.div
+                            className="text-3xl flex-shrink-0"
+                            variants={iconVariants}
+                            whileHover="hover"
+                          >
+                            {option.emoji}
+                          </motion.div>
+                          
+                          <div className="flex-1">
+                            <h3 className="text-white font-medium mb-2">{option.label}</h3>
+                            <p className="text-sm text-slate-400">{option.description}</p>
                             
-                            <div className="flex-1">
-                              <h3 className="text-white font-medium mb-2">{option.label}</h3>
-                              <p className="text-sm text-slate-400">{option.description}</p>
-                              
-                              {option.sample && (
-                                <div className="mt-3 p-2 bg-aurora-electric-purple/10 rounded-lg">
-                                  <p className="text-xs text-aurora-electric-purple italic">
-                                    "{option.sample}"
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                            {option.sample && (
+                              <div className="mt-3 p-2 bg-aurora-electric-purple/10 rounded-lg">
+                                <p className="text-xs text-aurora-electric-purple italic">
+                                  "{option.sample}"
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </TooltipTrigger>
-                  
-                  {option.sample && (
-                    <TooltipContent>
-                      <p className="max-w-xs">{option.sample}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* Fallback message se não houver equipamentos */}
-      {stepId === 'equipamento' && !equipmentsLoading && currentOptions.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-slate-400 mb-4">
-            Nenhum equipamento encontrado para sua conta.
-          </p>
-          <Button onClick={onGoBack} variant="outline" className="aurora-glass border-aurora-electric-purple/30 text-white">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        </div>
-      )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TooltipTrigger>
+                
+                {option.sample && (
+                  <TooltipContent>
+                    <p className="max-w-xs">{option.sample}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </AnimatePresence>
+      </div>
 
       {/* Back Button */}
-      {canGoBack && stepId !== 'equipamento' && (
+      {canGoBack && (
         <div className="text-center">
           <Button 
             onClick={onGoBack}
