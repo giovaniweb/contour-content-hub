@@ -152,7 +152,6 @@ export default function Sidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={isActive(item.path)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
                           "text-white hover:text-white",
@@ -223,7 +222,6 @@ export default function Sidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={isActive(ROUTES.VIDEOS.CREATE)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
                           "text-cyan-200 hover:text-cyan-100",
@@ -272,7 +270,6 @@ export default function Sidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={isActive(item.path)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden min-h-[36px]",
                           "text-orange-100 hover:text-orange-50",
