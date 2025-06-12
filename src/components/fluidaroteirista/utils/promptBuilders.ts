@@ -1,5 +1,4 @@
 
-
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 
 export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
@@ -83,13 +82,15 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     `,
     
     carrossel: `
-    🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES:
-    - 3-5 slides educativos (máximo 5)
+    🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES RÍGIDAS:
+    - EXATAMENTE 5 slides, nem mais nem menos
+    - OBRIGATÓRIO: Numerar cada slide (Slide 1, Slide 2, etc.)
     - Máximo 25 palavras por slide
-    - Primeiro slide: gancho forte
-    - Slides intermediários: desenvolvimento
-    - Último slide: CTA e conclusão
-    - Formato: Card 1, Card 2, etc.
+    - Slide 1: Gancho forte e impactante
+    - Slides 2-4: Desenvolvimento progressivo do conteúdo
+    - Slide 5: CTA poderoso e conclusão
+    - NUNCA exceder 5 slides
+    - Se tiver mais conteúdo, condense nos 5 slides obrigatórios
     `,
     
     post_estatico: `
@@ -165,13 +166,15 @@ const getOutputInstructions = (formato: string): string => {
     `,
     
     carrossel: `
+    🚨 IMPORTANTE: EXATAMENTE 5 SLIDES - CONTAGEM OBRIGATÓRIA
     Retorne JSON:
     {
-      "roteiro": "Slide 1: Título\nSlide 2: Desenvolvimento...",
+      "roteiro": "Slide 1: [Gancho impactante]\nSlide 2: [Desenvolvimento 1]\nSlide 3: [Desenvolvimento 2]\nSlide 4: [Desenvolvimento 3]\nSlide 5: [CTA e conclusão]",
       "formato": "carrossel", 
       "slides_total": 5,
-      "sugestao_visual": "Descrição visual para cada slide"
+      "sugestao_visual": "Descrição visual específica para cada um dos 5 slides"
     }
+    VALIDAÇÃO: Conte os slides antes de enviar. DEVE ser exatamente 5.
     `,
     
     post_estatico: `

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2 } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2, Palette, Zap } from "lucide-react";
 
 interface ScriptSlide {
   number: number;
@@ -43,13 +43,28 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
   // Parse script content into slides
   const parseScriptSlides = (content: string): ScriptSlide[] => {
     const lines = content.split('\n').filter(line => line.trim());
-    return lines.map((line, index) => ({
-      number: index + 1,
-      content: line.trim(),
-      type: index === 0 ? 'hook' : 
-            index === lines.length - 1 ? 'cta' : 
-            index === 1 ? 'problem' : 'solution'
-    }));
+    const slides: ScriptSlide[] = [];
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.match(/^Slide\s*\d+/i)) {
+        const slideNumber = slides.length + 1;
+        const content = trimmedLine.replace(/^Slide\s*\d+\s*:?\s*/i, '');
+        
+        let type: 'hook' | 'problem' | 'solution' | 'cta' = 'solution';
+        if (slideNumber === 1) type = 'hook';
+        else if (slideNumber === slides.length + 1 && script.formato === 'carrossel') type = 'cta';
+        else if (slideNumber === 2) type = 'problem';
+        
+        slides.push({
+          number: slideNumber,
+          content,
+          type
+        });
+      }
+    }
+    
+    return slides;
   };
 
   const slides = parseScriptSlides(script.roteiro);
@@ -64,17 +79,28 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
     }
   };
 
-  const getSlideColor = (type: string) => {
-    switch (type) {
-      case 'hook': return 'from-red-500/20 to-pink-500/20 border-red-500/30';
-      case 'problem': return 'from-orange-500/20 to-yellow-500/20 border-orange-500/30';
-      case 'solution': return 'from-green-500/20 to-emerald-500/20 border-green-500/30';
-      case 'cta': return 'from-purple-500/20 to-blue-500/20 border-purple-500/30';
-      default: return 'from-slate-500/20 to-gray-500/20 border-slate-500/30';
-    }
+  const getSlideColor = (type: string, index: number) => {
+    const colors = [
+      'from-red-500/20 to-pink-500/20 border-red-500/30',
+      'from-orange-500/20 to-yellow-500/20 border-orange-500/30', 
+      'from-blue-500/20 to-cyan-500/20 border-blue-500/30',
+      'from-green-500/20 to-emerald-500/20 border-green-500/30',
+      'from-purple-500/20 to-violet-500/20 border-purple-500/30'
+    ];
+    return colors[index % colors.length];
   };
 
-  const getSlideLabel = (type: string) => {
+  const getSlideEmoji = (type: string, index: number) => {
+    const emojis = ['🎣', '⚡', '💡', '✨', '🚀'];
+    return emojis[index % emojis.length];
+  };
+
+  const getSlideLabel = (type: string, index: number) => {
+    if (script.formato === 'carrossel') {
+      const labels = ['Gancho', 'Problema', 'Desenvolvimento', 'Solução', 'Call to Action'];
+      return `${getSlideEmoji(type, index)} ${labels[index] || 'Conteúdo'}`;
+    }
+    
     switch (type) {
       case 'hook': return '🎣 Gancho';
       case 'problem': return '⚡ Problema';
@@ -85,47 +111,63 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
+      {/* Header Aurora Style */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
+        className="text-center space-y-4 relative"
       >
-        <div className="flex items-center justify-center gap-3">
-          <motion.div
-            className="p-3 bg-aurora-gradient-primary rounded-full"
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Sparkles className="h-8 w-8 text-white" />
-          </motion.div>
-        </div>
+        {/* Aurora Background Effect */}
+        <div className="absolute inset-0 aurora-gradient-bg opacity-10 rounded-3xl blur-xl"></div>
         
-        <h2 className="text-3xl font-bold text-white">
-          ✨ Seu Roteiro Está Pronto!
-        </h2>
-        
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple">
-            {script.formato}
-          </Badge>
-          <Badge variant="outline" className="border-aurora-sage/30 text-aurora-sage">
-            {script.emocao_central}
-          </Badge>
-          <Badge variant="outline" className="border-aurora-electric-purple/30 text-white">
-            {script.mentor}
-          </Badge>
+        <div className="relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <motion.div
+              className="p-4 aurora-glass rounded-full"
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Palette className="h-10 w-10 text-aurora-electric-purple" />
+            </motion.div>
+          </div>
+          
+          <h2 className="text-4xl font-bold aurora-text-gradient mb-4">
+            ✨ Roteiro Aurora Criado!
+          </h2>
+          
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Badge className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple px-4 py-2">
+              <Zap className="h-4 w-4 mr-2" />
+              {script.formato.toUpperCase()}
+            </Badge>
+            <Badge className="aurora-glass border-aurora-sage/30 text-aurora-sage px-4 py-2">
+              <Sparkles className="h-4 w-4 mr-2" />
+              {script.emocao_central}
+            </Badge>
+            <Badge className="aurora-glass border-aurora-electric-purple/30 text-white px-4 py-2">
+              🎨 {script.mentor}
+            </Badge>
+            {script.formato === 'carrossel' && (
+              <Badge className="aurora-glass border-yellow-500/30 text-yellow-300 px-4 py-2">
+                🎠 {slides.length} Slides
+              </Badge>
+            )}
+          </div>
         </div>
       </motion.div>
 
-      {/* Script Preview */}
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold text-white text-center">
-          📱 Preview do {script.formato}
-        </h3>
+      {/* Script Preview - Aurora Carousel Style */}
+      <div className="space-y-8">
+        <motion.h3 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-2xl font-semibold text-center aurora-text-gradient"
+        >
+          🎨 Preview Estilo Aurora {script.formato === 'carrossel' ? 'Carrossel' : script.formato}
+        </motion.h3>
         
-        <div className="space-y-4">
+        <div className="grid gap-6">
           <AnimatePresence>
             {slides.map((slide, index) => (
               <motion.div
@@ -133,37 +175,53 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
                 variants={slideVariants}
                 initial="hidden"
                 animate="visible"
-                transition={{ delay: index * 0.2 }}
+                transition={{ delay: index * 0.15 }}
+                className="relative"
               >
-                <Card className={`aurora-glass bg-gradient-to-r ${getSlideColor(slide.type)} relative overflow-hidden`}>
-                  <CardHeader className="pb-3">
+                <Card className={`aurora-glass bg-gradient-to-r ${getSlideColor(slide.type, index)} relative overflow-hidden shadow-2xl hover:shadow-aurora-glow-purple transition-all duration-500`}>
+                  {/* Aurora Glow Effect */}
+                  <div className="absolute inset-0 aurora-gradient-primary opacity-0 hover:opacity-10 transition-opacity duration-500"></div>
+                  
+                  <CardHeader className="pb-3 relative z-10">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-white flex items-center gap-2">
-                        {getSlideLabel(slide.type)}
+                      <CardTitle className="text-lg font-medium text-white flex items-center gap-3">
+                        <span className="text-2xl">{getSlideEmoji(slide.type, index)}</span>
+                        {getSlideLabel(slide.type, index)}
                       </CardTitle>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="aurora-glass text-sm px-3 py-1">
                         Slide {slide.number}
                       </Badge>
                     </div>
                   </CardHeader>
                   
-                  <CardContent>
-                    <p className="text-white leading-relaxed">
+                  <CardContent className="relative z-10">
+                    <motion.p 
+                      className="text-white leading-relaxed text-lg"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.15 + 0.3 }}
+                    >
                       {slide.content}
-                    </p>
+                    </motion.p>
                   </CardContent>
                   
-                  {/* Connector Arrow */}
+                  {/* Connector Arrow - Aurora Style */}
                   {index < slides.length - 1 && (
-                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-20">
                       <motion.div
-                        className="w-6 h-6 bg-aurora-electric-purple rounded-full flex items-center justify-center"
-                        whileHover={{ scale: 1.2 }}
+                        className="w-8 h-8 aurora-glass bg-aurora-electric-purple/30 rounded-full flex items-center justify-center shadow-lg"
+                        whileHover={{ scale: 1.3, rotate: 180 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <ArrowRight className="h-3 w-3 text-white" />
+                        <ArrowRight className="h-4 w-4 text-aurora-electric-purple" />
                       </motion.div>
                     </div>
                   )}
+                  
+                  {/* Slide number indicator */}
+                  <div className="absolute top-4 right-4 w-10 h-10 aurora-glass rounded-full flex items-center justify-center">
+                    <span className="text-aurora-electric-purple font-bold">{slide.number}</span>
+                  </div>
                 </Card>
               </motion.div>
             ))}
@@ -171,53 +229,58 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
         </div>
       </div>
 
-      {/* Generated Image Display */}
+      {/* Generated Image Display - Aurora Style */}
       {generatedImageUrl && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mt-6"
+          className="mt-8"
         >
-          <Card className="aurora-glass">
+          <Card className="aurora-glass border-aurora-electric-purple/30">
             <CardHeader>
-              <CardTitle className="text-white text-center">🖼️ Imagem Gerada</CardTitle>
+              <CardTitle className="text-aurora-electric-purple text-center flex items-center justify-center gap-2">
+                <Image className="h-6 w-6" />
+                🌌 Imagem Aurora Gerada
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <img 
-                src={generatedImageUrl} 
-                alt="Imagem gerada para o roteiro" 
-                className="w-full max-w-md mx-auto rounded-lg"
-              />
+              <div className="relative">
+                <img 
+                  src={generatedImageUrl} 
+                  alt="Imagem gerada para o roteiro" 
+                  className="w-full max-w-md mx-auto rounded-lg shadow-aurora-glow-purple"
+                />
+                <div className="absolute inset-0 aurora-gradient-primary opacity-10 rounded-lg"></div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Aurora Style */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: slides.length * 0.2 + 0.3 }}
+        transition={{ delay: slides.length * 0.15 + 0.5 }}
         className="flex gap-4 justify-center flex-wrap"
       >
         <Button
           onClick={onApprove}
           disabled={isProcessing}
-          className="bg-aurora-gradient-primary hover:opacity-90 text-white px-8 h-12"
+          className="aurora-button text-white px-8 h-14 text-lg font-medium shadow-aurora-glow-purple"
         >
-          <CheckCircle2 className="h-5 w-5 mr-2" />
-          ✨ Aprovar & Fluida Encantadora
+          <CheckCircle2 className="h-6 w-6 mr-3" />
+          ✨ Aprovar Aurora Script
         </Button>
         
         {onGenerateImage && (
           <Button
             onClick={onGenerateImage}
             disabled={isProcessing}
-            variant="outline"
-            className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 px-6 h-12"
+            className="aurora-glass bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-white hover:bg-purple-500/30 px-6 h-14"
           >
             <Image className="h-5 w-5 mr-2" />
-            Gerar Imagem
+            Gerar Arte Aurora
           </Button>
         )}
         
@@ -225,11 +288,10 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
           <Button
             onClick={onGenerateAudio}
             disabled={isProcessing}
-            variant="outline"
-            className="aurora-glass border-aurora-cosmic-teal/30 text-white hover:bg-aurora-cosmic-teal/20 px-6 h-12"
+            className="aurora-glass bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border-cyan-500/30 text-white hover:bg-cyan-500/30 px-6 h-14"
           >
             <Volume2 className="h-5 w-5 mr-2" />
-            Gerar Áudio
+            Aurora Voice
           </Button>
         )}
         
@@ -237,39 +299,47 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
           <Button
             onClick={onApplyDisney}
             disabled={isProcessing}
-            variant="outline"
-            className="aurora-glass border-aurora-sage/30 text-white hover:bg-aurora-sage/20 px-6 h-12"
+            className="aurora-glass bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 text-white hover:bg-yellow-500/30 px-6 h-14"
           >
             <Sparkles className="h-5 w-5 mr-2" />
-            Disney Magic
+            Disney Aurora Magic
           </Button>
         )}
         
         <Button
           onClick={onNewScript}
-          variant="outline"
-          className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 px-8 h-12"
+          className="aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 px-8 h-14"
         >
           <Wand2 className="h-5 w-5 mr-2" />
-          Criar Novo Roteiro
+          Novo Aurora Script
         </Button>
       </motion.div>
 
-      {/* Script Metadata */}
+      {/* Script Metadata - Aurora Style */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: slides.length * 0.2 + 0.5 }}
-        className="mt-8 p-4 aurora-glass rounded-lg border border-aurora-electric-purple/20"
+        transition={{ delay: slides.length * 0.15 + 0.7 }}
+        className="mt-8 p-6 aurora-glass rounded-2xl border border-aurora-electric-purple/20 relative overflow-hidden"
       >
-        <h4 className="text-sm font-medium text-aurora-electric-purple mb-2">
-          📊 Detalhes do Roteiro
-        </h4>
-        <div className="text-sm text-slate-300 space-y-1">
-          <p><strong>Objetivo:</strong> {script.objetivo}</p>
-          <p><strong>Intenção:</strong> {script.intencao}</p>
-          <p><strong>Emoção Central:</strong> {script.emocao_central}</p>
-          <p><strong>Total de Slides:</strong> {slides.length}</p>
+        <div className="absolute inset-0 aurora-gradient-primary opacity-5"></div>
+        <div className="relative z-10">
+          <h4 className="text-lg font-medium text-aurora-electric-purple mb-4 flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            📊 Detalhes Aurora do Roteiro
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
+            <div className="space-y-2">
+              <p><strong className="text-aurora-electric-purple">Objetivo:</strong> {script.objetivo}</p>
+              <p><strong className="text-aurora-sage">Intenção:</strong> {script.intencao}</p>
+              <p><strong className="text-aurora-electric-purple">Emoção Central:</strong> {script.emocao_central}</p>
+            </div>
+            <div className="space-y-2">
+              <p><strong className="text-aurora-sage">Mentor Aurora:</strong> {script.mentor}</p>
+              <p><strong className="text-aurora-electric-purple">Total de Slides:</strong> {slides.length}</p>
+              <p><strong className="text-aurora-sage">Formato:</strong> {script.formato}</p>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>

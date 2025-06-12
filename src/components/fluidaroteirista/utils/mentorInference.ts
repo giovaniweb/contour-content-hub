@@ -5,6 +5,12 @@ import { ScriptIntention, MENTOR_ENIGMAS, MENTOR_PROFILES } from '../constants/i
 export const inferMentorFromAnswers = (answers: any): string => {
   console.log('🤔 [inferMentorFromAnswers] Respostas recebidas:', answers);
 
+  // REGRA PRIORITÁRIA: Carrossel sempre usa Paulo Cuenca
+  if (answers.formato === 'carrossel') {
+    console.log('🎠 [inferMentorFromAnswers] Carrossel detectado - usando Paulo Cuenca');
+    return 'paulo_cuenca';
+  }
+
   // Lógica de inferência (simplificada)
   if (answers.objetivo === 'vendas' && answers.estilo === 'direto') {
     console.log('🎯 [inferMentorFromAnswers] Mentor inferido: Leandro Ladeira (vendas diretas)');

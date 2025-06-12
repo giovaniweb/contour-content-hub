@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateScript as apiGenerateScript } from '@/services/supabaseService';
 import { validatePreGeneration, validatePostGeneration, ValidationResult } from '../utils/antiGenericValidation';
 import { validateAkinatorScript, ScriptDataFromAkinator } from '../utils/akinatorValidation';
+import { parseAndLimitCarousel, validateCarouselSlides } from '../utils/carouselParser';
 import { ScriptGenerationData, FluidaScriptResult } from '../types';
 import { buildSystemPrompt, buildDisneyPrompt } from '../utils/promptBuilders';
 
@@ -115,13 +116,29 @@ export const useFluidaScript = () => {
         throw new Error('Resposta da API não contém conteúdo válido');
       }
 
+      // Processar roteiro baseado no formato
+      let processedContent = response.content;
+      
+      // Se for carrossel, aplicar parser e validação
+      if (data.formato === 'carrossel' || data.tipo_conteudo === 'carrossel') {
+        console.log('🎠 [useFluidaScript] Processando carrossel...');
+        processedContent = parseAndLimitCarousel(response.content);
+        
+        const validation = validateCarouselSlides(processedContent);
+        if (!validation.isValid) {
+          console.warn('⚠️ [useFluidaScript] Validação do carrossel:', validation.errors);
+        }
+        
+        console.log(`✅ [useFluidaScript] Carrossel processado com ${validation.slideCount} slides`);
+      }
+
       const scriptResult: FluidaScriptResult = {
-        roteiro: response.content,
+        roteiro: processedContent,
         formato: data.tipo_conteudo || data.formato || 'carrossel',
         emocao_central: data.estilo || 'engajamento',
         intencao: data.objetivo || 'atrair',
         objetivo: data.objetivo || 'atrair',
-        mentor: data.mentor || 'Criativo',
+        mentor: data.mentor || 'Paulo Cuenca',
         equipamentos_utilizados: Array.isArray(data.equipamentos) ? data.equipamentos : [],
         created_at: new Date().toISOString(),
         canal: data.canal || 'instagram'
