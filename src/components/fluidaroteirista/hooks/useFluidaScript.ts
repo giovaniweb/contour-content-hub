@@ -128,12 +128,29 @@ export const useFluidaScript = () => {
   };
 
   const generateScript = async (data: any) => {
+    console.log('🎬 [useFluidaScript] Iniciando geração de roteiro:', data);
+    
+    // Validações básicas
+    if (!data.tema || !data.tema.trim()) {
+      toast.error('❌ Erro de validação', {
+        description: 'Por favor, informe um tema para o roteiro'
+      });
+      return [];
+    }
+
+    if (isGenerating) {
+      console.warn('⚠️ [useFluidaScript] Geração já em andamento, ignorando nova solicitação');
+      return [];
+    }
+    
     setIsGenerating(true);
     
     try {
+      console.log('🔧 [useFluidaScript] Buscando dados dos equipamentos...');
       // Buscar dados dos equipamentos se disponíveis
       const equipmentNames = data.equipamentos || [];
       const equipmentDetails = await getEquipmentDetails(equipmentNames);
+      console.log('✅ [useFluidaScript] Equipamentos carregados:', equipmentDetails.length);
       
       const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo');
       
@@ -145,6 +162,7 @@ export const useFluidaScript = () => {
         Crie um roteiro CONCISO de MÁXIMO 60 segundos integrando os equipamentos e suas características específicas.
       `;
 
+      console.log('🤖 [useFluidaScript] Chamando API OpenAI...');
       const response = await generateScript({
         type: 'custom',
         systemPrompt,
@@ -155,10 +173,14 @@ export const useFluidaScript = () => {
         marketingObjective: data.objetivo as any
       });
 
+      console.log('📝 [useFluidaScript] Resposta recebida da API');
+
       let scriptResult: FluidaScriptResult;
       try {
         scriptResult = JSON.parse(response.content);
-      } catch {
+        console.log('✅ [useFluidaScript] JSON parseado com sucesso');
+      } catch (parseError) {
+        console.warn('⚠️ [useFluidaScript] Erro ao parsear JSON, usando fallback:', parseError);
         scriptResult = {
           roteiro: response.content,
           formato: 'carrossel',
@@ -170,6 +192,7 @@ export const useFluidaScript = () => {
         };
       }
 
+      console.log('🎯 [useFluidaScript] Script resultado criado:', scriptResult);
       setResults([scriptResult]);
       
       toast.success('🎬 Roteiro FLUIDA gerado!', {
@@ -179,17 +202,25 @@ export const useFluidaScript = () => {
       return [scriptResult];
 
     } catch (error) {
-      console.error('Erro no FLUIDAROTEIRISTA:', error);
-      toast.error('Erro ao gerar roteiro', {
-        description: 'Tente novamente em alguns instantes'
+      console.error('🔥 [useFluidaScript] Erro na geração:', error);
+      toast.error('❌ Erro ao gerar roteiro', {
+        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
       });
       return [];
     } finally {
+      console.log('🏁 [useFluidaScript] Finalizando geração');
       setIsGenerating(false);
     }
   };
 
   const applyDisneyMagic = async (script: FluidaScriptResult) => {
+    console.log('✨ [useFluidaScript] Aplicando Disney Magic...');
+    
+    if (isGenerating) {
+      console.warn('⚠️ [useFluidaScript] Operação já em andamento');
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -230,26 +261,31 @@ export const useFluidaScript = () => {
       });
 
     } catch (error) {
-      console.error('Erro no Disney Magic:', error);
-      toast.error('Erro ao aplicar Disney Magic');
+      console.error('🔥 [useFluidaScript] Erro no Disney Magic:', error);
+      toast.error('❌ Erro ao aplicar Disney Magic', {
+        description: error instanceof Error ? error.message : 'Tente novamente'
+      });
     } finally {
       setIsGenerating(false);
     }
   };
 
   const generateImage = async (script: FluidaScriptResult) => {
+    console.log('🖼️ [useFluidaScript] Gerando imagem...');
     toast.info('🖼️ Gerando imagem...', {
       description: 'Aguarde enquanto criamos a arte perfeita'
     });
   };
 
   const generateAudio = async (script: FluidaScriptResult) => {
+    console.log('🎙️ [useFluidaScript] Gerando áudio...');
     toast.info('🎙️ Gerando áudio...', {
       description: 'Preparando narração do roteiro'
     });
   };
 
   const clearResults = () => {
+    console.log('🧹 [useFluidaScript] Limpando resultados');
     setResults([]);
   };
 
