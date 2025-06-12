@@ -40,10 +40,14 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     errors.push('Estilo de comunicação não selecionado');
   }
 
-  if (!data.tema || data.tema.trim().length < 10) {
+  // CORREÇÃO: Validação do tema mais flexível - de 10 para 5 caracteres mínimos
+  if (!data.tema || data.tema.trim().length < 5) {
     missingFields.push('tema');
-    errors.push('Tema muito curto ou não definido');
+    errors.push('Tema muito curto (mínimo 5 caracteres)');
     suggestions.push('Descreva melhor o tema do seu conteúdo');
+  } else if (data.tema.trim().length < 10) {
+    // Se tem entre 5-9 caracteres, sugerir melhoria mas não bloquear
+    suggestions.push('Considere expandir o tema para obter melhores resultados');
   }
 
   // Validação de equipamentos (opcional)
@@ -51,12 +55,12 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     suggestions.push('Nenhum equipamento selecionado - o roteiro será mais genérico');
   }
 
-  // Determinar qualidade
+  // CORREÇÃO: Lógica de qualidade mais flexível
   let quality: 'low' | 'medium' | 'high' = 'high';
   
   if (missingFields.length > 2) {
     quality = 'low';
-  } else if (missingFields.length > 0 || data.tema.trim().length < 20) {
+  } else if (missingFields.length > 0 || data.tema.trim().length < 8) {
     quality = 'medium';
   }
 
@@ -66,7 +70,8 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     isValid,
     quality,
     errors: errors.length,
-    missingFields: missingFields.length
+    missingFields: missingFields.length,
+    temaLength: data.tema?.length || 0
   });
 
   return {
@@ -88,8 +93,8 @@ export const isAkinatorFlowComplete = (data: ScriptDataFromAkinator): boolean =>
     return value && (typeof value === 'string' ? value.trim().length > 0 : true);
   });
 
-  // Tema deve ter pelo menos 10 caracteres
-  const hasValidTema = data.tema && data.tema.trim().length >= 10;
+  // CORREÇÃO: Tema deve ter pelo menos 5 caracteres (não 10)
+  const hasValidTema = data.tema && data.tema.trim().length >= 5;
 
   const isComplete = hasAllRequired && hasValidTema;
 

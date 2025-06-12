@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -110,13 +111,22 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
         const isFlowComplete = isAkinatorFlowComplete(akinatorData);
         console.log('✅ [AkinatorScriptMode] Fluxo completo?', isFlowComplete);
 
-        // Se o fluxo está completo, enriquecer dados e gerar
-        if (isFlowComplete && (validation.isValid || validation.quality === 'medium')) {
+        // CORREÇÃO: Aceitar quality "medium" também, não só "high"
+        if (isFlowComplete && validation.isValid) {
           const enhancedData = buildEnhancedScriptData(akinatorData);
           console.log('🚀 [AkinatorScriptMode] Gerando com dados enriquecidos:', enhancedData);
           
           const result = await generateScript(enhancedData);
           console.log('✅ [AkinatorScriptMode] Script generated:', result);
+          
+          if (result && result.length > 0) {
+            onScriptGenerated(result[0]);
+          }
+        } else if (validation.quality === 'medium' || validation.quality === 'high') {
+          // NOVO: Para quality medium, tentar gerar mesmo assim
+          console.log('⚠️ [AkinatorScriptMode] Quality medium, tentando gerar mesmo assim...');
+          const enhancedData = buildEnhancedScriptData(akinatorData);
+          const result = await generateScript(enhancedData, true); // force generate
           
           if (result && result.length > 0) {
             onScriptGenerated(result[0]);
