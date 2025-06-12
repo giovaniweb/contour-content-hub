@@ -9,6 +9,25 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     `).join('\n')
     : '';
 
+  const equipmentInstructions = equipmentDetails.length > 0 
+    ? `
+    🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
+    - OBRIGATÓRIO: Mencione TODOS os equipamentos listados acima no roteiro
+    - Use os nomes EXATOS dos equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
+    - Integre as tecnologias e benefícios específicos de cada equipamento
+    - NUNCA substitua por outros equipamentos ou concorrentes
+    - Se múltiplos equipamentos, mencione cada um com seus benefícios específicos
+    
+    EXEMPLO DE INTEGRAÇÃO:
+    "Com nosso ${equipmentDetails[0]?.nome || '[EQUIPAMENTO]'}, que utiliza ${equipmentDetails[0]?.tecnologia || '[TECNOLOGIA]'}, você obtém ${equipmentDetails[0]?.beneficios || '[BENEFÍCIOS]'}"
+    `
+    : `
+    🚨 REGRA DE EQUIPAMENTOS:
+    - NENHUM equipamento específico foi selecionado
+    - NÃO mencione equipamentos específicos ou marcas
+    - Use termos genéricos como "nossos tratamentos avançados" ou "nossa tecnologia exclusiva"
+    `;
+
   return `
     Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
     
@@ -17,33 +36,29 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     - Seja CONCISO e DIRETO
     - Cada palavra deve ter impacto
     
-    📋 EQUIPAMENTOS DISPONÍVEIS (USE APENAS ESTES):
+    📋 EQUIPAMENTOS DISPONÍVEIS (USE OBRIGATORIAMENTE):
     ${equipmentContext}
     
-    🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
-    - Use APENAS os equipamentos listados acima
-    - NUNCA mencione outros equipamentos ou concorrentes
-    - Se não há equipamentos listados, não mencione equipamentos específicos
-    - NUNCA substitua um equipamento por outro
+    ${equipmentInstructions}
     
     ESTRUTURA OBRIGATÓRIA (em 60 segundos):
     1. Gancho (5-10 segundos) - Capturar atenção
     2. Conflito (15-20 segundos) - Apresentar problema
-    3. Virada (25-30 segundos) - Mostrar solução com equipamentos
+    3. Virada (25-30 segundos) - Mostrar solução com equipamentos ESPECÍFICOS
     4. CTA (5-10 segundos) - Chamada para ação
     
     MENTOR: ${mentor}
     MODO: ${modo}
     
     IMPORTANTE: 
-    - Mencione especificamente os equipamentos e suas tecnologias
+    - SEMPRE mencione os equipamentos listados e suas tecnologias
     - Conecte os benefícios dos equipamentos com o problema apresentado
     - Mantenha o tempo de 60 segundos rigorosamente
-    - NUNCA mencione equipamentos não listados
+    - Use linguagem persuasiva e emocional
     
     Retorne APENAS JSON válido:
     {
-      "roteiro": "Conteúdo do roteiro (máximo 150 palavras)",
+      "roteiro": "Conteúdo do roteiro com equipamentos integrados (máximo 150 palavras)",
       "formato": "carrossel/stories/imagem",
       "emocao_central": "emoção detectada",
       "intencao": "intenção principal",
@@ -101,10 +116,11 @@ export const buildDisneyPrompt = (originalScript: string): string => {
     - MÁXIMO 60 segundos de leitura
     - NÃO use "Era uma vez"
     - Mantenha sutileza Disney
+    - PRESERVE equipamentos mencionados no roteiro original
     
     Retorne apenas o roteiro transformado em JSON:
     {
-      "roteiro": "Roteiro com magia Disney sutil",
+      "roteiro": "Roteiro com magia Disney sutil (preservando equipamentos originais)",
       "disney_applied": true
     }
   `;

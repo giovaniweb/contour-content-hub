@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useEquipmentData } from '@/hooks/useEquipmentData';
@@ -15,10 +14,13 @@ export const useFluidaScript = () => {
   const { getEquipmentDetails } = useEquipmentData();
 
   const generateScript = async (data: ScriptGenerationData) => {
-    console.log('🎬 [useFluidaScript] Iniciando geração de roteiro:', data);
+    console.log('🎬 [useFluidaScript] ===== INICIANDO GERAÇÃO DE ROTEIRO =====');
+    console.log('📋 [useFluidaScript] Dados recebidos:', data);
+    console.log('🔧 [useFluidaScript] Equipamentos selecionados:', data.equipamentos);
     
     // Validações básicas
     if (!validateScriptData(data)) {
+      console.error('❌ [useFluidaScript] Dados inválidos:', data);
       return [];
     }
 
@@ -30,31 +32,90 @@ export const useFluidaScript = () => {
     setIsGenerating(true);
     
     try {
-      console.log('🔧 [useFluidaScript] Buscando dados dos equipamentos...');
       // Buscar dados dos equipamentos se disponíveis
       const equipmentNames = data.equipamentos || [];
-      const equipmentDetails = await getEquipmentDetails(equipmentNames);
-      console.log('✅ [useFluidaScript] Equipamentos carregados:', equipmentDetails.length);
+      console.log('🔍 [useFluidaScript] Nomes dos equipamentos para buscar:', equipmentNames);
       
-      const scriptResult = await generateFluidaScript(data, equipmentDetails);
-      
-      console.log('🎯 [useFluidaScript] Script resultado criado:', scriptResult);
-      setResults([scriptResult]);
-      
-      toast.success('🎬 Roteiro FLUIDA gerado!', {
-        description: `Criado em 60 segundos com ${equipmentNames.length} equipamento(s)`
-      });
+      if (equipmentNames.length > 0) {
+        console.log('🔧 [useFluidaScript] Buscando dados detalhados dos equipamentos...');
+        const equipmentDetails = await getEquipmentDetails(equipmentNames);
+        console.log('✅ [useFluidaScript] Equipamentos carregados:', equipmentDetails.length);
+        console.log('📄 [useFluidaScript] Detalhes dos equipamentos:', equipmentDetails);
+        
+        // VALIDAÇÃO CRÍTICA: Verificar se equipamentos foram carregados corretamente
+        if (equipmentNames.length > 0 && equipmentDetails.length === 0) {
+          console.error('❌ [useFluidaScript] ERRO CRÍTICO: Equipamentos selecionados mas nenhum detalhe carregado!');
+          toast.error('⚠️ Equipamentos não carregados', {
+            description: 'Os equipamentos selecionados não puderam ser carregados. Tentando gerar roteiro sem equipamentos específicos.'
+          });
+        }
 
-      return [scriptResult];
+        // Verificar se todos os equipamentos selecionados foram carregados
+        const loadedNames = equipmentDetails.map(eq => eq.nome.toLowerCase());
+        const missingEquipments = equipmentNames.filter(name => 
+          !loadedNames.some(loaded => loaded.includes(name.toLowerCase()))
+        );
+        
+        if (missingEquipments.length > 0) {
+          console.warn('⚠️ [useFluidaScript] Equipamentos não encontrados:', missingEquipments);
+          toast.warning('⚠️ Alguns equipamentos não foram encontrados', {
+            description: `Equipamentos não carregados: ${missingEquipments.join(', ')}`
+          });
+        }
+
+        console.log('🚀 [useFluidaScript] Gerando roteiro com equipamentos...');
+        const scriptResult = await generateFluidaScript(data, equipmentDetails);
+        
+        // VALIDAÇÃO PÓS-GERAÇÃO: Verificar se equipamentos aparecem no roteiro
+        if (equipmentDetails.length > 0) {
+          const equipmentMentioned = equipmentDetails.some(eq => 
+            scriptResult.roteiro.toLowerCase().includes(eq.nome.toLowerCase())
+          );
+          
+          if (!equipmentMentioned) {
+            console.error('❌ [useFluidaScript] PROBLEMA: Equipamentos não mencionados no roteiro gerado!');
+            console.log('📝 [useFluidaScript] Roteiro gerado:', scriptResult.roteiro);
+            console.log('🔧 [useFluidaScript] Equipamentos esperados:', equipmentDetails.map(eq => eq.nome));
+            
+            toast.warning('⚠️ Equipamentos não utilizados', {
+              description: 'Os equipamentos selecionados não foram mencionados no roteiro gerado. Verifique o resultado.'
+            });
+          } else {
+            console.log('✅ [useFluidaScript] Equipamentos mencionados no roteiro!');
+          }
+        }
+
+        console.log('🎯 [useFluidaScript] Script resultado criado:', scriptResult);
+        setResults([scriptResult]);
+        
+        toast.success('🎬 Roteiro FLUIDA gerado!', {
+          description: `Criado com ${equipmentNames.length} equipamento(s) ${equipmentDetails.length > 0 ? 'integrado(s)' : 'solicitado(s)'}`
+        });
+
+        return [scriptResult];
+      } else {
+        console.log('📝 [useFluidaScript] Gerando roteiro sem equipamentos específicos...');
+        const scriptResult = await generateFluidaScript(data, []);
+        
+        console.log('🎯 [useFluidaScript] Script resultado criado (sem equipamentos):', scriptResult);
+        setResults([scriptResult]);
+        
+        toast.success('🎬 Roteiro FLUIDA gerado!', {
+          description: 'Roteiro criado sem equipamentos específicos'
+        });
+
+        return [scriptResult];
+      }
 
     } catch (error) {
-      console.error('🔥 [useFluidaScript] Erro na geração:', error);
+      console.error('🔥 [useFluidaScript] ERRO NA GERAÇÃO:', error);
+      console.error('🔥 [useFluidaScript] Stack trace:', error.stack);
       toast.error('❌ Erro ao gerar roteiro', {
         description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
       });
       return [];
     } finally {
-      console.log('🏁 [useFluidaScript] Finalizando geração');
+      console.log('🏁 [useFluidaScript] ===== FINALIZANDO GERAÇÃO =====');
       setIsGenerating(false);
     }
   };

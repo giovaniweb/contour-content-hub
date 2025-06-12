@@ -1,4 +1,3 @@
-
 import { generateScript } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { FluidaScriptResult, ScriptGenerationData } from '../types';
@@ -9,36 +8,59 @@ export const generateFluidaScript = async (
   data: ScriptGenerationData,
   equipmentDetails: any[]
 ): Promise<FluidaScriptResult> => {
-  console.log('🤖 [scriptGenerator] Iniciando geração de roteiro...');
+  console.log('🤖 [scriptGenerator] ===== INICIANDO GERAÇÃO COM PROMPTS =====');
   console.log('📋 [scriptGenerator] Dados recebidos:', data);
-  console.log('🔧 [scriptGenerator] Equipamentos:', equipmentDetails);
+  console.log('🔧 [scriptGenerator] Equipamentos detalhados:', equipmentDetails);
   
   // Validação crítica: garantir que apenas equipamentos selecionados sejam usados
   if (data.equipamentos && data.equipamentos.length > 0 && equipmentDetails.length === 0) {
     console.error('❌ [scriptGenerator] ERRO CRÍTICO: Equipamentos selecionados mas detalhes vazios');
-    throw new Error('Equipamentos selecionados não foram carregados corretamente');
+    // Não falhar, mas avisar
+    console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
+  // Construir prompt do sistema com ênfase nos equipamentos
   const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo');
   
+  // Construir prompt do usuário com ênfase nos equipamentos
+  const equipmentEmphasis = equipmentDetails.length > 0 
+    ? `EQUIPAMENTOS OBRIGATÓRIOS A MENCIONAR:
+${equipmentDetails.map(eq => `- ${eq.nome}: ${eq.tecnologia} (Benefícios: ${eq.beneficios})`).join('\n')}
+
+IMPORTANTE: O roteiro DEVE mencionar especificamente estes equipamentos e suas tecnologias.`
+    : 'Nenhum equipamento específico foi selecionado.';
+
   const userPrompt = `
-    Tema: ${data.tema}
-    Objetivo: ${data.objetivo || 'Atrair novos clientes'}
-    Equipamentos EXCLUSIVOS a usar: ${data.equipamentos?.join(', ') || 'Nenhum equipamento específico'}
-    
-    IMPORTANTE: Use APENAS os equipamentos listados acima. NUNCA mencione outros equipamentos.
-    
-    Crie um roteiro CONCISO de MÁXIMO 60 segundos integrando os equipamentos e suas características específicas.
+TEMA PRINCIPAL: ${data.tema}
+OBJETIVO: ${data.objetivo || 'Atrair novos clientes'}
+FORMATO: ${data.formato || 'carrossel'}
+
+${equipmentEmphasis}
+
+INSTRUÇÕES ESPECÍFICAS:
+- Crie um roteiro de MÁXIMO 60 segundos
+- Use a estrutura: Gancho → Conflito → Virada → CTA
+- Se equipamentos foram especificados, MENCIONE-OS no roteiro
+- Mantenha tom ${data.mentor || 'criativo'} e emoção envolvente
+- Formato para ${data.formato || 'carrossel'}
+
+Crie o roteiro agora integrando os equipamentos especificados.
   `;
 
-  console.log('📤 [scriptGenerator] Enviando para API OpenAI...');
+  console.log('📤 [scriptGenerator] Prompts construídos:');
+  console.log('🔧 [scriptGenerator] System prompt length:', systemPrompt.length);
+  console.log('💬 [scriptGenerator] User prompt:', userPrompt);
 
   const response = await generateScript({
     type: 'custom',
     systemPrompt,
     userPrompt,
     topic: data.tema,
-    additionalInfo: JSON.stringify({ equipmentDetails, modo: data.modo }),
+    additionalInfo: JSON.stringify({ 
+      equipmentDetails, 
+      modo: data.modo,
+      equipamentos_solicitados: data.equipamentos 
+    }),
     tone: 'professional',
     marketingObjective: data.objetivo as any
   });
@@ -83,18 +105,44 @@ export const generateFluidaScript = async (
   // Validação final: garantir que o roteiro não está vazio
   if (!scriptResult.roteiro || scriptResult.roteiro.trim() === '') {
     console.error('❌ [scriptGenerator] ERRO CRÍTICO: Roteiro final está vazio');
-    scriptResult.roteiro = `Roteiro sobre ${data.tema}
+    
+    // Criar roteiro de fallback que mencione os equipamentos
+    const equipmentMention = equipmentDetails.length > 0 
+      ? `Com nosso ${equipmentDetails[0].nome}, você pode alcançar resultados incríveis de forma segura e eficaz.`
+      : 'Nossos tratamentos avançados podem te ajudar a alcançar os resultados que você deseja.';
+    
+    scriptResult.roteiro = `🎯 ${data.tema}
 
-Você já pensou em como melhorar ${data.tema}? 
+Você já pensou em como transformar sua autoestima? 
 
-${data.equipamentos && data.equipamentos.length > 0 
-  ? `Com nosso ${data.equipamentos[0]}, você pode alcançar resultados incríveis de forma segura e eficaz.` 
-  : 'Nossos tratamentos avançados podem te ajudar a alcançar os resultados que você deseja.'}
+${equipmentMention}
 
-Agende sua consulta e descubra como podemos transformar seu cuidado pessoal.`;
+✨ Resultados comprovados, tecnologia de ponta, cuidado personalizado.
+
+📲 Agende sua consulta e descubra como podemos transformar seu cuidado pessoal.`;
   }
 
-  console.log('✅ [scriptGenerator] Roteiro final criado:', scriptResult);
+  // VALIDAÇÃO PÓS-GERAÇÃO: Verificar se equipamentos foram mencionados
+  if (equipmentDetails.length > 0) {
+    const equipmentsMentioned = equipmentDetails.filter(eq => 
+      scriptResult.roteiro.toLowerCase().includes(eq.nome.toLowerCase())
+    );
+    
+    console.log('🔍 [scriptGenerator] Verificação de equipamentos no roteiro:');
+    console.log('📝 [scriptGenerator] Equipamentos esperados:', equipmentDetails.map(eq => eq.nome));
+    console.log('✅ [scriptGenerator] Equipamentos mencionados:', equipmentsMentioned.map(eq => eq.nome));
+    
+    if (equipmentsMentioned.length === 0) {
+      console.error('❌ [scriptGenerator] PROBLEMA CRÍTICO: Nenhum equipamento foi mencionado no roteiro!');
+    } else if (equipmentsMentioned.length < equipmentDetails.length) {
+      console.warn('⚠️ [scriptGenerator] Alguns equipamentos não foram mencionados');
+    } else {
+      console.log('✅ [scriptGenerator] Todos os equipamentos foram mencionados!');
+    }
+  }
+
+  console.log('✅ [scriptGenerator] ===== ROTEIRO FINAL CRIADO =====');
+  console.log('🎬 [scriptGenerator] Resultado:', scriptResult);
   return scriptResult;
 };
 
