@@ -1,4 +1,5 @@
 
+
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 
 export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
@@ -83,7 +84,7 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     
     carrossel: `
     🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES:
-    - 3-8 slides educativos
+    - 3-5 slides educativos (máximo 5)
     - Máximo 25 palavras por slide
     - Primeiro slide: gancho forte
     - Slides intermediários: desenvolvimento
@@ -276,3 +277,4 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
     }
   `;
 };
+

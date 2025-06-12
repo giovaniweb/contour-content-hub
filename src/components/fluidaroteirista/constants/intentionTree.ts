@@ -1,5 +1,3 @@
-
-
 export const AKINATOR_TREE: Record<string, any> = {
   canal: {
     pergunta: "Onde você vai publicar o conteúdo?",
@@ -246,7 +244,7 @@ export const FORMATO_CONFIGS: Record<string, any> = {
   carrossel: {
     tempo_limite_segundos: null,
     palavras_por_card: 25,
-    cards_max: 8,
+    cards_max: 5,
     estrutura: "slides_educativos"
   },
   post_estatico: {
