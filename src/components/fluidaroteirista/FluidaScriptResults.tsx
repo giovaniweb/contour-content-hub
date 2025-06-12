@@ -99,7 +99,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
       />
       
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header Melhorado */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -133,105 +133,119 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </div>
         </motion.div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Roteiro Principal - Melhorado */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-2"
-          >
-            <Card className="aurora-glass border-aurora-electric-purple/30">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    🎬 Roteiro Final
-                    {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        <Zap className="h-3 w-3 mr-1" />
-                        {script.equipamentos_utilizados.length} equipamento(s)
-                      </Badge>
-                    )}
-                  </span>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyScript}
-                      className="text-xs"
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copiar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadScript}
-                      className="text-xs"
-                    >
-                      <Download className="h-3 w-3 mr-1" />
-                      Baixar
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScriptFormatter script={script} />
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Painel Lateral Aprimorado */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-4"
-          >
-            {/* Status Disney */}
-            {isDisneyApplied && (
-              <Card className="aurora-glass border-yellow-500/30 bg-yellow-500/5">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-yellow-400">
-                    <Castle className="h-5 w-5" />
-                    <span className="font-semibold">Disney Magic Aplicada!</span>
-                  </div>
-                  <p className="text-xs text-yellow-300 mt-1">
-                    Transformado com a narrativa mágica de Walt Disney 1928
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Status de Tempo */}
-            <Card className={`aurora-glass ${
-              isWithinTimeLimit 
-                ? 'border-green-500/30 bg-green-500/5' 
-                : 'border-red-500/30 bg-red-500/5'
-            }`}>
-              <CardContent className="p-4">
-                <div className={`flex items-center gap-2 ${
-                  isWithinTimeLimit ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  <Clock className="h-5 w-5" />
-                  <span className="font-semibold">
-                    {isWithinTimeLimit ? 'Tempo Ideal ✅' : 'Atenção ao Tempo ⚠️'}
-                  </span>
+        {/* Roteiro Principal - Largura Total */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="w-full"
+        >
+          <Card className="aurora-glass border-aurora-electric-purple/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  🎬 Roteiro Final
+                  {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      <Zap className="h-3 w-3 mr-1" />
+                      {script.equipamentos_utilizados.length} equipamento(s)
+                    </Badge>
+                  )}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyScript}
+                    className="text-xs"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copiar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadScript}
+                    className="text-xs"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Baixar
+                  </Button>
                 </div>
-                <p className={`text-xs mt-1 ${
-                  isWithinTimeLimit ? 'text-green-300' : 'text-red-300'
-                }`}>
-                  {estimatedTime}s de leitura | {isWithinTimeLimit ? 'Perfeito para redes sociais' : 'Considere encurtar'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScriptFormatter script={script} />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Cards de Status - Layout Horizontal */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          {/* Status Disney */}
+          {isDisneyApplied && (
+            <Card className="aurora-glass border-yellow-500/30 bg-yellow-500/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-yellow-400">
+                  <Castle className="h-5 w-5" />
+                  <span className="font-semibold">Disney Magic Aplicada!</span>
+                </div>
+                <p className="text-xs text-yellow-300 mt-1">
+                  Transformado com a narrativa mágica de Walt Disney 1928
                 </p>
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
+          )}
 
-        {/* Próximos Passos - Melhorados */}
+          {/* Status de Tempo */}
+          <Card className={`aurora-glass ${
+            isWithinTimeLimit 
+              ? 'border-green-500/30 bg-green-500/5' 
+              : 'border-red-500/30 bg-red-500/5'
+          }`}>
+            <CardContent className="p-4">
+              <div className={`flex items-center gap-2 ${
+                isWithinTimeLimit ? 'text-green-400' : 'text-red-400'
+              }`}>
+                <Clock className="h-5 w-5" />
+                <span className="font-semibold">
+                  {isWithinTimeLimit ? 'Tempo Ideal ✅' : 'Atenção ao Tempo ⚠️'}
+                </span>
+              </div>
+              <p className={`text-xs mt-1 ${
+                isWithinTimeLimit ? 'text-green-300' : 'text-red-300'
+              }`}>
+                {estimatedTime}s de leitura | {isWithinTimeLimit ? 'Perfeito para redes sociais' : 'Considere encurtar'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Status de Equipamentos */}
+          {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
+            <Card className="aurora-glass border-indigo-500/30 bg-indigo-500/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-indigo-400">
+                  <Zap className="h-5 w-5" />
+                  <span className="font-semibold">Equipamentos Integrados</span>
+                </div>
+                <p className="text-xs text-indigo-300 mt-1">
+                  {script.equipamentos_utilizados.length} equipamento(s) mencionado(s) no roteiro
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </motion.div>
+
+        {/* Próximos Passos */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="max-w-4xl mx-auto"
+          className="w-full"
         >
           <Card className="aurora-glass border-aurora-electric-purple/30">
             <CardHeader>
@@ -291,7 +305,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="max-w-4xl mx-auto"
+            className="w-full"
           >
             <ElementosUniversaisDisplay
               elementos={script.elementos_aplicados}
