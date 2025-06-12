@@ -1,10 +1,49 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DiagnosticSession } from './types';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
+
+// Helper function to create empty MarketingConsultantState with defaults
+const createEmptyMarketingState = (): MarketingConsultantState => ({
+  clinicType: '',
+  clinicName: '',
+  medicalSpecialty: '',
+  medicalProcedures: '',
+  medicalEquipments: '',
+  medicalBestSeller: '',
+  medicalTicket: '',
+  medicalSalesModel: '',
+  medicalObjective: '',
+  medicalContentFrequency: '',
+  medicalClinicStyle: '',
+  aestheticFocus: '',
+  aestheticEquipments: '',
+  aestheticBestSeller: '',
+  aestheticSalesModel: '',
+  aestheticTicket: '',
+  aestheticObjective: '',
+  aestheticContentFrequency: '',
+  aestheticClinicStyle: '',
+  currentRevenue: '',
+  revenueGoal: '',
+  targetAudience: '',
+  contentFrequency: '',
+  communicationStyle: '',
+  mainChallenges: '',
+  generatedDiagnostic: ''
+});
+
+// Helper function to safely convert JSON to MarketingConsultantState
+const safelyConvertToMarketingState = (data: any): MarketingConsultantState => {
+  if (!data || typeof data !== 'object') {
+    return createEmptyMarketingState();
+  }
+  
+  const defaults = createEmptyMarketingState();
+  return { ...defaults, ...data };
+};
 
 export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
@@ -41,7 +80,7 @@ export const useDiagnosticOperations = () => {
         const sessions: DiagnosticSession[] = data.map(item => ({
           id: item.session_id,
           timestamp: item.created_at,
-          state: (item.state_data as MarketingConsultantState) || {},
+          state: safelyConvertToMarketingState(item.state_data),
           isCompleted: item.is_completed || false,
           clinicTypeLabel: item.clinic_type || 'Clínica',
           specialty: item.specialty || 'Geral',
@@ -180,7 +219,7 @@ export const useDiagnosticOperations = () => {
       const session: DiagnosticSession = {
         id: data.session_id,
         timestamp: data.created_at,
-        state: (data.state_data as MarketingConsultantState) || {},
+        state: safelyConvertToMarketingState(data.state_data),
         isCompleted: data.is_completed || false,
         clinicTypeLabel: data.clinic_type || 'Clínica',
         specialty: data.specialty || 'Geral',

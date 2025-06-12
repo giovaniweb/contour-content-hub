@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
 import { useAuth } from '@/context/MockAuthContext';
+import { cn } from '@/lib/utils';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -94,13 +95,12 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isActive(item.path)}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200
-                      text-white/80 hover:text-white hover:bg-white/10
-                      focus:outline-none focus:ring-2 focus:ring-purple-500/50
-                      ${isActive(item.path) ? 'bg-white/15 text-white shadow-lg shadow-purple-500/20' : ''}
-                    `}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                      "text-white/80 hover:text-white hover:bg-white/10",
+                      "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                      isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                    )}
                   >
                     <motion.button
                       onClick={() => navigate(item.path)}
@@ -131,13 +131,12 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isActive(item.path)}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200
-                      text-white/80 hover:text-white hover:bg-white/10
-                      focus:outline-none focus:ring-2 focus:ring-purple-500/50
-                      ${isActive(item.path) ? 'bg-white/15 text-white shadow-lg shadow-purple-500/20' : ''}
-                    `}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                      "text-white/80 hover:text-white hover:bg-white/10",
+                      "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                      isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                    )}
                   >
                     <motion.button
                       onClick={() => navigate(item.path)}
@@ -169,13 +168,12 @@ const Sidebar: React.FC = () => {
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isActive(item.path)}
-                      className={`
-                        w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200
-                        text-white/80 hover:text-white hover:bg-white/10
-                        focus:outline-none focus:ring-2 focus:ring-purple-500/50
-                        ${isActive(item.path) ? 'bg-white/15 text-white shadow-lg shadow-purple-500/20' : ''}
-                      `}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "text-white/80 hover:text-white hover:bg-white/10",
+                        "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                        isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                      )}
                     >
                       <motion.button
                         onClick={() => navigate(item.path)}

@@ -9,6 +9,7 @@ export interface MarketingStep {
 
 export interface MarketingConsultantState {
   clinicType: string;
+  clinicName: string;
   medicalSpecialty: string;
   medicalProcedures: string;
   medicalEquipments: string;

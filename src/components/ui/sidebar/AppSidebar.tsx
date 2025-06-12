@@ -26,6 +26,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const menuItems = [
   {
@@ -95,7 +96,10 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <Link 
                       to={item.url}
-                      className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg px-3 py-2 transition-colors"
+                      className={cn(
+                        "flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg px-3 py-2 transition-colors",
+                        window.location.pathname === item.url && "bg-white/15 text-white"
+                      )}
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
