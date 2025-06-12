@@ -1,32 +1,42 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import EnhancedAkinatorQuestion from '../components/EnhancedAkinatorQuestion';
 import FluidaLoadingScreen from '../components/FluidaLoadingScreen';
+import SmartQuestionSystem from '../components/SmartQuestionSystem';
 import { useEquipments } from '@/hooks/useEquipments';
 import { AKINATOR_TREE } from '../constants/intentionTree';
 
 interface AkinatorScriptModeProps {
   onScriptGenerated: (script: any) => void;
   onGoBack: () => void;
-  generateScript: (data: any) => Promise<any>;
+  generateScript: (data: any, forceGenerate?: boolean) => Promise<any>;
   isGenerating: boolean;
+  validationResult: any;
+  showValidation: boolean;
+  dismissValidation: () => void;
+  forceGenerate: (data: any) => Promise<any>;
 }
 
 const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   onScriptGenerated,
   onGoBack,
   generateScript,
-  isGenerating
+  isGenerating,
+  validationResult,
+  showValidation,
+  dismissValidation,
+  forceGenerate
 }) => {
   const [currentStep, setCurrentStep] = useState('tipo_conteudo');
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [history, setHistory] = useState<string[]>(['tipo_conteudo']);
+  const [pendingScriptData, setPendingScriptData] = useState<any>(null);
   const { equipments, loading: equipmentsLoading } = useEquipments();
 
   console.log('🎬 [AkinatorScriptMode] Current step:', currentStep, 'Answers:', answers);
-  console.log('🔧 [AkinatorScriptMode] Equipments loaded:', equipments.length, 'Loading:', equipmentsLoading);
 
   const getCurrentQuestion = () => {
     const question = AKINATOR_TREE[currentStep];
@@ -94,11 +104,14 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         console.log('🚀 [AkinatorScriptMode] Calling generateScript with corrected data:', scriptData);
         
+        // Salvar dados para caso precise forçar geração
+        setPendingScriptData(scriptData);
+        
         const result = await generateScript(scriptData);
         console.log('✅ [AkinatorScriptMode] Script generated:', result);
         
-        if (result) {
-          onScriptGenerated(result);
+        if (result && result.length > 0) {
+          onScriptGenerated(result[0]);
         }
       } catch (error) {
         console.error('❌ [AkinatorScriptMode] Error generating script:', error);
@@ -142,6 +155,38 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       onGoBack();
     }
   };
+
+  const handleImproveInformation = () => {
+    // Voltar para início para melhorar as informações
+    setCurrentStep('tipo_conteudo');
+    setAnswers({});
+    setHistory(['tipo_conteudo']);
+    dismissValidation();
+  };
+
+  const handleForceGenerate = async () => {
+    if (pendingScriptData) {
+      console.log('🚀 [AkinatorScriptMode] Forçando geração do roteiro...');
+      const result = await forceGenerate(pendingScriptData);
+      if (result && result.length > 0) {
+        onScriptGenerated(result[0]);
+      }
+      dismissValidation();
+    }
+  };
+
+  // Mostrar sistema de validação se houver problemas
+  if (showValidation && validationResult) {
+    return (
+      <div className="container mx-auto py-6">
+        <SmartQuestionSystem
+          validation={validationResult}
+          onDismiss={handleForceGenerate}
+          onImprove={handleImproveInformation}
+        />
+      </div>
+    );
+  }
 
   // Mostrar loading durante geração
   if (isGenerating) {

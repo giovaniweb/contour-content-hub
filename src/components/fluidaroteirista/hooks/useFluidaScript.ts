@@ -1,8 +1,16 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useEquipmentData } from '@/hooks/useEquipmentData';
 import { FluidaScriptResult, ScriptGenerationData } from '../types';
-import { validateScriptData } from '../utils/scriptValidation';
+import { 
+  validatePreGeneration, 
+  validatePostGeneration, 
+  meetsQualityStandards,
+  generateImprovementSuggestions,
+  generateSmartQuestions,
+  ValidationResult 
+} from '../utils/antiGenericValidation';
 import { generateFluidaScript, applyDisneyTransformation } from '../services/scriptGenerator';
 import { generateImage } from '@/services/supabaseService';
 
@@ -11,17 +19,41 @@ export const useFluidaScript = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
   const { getEquipmentDetails } = useEquipmentData();
 
-  const generateScript = async (data: ScriptGenerationData) => {
-    console.log('🎬 [useFluidaScript] ===== INICIANDO GERAÇÃO DE ROTEIRO =====');
+  const generateScript = async (data: ScriptGenerationData, forceGenerate: boolean = false) => {
+    console.log('🎬 [useFluidaScript] ===== INICIANDO GERAÇÃO COM VALIDAÇÃO =====');
     console.log('📋 [useFluidaScript] Dados recebidos:', data);
-    console.log('🔧 [useFluidaScript] Equipamentos selecionados:', data.equipamentos);
+    console.log('🔒 [useFluidaScript] Força geração:', forceGenerate);
     
-    // Validações básicas
-    if (!validateScriptData(data)) {
-      console.error('❌ [useFluidaScript] Dados inválidos:', data);
-      return [];
+    // STEP 1: VALIDAÇÃO PRÉ-GERAÇÃO OBRIGATÓRIA
+    if (!forceGenerate) {
+      console.log('🔍 [useFluidaScript] Executando validação pré-geração...');
+      const validation = validatePreGeneration(data);
+      
+      if (!validation.isValid) {
+        console.log('❌ [useFluidaScript] VALIDAÇÃO FALHOU - Bloqueando geração');
+        console.log('📊 [useFluidaScript] Erros encontrados:', validation.errors);
+        
+        setValidationResult(validation);
+        setShowValidation(true);
+        
+        // Gerar perguntas inteligentes
+        const smartQuestions = generateSmartQuestions(validation);
+        
+        toast.error('🚫 Roteiro bloqueado pelo sistema anti-genérico', {
+          description: `${validation.errors.length} problemas encontrados. Complete as informações obrigatórias.`
+        });
+        
+        console.log('💡 [useFluidaScript] Perguntas inteligentes:', smartQuestions);
+        return [];
+      }
+      
+      console.log('✅ [useFluidaScript] Validação pré-geração APROVADA');
+      setValidationResult(null);
+      setShowValidation(false);
     }
 
     if (isGenerating) {
@@ -45,7 +77,6 @@ export const useFluidaScript = () => {
         console.log('🔧 [useFluidaScript] Buscando dados detalhados dos equipamentos...');
         const equipmentDetails = await getEquipmentDetails(equipmentNames);
         console.log('✅ [useFluidaScript] Equipamentos carregados:', equipmentDetails.length);
-        console.log('📄 [useFluidaScript] Detalhes dos equipamentos:', equipmentDetails);
         
         // VALIDAÇÃO CRÍTICA: Verificar se equipamentos foram carregados corretamente
         if (equipmentNames.length > 0 && equipmentDetails.length === 0) {
@@ -55,21 +86,26 @@ export const useFluidaScript = () => {
           });
         }
 
-        // Verificar se todos os equipamentos selecionados foram carregados
-        const loadedNames = equipmentDetails.map(eq => eq.nome.toLowerCase());
-        const missingEquipments = equipmentNames.filter(name => 
-          !loadedNames.some(loaded => loaded.includes(name.toLowerCase()))
-        );
-        
-        if (missingEquipments.length > 0) {
-          console.warn('⚠️ [useFluidaScript] Equipamentos não encontrados:', missingEquipments);
-          toast.warning('⚠️ Alguns equipamentos não foram encontrados', {
-            description: `Equipamentos não carregados: ${missingEquipments.join(', ')}`
-          });
-        }
-
         console.log('🚀 [useFluidaScript] Gerando roteiro com equipamentos...');
         const scriptResult = await generateFluidaScript(data, equipmentDetails);
+        
+        // STEP 2: VALIDAÇÃO PÓS-GERAÇÃO RIGOROSA
+        console.log('🎯 [useFluidaScript] Executando validação pós-geração...');
+        const qualityCheck = validatePostGeneration(scriptResult, data);
+        const meetsStandards = meetsQualityStandards(qualityCheck);
+        
+        if (!meetsStandards && !forceGenerate) {
+          console.warn('⚠️ [useFluidaScript] QUALIDADE INSUFICIENTE - Solicitando melhorias');
+          
+          const improvements = generateImprovementSuggestions(qualityCheck, data);
+          
+          toast.warning('⚠️ Roteiro precisa de melhorias', {
+            description: `${improvements.length} ajustes sugeridos para maior personalização`
+          });
+          
+          console.log('📋 [useFluidaScript] Melhorias sugeridas:', improvements);
+          // Retornar o script mesmo assim, mas com aviso
+        }
         
         // VALIDAÇÃO PÓS-GERAÇÃO: Verificar se equipamentos aparecem no roteiro
         if (equipmentDetails.length > 0) {
@@ -79,8 +115,6 @@ export const useFluidaScript = () => {
           
           if (!equipmentMentioned) {
             console.error('❌ [useFluidaScript] PROBLEMA: Equipamentos não mencionados no roteiro gerado!');
-            console.log('📝 [useFluidaScript] Roteiro gerado:', scriptResult.roteiro);
-            console.log('🔧 [useFluidaScript] Equipamentos esperados:', equipmentDetails.map(eq => eq.nome));
             
             toast.warning('⚠️ Atenção aos equipamentos', {
               description: 'Verifique se os equipamentos estão bem integrados no roteiro.'
@@ -101,11 +135,23 @@ export const useFluidaScript = () => {
         console.log('📝 [useFluidaScript] Gerando roteiro sem equipamentos específicos...');
         const scriptResult = await generateFluidaScript(data, []);
         
+        // Validação pós-geração mesmo sem equipamentos
+        const qualityCheck = validatePostGeneration(scriptResult, data);
+        const meetsStandards = meetsQualityStandards(qualityCheck);
+        
+        if (!meetsStandards && !forceGenerate) {
+          console.warn('⚠️ [useFluidaScript] QUALIDADE INSUFICIENTE - Roteiro muito genérico');
+          
+          toast.warning('⚠️ Roteiro muito genérico', {
+            description: 'Adicione equipamentos ou seja mais específico no tema'
+          });
+        }
+        
         console.log('🎯 [useFluidaScript] Script resultado criado (sem equipamentos):', scriptResult);
         setResults([scriptResult]);
         
         toast.success('🎬 Roteiro FLUIDA gerado!', {
-          description: 'Roteiro criado sem equipamentos específicos'
+          description: 'Roteiro criado. Para melhor qualidade, adicione equipamentos específicos.'
         });
 
         return [scriptResult];
@@ -113,7 +159,6 @@ export const useFluidaScript = () => {
 
     } catch (error) {
       console.error('🔥 [useFluidaScript] ERRO NA GERAÇÃO:', error);
-      console.error('🔥 [useFluidaScript] Stack trace:', error.stack);
       toast.error('❌ Erro ao gerar roteiro', {
         description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
       });
@@ -221,6 +266,18 @@ export const useFluidaScript = () => {
     console.log('🧹 [useFluidaScript] Limpando resultados');
     setResults([]);
     setGeneratedImageUrl(null);
+    setValidationResult(null);
+    setShowValidation(false);
+  };
+
+  const dismissValidation = () => {
+    setShowValidation(false);
+    setValidationResult(null);
+  };
+
+  const forceGenerate = async (data: ScriptGenerationData) => {
+    console.log('🚀 [useFluidaScript] Forçando geração ignorando validação...');
+    return await generateScript(data, true);
   };
 
   return {
@@ -228,10 +285,14 @@ export const useFluidaScript = () => {
     isGenerating,
     isGeneratingImage,
     generatedImageUrl,
+    validationResult,
+    showValidation,
     generateScript,
+    forceGenerate,
     applyDisneyMagic,
     generateImage: generateImageForScript,
     generateAudio,
-    clearResults
+    clearResults,
+    dismissValidation
   };
 };
