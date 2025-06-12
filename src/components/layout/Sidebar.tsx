@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -49,6 +48,7 @@ const Sidebar: React.FC = () => {
   // Debug: verificar se o usuário está sendo carregado corretamente
   console.log('🔍 Sidebar - Usuário atual:', user);
   console.log('🔍 Sidebar - Role do usuário:', user?.role);
+  console.log('🔍 Sidebar - Nome do usuário:', user?.nome);
 
   const mainMenuItems = [
     { icon: Home, label: 'Dashboard', path: ROUTES.DASHBOARD },
@@ -170,7 +170,7 @@ const Sidebar: React.FC = () => {
 
         <SidebarSeparator className="border-white/10 my-2" />
 
-        {/* Admin Menu - agora deve aparecer */}
+        {/* Admin Menu */}
         {isUserAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-white/60 text-xs uppercase tracking-wider px-4">
@@ -204,19 +204,21 @@ const Sidebar: React.FC = () => {
         )}
       </SidebarContent>
 
-      {/* Footer */}
+      {/* Footer - corrigido para mostrar o nome do usuário */}
       <SidebarFooter>
         <div className="flex items-center gap-3 p-2 mx-2 rounded-lg bg-white/5">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center">
             <span className="text-white text-sm font-medium">
-              {(user?.nome || user?.email)?.[0]?.toUpperCase() || 'U'}
+              {user?.nome?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
               {user?.nome || user?.email || 'Usuário'}
             </p>
-            <p className="text-xs text-white/60">Online</p>
+            <p className="text-xs text-white/60">
+              {user?.role === 'admin' ? 'Administrador' : 'Online'}
+            </p>
           </div>
         </div>
       </SidebarFooter>

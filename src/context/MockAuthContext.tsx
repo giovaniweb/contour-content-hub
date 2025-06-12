@@ -124,7 +124,7 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const newUser: UserProfile = {
         id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
         email: userData.email,
-        nome: userData.name || 'Novo Usuário',
+        nome: userData.name || 'Dr. João Silva',
         role: 'admin'
       };
       
