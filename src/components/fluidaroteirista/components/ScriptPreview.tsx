@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -293,7 +292,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
       >
         <Button
           onClick={onApprove}
-          disabled={isProcess}
+          disabled={isProcessing}
           className="aurora-button text-white px-8 h-14 text-lg font-medium shadow-aurora-glow-purple"
         >
           <CheckCircle2 className="h-6 w-6 mr-3" />
