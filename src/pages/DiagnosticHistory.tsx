@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { toast } from "sonner";
 import { useDiagnosticPersistence, DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +7,7 @@ import CurrentSessionCard from './DiagnosticHistory/CurrentSessionCard';
 import SavedDiagnosticsSection from './DiagnosticHistory/SavedDiagnosticsSection';
 import EmptyState from './DiagnosticHistory/EmptyState';
 import { formatDate, generateDownloadContent } from './DiagnosticHistory/utils';
+import { debugDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence/debugUtils';
 
 const DiagnosticHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -16,8 +16,27 @@ const DiagnosticHistory: React.FC = () => {
     currentSession,
     deleteDiagnostic,
     loadDiagnostic,
-    clearAllData
+    clearAllData,
+    loadSavedDiagnostics
   } = useDiagnosticPersistence();
+
+  // Forçar recarregamento de dados ao montar o componente
+  useEffect(() => {
+    console.log('🏥 DiagnosticHistory montado - forçando debug e reload');
+    debugDiagnosticPersistence();
+    
+    // Forçar recarregamento dos diagnósticos salvos
+    const forceReload = async () => {
+      try {
+        await loadSavedDiagnostics();
+        console.log('🔄 Dados recarregados na página de histórico');
+      } catch (error) {
+        console.error('❌ Erro ao recarregar dados:', error);
+      }
+    };
+    
+    forceReload();
+  }, [loadSavedDiagnostics]);
 
   const handleLoadDiagnostic = async (session: DiagnosticSession) => {
     const loaded = await loadDiagnostic(session.id);
@@ -99,6 +118,13 @@ const DiagnosticHistory: React.FC = () => {
       }
     }
   };
+
+  // Debug: Log estado atual
+  console.log('🏥 DiagnosticHistory render:', {
+    savedDiagnostics: savedDiagnostics.length,
+    currentSession: !!currentSession,
+    currentSessionId: currentSession?.id
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-8">
