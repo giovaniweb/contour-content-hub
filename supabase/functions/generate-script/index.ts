@@ -37,15 +37,15 @@ serve(async (req) => {
     const request = RequestValidator.validateRequest(requestData);
     const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective } = request;
     
-    // Initialize request handler
+    // Initialize request handler with timeout
     const requestHandler = new RequestHandler(openAIApiKey);
     
     // Process request and get prompts
     const { finalSystemPrompt, finalUserPrompt } = await requestHandler.processRequest(request);
     
-    // Call OpenAI API
-    console.log("🤖 Chamando OpenAI API...");
-    const content = await requestHandler.callOpenAI(finalSystemPrompt, finalUserPrompt, type);
+    // Call OpenAI API with optimized settings for speed
+    console.log("🤖 Chamando OpenAI API com configurações otimizadas...");
+    const content = await requestHandler.callOpenAI(finalSystemPrompt, finalUserPrompt, type, true); // true para modo rápido
     console.log("✅ Resposta recebida da OpenAI");
     
     // Format the response

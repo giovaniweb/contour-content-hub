@@ -1,61 +1,37 @@
 
-// Funções para interagir com o banco de dados
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-
-export interface ScriptData {
-  usuario_id: string;
-  tipo: string;
-  titulo: string;
-  conteudo: string;
-  status: 'gerado' | 'aprovado' | 'editado';
-  objetivo_marketing?: string | null;
-}
-
-export async function saveScriptToDatabase(
-  supabase: SupabaseClient,
-  scriptData: ScriptData
-): Promise<void> {
+export async function saveScriptToDatabase(supabaseAdmin: any, scriptData: any) {
   try {
-    console.log('💾 Tentando salvar roteiro no banco:', scriptData);
+    console.log("💾 Salvando roteiro no banco de dados...");
     
-    const { error } = await supabase
-      .from('roteiros')
-      .insert(scriptData);
-      
+    const { data, error } = await supabaseAdmin
+      .from('roteiros_gerados')
+      .insert([scriptData]);
+
     if (error) {
-      console.error('❌ Erro ao salvar roteiro:', error);
-      // Não vamos fazer throw do erro para não quebrar o fluxo
-      console.log('⚠️ Continuando sem salvar no banco - roteiro será retornado normalmente');
-    } else {
-      console.log('✅ Roteiro salvo com sucesso no banco de dados');
+      console.error("❌ Erro ao salvar no banco:", error);
+      throw error;
     }
+
+    console.log("✅ Roteiro salvo com sucesso no banco");
+    return data;
   } catch (error) {
-    console.error('❌ Erro inesperado ao salvar roteiro:', error);
-    // Não vamos fazer throw do erro para não quebrar o fluxo
-    console.log('⚠️ Continuando sem salvar no banco - roteiro será retornado normalmente');
+    console.error("🔥 Erro crítico ao salvar no banco:", error);
+    throw error;
   }
 }
 
-export async function getUserFromToken(
-  supabase: SupabaseClient,
-  token: string
-): Promise<{ id: string } | null> {
+export async function getUserFromToken(supabaseAdmin: any, token: string) {
   try {
-    const { data: userData, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error) {
-      console.error('❌ Erro ao obter usuário:', error);
+      console.error("❌ Erro ao obter usuário:", error);
       return null;
     }
-    
-    if (userData.user) {
-      console.log('✅ Usuário autenticado:', userData.user.id);
-      return { id: userData.user.id };
-    }
-    
-    return null;
+
+    return user;
   } catch (error) {
-    console.error('❌ Erro inesperado ao obter usuário:', error);
+    console.error("❌ Erro ao processar token:", error);
     return null;
   }
 }

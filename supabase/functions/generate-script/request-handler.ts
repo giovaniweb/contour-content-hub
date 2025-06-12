@@ -1,21 +1,4 @@
 
-import { buildPrompt } from "./prompt-builder.ts";
-import { formatScriptResponse } from "./response-formatter.ts";
-
-interface RequestData {
-  type: string;
-  topic: string;
-  equipment?: string;
-  bodyArea?: string;
-  purpose?: string;
-  additionalInfo?: string;
-  tone?: string;
-  language?: string;
-  marketingObjective?: string;
-  systemPrompt?: string;
-  userPrompt?: string;
-}
-
 export class RequestHandler {
   private openAIApiKey: string;
 
@@ -23,95 +6,127 @@ export class RequestHandler {
     this.openAIApiKey = openAIApiKey;
   }
 
-  async processRequest(requestData: RequestData) {
-    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective, systemPrompt, userPrompt } = requestData;
-    
-    console.log(`🎬 Processando ${type === 'custom' ? 'FLUIDAROTEIRISTA' : 'roteiro padrão'}`);
+  async processRequest(request: any) {
+    const { systemPrompt, userPrompt, type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective } = request;
 
-    let finalSystemPrompt: string;
-    let finalUserPrompt: string;
+    let finalSystemPrompt = '';
+    let finalUserPrompt = '';
 
-    // Handle FLUIDAROTEIRISTA custom prompts
     if (type === 'custom' && systemPrompt && userPrompt) {
-      console.log("🎬 Usando prompts FLUIDAROTEIRISTA customizados");
+      // Para FLUIDAROTEIRISTA - usar prompts customizados
       finalSystemPrompt = systemPrompt;
       finalUserPrompt = userPrompt;
+      console.log("🎯 Usando prompts customizados do FLUIDAROTEIRISTA");
     } else {
-      console.log("📝 Construindo prompts padrão");
-      const prompts = buildPrompt({
-        type,
-        topic,
-        equipment: equipment ? [equipment] : undefined,
-        bodyArea,
-        purpose: purpose ? [purpose] : undefined,
-        additionalInfo,
-        tone,
-        language,
-        marketingObjective
-      });
-      finalSystemPrompt = prompts.systemPrompt;
-      finalUserPrompt = prompts.userPrompt;
+      // Fallback para outros tipos
+      finalSystemPrompt = this.buildSystemPrompt(type, tone, language);
+      finalUserPrompt = this.buildUserPrompt(type, topic, equipment, bodyArea, purpose, additionalInfo, marketingObjective);
     }
 
-    console.log("System Prompt preview:", finalSystemPrompt.substring(0, 200) + "...");
-    console.log("User Prompt preview:", finalUserPrompt.substring(0, 200) + "...");
-    
     return { finalSystemPrompt, finalUserPrompt };
   }
 
-  async callOpenAI(systemPrompt: string, userPrompt: string, type: string) {
-    // Usar modelo mais adequado para FLUIDAROTEIRISTA
-    const modelToUse = type === 'custom' ? "gpt-4o" : "gpt-4o-mini";
-    console.log(`🤖 Usando modelo: ${modelToUse}`);
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openAIApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: modelToUse,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: type === 'custom' ? 0.8 : 0.7, // Mais criatividade para FLUIDAROTEIRISTA
-        max_tokens: type === 'custom' ? 2500 : 2000,
-        response_format: type === 'custom' && systemPrompt.includes('JSON') ? { type: "json_object" } : undefined
-      })
-    });
+  async callOpenAI(systemPrompt: string, userPrompt: string, type: string, fastMode: boolean = false) {
+    // Criar controller para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.log("⏰ Timeout na requisição OpenAI após 45 segundos");
+    }, 45000); // 45 segundos timeout
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Erro na API OpenAI:", errorText);
-      throw new Error(`Erro na API OpenAI: Status ${response.status} - ${errorText}`);
+    try {
+      // Configurações otimizadas para velocidade
+      const model = fastMode ? 'gpt-4o-mini' : 'gpt-4o'; // Usar modelo mais rápido em modo rápido
+      const maxTokens = fastMode ? 800 : 1500; // Menos tokens para resposta mais rápida
+      const temperature = fastMode ? 0.3 : 0.7; // Menos criatividade para mais velocidade
+
+      console.log(`🚀 Usando modelo ${model} com ${maxTokens} max tokens`);
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: maxTokens,
+          temperature: temperature,
+          response_format: type === 'custom' ? { type: "json_object" } : undefined, // JSON apenas para FLUIDAROTEIRISTA
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erro na API OpenAI:', errorText);
+        throw new Error(`Erro na API OpenAI: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Resposta OpenAI recebida com sucesso");
+      
+      return data.choices[0].message.content;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Timeout na geração do roteiro. A requisição demorou mais de 45 segundos.');
+      }
+      
+      throw error;
     }
-
-    const data = await response.json();
-    
-    if (data.error) {
-      console.error("Erro retornado pela API OpenAI:", data.error);
-      throw new Error(`Erro na API OpenAI: ${data.error.message}`);
-    }
-
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      console.error("Conteúdo vazio na resposta da OpenAI:", data);
-      throw new Error("Resposta vazia da API OpenAI");
-    }
-
-    console.log("🎬 Conteúdo FLUIDAROTEIRISTA gerado com sucesso");
-    return content;
   }
 
-  formatResponse(content: string, type: string, topic: string, equipment?: string, bodyArea?: string) {
-    return formatScriptResponse({
-      content, 
-      type, 
-      topic, 
-      equipment: equipment ? [equipment] : undefined, 
-      bodyArea
-    });
+  formatResponse(content: string, type: string, topic: string, equipment: string, bodyArea: string) {
+    // Para FLUIDAROTEIRISTA, tentar fazer parse do JSON
+    if (type === 'custom') {
+      try {
+        const parsedContent = JSON.parse(content);
+        return {
+          ...parsedContent,
+          content: content,
+          type: 'fluidaroteirista',
+          title: `Roteiro FLUIDAROTEIRISTA - ${topic || 'Personalizado'}`,
+          timestamp: new Date().toISOString()
+        };
+      } catch (parseError) {
+        console.log("ℹ️ Conteúdo não é JSON válido, retornando como texto");
+        return {
+          content: content,
+          type: 'fluidaroteirista',
+          title: `Roteiro FLUIDAROTEIRISTA - ${topic || 'Personalizado'}`,
+          roteiro: content,
+          formato: 'carrossel',
+          timestamp: new Date().toISOString()
+        };
+      }
+    }
+
+    // Formato padrão para outros tipos
+    return {
+      content: content,
+      type: type,
+      title: this.generateTitle(type, topic, equipment, bodyArea),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  private buildSystemPrompt(type: string, tone: string, language: string): string {
+    return `Você é um especialista em marketing para clínicas estéticas. Crie conteúdo ${tone} em ${language}.`;
+  }
+
+  private buildUserPrompt(type: string, topic: string, equipment: string, bodyArea: string, purpose: string, additionalInfo: string, marketingObjective: string): string {
+    return `Crie um roteiro sobre ${topic} usando ${equipment} para ${bodyArea}. Objetivo: ${purpose}. ${additionalInfo}`;
+  }
+
+  private generateTitle(type: string, topic: string, equipment: string, bodyArea: string): string {
+    return `Roteiro ${type} - ${topic || equipment || bodyArea}`;
   }
 }

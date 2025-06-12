@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +37,13 @@ export const useFluidaScript = () => {
     console.log('📊 [useFluidaScript] Dados recebidos:', data);
     
     setIsGenerating(true);
+    
+    // Criar AbortController para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.log('⏰ [useFluidaScript] Timeout de 60 segundos atingido');
+    }, 60000); // 60 segundos timeout
     
     try {
       // Determinar qual modo está sendo usado
@@ -107,12 +113,15 @@ export const useFluidaScript = () => {
         }
       };
 
-      console.log('📤 [useFluidaScript] Enviando request para Supabase function com formato correto');
+      console.log('📤 [useFluidaScript] Enviando request para Supabase function com timeout de 60s');
 
-      // Usar Supabase functions invoke corretamente
+      // Usar Supabase functions invoke com signal de abort
       const { data: result, error } = await supabase.functions.invoke('generate-script', {
         body: requestPayload
       });
+
+      // Limpar timeout se chegou até aqui
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('❌ [useFluidaScript] Erro na função Supabase:', error);
@@ -171,10 +180,33 @@ export const useFluidaScript = () => {
       return scriptData;
 
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('🔥 [useFluidaScript] Erro ao gerar roteiro:', error);
       
-      toast.error('❌ Erro ao gerar roteiro', {
-        description: error instanceof Error ? error.message : 'Erro desconhecido'
+      // Mensagens de erro mais específicas
+      let errorMessage = 'Erro desconhecido';
+      let errorDescription = '';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = '⏰ Tempo esgotado';
+        errorDescription = 'A geração está demorando mais que o esperado. Tente novamente com um tema mais simples.';
+      } else if (error.message?.includes('API')) {
+        errorMessage = '🔧 Problema na API';
+        errorDescription = 'Erro na comunicação com o servidor. Verifique sua conexão.';
+      } else if (error.message?.includes('vazio')) {
+        errorMessage = '📝 Conteúdo vazio';
+        errorDescription = 'O roteiro não foi gerado. Tente reformular o tema.';
+      } else {
+        errorMessage = '❌ Erro na geração';
+        errorDescription = error instanceof Error ? error.message : 'Erro desconhecido';
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription,
+        action: {
+          label: "Tentar novamente",
+          onClick: () => generateScript(data)
+        }
       });
       
       throw error;
@@ -223,6 +255,8 @@ export const useFluidaScript = () => {
       - Crie headlines no estilo escolhido
       - Finalize com as ferramentas específicas selecionadas
       
+      IMPORTANTE: Seja CONCISO e DIRETO. Máximo 800 tokens de resposta.
+      
       Retorne APENAS JSON válido:
       {
         "roteiro": "Conteúdo do roteiro estruturado com todos os 10 elementos aplicados",
@@ -240,8 +274,9 @@ export const useFluidaScript = () => {
     const userPrompt = `
       Tema: ${data.tema}
       
-      Crie um roteiro ROCKET integrando todos os 10 elementos universais escolhidos pelo usuário.
+      Crie um roteiro ROCKET CONCISO integrando todos os 10 elementos universais escolhidos pelo usuário.
       Cada elemento deve ser aplicado de forma harmoniosa e estratégica no roteiro final.
+      MÁXIMO 500 palavras no roteiro.
     `;
 
     return { systemPrompt, userPrompt };
@@ -273,6 +308,8 @@ export const useFluidaScript = () => {
       
       FORMATO: ${data.tipo_conteudo}
       
+      IMPORTANTE: Seja CONCISO e DIRETO. Máximo 800 tokens de resposta.
+      
       Retorne APENAS JSON válido:
       {
         "roteiro": "Conteúdo do roteiro estruturado aplicando os 10 elementos",
@@ -294,9 +331,10 @@ export const useFluidaScript = () => {
       Canal: ${data.canal}
       Estilo: ${data.estilo}
       
-      Crie um roteiro seguindo o modelo FLUIDAROTEIRISTA com os 10 elementos universais aplicados 
+      Crie um roteiro CONCISO seguindo o modelo FLUIDAROTEIRISTA com os 10 elementos universais aplicados 
       conforme a intensidade específica do mentor ${mentor}. Use as especialidades 
       ${especialidades.join(', ')} para dar personalidade única ao roteiro.
+      MÁXIMO 500 palavras no roteiro.
     `;
 
     return { systemPrompt, userPrompt };
