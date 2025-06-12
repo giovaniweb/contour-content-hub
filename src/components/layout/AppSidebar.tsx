@@ -133,29 +133,31 @@ const AppSidebar: React.FC = () => {
         <SidebarSeparator />
 
         {/* Admin Menu */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Administração</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminMenuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton asChild>
-                    <button 
-                      onClick={() => navigate(item.path)}
-                      className={`
-                        w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground
-                        ${isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-white/80 hover:text-white'}
-                      `}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {user?.role === 'admin' && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton asChild>
+                      <button 
+                        onClick={() => navigate(item.path)}
+                        className={`
+                          w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground
+                          ${isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-white/80 hover:text-white'}
+                        `}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       {/* Footer */}

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
-import { AppSidebar } from '@/components/ui/sidebar/AppSidebar';
+import Sidebar from '@/components/sidebar/Sidebar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 
@@ -64,7 +64,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false })
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full bg-aurora-background">
-        <AppSidebar />
+        <Sidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
