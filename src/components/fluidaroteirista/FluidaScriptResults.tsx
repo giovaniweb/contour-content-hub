@@ -12,7 +12,9 @@ import {
   Sparkles, 
   Image as ImageIcon,
   Mic,
-  Castle
+  Castle,
+  Clock,
+  Zap
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
@@ -67,7 +69,6 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
 
   const handleApplyDisney = async () => {
     setDisneyAnimating(true);
-    // A animação vai durar 3 segundos, depois aplicar a transformação
     setTimeout(async () => {
       await onApplyDisney(script);
       setDisneyAnimating(false);
@@ -85,8 +86,10 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     );
   }
 
-  const isDisneyApplied = script.disney_applied || script.mentor?.includes('Disney') || script.mentor?.includes('Fada');
+  const isDisneyApplied = script.disney_applied || script.mentor?.includes('Disney') || script.mentor?.includes('Walt');
   const mentorNickname = getMentorNickname(script.mentor || 'Criativo');
+  const estimatedTime = Math.round((script.roteiro.split(/\s+/).length / 150) * 60);
+  const isWithinTimeLimit = estimatedTime <= 60;
 
   return (
     <>
@@ -96,7 +99,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
       />
       
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
+        {/* Header Melhorado */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,15 +116,25 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               <h1 className="text-3xl font-bold text-slate-50">
                 ✨ Seu Roteiro FLUIDA Está Pronto!
               </h1>
-              <p className="text-slate-400 mt-2">
-                Criado por: <strong>{mentorNickname}</strong>
-              </p>
+              <div className="flex items-center justify-center gap-4 mt-2">
+                <p className="text-slate-400">
+                  Criado por: <strong>{mentorNickname}</strong>
+                </p>
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                  isWithinTimeLimit 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  <Clock className="h-3 w-3" />
+                  {estimatedTime}s
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Roteiro Principal - Formatado */}
+          {/* Roteiro Principal - Melhorado */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -130,7 +143,15 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
             <Card className="aurora-glass border-aurora-electric-purple/30">
               <CardHeader>
                 <CardTitle className="text-white flex items-center justify-between">
-                  <span>🎬 Roteiro Final</span>
+                  <span className="flex items-center gap-2">
+                    🎬 Roteiro Final
+                    {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        <Zap className="h-3 w-3 mr-1" />
+                        {script.equipamentos_utilizados.length} equipamento(s)
+                      </Badge>
+                    )}
+                  </span>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -159,7 +180,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
             </Card>
           </motion.div>
 
-          {/* Painel Lateral */}
+          {/* Painel Lateral Aprimorado */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -174,15 +195,38 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
                     <span className="font-semibold">Disney Magic Aplicada!</span>
                   </div>
                   <p className="text-xs text-yellow-300 mt-1">
-                    Este roteiro foi transformado com a magia Disney para criar uma experiência mais encantadora.
+                    Transformado com a narrativa mágica de Walt Disney 1928
                   </p>
                 </CardContent>
               </Card>
             )}
+
+            {/* Status de Tempo */}
+            <Card className={`aurora-glass ${
+              isWithinTimeLimit 
+                ? 'border-green-500/30 bg-green-500/5' 
+                : 'border-red-500/30 bg-red-500/5'
+            }`}>
+              <CardContent className="p-4">
+                <div className={`flex items-center gap-2 ${
+                  isWithinTimeLimit ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  <Clock className="h-5 w-5" />
+                  <span className="font-semibold">
+                    {isWithinTimeLimit ? 'Tempo Ideal ✅' : 'Atenção ao Tempo ⚠️'}
+                  </span>
+                </div>
+                <p className={`text-xs mt-1 ${
+                  isWithinTimeLimit ? 'text-green-300' : 'text-red-300'
+                }`}>
+                  {estimatedTime}s de leitura | {isWithinTimeLimit ? 'Perfeito para redes sociais' : 'Considere encurtar'}
+                </p>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
 
-        {/* Próximos Passos - MOVIDO PARA BAIXO */}
+        {/* Próximos Passos - Melhorados */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -191,8 +235,11 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
         >
           <Card className="aurora-glass border-aurora-electric-purple/30">
             <CardHeader>
-              <CardTitle className="text-white text-lg">
+              <CardTitle className="text-white text-lg flex items-center gap-2">
                 🚀 Próximos Passos
+                <Badge variant="outline" className="text-xs">
+                  Profissional
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -238,7 +285,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </Card>
         </motion.div>
 
-        {/* Elementos Universais - MOVIDO PARA BAIXO */}
+        {/* Elementos Universais */}
         {script.elementos_aplicados && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
