@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateScript as apiGenerateScript } from '@/services/supabaseService';
@@ -21,6 +22,11 @@ export const useFluidaScript = () => {
     setShowValidation(false);
     
     try {
+      // Verificação de segurança - garantir que data existe
+      if (!data) {
+        throw new Error('Dados de geração não fornecidos');
+      }
+
       // Escolher validação baseada no modo
       let validation: ValidationResult;
       
@@ -43,14 +49,14 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Preparar dados para a API - mapeamento correto dos campos
+      // Preparar dados para a API com verificações de segurança
       const apiData = {
         type: 'fluidaroteirista',
-        topic: data.tema, // Mapear tema → topic
-        equipment: data.equipamentos?.join(', ') || '', // Mapear equipamentos → equipment
-        additionalInfo: `Tipo: ${data.tipo_conteudo}, Objetivo: ${data.objetivo}, Canal: ${data.canal}, Estilo: ${data.estilo}, Mentor: ${data.mentor}`,
-        tone: data.estilo || 'profissional', // Mapear estilo → tone
-        marketingObjective: data.objetivo || 'atrair', // Mapear objetivo → marketingObjective
+        topic: data.tema || 'Tema não especificado', // Guard: valor padrão se undefined
+        equipment: Array.isArray(data.equipamentos) ? data.equipamentos.join(', ') : '', // Guard: verificar se é array
+        additionalInfo: `Tipo: ${data.tipo_conteudo || 'não especificado'}, Objetivo: ${data.objetivo || 'não especificado'}, Canal: ${data.canal || 'não especificado'}, Estilo: ${data.estilo || 'não especificado'}, Mentor: ${data.mentor || 'não especificado'}`,
+        tone: data.estilo || 'profissional', // Guard: valor padrão
+        marketingObjective: data.objetivo || 'atrair', // Guard: valor padrão
         systemPrompt: buildSystemPrompt(data),
         userPrompt: buildUserPrompt(data)
       };
@@ -61,37 +67,48 @@ export const useFluidaScript = () => {
       const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
-      // Verificar se a resposta tem o conteúdo (response é um objeto ScriptResponse, não array)
-      if (response && response.content) {
-        const scriptResult: FluidaScriptResult = {
-          roteiro: response.content, // Acessar content do objeto response
-          formato: data.tipo_conteudo || data.formato || 'carrossel',
-          emocao_central: data.estilo || 'engajamento',
-          intencao: data.objetivo || 'atrair',
-          objetivo: data.objetivo || 'atrair',
-          mentor: data.mentor || 'Criativo',
-          equipamentos_utilizados: data.equipamentos || [],
-          created_at: new Date().toISOString()
-        };
-
-        console.log('✅ [useFluidaScript] Script result created:', scriptResult);
-        setResults([scriptResult]);
-        
-        toast({
-          title: "✨ Roteiro gerado!",
-          description: `Criado no estilo ${scriptResult.mentor}`,
-        });
-
-        return [scriptResult];
-      } else {
-        throw new Error('Resposta inválida da API');
+      // Verificação robusta da resposta da API
+      if (!response) {
+        throw new Error('Resposta vazia da API');
       }
+
+      if (typeof response !== 'object') {
+        throw new Error('Resposta da API em formato inválido');
+      }
+
+      // Verificar se a resposta tem o conteúdo esperado
+      if (!response.content || typeof response.content !== 'string') {
+        console.error('❌ [useFluidaScript] Resposta sem conteúdo válido:', response);
+        throw new Error('Resposta da API não contém conteúdo válido');
+      }
+
+      const scriptResult: FluidaScriptResult = {
+        roteiro: response.content,
+        formato: data.tipo_conteudo || data.formato || 'carrossel',
+        emocao_central: data.estilo || 'engajamento',
+        intencao: data.objetivo || 'atrair',
+        objetivo: data.objetivo || 'atrair',
+        mentor: data.mentor || 'Criativo',
+        equipamentos_utilizados: Array.isArray(data.equipamentos) ? data.equipamentos : [],
+        created_at: new Date().toISOString()
+      };
+
+      console.log('✅ [useFluidaScript] Script result created:', scriptResult);
+      setResults([scriptResult]);
+      
+      toast({
+        title: "✨ Roteiro gerado!",
+        description: `Criado no estilo ${scriptResult.mentor}`,
+      });
+
+      return [scriptResult];
 
     } catch (error) {
       console.error('❌ [useFluidaScript] Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro na geração",
-        description: "Tente novamente em alguns instantes.",
+        description: `Erro: ${errorMessage}. Tente novamente em alguns instantes.`,
         variant: "destructive",
       });
       return [];
@@ -113,6 +130,17 @@ export const useFluidaScript = () => {
       return;
     }
 
+    // Verificação de segurança do script
+    if (!script || !script.roteiro) {
+      console.error('❌ [useFluidaScript] Script inválido para Disney Magic');
+      toast({
+        title: "❌ Erro",
+        description: "Script inválido para aplicar Disney Magic",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -130,29 +158,36 @@ export const useFluidaScript = () => {
 
       const response = await apiGenerateScript(disneyData);
       
-      // Corrigir acesso à resposta - response é objeto, não array
-      if (response && response.content) {
-        const updatedScript = {
-          ...script,
-          roteiro: response.content, // Acessar content do objeto response
-          disney_applied: true,
-          mentor: 'Walt Disney 1928',
-          emocao_central: 'encantamento'
-        };
-        
-        setResults([updatedScript]);
-        
-        toast({
-          title: "✨ Disney Magic Aplicada!",
-          description: "Roteiro transformado com a magia de Walt Disney",
-        });
+      // Verificação robusta da resposta Disney
+      if (!response) {
+        throw new Error('Resposta vazia da API Disney');
       }
+
+      if (!response.content || typeof response.content !== 'string') {
+        throw new Error('Resposta Disney sem conteúdo válido');
+      }
+
+      const updatedScript = {
+        ...script,
+        roteiro: response.content,
+        disney_applied: true,
+        mentor: 'Walt Disney 1928',
+        emocao_central: 'encantamento'
+      };
+      
+      setResults([updatedScript]);
+      
+      toast({
+        title: "✨ Disney Magic Aplicada!",
+        description: "Roteiro transformado com a magia de Walt Disney",
+      });
 
     } catch (error) {
       console.error('🔥 [useFluidaScript] Erro no Disney Magic:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "❌ Erro ao aplicar Disney Magic",
-        description: error instanceof Error ? error.message : 'Tente novamente',
+        description: `Erro: ${errorMessage}. Tente novamente`,
         variant: "destructive",
       });
     } finally {
@@ -165,6 +200,17 @@ export const useFluidaScript = () => {
     
     if (isGeneratingImage) {
       console.warn('⚠️ [useFluidaScript] Geração de imagem já em andamento');
+      return;
+    }
+
+    // Verificação de segurança do script
+    if (!script || !script.roteiro) {
+      console.error('❌ [useFluidaScript] Script inválido para geração de imagem');
+      toast({
+        title: "❌ Erro",
+        description: "Script inválido para gerar imagem",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -195,9 +241,10 @@ export const useFluidaScript = () => {
 
     } catch (error) {
       console.error('🔥 [useFluidaScript] Erro na geração de imagem:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "❌ Erro ao gerar imagem",
-        description: error instanceof Error ? error.message : 'Tente novamente',
+        description: `Erro: ${errorMessage}. Tente novamente`,
         variant: "destructive",
       });
     } finally {
@@ -206,7 +253,8 @@ export const useFluidaScript = () => {
   };
 
   const buildImagePrompt = (script: FluidaScriptResult): string => {
-    const equipamentos = script.equipamentos_utilizados?.join(', ') || '';
+    // Verificações de segurança para construir o prompt
+    const equipamentos = Array.isArray(script.equipamentos_utilizados) ? script.equipamentos_utilizados.join(', ') : '';
     const emocao = script.emocao_central || 'confiança';
     
     return `Create a professional medical aesthetic clinic image featuring ${equipamentos ? `${equipamentos} equipment` : 'modern aesthetic equipment'}. 
@@ -220,6 +268,17 @@ export const useFluidaScript = () => {
 
   const generateAudio = async (script: FluidaScriptResult) => {
     console.log('🎙️ [useFluidaScript] Gerando áudio...');
+    
+    // Verificação de segurança
+    if (!script || !script.roteiro) {
+      toast({
+        title: "❌ Erro",
+        description: "Script inválido para gerar áudio",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "🎙️ Gerando áudio...",
       description: "Preparando narração do roteiro",
@@ -258,32 +317,49 @@ export const useFluidaScript = () => {
 };
 
 const buildSystemPrompt = (data: ScriptGenerationData): string => {
+  // Verificações de segurança para todas as propriedades
+  const canal = data.canal || 'redes sociais';
+  const tipo_conteudo = data.tipo_conteudo || 'conteúdo';
+  const objetivo = data.objetivo || 'engajar';
+  const estilo = data.estilo || 'criativo';
+  const mentor = data.mentor || 'Criativo';
+  const equipamentos = Array.isArray(data.equipamentos) && data.equipamentos.length > 0 
+    ? data.equipamentos 
+    : [];
+
   return `
-    Você é o FLUIDAROTEIRISTA especializado em ${data.canal || 'redes sociais'}.
+    Você é o FLUIDAROTEIRISTA especializado em ${canal}.
     
     CONTEXTO DO PROJETO:
-    - Tipo de conteúdo: ${data.tipo_conteudo}
-    - Objetivo: ${data.objetivo}
-    - Canal: ${data.canal}
-    - Estilo: ${data.estilo}
-    - Mentor: ${data.mentor}
-    ${data.equipamentos?.length ? `- Equipamentos: ${data.equipamentos.join(', ')}` : ''}
+    - Tipo de conteúdo: ${tipo_conteudo}
+    - Objetivo: ${objetivo}
+    - Canal: ${canal}
+    - Estilo: ${estilo}
+    - Mentor: ${mentor}
+    ${equipamentos.length > 0 ? `- Equipamentos: ${equipamentos.join(', ')}` : ''}
     
     INSTRUÇÕES ESPECÍFICAS:
-    - Crie conteúdo otimizado para ${data.canal}
-    - Use o estilo ${data.estilo} do mentor ${data.mentor}
-    - Foque no objetivo de ${data.objetivo}
-    ${data.equipamentos?.length ? `- OBRIGATÓRIO: Mencione os equipamentos: ${data.equipamentos.join(', ')}` : ''}
+    - Crie conteúdo otimizado para ${canal}
+    - Use o estilo ${estilo} do mentor ${mentor}
+    - Foque no objetivo de ${objetivo}
+    ${equipamentos.length > 0 ? `- OBRIGATÓRIO: Mencione os equipamentos: ${equipamentos.join(', ')}` : ''}
     
     Retorne apenas JSON válido com o roteiro estruturado.
   `;
 };
 
 const buildUserPrompt = (data: ScriptGenerationData): string => {
+  // Verificações de segurança
+  const tema = data.tema || 'Tema não especificado';
+  const tipo_conteudo = data.tipo_conteudo || 'conteúdo';
+  const canal = data.canal || 'redes sociais';
+  const objetivo = data.objetivo || 'engajar';
+  const estilo = data.estilo || 'criativo';
+
   return `
-    Tema: ${data.tema}
+    Tema: ${tema}
     
-    Crie um roteiro de ${data.tipo_conteudo} para ${data.canal} com o objetivo de ${data.objetivo}.
-    Use o estilo ${data.estilo} e, se aplicável, mencione os equipamentos específicos.
+    Crie um roteiro de ${tipo_conteudo} para ${canal} com o objetivo de ${objetivo}.
+    Use o estilo ${estilo} e, se aplicável, mencione os equipamentos específicos.
   `;
 };
