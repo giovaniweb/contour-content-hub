@@ -18,67 +18,130 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>({
-    id: '1',
-    email: 'usuario@exemplo.com',
-    nome: 'Usuário de Teste',
-    role: 'admin'
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Carregar sessão persistida no localStorage
+  useEffect(() => {
+    const loadPersistedAuth = () => {
+      try {
+        const savedAuth = localStorage.getItem('fluida_auth_session');
+        if (savedAuth) {
+          const authData = JSON.parse(savedAuth);
+          console.log('🔐 Carregando sessão persistida:', authData);
+          setUser(authData.user);
+          setIsAuthenticated(authData.isAuthenticated);
+        } else {
+          console.log('🔐 Nenhuma sessão persistida encontrada');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar sessão persistida:', error);
+        localStorage.removeItem('fluida_auth_session');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPersistedAuth();
+  }, []);
+
+  // Salvar sessão no localStorage sempre que o estado mudar
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      const authData = {
+        user,
+        isAuthenticated
+      };
+      localStorage.setItem('fluida_auth_session', JSON.stringify(authData));
+      console.log('💾 Sessão salva no localStorage:', authData);
+    }
+  }, [user, isAuthenticated]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Simular login
-    setTimeout(() => {
-      setUser({
-        id: '1',
+    setError(null);
+    
+    try {
+      // Simular delay de autenticação
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Usar o UUID real do banco de dados para garantir consistência
+      const authenticatedUser: UserProfile = {
+        id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a', // UUID real do banco
         email: email,
-        nome: 'Usuário Logado',
+        nome: 'Dr. João Silva', // Nome real para aparecer na interface
         role: 'admin'
-      });
+      };
+      
+      setUser(authenticatedUser);
       setIsAuthenticated(true);
+      
+      console.log('✅ Login realizado com sucesso:', authenticatedUser);
+    } catch (error: any) {
+      setError(error.message || 'Erro no login');
+      throw error;
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const logout = async () => {
     setUser(null);
     setIsAuthenticated(false);
+    setError(null);
+    localStorage.removeItem('fluida_auth_session');
+    console.log('🚪 Logout realizado');
   };
 
   const register = async (userData: any) => {
     setIsLoading(true);
-    // Simular registro
-    setTimeout(() => {
-      setUser({
-        id: '1',
+    setError(null);
+    
+    try {
+      // Simular registro
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const newUser: UserProfile = {
+        id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
         email: userData.email,
         nome: userData.name || 'Novo Usuário',
         role: 'admin'
-      });
+      };
+      
+      setUser(newUser);
       setIsAuthenticated(true);
+      
+      console.log('✅ Registro realizado com sucesso:', newUser);
+    } catch (error: any) {
+      setError(error.message || 'Erro no registro');
+      throw error;
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const updateUser = async (data: Partial<UserProfile>) => {
     if (user) {
-      setUser({ ...user, ...data });
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      console.log('👤 Usuário atualizado:', updatedUser);
     }
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    // Mock implementation
     return true;
   };
 
   const resetPassword = async (email: string): Promise<void> => {
-    // Mock implementation
+    console.log('📧 Reset de senha solicitado para:', email);
   };
 
   const refreshAuth = async (): Promise<void> => {
-    // Mock implementation
+    // Recarregar dados do usuário se necessário
+    console.log('🔄 Refresh de autenticação');
   };
 
   const value = {

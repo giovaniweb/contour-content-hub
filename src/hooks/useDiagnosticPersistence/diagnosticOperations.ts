@@ -1,19 +1,9 @@
-import { useState, useCallback } from 'react';
-import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
-import { marketingDiagnosticsService } from '@/services/marketingDiagnostics';
-import { DiagnosticSession } from './types';
-import { 
-  generateUniqueSessionId, 
-  createSessionFromState, 
-  clearSessionIdCache,
-  checkForExistingSession,
-  detectContentDuplication
-} from './sessionUtils';
-import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
-import { useAuth } from '@/hooks/useAuth';
 
-// Map para controle de debounce das operações
-const debouncedOperations = new Map<string, NodeJS.Timeout>();
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { DiagnosticSession } from './types';
+import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
 
 export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
@@ -21,279 +11,216 @@ export const useDiagnosticOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
+  // Carregar diagnósticos do banco de dados - AGORA COM FILTRO POR USER_ID
   const loadSavedDiagnostics = useCallback(async () => {
-    if (isLoading) return; // Evitar múltiplas chamadas simultâneas
-    
+    if (!user?.id) {
+      console.log('❌ Usuário não autenticado para carregar diagnósticos');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      console.log('📚 Carregando diagnósticos salvos...');
+      console.log('📊 Carregando diagnósticos do banco para user_id:', user.id);
       
-      const diagnostics = await marketingDiagnosticsService.loadDiagnostics();
+      const { data, error } = await supabase
+        .from('marketing_diagnostics')
+        .select('*')
+        .eq('user_id', user.id) // FILTRO CRÍTICO ADICIONADO
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao carregar diagnósticos:', error);
+        return;
+      }
+
+      console.log('✅ Diagnósticos carregados do banco:', data?.length || 0);
       
-      // Aplicar filtro anti-duplicação adicional no frontend
-      const uniqueDiagnostics = diagnostics.filter((diagnostic, index, self) => {
-        // Primeiro filtro: por ID único
-        const isUniqueById = index === self.findIndex(d => d.id === diagnostic.id);
-        if (!isUniqueById) return false;
-        
-        // Segundo filtro: por contexto de conteúdo similar
-        const hasSimilarContent = self.some((other, otherIndex) => {
-          if (otherIndex >= index) return false; // Evitar comparar com si mesmo e duplicar trabalho
-          
-          return (
-            other.state?.clinicType === diagnostic.state?.clinicType &&
-            (other.state?.medicalSpecialty === diagnostic.state?.medicalSpecialty ||
-             other.state?.aestheticFocus === diagnostic.state?.aestheticFocus) &&
-            other.isCompleted === diagnostic.isCompleted &&
-            Math.abs(new Date(other.timestamp).getTime() - new Date(diagnostic.timestamp).getTime()) < 10 * 60 * 1000 // 10 minutos
-          );
-        });
-        
-        return !hasSimilarContent;
-      });
-      
-      setSavedDiagnostics(uniqueDiagnostics);
-      console.log(`✅ ${uniqueDiagnostics.length} diagnósticos únicos carregados (filtro duplo aplicado)`);
-      
-      if (diagnostics.length !== uniqueDiagnostics.length) {
-        console.warn(`⚠️ ${diagnostics.length - uniqueDiagnostics.length} duplicações detectadas e filtradas no frontend`);
+      if (data && data.length > 0) {
+        // Converter dados do banco para DiagnosticSession
+        const sessions: DiagnosticSession[] = data.map(item => ({
+          id: item.session_id,
+          timestamp: item.created_at,
+          state: item.state_data || {},
+          isCompleted: item.is_completed || false,
+          clinicTypeLabel: item.clinic_type || 'Clínica',
+          specialty: item.specialty || 'Geral',
+          isPaidData: item.is_completed || false
+        }));
+
+        setSavedDiagnostics(sessions);
+        console.log('✅ Sessions convertidas:', sessions.length);
+      } else {
+        setSavedDiagnostics([]);
+        console.log('📊 Nenhum diagnóstico encontrado no banco para este usuário');
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar diagnósticos salvos:', error);
-      // Fallback para localStorage se houver erro
-      const saved = localStorage.getItem('fluida_marketing_diagnostics');
-      if (saved) {
-        try {
-          const localDiagnostics = JSON.parse(saved);
-          setSavedDiagnostics(localDiagnostics);
-        } catch (e) {
-          console.error('❌ Erro ao carregar do localStorage:', e);
-        }
-      }
+      console.error('❌ Erro inesperado ao carregar diagnósticos:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [user?.id]);
 
-  const saveCurrentSession = useCallback(async (
-    state: MarketingConsultantState, 
-    isCompleted: boolean = false
-  ) => {
+  // Salvar sessão atual
+  const saveCurrentSession = useCallback(async (session: DiagnosticSession) => {
     if (!user?.id) {
-      console.warn('⚠️ Usuário não autenticado, salvando apenas localmente');
-      const sessionId = currentSession?.id || generateUniqueSessionId();
-      const session = createSessionFromState(sessionId, state, isCompleted);
+      console.log('❌ Usuário não autenticado para salvar sessão');
+      return false;
+    }
+
+    try {
+      console.log('💾 Salvando sessão no banco para user_id:', user.id);
+      
+      const { error } = await supabase
+        .from('marketing_diagnostics')
+        .upsert({
+          session_id: session.id,
+          user_id: user.id, // GARANTIR QUE USA O USER_ID CORRETO
+          state_data: session.state,
+          is_completed: session.isCompleted,
+          clinic_type: session.clinicTypeLabel,
+          specialty: session.specialty,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('❌ Erro ao salvar no banco:', error);
+        return false;
+      }
+
+      // Salvar também no localStorage para acesso rápido
       saveCurrentSessionToStorage(session);
       setCurrentSession(session);
-      return session;
+      
+      // Recarregar lista de diagnósticos
+      await loadSavedDiagnostics();
+      
+      console.log('✅ Sessão salva com sucesso');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro inesperado ao salvar sessão:', error);
+      return false;
+    }
+  }, [user?.id, loadSavedDiagnostics]);
+
+  // Deletar diagnóstico
+  const deleteDiagnostic = useCallback(async (sessionId: string) => {
+    if (!user?.id) {
+      console.log('❌ Usuário não autenticado para deletar');
+      return false;
     }
 
-    const clinicType = state.clinicType || '';
-    const specialty = state.clinicType === 'clinica_medica' 
-      ? state.medicalSpecialty || '' 
-      : state.aestheticFocus || '';
+    try {
+      const { error } = await supabase
+        .from('marketing_diagnostics')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id); // FILTRO DE SEGURANÇA
 
-    // Verificar se já existe uma sessão similar nos dados salvos
-    const existingSession = checkForExistingSession(savedDiagnostics, user.id, clinicType, specialty, isCompleted);
-    
-    let sessionId: string;
-    
-    if (existingSession && !isCompleted) {
-      // Reutilizar session_id existente para rascunhos
-      sessionId = existingSession.id;
-      console.log('🔄 Reutilizando session_id existente para rascunho:', sessionId);
-    } else if (currentSession?.id && !isCompleted) {
-      // Manter session_id atual se for um rascunho
-      sessionId = currentSession.id;
-    } else {
-      // Gerar novo session_id usando informações do contexto
-      sessionId = generateUniqueSessionId(user.id, clinicType, specialty);
+      if (error) {
+        console.error('❌ Erro ao deletar:', error);
+        return false;
+      }
+
+      // Atualizar estado local
+      setSavedDiagnostics(prev => prev.filter(d => d.id !== sessionId));
+      
+      if (currentSession?.id === sessionId) {
+        setCurrentSession(null);
+        clearCurrentSessionFromStorage();
+      }
+
+      console.log('🗑️ Diagnóstico deletado:', sessionId);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro inesperado ao deletar:', error);
+      return false;
+    }
+  }, [user?.id, currentSession?.id]);
+
+  // Carregar diagnóstico específico
+  const loadDiagnostic = useCallback(async (sessionId: string) => {
+    if (!user?.id) {
+      console.log('❌ Usuário não autenticado para carregar diagnóstico');
+      return null;
     }
 
-    const operationKey = `save_${user.id}_${clinicType}_${specialty}_${isCompleted}`;
+    try {
+      const { data, error } = await supabase
+        .from('marketing_diagnostics')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id) // FILTRO DE SEGURANÇA
+        .single();
 
-    // Cancelar operação anterior se existir
-    if (debouncedOperations.has(operationKey)) {
-      clearTimeout(debouncedOperations.get(operationKey)!);
-      debouncedOperations.delete(operationKey);
-    }
-
-    // Debounce para evitar múltiplas chamadas rápidas
-    const timeoutId = setTimeout(async () => {
-      try {
-        console.log('💾 Salvando sessão com proteção anti-duplicação:', { sessionId, isCompleted, operationKey });
-        
-        // Salvar no banco de dados
-        const savedDiagnostic = await marketingDiagnosticsService.saveDiagnostic(
-          sessionId,
-          state,
-          isCompleted
-        );
-
-        if (savedDiagnostic) {
-          const session = createSessionFromState(sessionId, state, isCompleted, savedDiagnostic.created_at);
-
-          // Marcar como dados pagos se for um diagnóstico completo
-          if (isCompleted) {
-            session.isPaidData = true;
-            // Limpar cache para permitir novos diagnósticos
-            clearSessionIdCache(user.id, clinicType, specialty);
-          }
-
-          // Manter cache local para melhor UX
-          saveCurrentSessionToStorage(session);
-          setCurrentSession(session);
-
-          // Recarregar lista se foi completado (com debounce)
-          if (isCompleted) {
-            setTimeout(() => loadSavedDiagnostics(), 500);
-          }
-
-          console.log('✅ Sessão salva com sucesso (protegida contra duplicação):', session);
-          return session;
-        } else {
-          // Fallback para localStorage se houver erro
-          const session = createSessionFromState(sessionId, state, isCompleted);
-
-          saveCurrentSessionToStorage(session);
-          setCurrentSession(session);
-          
-          console.log('⚠️ Sessão salva localmente (fallback protegido):', session);
-          return session;
-        }
-      } catch (error) {
-        console.error('❌ Erro ao salvar sessão:', error);
+      if (error) {
+        console.error('❌ Erro ao carregar diagnóstico:', error);
         return null;
-      } finally {
-        debouncedOperations.delete(operationKey);
       }
-    }, 300); // Debounce de 300ms
 
-    debouncedOperations.set(operationKey, timeoutId);
-  }, [currentSession?.id, loadSavedDiagnostics, user?.id, savedDiagnostics]);
+      const session: DiagnosticSession = {
+        id: data.session_id,
+        timestamp: data.created_at,
+        state: data.state_data || {},
+        isCompleted: data.is_completed || false,
+        clinicTypeLabel: data.clinic_type || 'Clínica',
+        specialty: data.specialty || 'Geral',
+        isPaidData: data.is_completed || false
+      };
 
+      setCurrentSession(session);
+      saveCurrentSessionToStorage(session);
+      
+      console.log('📂 Diagnóstico carregado:', sessionId);
+      return session;
+    } catch (error) {
+      console.error('❌ Erro inesperado ao carregar diagnóstico:', error);
+      return null;
+    }
+  }, [user?.id]);
+
+  // Limpar sessão atual
   const clearCurrentSession = useCallback(() => {
-    try {
-      clearCurrentSessionFromStorage();
-      setCurrentSession(null);
-      
-      // Limpar também o cache de session_id
-      if (user?.id && currentSession?.state) {
-        const clinicType = currentSession.state.clinicType || '';
-        const specialty = currentSession.state.clinicType === 'clinica_medica' 
-          ? currentSession.state.medicalSpecialty || '' 
-          : currentSession.state.aestheticFocus || '';
-        clearSessionIdCache(user.id, clinicType, specialty);
-      }
-      
-      console.log('🗑️ Sessão atual limpa (cache incluído)');
-    } catch (error) {
-      console.error('❌ Erro ao limpar sessão:', error);
-    }
-  }, [user?.id, currentSession?.state]);
+    setCurrentSession(null);
+    clearCurrentSessionFromStorage();
+    console.log('🧹 Sessão atual limpa');
+  }, []);
 
-  const deleteDiagnostic = useCallback(async (id: string) => {
-    try {
-      // Verificar se é um diagnóstico pago antes de deletar
-      const diagnosticToDelete = savedDiagnostics.find(d => d.id === id);
-      
-      if (diagnosticToDelete?.isPaidData || diagnosticToDelete?.isCompleted) {
-        console.warn('⚠️ Tentativa de deletar dados pagos/completos bloqueada:', id);
-        return false; // Bloquear deletar dados pagos
-      }
-
-      const success = await marketingDiagnosticsService.deleteDiagnostic(id);
-      
-      if (success) {
-        // Atualizar estado local
-        const filtered = savedDiagnostics.filter(d => d.id !== id);
-        setSavedDiagnostics(filtered);
-        
-        // Se for a sessão atual, limpar também (apenas se não for dados pagos)
-        if (currentSession?.id === id && !currentSession?.isPaidData) {
-          clearCurrentSession();
-        }
-        
-        console.log('✅ Diagnóstico deletado:', id);
-      }
-      
-      return success;
-    } catch (error) {
-      console.error('❌ Erro ao deletar diagnóstico:', error);
-      return false;
-    }
-  }, [savedDiagnostics, currentSession?.id, currentSession?.isPaidData, clearCurrentSession]);
-
-  const loadDiagnostic = useCallback(async (id: string): Promise<DiagnosticSession | null> => {
-    try {
-      // Primeiro tentar carregar do banco
-      const diagnostic = await marketingDiagnosticsService.loadDiagnosticBySessionId(id);
-      
-      if (diagnostic) {
-        // Marcar como dados pagos se for completo
-        if (diagnostic.isCompleted) {
-          diagnostic.isPaidData = true;
-        }
-        
-        setCurrentSession(diagnostic);
-        saveCurrentSessionToStorage(diagnostic);
-        return diagnostic;
-      }
-
-      // Fallback para buscar na lista local
-      const localDiagnostic = savedDiagnostics.find(d => d.id === id);
-      if (localDiagnostic) {
-        setCurrentSession(localDiagnostic);
-        saveCurrentSessionToStorage(localDiagnostic);
-        return localDiagnostic;
-      }
-
-      return null;
-    } catch (error) {
-      console.error('❌ Erro ao carregar diagnóstico:', error);
-      return null;
-    }
-  }, [savedDiagnostics]);
-
+  // Limpar todos os dados (apenas rascunhos)
   const clearAllData = useCallback(async () => {
-    try {
-      // Identificar rascunhos (diagnósticos incompletos)
-      const drafts = savedDiagnostics.filter(d => !d.isPaidData && !d.isCompleted);
-      
-      if (drafts.length === 0) {
-        console.log('📝 Nenhum rascunho encontrado para limpar');
-        return true; // Sucesso, mas não havia nada para limpar
-      }
-
-      console.log(`🗑️ Limpando ${drafts.length} rascunhos...`);
-
-      // Deletar apenas os rascunhos do banco de dados
-      const success = await marketingDiagnosticsService.clearDraftsOnly();
-      
-      if (success) {
-        // Limpar localStorage apenas se não for dados pagos
-        if (!currentSession?.isPaidData && !currentSession?.isCompleted) {
-          clearCurrentSession();
-        }
-        
-        // Manter apenas diagnósticos completos/pagos
-        const protectedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
-        setSavedDiagnostics(protectedDiagnostics);
-        
-        // Limpar cache de session_ids para rascunhos
-        if (user?.id) {
-          clearSessionIdCache();
-        }
-        
-        console.log(`✅ ${drafts.length} rascunhos removidos. ${protectedDiagnostics.length} diagnósticos pagos preservados.`);
-      }
-      
-      return success;
-    } catch (error) {
-      console.error('❌ Erro ao limpar rascunhos:', error);
+    if (!user?.id) {
+      console.log('❌ Usuário não autenticado para limpar dados');
       return false;
     }
-  }, [savedDiagnostics, currentSession?.isPaidData, currentSession?.isCompleted, clearCurrentSession, user?.id]);
+
+    try {
+      // Deletar apenas rascunhos (não diagnósticos completos)
+      const { error } = await supabase
+        .from('marketing_diagnostics')
+        .delete()
+        .eq('user_id', user.id) // FILTRO CRÍTICO
+        .eq('is_completed', false);
+
+      if (error) {
+        console.error('❌ Erro ao limpar dados:', error);
+        return false;
+      }
+
+      // Atualizar estado local
+      setSavedDiagnostics(prev => prev.filter(d => d.isPaidData || d.isCompleted));
+      
+      // Limpar sessão atual se for rascunho
+      if (currentSession && !currentSession.isPaidData && !currentSession.isCompleted) {
+        setCurrentSession(null);
+        clearCurrentSessionFromStorage();
+      }
+
+      console.log('🧹 Dados limpos com sucesso');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro inesperado ao limpar dados:', error);
+      return false;
+    }
+  }, [user?.id, currentSession]);
 
   return {
     savedDiagnostics,

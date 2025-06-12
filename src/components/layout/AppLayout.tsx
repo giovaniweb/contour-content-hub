@@ -1,54 +1,85 @@
 
-import React from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import Sidebar from '@/components/layout/Sidebar';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/MockAuthContext';
-import { ROUTES } from '@/routes';
+import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
+import { AppSidebar } from '@/components/ui/sidebar/AppSidebar';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
   requireAdmin?: boolean;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ 
-  children, 
-  requireAuth = true,
-  requireAdmin = false
-}) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
-  const isAdmin = user?.role === 'admin';
+const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Verificar autenticação
+  useEffect(() => {
+    // Aguardar carregamento da verificação de autenticação
+    if (isLoading) {
+      return;
+    }
+
+    // Se não estiver autenticado, redirecionar para login
+    if (!isAuthenticated || !user) {
+      console.log('🚫 Usuário não autenticado, redirecionando para login');
+      navigate('/login', { 
+        replace: true,
+        state: { from: location.pathname }
+      });
+      return;
+    }
+
+    // Verificar se precisa ser admin
+    if (requireAdmin && user.role !== 'admin') {
+      console.log('🚫 Acesso negado: usuário não é admin');
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    console.log('✅ Usuário autenticado:', user.nome || user.email);
+  }, [isAuthenticated, user, isLoading, navigate, location.pathname, requireAdmin]);
+
+  // Mostrar loading durante verificação
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      <div className="min-h-screen flex items-center justify-center bg-aurora-background">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-aurora-electric-purple"></div>
+          <p className="text-slate-50">Verificando autenticação...</p>
+        </div>
       </div>
     );
   }
 
-  // Handle authentication requirement
-  if (requireAuth && !isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
-  }
-
-  // Handle admin requirement
-  if (requireAdmin && (!isAuthenticated || !isAdmin)) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  // Se não estiver autenticado, não renderizar nada (vai redirecionar)
+  if (!isAuthenticated || !user) {
+    return null;
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        {/* Sidebar */}
-        <Sidebar />
-        
-        <div className="flex flex-col flex-1 overflow-hidden">
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full bg-aurora-background">
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1 text-slate-50" />
+              <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
+              <div className="text-slate-50">
+                <span className="text-sm">Bem-vindo, </span>
+                <span className="font-medium">{user.nome || user.email}</span>
+              </div>
+            </div>
+          </header>
           <main className="flex-1 overflow-auto">
             {children}
           </main>
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
