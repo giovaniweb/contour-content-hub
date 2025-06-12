@@ -84,7 +84,12 @@ const FluidaRoteirista: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-3"
         >
-          <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
+          <motion.div
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
+          </motion.div>
           <div>
             <h1 className="text-3xl font-bold text-slate-50 bg-aurora-gradient-primary bg-clip-text text-transparent">
               FLUIDAROTEIRISTA 🎬
@@ -98,9 +103,14 @@ const FluidaRoteirista: React.FC = () => {
 
       {/* Mode Selection */}
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-xl font-semibold text-white text-center mb-6">
-          Escolha seu estilo de criação:
-        </h2>
+        <motion.h2 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-xl font-semibold text-white text-center mb-6"
+        >
+          ✨ Escolha seu estilo de criação:
+        </motion.h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Modo Akinator */}
@@ -108,12 +118,21 @@ const FluidaRoteirista: React.FC = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.02 }}
           >
             <Card className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer h-full"
                   onClick={() => handleModeSelect('akinator')}>
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
-                  <HelpCircle className="h-16 w-16 text-aurora-electric-purple" />
+                  <motion.div
+                    whileHover={{ 
+                      rotate: [0, -10, 10, -10, 0],
+                      scale: [1, 1.1, 1.1, 1.1, 1]
+                    }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <HelpCircle className="h-16 w-16 text-aurora-electric-purple" />
+                  </motion.div>
                 </div>
                 <CardTitle className="text-white text-xl">
                   🎯 Roteiro Fluida
@@ -144,12 +163,21 @@ const FluidaRoteirista: React.FC = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02 }}
           >
             <Card className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer h-full"
                   onClick={() => handleModeSelect('chat')}>
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
-                  <MessageCircle className="h-16 w-16 text-aurora-electric-purple" />
+                  <motion.div
+                    whileHover={{ 
+                      y: [-2, -8, -2],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <MessageCircle className="h-16 w-16 text-aurora-electric-purple" />
+                  </motion.div>
                 </div>
                 <CardTitle className="text-white text-xl">
                   🚀 Roteiro Pro
@@ -190,22 +218,34 @@ const FluidaRoteirista: React.FC = () => {
             </h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-300">
-            <div className="text-center">
+            <motion.div 
+              className="text-center"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="text-aurora-electric-purple font-medium">✨ Disney Magic</div>
               <div>Transformação encantadora</div>
-            </div>
-            <div className="text-center">
+            </motion.div>
+            <motion.div 
+              className="text-center"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="text-aurora-electric-purple font-medium">🖼️ Geração de Imagem</div>
               <div>Arte com IA real</div>
-            </div>
-            <div className="text-center">
+            </motion.div>
+            <motion.div 
+              className="text-center"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="text-aurora-electric-purple font-medium">🎙️ Áudio Narrado</div>
               <div>Voz encantadora</div>
-            </div>
-            <div className="text-center">
+            </motion.div>
+            <motion.div 
+              className="text-center"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="text-aurora-electric-purple font-medium">📱 Multi-formato</div>
               <div>Stories, carrossel, imagem</div>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

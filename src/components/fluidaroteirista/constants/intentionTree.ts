@@ -1,168 +1,195 @@
 
-export const SCRIPT_INTENTION_TREE: Record<string, any> = {
+export const SCRIPT_INTENTION_TREE = {
   root: {
-    question: "🎬 Que tipo de conteúdo você quer criar?",
+    id: 'root',
+    question: '✨ Vamos começar a mágica: Qual o palco da sua história?',
     options: [
       {
-        value: 'carrossel',
-        label: 'Carrossel',
-        emoji: '📱',
-        description: 'Múltiplos slides deslizáveis',
+        value: 'bigIdea',
+        label: '💡 5 Ideias Virais',
+        emoji: '💡',
+        description: 'Preciso de inspiração criativa',
         leads_to: 'objetivo'
       },
       {
         value: 'stories',
-        label: 'Stories',
-        emoji: '📸',
-        description: 'Conteúdo vertical e rápido',
+        label: '📱 Stories Envolvente',
+        emoji: '📱',
+        description: 'Quero conexão íntima',
         leads_to: 'objetivo'
       },
       {
-        value: 'imagem',
-        label: 'Imagem Única',
+        value: 'carousel',
+        label: '🎠 Carrossel Educativo',
+        emoji: '🎠',
+        description: 'Preciso educar e atrair',
+        leads_to: 'objetivo'
+      },
+      {
+        value: 'image',
+        label: '🖼️ Imagem Impactante',
         emoji: '🖼️',
-        description: 'Post com arte única',
+        description: 'Quero chamar atenção',
         leads_to: 'objetivo'
       },
       {
         value: 'video',
-        label: 'Vídeo/Reels',
+        label: '🎬 Vídeo Completo',
         emoji: '🎬',
-        description: 'Conteúdo audiovisual',
+        description: 'Preciso explicar detalhes',
         leads_to: 'objetivo'
       }
     ]
   },
   objetivo: {
-    question: "🎯 Qual o seu objetivo principal?",
+    id: 'objetivo',
+    question: '💫 O que seu coração quer despertar nas pessoas?',
     options: [
       {
         value: 'atrair',
-        label: 'Atrair Atenção',
-        emoji: '🟡',
-        description: 'Gerar curiosidade e awareness',
-        leads_to: 'canal'
-      },
-      {
-        value: 'conectar',
-        label: 'Criar Conexão',
-        emoji: '🟢',
-        description: 'Humanizar e gerar identificação',
+        label: '✨ Preciso de atenção',
+        emoji: '✨',
+        description: 'Conquistar novos olhares',
         leads_to: 'canal'
       },
       {
         value: 'vender',
-        label: 'Fazer Comprar',
-        emoji: '🔴',
-        description: 'Converter e gerar vendas',
+        label: '💎 Quero conversão',
+        emoji: '💎',
+        description: 'Transformar interesse em venda',
         leads_to: 'canal'
       },
       {
-        value: 'reativar',
-        label: 'Reativar Interesse',
-        emoji: '🔁',
-        description: 'Despertar audiência fria',
+        value: 'educar',
+        label: '🧠 Preciso ensinar',
+        emoji: '🧠',
+        description: 'Compartilhar conhecimento valioso',
+        leads_to: 'canal'
+      },
+      {
+        value: 'conectar',
+        label: '❤️ Quero conexão profunda',
+        emoji: '❤️',
+        description: 'Criar vínculo emocional',
+        leads_to: 'canal'
+      },
+      {
+        value: 'posicionar',
+        label: '👑 Mostrar autoridade',
+        emoji: '👑',
+        description: 'Estabelecer expertise',
         leads_to: 'canal'
       }
     ]
   },
   canal: {
-    question: "📱 Onde vai publicar principalmente?",
+    id: 'canal',
+    question: '🌟 Onde sua história vai brilhar primeiro?',
     options: [
       {
         value: 'instagram',
-        label: 'Instagram Feed',
-        emoji: '📷',
-        description: 'Posts no feed principal',
-        leads_to: 'estilo'
-      },
-      {
-        value: 'instagram_stories',
-        label: 'Instagram Stories',
+        label: '📸 Instagram',
         emoji: '📸',
-        description: 'Stories temporários',
+        description: 'Visual e inspiracional',
         leads_to: 'estilo'
       },
       {
         value: 'tiktok',
-        label: 'TikTok',
+        label: '🎵 TikTok',
         emoji: '🎵',
-        description: 'Vídeos curtos virais',
+        description: 'Dinâmico e viral',
         leads_to: 'estilo'
       },
       {
-        value: 'facebook',
-        label: 'Facebook',
-        emoji: '👥',
-        description: 'Rede mais madura',
+        value: 'youtube',
+        label: '🎬 YouTube',
+        emoji: '🎬',
+        description: 'Educativo e detalhado',
+        leads_to: 'estilo'
+      },
+      {
+        value: 'linkedin',
+        label: '💼 LinkedIn',
+        emoji: '💼',
+        description: 'Profissional e científico',
         leads_to: 'estilo'
       }
     ]
   },
   estilo: {
-    question: "🎨 Que estilo combina com você?",
+    id: 'estilo',
+    question: '🎭 Que personalidade sua marca vai vestir hoje?',
     options: [
       {
         value: 'criativo',
-        label: 'Criativo',
+        label: '🎨 Tom Criativo',
         emoji: '🎨',
-        description: 'Inovador e diferenciado',
+        description: 'Inovador e artístico',
+        sample: '"Transforme sua pele numa obra de arte"',
         leads_to: 'equipamento'
       },
       {
-        value: 'direto',
-        label: 'Direto',
-        emoji: '🎯',
-        description: 'Claro e objetivo',
-        leads_to: 'equipamento'
-      },
-      {
-        value: 'emocional',
-        label: 'Emocional',
-        emoji: '❤️',
-        description: 'Toca o coração',
-        leads_to: 'equipamento'
-      },
-      {
-        value: 'tecnico',
-        label: 'Técnico',
+        value: 'cientifico',
+        label: '🔬 Tom Científico',
         emoji: '🔬',
-        description: 'Dados e evidências',
+        description: 'Técnico e confiável',
+        sample: '"Tecnologia comprovada cientificamente"',
+        leads_to: 'equipamento'
+      },
+      {
+        value: 'inspiracional',
+        label: '✨ Tom Inspiracional',
+        emoji: '✨',
+        description: 'Motivador e transformador',
+        sample: '"Sua melhor versão te espera"',
+        leads_to: 'equipamento'
+      },
+      {
+        value: 'conversacional',
+        label: '💬 Tom Amigável',
+        emoji: '💬',
+        description: 'Próximo e caloroso',
+        sample: '"Vem conversar comigo sobre isso"',
         leads_to: 'equipamento'
       }
     ]
   },
   equipamento: {
-    question: "⚕️ Tem algum equipamento específico?",
-    options: [
-      {
-        value: 'hifu',
-        label: 'HIFU',
-        emoji: '🔥',
-        description: 'Ultrassom focado',
-        leads_to: 'tema'
-      },
-      {
-        value: 'laser',
-        label: 'Laser',
-        emoji: '✨',
-        description: 'Tratamentos a laser',
-        leads_to: 'tema'
-      },
-      {
-        value: 'bioestimulador',
-        label: 'Bioestimulador',
-        emoji: '💉',
-        description: 'Estímulo de colágeno',
-        leads_to: 'tema'
-      },
-      {
-        value: 'nenhum',
-        label: 'Protocolo Geral',
-        emoji: '🏥',
-        description: 'Sem equipamento específico',
-        leads_to: 'tema'
-      }
-    ]
+    id: 'equipamento',
+    question: '🔧 Qual equipamento será o protagonista da história?',
+    options: []
+  },
+  tema: {
+    id: 'tema',
+    question: '📝 Conta pra mim o que você quer criar...',
+    isTextInput: true,
+    mentorPhrase: 'Estou aqui para dar vida às suas ideias! ✨'
   }
+};
+
+export const MENTOR_PHRASES = {
+  criativo: [
+    "Deixa a criatividade fluir...",
+    "A mágica está acontecendo...",
+    "Criando algo único para você...",
+    "Sua história está ganhando vida..."
+  ],
+  cientifico: [
+    "Analisando dados científicos...",
+    "Formulando estratégia baseada em evidências...",
+    "Processando estudos mais recentes...",
+    "Criando conteúdo comprovadamente eficaz..."
+  ],
+  inspiracional: [
+    "Despertando a motivação...",
+    "Criando inspiração pura...",
+    "Sua transformação está sendo escrita...",
+    "Preparando algo que vai tocar corações..."
+  ],
+  conversacional: [
+    "Preparando nossa conversa...",
+    "Criando conexão verdadeira...",
+    "Pensando como uma amiga pensaria...",
+    "Sua história íntima está nascendo..."
+  ]
 };
