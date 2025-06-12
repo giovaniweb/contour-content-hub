@@ -31,9 +31,18 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
 
   // Verificar se equipamentos foram realmente utilizados no roteiro
   const equipmentUsedInScript = hasEquipments ? 
-    script.equipamentos_utilizados.some(eq => 
-      script.roteiro.toLowerCase().includes(eq.nome.toLowerCase())
-    ) : false;
+    script.equipamentos_utilizados.some(eq => {
+      // Normalizar o equipamento para verificação
+      const equipmentName = typeof eq === 'string' ? eq : (eq?.nome || '');
+      return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
+    }) : false;
+
+  // Função auxiliar para obter nome do equipamento
+  const getEquipmentName = (equipment: any): string => {
+    if (typeof equipment === 'string') return equipment;
+    if (equipment && typeof equipment === 'object' && equipment.nome) return equipment.nome;
+    return 'Equipamento não especificado';
+  };
 
   return (
     <div className="space-y-6 w-full">
@@ -180,16 +189,25 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {script.equipamentos_utilizados
-                  .filter(equipment => script.roteiro.toLowerCase().includes(equipment.nome.toLowerCase()))
-                  .map((equipment, index) => (
-                  <div key={index} className="aurora-glass p-4 rounded-lg border border-indigo-500/20">
-                    <h4 className="font-semibold text-indigo-300 mb-2">{equipment.nome}</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="text-slate-300"><strong>Tecnologia:</strong> {equipment.tecnologia}</div>
-                      <div className="text-slate-300"><strong>Benefícios:</strong> {equipment.beneficios}</div>
-                    </div>
-                  </div>
-                ))}
+                  .filter(equipment => {
+                    const equipmentName = getEquipmentName(equipment);
+                    return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
+                  })
+                  .map((equipment, index) => {
+                    const equipmentName = getEquipmentName(equipment);
+                    const equipmentTech = typeof equipment === 'object' && equipment.tecnologia ? equipment.tecnologia : 'Tecnologia avançada';
+                    const equipmentBenefits = typeof equipment === 'object' && equipment.beneficios ? equipment.beneficios : 'Múltiplos benefícios estéticos';
+                    
+                    return (
+                      <div key={index} className="aurora-glass p-4 rounded-lg border border-indigo-500/20">
+                        <h4 className="font-semibold text-indigo-300 mb-2">{equipmentName}</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="text-slate-300"><strong>Tecnologia:</strong> {equipmentTech}</div>
+                          <div className="text-slate-300"><strong>Benefícios:</strong> {equipmentBenefits}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>
