@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Wand2, Loader2 } from "lucide-react";
 import { useUserEquipments } from '@/hooks/useUserEquipments';
 import { MENTOR_PHRASES } from '../constants/intentionTree';
 
@@ -17,6 +17,7 @@ interface QuestionOption {
   description: string;
   sample?: string;
   leads_to?: string;
+  imageUrl?: string;
 }
 
 interface EnhancedAkinatorQuestionProps {
@@ -44,7 +45,7 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
 }) => {
   const [themeText, setThemeText] = useState('');
   const [mentorPhrase, setMentorPhrase] = useState('');
-  const { equipments, loading } = useUserEquipments();
+  const { equipments, loading: equipmentsLoading } = useUserEquipments();
 
   useEffect(() => {
     if (stepId === 'tema') {
@@ -60,15 +61,56 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
   };
 
   const getEquipmentOptions = () => {
-    if (stepId !== 'equipamento') return options;
+    console.log('🎯 [EnhancedAkinatorQuestion] getEquipmentOptions chamado');
+    console.log('🎯 [EnhancedAkinatorQuestion] stepId:', stepId);
+    console.log('🎯 [EnhancedAkinatorQuestion] equipmentsLoading:', equipmentsLoading);
+    console.log('🎯 [EnhancedAkinatorQuestion] equipments:', equipments);
     
-    return equipments.map(equipment => ({
+    if (stepId !== 'equipamento') {
+      console.log('🎯 [EnhancedAkinatorQuestion] Não é step de equipamento, retornando options originais');
+      return options;
+    }
+    
+    if (equipmentsLoading) {
+      console.log('🎯 [EnhancedAkinatorQuestion] Ainda carregando equipamentos...');
+      return [];
+    }
+
+    if (!equipments || equipments.length === 0) {
+      console.log('🎯 [EnhancedAkinatorQuestion] Nenhum equipamento encontrado, usando fallback');
+      // Fallback para equipamentos básicos se não conseguir carregar
+      return [
+        {
+          value: 'ultraformer',
+          label: 'Ultraformer',
+          emoji: '🔧',
+          description: 'Tecnologia HIFU para lifting facial',
+        },
+        {
+          value: 'laser-co2',
+          label: 'Laser CO2',
+          emoji: '🔧',
+          description: 'Resurfacing fracionado',
+        },
+        {
+          value: 'radiofrequencia',
+          label: 'Radiofrequência',
+          emoji: '🔧',
+          description: 'Aquecimento profundo da pele',
+        }
+      ];
+    }
+    
+    const equipmentOptions = equipments.map(equipment => ({
       value: equipment.id,
       label: equipment.nome,
       emoji: '🔧',
       description: equipment.tecnologia || 'Equipamento profissional',
-      imageUrl: equipment.image_url
+      imageUrl: equipment.image_url || equipment.thumbnail_url
     }));
+    
+    console.log('🎯 [EnhancedAkinatorQuestion] Equipment options criadas:', equipmentOptions);
+    return equipmentOptions;
   };
 
   const currentOptions = getEquipmentOptions();
@@ -201,77 +243,110 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
         </h2>
       </motion.div>
 
+      {/* Loading state para equipamentos */}
+      {stepId === 'equipamento' && equipmentsLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3 text-aurora-electric-purple">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Carregando equipamentos...</span>
+          </div>
+        </div>
+      )}
+
       {/* Options Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <AnimatePresence>
-          {currentOptions.map((option, index) => (
-            <TooltipProvider key={option.value}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    whileHover="hover"
-                    whileTap="tap"
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card 
-                      className="aurora-glass border-aurora-electric-purple/20 hover:border-aurora-electric-purple/40 cursor-pointer transition-all h-full"
-                      onClick={() => onOptionSelect(option.value)}
+      {(!equipmentsLoading || stepId !== 'equipamento') && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <AnimatePresence>
+            {currentOptions.map((option, index) => (
+              <TooltipProvider key={option.value}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      whileHover="hover"
+                      whileTap="tap"
+                      transition={{ delay: index * 0.1 }}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          {/* Equipment Image or Emoji */}
-                          {option.imageUrl ? (
-                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                              <img 
-                                src={option.imageUrl} 
-                                alt={option.label}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <motion.div
-                              className="text-3xl flex-shrink-0"
-                              variants={iconVariants}
-                              whileHover="hover"
-                            >
-                              {option.emoji}
-                            </motion.div>
-                          )}
-                          
-                          <div className="flex-1">
-                            <h3 className="text-white font-medium mb-2">{option.label}</h3>
-                            <p className="text-sm text-slate-400">{option.description}</p>
-                            
-                            {option.sample && (
-                              <div className="mt-3 p-2 bg-aurora-electric-purple/10 rounded-lg">
-                                <p className="text-xs text-aurora-electric-purple italic">
-                                  "{option.sample}"
-                                </p>
+                      <Card 
+                        className="aurora-glass border-aurora-electric-purple/20 hover:border-aurora-electric-purple/40 cursor-pointer transition-all h-full"
+                        onClick={() => onOptionSelect(option.value)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            {/* Equipment Image or Emoji */}
+                            {option.imageUrl ? (
+                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-700">
+                                <img 
+                                  src={option.imageUrl} 
+                                  alt={option.label}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    console.log('🖼️ Erro ao carregar imagem:', option.imageUrl);
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                                <div className="hidden w-full h-full flex items-center justify-center text-2xl">
+                                  {option.emoji}
+                                </div>
                               </div>
+                            ) : (
+                              <motion.div
+                                className="text-3xl flex-shrink-0"
+                                variants={iconVariants}
+                                whileHover="hover"
+                              >
+                                {option.emoji}
+                              </motion.div>
                             )}
+                            
+                            <div className="flex-1">
+                              <h3 className="text-white font-medium mb-2">{option.label}</h3>
+                              <p className="text-sm text-slate-400">{option.description}</p>
+                              
+                              {option.sample && (
+                                <div className="mt-3 p-2 bg-aurora-electric-purple/10 rounded-lg">
+                                  <p className="text-xs text-aurora-electric-purple italic">
+                                    "{option.sample}"
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </TooltipTrigger>
-                
-                {option.sample && (
-                  <TooltipContent>
-                    <p className="max-w-xs">{option.sample}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          ))}
-        </AnimatePresence>
-      </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </TooltipTrigger>
+                  
+                  {option.sample && (
+                    <TooltipContent>
+                      <p className="max-w-xs">{option.sample}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Fallback message se não houver equipamentos */}
+      {stepId === 'equipamento' && !equipmentsLoading && currentOptions.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-slate-400 mb-4">
+            Nenhum equipamento encontrado para sua conta.
+          </p>
+          <Button onClick={onGoBack} variant="outline" className="aurora-glass border-aurora-electric-purple/30 text-white">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
+      )}
 
       {/* Back Button */}
-      {canGoBack && (
+      {canGoBack && stepId !== 'equipamento' && (
         <div className="text-center">
           <Button 
             onClick={onGoBack}
