@@ -42,17 +42,14 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
   isGenerating
 }) => {
   return (
-    <Card className="aurora-card border-2 relative overflow-hidden">
-      {/* Efeito Aurora de fundo */}
-      <div className="absolute inset-0 aurora-gradient-bg opacity-5 pointer-events-none" />
-      
-      <CardHeader className="relative z-10">
+    <Card className="bg-gray-800/95 border-gray-700 hover:border-purple-400/50 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
+      <CardHeader>
         <CardTitle className="aurora-text-gradient text-2xl">
           Configuração do Roteiro
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="relative z-10 space-y-6">
+      <CardContent className="space-y-6">
         {/* Tema Principal */}
         <div className="space-y-3">
           <Label htmlFor="tema" className="aurora-accent font-semibold text-base">
@@ -63,7 +60,7 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
             value={tema}
             onChange={(e) => onTemaChange(e.target.value)}
             placeholder="Ex: Tratamento para manchas faciais com laser"
-            className="aurora-glass border-purple-300/30 focus:border-purple-500/50 backdrop-blur-sm"
+            className="bg-gray-800/80 border-purple-300/30 focus:border-purple-500/50 text-gray-200"
           />
         </div>
 
@@ -90,10 +87,10 @@ const ScriptGeneratorForm: React.FC<ScriptGeneratorFormProps> = ({
         <Button
           onClick={onGenerate}
           disabled={!tema.trim() || selectedEquipments.length === 0 || isGenerating}
-          className="w-full aurora-button bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 py-4 text-lg font-semibold aurora-glow"
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 py-4 text-lg font-semibold shadow-lg hover:shadow-purple-500/25 transition-all duration-200"
           size="lg"
         >
-          <Wand2 className="h-5 w-5 mr-3 aurora-pulse" />
+          <Wand2 className="h-5 w-5 mr-3" />
           Gerar Roteiro FLUIDA
         </Button>
       </CardContent>
