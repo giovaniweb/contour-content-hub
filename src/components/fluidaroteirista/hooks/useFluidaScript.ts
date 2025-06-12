@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { getElementosUniversaisByMentor, getEspecialidadesByMentor } from '@/utils/cadastrarMentores';
 
 interface FluidaScriptData {
@@ -22,8 +24,8 @@ export const useFluidaScript = () => {
     try {
       // Inferir mentor baseado no estilo
       const mentorInferido = inferirMentor(data);
-      const elementosUniversais = getElementosUniversaisByMentor(mentorInferido);
-      const especialidades = getEspecialidadesByMentor(mentorInferido);
+      const elementosUniversais = getElementosUniversaisByMentor(mentorInferido) || getDefaultElementos();
+      const especialidades = getEspecialidadesByMentor(mentorInferido) || ['Criatividade', 'Inovação'];
 
       console.log('🧠 [useFluidaScript] Mentor inferido:', mentorInferido);
       console.log('📊 [useFluidaScript] Elementos universais:', elementosUniversais);
@@ -104,22 +106,21 @@ export const useFluidaScript = () => {
 
       console.log('📤 [useFluidaScript] Enviando request:', requestBody);
 
-      const response = await fetch('/api/generate-script', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-        },
-        body: JSON.stringify(requestBody)
+      // Usar Supabase functions invoke corretamente
+      const { data: result, error } = await supabase.functions.invoke('generate-script', {
+        body: requestBody
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [useFluidaScript] Erro na resposta:', response.status, errorText);
-        throw new Error(`Erro na API: ${response.status} - ${errorText}`);
+      if (error) {
+        console.error('❌ [useFluidaScript] Erro na função:', error);
+        throw new Error(`Erro na API: ${error.message}`);
       }
 
-      const result = await response.json();
+      if (!result) {
+        console.error('❌ [useFluidaScript] Resultado vazio');
+        throw new Error('Resultado vazio da API');
+      }
+
       console.log('✅ [useFluidaScript] Resultado recebido:', result);
 
       // Tentar fazer parse do conteúdo se for JSON
@@ -204,39 +205,54 @@ export const useFluidaScript = () => {
     return 'Pedro Sobral';
   };
 
+  const getDefaultElementos = () => {
+    return {
+      storytelling: 7,
+      copywriting: 8,
+      conhecimento_publico: 6,
+      analises_dados: 5,
+      gatilhos_mentais: 7,
+      logica_argumentativa: 6,
+      premissas_educativas: 7,
+      mapas_empatia: 8,
+      headlines: 9,
+      ferramentas_especificas: 6
+    };
+  };
+
   const buildElementosPrompt = (elementos: any, mentor: string, especialidades: string[]): string => {
     if (!elementos) return '';
 
     return `
-1. STORYTELLING (Intensidade: ${elementos.storytelling}/10)
-   ${elementos.storytelling >= 8 ? '- Narrativas envolventes e emocionais' : elementos.storytelling >= 6 ? '- Histórias simples e diretas' : '- Elementos narrativos sutis'}
+1. STORYTELLING (Intensidade: ${elementos.storytelling || 7}/10)
+   ${(elementos.storytelling || 7) >= 8 ? '- Narrativas envolventes e emocionais' : (elementos.storytelling || 7) >= 6 ? '- Histórias simples e diretas' : '- Elementos narrativos sutis'}
 
-2. COPYWRITING (Intensidade: ${elementos.copywriting}/10)
-   ${elementos.copywriting >= 8 ? '- Textos persuasivos e impactantes' : elementos.copywriting >= 6 ? '- Copy clara e objetiva' : '- Linguagem simples e acessível'}
+2. COPYWRITING (Intensidade: ${elementos.copywriting || 8}/10)
+   ${(elementos.copywriting || 8) >= 8 ? '- Textos persuasivos e impactantes' : (elementos.copywriting || 8) >= 6 ? '- Copy clara e objetiva' : '- Linguagem simples e acessível'}
 
-3. CONHECIMENTO DO PÚBLICO-ALVO (Intensidade: ${elementos.conhecimento_publico}/10)
-   ${elementos.conhecimento_publico >= 8 ? '- Segmentação precisa e personalizada' : elementos.conhecimento_publico >= 6 ? '- Perfil básico definido' : '- Público geral'}
+3. CONHECIMENTO DO PÚBLICO-ALVO (Intensidade: ${elementos.conhecimento_publico || 6}/10)
+   ${(elementos.conhecimento_publico || 6) >= 8 ? '- Segmentação precisa e personalizada' : (elementos.conhecimento_publico || 6) >= 6 ? '- Perfil básico definido' : '- Público geral'}
 
-4. ANÁLISES E DADOS (Intensidade: ${elementos.analises_dados}/10)
-   ${elementos.analises_dados >= 8 ? '- Métricas detalhadas e otimização' : elementos.analises_dados >= 6 ? '- Dados básicos de performance' : '- Foco na criatividade'}
+4. ANÁLISES E DADOS (Intensidade: ${elementos.analises_dados || 5}/10)
+   ${(elementos.analises_dados || 5) >= 8 ? '- Métricas detalhadas e otimização' : (elementos.analises_dados || 5) >= 6 ? '- Dados básicos de performance' : '- Foco na criatividade'}
 
-5. GATILHOS MENTAIS (Intensidade: ${elementos.gatilhos_mentais}/10)
-   ${elementos.gatilhos_mentais >= 8 ? '- Escassez, urgência, prova social' : elementos.gatilhos_mentais >= 6 ? '- Gatilhos sutis' : '- Persuasão natural'}
+5. GATILHOS MENTAIS (Intensidade: ${elementos.gatilhos_mentais || 7}/10)
+   ${(elementos.gatilhos_mentais || 7) >= 8 ? '- Escassez, urgência, prova social' : (elementos.gatilhos_mentais || 7) >= 6 ? '- Gatilhos sutis' : '- Persuasão natural'}
 
-6. LÓGICA ARGUMENTATIVA (Intensidade: ${elementos.logica_argumentativa}/10)
-   ${elementos.logica_argumentativa >= 8 ? '- Argumentos estruturados e convincentes' : elementos.logica_argumentativa >= 6 ? '- Razões claras' : '- Abordagem emocional'}
+6. LÓGICA ARGUMENTATIVA (Intensidade: ${elementos.logica_argumentativa || 6}/10)
+   ${(elementos.logica_argumentativa || 6) >= 8 ? '- Argumentos estruturados e convincentes' : (elementos.logica_argumentativa || 6) >= 6 ? '- Razões claras' : '- Abordagem emocional'}
 
-7. PREMISSAS EDUCATIVAS (Intensidade: ${elementos.premissas_educativas}/10)
-   ${elementos.premissas_educativas >= 8 ? '- Educação antes da oferta' : elementos.premissas_educativas >= 6 ? '- Informações básicas' : '- Foco na ação'}
+7. PREMISSAS EDUCATIVAS (Intensidade: ${elementos.premissas_educativas || 7}/10)
+   ${(elementos.premissas_educativas || 7) >= 8 ? '- Educação antes da oferta' : (elementos.premissas_educativas || 7) >= 6 ? '- Informações básicas' : '- Foco na ação'}
 
-8. MAPAS DE EMPATIA (Intensidade: ${elementos.mapas_empatia}/10)
-   ${elementos.mapas_empatia >= 8 ? '- Perspectiva profunda do cliente' : elementos.mapas_empatia >= 6 ? '- Compreensão básica' : '- Abordagem direta'}
+8. MAPAS DE EMPATIA (Intensidade: ${elementos.mapas_empatia || 8}/10)
+   ${(elementos.mapas_empatia || 8) >= 8 ? '- Perspectiva profunda do cliente' : (elementos.mapas_empatia || 8) >= 6 ? '- Compreensão básica' : '- Abordagem direta'}
 
-9. HEADLINES (Intensidade: ${elementos.headlines}/10)
-   ${elementos.headlines >= 8 ? '- Títulos magnéticos e irresistíveis' : elementos.headlines >= 6 ? '- Títulos claros e atrativos' : '- Títulos simples'}
+9. HEADLINES (Intensidade: ${elementos.headlines || 9}/10)
+   ${(elementos.headlines || 9) >= 8 ? '- Títulos magnéticos e irresistíveis' : (elementos.headlines || 9) >= 6 ? '- Títulos claros e atrativos' : '- Títulos simples'}
 
-10. FERRAMENTAS ESPECÍFICAS (Intensidade: ${elementos.ferramentas_especificas}/10)
-    ${elementos.ferramentas_especificas >= 8 ? '- CTAs, funis, vídeos de venda' : elementos.ferramentas_especificas >= 6 ? '- CTAs básicos' : '- Chamadas simples'}
+10. FERRAMENTAS ESPECÍFICAS (Intensidade: ${elementos.ferramentas_especificas || 6}/10)
+    ${(elementos.ferramentas_especificas || 6) >= 8 ? '- CTAs, funis, vídeos de venda' : (elementos.ferramentas_especificas || 6) >= 6 ? '- CTAs básicos' : '- Chamadas simples'}
 
 🎨 ESPECIALIDADES DO MENTOR ${mentor}: ${especialidades.join(', ')}
     `;
