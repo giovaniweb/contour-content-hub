@@ -197,25 +197,29 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
                   </CardHeader>
                   
                   <CardContent className="relative z-10 space-y-4">
-                    {/* Conteúdo para carrossel com estrutura Texto/Imagem */}
+                    {/* Conteúdo para carrossel com estrutura Texto/Imagem LIMPA */}
                     {script.formato === 'carrossel' && slide.texto && slide.imagem ? (
-                      <div className="space-y-4">
-                        {/* Seção Texto */}
-                        <div className="p-4 aurora-glass bg-blue-500/10 rounded-lg border border-blue-500/20">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileText className="h-4 w-4 text-blue-400" />
-                            <span className="text-sm font-medium text-blue-300">Texto:</span>
+                      <div className="space-y-6">
+                        {/* Seção Texto - Visual melhorado */}
+                        <div className="p-5 aurora-glass bg-emerald-500/10 rounded-xl border border-emerald-500/20 backdrop-blur-sm">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 aurora-glass bg-emerald-500/20 rounded-lg">
+                              <Type className="h-5 w-5 text-emerald-400" />
+                            </div>
+                            <span className="text-base font-semibold text-emerald-300">Texto do Post:</span>
                           </div>
-                          <p className="text-white leading-relaxed">{slide.texto}</p>
+                          <p className="text-white leading-relaxed text-lg font-medium">{slide.texto}</p>
                         </div>
                         
-                        {/* Seção Imagem */}
-                        <div className="p-4 aurora-glass bg-purple-500/10 rounded-lg border border-purple-500/20">
-                          <div className="flex items-center gap-2 mb-2">
-                            <ImageIcon className="h-4 w-4 text-purple-400" />
-                            <span className="text-sm font-medium text-purple-300">Imagem:</span>
+                        {/* Seção Imagem - Visual melhorado */}
+                        <div className="p-5 aurora-glass bg-violet-500/10 rounded-xl border border-violet-500/20 backdrop-blur-sm">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 aurora-glass bg-violet-500/20 rounded-lg">
+                              <ImageIcon className="h-5 w-5 text-violet-400" />
+                            </div>
+                            <span className="text-base font-semibold text-violet-300">Descrição da Imagem:</span>
                           </div>
-                          <p className="text-white leading-relaxed italic">{slide.imagem}</p>
+                          <p className="text-white leading-relaxed text-base italic">{slide.imagem}</p>
                         </div>
                       </div>
                     ) : (

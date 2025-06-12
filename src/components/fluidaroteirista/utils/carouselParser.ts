@@ -2,85 +2,46 @@
 export const parseAndLimitCarousel = (roteiro: string): string => {
   console.log('🎠 [parseAndLimitCarousel] Processando roteiro do carrossel...');
   
-  // NOVO: Padrão para slides com títulos descritivos
-  const slideWithTitlePattern = /Slide\s+([^:]+):\s*/gi;
-  const parts = roteiro.split(slideWithTitlePattern).filter(part => part.trim());
+  // NOVO: Padrão para slides com estrutura limpa (sem hífens)
+  const slidePattern = /Slide:\s*([^\n]+)/gi;
+  const matches = roteiro.match(slidePattern);
+  
+  if (!matches) {
+    console.log('⚠️ Nenhum slide encontrado, criando estrutura padrão');
+    return createDefaultCarousel();
+  }
   
   const processedSlides: string[] = [];
+  const parts = roteiro.split(/Slide:\s*/gi).filter(part => part.trim());
   
-  // Processar slides com títulos
-  for (let i = 0; i < parts.length; i += 2) {
-    if (i + 1 < parts.length) {
-      const slideTitle = parts[i].trim();
-      const slideContent = parts[i + 1].trim();
-      
-      // Verificar se já tem estrutura - Imagem: / - Texto:
-      if (slideContent.includes('- Imagem:') && slideContent.includes('- Texto:')) {
-        processedSlides.push(`Slide ${slideTitle}:\n${slideContent}`);
-      } else {
-        // Forçar estrutura com hífens
-        const lines = slideContent.split('\n').filter(line => line.trim());
-        const texto = lines.find(line => line.toLowerCase().includes('texto:')) || 
-                     lines[0] || 'Conteúdo do slide';
-        const imagem = lines.find(line => line.toLowerCase().includes('imagem:')) || 
-                      lines[1] || 'Descrição visual do slide';
-        
-        const cleanTexto = texto.replace(/^.*?texto:\s*/i, '').trim();
-        const cleanImagem = imagem.replace(/^.*?imagem:\s*/i, '').trim();
-        
-        processedSlides.push(`Slide ${slideTitle}:\n- Imagem: ${cleanImagem}\n- Texto: ${cleanTexto}`);
+  // Processar cada slide
+  for (let i = 1; i < parts.length; i++) { // Pular o primeiro item vazio
+    const slideContent = parts[i].trim();
+    const lines = slideContent.split('\n').filter(line => line.trim());
+    
+    if (lines.length === 0) continue;
+    
+    const slideTitle = lines[0].replace(/^\s*([^\n]+).*/, '$1').trim();
+    let texto = '';
+    let imagem = '';
+    
+    // Extrair Texto: e Imagem: da estrutura limpa
+    for (const line of lines) {
+      if (line.startsWith('Texto:')) {
+        texto = line.replace('Texto:', '').trim();
+      } else if (line.startsWith('Imagem:')) {
+        imagem = line.replace('Imagem:', '').trim();
       }
     }
-  }
-  
-  // Se não encontrou slides com títulos, tentar padrão numérico
-  if (processedSlides.length === 0) {
-    const numericPattern = /Slide\s*(\d+):\s*/gi;
-    const numericParts = roteiro.split(numericPattern).filter(part => part.trim());
     
-    for (let i = 0; i < numericParts.length; i += 2) {
-      if (i + 1 < numericParts.length) {
-        const slideNumber = numericParts[i];
-        const slideContent = numericParts[i + 1].trim();
-        
-        // Gerar título baseado no número
-        const titles = [
-          'Introdução',
-          'O Problema',
-          'Nossa Solução',
-          'Benefícios',
-          'Call to Action'
-        ];
-        const slideTitle = titles[parseInt(slideNumber) - 1] || `Conteúdo ${slideNumber}`;
-        
-        if (slideContent.includes('- Imagem:') && slideContent.includes('- Texto:')) {
-          processedSlides.push(`Slide ${slideTitle}:\n${slideContent}`);
-        } else {
-          const lines = slideContent.split('\n').filter(line => line.trim());
-          const texto = lines[0] || 'Conteúdo do slide';
-          const imagem = lines[1] || 'Descrição visual do slide';
-          
-          processedSlides.push(`Slide ${slideTitle}:\n- Imagem: ${imagem}\n- Texto: ${texto}`);
-        }
-      }
+    // Se não encontrou estrutura específica, usar conteúdo como texto
+    if (!texto && !imagem) {
+      const content = lines.slice(1).join(' ').trim();
+      texto = content.substring(0, 150) || 'Conteúdo do slide';
+      imagem = 'Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave';
     }
-  }
-  
-  // Se ainda não tem slides, criar estrutura básica
-  if (processedSlides.length === 0) {
-    const paragraphs = roteiro.split(/\n\s*\n/).filter(p => p.trim());
-    const defaultTitles = [
-      'Introdução',
-      'O Desafio',
-      'Nossa Tecnologia',
-      'Resultados',
-      'Agende Já'
-    ];
     
-    for (let i = 0; i < Math.min(5, Math.max(paragraphs.length, 1)); i++) {
-      const content = paragraphs[i] || 'Conteúdo sobre o tema';
-      processedSlides.push(`Slide ${defaultTitles[i]}:\n- Imagem: Descrição visual para ${defaultTitles[i].toLowerCase()}\n- Texto: ${content}`);
-    }
+    processedSlides.push(`Slide: ${slideTitle}\nTexto: ${texto}\nImagem: ${imagem}`);
   }
   
   // Limitar a exatamente 5 slides
@@ -89,13 +50,13 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   // Garantir que temos exatamente 5 slides
   while (limitedSlides.length < 5) {
     const slideNum = limitedSlides.length + 1;
-    const defaultTitles = ['Introdução', 'Problema', 'Solução', 'Benefícios', 'Call to Action'];
+    const defaultTitles = ['Introdução', 'O Problema', 'Nossa Solução', 'Benefícios', 'Call to Action'];
     const title = defaultTitles[slideNum - 1];
     
     if (slideNum === 5) {
-      limitedSlides.push(`Slide ${title}:\n- Imagem: Profissional sorridente em ambiente clínico acolhedor, com informações de contato\n- Texto: Quer saber mais? Entre em contato conosco! 📲`);
+      limitedSlides.push(`Slide: ${title}\nTexto: Quer transformar sua vida? Entre em contato conosco! 📲\nImagem: Profissional acolhedor em recepção moderna, ambiente convidativo, informações de contato visíveis, atmosfera confiante`);
     } else {
-      limitedSlides.push(`Slide ${title}:\n- Imagem: Visual complementar sobre o assunto\n- Texto: Conteúdo adicional sobre o tema`);
+      limitedSlides.push(`Slide: ${title}\nTexto: Conteúdo adicional sobre o tema\nImagem: Ambiente clínico especializado, equipamentos modernos, atmosfera profissional e acolhedora`);
     }
   }
   
@@ -103,8 +64,20 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   return limitedSlides.join('\n\n');
 };
 
+const createDefaultCarousel = (): string => {
+  const defaultSlides = [
+    `Slide: Introdução\nTexto: Descubra a revolução na estética moderna\nImagem: Ambiente clínico luxuoso, paciente confiante conversando com profissional, iluminação suave e acolhedora`,
+    `Slide: O Desafio\nTexto: Sinais do tempo que incomodam e afetam sua autoestima\nImagem: Close-up artístico de pessoa preocupada observando reflexo no espelho, luz natural suave, expressão contemplativa`,
+    `Slide: Nossa Solução\nTexto: Tecnologia avançada para resultados surpreendentes\nImagem: Equipamento moderno em funcionamento, profissional especializado operando, ambiente high-tech e seguro`,
+    `Slide: Benefícios\nTexto: Resultados naturais e duradouros que você merece\nImagem: Paciente radiante após tratamento, sorriso genuíno, ambiente de celebração, antes e depois sutil`,
+    `Slide: Call to Action\nTexto: Agende sua consulta e transforme sua vida hoje!\nImagem: Recepcionista simpática atendendo por telefone, agenda aberta, ambiente profissional e convidativo`
+  ];
+  
+  return defaultSlides.join('\n\n');
+};
+
 export const validateCarouselSlides = (roteiro: string): { isValid: boolean; slideCount: number; errors: string[] } => {
-  const slides = roteiro.match(/Slide\s+[^:]+:/gi) || [];
+  const slides = roteiro.match(/Slide:\s*[^\n]+/gi) || [];
   const errors: string[] = [];
   const slideCount = slides.length;
   
@@ -116,11 +89,11 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
     errors.push(`Poucos slides detectados: ${slideCount}. Mínimo recomendado: 3`);
   }
   
-  // Verificar estrutura - Imagem: / - Texto:
-  const slideContents = roteiro.split(/Slide\s+[^:]+:/gi).slice(1);
+  // Verificar estrutura Texto: e Imagem: (sem hífens)
+  const slideContents = roteiro.split(/Slide:\s*[^\n]+/gi).slice(1);
   slideContents.forEach((content, index) => {
-    if (!content.includes('- Imagem:') || !content.includes('- Texto:')) {
-      errors.push(`Slide ${index + 1} não tem estrutura "- Imagem:" e "- Texto:" obrigatória`);
+    if (!content.includes('Texto:') || !content.includes('Imagem:')) {
+      errors.push(`Slide ${index + 1} não tem estrutura "Texto:" e "Imagem:" obrigatória`);
     }
   });
   
@@ -132,9 +105,11 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
 };
 
 export const parseCarouselSlides = (roteiro: string) => {
-  // NOVO: Parser para títulos descritivos
-  const slideWithTitlePattern = /Slide\s+([^:]+):\s*/gi;
-  const parts = roteiro.split(slideWithTitlePattern).filter(part => part.trim());
+  console.log('🎠 [parseCarouselSlides] Analisando roteiro:', roteiro.substring(0, 200));
+  
+  // Parser para estrutura limpa: Slide:, Texto:, Imagem:
+  const slidePattern = /Slide:\s*([^\n]+)/gi;
+  const parts = roteiro.split(slidePattern).filter(part => part.trim());
   const slides = [];
   
   for (let i = 0; i < parts.length; i += 2) {
@@ -142,19 +117,29 @@ export const parseCarouselSlides = (roteiro: string) => {
       const slideTitle = parts[i].trim();
       const slideContent = parts[i + 1].trim();
       
-      // Extrair texto e imagem com estrutura de hífen
-      const imagemMatch = slideContent.match(/- Imagem:\s*([^\n]+)/i);
-      const textoMatch = slideContent.match(/- Texto:\s*([^\n]+)/i);
+      console.log(`📋 Processando slide: "${slideTitle}"`);
+      console.log(`📝 Conteúdo: ${slideContent.substring(0, 100)}...`);
+      
+      // Extrair texto e imagem da estrutura limpa (sem hífens)
+      const textoMatch = slideContent.match(/Texto:\s*([^\n]+)/i);
+      const imagemMatch = slideContent.match(/Imagem:\s*([^\n]+)/i);
+      
+      const texto = textoMatch ? textoMatch[1].trim() : slideContent.split('\n')[0] || 'Texto do slide';
+      const imagem = imagemMatch ? imagemMatch[1].trim() : 'Ambiente clínico moderno, profissional especializado, iluminação suave';
+      
+      console.log(`✅ Texto extraído: ${texto.substring(0, 50)}...`);
+      console.log(`🖼️ Imagem extraída: ${imagem.substring(0, 50)}...`);
       
       slides.push({
         number: slides.length + 1,
         title: slideTitle,
-        texto: textoMatch ? textoMatch[1].trim() : slideContent.split('\n')[0] || 'Texto do slide',
-        imagem: imagemMatch ? imagemMatch[1].trim() : 'Descrição visual do slide',
+        texto: texto,
+        imagem: imagem,
         content: slideContent
       });
     }
   }
   
+  console.log(`🎯 Total de slides processados: ${slides.length}`);
   return slides;
 };
