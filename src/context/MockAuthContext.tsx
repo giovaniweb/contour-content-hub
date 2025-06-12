@@ -40,7 +40,13 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
             email: 'giovani.g@live.com',
             nome: 'Dr. João Silva',
-            role: 'admin'
+            role: 'admin',
+            workspace_id: 'ws_default',
+            clinica: 'Clínica Fluida',
+            cidade: 'São Paulo',
+            telefone: '(11) 99999-9999',
+            equipamentos: ['adella', 'ultralift'],
+            idioma: 'PT'
           };
           
           setUser(mockUser);
@@ -87,10 +93,16 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       // Usar o UUID real do banco de dados para garantir consistência
       const authenticatedUser: UserProfile = {
-        id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a', // UUID real do banco
+        id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
         email: email,
-        nome: 'Dr. João Silva', // Nome real para aparecer na interface
-        role: 'admin'
+        nome: 'Dr. João Silva',
+        role: 'admin',
+        workspace_id: 'ws_default',
+        clinica: 'Clínica Fluida',
+        cidade: 'São Paulo',
+        telefone: '(11) 99999-9999',
+        equipamentos: ['adella', 'ultralift'],
+        idioma: 'PT'
       };
       
       setUser(authenticatedUser);
@@ -125,7 +137,13 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
         email: userData.email,
         nome: userData.name || 'Dr. João Silva',
-        role: 'admin'
+        role: 'admin',
+        workspace_id: 'ws_default',
+        clinica: userData.clinic || 'Clínica Fluida',
+        cidade: userData.city || 'São Paulo',
+        telefone: userData.phone || '(11) 99999-9999',
+        equipamentos: userData.equipment || ['adella', 'ultralift'],
+        idioma: userData.language || 'PT'
       };
       
       setUser(newUser);
