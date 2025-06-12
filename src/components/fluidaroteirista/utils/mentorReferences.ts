@@ -1,18 +1,26 @@
 
-// Sistema de referências fictícias para mentores
+// Sistema de referências fictícias para mentores com sátiras criativas
 export const MENTOR_REFERENCES = {
-  'Criativo': 'Aurora Criativa',
-  'Técnico': 'Prof. TechnoSaber',
-  'Emocional': 'Dra. Empatia',
-  'Vendedor': 'Mestre ConvertMax',
-  'Educador': 'Guru EduWise',
-  'Inspirador': 'Coach MotivaPro',
-  'Analítico': 'Expert DataFlow',
-  'Storyteller': 'Narrador Epic',
-  'Disruptivo': 'Rebel InnovaX',
-  'Científico': 'Dr. ResearchPro'
+  'Criativo': 'Pablo Creativasso 🎨',
+  'Técnico': 'Prof. TechnoSaber 🤓',
+  'Emocional': 'Dra. Corações & Lágrimas 💝',
+  'Vendedor': 'Mestre VendeMax Supreme 💰',
+  'Educador': 'Prof. EduWise da Silva 🎓',
+  'Inspirador': 'Coach MotivaBrasil Pro 🚀',
+  'Analítico': 'Dr. DadosFlow Analytics 📊',
+  'Storyteller': 'Narrador Epic Tales 📚',
+  'Disruptivo': 'Rebel InnovaX Revolution 💡',
+  'Científico': 'Dr. PesquisaMania PhD 🔬',
+  'leandro_ladeira': 'Leo "GatilhoMental" Escadaria 🎯',
+  'icaro_carvalho': 'Íkaro "ConexãoPro" Carvalhal 💫',
+  'paulo_cuenca': 'Paulão "CineMagic" da Quebrada 🎬',
+  'pedro_sobral': 'Pedro "LogicaMaster" Sobrancelha 🧠',
+  'camila_porto': 'Camila "DidáticaTop" Portuga 📖',
+  'hyeser_souza': 'Hyeser "ComédiaBrasil" Souzinha 😂',
+  'washington_olivetto': 'Washington "BigIdea" Olivetão 💭',
+  'paulo_cuenca': 'Paulo "VisionMaster" Creative 🎨'
 };
 
 export const getMentorReference = (originalMentor: string): string => {
-  return MENTOR_REFERENCES[originalMentor as keyof typeof MENTOR_REFERENCES] || 'Mentor Fluida';
+  return MENTOR_REFERENCES[originalMentor as keyof typeof MENTOR_REFERENCES] || 'Mentor Fluida Pro Max 🌟';
 };
