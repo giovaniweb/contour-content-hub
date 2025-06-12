@@ -1,40 +1,131 @@
 
 export const AKINATOR_TREE: Record<string, any> = {
-  tipo_conteudo: {
-    pergunta: "Que tipo de conteúdo você quer criar?",
-    titulo: "📱 Formato do Conteúdo",
-    subtitulo: "Escolha o formato ideal para sua mensagem",
-    descricao: "Cada formato tem suas próprias características e vantagens.",
+  canal: {
+    pergunta: "Onde você vai publicar o conteúdo?",
+    titulo: "📢 Canal de Publicação",
+    subtitulo: "Escolha a plataforma para seu conteúdo",
+    descricao: "Cada canal tem formatos específicos e limitações técnicas.",
     options: [
       {
-        value: "carrossel",
-        label: "Carrossel",
-        emoji: "🎠",
-        description: "Múltiplas imagens com texto educativo",
-        exemplo: "Antes e depois, passo a passo de procedimentos"
+        value: "instagram",
+        label: "Instagram",
+        emoji: "📸",
+        description: "Stories, Carrossel, Post Estático, Reels (60s)",
+        exemplo: "Visual, jovem e engajado"
       },
       {
-        value: "stories",
-        label: "Stories",
-        emoji: "📱",
-        description: "Conteúdo vertical, rápido e engajante",
-        exemplo: "Dicas rápidas, bastidores da clínica"
+        value: "youtube",
+        label: "YouTube",
+        emoji: "📺",
+        description: "Short (40s) ou Vídeo (3 min)",
+        exemplo: "Conteúdo detalhado e educativo"
       },
       {
-        value: "imagem",
-        label: "Imagem Única",
-        emoji: "🖼️",
-        description: "Uma imagem impactante com texto",
-        exemplo: "Promoções, frases inspiradoras"
+        value: "tiktok", 
+        label: "TikTok",
+        emoji: "🎵",
+        description: "Reels até 60 segundos",
+        exemplo: "Conteúdo viral e dinâmico"
       },
       {
-        value: "video",
-        label: "Vídeo",
-        emoji: "🎥",
-        description: "Conteúdo audiovisual dinâmico",
-        exemplo: "Demonstrações, depoimentos"
+        value: "ads",
+        label: "Criativo para Ads",
+        emoji: "🎯", 
+        description: "Post ou Reels (30s)",
+        exemplo: "Foco em conversão e vendas"
       }
     ],
+    next: "formato"
+  },
+
+  formato: {
+    pergunta: "Que formato você quer criar?",
+    titulo: "🎬 Formato do Conteúdo",
+    subtitulo: "Escolha o formato ideal baseado no canal",
+    descricao: "Formatos disponíveis para o canal selecionado.",
+    conditional: true, // Indica que as opções dependem da resposta anterior
+    options: {
+      instagram: [
+        {
+          value: "stories",
+          label: "Stories",
+          emoji: "📱",
+          description: "Vertical, 15 segundos por card",
+          tempo_limite: "60s total",
+          output_tipo: "roteiro_temporal"
+        },
+        {
+          value: "carrossel",
+          label: "Carrossel", 
+          emoji: "🎠",
+          description: "Múltiplas imagens educativas",
+          tempo_limite: "Texto por card",
+          output_tipo: "cards_estruturados"
+        },
+        {
+          value: "post_estatico",
+          label: "Post Estático",
+          emoji: "🖼️",
+          description: "Imagem única impactante",
+          tempo_limite: "Leitura rápida",
+          output_tipo: "imagem_legenda"
+        },
+        {
+          value: "reels",
+          label: "Reels",
+          emoji: "🎥",
+          description: "Vídeo vertical dinâmico",
+          tempo_limite: "60 segundos",
+          output_tipo: "roteiro_temporal"
+        }
+      ],
+      youtube: [
+        {
+          value: "short",
+          label: "YouTube Short",
+          emoji: "⚡",
+          description: "Vídeo vertical curto",
+          tempo_limite: "40 segundos",
+          output_tipo: "roteiro_temporal"
+        },
+        {
+          value: "video",
+          label: "Vídeo YouTube",
+          emoji: "📹",
+          description: "Conteúdo horizontal detalhado",
+          tempo_limite: "3 minutos",
+          output_tipo: "roteiro_detalhado"
+        }
+      ],
+      tiktok: [
+        {
+          value: "reels",
+          label: "TikTok Reels",
+          emoji: "🎵",
+          description: "Vídeo viral e dinâmico",
+          tempo_limite: "60 segundos",
+          output_tipo: "roteiro_temporal"
+        }
+      ],
+      ads: [
+        {
+          value: "post_ads",
+          label: "Post para Ads",
+          emoji: "📝",
+          description: "Imagem com copy persuasivo",
+          tempo_limite: "Leitura rápida",
+          output_tipo: "copy_ads"
+        },
+        {
+          value: "reels_ads",
+          label: "Reels para Ads",
+          emoji: "🎬",
+          description: "Vídeo focado em conversão",
+          tempo_limite: "30 segundos",
+          output_tipo: "roteiro_ads"
+        }
+      ]
+    },
     next: "objetivo"
   },
 
@@ -59,56 +150,18 @@ export const AKINATOR_TREE: Record<string, any> = {
         exemplo: "Promoções, urgência, benefícios"
       },
       {
+        value: "conectar",
+        label: "Conectar com Audiência",
+        emoji: "❤️",
+        description: "Criar vínculo emocional e confiança", 
+        exemplo: "Histórias pessoais, valores da clínica"
+      },
+      {
         value: "educar",
         label: "Educar o Público",
         emoji: "📚",
         description: "Informar sobre procedimentos e cuidados",
         exemplo: "Explicações técnicas, mitos e verdades"
-      },
-      {
-        value: "conectar",
-        label: "Conectar com Audiência",
-        emoji: "❤️",
-        description: "Criar vínculo emocional e confiança",
-        exemplo: "Histórias pessoais, valores da clínica"
-      }
-    ],
-    next: "canal"
-  },
-
-  canal: {
-    pergunta: "Onde você vai publicar?",
-    titulo: "📢 Canal de Publicação",
-    subtitulo: "Escolha a plataforma ideal para seu conteúdo",
-    descricao: "Cada rede social tem seu próprio público e linguagem.",
-    options: [
-      {
-        value: "instagram",
-        label: "Instagram",
-        emoji: "📸",
-        description: "Visual, jovem e engajado",
-        exemplo: "Stories, Feed, Reels"
-      },
-      {
-        value: "facebook",
-        label: "Facebook",
-        emoji: "👥",
-        description: "Público mais amplo e maduro",
-        exemplo: "Posts informativos, vídeos longos"
-      },
-      {
-        value: "tiktok",
-        label: "TikTok",
-        emoji: "🎵",
-        description: "Conteúdo viral e dinâmico",
-        exemplo: "Vídeos curtos, trends, transformações"
-      },
-      {
-        value: "youtube",
-        label: "YouTube",
-        emoji: "📺",
-        description: "Conteúdo detalhado e educativo",
-        exemplo: "Tutoriais, explicações, demonstrações"
       }
     ],
     next: "estilo"
@@ -129,7 +182,7 @@ export const AKINATOR_TREE: Record<string, any> = {
       },
       {
         value: "cientifico",
-        label: "Científico e Técnico",
+        label: "Científico e Técnico", 
         emoji: "🔬",
         description: "Baseado em evidências e dados",
         exemplo: "Estudos, procedimentos detalhados"
@@ -153,10 +206,11 @@ export const AKINATOR_TREE: Record<string, any> = {
   },
 
   equipamento: {
-    pergunta: "Quais equipamentos você tem?",
+    pergunta: "Quais equipamentos você tem? (pode escolher mais de 1)",
     titulo: "🔧 Equipamentos Disponíveis",
     subtitulo: "Selecione os equipamentos da sua clínica",
     descricao: "Vamos criar conteúdo baseado nos seus recursos.",
+    multiSelect: true, // Permite seleção múltipla
     options: [
       // Estes serão substituídos pelos equipamentos do banco de dados
       {
@@ -172,10 +226,56 @@ export const AKINATOR_TREE: Record<string, any> = {
   tema: {
     pergunta: "Sobre o que você quer falar?",
     titulo: "💭 Tema do Conteúdo",
-    subtitulo: "Descreva o assunto principal",
-    descricao: "Seja específico sobre o que quer comunicar.",
-    mentorPhrase: "Quanto mais detalhes você fornecer, melhor será o roteiro criado para você!",
+    subtitulo: "Descreva uma dor, característica do público ou data comemorativa",
+    descricao: "Campo aberto para personalizar seu conteúdo.",
+    placeholder: "Ex: Manchas no rosto incomodam muito / Público que quer autoestima / Dia da Mulher",
+    mentorPhrase: "Quanto mais específico você for, melhor será o roteiro!",
     isTextInput: true,
     next: null // Final da árvore
+  }
+};
+
+// Configurações de tempo por formato
+export const FORMATO_CONFIGS: Record<string, any> = {
+  stories: {
+    tempo_limite_segundos: 60,
+    palavras_max: 100,
+    estrutura: "cards_temporais"
+  },
+  carrossel: {
+    tempo_limite_segundos: null,
+    palavras_por_card: 25,
+    cards_max: 8,
+    estrutura: "slides_educativos"
+  },
+  post_estatico: {
+    tempo_limite_segundos: null,
+    palavras_max: 150,
+    estrutura: "imagem_texto"
+  },
+  reels: {
+    tempo_limite_segundos: 60,
+    palavras_max: 120,
+    estrutura: "roteiro_video"
+  },
+  short: {
+    tempo_limite_segundos: 40,
+    palavras_max: 80,
+    estrutura: "roteiro_video"
+  },
+  video: {
+    tempo_limite_segundos: 180,
+    palavras_max: 400,
+    estrutura: "roteiro_detalhado"
+  },
+  post_ads: {
+    tempo_limite_segundos: null,
+    palavras_max: 100,
+    estrutura: "copy_persuasivo"
+  },
+  reels_ads: {
+    tempo_limite_segundos: 30,
+    palavras_max: 60,
+    estrutura: "roteiro_conversao"
   }
 };

@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateScript as apiGenerateScript } from '@/services/supabaseService';
 import { validatePreGeneration, validatePostGeneration, ValidationResult } from '../utils/antiGenericValidation';
 import { validateAkinatorScript } from '../utils/akinatorValidation';
 import { ScriptGenerationData, FluidaScriptResult } from '../types';
+import { buildSystemPrompt, buildDisneyPrompt } from '../utils/promptBuilders';
 
 export const useFluidaScript = () => {
   const [results, setResults] = useState<FluidaScriptResult[]>([]);
@@ -49,21 +49,44 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Preparar dados para a API com verificações de segurança
+      // Construir system prompt com nova estrutura
+      const systemPrompt = buildSystemPrompt(
+        [], // equipamentos detalhados - será populado depois
+        data.modo || 'normal',
+        data.mentor || 'Criativo',
+        {
+          canal: data.canal || 'instagram',
+          formato: data.tipo_conteudo || data.formato || 'carrossel',
+          objetivo: data.objetivo || 'atrair',
+          estilo: data.estilo || 'criativo'
+        }
+      );
+
+      const userPrompt = `
+        Tema: ${data.tema}
+        Canal: ${data.canal || 'instagram'}
+        Formato: ${data.tipo_conteudo || data.formato || 'carrossel'}
+        Objetivo: ${data.objetivo || 'atrair'}
+        Estilo: ${data.estilo || 'criativo'}
+        Equipamentos: ${Array.isArray(data.equipamentos) ? data.equipamentos.join(', ') : 'Nenhum específico'}
+        
+        Crie o roteiro seguindo exatamente as especificações do formato selecionado.
+      `;
+
+      // Preparar dados para a API
       const apiData = {
         type: 'fluidaroteirista',
-        topic: data.tema || 'Tema não especificado', // Guard: valor padrão se undefined
-        equipment: Array.isArray(data.equipamentos) ? data.equipamentos.join(', ') : '', // Guard: verificar se é array
-        additionalInfo: `Tipo: ${data.tipo_conteudo || 'não especificado'}, Objetivo: ${data.objetivo || 'não especificado'}, Canal: ${data.canal || 'não especificado'}, Estilo: ${data.estilo || 'não especificado'}, Mentor: ${data.mentor || 'não especificado'}`,
-        tone: data.estilo || 'profissional', // Guard: valor padrão
-        marketingObjective: data.objetivo || 'atrair', // Guard: valor padrão
-        systemPrompt: buildSystemPrompt(data),
-        userPrompt: buildUserPrompt(data)
+        topic: data.tema || 'Tema não especificado',
+        equipment: Array.isArray(data.equipamentos) ? data.equipamentos.join(', ') : '',
+        additionalInfo: `Canal: ${data.canal}, Formato: ${data.tipo_conteudo || data.formato}, Objetivo: ${data.objetivo}, Estilo: ${data.estilo}`,
+        tone: data.estilo || 'profissional',
+        marketingObjective: data.objetivo || 'atrair',
+        systemPrompt,
+        userPrompt
       };
 
       console.log('📤 [useFluidaScript] Calling API with:', apiData);
 
-      // Chamada para a API usando a interface correta
       const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
@@ -90,7 +113,8 @@ export const useFluidaScript = () => {
         objetivo: data.objetivo || 'atrair',
         mentor: data.mentor || 'Criativo',
         equipamentos_utilizados: Array.isArray(data.equipamentos) ? data.equipamentos : [],
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        canal: data.canal || 'instagram' // Adicionar canal ao resultado
       };
 
       console.log('✅ [useFluidaScript] Script result created:', scriptResult);
@@ -98,7 +122,7 @@ export const useFluidaScript = () => {
       
       toast({
         title: "✨ Roteiro gerado!",
-        description: `Criado no estilo ${scriptResult.mentor}`,
+        description: `${scriptResult.formato} para ${scriptResult.canal} no estilo ${scriptResult.mentor}`,
       });
 
       return [scriptResult];
@@ -144,7 +168,8 @@ export const useFluidaScript = () => {
     setIsGenerating(true);
     
     try {
-      // Aplicar transformação Disney
+      const disneyPrompt = buildDisneyPrompt(script.roteiro, script.formato);
+
       const disneyData = {
         type: 'disney_magic',
         topic: 'Disney Transformation',
@@ -152,7 +177,7 @@ export const useFluidaScript = () => {
         additionalInfo: 'Transformar roteiro com magia Disney',
         tone: 'magical',
         marketingObjective: 'encantar',
-        systemPrompt: 'Você é Walt Disney em 1928. Transforme este roteiro com sua magia única.',
+        systemPrompt: disneyPrompt,
         userPrompt: `Transforme este roteiro com a magia Disney: ${script.roteiro}`
       };
 
@@ -314,52 +339,4 @@ export const useFluidaScript = () => {
     clearResults,
     dismissValidation
   };
-};
-
-const buildSystemPrompt = (data: ScriptGenerationData): string => {
-  // Verificações de segurança para todas as propriedades
-  const canal = data.canal || 'redes sociais';
-  const tipo_conteudo = data.tipo_conteudo || 'conteúdo';
-  const objetivo = data.objetivo || 'engajar';
-  const estilo = data.estilo || 'criativo';
-  const mentor = data.mentor || 'Criativo';
-  const equipamentos = Array.isArray(data.equipamentos) && data.equipamentos.length > 0 
-    ? data.equipamentos 
-    : [];
-
-  return `
-    Você é o FLUIDAROTEIRISTA especializado em ${canal}.
-    
-    CONTEXTO DO PROJETO:
-    - Tipo de conteúdo: ${tipo_conteudo}
-    - Objetivo: ${objetivo}
-    - Canal: ${canal}
-    - Estilo: ${estilo}
-    - Mentor: ${mentor}
-    ${equipamentos.length > 0 ? `- Equipamentos: ${equipamentos.join(', ')}` : ''}
-    
-    INSTRUÇÕES ESPECÍFICAS:
-    - Crie conteúdo otimizado para ${canal}
-    - Use o estilo ${estilo} do mentor ${mentor}
-    - Foque no objetivo de ${objetivo}
-    ${equipamentos.length > 0 ? `- OBRIGATÓRIO: Mencione os equipamentos: ${equipamentos.join(', ')}` : ''}
-    
-    Retorne apenas JSON válido com o roteiro estruturado.
-  `;
-};
-
-const buildUserPrompt = (data: ScriptGenerationData): string => {
-  // Verificações de segurança
-  const tema = data.tema || 'Tema não especificado';
-  const tipo_conteudo = data.tipo_conteudo || 'conteúdo';
-  const canal = data.canal || 'redes sociais';
-  const objetivo = data.objetivo || 'engajar';
-  const estilo = data.estilo || 'criativo';
-
-  return `
-    Tema: ${tema}
-    
-    Crie um roteiro de ${tipo_conteudo} para ${canal} com o objetivo de ${objetivo}.
-    Use o estilo ${estilo} e, se aplicável, mencione os equipamentos específicos.
-  `;
 };
