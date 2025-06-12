@@ -8,6 +8,7 @@ import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
 
 const initialState: MarketingConsultantState = {
   clinicType: '',
+  clinicName: '',
   medicalSpecialty: '',
   medicalProcedures: '',
   medicalEquipments: '',

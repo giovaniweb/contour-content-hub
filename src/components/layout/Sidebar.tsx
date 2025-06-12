@@ -93,20 +93,17 @@ const Sidebar: React.FC = () => {
             <SidebarMenu>
               {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    asChild
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
-                      "text-white/80 hover:text-white hover:bg-white/10",
-                      "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
-                      isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
-                    )}
-                  >
+                  <SidebarMenuButton asChild>
                     <motion.button
                       onClick={() => navigate(item.path)}
                       whileHover={{ x: 4 }}
                       transition={{ duration: 0.2 }}
-                      className="w-full flex items-center gap-3"
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "text-white/80 hover:text-white hover:bg-white/10",
+                        "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                        isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                      )}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
                       <span className="flex-1 text-left">{item.label}</span>
@@ -129,20 +126,17 @@ const Sidebar: React.FC = () => {
             <SidebarMenu>
               {contentMenuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    asChild
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
-                      "text-white/80 hover:text-white hover:bg-white/10",
-                      "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
-                      isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
-                    )}
-                  >
+                  <SidebarMenuButton asChild>
                     <motion.button
                       onClick={() => navigate(item.path)}
                       whileHover={{ x: 4 }}
                       transition={{ duration: 0.2 }}
-                      className="w-full flex items-center gap-3"
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "text-white/80 hover:text-white hover:bg-white/10",
+                        "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                        isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                      )}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
                       <span className="flex-1 text-left">{item.label}</span>
@@ -166,20 +160,17 @@ const Sidebar: React.FC = () => {
               <SidebarMenu>
                 {adminMenuItems.map((item) => (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      asChild
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
-                        "text-white/80 hover:text-white hover:bg-white/10",
-                        "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
-                        isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
-                      )}
-                    >
+                    <SidebarMenuButton asChild>
                       <motion.button
                         onClick={() => navigate(item.path)}
                         whileHover={{ x: 4 }}
                         transition={{ duration: 0.2 }}
-                        className="w-full flex items-center gap-3"
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                          "text-white/80 hover:text-white hover:bg-white/10",
+                          "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                          isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                        )}
                       >
                         <item.icon className="w-5 h-5 flex-shrink-0" />
                         <span className="flex-1 text-left">{item.label}</span>

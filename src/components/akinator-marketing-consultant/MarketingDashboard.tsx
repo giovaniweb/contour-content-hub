@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   // Create a safe state with proper defaults to match MarketingConsultantState interface
   const safeState: MarketingConsultantState = {
     clinicType: state?.clinicType || '',
+    clinicName: state?.clinicName || '',
     medicalSpecialty: state?.medicalSpecialty || '',
     medicalProcedures: state?.medicalProcedures || '',
     medicalEquipments: state?.medicalEquipments || '',

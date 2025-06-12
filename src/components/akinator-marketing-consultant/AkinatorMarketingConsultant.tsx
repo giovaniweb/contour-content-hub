@@ -87,6 +87,7 @@ const AkinatorMarketingConsultant: React.FC<AkinatorMarketingConsultantProps> = 
     
     setState({
       clinicType: '',
+      clinicName: '',
       medicalSpecialty: '',
       medicalProcedures: '',
       medicalEquipments: '',
