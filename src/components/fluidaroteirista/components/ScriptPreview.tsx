@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2, Palette, Zap, Type, ImageIcon } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2, Palette, Zap, Type, ImageIcon, FileText } from "lucide-react";
 import { parseCarouselSlides } from '../utils/carouselParser';
 
 interface ScriptSlide {
   number: number;
+  title?: string;
   texto?: string;
   imagem?: string;
   content: string;
@@ -55,9 +56,9 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
     
     for (const line of lines) {
       const trimmedLine = line.trim();
-      if (trimmedLine.match(/^Slide\s*\d+/i)) {
+      if (trimmedLine.match(/^Slide\s*/i)) {
         const slideNumber = slides.length + 1;
-        const content = trimmedLine.replace(/^Slide\s*\d+\s*:?\s*/i, '');
+        const content = trimmedLine.replace(/^Slide\s*[^:]*:?\s*/i, '');
         
         let type: 'hook' | 'problem' | 'solution' | 'cta' = 'solution';
         if (slideNumber === 1) type = 'hook';
@@ -103,19 +104,13 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
     return emojis[index % emojis.length];
   };
 
-  const getSlideLabel = (type: string, index: number) => {
-    if (script.formato === 'carrossel') {
-      const labels = ['Gancho', 'Problema', 'Desenvolvimento', 'Solução', 'Call to Action'];
-      return `${getSlideEmoji(type, index)} ${labels[index] || 'Conteúdo'}`;
+  const getSlideLabel = (slide: ScriptSlide, index: number) => {
+    if (script.formato === 'carrossel' && slide.title) {
+      return `${getSlideEmoji(slide.type || 'solution', index)} ${slide.title}`;
     }
     
-    switch (type) {
-      case 'hook': return '🎣 Gancho';
-      case 'problem': return '⚡ Problema';
-      case 'solution': return '✨ Solução';
-      case 'cta': return '🚀 Ação';
-      default: return '📝 Conteúdo';
-    }
+    const labels = ['Gancho', 'Problema', 'Desenvolvimento', 'Solução', 'Call to Action'];
+    return `${getSlideEmoji(slide.type || 'solution', index)} ${labels[index] || 'Conteúdo'}`;
   };
 
   return (
@@ -194,7 +189,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg font-medium text-white flex items-center gap-3">
                         <span className="text-2xl">{getSlideEmoji(slide.type, index)}</span>
-                        {getSlideLabel(slide.type, index)}
+                        {getSlideLabel(slide, index)}
                       </CardTitle>
                       <Badge variant="secondary" className="aurora-glass text-sm px-3 py-1">
                         Slide {slide.number}
@@ -209,7 +204,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
                         {/* Seção Texto */}
                         <div className="p-4 aurora-glass bg-blue-500/10 rounded-lg border border-blue-500/20">
                           <div className="flex items-center gap-2 mb-2">
-                            <Type className="h-4 w-4 text-blue-400" />
+                            <FileText className="h-4 w-4 text-blue-400" />
                             <span className="text-sm font-medium text-blue-300">Texto:</span>
                           </div>
                           <p className="text-white leading-relaxed">{slide.texto}</p>
@@ -298,7 +293,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
       >
         <Button
           onClick={onApprove}
-          disabled={isProcessing}
+          disabled={isProcess}
           className="aurora-button text-white px-8 h-14 text-lg font-medium shadow-aurora-glow-purple"
         >
           <CheckCircle2 className="h-6 w-6 mr-3" />

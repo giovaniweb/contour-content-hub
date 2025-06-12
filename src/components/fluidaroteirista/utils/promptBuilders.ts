@@ -1,4 +1,3 @@
-
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 
 export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
@@ -85,16 +84,20 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     carrossel: `
     🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES RÍGIDAS:
     - EXATAMENTE 5 slides, nem mais nem menos
-    - OBRIGATÓRIO: Numerar cada slide (Slide 1, Slide 2, etc.)
+    - OBRIGATÓRIO: Use títulos DESCRITIVOS para cada slide (ex: "Slide Introdução", "Slide O que é o Crystal 3D Plus?")
     - ESTRUTURA OBRIGATÓRIA PARA CADA SLIDE:
-      * Texto: [máximo 25 palavras de conteúdo impactante]
-      * Imagem: [descrição visual DETALHADA e específica]
-    - Slide 1: Gancho forte e impactante
-    - Slides 2-4: Desenvolvimento progressivo do conteúdo
-    - Slide 5: CTA poderoso e conclusão
+      Slide [Título Descritivo]:
+      - Imagem: [descrição visual DETALHADA e específica]
+      - Texto: [máximo 25 palavras de conteúdo impactante]
+    - Slide 1: "Slide Introdução" - Gancho forte
+    - Slide 2: "Slide O Problema" ou similar - Apresentar desafio
+    - Slide 3: "Slide Nossa Solução" ou nome do equipamento - Apresentar solução
+    - Slide 4: "Slide Benefícios" ou resultados - Mostrar vantagens
+    - Slide 5: "Slide Call to Action" - CTA forte
     - NUNCA exceder 5 slides
+    - Use HÍFENS (-) obrigatoriamente: "- Imagem:" e "- Texto:"
     - Descrições de imagem DEVEM incluir: ambiente, pessoas, equipamentos, cores, expressões, detalhes visuais
-    - Se equipamentos foram selecionados, OBRIGATÓRIO mostrá-los nas descrições visuais
+    - Se equipamentos foram selecionados, OBRIGATÓRIO mostrá-los nas descrições visuais E no texto
     `,
     
     post_estatico: `
@@ -170,16 +173,19 @@ const getOutputInstructions = (formato: string): string => {
     `,
     
     carrossel: `
-    🚨 IMPORTANTE: EXATAMENTE 5 SLIDES - ESTRUTURA TEXTO/IMAGEM OBRIGATÓRIA
+    🚨 IMPORTANTE: EXATAMENTE 5 SLIDES COM TÍTULOS DESCRITIVOS
     Retorne JSON:
     {
-      "roteiro": "Slide 1:\nTexto: [Gancho impactante em até 25 palavras]\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante sorrindo, equipamento específico em uso, iluminação suave, cores harmoniosas]\n\nSlide 2:\nTexto: [Desenvolvimento do problema]\nImagem: [Descrição visual específica com detalhes de expressão, ambiente, equipamentos]\n\nSlide 3:\nTexto: [Solução apresentada]\nImagem: [Descrição visual com equipamentos em ação, resultados visíveis]\n\nSlide 4:\nTexto: [Benefícios e diferenciais]\nImagem: [Descrição visual do resultado final, satisfação do cliente]\n\nSlide 5:\nTexto: [CTA forte e direto]\nImagem: [Descrição visual de chamada para ação, contato da clínica]",
+      "roteiro": "Slide Introdução:\n- Imagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante, equipamento específico em destaque, iluminação suave]\n- Texto: [Gancho impactante em até 25 palavras]\n\nSlide O Problema:\n- Imagem: [Descrição visual específica mostrando o desafio]\n- Texto: [Desenvolvimento do problema]\n\nSlide Nossa Solução:\n- Imagem: [Descrição visual com equipamento em ação, resultados visíveis]\n- Texto: [Solução apresentada com nome do equipamento]\n\nSlide Benefícios:\n- Imagem: [Descrição visual do resultado final, satisfação do cliente]\n- Texto: [Benefícios e diferenciais específicos]\n\nSlide Call to Action:\n- Imagem: [Descrição visual de chamada para ação, profissional acolhedor, contato da clínica]\n- Texto: [CTA forte e direto com convite à ação]",
       "formato": "carrossel", 
       "slides_total": 5,
-      "sugestao_visual": "Cada slide tem descrição visual específica integrada"
+      "sugestao_visual": "Cada slide tem descrição visual específica integrada com títulos descritivos"
     }
-    VALIDAÇÃO: Conte os slides antes de enviar. DEVE ser exatamente 5.
-    ESTRUTURA: Cada slide DEVE ter "Texto:" e "Imagem:" separados.
+    VALIDAÇÃO CRÍTICA: 
+    - Conte os slides: DEVE ser exatamente 5
+    - Verifique títulos: DEVEM ser descritivos (não apenas números)
+    - Confirme estrutura: DEVE ter "- Imagem:" e "- Texto:" com hífens
+    - Se equipamentos selecionados: DEVEM aparecer no roteiro
     `,
     
     post_estatico: `
@@ -271,6 +277,7 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
     ${tempoLimite ? `- Respeite o limite de ${tempoLimite} segundos` : ''}
     - Mantenha o formato ${formato}
     - Preserve equipamentos mencionados
+    - Mantenha estrutura de títulos e hífens se for carrossel
     
     PARTE 3 - Magia Sutil:
     - NÃO use "Era uma vez"
@@ -280,7 +287,7 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
     
     Retorne apenas o roteiro transformado em JSON:
     {
-      "roteiro": "Roteiro com magia Disney sutil",
+      "roteiro": "Roteiro com magia Disney sutil mantendo estrutura original",
       "disney_applied": true
     }
   `;
