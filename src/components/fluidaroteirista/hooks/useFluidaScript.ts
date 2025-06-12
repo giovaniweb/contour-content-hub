@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { generateScript } from '@/services/supabaseService';
+import { generateScript as apiGenerateScript } from '@/services/supabaseService';
 import { validatePreGeneration, validatePostGeneration, ValidationResult } from '../utils/antiGenericValidation';
 import { validateAkinatorScript } from '../utils/akinatorValidation';
 import { ScriptGenerationData, FluidaScriptResult } from '../types';
@@ -59,7 +58,7 @@ export const useFluidaScript = () => {
       console.log('📤 [useFluidaScript] Calling API with:', apiData);
 
       // Chamada para a API usando a interface correta
-      const response = await generateScript(apiData);
+      const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
       if (response && response.content) {
@@ -128,7 +127,7 @@ export const useFluidaScript = () => {
         userPrompt: `Transforme este roteiro com a magia Disney: ${script.roteiro}`
       };
 
-      const response = await generateScript(disneyData);
+      const response = await apiGenerateScript(disneyData);
       
       if (response && response.content) {
         const updatedScript = {
