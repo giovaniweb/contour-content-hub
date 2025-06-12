@@ -7,10 +7,15 @@ import AkinatorScriptMode from './modes/AkinatorScriptMode';
 import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
 import { useFluidaScript } from './hooks/useFluidaScript';
+import { useImageGeneration } from '@/hooks/useImageGeneration';
 
 type FluidaMode = 'selection' | 'akinator' | 'elementos' | 'results';
 
-const FluidaRoteirista: React.FC = () => {
+interface FluidaRoteiristaProps {
+  onScriptGenerated: (script: any) => void;
+}
+
+const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }) => {
   const [currentMode, setCurrentMode] = useState<FluidaMode>('selection');
   const { 
     results, 
@@ -25,6 +30,10 @@ const FluidaRoteirista: React.FC = () => {
     showValidation,
     dismissValidation
   } = useFluidaScript();
+  const { 
+    isGenerating: isGeneratingImage, 
+    generatedImageUrl 
+  } = useImageGeneration();
 
   // Monitorar mudanças nos resultados para mudar automaticamente para 'results'
   useEffect(() => {
@@ -56,6 +65,18 @@ const FluidaRoteirista: React.FC = () => {
     setCurrentMode('selection');
   };
 
+  const handleGenerateImage = async (script: any) => {
+    console.log('🖼️ [FluidaRoteirista] Gerando imagem para script:', script.formato);
+    await generateImage(script);
+  };
+
+  const handleGenerateAudio = async (script: any) => {
+    console.log('🎧 [FluidaRoteirista] Gerando áudio para script:', script.formato);
+    toast.info('🎧 Geração de áudio', {
+      description: 'Função de áudio será implementada em breve!'
+    });
+  };
+
   console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
 
   if (currentMode === 'results' && results.length > 0) {
@@ -64,10 +85,10 @@ const FluidaRoteirista: React.FC = () => {
       <FluidaScriptResults
         results={results}
         onNewScript={handleNewScript}
-        onGenerateImage={generateImage}
-        onGenerateAudio={generateAudio}
+        onGenerateImage={handleGenerateImage}
+        onGenerateAudio={handleGenerateAudio}
         onApplyDisney={applyDisneyMagic}
-        isProcessing={isGenerating}
+        isProcessing={isGenerating || isGeneratingImage}
       />
     );
   }

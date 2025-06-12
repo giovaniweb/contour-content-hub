@@ -14,7 +14,9 @@ import {
   Mic,
   Castle,
   Clock,
-  Zap
+  Zap,
+  CheckCircle,
+  ThumbsUp
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
@@ -40,6 +42,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
   isProcessing
 }) => {
   const [disneyAnimating, setDisneyAnimating] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
   const script = results[0];
 
   const handleCopyScript = () => {
@@ -67,12 +70,25 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     });
   };
 
+  const handleApproveScript = () => {
+    setIsApproved(true);
+    toast.success('✅ Roteiro Aprovado!', {
+      description: 'Agora você pode gerar conteúdo adicional.'
+    });
+  };
+
   const handleApplyDisney = async () => {
     setDisneyAnimating(true);
     setTimeout(async () => {
       await onApplyDisney(script);
       setDisneyAnimating(false);
     }, 3000);
+  };
+
+  // Verificar se o formato suporta áudio
+  const isVideoFormat = () => {
+    const audioFormats = ['reels', 'video', 'short'];
+    return audioFormats.includes(script.formato?.toLowerCase());
   };
 
   if (!script) {
@@ -133,7 +149,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </div>
         </motion.div>
 
-        {/* Roteiro Principal - Largura Total */}
+        {/* Roteiro Principal */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -179,7 +195,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </Card>
         </motion.div>
 
-        {/* Cards de Status - Layout Horizontal */}
+        {/* Cards de Status */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -240,67 +256,120 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           )}
         </motion.div>
 
-        {/* Próximos Passos */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="w-full"
-        >
-          <Card className="aurora-glass border-aurora-electric-purple/30">
-            <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
-                🚀 Próximos Passos
-                <Badge variant="outline" className="text-xs">
-                  Profissional
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <Button
-                onClick={() => onGenerateImage(script)}
-                disabled={isProcessing}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
-                Gerar Imagem
-              </Button>
+        {/* Botão de Aprovação - NOVO */}
+        {!isApproved && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full"
+          >
+            <Card className="aurora-glass border-green-500/30 bg-green-500/5">
+              <CardContent className="p-6 text-center">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-green-400 mb-2">
+                      🎯 Roteiro Finalizado!
+                    </h3>
+                    <p className="text-green-300 text-sm">
+                      Revise seu roteiro e aprove para liberar as opções de criação de conteúdo
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={handleApproveScript}
+                      disabled={isProcessing}
+                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                    >
+                      <ThumbsUp className="h-5 w-5 mr-2" />
+                      ✅ Aprovar Roteiro
+                    </Button>
 
-              <Button
-                onClick={() => onGenerateAudio(script)}
-                disabled={isProcessing}
-                variant="outline"
-              >
-                <Mic className="h-4 w-4 mr-2" />
-                Gerar Áudio
-              </Button>
+                    {!isDisneyApplied && (
+                      <Button
+                        onClick={handleApplyDisney}
+                        disabled={isProcessing || disneyAnimating}
+                        variant="outline"
+                        className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 px-8 py-3"
+                      >
+                        <Castle className="h-5 w-5 mr-2" />
+                        {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
-              {!isDisneyApplied && (
+        {/* Próximos Passos - Aparece apenas após aprovação */}
+        {isApproved && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full"
+          >
+            <Card className="aurora-glass border-aurora-electric-purple/30">
+              <CardHeader>
+                <CardTitle className="text-white text-lg flex items-center gap-2">
+                  🚀 Próximos Passos
+                  <Badge variant="outline" className="text-xs bg-green-500/20 border-green-500 text-green-400">
+                    Aprovado ✅
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Button
-                  onClick={handleApplyDisney}
-                  disabled={isProcessing || disneyAnimating}
-                  variant="outline"
-                  className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                  onClick={() => onGenerateImage(script)}
+                  disabled={isProcessing}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  <Castle className="h-4 w-4 mr-2" />
-                  {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Gerar Imagem
                 </Button>
-              )}
 
-              <Button
-                onClick={onNewScript}
-                disabled={isProcessing}
-                variant="outline"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Novo Roteiro
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+                {/* Mostrar áudio apenas para formatos de vídeo */}
+                {isVideoFormat() && (
+                  <Button
+                    onClick={() => onGenerateAudio(script)}
+                    disabled={isProcessing}
+                    variant="outline"
+                  >
+                    <Mic className="h-4 w-4 mr-2" />
+                    Gerar Áudio
+                  </Button>
+                )}
+
+                {!isDisneyApplied && (
+                  <Button
+                    onClick={handleApplyDisney}
+                    disabled={isProcessing || disneyAnimating}
+                    variant="outline"
+                    className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                  >
+                    <Castle className="h-4 w-4 mr-2" />
+                    {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
+                  </Button>
+                )}
+
+                <Button
+                  onClick={onNewScript}
+                  disabled={isProcessing}
+                  variant="outline"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Novo Roteiro
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Elementos Universais */}
-        {script.elementos_aplicados && (
+        {script.elementos_aplicados && isApproved && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
