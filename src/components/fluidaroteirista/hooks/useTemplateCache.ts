@@ -17,8 +17,8 @@ export const useTemplateCache = () => {
     try {
       const savedCache = localStorage.getItem('fluidaroteirista_cache');
       if (savedCache) {
-        const cacheData = JSON.parse(savedCache);
-        const cacheMap = new Map(cacheData);
+        const cacheData = JSON.parse(savedCache) as [string, CachedScript][];
+        const cacheMap = new Map<string, CachedScript>(cacheData);
         setCache(cacheMap);
       }
     } catch (error) {
