@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Target, Heart, Zap, CheckCircle, ArrowRight } from 'lucide-react';
+import { Clock, Target, Heart, Zap, CheckCircle } from 'lucide-react';
 
 interface ScriptFormatterProps {
   script: {
@@ -18,100 +18,12 @@ interface ScriptFormatterProps {
   };
 }
 
-interface ScriptSection {
-  type: string;
-  content: string[];
-  icon: React.ComponentType<any>;
-  color: string;
-  title: string;
-  description: string;
-}
-
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
-  const formatScript = (content: string): ScriptSection[] => {
-    const paragraphs = content.split('\n').filter(p => p.trim());
-    
-    // Detectar seções baseado em palavras-chave e posição
-    const sections: ScriptSection[] = [];
-    let currentSection: ScriptSection = { 
-      type: 'gancho', 
-      content: [], 
-      icon: Zap, 
-      color: 'from-red-500 to-orange-500',
-      title: '🎣 Gancho Irresistível',
-      description: 'Captura atenção nos primeiros segundos'
-    };
-    
-    paragraphs.forEach((paragraph, index) => {
-      const p = paragraph.trim();
-      
-      if (index === 0 || p.toLowerCase().includes('você') || p.includes('?')) {
-        if (currentSection.content.length > 0) sections.push(currentSection);
-        currentSection = { 
-          type: 'gancho', 
-          content: [p], 
-          icon: Zap, 
-          color: 'from-red-500 to-orange-500',
-          title: '🎣 Gancho Irresistível',
-          description: 'Captura atenção nos primeiros segundos'
-        };
-      } else if (p.toLowerCase().includes('problema') || p.toLowerCase().includes('dificuld') || p.toLowerCase().includes('sofre')) {
-        if (currentSection.type !== 'problema') {
-          sections.push(currentSection);
-          currentSection = { 
-            type: 'problema', 
-            content: [p], 
-            icon: Target, 
-            color: 'from-orange-500 to-yellow-500',
-            title: '⚡ Problema Identificado',
-            description: 'Dor que seu público sente'
-          };
-        } else {
-          currentSection.content.push(p);
-        }
-      } else if (p.toLowerCase().includes('solução') || p.toLowerCase().includes('tratamento') || p.toLowerCase().includes('resultado')) {
-        if (currentSection.type !== 'solucao') {
-          sections.push(currentSection);
-          currentSection = { 
-            type: 'solucao', 
-            content: [p], 
-            icon: CheckCircle, 
-            color: 'from-green-500 to-emerald-500',
-            title: '✨ Solução Transformadora',
-            description: 'Como resolver com seus equipamentos'
-          };
-        } else {
-          currentSection.content.push(p);
-        }
-      } else if (p.toLowerCase().includes('agende') || p.toLowerCase().includes('contato') || p.toLowerCase().includes('clique')) {
-        if (currentSection.type !== 'cta') {
-          sections.push(currentSection);
-          currentSection = { 
-            type: 'cta', 
-            content: [p], 
-            icon: ArrowRight, 
-            color: 'from-purple-500 to-blue-500',
-            title: '🚀 Chamada para Ação',
-            description: 'Próximo passo do cliente'
-          };
-        } else {
-          currentSection.content.push(p);
-        }
-      } else {
-        currentSection.content.push(p);
-      }
-    });
-    
-    if (currentSection.content.length > 0) sections.push(currentSection);
-    return sections;
-  };
-
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
     return Math.round((words / 150) * 60); // 150 palavras/minuto
   };
 
-  const sections = formatScript(script.roteiro);
   const estimatedTime = estimateReadingTime(script.roteiro);
   const isWithinTimeLimit = estimatedTime <= 60;
   const wordCount = script.roteiro.split(/\s+/).length;
@@ -163,76 +75,34 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         </div>
       </div>
 
-      {/* Roteiro Principal */}
+      {/* Roteiro Principal - Maior e Mais Destacado */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="aurora-glass p-8 rounded-xl border border-cyan-500/30"
       >
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-cyan-300 mb-2">📝 Roteiro Completo</h2>
-          <p className="text-cyan-400/80">Seu conteúdo pronto para redes sociais</p>
+          <h2 className="text-3xl font-bold text-cyan-300 mb-2">📝 Seu Roteiro</h2>
+          <p className="text-cyan-400/80">Pronto para usar nas redes sociais</p>
         </div>
         
-        <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line">
+        <div className="text-slate-200 leading-relaxed text-xl whitespace-pre-line font-medium">
           {script.roteiro}
         </div>
       </motion.div>
-
-      {/* Seções do Roteiro */}
-      <div className="space-y-4">
-        {sections.map((section, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.15 }}
-          >
-            <Card className={`relative overflow-hidden border-0 bg-gradient-to-r ${section.color} p-[1px] rounded-xl`}>
-              <div className="aurora-glass rounded-xl p-6">
-                <CardHeader className="p-0 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${section.color}`}>
-                      <section.icon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg font-bold text-slate-200">
-                        {section.title}
-                      </CardTitle>
-                      <p className="text-sm text-slate-400">
-                        {section.description}
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-0">
-                  <div className="space-y-3">
-                    {section.content.map((text, textIndex) => (
-                      <div key={textIndex} className="text-slate-300 leading-relaxed">
-                        {text}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
 
       {/* Equipamentos Utilizados */}
       {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.2 }}
         >
           <Card className="aurora-glass border border-indigo-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-indigo-300">
                 <Zap className="h-5 w-5" />
-                Equipamentos Integrados no Roteiro
+                Equipamentos Integrados
               </CardTitle>
             </CardHeader>
             <CardContent>
