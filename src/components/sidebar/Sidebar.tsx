@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -18,7 +19,17 @@ import {
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { SidebarClose, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@/components/ui/sidebar";
+import { 
+  Sidebar as SidebarContainer,
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton
+} from "@/components/ui/sidebar";
 
 interface MenuItem {
   label: string;
@@ -29,6 +40,7 @@ interface MenuItem {
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const menuItems = [
     {
@@ -81,8 +93,12 @@ const Sidebar: React.FC = () => {
     }
   ];
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   return (
-    <SidebarContent className="bg-aurora-background text-slate-50 border-r border-slate-700/40">
+    <SidebarContainer className="bg-aurora-background text-slate-50 border-r border-slate-700/40">
       <SidebarHeader>
         <div className="font-bold text-2xl">
           Fluida<span className="text-primary">AI</span>
@@ -91,18 +107,36 @@ const Sidebar: React.FC = () => {
           Marketing & Growth
         </p>
       </SidebarHeader>
-      <SidebarNav>
-        {menuItems.map((item) => (
-          <SidebarItem
-            key={item.label}
-            label={item.label}
-            icon={item.icon}
-            path={item.path}
-            active={location.pathname === item.path}
-            description={item.description}
-          />
-        ))}
-      </SidebarNav>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton asChild>
+                    <button
+                      onClick={() => handleNavigation(item.path)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left",
+                        "hover:bg-white/10 transition-colors",
+                        location.pathname === item.path && "bg-white/15 text-white"
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <div className="flex-1">
+                        <div className="font-medium">{item.label}</div>
+                        {item.description && (
+                          <div className="text-xs text-slate-400">{item.description}</div>
+                        )}
+                      </div>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
       <SidebarFooter>
         <Collapsible>
           <CollapsibleTrigger asChild>
@@ -111,12 +145,28 @@ const Sidebar: React.FC = () => {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="pl-2">
-            <SidebarItem label="Guia do usuário" path="/docs/user-guide" />
-            <SidebarItem label="API Reference" path="/docs/api-reference" />
+            <div className="space-y-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-xs"
+                onClick={() => handleNavigation('/docs/user-guide')}
+              >
+                Guia do usuário
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-xs"
+                onClick={() => handleNavigation('/docs/api-reference')}
+              >
+                API Reference
+              </Button>
+            </div>
           </CollapsibleContent>
         </Collapsible>
       </SidebarFooter>
-    </SidebarContent>
+    </SidebarContainer>
   );
 };
 

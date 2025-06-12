@@ -29,26 +29,26 @@ export const useFluidaScript = () => {
   const [results, setResults] = useState<FluidaScriptResult[]>([]);
   const { currentSession } = useDiagnosticPersistence();
 
-  const generateFluidaScript = async (request: FluidaScriptRequest): Promise<FluidaScriptResult[]> => {
+  const generateFluidaScript = async (request: FluidaScriptRequest): Promise<void> => {
     console.log('🎬 FLUIDAROTEIRISTA - Iniciando geração', request);
     
     setIsGenerating(true);
     
     try {
-      // Usar dados do diagnóstico se disponível
-      const diagnosticData = currentSession?.state || {};
-      const clinicType = diagnosticData.clinicType || 'estetico';
+      // Usar dados do diagnóstico se disponível com verificação de propriedades
+      const diagnosticData: any = currentSession?.state || {};
+      const clinicType = diagnosticData?.clinicType || 'estetico';
       
-      // Construir contexto enriquecido
+      // Construir contexto enriquecido com verificações seguras
       const enrichedContext = {
         tipo_de_clinica: clinicType,
-        especialidade: diagnosticData.medicalSpecialty || diagnosticData.aestheticFocus || '',
+        especialidade: diagnosticData?.medicalSpecialty || diagnosticData?.aestheticFocus || '',
         equipamentos: request.equipamento || '',
-        protocolo: diagnosticData.medicalBestSeller || diagnosticData.aestheticBestSeller || '',
-        ticket_medio: diagnosticData.medicalTicket || diagnosticData.aestheticTicket || '',
-        publico_ideal: diagnosticData.targetAudience || '',
-        estilo_clinica: diagnosticData.medicalClinicStyle || diagnosticData.aestheticClinicStyle || '',
-        estilo_linguagem: diagnosticData.communicationStyle || '',
+        protocolo: diagnosticData?.medicalBestSeller || diagnosticData?.aestheticBestSeller || '',
+        ticket_medio: diagnosticData?.medicalTicket || diagnosticData?.aestheticTicket || '',
+        publico_ideal: diagnosticData?.targetAudience || '',
+        estilo_clinica: diagnosticData?.medicalClinicStyle || diagnosticData?.aestheticClinicStyle || '',
+        estilo_linguagem: diagnosticData?.communicationStyle || '',
         mentor_nome: 'FLUIDAROTEIRISTA'
       };
 
@@ -131,8 +131,6 @@ export const useFluidaScript = () => {
         description: `Criado com ${scriptResult.mentor} - ${scriptResult.formato}`,
       });
 
-      return results;
-
     } catch (error) {
       console.error('❌ Erro no FLUIDAROTEIRISTA:', error);
       
@@ -160,8 +158,6 @@ Sugestão básica: Fale sobre ${request.tema} e destaque os benefícios únicos 
         description: "Sistema básico ativado. Tente novamente em instantes.",
         variant: "destructive"
       });
-
-      return [fallbackScript];
 
     } finally {
       setIsGenerating(false);
