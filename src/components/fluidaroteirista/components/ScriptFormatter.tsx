@@ -36,7 +36,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     ) : false;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 w-full">
       
       {/* Roteiro Principal - Largura Total */}
       <motion.div
@@ -53,74 +53,60 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
               Pronto para usar nas redes sociais
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-6 bg-slate-900/30 rounded-lg min-h-[200px]">
+          <CardContent className="p-8">
+            <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-8 bg-slate-900/30 rounded-lg min-h-[300px] w-full">
               {script.roteiro}
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Métricas e Informações - Grid Horizontal */}
+      {/* Métricas Básicas - Layout Horizontal Compacto */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        className="grid grid-cols-2 md:grid-cols-4 gap-3"
       >
         {/* Tempo de Leitura */}
-        <Card className="aurora-glass border border-blue-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Clock className="h-5 w-5 text-blue-400" />
-              <span className="text-sm font-medium text-blue-300">Tempo</span>
-            </div>
-            <div className={`text-2xl font-bold ${isWithinTimeLimit ? 'text-green-400' : 'text-red-400'}`}>
-              {estimatedTime}s
-            </div>
-            <div className="text-xs text-blue-400 mt-1">
-              {isWithinTimeLimit ? '✅ Ideal' : '⚠️ Longo'}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="aurora-glass border border-blue-500/20 p-3 rounded-lg text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Clock className="h-4 w-4 text-blue-400" />
+            <span className="text-xs font-medium text-blue-300">Tempo</span>
+          </div>
+          <div className={`text-lg font-bold ${isWithinTimeLimit ? 'text-green-400' : 'text-red-400'}`}>
+            {estimatedTime}s
+          </div>
+        </div>
 
         {/* Contagem de Palavras */}
-        <Card className="aurora-glass border border-purple-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Target className="h-5 w-5 text-purple-400" />
-              <span className="text-sm font-medium text-purple-300">Palavras</span>
-            </div>
-            <div className="text-2xl font-bold text-purple-400">{wordCount}</div>
-            <div className="text-xs text-purple-400 mt-1">~150 ideal</div>
-          </CardContent>
-        </Card>
+        <div className="aurora-glass border border-purple-500/20 p-3 rounded-lg text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Target className="h-4 w-4 text-purple-400" />
+            <span className="text-xs font-medium text-purple-300">Palavras</span>
+          </div>
+          <div className="text-lg font-bold text-purple-400">{wordCount}</div>
+        </div>
 
         {/* Emoção Central */}
-        <Card className="aurora-glass border border-green-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Heart className="h-5 w-5 text-green-400" />
-              <span className="text-sm font-medium text-green-300">Emoção</span>
-            </div>
-            <div className="text-lg font-bold text-green-400 capitalize">{script.emocao_central}</div>
-            <div className="text-xs text-green-400 mt-1">Central</div>
-          </CardContent>
-        </Card>
+        <div className="aurora-glass border border-green-500/20 p-3 rounded-lg text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Heart className="h-4 w-4 text-green-400" />
+            <span className="text-xs font-medium text-green-300">Emoção</span>
+          </div>
+          <div className="text-sm font-bold text-green-400 capitalize">{script.emocao_central}</div>
+        </div>
 
         {/* Formato */}
-        <Card className="aurora-glass border border-indigo-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Target className="h-5 w-5 text-indigo-400" />
-              <span className="text-sm font-medium text-indigo-300">Formato</span>
-            </div>
-            <Badge variant="outline" className="text-indigo-400 border-indigo-500/30 text-sm">
-              {script.formato.toUpperCase()}
-            </Badge>
-            <div className="text-xs text-indigo-400 mt-1">Selecionado</div>
-          </CardContent>
-        </Card>
+        <div className="aurora-glass border border-indigo-500/20 p-3 rounded-lg text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Target className="h-4 w-4 text-indigo-400" />
+            <span className="text-xs font-medium text-indigo-300">Formato</span>
+          </div>
+          <Badge variant="outline" className="text-indigo-400 border-indigo-500/30 text-xs">
+            {script.formato.toUpperCase()}
+          </Badge>
+        </div>
       </motion.div>
 
       {/* Status dos Equipamentos */}
@@ -134,25 +120,20 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <CardContent className="p-4">
               <div className={`flex items-center gap-3 ${equipmentUsedInScript ? 'text-green-400' : 'text-red-400'}`}>
                 {equipmentUsedInScript ? (
-                  <CheckCircle className="h-6 w-6" />
+                  <CheckCircle className="h-5 w-5" />
                 ) : (
-                  <AlertTriangle className="h-6 w-6" />
+                  <AlertTriangle className="h-5 w-5" />
                 )}
                 <div className="flex-1">
-                  <h3 className="font-semibold">
+                  <h3 className="font-semibold text-sm">
                     {equipmentUsedInScript ? 'Equipamentos Integrados ✅' : 'Equipamentos Não Utilizados ⚠️'}
                   </h3>
-                  <p className={`text-sm mt-1 ${equipmentUsedInScript ? 'text-green-300' : 'text-red-300'}`}>
+                  <p className={`text-xs mt-1 ${equipmentUsedInScript ? 'text-green-300' : 'text-red-300'}`}>
                     {equipmentUsedInScript 
                       ? `${script.equipamentos_utilizados.length} equipamento(s) mencionado(s) no roteiro`
                       : `${script.equipamentos_utilizados.length} equipamento(s) selecionado(s) mas não utilizados no roteiro`
                     }
                   </p>
-                  {!equipmentUsedInScript && (
-                    <div className="mt-2 text-sm text-red-400 bg-red-500/10 p-2 rounded">
-                      <strong>Equipamentos selecionados:</strong> {script.equipamentos_utilizados.map(eq => eq.nome).join(', ')}
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
@@ -170,11 +151,11 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           <Card className="aurora-glass border border-yellow-500/30 bg-yellow-500/5">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-3 text-yellow-300">
-                <span className="text-2xl">✨</span>
-                <span className="font-bold text-lg">Disney Magic Aplicada!</span>
-                <span className="text-2xl">✨</span>
+                <span className="text-xl">✨</span>
+                <span className="font-bold">Disney Magic Aplicada!</span>
+                <span className="text-xl">✨</span>
               </div>
-              <p className="text-yellow-400 mt-2">
+              <p className="text-yellow-400 mt-2 text-sm">
                 Transformado com a narrativa mágica de Walt Disney 1928
               </p>
             </CardContent>
@@ -191,7 +172,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         >
           <Card className="aurora-glass border border-indigo-500/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-indigo-300">
+              <CardTitle className="flex items-center gap-2 text-indigo-300 text-lg">
                 <Zap className="h-5 w-5" />
                 Equipamentos Integrados no Roteiro
               </CardTitle>
@@ -215,7 +196,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         </motion.div>
       )}
 
-      {/* Aviso de Tempo */}
+      {/* Aviso de Tempo - Apenas se necessário */}
       {!isWithinTimeLimit && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -226,11 +207,11 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-500/20 rounded-lg">
-                  <Clock className="h-5 w-5 text-red-400" />
+                  <Clock className="h-4 w-4 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-red-300">⚠️ Roteiro excede 60 segundos</h3>
-                  <p className="text-sm text-red-400 mt-1">
+                  <h3 className="font-semibold text-red-300 text-sm">⚠️ Roteiro excede 60 segundos</h3>
+                  <p className="text-xs text-red-400 mt-1">
                     Recomendamos encurtar para melhor engajamento. Tempo atual: {estimatedTime}s | Ideal: 60s
                   </p>
                 </div>
