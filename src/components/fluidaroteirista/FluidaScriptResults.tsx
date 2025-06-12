@@ -15,7 +15,7 @@ import {
   Castle
 } from "lucide-react";
 import { toast } from 'sonner';
-import { getMentorNickname } from '../constants/mentorNames';
+import { getMentorNickname } from './constants/mentorNames';
 import ScriptFormatter from './components/ScriptFormatter';
 import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay';
 import DisneyTransformation from './components/DisneyTransformation';
