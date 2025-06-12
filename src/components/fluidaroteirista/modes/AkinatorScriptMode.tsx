@@ -30,7 +30,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   console.log('🔧 [AkinatorScriptMode] Equipments loaded:', equipments.length, 'Loading:', equipmentsLoading);
 
   const getCurrentQuestion = () => {
-    const question = AKINATOR_Tree[currentStep];
+    const question = AKINATOR_TREE[currentStep];
     
     // Se for a etapa de equipamento, injetar os equipamentos do banco
     if (currentStep === 'equipamento' && equipments.length > 0) {
@@ -94,7 +94,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       nextStep = nextStep[value as string] || Object.values(nextStep)[0];
     }
 
-    if (nextStep && AKINATOR_Tree[nextStep]) {
+    if (nextStep && AKINATOR_TREE[nextStep]) {
       console.log('➡️ [AkinatorScriptMode] Moving to next step:', nextStep);
       setCurrentStep(nextStep);
       setHistory(prev => [...prev, nextStep]);
@@ -123,11 +123,12 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     }
   };
 
-  // Mostrar loading se estiver gerando ou carregando equipamentos na etapa de equipamento
+  // Mostrar loading se estiver gerando
   if (isGenerating) {
-    return <FluidaLoadingScreen isLoading={true} mentor="akinator" />;
+    return <FluidaLoadingScreen mentor="akinator" />;
   }
 
+  // Mostrar loading se estiver carregando equipamentos na etapa de equipamento
   if (currentStep === 'equipamento' && equipmentsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -173,15 +174,12 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
         canGoBack={history.length > 1}
         mentorStyle="conversacional"
         currentStep={history.length - 1}
-        totalSteps={Object.keys(AKINATOR_Tree).length}
+        totalSteps={Object.keys(AKINATOR_TREE).length}
         isTextInput={currentStep === 'tema'}
         mentorPhrase={currentQuestion.mentorPhrase}
       />
     </div>
   );
 };
-
-// Corrigir o nome da constante - estava com typo
-const AKINATOR_Tree = AKINATOR_TREE;
 
 export default AkinatorScriptMode;
