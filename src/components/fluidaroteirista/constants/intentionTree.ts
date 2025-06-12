@@ -1,4 +1,5 @@
 
+
 export const AKINATOR_TREE: Record<string, any> = {
   canal: {
     pergunta: "Onde você vai publicar o conteúdo?",
@@ -277,5 +278,63 @@ export const FORMATO_CONFIGS: Record<string, any> = {
     tempo_limite_segundos: 30,
     palavras_max: 60,
     estrutura: "roteiro_conversao"
+  }
+};
+
+// Add mentor definitions for the tree
+export interface ScriptIntention {
+  canal: string;
+  formato: string;
+  objetivo: string;
+  estilo: string;
+  equipamento?: string;
+  tema: string;
+}
+
+export const MENTOR_ENIGMAS: Record<string, string> = {
+  'leandro_ladeira': "Quem domina gatilhos, vende mais que imagina.",
+  'icaro_carvalho': "Histórias que tocam, convertem sem forçar.",
+  'paulo_cuenca': "Criatividade visual que marca para sempre.",
+  'camila_porto': "Simplicidade que todos entendem e seguem.",
+  'hyeser_souza': "Humor que viraliza e vende sorrindo.",
+  'washington_olivetto': "Big ideas que mudam mercados inteiros.",
+  'pedro_sobral': "Lógica clara que antecipa objeções."
+};
+
+export const MENTOR_PROFILES: Record<string, { name: string; focus: string; style: string }> = {
+  'leandro_ladeira': { 
+    name: 'Leandro Ladeira', 
+    focus: 'Gatilhos mentais e CTAs fortes',
+    style: 'Direto, persuasivo, focado em conversão'
+  },
+  'icaro_carvalho': { 
+    name: 'Ícaro de Carvalho', 
+    focus: 'Storytelling emocional',
+    style: 'Narrativo, emocional, conectivo'
+  },
+  'paulo_cuenca': { 
+    name: 'Paulo Cuenca', 
+    focus: 'Criatividade audiovisual',
+    style: 'Visual, criativo, impactante'
+  },
+  'camila_porto': { 
+    name: 'Camila Porto', 
+    focus: 'Linguagem acessível',
+    style: 'Simples, didático, inclusivo'
+  },
+  'hyeser_souza': { 
+    name: 'Hyeser Souza', 
+    focus: 'Humor viral',
+    style: 'Engraçado, viral, descontraído'
+  },
+  'washington_olivetto': { 
+    name: 'Washington Olivetto', 
+    focus: 'Big ideas publicitárias',
+    style: 'Conceitual, publicitário, memorável'
+  },
+  'pedro_sobral': { 
+    name: 'Pedro Sobral', 
+    focus: 'Clareza lógica e antecipação',
+    style: 'Lógico, estruturado, antecipativo'
   }
 };

@@ -1,4 +1,5 @@
-import { ScriptIntention, MENTOR_ENIGMAS, MENTOR_PROFILES } from '../components/smart-script-generator/intentionTree';
+
+import { ScriptIntention, MENTOR_ENIGMAS, MENTOR_PROFILES } from '../constants/intentionTree';
 
 // Função para inferir o mentor com base nas respostas
 export const inferMentorFromAnswers = (answers: any): string => {

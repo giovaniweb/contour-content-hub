@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateScript as apiGenerateScript } from '@/services/supabaseService';
 import { validatePreGeneration, validatePostGeneration, ValidationResult } from '../utils/antiGenericValidation';
-import { validateAkinatorScript } from '../utils/akinatorValidation';
+import { validateAkinatorScript, ScriptDataFromAkinator } from '../utils/akinatorValidation';
 import { ScriptGenerationData, FluidaScriptResult } from '../types';
 import { buildSystemPrompt, buildDisneyPrompt } from '../utils/promptBuilders';
 
@@ -32,7 +32,17 @@ export const useFluidaScript = () => {
       
       if (data.modo === 'akinator') {
         console.log('🎯 [useFluidaScript] Usando validação Akinator');
-        validation = validateAkinatorScript(data);
+        // Convert ScriptGenerationData to ScriptDataFromAkinator for validation
+        const akinatorData: ScriptDataFromAkinator = {
+          canal: data.canal || 'instagram',
+          formato: data.formato || 'carrossel',
+          objetivo: data.objetivo || 'atrair',
+          estilo: data.estilo || 'criativo',
+          equipamentos: Array.isArray(data.equipamentos) ? data.equipamentos : [],
+          tema: data.tema || '',
+          modo: data.modo || 'akinator'
+        };
+        validation = validateAkinatorScript(akinatorData);
       } else {
         console.log('🔍 [useFluidaScript] Usando validação padrão');
         validation = validatePreGeneration(data);
@@ -114,7 +124,7 @@ export const useFluidaScript = () => {
         mentor: data.mentor || 'Criativo',
         equipamentos_utilizados: Array.isArray(data.equipamentos) ? data.equipamentos : [],
         created_at: new Date().toISOString(),
-        canal: data.canal || 'instagram' // Adicionar canal ao resultado
+        canal: data.canal || 'instagram'
       };
 
       console.log('✅ [useFluidaScript] Script result created:', scriptResult);
