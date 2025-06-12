@@ -44,7 +44,7 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Preparar dados para a API
+      // Preparar dados para a API - usando a interface correta do supabaseService
       const apiData = {
         type: 'fluidaroteirista',
         topic: data.tema,
@@ -58,16 +58,16 @@ export const useFluidaScript = () => {
 
       console.log('📤 [useFluidaScript] Calling API with:', apiData);
 
+      // Chamada para a API usando a interface correta
       const response = await generateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
       if (response && response.content) {
         const scriptResult: FluidaScriptResult = {
-          id: Date.now().toString(),
           roteiro: response.content,
           formato: data.tipo_conteudo || data.formato || 'carrossel',
-          emocao_central: response.emotion || data.estilo || 'engajamento',
-          intencao: response.intention || data.objetivo || 'atrair',
+          emocao_central: data.estilo || 'engajamento',
+          intencao: data.objetivo || 'atrair',
           objetivo: data.objetivo || 'atrair',
           mentor: data.mentor || 'Criativo',
           equipamentos_utilizados: data.equipamentos || [],
