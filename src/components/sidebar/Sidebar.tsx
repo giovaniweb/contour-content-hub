@@ -209,7 +209,7 @@ export default function Sidebar() {
                 ))}
 
                 {/* Only add Create Video button to the Videos group */}
-                {group.name === "Vídeos" && (
+                {group.name === "Menu Principal" && group.links.some(link => link.name === "Video") && (
                   <motion.div
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}

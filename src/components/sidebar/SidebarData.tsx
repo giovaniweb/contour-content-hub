@@ -28,13 +28,13 @@ export const sidebarData = [
     name: "Menu Principal",
     icon: Home,
     links: [
-      { name: "Consultor de MKT", icon: BrainCircuit, path: "/marketing-consultant", highlight: false },
-      { name: "Roteiro", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, highlight: false },
+      { name: "Consultor de MKT", icon: BrainCircuit, path: ROUTES.MARKETING.CONSULTANT, highlight: false },
+      { name: "Roteiro", icon: FileText, path: ROUTES.CONTENT.SCRIPTS.GENERATOR, highlight: false },
       { name: "Video", icon: Film, path: ROUTES.VIDEOS.ROOT, highlight: false },
       { name: "Fotos", icon: Image, path: "/photos", highlight: false },
       { name: "Artes", icon: Palette, path: "/arts", highlight: false },
       { name: "Artigo científico", icon: BookOpen, path: ROUTES.SCIENTIFIC_ARTICLES, highlight: false },
-      { name: "Planejador", icon: Calendar, path: "/content-planner", highlight: false },
+      { name: "Planejador", icon: Calendar, path: ROUTES.CONTENT.PLANNER, highlight: false },
       { name: "Equipamentos", icon: Wrench, path: ROUTES.EQUIPMENTS.LIST, highlight: false }
     ]
   }
@@ -51,4 +51,3 @@ export const adminItems = [
   { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS, highlight: false },
   { name: "Diagnóstico", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS, highlight: false }
 ];
-
