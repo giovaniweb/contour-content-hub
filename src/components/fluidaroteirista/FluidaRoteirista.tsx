@@ -3,14 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, MessageCircle, HelpCircle, Sparkles, Target } from "lucide-react";
+import { Wand2, HelpCircle, Sparkles, Target, Rocket } from "lucide-react";
 import AkinatorScriptMode from './modes/AkinatorScriptMode';
-import ChatScriptMode from './modes/ChatScriptMode';
 import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
 import { useFluidaScript } from './hooks/useFluidaScript';
 
-type FluidaMode = 'selection' | 'akinator' | 'chat' | 'elementos' | 'results';
+type FluidaMode = 'selection' | 'akinator' | 'elementos' | 'results';
 
 const FluidaRoteirista: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<FluidaMode>('selection');
@@ -33,7 +32,7 @@ const FluidaRoteirista: React.FC = () => {
     }
   }, [results.length, currentMode]);
 
-  const handleModeSelect = (mode: 'akinator' | 'chat' | 'elementos') => {
+  const handleModeSelect = (mode: 'akinator' | 'elementos') => {
     console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
     setCurrentMode(mode);
   };
@@ -71,7 +70,7 @@ const FluidaRoteirista: React.FC = () => {
   }
 
   if (currentMode === 'elementos') {
-    console.log('🎯 [FluidaRoteirista] Renderizando modo 10 Elementos');
+    console.log('🎯 [FluidaRoteirista] Renderizando modo Rocket');
     return (
       <ElementosUniversaisMode
         onScriptGenerated={handleScriptGenerated}
@@ -83,21 +82,9 @@ const FluidaRoteirista: React.FC = () => {
   }
 
   if (currentMode === 'akinator') {
-    console.log('❓ [FluidaRoteirista] Renderizando modo Akinator');
+    console.log('❓ [FluidaRoteirista] Renderizando modo Fluida');
     return (
       <AkinatorScriptMode
-        onScriptGenerated={handleScriptGenerated}
-        onGoBack={handleGoBack}
-        generateScript={generateScript}
-        isGenerating={isGenerating}
-      />
-    );
-  }
-
-  if (currentMode === 'chat') {
-    console.log('💬 [FluidaRoteirista] Renderizando modo Chat');
-    return (
-      <ChatScriptMode
         onScriptGenerated={handleScriptGenerated}
         onGoBack={handleGoBack}
         generateScript={generateScript}
@@ -134,7 +121,7 @@ const FluidaRoteirista: React.FC = () => {
       </div>
 
       {/* Mode Selection */}
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <motion.h2 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -144,8 +131,8 @@ const FluidaRoteirista: React.FC = () => {
           ✨ Escolha seu estilo de criação:
         </motion.h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Modo 10 Elementos Universais - NOVO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Modo Rocket (10 Elementos Universais) */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -168,11 +155,11 @@ const FluidaRoteirista: React.FC = () => {
                     }}
                     transition={{ duration: 0.6 }}
                   >
-                    <Target className="h-16 w-16 text-aurora-electric-purple" />
+                    <Rocket className="h-16 w-16 text-aurora-electric-purple" />
                   </motion.div>
                 </div>
                 <CardTitle className="text-white text-xl">
-                  🎯 Roteiro Científico
+                  🚀 Roteiro Rocket
                 </CardTitle>
                 <p className="text-aurora-electric-purple font-medium">
                   10 Elementos Universais
@@ -180,7 +167,7 @@ const FluidaRoteirista: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-slate-300 text-center">
-                  Metodologia científica com 10 passos estruturados
+                  Para quem quer conquistar o universo
                 </p>
                 <div className="space-y-2 text-sm text-slate-400">
                   <p>🎯 Storytelling + Público-alvo</p>
@@ -189,13 +176,13 @@ const FluidaRoteirista: React.FC = () => {
                   <p>📊 Copy + Ferramentas + Dados</p>
                 </div>
                 <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white">
-                  Criar com Método
+                  Decolar com Rocket 🚀
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Modo Akinator */}
+          {/* Modo Fluida (Akinator) */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -225,7 +212,7 @@ const FluidaRoteirista: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-slate-300 text-center">
-                  Roteirista guiado com perguntas passo a passo
+                  Para quem quer um roteiro rápido e prático
                 </p>
                 <div className="space-y-2 text-sm text-slate-400">
                   <p>✅ Ideal para usuários iniciantes</p>
@@ -234,52 +221,7 @@ const FluidaRoteirista: React.FC = () => {
                   <p>✅ Árvore de intenção inteligente</p>
                 </div>
                 <Button className="w-full bg-aurora-gradient-primary hover:opacity-90 text-white">
-                  Começar com Perguntas
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Modo Chat */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <Card className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer h-full"
-                  onClick={() => handleModeSelect('chat')}>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <motion.div
-                    whileHover={{ 
-                      y: [-2, -8, -2],
-                      rotate: [0, 5, -5, 0]
-                    }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <MessageCircle className="h-16 w-16 text-aurora-electric-purple" />
-                  </motion.div>
-                </div>
-                <CardTitle className="text-white text-xl">
-                  🚀 Roteiro Pro
-                </CardTitle>
-                <p className="text-aurora-electric-purple font-medium">
-                  Estilo Chat
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-slate-300 text-center">
-                  Roteirista livre com conversa estilo bate-papo
-                </p>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <p>✅ Ideal para usuários avançados</p>
-                  <p>✅ Entrada livre de texto</p>
-                  <p>✅ Interação natural e rápida</p>
-                  <p>✅ IA adapta automaticamente</p>
-                </div>
-                <Button className="w-full bg-aurora-gradient-primary hover:opacity-90 text-white">
-                  Conversar Livremente
+                  Começar com Fluida
                 </Button>
               </CardContent>
             </Card>
@@ -325,7 +267,7 @@ const FluidaRoteirista: React.FC = () => {
               className="text-center"
               whileHover={{ scale: 1.05 }}
             >
-              <div className="text-aurora-electric-purple font-medium">📊 Análise Científica</div>
+              <div className="text-aurora-electric-purple font-medium">🚀 Análise Rocket</div>
               <div>10 elementos estruturados</div>
             </motion.div>
           </div>
