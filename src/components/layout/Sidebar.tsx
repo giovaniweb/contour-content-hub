@@ -29,7 +29,13 @@ import {
   Palette,
   Image,
   BrainCircuit,
-  Wrench
+  Wrench,
+  LayoutDashboard,
+  File,
+  Film,
+  Brain,
+  LinkIcon,
+  TestTube
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
 import { useAuth } from '@/context/MockAuthContext';
@@ -58,7 +64,14 @@ const Sidebar: React.FC = () => {
   ];
 
   const adminMenuItems = [
-    { icon: Users, label: 'Admin', path: ROUTES.ADMIN.ROOT },
+    { icon: LayoutDashboard, label: 'Painel Admin', path: ROUTES.ADMIN.ROOT },
+    { icon: Wrench, label: 'Equipamentos', path: ROUTES.ADMIN.EQUIPMENTS.ROOT },
+    { icon: File, label: 'Conteúdo', path: ROUTES.ADMIN.CONTENT },
+    { icon: Film, label: 'Vídeos', path: ROUTES.ADMIN_VIDEOS },
+    { icon: Brain, label: 'IA do Sistema', path: ROUTES.ADMIN.AI },
+    { icon: LinkIcon, label: 'Integrações', path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE },
+    { icon: Video, label: 'Config. Vimeo', path: ROUTES.ADMIN.VIMEO.SETTINGS },
+    { icon: TestTube, label: 'Diagnóstico', path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS },
     { icon: Settings, label: 'Configurações', path: ROUTES.WORKSPACE_SETTINGS },
   ];
 
@@ -188,12 +201,12 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center gap-3 p-2 mx-2 rounded-lg bg-white/5">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center">
             <span className="text-white text-sm font-medium">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+              {(user?.nome || user?.email)?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
-              {user?.email || 'Usuário'}
+              {user?.nome || user?.email || 'Usuário'}
             </p>
             <p className="text-xs text-white/60">Online</p>
           </div>
