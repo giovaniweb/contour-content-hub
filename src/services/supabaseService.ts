@@ -34,6 +34,18 @@ export interface ScriptResponse {
   type?: string;
 }
 
+export interface ImageGenerationRequest {
+  prompt: string;
+  style?: 'realistic' | 'artistic' | 'cartoon';
+  aspectRatio?: '1:1' | '16:9' | '9:16';
+}
+
+export interface ImageGenerationResponse {
+  success: boolean;
+  imageUrl?: string;
+  error?: string;
+}
+
 export const generateScript = async (request: ScriptRequest): Promise<ScriptResponse> => {
   console.log('generateScript chamado com request:', request);
   
@@ -83,6 +95,49 @@ export const generateScript = async (request: ScriptRequest): Promise<ScriptResp
     }
     
     throw error;
+  }
+};
+
+export const generateImage = async (request: ImageGenerationRequest): Promise<ImageGenerationResponse> => {
+  console.log('generateImage chamado com request:', request);
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('generate-image', {
+      body: { 
+        prompt: request.prompt,
+        style: request.style || 'realistic',
+        aspectRatio: request.aspectRatio || '1:1'
+      }
+    });
+
+    if (error) {
+      console.error('Erro na edge function generate-image:', error);
+      return {
+        success: false,
+        error: `Erro na API: ${error.message}`
+      };
+    }
+
+    if (!data) {
+      console.error('Resposta vazia da edge function generate-image');
+      return {
+        success: false,
+        error: 'Resposta vazia da API'
+      };
+    }
+
+    console.log('Resposta da edge function generate-image recebida');
+    
+    return {
+      success: true,
+      imageUrl: data.imageUrl || data.image || data.url
+    };
+  } catch (error) {
+    console.error('Erro em generateImage:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
   }
 };
 
