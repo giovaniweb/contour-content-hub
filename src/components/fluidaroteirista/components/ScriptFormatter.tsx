@@ -18,13 +18,29 @@ interface ScriptFormatterProps {
   };
 }
 
+interface ScriptSection {
+  type: string;
+  content: string[];
+  icon: React.ComponentType<any>;
+  color: string;
+  title: string;
+  description: string;
+}
+
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
-  const formatScript = (content: string) => {
+  const formatScript = (content: string): ScriptSection[] => {
     const paragraphs = content.split('\n').filter(p => p.trim());
     
     // Detectar seções baseado em palavras-chave e posição
-    const sections = [];
-    let currentSection = { type: 'gancho', content: [], icon: Zap, color: 'from-red-500 to-orange-500' };
+    const sections: ScriptSection[] = [];
+    let currentSection: ScriptSection = { 
+      type: 'gancho', 
+      content: [], 
+      icon: Zap, 
+      color: 'from-red-500 to-orange-500',
+      title: '🎣 Gancho Irresistível',
+      description: 'Captura atenção nos primeiros segundos'
+    };
     
     paragraphs.forEach((paragraph, index) => {
       const p = paragraph.trim();
