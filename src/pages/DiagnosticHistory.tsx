@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { toast } from "sonner";
 import { useDiagnosticPersistence, DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
@@ -15,8 +16,10 @@ const DiagnosticHistory: React.FC = () => {
     savedDiagnostics,
     currentSession,
     deleteDiagnostic,
+    forceDeleteDiagnostic,
     loadDiagnostic,
     clearAllData,
+    clearLegacyData,
     loadSavedDiagnostics
   } = useDiagnosticPersistence();
 
@@ -52,7 +55,7 @@ const DiagnosticHistory: React.FC = () => {
     // Verificar se é dados pagos antes de permitir deletar
     if (session.isPaidData || session.isCompleted) {
       toast.error("🛡️ Dados Protegidos", {
-        description: "Este diagnóstico completo não pode ser deletado por segurança."
+        description: "Este diagnóstico completo não pode ser deletado por segurança. Use 'Forçar Exclusão' se necessário."
       });
       return;
     }
@@ -61,6 +64,52 @@ const DiagnosticHistory: React.FC = () => {
       deleteDiagnostic(session.id);
       toast.success("🗑️ Diagnóstico removido", {
         description: "Diagnóstico deletado com sucesso"
+      });
+    }
+  };
+
+  const handleForceDeleteDiagnostic = async (session: DiagnosticSession) => {
+    const confirmMessage = `⚠️ ATENÇÃO: Você está prestes a FORÇAR a exclusão de um diagnóstico completo/protegido.
+
+Dados do diagnóstico:
+• Tipo: ${session.clinicTypeLabel}
+• Data: ${formatDate(session.timestamp).date}
+• Status: ${session.isCompleted ? 'Completo' : 'Incompleto'}
+
+Esta ação é IRREVERSÍVEL e pode resultar em perda de dados importantes.
+
+Tem CERTEZA ABSOLUTA que deseja continuar?`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Confirmação dupla para segurança
+    if (!confirm('CONFIRMAÇÃO FINAL: Deletar permanentemente este diagnóstico protegido?')) {
+      return;
+    }
+
+    toast.loading("🗑️ Forçando exclusão...", { id: "force-delete" });
+    
+    try {
+      const success = await forceDeleteDiagnostic!(session.id);
+      
+      if (success) {
+        toast.success("🗑️ Diagnóstico forçado a ser deletado", {
+          description: "O diagnóstico protegido foi removido permanentemente",
+          id: "force-delete"
+        });
+      } else {
+        toast.error("❌ Erro ao forçar exclusão", {
+          description: "Não foi possível deletar o diagnóstico",
+          id: "force-delete"
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao forçar exclusão:', error);
+      toast.error("❌ Erro inesperado", {
+        description: "Ocorreu um erro ao tentar forçar a exclusão",
+        id: "force-delete"
       });
     }
   };
@@ -119,6 +168,50 @@ const DiagnosticHistory: React.FC = () => {
     }
   };
 
+  const handleClearLegacyData = async () => {
+    const confirmMessage = `🧹 Limpeza de Dados Legados
+
+Esta ação irá:
+• Remover diagnósticos com datas muito antigas (antes de 2024)
+• Limpar dados migrados incorretamente
+• Remover entradas duplicadas ou corrompidas
+
+Diagnósticos válidos e recentes serão preservados.
+
+Continuar com a limpeza?`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    toast.loading("🧹 Limpando dados legados...", { id: "legacy-cleanup" });
+    
+    try {
+      const success = await clearLegacyData!();
+      
+      if (success) {
+        toast.success("🧹 Dados legados limpos com sucesso", {
+          description: "O histórico foi otimizado e dados inválidos removidos",
+          id: "legacy-cleanup"
+        });
+        
+        // Recarregar dados após limpeza
+        await loadSavedDiagnostics();
+      } else {
+        toast.error("❌ Erro na limpeza", {
+          description: "Não foi possível limpar todos os dados legados",
+          id: "legacy-cleanup"
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erro na limpeza de dados legados:', error);
+      toast.error("❌ Erro inesperado", {
+        description: "Ocorreu um erro durante a limpeza",
+        id: "legacy-cleanup"
+      });
+    }
+  };
+
   // Debug: Log estado atual
   console.log('🏥 DiagnosticHistory render:', {
     savedDiagnostics: savedDiagnostics.length,
@@ -149,7 +242,9 @@ const DiagnosticHistory: React.FC = () => {
             onLoadDiagnostic={handleLoadDiagnostic}
             onDownloadDiagnostic={handleDownloadDiagnostic}
             onDeleteDiagnostic={handleDeleteDiagnostic}
+            onForceDeleteDiagnostic={handleForceDeleteDiagnostic}
             onClearAllData={handleClearAllData}
+            onClearLegacyData={handleClearLegacyData}
             formatDate={formatDate}
           />
         )}

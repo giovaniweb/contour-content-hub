@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2, Download, Shield } from "lucide-react";
+import { FileText, Trash2, Download, Shield, AlertTriangle, Eraser } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
 
@@ -15,7 +15,9 @@ interface SavedDiagnosticsSectionProps {
   onLoadDiagnostic: (session: DiagnosticSession) => void;
   onDownloadDiagnostic: (session: DiagnosticSession) => void;
   onDeleteDiagnostic: (session: DiagnosticSession) => void;
+  onForceDeleteDiagnostic?: (session: DiagnosticSession) => void;
   onClearAllData: () => void;
+  onClearLegacyData?: () => void;
   formatDate: (timestamp: string) => { date: string; time: string };
 }
 
@@ -25,7 +27,9 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
   onLoadDiagnostic,
   onDownloadDiagnostic,
   onDeleteDiagnostic,
+  onForceDeleteDiagnostic,
   onClearAllData,
+  onClearLegacyData,
   formatDate
 }) => {
   const navigate = useNavigate();
@@ -33,6 +37,10 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
   const handleViewReport = (session: DiagnosticSession) => {
     navigate(`/diagnostic-report/${session.id}`);
   };
+
+  // Separar diagnósticos por tipo
+  const completedDiagnostics = savedDiagnostics.filter(d => d.isPaidData || d.isCompleted);
+  const draftDiagnostics = savedDiagnostics.filter(d => !d.isPaidData && !d.isCompleted);
 
   return (
     <div>
@@ -42,12 +50,21 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
           Diagnósticos Salvos ({savedDiagnostics.length})
         </h3>
         
-        {savedDiagnostics.some(d => !d.isPaidData && !d.isCompleted) && (
-          <Button onClick={onClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
-            <Trash2 className="h-3 w-3" />
-            Limpar Rascunhos
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {draftDiagnostics.length > 0 && (
+            <Button onClick={onClearAllData} size="sm" variant="destructive" className="flex items-center gap-1">
+              <Trash2 className="h-3 w-3" />
+              Limpar Rascunhos
+            </Button>
+          )}
+          
+          {onClearLegacyData && (
+            <Button onClick={onClearLegacyData} size="sm" variant="outline" className="flex items-center gap-1 bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20">
+              <Eraser className="h-3 w-3" />
+              Limpar Dados Legados
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4">
@@ -91,7 +108,7 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <ReportViewButton
                     session={session}
                     onClick={() => handleViewReport(session)}
@@ -102,16 +119,44 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     Download
                   </Button>
                   
-                  <Button 
-                    onClick={() => onDeleteDiagnostic(session)} 
-                    size="sm" 
-                    variant={session.isPaidData || session.isCompleted ? "outline" : "destructive"}
-                    disabled={session.isPaidData || session.isCompleted}
-                    className="flex items-center gap-1"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    {session.isPaidData || session.isCompleted ? 'Protegido' : 'Deletar'}
-                  </Button>
+                  {/* Botão de deletar normal (apenas para rascunhos) */}
+                  {!session.isPaidData && !session.isCompleted && (
+                    <Button 
+                      onClick={() => onDeleteDiagnostic(session)} 
+                      size="sm" 
+                      variant="destructive"
+                      className="flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Deletar
+                    </Button>
+                  )}
+                  
+                  {/* Botão de forçar exclusão (para dados completos) */}
+                  {(session.isPaidData || session.isCompleted) && onForceDeleteDiagnostic && (
+                    <Button 
+                      onClick={() => onForceDeleteDiagnostic(session)} 
+                      size="sm" 
+                      variant="outline"
+                      className="flex items-center gap-1 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      Forçar Exclusão
+                    </Button>
+                  )}
+                  
+                  {/* Indicador se dados estão protegidos mas sem opção de forçar exclusão */}
+                  {(session.isPaidData || session.isCompleted) && !onForceDeleteDiagnostic && (
+                    <Button 
+                      disabled
+                      size="sm" 
+                      variant="outline"
+                      className="flex items-center gap-1 opacity-50"
+                    >
+                      <Shield className="h-3 w-3" />
+                      Protegido
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

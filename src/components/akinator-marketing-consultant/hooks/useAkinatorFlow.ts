@@ -45,14 +45,23 @@ export const useAkinatorFlow = () => {
   const { updateClinicType } = useUserProfile();
   const { currentSession, hasCurrentSession, isSessionCompleted } = useDiagnosticPersistence();
 
-  // Carregar estado salvo se existir
+  // Carregar estado salvo se existir e for válido
   useEffect(() => {
     if (currentSession && hasCurrentSession()) {
-      console.log('🔄 Restaurando estado do diagnóstico salvo');
-      setState(currentSession.state);
+      // Verificar se é uma sessão válida (não muito antiga)
+      const sessionDate = new Date(currentSession.timestamp);
+      const minimumValidDate = new Date('2024-01-01');
       
-      if (isSessionCompleted()) {
-        setShowDashboard(true);
+      if (sessionDate >= minimumValidDate) {
+        console.log('🔄 Restaurando estado do diagnóstico válido');
+        setState(currentSession.state);
+        
+        if (isSessionCompleted()) {
+          setShowDashboard(true);
+        }
+      } else {
+        console.log('🚫 Sessão muito antiga detectada, não restaurando estado');
+        // Não restaurar estado de sessões muito antigas
       }
     }
   }, [currentSession, hasCurrentSession, isSessionCompleted]);
