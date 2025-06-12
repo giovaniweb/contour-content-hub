@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Wand2, Clock, Zap } from 'lucide-react';
+import { Loader2, Wand2, Clock, Zap, CheckCircle, Sparkles } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface FluidaLoadingScreenProps {
   mentor: string;
   onCancel?: () => void;
+  showAiImprovement?: boolean;
+  hasInstantResult?: boolean;
 }
 
 const MENTOR_PHRASES = {
@@ -40,27 +41,51 @@ const MENTOR_PHRASES = {
   ]
 };
 
+const AI_IMPROVEMENT_PHRASES = [
+  "🤖 IA refinando o roteiro...",
+  "✨ Adicionando toque profissional...",
+  "🎯 Otimizando persuasão...",
+  "💎 Polindo cada palavra...",
+  "🚀 Elevando qualidade..."
+];
+
 const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({ 
   mentor, 
-  onCancel 
+  onCancel,
+  showAiImprovement = false,
+  hasInstantResult = false
 }) => {
   const [currentPhrase, setCurrentPhrase] = useState(0);
   const [progress, setProgress] = useState(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
   
-  const phrases = MENTOR_PHRASES[mentor as keyof typeof MENTOR_PHRASES] || MENTOR_PHRASES.default;
+  const phrases = showAiImprovement 
+    ? AI_IMPROVEMENT_PHRASES 
+    : (MENTOR_PHRASES[mentor as keyof typeof MENTOR_PHRASES] || MENTOR_PHRASES.default);
 
   useEffect(() => {
-    // Atualizar frase a cada 3 segundos
+    if (hasInstantResult && !showAiImprovement) {
+      // Se já tem resultado instantâneo, não mostrar loading
+      return;
+    }
+
+    // Atualizar frase a cada 2 segundos para IA improvement
     const phraseInterval = setInterval(() => {
       setCurrentPhrase((prev) => (prev + 1) % phrases.length);
-    }, 3000);
+    }, showAiImprovement ? 2000 : 3000);
 
-    // Simular progresso
+    // Simular progresso mais rápido para improvement
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 95) return prev; // Parar em 95% até a resposta real
-        return prev + Math.random() * 3; // Incremento aleatório
+        if (showAiImprovement) {
+          // Para improvement, progresso mais lento
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 2;
+        } else {
+          // Loading normal
+          if (prev >= 95) return prev;
+          return prev + Math.random() * 3;
+        }
       });
     }, 1000);
 
@@ -74,7 +99,7 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
       clearInterval(progressInterval);
       clearInterval(timeInterval);
     };
-  }, [phrases.length]);
+  }, [phrases.length, showAiImprovement, hasInstantResult]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -83,11 +108,22 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
   };
 
   const getEstimatedTime = () => {
+    if (showAiImprovement) {
+      if (timeElapsed < 10) return "Melhorando com IA...";
+      if (timeElapsed < 20) return "Quase finalizado...";
+      return "Últimos ajustes...";
+    }
+    
     if (timeElapsed < 15) return "Estimativa: 30-45 segundos";
     if (timeElapsed < 30) return "Quase pronto...";
     if (timeElapsed < 45) return "Processamento complexo em andamento...";
     return "Aguarde mais um pouco...";
   };
+
+  // Se tem resultado instantâneo e não está melhorando, não mostrar
+  if (hasInstantResult && !showAiImprovement) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-aurora-background">
@@ -97,10 +133,10 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
           className="relative mx-auto w-32 h-32"
           animate={{
             scale: [1, 1.1, 1],
-            rotate: [0, 180, 360],
+            rotate: showAiImprovement ? [0, 90, 180] : [0, 180, 360],
           }}
           transition={{
-            duration: 3,
+            duration: showAiImprovement ? 2 : 3,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -109,9 +145,21 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
           <div className="absolute inset-4 bg-aurora-gradient-secondary rounded-full opacity-30 blur-lg"></div>
           <div className="absolute inset-8 bg-white rounded-full opacity-40 blur-md"></div>
           <div className="absolute inset-12 flex items-center justify-center">
-            <Wand2 className="h-8 w-8 text-white" />
+            {showAiImprovement ? (
+              <Sparkles className="h-8 w-8 text-white" />
+            ) : (
+              <Wand2 className="h-8 w-8 text-white" />
+            )}
           </div>
         </motion.div>
+
+        {/* Status Indicator */}
+        {hasInstantResult && (
+          <div className="flex items-center justify-center gap-2 text-green-400 mb-4">
+            <CheckCircle className="h-5 w-5" />
+            <span className="text-sm font-medium">Roteiro pronto! ✨</span>
+          </div>
+        )}
 
         {/* Loading Text */}
         <div className="space-y-4">
@@ -120,7 +168,7 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold text-white"
           >
-            FLUIDAROTEIRISTA 🎬
+            {showAiImprovement ? 'APRIMORANDO COM IA 🤖' : 'FLUIDAROTEIRISTA 🎬'}
           </motion.h2>
           
           <motion.div
@@ -139,7 +187,11 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
         <div className="space-y-3">
           <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
             <motion.div
-              className="h-full bg-aurora-gradient-primary rounded-full"
+              className={`h-full rounded-full ${
+                showAiImprovement 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                  : 'bg-aurora-gradient-primary'
+              }`}
               style={{ width: `${Math.min(progress, 100)}%` }}
               transition={{ duration: 0.5 }}
             />
@@ -159,19 +211,23 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
           </div>
           
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-aurora-electric-purple" />
-            <span className="text-sm">IA Processando</span>
+            <Zap className={`h-4 w-4 ${showAiImprovement ? 'text-purple-400' : 'text-aurora-electric-purple'}`} />
+            <span className="text-sm">
+              {showAiImprovement ? 'IA Melhorando' : 'IA Processando'}
+            </span>
           </div>
         </div>
 
         {/* Spinning Loader */}
         <div className="flex items-center justify-center gap-2 text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="text-sm">Criando magia...</span>
+          <span className="text-sm">
+            {showAiImprovement ? 'Refinando...' : 'Criando magia...'}
+          </span>
         </div>
 
-        {/* Cancel Button (appears after 30 seconds) */}
-        {timeElapsed > 30 && onCancel && (
+        {/* Cancel Button */}
+        {timeElapsed > (showAiImprovement ? 15 : 30) && onCancel && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,10 +238,13 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
               variant="outline"
               className="border-red-500 text-red-400 hover:bg-red-500/10"
             >
-              Cancelar Geração
+              {showAiImprovement ? 'Manter Template' : 'Cancelar Geração'}
             </Button>
             <p className="text-xs text-slate-500 mt-2">
-              A geração está demorando mais que o esperado
+              {showAiImprovement 
+                ? 'Você pode manter o template atual' 
+                : 'A geração está demorando mais que o esperado'
+              }
             </p>
           </motion.div>
         )}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getElementosUniversaisByMentor, getEspecialidadesByMentor } from '@/utils/cadastrarMentores';
+import { useTemplateCache } from './useTemplateCache';
 
 interface FluidaScriptData {
   // Dados do modo Akinator/Fluida
@@ -31,8 +32,101 @@ interface FluidaScriptData {
 export const useFluidaScript = () => {
   const [results, setResults] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [aiImproving, setAiImproving] = useState(false);
+  const { getCached, setCached, generateInstantTemplate } = useTemplateCache();
 
   const generateScript = async (data: FluidaScriptData) => {
+    console.log('🚀 [useFluidaScript] Iniciando geração INSTANTÂNEA + IA Background');
+    console.log('📊 [useFluidaScript] Dados recebidos:', data);
+    
+    setIsGenerating(true);
+    
+    try {
+      // 1. RESPOSTA IMEDIATA: Verificar cache ou gerar template
+      const cachedScript = getCached(data.tema || '', data.equipamentos ? [data.equipamentos] : [], data.estilo);
+      
+      let instantScript;
+      if (cachedScript) {
+        console.log('💾 [useFluidaScript] Usando cache encontrado');
+        instantScript = cachedScript.script;
+        instantScript.from_cache = true;
+      } else {
+        console.log('⚡ [useFluidaScript] Gerando template instantâneo');
+        instantScript = generateInstantTemplate(
+          data.tema || '',
+          data.equipamentos ? [data.equipamentos] : [],
+          data.estilo
+        );
+      }
+
+      // Mostrar resultado imediato
+      setResults([instantScript]);
+      setIsGenerating(false);
+      
+      toast.success('⚡ Roteiro pronto!', {
+        description: 'Template gerado instantaneamente. IA está melhorando em segundo plano...'
+      });
+
+      // 2. IA EM BACKGROUND: Melhorar com IA (apenas se não for do cache ou se for template)
+      if (!cachedScript || !cachedScript.isAiGenerated) {
+        console.log('🤖 [useFluidaScript] Iniciando melhoria com IA em background');
+        setAiImproving(true);
+        
+        // Marcar que IA está melhorando
+        const improvingScript = { ...instantScript, ai_improving: true };
+        setResults([improvingScript]);
+
+        try {
+          const improvedScript = await generateAiScript(data);
+          
+          // Substituir com versão melhorada da IA
+          setResults([improvedScript]);
+          setAiImproving(false);
+          
+          // Salvar versão IA no cache
+          setCached(
+            data.tema || '', 
+            improvedScript, 
+            true, 
+            data.equipamentos ? [data.equipamentos] : [], 
+            data.estilo
+          );
+          
+          toast.success('✨ Roteiro aprimorado!', {
+            description: 'IA finalizou as melhorias do seu roteiro.'
+          });
+          
+        } catch (aiError) {
+          console.error('⚠️ [useFluidaScript] IA falhou, mantendo template:', aiError);
+          setAiImproving(false);
+          
+          // Manter template, mas remover indicador de melhoria
+          const finalScript = { ...instantScript, ai_improving: false, ai_failed: true };
+          setResults([finalScript]);
+          
+          toast.info('📝 Template mantido', {
+            description: 'IA não conseguiu melhorar, mas seu roteiro está pronto para usar!'
+          });
+        }
+      }
+
+      return instantScript;
+
+    } catch (error) {
+      console.error('🔥 [useFluidaScript] Erro crítico:', error);
+      setIsGenerating(false);
+      setAiImproving(false);
+      
+      toast.error('❌ Erro na geração', {
+        description: 'Não foi possível gerar o roteiro. Tente novamente.'
+      });
+      
+      throw error;
+    }
+  };
+
+  // Função auxiliar para geração com IA (em background)
+  const generateAiScript = async (data: FluidaScriptData) => {
     console.log('🚀 [useFluidaScript] Iniciando geração de roteiro');
     console.log('📊 [useFluidaScript] Dados recebidos:', data);
     
@@ -113,9 +207,9 @@ export const useFluidaScript = () => {
         }
       };
 
-      console.log('📤 [useFluidaScript] Enviando request para Supabase function com timeout de 60s');
+      console.log('📤 [useFluidaScript] Enviando request para Supabase function');
 
-      // Usar Supabase functions invoke com signal de abort
+      // Usar Supabase functions invoke
       const { data: result, error } = await supabase.functions.invoke('generate-script', {
         body: requestPayload
       });
@@ -169,6 +263,8 @@ export const useFluidaScript = () => {
       scriptData.mentor = scriptData.mentor || mentorInferido;
       scriptData.especialidades_aplicadas = scriptData.especialidades_aplicadas || especialidades;
       scriptData.modo_usado = isRocketMode ? 'Rocket (10 Elementos Universais)' : 'Fluida (Akinator)';
+      scriptData.is_template = false;
+      scriptData.ai_improving = false;
 
       setResults([scriptData]);
       console.log('✅ [useFluidaScript] Roteiro salvo nos resultados com elementos universais');
@@ -474,6 +570,7 @@ export const useFluidaScript = () => {
   const clearResults = () => {
     console.log('🗑️ [useFluidaScript] Limpando resultados');
     setResults([]);
+    setAiImproving(false);
   };
 
   const generateImage = async (script: any) => {
@@ -493,6 +590,7 @@ export const useFluidaScript = () => {
   return {
     results,
     isGenerating,
+    aiImproving,
     generateScript,
     applyDisneyMagic,
     clearResults,
