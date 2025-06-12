@@ -81,34 +81,37 @@ export const useFluidaScript = () => {
         promptData = buildFluidaPrompt(normalizedData, mentorInferido, elementosUniversais, especialidades);
       }
 
-      const requestBody = {
-        type: 'custom',
-        systemPrompt: promptData.systemPrompt,
-        userPrompt: promptData.userPrompt,
-        topic: normalizedData.tema,
-        additionalInfo: JSON.stringify({
-          tipo_de_clinica: 'estetico',
-          especialidade: '',
-          equipamentos: normalizedData.equipamento,
-          protocolo: '',
-          ticket_medio: '',
-          publico_ideal: '',
-          estilo_clinica: '',
-          estilo_linguagem: '',
-          mentor_nome: mentorInferido,
-          elementos_universais: elementosUniversais,
-          especialidades: especialidades,
-          modo: isRocketMode ? 'rocket' : 'fluida'
-        }),
-        tone: normalizedData.estilo,
-        marketingObjective: normalizedData.objetivo
+      // CORREÇÃO: Envolver os dados na propriedade 'request' esperada pela edge function
+      const requestPayload = {
+        request: {
+          type: 'custom',
+          systemPrompt: promptData.systemPrompt,
+          userPrompt: promptData.userPrompt,
+          topic: normalizedData.tema,
+          additionalInfo: JSON.stringify({
+            tipo_de_clinica: 'estetico',
+            especialidade: '',
+            equipamentos: normalizedData.equipamento,
+            protocolo: '',
+            ticket_medio: '',
+            publico_ideal: '',
+            estilo_clinica: '',
+            estilo_linguagem: '',
+            mentor_nome: mentorInferido,
+            elementos_universais: elementosUniversais,
+            especialidades: especialidades,
+            modo: isRocketMode ? 'rocket' : 'fluida'
+          }),
+          tone: normalizedData.estilo,
+          marketingObjective: normalizedData.objetivo
+        }
       };
 
-      console.log('📤 [useFluidaScript] Enviando request para Supabase function');
+      console.log('📤 [useFluidaScript] Enviando request para Supabase function com formato correto');
 
       // Usar Supabase functions invoke corretamente
       const { data: result, error } = await supabase.functions.invoke('generate-script', {
-        body: requestBody
+        body: requestPayload
       });
 
       if (error) {
