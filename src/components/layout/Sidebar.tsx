@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Home,
-  FileText,
   Video,
   Calendar,
   Lightbulb,
@@ -44,7 +43,7 @@ const Sidebar: React.FC = () => {
   const mainMenuItems = [
     { icon: Home, label: 'Dashboard', path: ROUTES.DASHBOARD },
     { icon: BrainCircuit, label: 'Consultor MKT', path: ROUTES.MARKETING.CONSULTANT },
-    { icon: FileText, label: 'Roteiro', path: ROUTES.CONTENT.SCRIPTS.GENERATOR },
+    { icon: Wand2, label: 'FLUIDAROTEIRISTA', path: ROUTES.CONTENT.FLUIDAROTEIRISTA },
     { icon: Video, label: 'Video', path: ROUTES.VIDEOS.ROOT },
     { icon: Image, label: 'Imagem', path: '/photos' },
     { icon: Palette, label: 'Artes', path: '/arts' },

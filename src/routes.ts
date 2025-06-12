@@ -13,6 +13,7 @@ export const ROUTES = {
       GENERATOR: '/script-generator',
       VALIDATION: '/script-validation'
     },
+    FLUIDAROTEIRISTA: '/fluidaroteirista',
     PLANNER: '/content-planner',
     IDEAS: '/content-ideas',
     STRATEGY: '/content-strategy',
