@@ -19,6 +19,7 @@ import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import MarketingConsultant from './pages/MarketingConsultant';
 import DiagnosticHistory from './pages/DiagnosticHistory';
+import DiagnosticReport from './pages/DiagnosticReport';
 import Media from './pages/Media';
 import PhotosPage from './pages/PhotosPage';
 import EquipmentList from './pages/EquipmentList';
@@ -77,6 +78,9 @@ function App() {
           <Route path={ROUTES.MARKETING.CONSULTANT} element={<AppLayout><MarketingConsultant /></AppLayout>} />
           <Route path={ROUTES.MARKETING.REPORTS} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Reports</h1><p>Relatórios de marketing.</p></div></AppLayout>} />
           <Route path={ROUTES.MARKETING.DIAGNOSTIC_HISTORY} element={<AppLayout><DiagnosticHistory /></AppLayout>} />
+          
+          {/* Diagnostic Report Route */}
+          <Route path="/diagnostic-report/:sessionId" element={<AppLayout><DiagnosticReport /></AppLayout>} />
           
           {/* Consultant Routes */}
           <Route path={ROUTES.CONSULTANT.PANEL} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Consultant Panel</h1><p>Painel de consultoria.</p></div></AppLayout>} />
