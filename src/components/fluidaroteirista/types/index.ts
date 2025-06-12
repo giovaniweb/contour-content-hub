@@ -1,5 +1,6 @@
 
 export interface FluidaScriptResult {
+  id?: string;
   roteiro: string;
   formato: string;
   emocao_central: string;
@@ -11,6 +12,7 @@ export interface FluidaScriptResult {
   modo_usado?: string;
   disney_applied?: boolean;
   equipamentos_utilizados?: any[];
+  created_at?: string;
 }
 
 export interface ScriptGenerationData {
@@ -20,4 +22,16 @@ export interface ScriptGenerationData {
   mentor?: string;
   formato?: string;
   modo?: string;
+  // Akinator specific fields
+  tipo_conteudo?: string;
+  canal?: string;
+  estilo?: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  suggestions: string[];
+  missingFields: string[];
+  quality: 'low' | 'medium' | 'high';
 }
