@@ -1,15 +1,32 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getElementosUniversaisByMentor, getEspecialidadesByMentor } from '@/utils/cadastrarMentores';
 
 interface FluidaScriptData {
-  tipo_conteudo: string;
-  objetivo: string;
-  canal: string;
-  estilo: string;
-  equipamento: string;
-  tema: string;
+  // Dados do modo Akinator/Fluida
+  tipo_conteudo?: string;
+  objetivo?: string;
+  canal?: string;
+  estilo?: string;
+  equipamento?: string;
+  tema?: string;
+  
+  // Dados do modo Rocket/Elementos Universais
+  elementos_escolhidos?: Record<string, string | string[]>;
+  storytelling?: string;
+  copywriting?: string;
+  conhecimento_publico?: string;
+  equipamentos?: string;
+  analises_dados?: string;
+  gatilhos_mentais?: string;
+  logica_argumentativa?: string;
+  premissas_educativas?: string;
+  mapas_empatia?: string;
+  headlines?: string;
+  ferramentas_especificas?: string;
+  modo?: string;
 }
 
 export const useFluidaScript = () => {
@@ -23,73 +40,56 @@ export const useFluidaScript = () => {
     setIsGenerating(true);
     
     try {
-      // Inferir mentor baseado no estilo
-      const mentorInferido = inferirMentor(data);
+      // Determinar qual modo está sendo usado
+      const isRocketMode = data.modo === '10_elementos_universais' || data.elementos_escolhidos;
+      const isFluida = !isRocketMode;
+      
+      console.log('🔍 [useFluidaScript] Modo detectado:', isRocketMode ? 'Rocket (10 Elementos)' : 'Fluida (Akinator)');
+
+      // Normalizar dados para formato compatível
+      const normalizedData = isRocketMode ? {
+        tipo_conteudo: data.tipo_conteudo || 'carrossel',
+        objetivo: data.objetivo || 'atrair',
+        canal: data.canal || 'instagram',
+        estilo: inferirEstiloDoElementos(data) || 'criativo',
+        equipamento: data.equipamentos || data.equipamento || '',
+        tema: data.tema || ''
+      } : {
+        tipo_conteudo: data.tipo_conteudo || 'carrossel',
+        objetivo: data.objetivo || 'atrair',
+        canal: data.canal || 'instagram',
+        estilo: data.estilo || 'criativo',
+        equipamento: data.equipamento || '',
+        tema: data.tema || ''
+      };
+
+      console.log('🔄 [useFluidaScript] Dados normalizados:', normalizedData);
+
+      // Inferir mentor baseado nos dados normalizados
+      const mentorInferido = inferirMentor(normalizedData);
       const elementosUniversais = getElementosUniversaisByMentor(mentorInferido) || getDefaultElementos();
       const especialidades = getEspecialidadesByMentor(mentorInferido) || ['Criatividade', 'Inovação'];
 
       console.log('🧠 [useFluidaScript] Mentor inferido:', mentorInferido);
       console.log('📊 [useFluidaScript] Elementos universais:', elementosUniversais);
 
-      const systemPrompt = `
-        Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
-        
-        🎯 ESTRUTURA UNIVERSAL DOS 10 ELEMENTOS (Método Leandro Ladeira adaptado):
-        
-        ${buildElementosPrompt(elementosUniversais, mentorInferido, especialidades)}
-        
-        Contexto da clínica:
-        - Tipo: estetico
-        - Especialidade: 
-        - Equipamentos: ${data.equipamento}
-        - Protocolo mais vendido: 
-        - Ticket médio: 
-        - Público ideal: 
-        - Estilo da clínica: 
-        - Mentor: ${mentorInferido}
-        
-        ESTRUTURA OBRIGATÓRIA:
-        1. Gancho (Headlines + Gatilhos Mentais)
-        2. Conflito (Mapas de Empatia + Conhecimento do Público)
-        3. Virada (Lógica Argumentativa + Premissas Educativas)
-        4. CTA (Copywriting + Ferramentas Específicas)
-        
-        FORMATO: ${data.tipo_conteudo}
-        
-        Retorne APENAS JSON válido:
-        {
-          "roteiro": "Conteúdo do roteiro estruturado aplicando os 10 elementos",
-          "formato": "carrossel/stories/imagem/video",
-          "emocao_central": "esperança/confiança/urgência/etc",
-          "intencao": "atrair/vender/educar/conectar",
-          "objetivo": "Objetivo específico do post",
-          "mentor": "${mentorInferido}",
-          "elementos_aplicados": ${JSON.stringify(elementosUniversais)},
-          "especialidades_aplicadas": ${JSON.stringify(especialidades)}
-        }
-      `;
-
-      const userPrompt = `
-        Tema: ${data.tema}
-        Tipo de conteúdo: ${data.tipo_conteudo}
-        Objetivo: ${data.objetivo}
-        Canal: ${data.canal}
-        Estilo: ${data.estilo}
-        
-        Crie um roteiro seguindo o modelo FLUIDAROTEIRISTA com os 10 elementos universais aplicados 
-        conforme a intensidade específica do mentor ${mentorInferido}. Use as especialidades 
-        ${especialidades.join(', ')} para dar personalidade única ao roteiro.
-      `;
+      // Construir prompt específico baseado no modo
+      let specificPrompt = '';
+      if (isRocketMode) {
+        specificPrompt = buildRocketPrompt(data, mentorInferido, elementosUniversais, especialidades);
+      } else {
+        specificPrompt = buildFluidaPrompt(normalizedData, mentorInferido, elementosUniversais, especialidades);
+      }
 
       const requestBody = {
         type: 'custom',
-        systemPrompt,
-        userPrompt,
-        topic: data.tema,
+        systemPrompt: specificPrompt.systemPrompt,
+        userPrompt: specificPrompt.userPrompt,
+        topic: normalizedData.tema,
         additionalInfo: JSON.stringify({
           tipo_de_clinica: 'estetico',
           especialidade: '',
-          equipamentos: data.equipamento,
+          equipamentos: normalizedData.equipamento,
           protocolo: '',
           ticket_medio: '',
           publico_ideal: '',
@@ -97,10 +97,11 @@ export const useFluidaScript = () => {
           estilo_linguagem: '',
           mentor_nome: mentorInferido,
           elementos_universais: elementosUniversais,
-          especialidades: especialidades
+          especialidades: especialidades,
+          modo: isRocketMode ? 'rocket' : 'fluida'
         }),
-        tone: data.estilo,
-        marketingObjective: data.objetivo
+        tone: normalizedData.estilo,
+        marketingObjective: normalizedData.objetivo
       };
 
       console.log('📤 [useFluidaScript] Enviando request para Supabase function');
@@ -134,10 +135,10 @@ export const useFluidaScript = () => {
           scriptData = {
             ...result,
             roteiro: result.content,
-            formato: data.tipo_conteudo,
+            formato: normalizedData.tipo_conteudo,
             emocao_central: 'criatividade',
-            intencao: data.objetivo,
-            objetivo: data.tema,
+            intencao: normalizedData.objetivo,
+            objetivo: normalizedData.tema,
             mentor: mentorInferido,
             elementos_aplicados: elementosUniversais,
             especialidades_aplicadas: especialidades
@@ -155,12 +156,13 @@ export const useFluidaScript = () => {
       scriptData.elementos_aplicados = scriptData.elementos_aplicados || elementosUniversais;
       scriptData.mentor = scriptData.mentor || mentorInferido;
       scriptData.especialidades_aplicadas = scriptData.especialidades_aplicadas || especialidades;
+      scriptData.modo_usado = isRocketMode ? 'Rocket (10 Elementos Universais)' : 'Fluida (Akinator)';
 
       setResults([scriptData]);
       console.log('✅ [useFluidaScript] Roteiro salvo nos resultados com elementos universais');
       
       toast.success('✨ Roteiro gerado com sucesso!', {
-        description: `Seu roteiro FLUIDA está pronto com os 10 elementos universais aplicados pelo mentor ${mentorInferido}.`
+        description: `Seu roteiro ${isRocketMode ? 'Rocket' : 'FLUIDA'} está pronto com os elementos aplicados pelo mentor ${mentorInferido}.`
       });
 
       return scriptData;
@@ -179,28 +181,175 @@ export const useFluidaScript = () => {
     }
   };
 
-  const inferirMentor = (data: FluidaScriptData): string => {
+  const buildRocketPrompt = (data: FluidaScriptData, mentor: string, elementos: any, especialidades: string[]) => {
+    const systemPrompt = `
+      Você é o FLUIDAROTEIRISTA ROCKET — versão avançada com os 10 Elementos Universais.
+      
+      🚀 ELEMENTOS UNIVERSAIS APLICADOS:
+      
+      ${buildElementosPrompt(elementos, mentor, especialidades)}
+      
+      ELEMENTOS ESCOLHIDOS PELO USUÁRIO:
+      - Storytelling: ${data.storytelling}
+      - Copywriting: ${data.copywriting}
+      - Público-alvo: ${data.conhecimento_publico}
+      - Equipamentos: ${data.equipamentos}
+      - Análise de Dados: ${data.analises_dados}
+      - Gatilhos Mentais: ${data.gatilhos_mentais}
+      - Lógica Argumentativa: ${data.logica_argumentativa}
+      - Educação: ${data.premissas_educativas}
+      - Empatia: ${data.mapas_empatia}
+      - Headlines: ${data.headlines}
+      - Ferramentas: ${data.ferramentas_especificas}
+      
+      ESTRUTURA OBRIGATÓRIA:
+      1. Gancho (Headlines + Gatilhos Mentais)
+      2. Conflito (Mapas de Empatia + Conhecimento do Público)
+      3. Virada (Lógica Argumentativa + Premissas Educativas)
+      4. CTA (Copywriting + Ferramentas Específicas)
+      
+      INTEGRAÇÃO DOS ELEMENTOS:
+      - Use o tipo de storytelling escolhido para estruturar a narrativa
+      - Aplique o estilo de copywriting na linguagem
+      - Considere o público-alvo definido
+      - Destaque os equipamentos mencionados
+      - Use os gatilhos mentais selecionados
+      - Mantenha a lógica argumentativa escolhida
+      - Inclua o nível de educação desejado
+      - Conecte-se emocionalmente conforme o mapa de empatia
+      - Crie headlines no estilo escolhido
+      - Finalize com as ferramentas específicas selecionadas
+      
+      Retorne APENAS JSON válido:
+      {
+        "roteiro": "Conteúdo do roteiro estruturado com todos os 10 elementos aplicados",
+        "formato": "carrossel",
+        "emocao_central": "emoção detectada dos elementos",
+        "intencao": "intenção principal baseada nos elementos",
+        "objetivo": "Objetivo específico do roteiro",
+        "mentor": "${mentor}",
+        "elementos_aplicados": ${JSON.stringify(elementos)},
+        "especialidades_aplicadas": ${JSON.stringify(especialidades)},
+        "modo_usado": "Rocket (10 Elementos Universais)"
+      }
+    `;
+
+    const userPrompt = `
+      Tema: ${data.tema}
+      
+      Crie um roteiro ROCKET integrando todos os 10 elementos universais escolhidos pelo usuário.
+      Cada elemento deve ser aplicado de forma harmoniosa e estratégica no roteiro final.
+    `;
+
+    return { systemPrompt, userPrompt };
+  };
+
+  const buildFluidaPrompt = (data: any, mentor: string, elementos: any, especialidades: string[]) => {
+    const systemPrompt = `
+      Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
+      
+      🎯 ESTRUTURA UNIVERSAL DOS 10 ELEMENTOS (Método Leandro Ladeira adaptado):
+      
+      ${buildElementosPrompt(elementos, mentor, especialidades)}
+      
+      Contexto da clínica:
+      - Tipo: estetico
+      - Especialidade: 
+      - Equipamentos: ${data.equipamento}
+      - Protocolo mais vendido: 
+      - Ticket médio: 
+      - Público ideal: 
+      - Estilo da clínica: 
+      - Mentor: ${mentor}
+      
+      ESTRUTURA OBRIGATÓRIA:
+      1. Gancho (Headlines + Gatilhos Mentais)
+      2. Conflito (Mapas de Empatia + Conhecimento do Público)
+      3. Virada (Lógica Argumentativa + Premissas Educativas)
+      4. CTA (Copywriting + Ferramentas Específicas)
+      
+      FORMATO: ${data.tipo_conteudo}
+      
+      Retorne APENAS JSON válido:
+      {
+        "roteiro": "Conteúdo do roteiro estruturado aplicando os 10 elementos",
+        "formato": "carrossel/stories/imagem/video",
+        "emocao_central": "esperança/confiança/urgência/etc",
+        "intencao": "atrair/vender/educar/conectar",
+        "objetivo": "Objetivo específico do post",
+        "mentor": "${mentor}",
+        "elementos_aplicados": ${JSON.stringify(elementos)},
+        "especialidades_aplicadas": ${JSON.stringify(especialidades)},
+        "modo_usado": "Fluida (Akinator)"
+      }
+    `;
+
+    const userPrompt = `
+      Tema: ${data.tema}
+      Tipo de conteúdo: ${data.tipo_conteudo}
+      Objetivo: ${data.objetivo}
+      Canal: ${data.canal}
+      Estilo: ${data.estilo}
+      
+      Crie um roteiro seguindo o modelo FLUIDAROTEIRISTA com os 10 elementos universais aplicados 
+      conforme a intensidade específica do mentor ${mentor}. Use as especialidades 
+      ${especialidades.join(', ')} para dar personalidade única ao roteiro.
+    `;
+
+    return { systemPrompt, userPrompt };
+  };
+
+  const inferirEstiloDoElementos = (data: FluidaScriptData): string => {
+    // Inferir estilo baseado nas escolhas dos elementos
+    const storytelling = data.storytelling;
+    const copywriting = data.copywriting;
+    
+    if (copywriting === 'cientifico_tecnico' || storytelling === 'casos_reais') {
+      return 'cientifico';
+    }
+    if (copywriting === 'emocional_envolvente' || storytelling === 'jornada_heroi') {
+      return 'emocional';
+    }
+    if (copywriting === 'direto_objetivo') {
+      return 'direto';
+    }
+    if (storytelling === 'metaforas' || copywriting === 'conversacional_amigavel') {
+      return 'criativo';
+    }
+    
+    return 'criativo'; // Default
+  };
+
+  const inferirMentor = (data: any): string => {
+    // Verificar se os dados estão definidos antes de acessar propriedades
+    const objetivo = data.objetivo || '';
+    const estilo = data.estilo || '';
+    const tipoConteudo = data.tipo_conteudo || '';
+    const canal = data.canal || '';
+
+    console.log('🔍 [inferirMentor] Dados para inferência:', { objetivo, estilo, tipoConteudo, canal });
+
     // Lógica de inferência baseada no estilo e objetivo
-    if (data.estilo === 'direto' && data.objetivo.includes('vend')) {
+    if (estilo === 'direto' && objetivo.includes('vend')) {
       return 'Leandro Ladeira';
     }
-    if (data.estilo === 'emocional' || data.objetivo.includes('conexão')) {
+    if (estilo === 'emocional' || objetivo.includes('conexão')) {
       return 'Ícaro de Carvalho';
     }
-    if (data.estilo === 'criativo' || data.tipo_conteudo === 'video') {
+    if (estilo === 'criativo' || tipoConteudo === 'video') {
       return 'Paulo Cuenca';
     }
-    if (data.estilo === 'didatico' || data.objetivo.includes('educar')) {
+    if (estilo === 'didatico' || objetivo.includes('educar')) {
       return 'Camila Porto';
     }
-    if (data.estilo === 'humoristico' || data.canal.includes('stories')) {
+    if (estilo === 'humoristico' || canal.includes('stories')) {
       return 'Hyeser Souza';
     }
-    if (data.estilo === 'publicitario' || data.objetivo.includes('branding')) {
+    if (estilo === 'publicitario' || objetivo.includes('branding')) {
       return 'Washington Olivetto';
     }
     
-    // Default
+    console.log('🎯 [inferirMentor] Mentor padrão selecionado: Pedro Sobral');
     return 'Pedro Sobral';
   };
 

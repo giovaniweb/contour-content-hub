@@ -6,6 +6,7 @@ import ScriptPreview from '../components/ScriptPreview';
 import FluidaLoadingScreen from '../components/FluidaLoadingScreen';
 import ElementosProgressBar from '../components/ElementosProgressBar';
 import { ELEMENTOS_UNIVERSAIS_TREE, ELEMENTOS_CONFIG } from '../constants/elementosUniversaisTree';
+import { useEquipments } from '@/hooks/useEquipments';
 
 interface ElementosUniversaisModeProps {
   onScriptGenerated: (script: any) => void;
@@ -26,22 +27,51 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
   const [generatedScript, setGeneratedScript] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const { equipments, loading: equipmentsLoading } = useEquipments();
 
-  const currentQuestion = ELEMENTOS_UNIVERSAIS_TREE[currentStep];
+  console.log('🚀 [ElementosUniversaisMode] Current step:', currentStep, 'Equipments:', equipments.length);
+
+  const getCurrentQuestion = () => {
+    const question = ELEMENTOS_UNIVERSAIS_TREE[currentStep];
+    
+    // Se for a etapa de equipamentos, injetar os equipamentos do banco
+    if (currentStep === 'equipamentos' && equipments.length > 0) {
+      return {
+        ...question,
+        options: equipments.map(eq => ({
+          value: eq.id,
+          label: eq.nome,
+          description: eq.categoria || 'Equipamento para tratamentos'
+        }))
+      };
+    }
+    
+    return question;
+  };
+
+  const currentQuestion = getCurrentQuestion();
   const currentStepIndex = stepHistory.length - 1;
-  const totalSteps = 11; // 10 elementos + tema
+  const totalSteps = 12; // 11 elementos + tema
 
   const handleAnswer = async (value: string | string[]) => {
     console.log('🎯 [ElementosUniversaisMode] handleAnswer chamado com:', value, 'step:', currentStep);
     const newAnswers = { ...answers, [currentStep]: value };
     setAnswers(newAnswers);
 
-    // Se for o último elemento (analises_dados), avançar para tema
-    if (currentStep === 'analises_dados') {
+    // Se for o último elemento (ferramentas_especificas), avançar para tema
+    if (currentStep === 'ferramentas_especificas') {
       const nextStep = 'tema';
       console.log('🎯 [ElementosUniversaisMode] Último elemento, indo para tema');
       setCurrentStep(nextStep);
       setStepHistory([...stepHistory, nextStep]);
+      return;
+    }
+
+    // Se chegou no tema, gerar roteiro
+    if (currentStep === 'tema') {
+      console.log('🎯 [ElementosUniversaisMode] Tema fornecido, gerando roteiro');
+      await handleGenerateScript(newAnswers);
       return;
     }
 
@@ -54,15 +84,13 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
         console.log('🎯 [ElementosUniversaisMode] Indo para próxima etapa:', nextStep);
         setCurrentStep(nextStep);
         setStepHistory([...stepHistory, nextStep]);
-      } else if (currentStep === 'tema') {
-        // Última etapa - gerar roteiro
-        console.log('🎯 [ElementosUniversaisMode] Última etapa atingida, gerando roteiro');
-        await handleGenerateScript(newAnswers);
       }
-    } else if (currentStep === 'tema') {
-      // Se chegou no tema, gerar roteiro
-      console.log('🎯 [ElementosUniversaisMode] Tema fornecido, gerando roteiro');
-      await handleGenerateScript(newAnswers);
+    } else if (Array.isArray(value) && currentStep === 'equipamentos') {
+      // Para equipamentos (múltipla escolha), ir para próximo passo
+      const nextStep = 'analises_dados';
+      console.log('🎯 [ElementosUniversaisMode] Equipamentos selecionados, indo para:', nextStep);
+      setCurrentStep(nextStep);
+      setStepHistory([...stepHistory, nextStep]);
     }
   };
 
@@ -71,19 +99,34 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
       console.log('🎬 [ElementosUniversaisMode] Iniciando geração de roteiro');
       setError(null);
       
+      // Mapear equipamentos selecionados para nomes
+      const selectedEquipmentIds = finalAnswers.equipamentos as string[] || [];
+      const selectedEquipmentNames = selectedEquipmentIds.map(id => 
+        equipments.find(eq => eq.id === id)?.nome || id
+      );
+
       const scriptData = {
+        // Dados dos elementos universais
         elementos_escolhidos: finalAnswers,
         storytelling: finalAnswers.storytelling,
+        copywriting: finalAnswers.copywriting,
         conhecimento_publico: finalAnswers.conhecimento_publico,
-        headlines: finalAnswers.headlines,
+        equipamentos: selectedEquipmentNames.join(', '), // String para compatibilidade
+        equipamento: selectedEquipmentNames.join(', '), // Alias para compatibilidade
+        analises_dados: finalAnswers.analises_dados,
         gatilhos_mentais: finalAnswers.gatilhos_mentais,
         logica_argumentativa: finalAnswers.logica_argumentativa,
         premissas_educativas: finalAnswers.premissas_educativas,
         mapas_empatia: finalAnswers.mapas_empatia,
-        copywriting: finalAnswers.copywriting,
+        headlines: finalAnswers.headlines,
         ferramentas_especificas: finalAnswers.ferramentas_especificas,
-        analises_dados: finalAnswers.analises_dados,
         tema: finalAnswers.tema || '',
+        
+        // Dados para compatibilidade com useFluidaScript
+        tipo_conteudo: 'carrossel',
+        objetivo: 'atrair',
+        canal: 'instagram',
+        estilo: 'criativo',
         modo: '10_elementos_universais'
       };
 
@@ -171,6 +214,23 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
     );
   }
 
+  // Mostrar loading se estiver carregando equipamentos na etapa de equipamentos
+  if (currentStep === 'equipamentos' && equipmentsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="h-12 w-12 border-4 border-aurora-electric-purple border-t-transparent rounded-full mx-auto" />
+          </motion.div>
+          <p className="text-white">Carregando equipamentos...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentQuestion) {
     return (
       <div className="text-center py-12">
@@ -214,6 +274,7 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
         totalSteps={totalSteps}
         isTextInput={currentQuestion.isTextInput}
         mentorPhrase={currentQuestion.mentorPhrase}
+        isMultipleChoice={currentQuestion.isMultipleChoice}
       />
     </motion.div>
   );

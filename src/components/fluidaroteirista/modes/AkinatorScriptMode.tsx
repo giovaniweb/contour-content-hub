@@ -34,10 +34,11 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     
     // Se for a etapa de equipamento, injetar os equipamentos do banco
     if (currentStep === 'equipamento' && equipments.length > 0) {
+      console.log('🔧 [AkinatorScriptMode] Injetando equipamentos na pergunta:', equipments.length, 'equipamentos');
       return {
         ...question,
         options: equipments.map(eq => ({
-          value: eq.nome,
+          value: eq.id,
           label: eq.nome,
           emoji: '🔧',
           description: eq.categoria || 'Equipamento para tratamentos'
@@ -61,14 +62,24 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       console.log('🎯 [AkinatorScriptMode] Final step reached, generating script...');
       
       try {
+        // Mapear equipamentos selecionados para nomes se for array
+        let equipmentString = '';
+        if (Array.isArray(newAnswers.equipamento)) {
+          const selectedEquipmentIds = newAnswers.equipamento as string[];
+          const selectedEquipmentNames = selectedEquipmentIds.map(id => 
+            equipments.find(eq => eq.id === id)?.nome || id
+          );
+          equipmentString = selectedEquipmentNames.join(', ');
+        } else {
+          equipmentString = newAnswers.equipamento as string || '';
+        }
+
         const scriptData = {
           tipo_conteudo: newAnswers.tipo_conteudo as string || 'carrossel',
           objetivo: newAnswers.objetivo as string || 'atrair',
           canal: newAnswers.canal as string || 'instagram',
           estilo: newAnswers.estilo as string || 'criativo',
-          equipamento: Array.isArray(newAnswers.equipamento) 
-            ? (newAnswers.equipamento as string[]).join(', ')
-            : newAnswers.equipamento as string || '',
+          equipamento: equipmentString,
           tema: value as string
         };
 
@@ -145,6 +156,33 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     );
   }
 
+  // Verificar se não há equipamentos na etapa de equipamentos
+  if (currentStep === 'equipamento' && !equipmentsLoading && equipments.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="text-yellow-400 text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-white">Nenhum equipamento encontrado</h3>
+          <p className="text-slate-300 max-w-md">
+            Não encontramos equipamentos cadastrados. Você pode pular esta etapa ou voltar para adicionar equipamentos.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={handleGoBack} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <Button 
+              onClick={() => handleOptionSelect([])}
+              className="bg-aurora-electric-purple hover:bg-aurora-electric-purple/80"
+            >
+              Pular Equipamentos
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const currentQuestion = getCurrentQuestion();
   
   if (!currentQuestion) {
@@ -177,6 +215,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
         totalSteps={Object.keys(AKINATOR_TREE).length}
         isTextInput={currentStep === 'tema'}
         mentorPhrase={currentQuestion.mentorPhrase}
+        isMultipleChoice={currentStep === 'equipamento'}
       />
     </div>
   );
