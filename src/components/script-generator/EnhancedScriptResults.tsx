@@ -1,226 +1,208 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Sparkles, Download, Play, Pause, Image, Mic } from 'lucide-react';
-import { useAudioGeneration } from '@/hooks/useAudioGeneration';
-
-interface FluidaScriptResult {
-  roteiro: string;
-  formato: string;
-  emocao_central: string;
-  intencao: string;
-  objetivo: string;
-  mentor: string;
-}
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  Wand2, 
+  RefreshCw, 
+  Image as ImageIcon, 
+  Download,
+  Sparkles,
+  CheckCircle,
+  Loader2,
+  X
+} from 'lucide-react';
+import ScriptFormatter from '../fluidaroteirista/components/ScriptFormatter';
+import { useFluidaScript } from '../fluidaroteirista/hooks/useFluidaScript';
 
 interface EnhancedScriptResultsProps {
-  results: FluidaScriptResult[];
+  results: any[];
   onScriptApproved?: (script: any) => void;
-  onNewScript?: () => void;
-  onGenerateImage?: (script: any) => void;
-  isDisneyMode?: boolean;
+  onNewScript: () => void;
+  onGenerateImage: (script: any) => void;
 }
 
 const EnhancedScriptResults: React.FC<EnhancedScriptResultsProps> = ({
   results,
   onScriptApproved,
   onNewScript,
-  onGenerateImage,
-  isDisneyMode = false
+  onGenerateImage
 }) => {
-  const { generateAudio, downloadAudio, isGenerating, audioUrl } = useAudioGeneration();
-  const [playingAudio, setPlayingAudio] = React.useState<string | null>(null);
-  const [audioElements, setAudioElements] = React.useState<{ [key: string]: HTMLAudioElement }>({});
+  const [showImageModal, setShowImageModal] = useState(false);
+  const { 
+    applyDisneyMagic, 
+    isGenerating, 
+    isGeneratingImage, 
+    generatedImageUrl,
+    generateImage
+  } = useFluidaScript();
 
-  const handleGenerateAudio = async (script: FluidaScriptResult, index: number) => {
-    const audioKey = `script-${index}`;
-    
-    const audioUrl = await generateAudio({
-      text: script.roteiro,
-      mentor: script.mentor,
-      isDisneyMode
-    });
+  const script = results[0];
 
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.onended = () => setPlayingAudio(null);
-      setAudioElements(prev => ({ ...prev, [audioKey]: audio }));
+  if (!script) return null;
+
+  const handleDisneyMagic = async () => {
+    await applyDisneyMagic(script);
+  };
+
+  const handleGenerateImage = async () => {
+    await generateImage(script);
+    setShowImageModal(true);
+  };
+
+  const downloadImage = () => {
+    if (generatedImageUrl) {
+      const link = document.createElement('a');
+      link.href = generatedImageUrl;
+      link.download = `roteiro-imagem-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-  };
-
-  const toggleAudio = (index: number) => {
-    const audioKey = `script-${index}`;
-    const audio = audioElements[audioKey];
-    
-    if (!audio) return;
-
-    if (playingAudio === audioKey) {
-      audio.pause();
-      setPlayingAudio(null);
-    } else {
-      // Parar outros áudios
-      Object.values(audioElements).forEach(a => a.pause());
-      audio.play();
-      setPlayingAudio(audioKey);
-    }
-  };
-
-  const isVideoFormat = (formato: string) => {
-    return formato.toLowerCase().includes('stories') || formato.toLowerCase().includes('video');
-  };
-
-  const isImageFormat = (formato: string) => {
-    return formato.toLowerCase().includes('imagem') || formato.toLowerCase().includes('carrossel');
   };
 
   return (
     <div className="space-y-6">
-      {results.map((result, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.2 }}
+      {/* Header de Ações */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-wrap gap-4 justify-center"
+      >
+        <Button
+          onClick={onNewScript}
+          variant="outline"
+          className="aurora-glass border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
         >
-          <Card className="aurora-card border-2 relative overflow-hidden">
-            {/* Efeito Aurora no fundo */}
-            <div className="absolute inset-0 aurora-gradient-bg opacity-5 pointer-events-none" />
-            
-            <CardHeader className="relative z-10">
-              <CardTitle className="flex items-center gap-3">
-                <Sparkles className="h-6 w-6 aurora-electric-purple aurora-pulse" />
-                <span className="aurora-text-gradient">
-                  Roteiro FLUIDA - {result.formato}
-                </span>
-                {isDisneyMode && (
-                  <motion.span 
-                    className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded-full"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Novo Roteiro
+        </Button>
+
+        <Button
+          onClick={handleDisneyMagic}
+          disabled={isGenerating}
+          className="aurora-glass bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10"
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4 mr-2" />
+          )}
+          Disney Magic
+        </Button>
+
+        <Button
+          onClick={handleGenerateImage}
+          disabled={isGeneratingImage}
+          className="aurora-glass bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
+        >
+          {isGeneratingImage ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <ImageIcon className="h-4 w-4 mr-2" />
+          )}
+          Gerar Imagem
+        </Button>
+
+        {onScriptApproved && (
+          <Button
+            onClick={() => onScriptApproved(script)}
+            className="aurora-glass bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300 hover:bg-green-500/10"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Aprovar Roteiro
+          </Button>
+        )}
+      </motion.div>
+
+      {/* Badges de Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-3 justify-center"
+      >
+        <Badge className="aurora-glass border-cyan-500/30 text-cyan-300">
+          {script.formato.toUpperCase()}
+        </Badge>
+        <Badge className="aurora-glass border-purple-500/30 text-purple-300">
+          {script.mentor}
+        </Badge>
+        <Badge className="aurora-glass border-green-500/30 text-green-300">
+          {script.emocao_central}
+        </Badge>
+        {script.disney_applied && (
+          <Badge className="aurora-glass border-yellow-500/30 text-yellow-300">
+            ✨ Disney Magic
+          </Badge>
+        )}
+      </motion.div>
+
+      {/* Formatador de Script */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <ScriptFormatter script={script} />
+      </motion.div>
+
+      {/* Modal de Imagem Gerada */}
+      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <DialogContent className="aurora-glass border border-purple-500/30 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-purple-300 flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Imagem Gerada
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {isGeneratingImage ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="h-12 w-12 animate-spin text-purple-400 mb-4" />
+                <p className="text-purple-300">Gerando sua imagem...</p>
+                <p className="text-sm text-purple-400 mt-2">Isso pode levar alguns segundos</p>
+              </div>
+            ) : generatedImageUrl ? (
+              <div className="space-y-4">
+                <div className="relative">
+                  <img 
+                    src={generatedImageUrl} 
+                    alt="Imagem gerada do roteiro"
+                    className="w-full rounded-lg border border-purple-500/20"
+                  />
+                </div>
+                
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    onClick={downloadImage}
+                    className="aurora-glass bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300"
                   >
-                    ✨ Modo Disney
-                  </motion.span>
-                )}
-              </CardTitle>
-              
-              {/* Tags Aurora */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                <span className="px-3 py-1 aurora-glass rounded-full text-sm aurora-neon-blue border border-blue-300/20">
-                  Emoção: {result.emocao_central}
-                </span>
-                <span className="px-3 py-1 aurora-glass rounded-full text-sm aurora-mint-green border border-green-300/20">
-                  Intenção: {result.intencao}
-                </span>
-                <span className="px-3 py-1 aurora-glass rounded-full text-sm aurora-electric-purple border border-purple-300/20">
-                  Mentor: {result.mentor}
-                </span>
-              </div>
-            </CardHeader>
-
-            <CardContent className="relative z-10 space-y-6">
-              {/* Objetivo */}
-              <div>
-                <Label className="aurora-accent font-semibold">Objetivo:</Label>
-                <p className="aurora-body mt-1">{result.objetivo}</p>
-              </div>
-
-              {/* Roteiro */}
-              <div>
-                <Label className="aurora-accent font-semibold">Roteiro:</Label>
-                <div className="aurora-glass p-4 rounded-xl mt-2 border aurora-glow">
-                  <pre className="whitespace-pre-wrap aurora-body font-medium leading-relaxed">
-                    {result.roteiro}
-                  </pre>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setShowImageModal(false)}
+                    variant="outline"
+                    className="aurora-glass border-purple-500/30 text-purple-300"
+                  >
+                    Fechar
+                  </Button>
                 </div>
               </div>
-
-              {/* Preview de Áudio */}
-              {audioElements[`script-${index}`] && (
-                <motion.div 
-                  className="aurora-glass p-4 rounded-xl border"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleAudio(index)}
-                      className="aurora-button"
-                    >
-                      {playingAudio === `script-${index}` ? 
-                        <Pause className="h-4 w-4" /> : 
-                        <Play className="h-4 w-4" />
-                      }
-                    </Button>
-                    <span className="aurora-body text-sm">
-                      Áudio gerado com {isDisneyMode ? 'voz encantadora' : `mentor ${result.mentor}`}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => downloadAudio(`roteiro-${result.formato}-${index + 1}.mp3`)}
-                      className="aurora-button ml-auto"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Botões de Ação */}
-              <div className="flex flex-wrap gap-3">
-                {/* Botão principal de aprovação */}
-                <Button 
-                  onClick={() => onScriptApproved?.(result)}
-                  className="aurora-button bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex-1 min-w-fit"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Aprovar Roteiro
-                </Button>
-
-                {/* Botão de gerar imagem (para formatos de imagem) */}
-                {isImageFormat(result.formato) && (
-                  <Button
-                    onClick={() => onGenerateImage?.(result)}
-                    variant="outline"
-                    className="aurora-glass border-purple-300/30 hover:border-purple-300/50"
-                  >
-                    <Image className="h-4 w-4 mr-2" />
-                    Gerar Imagem
-                  </Button>
-                )}
-
-                {/* Botão de gerar áudio (para formatos de vídeo/stories) */}
-                {(isVideoFormat(result.formato) || !audioElements[`script-${index}`]) && (
-                  <Button
-                    onClick={() => handleGenerateAudio(result, index)}
-                    disabled={isGenerating}
-                    variant="outline"
-                    className="aurora-glass border-blue-300/30 hover:border-blue-300/50"
-                  >
-                    <Mic className="h-4 w-4 mr-2" />
-                    {isGenerating ? 'Gerando...' : 
-                     isVideoFormat(result.formato) ? 'Gerar Voz Encantadora' : 'Gerar Áudio'}
-                  </Button>
-                )}
-
-                {/* Botão novo roteiro */}
-                <Button 
-                  variant="outline" 
-                  onClick={onNewScript}
-                  className="aurora-glass border-gray-300/30 hover:border-gray-300/50"
-                >
-                  Novo Roteiro
-                </Button>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-purple-300">Nenhuma imagem foi gerada ainda.</p>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

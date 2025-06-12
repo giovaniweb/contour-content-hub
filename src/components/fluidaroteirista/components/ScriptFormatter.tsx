@@ -120,48 +120,64 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     <div className="space-y-6">
       {/* Header Analytics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+        <div className="aurora-glass p-4 rounded-lg border border-blue-500/20">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-800">Tempo</span>
+            <Clock className="h-4 w-4 text-blue-400" />
+            <span className="text-sm font-medium text-blue-300">Tempo</span>
           </div>
-          <div className={`text-xl font-bold ${isWithinTimeLimit ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-xl font-bold ${isWithinTimeLimit ? 'text-green-400' : 'text-red-400'}`}>
             {estimatedTime}s
           </div>
-          <div className="text-xs text-blue-600">
+          <div className="text-xs text-blue-400">
             {isWithinTimeLimit ? '✅ Dentro do limite' : '⚠️ Excede 60s'}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+        <div className="aurora-glass p-4 rounded-lg border border-purple-500/20">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-800">Palavras</span>
+            <Target className="h-4 w-4 text-purple-400" />
+            <span className="text-sm font-medium text-purple-300">Palavras</span>
           </div>
-          <div className="text-xl font-bold text-purple-600">{wordCount}</div>
-          <div className="text-xs text-purple-600">~150 ideal</div>
+          <div className="text-xl font-bold text-purple-400">{wordCount}</div>
+          <div className="text-xs text-purple-400">~150 ideal</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+        <div className="aurora-glass p-4 rounded-lg border border-green-500/20">
           <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium text-green-800">Emoção</span>
+            <Heart className="h-4 w-4 text-green-400" />
+            <span className="text-sm font-medium text-green-300">Emoção</span>
           </div>
-          <div className="text-sm font-bold text-green-600 capitalize">{script.emocao_central}</div>
-          <div className="text-xs text-green-600">{script.formato}</div>
+          <div className="text-sm font-bold text-green-400 capitalize">{script.emocao_central}</div>
+          <div className="text-xs text-green-400">{script.formato}</div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+        <div className="aurora-glass p-4 rounded-lg border border-orange-500/20">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-orange-600" />
-            <span className="text-sm font-medium text-orange-800">Equipamentos</span>
+            <Zap className="h-4 w-4 text-orange-400" />
+            <span className="text-sm font-medium text-orange-300">Equipamentos</span>
           </div>
-          <div className="text-sm font-bold text-orange-600">
+          <div className="text-sm font-bold text-orange-400">
             {script.equipamentos_utilizados?.length || 0}
           </div>
-          <div className="text-xs text-orange-600">integrados</div>
+          <div className="text-xs text-orange-400">integrados</div>
         </div>
       </div>
+
+      {/* Roteiro Principal */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="aurora-glass p-8 rounded-xl border border-cyan-500/30"
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-cyan-300 mb-2">📝 Roteiro Completo</h2>
+          <p className="text-cyan-400/80">Seu conteúdo pronto para redes sociais</p>
+        </div>
+        
+        <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line">
+          {script.roteiro}
+        </div>
+      </motion.div>
 
       {/* Seções do Roteiro */}
       <div className="space-y-4">
@@ -173,17 +189,17 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             transition={{ delay: index * 0.15 }}
           >
             <Card className={`relative overflow-hidden border-0 bg-gradient-to-r ${section.color} p-[1px] rounded-xl`}>
-              <div className="bg-white dark:bg-slate-900 rounded-xl p-6">
+              <div className="aurora-glass rounded-xl p-6">
                 <CardHeader className="p-0 mb-4">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg bg-gradient-to-r ${section.color}`}>
                       <section.icon className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                      <CardTitle className="text-lg font-bold text-slate-200">
                         {section.title}
                       </CardTitle>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                      <p className="text-sm text-slate-400">
                         {section.description}
                       </p>
                     </div>
@@ -193,7 +209,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                 <CardContent className="p-0">
                   <div className="space-y-3">
                     {section.content.map((text, textIndex) => (
-                      <div key={textIndex} className="text-slate-700 dark:text-slate-200 leading-relaxed">
+                      <div key={textIndex} className="text-slate-300 leading-relaxed">
                         {text}
                       </div>
                     ))}
@@ -212,9 +228,9 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+          <Card className="aurora-glass border border-indigo-500/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-indigo-800">
+              <CardTitle className="flex items-center gap-2 text-indigo-300">
                 <Zap className="h-5 w-5" />
                 Equipamentos Integrados no Roteiro
               </CardTitle>
@@ -222,11 +238,11 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {script.equipamentos_utilizados.map((equipment, index) => (
-                  <div key={index} className="bg-white p-4 rounded-lg border border-indigo-100">
-                    <h4 className="font-semibold text-indigo-900 mb-2">{equipment.nome}</h4>
+                  <div key={index} className="aurora-glass p-4 rounded-lg border border-indigo-500/20">
+                    <h4 className="font-semibold text-indigo-300 mb-2">{equipment.nome}</h4>
                     <div className="space-y-2 text-sm">
-                      <div><strong>Tecnologia:</strong> {equipment.tecnologia}</div>
-                      <div><strong>Benefícios:</strong> {equipment.beneficios}</div>
+                      <div className="text-slate-300"><strong>Tecnologia:</strong> {equipment.tecnologia}</div>
+                      <div className="text-slate-300"><strong>Benefícios:</strong> {equipment.beneficios}</div>
                     </div>
                   </div>
                 ))}
@@ -241,15 +257,15 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-6 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg"
+          className="p-6 aurora-glass border border-red-500/30 rounded-lg"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Clock className="h-5 w-5 text-red-600" />
+            <div className="p-2 bg-red-500/20 rounded-lg">
+              <Clock className="h-5 w-5 text-red-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-red-800">⚠️ Roteiro excede 60 segundos</h3>
-              <p className="text-sm text-red-600 mt-1">
+              <h3 className="font-semibold text-red-300">⚠️ Roteiro excede 60 segundos</h3>
+              <p className="text-sm text-red-400 mt-1">
                 Recomendamos encurtar para melhor engajamento nas redes sociais.
                 Tempo atual: {estimatedTime}s | Ideal: 60s
               </p>
@@ -263,14 +279,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg text-center"
+          className="p-4 aurora-glass border border-yellow-500/30 rounded-lg text-center"
         >
-          <div className="flex items-center justify-center gap-2 text-yellow-800">
+          <div className="flex items-center justify-center gap-2 text-yellow-300">
             <span className="text-2xl">✨</span>
             <span className="font-semibold">Disney Magic Aplicada por Walt Disney 1928</span>
             <span className="text-2xl">✨</span>
           </div>
-          <p className="text-sm text-yellow-700 mt-1">
+          <p className="text-sm text-yellow-400 mt-1">
             Este roteiro foi transformado com os elementos narrativos da Disney
           </p>
         </motion.div>

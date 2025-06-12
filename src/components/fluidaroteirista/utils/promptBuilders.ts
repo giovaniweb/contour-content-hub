@@ -17,8 +17,14 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     - Seja CONCISO e DIRETO
     - Cada palavra deve ter impacto
     
-    📋 EQUIPAMENTOS DISPONÍVEIS:
+    📋 EQUIPAMENTOS DISPONÍVEIS (USE APENAS ESTES):
     ${equipmentContext}
+    
+    🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
+    - Use APENAS os equipamentos listados acima
+    - NUNCA mencione outros equipamentos ou concorrentes
+    - Se não há equipamentos listados, não mencione equipamentos específicos
+    - NUNCA substitua um equipamento por outro
     
     ESTRUTURA OBRIGATÓRIA (em 60 segundos):
     1. Gancho (5-10 segundos) - Capturar atenção
@@ -33,6 +39,7 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     - Mencione especificamente os equipamentos e suas tecnologias
     - Conecte os benefícios dos equipamentos com o problema apresentado
     - Mantenha o tempo de 60 segundos rigorosamente
+    - NUNCA mencione equipamentos não listados
     
     Retorne APENAS JSON válido:
     {
