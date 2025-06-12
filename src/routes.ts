@@ -1,5 +1,4 @@
 
-
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
@@ -40,7 +39,8 @@ export const ROUTES = {
   
   MARKETING: {
     CONSULTANT: '/marketing-consultant',
-    REPORTS: '/reports'
+    REPORTS: '/reports',
+    DIAGNOSTIC_HISTORY: '/diagnostic-history'
   },
 
   CONSULTANT: {
@@ -68,4 +68,3 @@ export const ROUTES = {
 
   ADMIN_VIDEOS: '/admin/videos'
 } as const;
-
