@@ -26,6 +26,7 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     - Use os nomes EXATOS dos equipamentos
     - Integre as tecnologias e benefícios específicos
     - NUNCA substitua por outros equipamentos
+    - Inclua equipamentos nas descrições de imagem
     `
     : `
     🚨 REGRA DE EQUIPAMENTOS:
@@ -85,12 +86,15 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES RÍGIDAS:
     - EXATAMENTE 5 slides, nem mais nem menos
     - OBRIGATÓRIO: Numerar cada slide (Slide 1, Slide 2, etc.)
-    - Máximo 25 palavras por slide
+    - ESTRUTURA OBRIGATÓRIA PARA CADA SLIDE:
+      * Texto: [máximo 25 palavras de conteúdo impactante]
+      * Imagem: [descrição visual DETALHADA e específica]
     - Slide 1: Gancho forte e impactante
     - Slides 2-4: Desenvolvimento progressivo do conteúdo
     - Slide 5: CTA poderoso e conclusão
     - NUNCA exceder 5 slides
-    - Se tiver mais conteúdo, condense nos 5 slides obrigatórios
+    - Descrições de imagem DEVEM incluir: ambiente, pessoas, equipamentos, cores, expressões, detalhes visuais
+    - Se equipamentos foram selecionados, OBRIGATÓRIO mostrá-los nas descrições visuais
     `,
     
     post_estatico: `
@@ -166,15 +170,16 @@ const getOutputInstructions = (formato: string): string => {
     `,
     
     carrossel: `
-    🚨 IMPORTANTE: EXATAMENTE 5 SLIDES - CONTAGEM OBRIGATÓRIA
+    🚨 IMPORTANTE: EXATAMENTE 5 SLIDES - ESTRUTURA TEXTO/IMAGEM OBRIGATÓRIA
     Retorne JSON:
     {
-      "roteiro": "Slide 1: [Gancho impactante]\nSlide 2: [Desenvolvimento 1]\nSlide 3: [Desenvolvimento 2]\nSlide 4: [Desenvolvimento 3]\nSlide 5: [CTA e conclusão]",
+      "roteiro": "Slide 1:\nTexto: [Gancho impactante em até 25 palavras]\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante sorrindo, equipamento específico em uso, iluminação suave, cores harmoniosas]\n\nSlide 2:\nTexto: [Desenvolvimento do problema]\nImagem: [Descrição visual específica com detalhes de expressão, ambiente, equipamentos]\n\nSlide 3:\nTexto: [Solução apresentada]\nImagem: [Descrição visual com equipamentos em ação, resultados visíveis]\n\nSlide 4:\nTexto: [Benefícios e diferenciais]\nImagem: [Descrição visual do resultado final, satisfação do cliente]\n\nSlide 5:\nTexto: [CTA forte e direto]\nImagem: [Descrição visual de chamada para ação, contato da clínica]",
       "formato": "carrossel", 
       "slides_total": 5,
-      "sugestao_visual": "Descrição visual específica para cada um dos 5 slides"
+      "sugestao_visual": "Cada slide tem descrição visual específica integrada"
     }
     VALIDAÇÃO: Conte os slides antes de enviar. DEVE ser exatamente 5.
+    ESTRUTURA: Cada slide DEVE ter "Texto:" e "Imagem:" separados.
     `,
     
     post_estatico: `
@@ -280,4 +285,3 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
     }
   `;
 };
-

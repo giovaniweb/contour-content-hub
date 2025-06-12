@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2, Palette, Zap } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Wand2, Image, Volume2, Palette, Zap, Type, ImageIcon } from "lucide-react";
+import { parseCarouselSlides } from '../utils/carouselParser';
 
 interface ScriptSlide {
   number: number;
+  texto?: string;
+  imagem?: string;
   content: string;
   type?: 'hook' | 'problem' | 'solution' | 'cta';
 }
@@ -40,8 +43,13 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
   isProcessing = false,
   generatedImageUrl
 }) => {
-  // Parse script content into slides
+  // Parse script content into slides based on format
   const parseScriptSlides = (content: string): ScriptSlide[] => {
+    if (script.formato === 'carrossel') {
+      return parseCarouselSlides(content);
+    }
+    
+    // Para outros formatos, manter lógica anterior
     const lines = content.split('\n').filter(line => line.trim());
     const slides: ScriptSlide[] = [];
     
@@ -194,15 +202,39 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="relative z-10">
-                    <motion.p 
-                      className="text-white leading-relaxed text-lg"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.15 + 0.3 }}
-                    >
-                      {slide.content}
-                    </motion.p>
+                  <CardContent className="relative z-10 space-y-4">
+                    {/* Conteúdo para carrossel com estrutura Texto/Imagem */}
+                    {script.formato === 'carrossel' && slide.texto && slide.imagem ? (
+                      <div className="space-y-4">
+                        {/* Seção Texto */}
+                        <div className="p-4 aurora-glass bg-blue-500/10 rounded-lg border border-blue-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Type className="h-4 w-4 text-blue-400" />
+                            <span className="text-sm font-medium text-blue-300">Texto:</span>
+                          </div>
+                          <p className="text-white leading-relaxed">{slide.texto}</p>
+                        </div>
+                        
+                        {/* Seção Imagem */}
+                        <div className="p-4 aurora-glass bg-purple-500/10 rounded-lg border border-purple-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <ImageIcon className="h-4 w-4 text-purple-400" />
+                            <span className="text-sm font-medium text-purple-300">Imagem:</span>
+                          </div>
+                          <p className="text-white leading-relaxed italic">{slide.imagem}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Conteúdo para outros formatos */
+                      <motion.p 
+                        className="text-white leading-relaxed text-lg"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.15 + 0.3 }}
+                      >
+                        {slide.content}
+                      </motion.p>
+                    )}
                   </CardContent>
                   
                   {/* Connector Arrow - Aurora Style */}
