@@ -1,5 +1,5 @@
 
-import { useAuth as useAuthContext } from '@/context/MockAuthContext';
+import { useAuth as useAuthContext } from '@/context/AuthContext';
 
 export const useAuth = () => {
   return useAuthContext();

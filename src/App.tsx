@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
 import './styles/aurora-design-system.css';
-import { MockAuthProvider } from './context/MockAuthContext';
+import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -32,7 +32,7 @@ import FluidaRoteiristPage from '@/pages/FluidaRoteiristsPage';
 
 function App() {
   return (
-    <MockAuthProvider>
+    <AuthProvider>
       <Router>
         <Routes>
           {/* Public Routes - without sidebar */}
@@ -119,7 +119,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-    </MockAuthProvider>
+    </AuthProvider>
   );
 }
 

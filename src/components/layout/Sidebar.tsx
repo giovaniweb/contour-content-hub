@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -37,7 +38,7 @@ import {
   TestTube
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
-import { useAuth } from '@/context/MockAuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 const Sidebar: React.FC = () => {

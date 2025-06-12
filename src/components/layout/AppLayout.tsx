@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/MockAuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
 import Sidebar from './Sidebar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -75,10 +75,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false })
             <div className="flex items-center gap-2 px-4">
               <SidebarTrigger className="-ml-1 text-slate-50" />
               <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
-              <div className="text-slate-50">
-                <span className="text-sm">Bem-vindo, </span>
-                <span className="font-medium">{user.nome || user.email}</span>
-              </div>
             </div>
           </header>
           <main className="flex-1 overflow-auto">
