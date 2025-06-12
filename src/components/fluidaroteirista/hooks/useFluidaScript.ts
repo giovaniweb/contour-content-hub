@@ -1,172 +1,105 @@
-
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { useEquipmentData } from '@/hooks/useEquipmentData';
-import { FluidaScriptResult, ScriptGenerationData } from '../types';
-import { 
-  validatePreGeneration, 
-  validatePostGeneration, 
-  meetsQualityStandards,
-  generateImprovementSuggestions,
-  generateSmartQuestions,
-  ValidationResult 
-} from '../utils/antiGenericValidation';
-import { generateFluidaScript, applyDisneyTransformation } from '../services/scriptGenerator';
-import { generateImage } from '@/services/supabaseService';
+import { useToast } from '@/hooks/use-toast';
+import { generateScript } from '@/services/supabaseService';
+import { validatePreGeneration, validatePostGeneration, ValidationResult } from '../utils/antiGenericValidation';
+import { validateAkinatorScript } from '../utils/akinatorValidation';
+import { ScriptGenerationData, FluidaScriptResult } from '../types';
 
 export const useFluidaScript = () => {
   const [results, setResults] = useState<FluidaScriptResult[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [showValidation, setShowValidation] = useState(false);
-  const { getEquipmentDetails } = useEquipmentData();
+  const { toast } = useToast();
 
-  const generateScript = async (data: ScriptGenerationData, forceGenerate: boolean = false) => {
-    console.log('🎬 [useFluidaScript] ===== INICIANDO GERAÇÃO COM VALIDAÇÃO =====');
-    console.log('📋 [useFluidaScript] Dados recebidos:', data);
-    console.log('🔒 [useFluidaScript] Força geração:', forceGenerate);
-    
-    // STEP 1: VALIDAÇÃO PRÉ-GERAÇÃO OBRIGATÓRIA
-    if (!forceGenerate) {
-      console.log('🔍 [useFluidaScript] Executando validação pré-geração...');
-      const validation = validatePreGeneration(data);
-      
-      if (!validation.isValid) {
-        console.log('❌ [useFluidaScript] VALIDAÇÃO FALHOU - Bloqueando geração');
-        console.log('📊 [useFluidaScript] Erros encontrados:', validation.errors);
-        
-        setValidationResult(validation);
-        setShowValidation(true);
-        
-        // Gerar perguntas inteligentes
-        const smartQuestions = generateSmartQuestions(validation);
-        
-        toast.error('🚫 Roteiro bloqueado pelo sistema anti-genérico', {
-          description: `${validation.errors.length} problemas encontrados. Complete as informações obrigatórias.`
-        });
-        
-        console.log('💡 [useFluidaScript] Perguntas inteligentes:', smartQuestions);
-        return [];
-      }
-      
-      console.log('✅ [useFluidaScript] Validação pré-geração APROVADA');
-      setValidationResult(null);
-      setShowValidation(false);
-    }
-
-    if (isGenerating) {
-      console.warn('⚠️ [useFluidaScript] Geração já em andamento, ignorando nova solicitação');
-      return [];
-    }
+  const generateScript = async (data: ScriptGenerationData, forceGenerate = false): Promise<FluidaScriptResult[]> => {
+    console.log('🚀 [useFluidaScript] generateScript called with:', data);
     
     setIsGenerating(true);
+    setShowValidation(false);
     
     try {
-      // CORREÇÃO: Tratar equipamentos como array
-      const equipmentNames = Array.isArray(data.equipamentos) 
-        ? data.equipamentos 
-        : data.equipamentos 
-          ? [data.equipamentos]
-          : [];
-
-      console.log('🔍 [useFluidaScript] Equipment names to search for:', equipmentNames);
+      // Escolher validação baseada no modo
+      let validation: ValidationResult;
       
-      if (equipmentNames.length > 0) {
-        console.log('🔧 [useFluidaScript] Buscando dados detalhados dos equipamentos...');
-        const equipmentDetails = await getEquipmentDetails(equipmentNames);
-        console.log('✅ [useFluidaScript] Equipamentos carregados:', equipmentDetails.length);
-        
-        // VALIDAÇÃO CRÍTICA: Verificar se equipamentos foram carregados corretamente
-        if (equipmentNames.length > 0 && equipmentDetails.length === 0) {
-          console.error('❌ [useFluidaScript] ERRO CRÍTICO: Equipamentos selecionados mas nenhum detalhe carregado!');
-          toast.error('⚠️ Equipamentos não carregados', {
-            description: 'Os equipamentos selecionados não puderam ser carregados. Gerando roteiro genérico.'
-          });
-        }
-
-        console.log('🚀 [useFluidaScript] Gerando roteiro com equipamentos...');
-        const scriptResult = await generateFluidaScript(data, equipmentDetails);
-        
-        // STEP 2: VALIDAÇÃO PÓS-GERAÇÃO RIGOROSA
-        console.log('🎯 [useFluidaScript] Executando validação pós-geração...');
-        const qualityCheck = validatePostGeneration(scriptResult, data);
-        const meetsStandards = meetsQualityStandards(qualityCheck);
-        
-        if (!meetsStandards && !forceGenerate) {
-          console.warn('⚠️ [useFluidaScript] QUALIDADE INSUFICIENTE - Solicitando melhorias');
-          
-          const improvements = generateImprovementSuggestions(qualityCheck, data);
-          
-          toast.warning('⚠️ Roteiro precisa de melhorias', {
-            description: `${improvements.length} ajustes sugeridos para maior personalização`
-          });
-          
-          console.log('📋 [useFluidaScript] Melhorias sugeridas:', improvements);
-          // Retornar o script mesmo assim, mas com aviso
-        }
-        
-        // VALIDAÇÃO PÓS-GERAÇÃO: Verificar se equipamentos aparecem no roteiro
-        if (equipmentDetails.length > 0) {
-          const equipmentMentioned = equipmentDetails.some(eq => 
-            scriptResult.roteiro.toLowerCase().includes(eq.nome.toLowerCase())
-          );
-          
-          if (!equipmentMentioned) {
-            console.error('❌ [useFluidaScript] PROBLEMA: Equipamentos não mencionados no roteiro gerado!');
-            
-            toast.warning('⚠️ Atenção aos equipamentos', {
-              description: 'Verifique se os equipamentos estão bem integrados no roteiro.'
-            });
-          } else {
-            console.log('✅ [useFluidaScript] Equipamentos mencionados no roteiro!');
-            toast.success('🎬 Roteiro FLUIDA gerado!', {
-              description: `Criado com ${equipmentNames.length} equipamento(s) integrado(s) ✅`
-            });
-          }
-        }
-
-        console.log('🎯 [useFluidaScript] Script resultado criado:', scriptResult);
-        setResults([scriptResult]);
-        return [scriptResult];
-        
+      if (data.modo === 'akinator') {
+        console.log('🎯 [useFluidaScript] Usando validação Akinator');
+        validation = validateAkinatorScript(data);
       } else {
-        console.log('📝 [useFluidaScript] Gerando roteiro sem equipamentos específicos...');
-        const scriptResult = await generateFluidaScript(data, []);
-        
-        // Validação pós-geração mesmo sem equipamentos
-        const qualityCheck = validatePostGeneration(scriptResult, data);
-        const meetsStandards = meetsQualityStandards(qualityCheck);
-        
-        if (!meetsStandards && !forceGenerate) {
-          console.warn('⚠️ [useFluidaScript] QUALIDADE INSUFICIENTE - Roteiro muito genérico');
-          
-          toast.warning('⚠️ Roteiro muito genérico', {
-            description: 'Adicione equipamentos ou seja mais específico no tema'
-          });
-        }
-        
-        console.log('🎯 [useFluidaScript] Script resultado criado (sem equipamentos):', scriptResult);
+        console.log('🔍 [useFluidaScript] Usando validação padrão');
+        validation = validatePreGeneration(data);
+      }
+
+      console.log('📊 [useFluidaScript] Validation result:', validation);
+
+      // Se não for forçar geração e validação falhar
+      if (!forceGenerate && !validation.isValid && validation.quality === 'low') {
+        console.log('❌ [useFluidaScript] Validation failed, showing validation UI');
+        setValidationResult(validation);
+        setShowValidation(true);
+        setIsGenerating(false);
+        return [];
+      }
+
+      // Preparar dados para a API
+      const apiData = {
+        type: 'fluidaroteirista',
+        topic: data.tema,
+        equipment: data.equipamentos?.join(', ') || '',
+        additionalInfo: `Tipo: ${data.tipo_conteudo}, Objetivo: ${data.objetivo}, Canal: ${data.canal}, Estilo: ${data.estilo}, Mentor: ${data.mentor}`,
+        tone: data.estilo,
+        marketingObjective: data.objetivo,
+        systemPrompt: buildSystemPrompt(data),
+        userPrompt: buildUserPrompt(data)
+      };
+
+      console.log('📤 [useFluidaScript] Calling API with:', apiData);
+
+      const response = await generateScript(apiData);
+      console.log('📥 [useFluidaScript] API response:', response);
+
+      if (response && response.content) {
+        const scriptResult: FluidaScriptResult = {
+          id: Date.now().toString(),
+          roteiro: response.content,
+          formato: data.tipo_conteudo || 'carrossel',
+          emocao_central: response.emotion || data.estilo || 'engajamento',
+          intencao: response.intention || data.objetivo || 'atrair',
+          objetivo: data.objetivo || 'atrair',
+          mentor: data.mentor || 'Criativo',
+          equipamentos_utilizados: data.equipamentos || [],
+          created_at: new Date().toISOString()
+        };
+
+        console.log('✅ [useFluidaScript] Script result created:', scriptResult);
         setResults([scriptResult]);
         
-        toast.success('🎬 Roteiro FLUIDA gerado!', {
-          description: 'Roteiro criado. Para melhor qualidade, adicione equipamentos específicos.'
+        toast({
+          title: "✨ Roteiro gerado!",
+          description: `Criado no estilo ${scriptResult.mentor}`,
         });
 
         return [scriptResult];
+      } else {
+        throw new Error('Resposta inválida da API');
       }
 
     } catch (error) {
-      console.error('🔥 [useFluidaScript] ERRO NA GERAÇÃO:', error);
-      toast.error('❌ Erro ao gerar roteiro', {
-        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
+      console.error('❌ [useFluidaScript] Error:', error);
+      toast({
+        title: "Erro na geração",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
       });
       return [];
     } finally {
-      console.log('🏁 [useFluidaScript] ===== FINALIZANDO GERAÇÃO =====');
       setIsGenerating(false);
     }
+  };
+
+  const forceGenerate = async (data: ScriptGenerationData): Promise<FluidaScriptResult[]> => {
+    console.log('💪 [useFluidaScript] Force generating script');
+    return generateScript(data, true);
   };
 
   const applyDisneyMagic = async (script: FluidaScriptResult) => {
@@ -271,22 +204,14 @@ export const useFluidaScript = () => {
   };
 
   const dismissValidation = () => {
+    console.log('❌ [useFluidaScript] Dismissing validation');
     setShowValidation(false);
     setValidationResult(null);
-  };
-
-  const forceGenerate = async (data: ScriptGenerationData) => {
-    console.log('🚀 [useFluidaScript] Forçando geração ignorando validação...');
-    return await generateScript(data, true);
   };
 
   return {
     results,
     isGenerating,
-    isGeneratingImage,
-    generatedImageUrl,
-    validationResult,
-    showValidation,
     generateScript,
     forceGenerate,
     applyDisneyMagic,
@@ -295,4 +220,35 @@ export const useFluidaScript = () => {
     clearResults,
     dismissValidation
   };
+};
+
+const buildSystemPrompt = (data: ScriptGenerationData): string => {
+  return `
+    Você é o FLUIDAROTEIRISTA especializado em ${data.canal || 'redes sociais'}.
+    
+    CONTEXTO DO PROJETO:
+    - Tipo de conteúdo: ${data.tipo_conteudo}
+    - Objetivo: ${data.objetivo}
+    - Canal: ${data.canal}
+    - Estilo: ${data.estilo}
+    - Mentor: ${data.mentor}
+    ${data.equipamentos?.length ? `- Equipamentos: ${data.equipamentos.join(', ')}` : ''}
+    
+    INSTRUÇÕES ESPECÍFICAS:
+    - Crie conteúdo otimizado para ${data.canal}
+    - Use o estilo ${data.estilo} do mentor ${data.mentor}
+    - Foque no objetivo de ${data.objetivo}
+    ${data.equipamentos?.length ? `- OBRIGATÓRIO: Mencione os equipamentos: ${data.equipamentos.join(', ')}` : ''}
+    
+    Retorne apenas JSON válido com o roteiro estruturado.
+  `;
+};
+
+const buildUserPrompt = (data: ScriptGenerationData): string => {
+  return `
+    Tema: ${data.tema}
+    
+    Crie um roteiro de ${data.tipo_conteudo} para ${data.canal} com o objetivo de ${data.objetivo}.
+    Use o estilo ${data.estilo} e, se aplicável, mencione os equipamentos específicos.
+  `;
 };

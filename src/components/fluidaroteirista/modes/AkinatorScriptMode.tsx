@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -8,6 +7,8 @@ import FluidaLoadingScreen from '../components/FluidaLoadingScreen';
 import SmartQuestionSystem from '../components/SmartQuestionSystem';
 import { useEquipments } from '@/hooks/useEquipments';
 import { AKINATOR_TREE } from '../constants/intentionTree';
+import { buildEnhancedScriptData } from '../utils/mentorInference';
+import { validateAkinatorScript, isAkinatorFlowComplete } from '../utils/akinatorValidation';
 
 interface AkinatorScriptModeProps {
   onScriptGenerated: (script: any) => void;
@@ -71,47 +72,58 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       console.log('🎯 [AkinatorScriptMode] Final step reached, generating script...');
       
       try {
-        // CORREÇÃO: Mapear corretamente os equipamentos selecionados
+        // Mapear equipamentos selecionados
         const selectedEquipmentIds = Array.isArray(newAnswers.equipamento) 
           ? newAnswers.equipamento as string[]
           : newAnswers.equipamento 
             ? [newAnswers.equipamento as string]
             : [];
 
-        console.log('🔧 [AkinatorScriptMode] Selected equipment IDs:', selectedEquipmentIds);
-
-        // Mapear IDs para nomes dos equipamentos
         const selectedEquipmentNames = selectedEquipmentIds
           .map(id => {
             const equipment = equipments.find(eq => eq.id === id);
-            console.log(`🔍 [AkinatorScriptMode] Mapping ID ${id} to equipment:`, equipment?.nome);
             return equipment?.nome || id;
           })
-          .filter(name => name); // Remove valores vazios
+          .filter(name => name);
 
         console.log('✅ [AkinatorScriptMode] Selected equipment names:', selectedEquipmentNames);
 
-        const scriptData = {
+        // Criar dados básicos do Akinator
+        const akinatorData = {
           tipo_conteudo: newAnswers.tipo_conteudo as string || 'carrossel',
           objetivo: newAnswers.objetivo as string || 'atrair',
           canal: newAnswers.canal as string || 'instagram',
           estilo: newAnswers.estilo as string || 'criativo',
-          // CORREÇÃO: Usar array de equipamentos em vez de string
           equipamentos: selectedEquipmentNames,
           tema: value as string,
           modo: 'akinator'
         };
 
-        console.log('🚀 [AkinatorScriptMode] Calling generateScript with corrected data:', scriptData);
-        
-        // Salvar dados para caso precise forçar geração
-        setPendingScriptData(scriptData);
-        
-        const result = await generateScript(scriptData);
-        console.log('✅ [AkinatorScriptMode] Script generated:', result);
-        
-        if (result && result.length > 0) {
-          onScriptGenerated(result[0]);
+        console.log('📋 [AkinatorScriptMode] Dados básicos do Akinator:', akinatorData);
+
+        // Validar com validação específica do Akinator
+        const validation = validateAkinatorScript(akinatorData);
+        console.log('🔍 [AkinatorScriptMode] Validação Akinator:', validation);
+
+        // Verificar se o fluxo está completo
+        const isFlowComplete = isAkinatorFlowComplete(akinatorData);
+        console.log('✅ [AkinatorScriptMode] Fluxo completo?', isFlowComplete);
+
+        // Se o fluxo está completo, enriquecer dados e gerar
+        if (isFlowComplete && (validation.isValid || validation.quality === 'medium')) {
+          const enhancedData = buildEnhancedScriptData(akinatorData);
+          console.log('🚀 [AkinatorScriptMode] Gerando com dados enriquecidos:', enhancedData);
+          
+          const result = await generateScript(enhancedData);
+          console.log('✅ [AkinatorScriptMode] Script generated:', result);
+          
+          if (result && result.length > 0) {
+            onScriptGenerated(result[0]);
+          }
+        } else {
+          // Salvar para possível força de geração
+          setPendingScriptData(buildEnhancedScriptData(akinatorData));
+          console.log('⚠️ [AkinatorScriptMode] Validação falhou, aguardando decisão do usuário');
         }
       } catch (error) {
         console.error('❌ [AkinatorScriptMode] Error generating script:', error);
