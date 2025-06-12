@@ -26,14 +26,26 @@ const EquipmentList: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
+  // Helper function to normalize indicacoes to array
+  const normalizeIndicacoes = (indicacoes: string | string[]): string[] => {
+    if (!indicacoes) return [];
+    if (Array.isArray(indicacoes)) return indicacoes;
+    if (typeof indicacoes === 'string') {
+      // Split by common delimiters
+      return indicacoes.split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
+    }
+    return [];
+  };
+  
   // Filter equipment based on search term
-  const filteredEquipments = equipments.filter(equipment => 
-    equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    equipment.tecnologia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (equipment.indicacoes && equipment.indicacoes.some(indication => 
-      indication.toLowerCase().includes(searchTerm.toLowerCase())
-    ))
-  );
+  const filteredEquipments = equipments.filter(equipment => {
+    const indicacoesArray = normalizeIndicacoes(equipment.indicacoes);
+    return equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           equipment.tecnologia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           indicacoesArray.some(indication => 
+             indication.toLowerCase().includes(searchTerm.toLowerCase())
+           );
+  });
   
   // Filter by category
   const getEquipmentsByTab = () => {
@@ -165,11 +177,12 @@ const EquipmentList: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {displayEquipments.map((equipment) => {
                   const statusInfo = getStatusInfo(equipment.ativo);
+                  const indicacoesArray = normalizeIndicacoes(equipment.indicacoes);
                   
                   return (
                     <Card 
                       key={equipment.id} 
-                      className="hover:shadow-md transition-all cursor-pointer"
+                      className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1"
                       onClick={() => handleViewEquipment(equipment.id)}
                     >
                       <div className="aspect-square bg-gray-100 rounded-t-lg flex items-center justify-center">
@@ -196,9 +209,9 @@ const EquipmentList: React.FC = () => {
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                           {equipment.tecnologia}
                         </p>
-                        {equipment.indicacoes && equipment.indicacoes.length > 0 && (
+                        {indicacoesArray.length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {equipment.indicacoes.slice(0, 2).map((indication, idx) => (
+                            {indicacoesArray.slice(0, 2).map((indication, idx) => (
                               <span 
                                 key={idx}
                                 className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
@@ -206,9 +219,9 @@ const EquipmentList: React.FC = () => {
                                 {indication}
                               </span>
                             ))}
-                            {equipment.indicacoes.length > 2 && (
+                            {indicacoesArray.length > 2 && (
                               <span className="text-xs text-muted-foreground">
-                                +{equipment.indicacoes.length - 2} mais
+                                +{indicacoesArray.length - 2} mais
                               </span>
                             )}
                           </div>
@@ -222,11 +235,12 @@ const EquipmentList: React.FC = () => {
               <div className="space-y-4">
                 {displayEquipments.map((equipment) => {
                   const statusInfo = getStatusInfo(equipment.ativo);
+                  const indicacoesArray = normalizeIndicacoes(equipment.indicacoes);
                   
                   return (
                     <Card 
                       key={equipment.id} 
-                      className="hover:shadow-md transition-all cursor-pointer"
+                      className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
                       onClick={() => handleViewEquipment(equipment.id)}
                     >
                       <CardContent className="p-4">
@@ -257,12 +271,12 @@ const EquipmentList: React.FC = () => {
                             <p className="text-sm text-muted-foreground mt-1">
                               {equipment.tecnologia}
                             </p>
-                            {equipment.indicacoes && equipment.indicacoes.length > 0 && (
+                            {indicacoesArray.length > 0 && (
                               <div className="flex items-center mt-2 text-sm">
                                 <Tag className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                                 <span className="text-muted-foreground">
-                                  {equipment.indicacoes.slice(0, 3).join(", ")}
-                                  {equipment.indicacoes.length > 3 && ` +${equipment.indicacoes.length - 3} mais`}
+                                  {indicacoesArray.slice(0, 3).join(", ")}
+                                  {indicacoesArray.length > 3 && ` +${indicacoesArray.length - 3} mais`}
                                 </span>
                               </div>
                             )}

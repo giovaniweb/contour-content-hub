@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
@@ -22,11 +21,11 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-xl border bg-card text-card-foreground transition-all duration-300",
+        "rounded-xl border bg-card text-card-foreground transition-all duration-200",
         elevationClasses[elevation],
-        glass && "backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-white/20 dark:border-gray-700/30",
+        glass && "backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 border-white/20 dark:border-gray-700/30",
         gradient && "bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900",
-        interactive && "hover:shadow-md cursor-pointer hover:translate-y-[-2px]",
+        interactive && "hover:shadow-lg hover:shadow-primary/10 cursor-pointer hover:-translate-y-1",
         className
       )}
       {...props}
@@ -95,4 +94,3 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter"
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
-
