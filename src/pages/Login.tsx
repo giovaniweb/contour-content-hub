@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/MockAuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 const Login: React.FC = () => {
@@ -85,11 +85,6 @@ const Login: React.FC = () => {
                 required
                 disabled={isSubmitting}
               />
-            </div>
-            
-            {/* Credenciais de demonstração */}
-            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border">
-              <strong>Demo:</strong> Use qualquer email/senha para entrar
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

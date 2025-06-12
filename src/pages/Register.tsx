@@ -13,12 +13,13 @@ const Register: React.FC = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [name, setName] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast("Senhas não conferem", {
+      toast.error("Senhas não conferem", {
         description: "A senha e a confirmação de senha precisam ser iguais."
       });
       return;
@@ -29,15 +30,17 @@ const Register: React.FC = () => {
       await register({
         email,
         password,
+        name,
+        role: 'admin' // Por padrão, registrar como admin para testes
       });
-      toast("Conta criada com sucesso", {
-        description: "Você será redirecionado para a página de login."
+      toast.success("Conta criada com sucesso", {
+        description: "Você será redirecionado para o dashboard."
       });
-      // Redirect to login page after successful registration
-      navigate('/login');
-    } catch (error) {
-      toast("Erro ao criar conta", {
-        description: "Não foi possível criar sua conta. Tente novamente."
+      // Navigate to dashboard after successful registration
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error("Erro ao criar conta", {
+        description: error.message || "Não foi possível criar sua conta. Tente novamente."
       });
     } finally {
       setIsLoading(false);
@@ -53,6 +56,17 @@ const Register: React.FC = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">Nome</label>
+              <Input 
+                id="name" 
+                type="text" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Seu nome completo" 
+                required 
+              />
+            </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">Email</label>
               <Input 

@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/MockAuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
 import { AppSidebar } from '@/components/ui/sidebar/AppSidebar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
