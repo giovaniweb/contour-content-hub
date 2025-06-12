@@ -43,14 +43,14 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Preparar dados para a API - usando a interface correta do supabaseService
+      // Preparar dados para a API - mapeamento correto dos campos
       const apiData = {
         type: 'fluidaroteirista',
-        topic: data.tema,
-        equipment: data.equipamentos?.join(', ') || '',
+        topic: data.tema, // Mapear tema → topic
+        equipment: data.equipamentos?.join(', ') || '', // Mapear equipamentos → equipment
         additionalInfo: `Tipo: ${data.tipo_conteudo}, Objetivo: ${data.objetivo}, Canal: ${data.canal}, Estilo: ${data.estilo}, Mentor: ${data.mentor}`,
-        tone: data.estilo || 'profissional',
-        marketingObjective: data.objetivo || 'atrair',
+        tone: data.estilo || 'profissional', // Mapear estilo → tone
+        marketingObjective: data.objetivo || 'atrair', // Mapear objetivo → marketingObjective
         systemPrompt: buildSystemPrompt(data),
         userPrompt: buildUserPrompt(data)
       };
@@ -61,9 +61,10 @@ export const useFluidaScript = () => {
       const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
+      // Verificar se a resposta tem o conteúdo (response é um objeto ScriptResponse, não array)
       if (response && response.content) {
         const scriptResult: FluidaScriptResult = {
-          roteiro: response.content,
+          roteiro: response.content, // Acessar content do objeto response
           formato: data.tipo_conteudo || data.formato || 'carrossel',
           emocao_central: data.estilo || 'engajamento',
           intencao: data.objetivo || 'atrair',
@@ -129,10 +130,11 @@ export const useFluidaScript = () => {
 
       const response = await apiGenerateScript(disneyData);
       
+      // Corrigir acesso à resposta - response é objeto, não array
       if (response && response.content) {
         const updatedScript = {
           ...script,
-          roteiro: response.content,
+          roteiro: response.content, // Acessar content do objeto response
           disney_applied: true,
           mentor: 'Walt Disney 1928',
           emocao_central: 'encantamento'
