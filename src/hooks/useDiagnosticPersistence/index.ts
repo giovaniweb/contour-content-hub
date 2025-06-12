@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiagnosticOperations } from './diagnosticOperations';
@@ -8,14 +7,44 @@ import { DiagnosticSession } from './types';
 
 export type { DiagnosticSession } from './types';
 
+// Função para gerar ID determinístico baseado no conteúdo
+const generateDeterministicId = (data: any): string => {
+  // Usar dados fixos do diagnóstico para gerar um ID consistente
+  const clinicName = data.clinicName || data.state?.clinicName || 'unknown';
+  const timestamp = data.timestamp || new Date().toISOString();
+  const clinicType = data.clinicType || data.state?.clinicType || 'geral';
+  
+  // Criar hash simples baseado no conteúdo
+  const content = `${clinicName}_${clinicType}_${timestamp}`;
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return `diagnostic_${Math.abs(hash)}_${Date.parse(timestamp) || Date.now()}`;
+};
+
 // Função para converter dados do formato antigo para DiagnosticSession
 const convertLegacyDataToSession = (legacyData: any): DiagnosticSession | null => {
   try {
-    if (!legacyData || !legacyData.state) return null;
+    if (!legacyData) return null;
     
-    // Extrair dados do formato antigo
-    const state = legacyData.state;
-    const sessionId = legacyData.sessionId || `legacy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🔍 Convertendo dados legados:', legacyData);
+    
+    // Verificar se é formato novo (com .state) ou antigo (dados diretos)
+    let state = legacyData.state || legacyData;
+    let timestamp = legacyData.timestamp || new Date().toISOString();
+    
+    // Se não tem propriedades básicas, não é um diagnóstico válido
+    if (!state || typeof state !== 'object') {
+      console.warn('⚠️ Dados inválidos para conversão:', legacyData);
+      return null;
+    }
+    
+    // Gerar ID determinístico baseado no conteúdo
+    const sessionId = legacyData.sessionId || generateDeterministicId({ ...state, timestamp });
     
     // Determinar clinicTypeLabel e specialty
     let clinicTypeLabel = 'Clínica';
@@ -31,12 +60,12 @@ const convertLegacyDataToSession = (legacyData: any): DiagnosticSession | null =
     
     const session: DiagnosticSession = {
       id: sessionId,
-      timestamp: legacyData.timestamp || new Date().toISOString(),
+      timestamp: timestamp,
       state: state,
-      isCompleted: legacyData.isCompleted || false,
+      isCompleted: legacyData.isCompleted || true, // Dados legados são considerados completos
       clinicTypeLabel,
       specialty,
-      isPaidData: legacyData.isPaidData || legacyData.isCompleted || false
+      isPaidData: legacyData.isPaidData || legacyData.isCompleted || true
     };
     
     console.log('✨ Dados legados convertidos para DiagnosticSession:', session);
@@ -55,15 +84,15 @@ const migrateLegacyData = (): DiagnosticSession[] => {
     // Verificar dados no formato 'marketing_diagnostic_data'
     const legacyData = localStorage.getItem('marketing_diagnostic_data');
     if (legacyData) {
-      console.log('🔍 Encontrados dados legados em marketing_diagnostic_data');
+      console.log('🔍 Encontrados dados legados em marketing_diagnostic_data:', legacyData);
       const parsed = JSON.parse(legacyData);
       const converted = convertLegacyDataToSession(parsed);
       if (converted) {
         migratedSessions.push(converted);
         
-        // Salvar no novo formato
+        // Salvar no novo formato com o ID determinístico
         localStorage.setItem('fluida_current_diagnostic', JSON.stringify(converted));
-        console.log('✅ Dados migrados para o novo formato');
+        console.log('✅ Dados migrados para o novo formato com ID:', converted.id);
       }
     }
     
@@ -225,13 +254,13 @@ export const useDiagnosticPersistence = () => {
         }
       }
       
-      // 4. Buscar em dados legados
+      // 4. Buscar e converter dados legados usando ID determinístico
       const legacyData = localStorage.getItem('marketing_diagnostic_data');
       if (legacyData) {
         const parsed = JSON.parse(legacyData);
         const converted = convertLegacyDataToSession(parsed);
-        if (converted && (converted.id === sessionId || parsed.sessionId === sessionId)) {
-          console.log('✅ Sessão encontrada nos dados legados');
+        if (converted && converted.id === sessionId) {
+          console.log('✅ Sessão encontrada nos dados legados com ID determinístico');
           return converted;
         }
       }
@@ -262,6 +291,6 @@ export const useDiagnosticPersistence = () => {
     isSessionCompleted,
     isPaidData,
     loadSavedDiagnostics,
-    findSessionById // Nova função exportada
+    findSessionById
   };
 };

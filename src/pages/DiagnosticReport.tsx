@@ -28,14 +28,79 @@ const DiagnosticReport: React.FC = () => {
   let session = null;
   
   if (sessionId) {
-    // Usar a nova função de busca melhorada
+    // 1. Usar a função de busca melhorada do hook
     session = findSessionById(sessionId);
     
-    // Se ainda não encontrou, tentar busca por padrões similares
+    // 2. Se ainda não encontrou, tentar conversão de dados legados em tempo real
+    if (!session) {
+      console.log('🔍 Tentando busca e conversão de dados legados em tempo real...');
+      
+      try {
+        // Buscar dados legados diretamente
+        const legacyData = localStorage.getItem('marketing_diagnostic_data');
+        if (legacyData) {
+          const parsed = JSON.parse(legacyData);
+          console.log('📄 Dados legados encontrados:', parsed);
+          
+          // Converter usando a mesma lógica do hook
+          const generateDeterministicId = (data: any): string => {
+            const clinicName = data.clinicName || data.state?.clinicName || 'unknown';
+            const timestamp = data.timestamp || new Date().toISOString();
+            const clinicType = data.clinicType || data.state?.clinicType || 'geral';
+            
+            const content = `${clinicName}_${clinicType}_${timestamp}`;
+            let hash = 0;
+            for (let i = 0; i < content.length; i++) {
+              const char = content.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash = hash & hash;
+            }
+            
+            return `diagnostic_${Math.abs(hash)}_${Date.parse(timestamp) || Date.now()}`;
+          };
+          
+          const state = parsed.state || parsed;
+          const timestamp = parsed.timestamp || new Date().toISOString();
+          const generatedId = generateDeterministicId({ ...state, timestamp });
+          
+          console.log('🆔 ID gerado para dados legados:', generatedId);
+          console.log('🔍 Comparando com ID buscado:', sessionId);
+          
+          if (generatedId === sessionId) {
+            // Converter para DiagnosticSession
+            let clinicTypeLabel = 'Clínica';
+            let specialty = 'Geral';
+            
+            if (state.clinicType === 'clinica_medica') {
+              clinicTypeLabel = 'Clínica Médica';
+              specialty = state.medicalSpecialty || 'Geral';
+            } else if (state.clinicType === 'clinica_estetica') {
+              clinicTypeLabel = 'Clínica Estética';
+              specialty = state.aestheticFocus || 'Geral';
+            }
+            
+            session = {
+              id: generatedId,
+              timestamp: timestamp,
+              state: state,
+              isCompleted: true,
+              clinicTypeLabel,
+              specialty,
+              isPaidData: true
+            };
+            
+            console.log('✅ Sessão convertida de dados legados:', session);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Erro ao tentar conversão em tempo real:', error);
+      }
+    }
+    
+    // 3. Busca por padrões similares como fallback
     if (!session) {
       console.log('🔍 Tentando busca por padrões similares...');
       
-      // Buscar por ID que contenha parte do sessionId
       const similarSession = savedDiagnostics.find(s => 
         s.id.includes(sessionId) || sessionId.includes(s.id)
       );
@@ -53,6 +118,14 @@ const DiagnosticReport: React.FC = () => {
     console.log('❌ DiagnosticReport - Sessão não encontrada');
     console.log('📊 Diagnósticos disponíveis:', savedDiagnostics.map(d => ({ id: d.id, timestamp: d.timestamp })));
     
+    // Debug adicional - mostrar dados do localStorage
+    try {
+      const legacyData = localStorage.getItem('marketing_diagnostic_data');
+      console.log('📄 Dados legados no localStorage:', legacyData ? JSON.parse(legacyData) : null);
+    } catch (e) {
+      console.error('❌ Erro ao verificar dados legados:', e);
+    }
+    
     return (
       <div className="min-h-screen bg-aurora-background">
         <div className="container mx-auto py-6">
@@ -64,6 +137,7 @@ const DiagnosticReport: React.FC = () => {
             <div className="text-sm text-foreground/40">
               <p>Diagnósticos disponíveis: {savedDiagnostics.length}</p>
               <p>Sessão atual: {currentSession ? 'Existe' : 'Não existe'}</p>
+              <p>ID buscado: {sessionId}</p>
             </div>
             <button 
               onClick={() => navigate('/diagnostic-history')}
