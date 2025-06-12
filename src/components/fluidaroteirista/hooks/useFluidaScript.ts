@@ -33,92 +33,55 @@ export const useFluidaScript = () => {
   const [results, setResults] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiImproving, setAiImproving] = useState(false);
+  const [showingTemplate, setShowingTemplate] = useState(false);
   const { getCached, setCached, generateInstantTemplate } = useTemplateCache();
 
   const generateScript = async (data: FluidaScriptData) => {
-    console.log('🚀 [useFluidaScript] Iniciando geração INSTANTÂNEA + IA Background');
+    console.log('🚀 [useFluidaScript] Iniciando geração COM LOADING até IA finalizar');
     console.log('📊 [useFluidaScript] Dados recebidos:', data);
     
     setIsGenerating(true);
+    setShowingTemplate(false);
     
     try {
-      // 1. RESPOSTA IMEDIATA: Verificar cache ou gerar template
+      // NOVO: Aguardar IA completar antes de mostrar qualquer resultado
       const cachedScript = getCached(data.tema || '', data.equipamentos ? [data.equipamentos] : [], data.estilo);
       
-      let instantScript;
-      if (cachedScript) {
-        console.log('💾 [useFluidaScript] Usando cache encontrado');
-        instantScript = cachedScript.script;
-        instantScript.from_cache = true;
-      } else {
-        console.log('⚡ [useFluidaScript] Gerando template instantâneo');
-        instantScript = generateInstantTemplate(
-          data.tema || '',
-          data.equipamentos ? [data.equipamentos] : [],
-          data.estilo
-        );
-      }
-
-      // Mostrar resultado imediato
-      setResults([instantScript]);
-      setIsGenerating(false);
-      
-      toast.success('⚡ Roteiro pronto!', {
-        description: 'Template gerado instantaneamente. IA está melhorando em segundo plano...'
-      });
-
-      // 2. IA EM BACKGROUND: Melhorar com IA (apenas se não for do cache ou se for template)
-      if (!cachedScript || !cachedScript.isAiGenerated) {
-        console.log('🤖 [useFluidaScript] Iniciando melhoria com IA em background');
-        setAiImproving(true);
+      if (cachedScript && cachedScript.isAiGenerated) {
+        console.log('💾 [useFluidaScript] Usando cache IA encontrado');
+        setResults([cachedScript.script]);
+        setIsGenerating(false);
         
-        // Marcar que IA está melhorando
-        const improvingScript = { ...instantScript, ai_improving: true };
-        setResults([improvingScript]);
-
-        try {
-          const improvedScript = await generateAiScript(data);
-          
-          // Substituir com versão melhorada da IA
-          setResults([improvedScript]);
-          setAiImproving(false);
-          
-          // Salvar versão IA no cache
-          setCached(
-            data.tema || '', 
-            improvedScript, 
-            true, 
-            data.equipamentos ? [data.equipamentos] : [], 
-            data.estilo
-          );
-          
-          toast.success('✨ Roteiro aprimorado!', {
-            description: 'IA finalizou as melhorias do seu roteiro.'
-          });
-          
-        } catch (aiError) {
-          console.error('⚠️ [useFluidaScript] IA falhou, mantendo template:', aiError);
-          setAiImproving(false);
-          
-          // Manter template, mas remover indicador de melhoria
-          const finalScript = { ...instantScript, ai_improving: false, ai_failed: true };
-          setResults([finalScript]);
-          
-          toast.info('📝 Template mantido', {
-            description: 'IA não conseguiu melhorar, mas seu roteiro está pronto para usar!'
-          });
-        }
+        toast.success('⚡ Roteiro do cache!', {
+          description: 'Roteiro IA encontrado no cache local.'
+        });
+        
+        return cachedScript.script;
       }
 
-      return instantScript;
+      // Se não tem cache IA, gerar com IA (SEM mostrar template antes)
+      console.log('🤖 [useFluidaScript] Gerando diretamente com IA');
+      const aiScript = await generateAiScript(data);
+      
+      return aiScript;
 
     } catch (error) {
       console.error('🔥 [useFluidaScript] Erro crítico:', error);
       setIsGenerating(false);
-      setAiImproving(false);
       
-      toast.error('❌ Erro na geração', {
-        description: 'Não foi possível gerar o roteiro. Tente novamente.'
+      // Fallback: mostrar template apenas em caso de erro
+      console.log('⚠️ [useFluidaScript] Erro IA, usando template como fallback');
+      const fallbackScript = generateInstantTemplate(
+        data.tema || '',
+        data.equipamentos ? [data.equipamentos] : [],
+        data.estilo
+      );
+      
+      fallbackScript.ai_failed = true;
+      setResults([fallbackScript]);
+      
+      toast.error('❌ Erro na IA', {
+        description: 'Usando template como backup. Tente novamente.'
       });
       
       throw error;
@@ -544,40 +507,96 @@ export const useFluidaScript = () => {
   };
 
   const applyDisneyMagic = async (script: any) => {
-    console.log('✨ [useFluidaScript] Aplicando Disney Magic com elementos universais');
-    const disneyScript = {
-      ...script,
-      roteiro: script.roteiro.replace(/tratamento/g, 'jornada de transformação')
-        .replace(/procedimento/g, 'ritual de beleza')
-        .replace(/resultado/g, 'metamorfose')
-        .replace(/cliente/g, 'pessoa especial'),
+    console.log('✨ [useFluidaScript] Aplicando Disney Magic com animação');
+    
+    // Transformações Disney mais criativas
+    const disneyTransformations = {
+      'tratamento': 'jornada mágica de transformação',
+      'procedimento': 'ritual de beleza encantado',
+      'resultado': 'metamorfose dos sonhos',
+      'cliente': 'princesa especial',
+      'clientes': 'princesas especiais',
+      'paciente': 'heroína da sua história',
+      'consulta': 'encontro mágico',
+      'sessão': 'capítulo encantado',
+      'aplicação': 'toque de varinha mágica',
+      'equipamento': 'varinha tecnológica',
+      'laser': 'raio de luz encantado',
+      'botox': 'poção da juventude',
+      'preenchimento': 'elixir da beleza',
+      'harmonização': 'sinfonia da perfeição'
+    };
+
+    let disneyScript = { ...script };
+    let transformedText = script.roteiro;
+
+    // Aplicar transformações
+    Object.entries(disneyTransformations).forEach(([original, disney]) => {
+      const regex = new RegExp(original, 'gi');
+      transformedText = transformedText.replace(regex, disney);
+    });
+
+    // Adicionar elementos Disney ao início e fim
+    const disneyIntro = "✨ Era uma vez uma história de transformação mágica...\n\n";
+    const disneyOutro = "\n\n🏰 E assim, sua jornada dos sonhos começa aqui. Venha viver seu conto de fadas! ✨";
+
+    disneyScript = {
+      ...disneyScript,
+      roteiro: disneyIntro + transformedText + disneyOutro,
       emocao_central: 'encantamento',
-      mentor: 'Fluida Encantadora',
+      mentor: 'Fada Madrinha Disney ✨🏰',
       elementos_aplicados: {
         ...script.elementos_aplicados,
         storytelling: 10,
         mapas_empatia: 10,
         headlines: 10
-      }
+      },
+      disney_applied: true
     };
     
     setResults([disneyScript]);
+    
     toast.success('🏰 Disney Magic aplicada!', {
       description: 'Seu roteiro agora tem a magia Disney com elementos universais potencializados.'
     });
+
+    return disneyScript;
+  };
+
+  const generateImage = async (script: any) => {
+    console.log('🖼️ [useFluidaScript] Gerando imagem para script');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-image', {
+        body: { script }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success) {
+        toast.success('🖼️ Imagem gerada!', {
+          description: 'Sua imagem foi criada com sucesso.'
+        });
+        
+        // Abrir imagem em nova janela
+        window.open(data.imageUrl, '_blank');
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      console.error('🔥 Erro ao gerar imagem:', error);
+      toast.error('❌ Erro na geração de imagem', {
+        description: 'Não foi possível gerar a imagem. Tente novamente.'
+      });
+    }
   };
 
   const clearResults = () => {
     console.log('🗑️ [useFluidaScript] Limpando resultados');
     setResults([]);
     setAiImproving(false);
-  };
-
-  const generateImage = async (script: any) => {
-    console.log('🖼️ [useFluidaScript] Gerando imagem para script');
-    toast.info('🖼️ Geração de imagem', {
-      description: 'Funcionalidade em desenvolvimento.'
-    });
   };
 
   const generateAudio = async (script: any) => {
@@ -591,6 +610,7 @@ export const useFluidaScript = () => {
     results,
     isGenerating,
     aiImproving,
+    showingTemplate,
     generateScript,
     applyDisneyMagic,
     clearResults,
