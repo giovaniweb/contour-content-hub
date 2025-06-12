@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
@@ -28,6 +27,7 @@ import ContentPlannerPage from './pages/ContentPlannerPage';
 import ScriptGeneratorPage from './pages/ScriptGeneratorPage';
 import AppLayout from './components/layout/AppLayout';
 import { ROUTES } from './routes';
+import FluidaRoteiristPage from '@/pages/FluidaRoteiristsPage';
 
 function App() {
   return (
@@ -103,6 +103,16 @@ function App() {
           
           {/* Script Generator Route */}
           <Route path="/script-generator" element={<AppLayout><ScriptGeneratorPage /></AppLayout>} />
+          
+          {/* Nova rota para FLUIDAROTEIRISTA */}
+          <Route 
+            path="/fluidaroteirista" 
+            element={
+              <AppLayout>
+                <FluidaRoteiristPage />
+              </AppLayout>
+            } 
+          />
           
           {/* 404 - Not Found */}
           <Route path="*" element={<NotFound />} />
