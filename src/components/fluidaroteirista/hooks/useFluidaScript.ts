@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +17,9 @@ export const useFluidaScript = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateScript = async (data: FluidaScriptData) => {
-    console.log('🚀 [useFluidaScript] Iniciando geração de roteiro com 10 elementos universais');
+    console.log('🚀 [useFluidaScript] Iniciando geração de roteiro');
+    console.log('📊 [useFluidaScript] Dados recebidos:', data);
+    
     setIsGenerating(true);
     
     try {
@@ -81,30 +82,28 @@ export const useFluidaScript = () => {
       `;
 
       const requestBody = {
-        request: {
-          type: 'custom',
-          systemPrompt,
-          userPrompt,
-          topic: data.tema,
-          additionalInfo: JSON.stringify({
-            tipo_de_clinica: 'estetico',
-            especialidade: '',
-            equipamentos: data.equipamento,
-            protocolo: '',
-            ticket_medio: '',
-            publico_ideal: '',
-            estilo_clinica: '',
-            estilo_linguagem: '',
-            mentor_nome: mentorInferido,
-            elementos_universais: elementosUniversais,
-            especialidades: especialidades
-          }),
-          tone: data.estilo,
-          marketingObjective: data.objetivo
-        }
+        type: 'custom',
+        systemPrompt,
+        userPrompt,
+        topic: data.tema,
+        additionalInfo: JSON.stringify({
+          tipo_de_clinica: 'estetico',
+          especialidade: '',
+          equipamentos: data.equipamento,
+          protocolo: '',
+          ticket_medio: '',
+          publico_ideal: '',
+          estilo_clinica: '',
+          estilo_linguagem: '',
+          mentor_nome: mentorInferido,
+          elementos_universais: elementosUniversais,
+          especialidades: especialidades
+        }),
+        tone: data.estilo,
+        marketingObjective: data.objetivo
       };
 
-      console.log('📤 [useFluidaScript] Enviando request:', requestBody);
+      console.log('📤 [useFluidaScript] Enviando request para Supabase function');
 
       // Usar Supabase functions invoke corretamente
       const { data: result, error } = await supabase.functions.invoke('generate-script', {
@@ -112,12 +111,12 @@ export const useFluidaScript = () => {
       });
 
       if (error) {
-        console.error('❌ [useFluidaScript] Erro na função:', error);
+        console.error('❌ [useFluidaScript] Erro na função Supabase:', error);
         throw new Error(`Erro na API: ${error.message}`);
       }
 
       if (!result) {
-        console.error('❌ [useFluidaScript] Resultado vazio');
+        console.error('❌ [useFluidaScript] Resultado vazio da API');
         throw new Error('Resultado vazio da API');
       }
 
