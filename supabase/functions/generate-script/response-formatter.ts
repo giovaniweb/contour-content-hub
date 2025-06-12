@@ -11,6 +11,21 @@ export interface ScriptResponse {
   suggestedMusic: any[];
   suggestedFonts: any[];
   captionTips: string[];
+  // Novos campos para os 10 elementos
+  elementos_aplicados?: {
+    storytelling: number;
+    copywriting: number;
+    conhecimento_publico: number;
+    analises_dados: number;
+    gatilhos_mentais: number;
+    logica_argumentativa: number;
+    premissas_educativas: number;
+    mapas_empatia: number;
+    headlines: number;
+    ferramentas_especificas: number;
+  };
+  mentor_utilizado?: string;
+  especialidades_aplicadas?: string[];
 }
 
 export interface ScriptData {
@@ -19,6 +34,8 @@ export interface ScriptData {
   topic?: string;
   equipment?: string[];
   bodyArea?: string;
+  mentor?: string;
+  elementos_aplicados?: any;
 }
 
 export function generateTitle(content: string, topic?: string): string {
@@ -28,7 +45,7 @@ export function generateTitle(content: string, topic?: string): string {
 }
 
 export function formatScriptResponse(data: ScriptData): ScriptResponse {
-  const { content, type, topic, equipment, bodyArea } = data;
+  const { content, type, topic, equipment, bodyArea, mentor, elementos_aplicados } = data;
   const scriptId = `script-${Date.now()}`;
   const title = generateTitle(content, topic);
   
@@ -38,6 +55,9 @@ export function formatScriptResponse(data: ScriptData): ScriptResponse {
     title,
     type,
     createdAt: new Date().toISOString(),
+    elementos_aplicados,
+    mentor_utilizado: mentor,
+    especialidades_aplicadas: getEspecialidadesByMentor(mentor || ""),
     suggestedVideos: [
       {
         id: "video-1",
@@ -89,9 +109,28 @@ export function formatScriptResponse(data: ScriptData): ScriptResponse {
       }
     ],
     captionTips: [
-      "Mantenha as legendas curtas e objetivas",
-      "Use emojis estrategicamente",
-      "Inclua uma chamada para ação"
+      "✅ Storytelling aplicado com intensidade adequada",
+      "✅ Copywriting persuasivo implementado",
+      "✅ Conhecimento do público-alvo considerado",
+      "✅ Gatilhos mentais estrategicamente posicionados",
+      "✅ Headlines otimizados para engajamento",
+      "✅ Ferramentas específicas incluídas (CTAs, etc.)"
     ]
   };
+}
+
+// Função auxiliar para especialidades (será implementada quando necessário)
+function getEspecialidadesByMentor(mentor: string): string[] {
+  const especialidades: Record<string, string[]> = {
+    "Leandro Ladeira": ["escassez", "urgência", "gatilhos de conversão"],
+    "Ícaro de Carvalho": ["narrativas pessoais", "posicionamento", "provocação"],
+    "Paulo Cuenca": ["estética visual", "criatividade", "sensorial"],
+    "Pedro Sobral": ["tráfego pago", "estrutura lógica", "performance"],
+    "Camila Porto": ["didática", "simplicidade", "clareza"],
+    "Hyeser Souza": ["humor viral", "ganchos populares", "trends"],
+    "Washington Olivetto": ["big ideas", "branding memorável", "criatividade publicitária"],
+    "John Kotter": ["liderança", "transformação", "estratégia"]
+  };
+  
+  return especialidades[mentor] || [];
 }

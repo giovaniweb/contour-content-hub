@@ -1,6 +1,8 @@
 
 // Função responsável por construir os prompts para diferentes tipos de roteiro
 
+import { getElementosUniversaisByMentor, getEspecialidadesByMentor, type ElementosUniversais } from './mentor-elements.ts';
+
 export interface PromptBuilderParams {
   type: string;
   topic: string | null;
@@ -60,6 +62,47 @@ const MENTOR_STYLES = {
     style: 'Big ideas publicitárias, frases marcantes e criatividade conceitual.',
     characteristics: 'Crie conceitos únicos, use frases memoráveis, pense grande e seja conceitualmente criativo.'
   }
+};
+
+// Estrutura universal dos 10 elementos
+const buildUniversalElementsPrompt = (mentor: string, elementos: ElementosUniversais): string => {
+  const especialidades = getEspecialidadesByMentor(mentor);
+  
+  return `
+🎯 ESTRUTURA UNIVERSAL DOS 10 ELEMENTOS (Método Leandro Ladeira adaptado):
+
+1. STORYTELLING (Intensidade: ${elementos.storytelling}/10)
+   ${elementos.storytelling >= 8 ? '- Narrativas envolventes e emocionais' : elementos.storytelling >= 6 ? '- Histórias simples e diretas' : '- Elementos narrativos sutis'}
+
+2. COPYWRITING (Intensidade: ${elementos.copywriting}/10)
+   ${elementos.copywriting >= 8 ? '- Textos persuasivos e impactantes' : elementos.copywriting >= 6 ? '- Copy clara e objetiva' : '- Linguagem simples e acessível'}
+
+3. CONHECIMENTO DO PÚBLICO-ALVO (Intensidade: ${elementos.conhecimento_publico}/10)
+   ${elementos.conhecimento_publico >= 8 ? '- Segmentação precisa e personalizada' : elementos.conhecimento_publico >= 6 ? '- Perfil básico definido' : '- Público geral'}
+
+4. ANÁLISES E DADOS (Intensidade: ${elementos.analises_dados}/10)
+   ${elementos.analises_dados >= 8 ? '- Métricas detalhadas e otimização' : elementos.analises_dados >= 6 ? '- Dados básicos de performance' : '- Foco na criatividade'}
+
+5. GATILHOS MENTAIS (Intensidade: ${elementos.gatilhos_mentais}/10)
+   ${elementos.gatilhos_mentais >= 8 ? '- Escassez, urgência, prova social' : elementos.gatilhos_mentais >= 6 ? '- Gatilhos sutis' : '- Persuasão natural'}
+
+6. LÓGICA ARGUMENTATIVA (Intensidade: ${elementos.logica_argumentativa}/10)
+   ${elementos.logica_argumentativa >= 8 ? '- Argumentos estruturados e convincentes' : elementos.logica_argumentativa >= 6 ? '- Razões claras' : '- Abordagem emocional'}
+
+7. PREMISSAS EDUCATIVAS (Intensidade: ${elementos.premissas_educativas}/10)
+   ${elementos.premissas_educativas >= 8 ? '- Educação antes da oferta' : elementos.premissas_educativas >= 6 ? '- Informações básicas' : '- Foco na ação'}
+
+8. MAPAS DE EMPATIA (Intensidade: ${elementos.mapas_empatia}/10)
+   ${elementos.mapas_empatia >= 8 ? '- Perspectiva profunda do cliente' : elementos.mapas_empatia >= 6 ? '- Compreensão básica' : '- Abordagem direta'}
+
+9. HEADLINES (Intensidade: ${elementos.headlines}/10)
+   ${elementos.headlines >= 8 ? '- Títulos magnéticos e irresistíveis' : elementos.headlines >= 6 ? '- Títulos claros e atrativos' : '- Títulos simples'}
+
+10. FERRAMENTAS ESPECÍFICAS (Intensidade: ${elementos.ferramentas_especificas}/10)
+    ${elementos.ferramentas_especificas >= 8 ? '- CTAs, funis, vídeos de venda' : elementos.ferramentas_especificas >= 6 ? '- CTAs básicos' : '- Chamadas simples'}
+
+🎨 ESPECIALIDADES DO MENTOR: ${especialidades.join(', ')}
+`;
 };
 
 export function buildPrompt(params: PromptBuilderParams): PromptResult {
@@ -181,15 +224,18 @@ function buildSmartScriptPrompt(params: PromptBuilderParams): PromptResult {
   const { contentType, objective, channel, style, topic, additionalInfo, mentor } = params;
   
   const mentorInfo = mentor ? MENTOR_STYLES[mentor as keyof typeof MENTOR_STYLES] : null;
+  const elementos = mentor ? getElementosUniversaisByMentor(mentor) : null;
   
   let systemPrompt = `Você é o SmartScriptGenerator do sistema Fluida, especializado em criar conteúdo para redes sociais seguindo o estilo de grandes especialistas em marketing digital.
 
-${mentorInfo ? `
+${mentorInfo && elementos ? `
 🧠 MENTOR ESCOLHIDO: ${mentorInfo.name}
 📝 ESTILO: ${mentorInfo.style}
 ✨ CARACTERÍSTICAS: ${mentorInfo.characteristics}
 
-Você deve criar todo o conteúdo seguindo EXATAMENTE o estilo e características deste mentor.
+${buildUniversalElementsPrompt(mentor, elementos)}
+
+Você deve criar todo o conteúdo seguindo EXATAMENTE o estilo e características deste mentor, aplicando os 10 elementos universais com as intensidades especificadas.
 ` : ''}
 
 🎯 OBJETIVO: ${objective || 'Engajar a audiência'}
@@ -202,88 +248,92 @@ ${additionalInfo ? `📋 OBSERVAÇÕES: ${additionalInfo}` : ''}`;
 
   switch (contentType) {
     case 'bigIdea':
-      userPrompt = `Crie EXATAMENTE 5 big ideas criativas e virais sobre "${topic}".
+      userPrompt = `Crie EXATAMENTE 5 big ideas criativas e virais sobre "${topic}" seguindo a estrutura dos 10 elementos universais.
 
 FORMATO DE SAÍDA OBRIGATÓRIO:
-1. [Primeira ideia - título impactante]
-2. [Segunda ideia - com gancho viral]  
-3. [Terceira ideia - ângulo diferente]
-4. [Quarta ideia - foque na transformação]
-5. [Quinta ideia - gere curiosidade]
+1. [Primeira ideia - aplique headline magnético]
+2. [Segunda ideia - use storytelling + gatilhos mentais]  
+3. [Terceira ideia - foque em lógica argumentativa]
+4. [Quarta ideia - mapas de empatia + copywriting]
+5. [Quinta ideia - ferramentas específicas + premissas educativas]
 
 Cada ideia deve:
 - Ter máximo 15 palavras
 - Ser viral e impactante
 - Conectar com o ${objective?.toLowerCase()}
-- Seguir o estilo do mentor ${mentorInfo?.name || 'escolhido'}
+- Seguir os elementos universais do mentor ${mentorInfo?.name || 'escolhido'}
 - Ser adequada para ${channel}`;
       break;
 
     case 'video':
-      userPrompt = `Crie um roteiro para vídeo de até 40 segundos sobre "${topic}".
+      userPrompt = `Crie um roteiro para vídeo de até 40 segundos sobre "${topic}" aplicando os 10 elementos universais.
 
 FORMATO DE SAÍDA OBRIGATÓRIO:
-🎬 Gancho:
+🎬 Gancho (Headlines + Storytelling):
 [3-5 segundos - frase que para o scroll]
 
-🎯 Conflito:
+🎯 Conflito (Mapas de Empatia + Conhecimento do Público):
 [10-15 segundos - problema que o público enfrenta]
 
-🔁 Virada:
+🔁 Virada (Lógica Argumentativa + Premissas Educativas):
 [15-20 segundos - solução ou revelação]
 
-📣 CTA:
+📣 CTA (Gatilhos Mentais + Ferramentas Específicas):
 [5-7 segundos - chamada para ação clara]
 
 REGRAS:
 - Máximo 40 segundos total
-- Gancho deve parar o scroll nos primeiros 3 segundos
+- Aplique copywriting persuasivo em todo o roteiro
+- Use análises e dados quando relevante
 - Siga o estilo do mentor ${mentorInfo?.name || 'escolhido'}
 - Adapte para ${channel}
 - Foque em ${objective?.toLowerCase()}`;
       break;
 
     case 'carousel':
-      userPrompt = `Crie textos para um carrossel de 5 slides sobre "${topic}".
+      userPrompt = `Crie textos para um carrossel de 5 slides sobre "${topic}" seguindo os 10 elementos universais.
 
 FORMATO DE SAÍDA OBRIGATÓRIO:
-SLIDE 1 - CAPA:
+SLIDE 1 - CAPA (Headlines + Copywriting):
 [Título impactante]
 [Subtítulo chamativo]
 
-SLIDE 2 - PROBLEMA:
+SLIDE 2 - PROBLEMA (Mapas de Empatia + Conhecimento do Público):
 [Identifique a dor do público]
 
-SLIDE 3 - SOLUÇÃO:
-[Apresente a solução]
+SLIDE 3 - EDUCAÇÃO (Premissas Educativas + Lógica Argumentativa):
+[Eduque antes de vender]
 
-SLIDE 4 - BENEFÍCIOS:
-[Liste 3 benefícios principais]
+SLIDE 4 - SOLUÇÃO (Storytelling + Análises e Dados):
+[Apresente a solução com prova]
 
-SLIDE 5 - CTA:
+SLIDE 5 - CTA (Gatilhos Mentais + Ferramentas Específicas):
 [Chamada para ação forte]
 
 Cada slide deve:
 - Ter texto conciso e direto
-- Seguir o estilo do mentor ${mentorInfo?.name || 'escolhido'}
+- Seguir os elementos universais do mentor ${mentorInfo?.name || 'escolhido'}
 - Ser otimizado para ${channel}
 - Focar em ${objective?.toLowerCase()}`;
       break;
 
     case 'image':
-      userPrompt = `Crie texto para uma arte única sobre "${topic}".
+      userPrompt = `Crie texto para uma arte única sobre "${topic}" aplicando os 10 elementos universais.
 
 FORMATO DE SAÍDA OBRIGATÓRIO:
-TÍTULO PRINCIPAL:
+TÍTULO PRINCIPAL (Headlines + Copywriting):
 [Título impactante em destaque]
 
-SUBTÍTULO:
+SUBTÍTULO (Conhecimento do Público + Mapas de Empatia):
 [Complemento explicativo]
 
-TEXTO PRINCIPAL:
+TEXTO PRINCIPAL (Storytelling + Lógica Argumentativa):
 [Mensagem central - máximo 2 linhas]
 
-CTA:
+DADOS/PROVA (Análises e Dados + Premissas Educativas):
+[Estatística ou informação relevante]
+
+CTA (Gatilhos Mentais + Ferramentas Específicas):
 [Chamada para ação clara]
 
 HASHTAGS:
@@ -292,31 +342,31 @@ HASHTAGS:
 REGRAS:
 - Texto deve caber em uma arte
 - Seja direto e impactante
-- Siga o estilo do mentor ${mentorInfo?.name || 'escolhido'}
+- Siga os elementos universais do mentor ${mentorInfo?.name || 'escolhido'}
 - Otimize para ${channel}
 - Foque em ${objective?.toLowerCase()}`;
       break;
 
     case 'stories':
-      userPrompt = `Crie sequência de 4 stories sobre "${topic}".
+      userPrompt = `Crie sequência de 4 stories sobre "${topic}" aplicando os 10 elementos universais.
 
 FORMATO DE SAÍDA OBRIGATÓRIO:
-STORIES 1:
+STORIES 1 (Headlines + Gatilhos Mentais):
 [Gancho inicial - pare o scroll]
 
-STORIES 2:
+STORIES 2 (Storytelling + Mapas de Empatia):
 [Desenvolva o problema/curiosidade]
 
-STORIES 3:
+STORIES 3 (Lógica Argumentativa + Premissas Educativas):
 [Apresente a solução/revelação]
 
-STORIES 4:
+STORIES 4 (Copywriting + Ferramentas Específicas):
 [CTA forte para ação]
 
 Cada stories deve:
 - Ter texto curto (máximo 2 linhas)
 - Gerar expectativa para o próximo
-- Seguir o estilo do mentor ${mentorInfo?.name || 'escolhido'}
+- Seguir os elementos universais do mentor ${mentorInfo?.name || 'escolhido'}
 - Ser adequado para stories do ${channel}
 - Focar em ${objective?.toLowerCase()}`;
       break;
