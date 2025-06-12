@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wand2, HelpCircle, Sparkles, Target, Rocket } from "lucide-react";
+import { toast } from 'sonner';
 import AkinatorScriptMode from './modes/AkinatorScriptMode';
 import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
@@ -12,7 +13,7 @@ import { useImageGeneration } from '@/hooks/useImageGeneration';
 type FluidaMode = 'selection' | 'akinator' | 'elementos' | 'results';
 
 interface FluidaRoteiristaProps {
-  onScriptGenerated: (script: any) => void;
+  onScriptGenerated?: (script: any) => void;
 }
 
 const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }) => {
@@ -51,6 +52,10 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
   const handleScriptGenerated = (script: any) => {
     console.log('✅ [FluidaRoteirista] Script gerado recebido:', script);
+    // Chamar callback opcional se fornecido
+    if (onScriptGenerated) {
+      onScriptGenerated(script);
+    }
     // O useEffect já vai mudar para 'results' quando results.length > 0
   };
 
