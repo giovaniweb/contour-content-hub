@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -9,7 +8,7 @@ import SmartQuestionSystem from '../components/SmartQuestionSystem';
 import { useEquipments } from '@/hooks/useEquipments';
 import { AKINATOR_TREE } from '../constants/intentionTree';
 import { buildEnhancedScriptData } from '../utils/mentorInference';
-import { validateAkinatorScript, isAkinatorFlowComplete } from '../utils/akinatorValidation';
+import { validateAkinatorScript, isAkinatorFlowComplete, ScriptDataFromAkinator } from '../utils/akinatorValidation';
 
 interface AkinatorScriptModeProps {
   onScriptGenerated: (script: any) => void;
@@ -90,8 +89,8 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         console.log('✅ [AkinatorScriptMode] Selected equipment names:', selectedEquipmentNames);
 
-        // CORREÇÃO: Usar os campos corretos da nova estrutura
-        const akinatorData = {
+        // CORREÇÃO: Criar dados com tipo correto
+        const akinatorData: ScriptDataFromAkinator = {
           canal: newAnswers.canal as string || 'instagram',
           formato: newAnswers.formato as string || 'carrossel', 
           objetivo: newAnswers.objetivo as string || 'atrair',

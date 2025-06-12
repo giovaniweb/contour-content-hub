@@ -1,98 +1,103 @@
 
-import { ValidationResult } from './antiGenericValidation';
+import { ValidationResult } from '../types';
 
-export interface AkinatorScriptData {
-  tipo_conteudo?: string;
-  objetivo?: string;
-  canal?: string;
-  estilo?: string;
-  equipamentos?: string[];
-  tema?: string;
-  modo?: string;
+// CORREÇÃO: Tipo atualizado para nova estrutura de 6 passos
+export interface ScriptDataFromAkinator {
+  canal: string;
+  formato: string;
+  objetivo: string;
+  estilo: string;
+  equipamentos: string[];
+  tema: string;
+  modo: string;
 }
 
-/**
- * Validação específica para o modo Akinator
- * Mais flexível que a validação geral, pois o usuário já passou por todo o fluxo
- */
-export const validateAkinatorScript = (data: AkinatorScriptData): ValidationResult => {
-  console.log('🔍 [akinatorValidation] Validando dados do Akinator:', data);
+export const validateAkinatorScript = (data: ScriptDataFromAkinator): ValidationResult => {
+  console.log('🔍 [validateAkinatorScript] Validando dados do Akinator:', data);
   
   const errors: string[] = [];
   const suggestions: string[] = [];
   const missingFields: string[] = [];
-  
-  // Verificações obrigatórias para Akinator
-  if (!data.tipo_conteudo) {
-    missingFields.push('tipo_conteudo');
-    errors.push('Tipo de conteúdo não selecionado');
+
+  // CORREÇÃO: Validações atualizadas para nova estrutura
+  if (!data.canal) {
+    missingFields.push('canal');
+    errors.push('Canal de publicação não selecionado');
   }
-  
+
+  if (!data.formato) {
+    missingFields.push('formato');
+    errors.push('Formato do conteúdo não selecionado');
+  }
+
   if (!data.objetivo) {
     missingFields.push('objetivo');
     errors.push('Objetivo não definido');
   }
-  
-  if (!data.canal) {
-    missingFields.push('canal');
-    errors.push('Canal não selecionado');
-  }
-  
+
   if (!data.estilo) {
     missingFields.push('estilo');
-    errors.push('Estilo de comunicação não definido');
+    errors.push('Estilo de comunicação não selecionado');
   }
-  
-  if (!data.tema || data.tema.trim().length < 5) {
+
+  if (!data.tema || data.tema.trim().length < 10) {
     missingFields.push('tema');
-    errors.push('Tema muito curto ou vazio');
-    suggestions.push('Descreva o tema com pelo menos 5 caracteres');
+    errors.push('Tema muito curto ou não definido');
+    suggestions.push('Descreva melhor o tema do seu conteúdo');
   }
-  
-  // Validação mais flexível para equipamentos no modo Akinator
+
+  // Validação de equipamentos (opcional)
   if (!data.equipamentos || data.equipamentos.length === 0) {
-    // Não é erro crítico no Akinator, apenas sugestão
-    suggestions.push('Considere selecionar equipamentos específicos para personalizar o roteiro');
+    suggestions.push('Nenhum equipamento selecionado - o roteiro será mais genérico');
   }
-  
+
   // Determinar qualidade
-  let quality: 'low' | 'medium' | 'high' = 'low';
+  let quality: 'low' | 'medium' | 'high' = 'high';
   
-  if (errors.length === 0) {
-    if (data.equipamentos && data.equipamentos.length > 0 && data.tema && data.tema.length > 15) {
-      quality = 'high';
-    } else if (data.tema && data.tema.length > 10) {
-      quality = 'medium';
-    }
+  if (missingFields.length > 2) {
+    quality = 'low';
+  } else if (missingFields.length > 0 || data.tema.trim().length < 20) {
+    quality = 'medium';
   }
-  
-  const result: ValidationResult = {
-    isValid: errors.length === 0, // No modo Akinator, se não há erros críticos, pode gerar
+
+  const isValid = errors.length === 0;
+
+  console.log('✅ [validateAkinatorScript] Resultado da validação:', {
+    isValid,
+    quality,
+    errors: errors.length,
+    missingFields: missingFields.length
+  });
+
+  return {
+    isValid,
     errors,
     suggestions,
     missingFields,
     quality
   };
-  
-  console.log('📊 [akinatorValidation] Resultado da validação:', result);
-  return result;
 };
 
-/**
- * Verifica se o usuário completou todas as etapas obrigatórias do Akinator
- */
-export const isAkinatorFlowComplete = (data: AkinatorScriptData): boolean => {
-  const requiredFields = ['tipo_conteudo', 'objetivo', 'canal', 'estilo', 'tema'];
+export const isAkinatorFlowComplete = (data: ScriptDataFromAkinator): boolean => {
+  console.log('🔍 [isAkinatorFlowComplete] Verificando completude do fluxo:', data);
   
-  const completedFields = requiredFields.filter(field => {
-    const value = data[field as keyof AkinatorScriptData];
+  // CORREÇÃO: Verificação atualizada para nova estrutura
+  const requiredFields = ['canal', 'formato', 'objetivo', 'estilo', 'tema'];
+  const hasAllRequired = requiredFields.every(field => {
+    const value = data[field as keyof ScriptDataFromAkinator];
     return value && (typeof value === 'string' ? value.trim().length > 0 : true);
   });
-  
-  const isComplete = completedFields.length === requiredFields.length;
-  
-  console.log('✅ [akinatorValidation] Fluxo completo?', isComplete, 
-    `(${completedFields.length}/${requiredFields.length} campos)`);
-  
+
+  // Tema deve ter pelo menos 10 caracteres
+  const hasValidTema = data.tema && data.tema.trim().length >= 10;
+
+  const isComplete = hasAllRequired && hasValidTema;
+
+  console.log('✅ [isAkinatorFlowComplete] Fluxo completo?', isComplete, {
+    hasAllRequired,
+    hasValidTema,
+    temaLength: data.tema?.length || 0
+  });
+
   return isComplete;
 };
