@@ -36,23 +36,23 @@ const FormatsSelector: React.FC<FormatsSelectorProps> = ({
           <motion.button
             key={fmt.id}
             onClick={() => onFormatChange(fmt.id)}
-            className={`p-4 rounded-xl border-2 transition-all aurora-glass backdrop-blur-sm ${
+            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
               selectedFormat === fmt.id
-                ? 'border-purple-500/70 aurora-glow bg-purple-500/10'
-                : 'border-purple-300/20 hover:border-purple-400/40'
+                ? 'border-purple-500/70 bg-purple-500/10 shadow-md shadow-purple-500/20'
+                : 'border-gray-700 bg-gray-800/80 hover:border-purple-400/50 hover:bg-gray-700/90 hover:shadow-lg hover:shadow-purple-500/10'
             }`}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
             <fmt.icon className={`h-8 w-8 mx-auto mb-3 ${
-              selectedFormat === fmt.id ? 'aurora-electric-purple' : 'aurora-body'
+              selectedFormat === fmt.id ? 'text-purple-300' : 'text-gray-200'
             }`} />
             <div className={`text-sm font-semibold mb-1 ${
-              selectedFormat === fmt.id ? 'aurora-electric-purple' : 'aurora-body'
+              selectedFormat === fmt.id ? 'text-purple-300' : 'text-gray-200'
             }`}>
               {fmt.label}
             </div>
-            <div className="text-xs aurora-body opacity-70">
+            <div className="text-xs text-gray-400 opacity-70">
               {fmt.description}
             </div>
           </motion.button>

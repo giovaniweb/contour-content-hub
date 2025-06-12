@@ -28,15 +28,15 @@ const EquipmentsList: React.FC<EquipmentsListProps> = ({
         {equipments.map((equipment, index) => (
           <motion.label
             key={equipment.id}
-            className={`flex items-center space-x-3 p-3 rounded-lg border transition-all cursor-pointer aurora-glass backdrop-blur-sm ${
+            className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
               selectedEquipments.includes(equipment.id)
-                ? 'border-purple-500/50 aurora-glow bg-purple-500/10'
-                : 'border-purple-300/20 hover:border-purple-400/40'
+                ? 'border-purple-500/70 bg-purple-500/10 shadow-md shadow-purple-500/20'
+                : 'border-gray-700 bg-gray-800/80 hover:border-purple-400/50 hover:bg-gray-700/90 hover:shadow-lg hover:shadow-purple-500/10'
             }`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -1 }}
           >
             <input
               type="checkbox"
@@ -46,8 +46,8 @@ const EquipmentsList: React.FC<EquipmentsListProps> = ({
             />
             <span className={`text-sm font-medium ${
               selectedEquipments.includes(equipment.id) 
-                ? 'aurora-electric-purple' 
-                : 'aurora-body'
+                ? 'text-purple-300' 
+                : 'text-gray-200'
             }`}>
               {equipment.nome}
             </span>
