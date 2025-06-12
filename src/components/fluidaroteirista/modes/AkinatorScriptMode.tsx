@@ -90,7 +90,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         // Criar dados básicos do Akinator
         const akinatorData = {
-          tipo_conteudo: newAnswers.tipo_conteudo as string || 'carrossel',
+          tipo_conteudo: newAnswers.formato as string || 'carrossel', // Correção: usar 'formato' em vez de 'tipo_conteudo'
           objetivo: newAnswers.objetivo as string || 'atrair',
           canal: newAnswers.canal as string || 'instagram',
           estilo: newAnswers.estilo as string || 'criativo',
@@ -267,21 +267,12 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   return (
     <div className="container mx-auto py-6">
       <EnhancedAkinatorQuestion
-        question={currentQuestion.pergunta}
-        titulo={currentQuestion.titulo}
-        subtitulo={currentQuestion.subtitulo}
-        descricao={currentQuestion.descricao}
-        options={currentQuestion.options}
-        stepId={currentStep}
-        onOptionSelect={handleOptionSelect}
-        onGoBack={handleGoBack}
+        questionData={currentQuestion}
+        currentStep={currentStep}
+        answers={answers}
+        onAnswer={handleOptionSelect}
+        onBack={handleGoBack}
         canGoBack={history.length > 1}
-        mentorStyle="conversacional"
-        currentStep={history.length - 1}
-        totalSteps={Object.keys(AKINATOR_TREE).length}
-        isTextInput={currentStep === 'tema'}
-        mentorPhrase={currentQuestion.mentorPhrase}
-        isMultipleChoice={currentStep === 'equipamento'}
       />
     </div>
   );

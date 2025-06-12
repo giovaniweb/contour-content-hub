@@ -1,4 +1,3 @@
-
 import { generateScript } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { FluidaScriptResult, ScriptGenerationData } from '../types';
@@ -20,7 +19,13 @@ export const generateFluidaScript = async (
   }
 
   // Construir prompt do sistema com ênfase nos equipamentos
-  const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo');
+  const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo',
+    {
+      canal: data.canal || 'instagram',
+      formato: data.formato || 'carrossel',
+      objetivo: data.objetivo || 'atrair',
+      estilo: data.estilo || 'criativo'
+    });
   
   // CORREÇÃO: Construir prompt mais enfático para equipamentos
   const equipmentEmphasis = equipmentDetails.length > 0 
@@ -91,7 +96,8 @@ INSTRUÇÕES ESPECÍFICAS:
         intencao: parsedContent.intencao || 'atrair',
         objetivo: parsedContent.objetivo || data.objetivo || 'Atrair novos clientes',
         mentor: parsedContent.mentor || data.mentor || 'Criativo',
-        equipamentos_utilizados: equipmentDetails
+        equipamentos_utilizados: equipmentDetails,
+        canal: data.canal || 'instagram'
       };
     } else {
       console.warn('⚠️ [scriptGenerator] JSON não tem estrutura esperada, usando conteúdo direto');
@@ -161,7 +167,8 @@ ${equipmentMention}
     intencao: 'atrair',
     objetivo: data.objetivo || 'Atrair novos clientes',
     mentor: data.mentor || 'Criativo',
-    equipamentos_utilizados: equipmentDetails
+    equipamentos_utilizados: equipmentDetails,
+    canal: data.canal || 'instagram'
   };
 };
 
@@ -203,7 +210,7 @@ const forceEquipmentInclusion = (
 export const applyDisneyTransformation = async (script: FluidaScriptResult): Promise<FluidaScriptResult> => {
   console.log('✨ [scriptGenerator] Aplicando Disney Magic...');
   
-  const disneyPrompt = buildDisneyPrompt(script.roteiro);
+  const disneyPrompt = buildDisneyPrompt(script.roteiro, script.formato);
   
   const response = await generateScript({
     type: 'custom',
@@ -230,6 +237,7 @@ export const applyDisneyTransformation = async (script: FluidaScriptResult): Pro
     roteiro: disneyResult.roteiro,
     disney_applied: true,
     emocao_central: 'encantamento',
-    mentor: 'Walt Disney 1928'
+    mentor: 'Walt Disney 1928',
+    canal: script.canal
   };
 };

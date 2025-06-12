@@ -7,6 +7,7 @@ export interface FluidaScriptResult {
   intencao: string;
   objetivo: string;
   mentor: string;
+  canal?: string; // Adicionando a propriedade canal
   elementos_aplicados?: any;
   especialidades_aplicadas?: string[];
   modo_usado?: string;

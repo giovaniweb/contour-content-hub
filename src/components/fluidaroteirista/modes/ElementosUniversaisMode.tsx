@@ -272,21 +272,21 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
       />
 
       <EnhancedAkinatorQuestion
-        question={currentQuestion.question || currentQuestion.subtitulo}
-        titulo={currentQuestion.titulo}
-        subtitulo={currentQuestion.subtitulo}
-        descricao={currentQuestion.descricao}
-        options={currentQuestion.options || []}
-        stepId={currentStep}
-        onOptionSelect={handleAnswer}
-        onGoBack={handleGoBackStep}
+        questionData={{
+          pergunta: currentQuestion.question || currentQuestion.subtitulo,
+          titulo: currentQuestion.titulo,
+          subtitulo: currentQuestion.subtitulo,
+          descricao: currentQuestion.descricao,
+          options: currentQuestion.options || [],
+          isTextInput: currentQuestion.isTextInput,
+          mentorPhrase: currentQuestion.mentorPhrase,
+          multiSelect: currentQuestion.isMultipleChoice
+        }}
+        currentStep={currentStep}
+        answers={answers}
+        onAnswer={handleAnswer}
+        onBack={handleGoBackStep}
         canGoBack={stepHistory.length > 1}
-        mentorStyle="elementos_universais"
-        currentStep={stepHistory.length}
-        totalSteps={totalSteps}
-        isTextInput={currentQuestion.isTextInput}
-        mentorPhrase={currentQuestion.mentorPhrase}
-        isMultipleChoice={currentQuestion.isMultipleChoice}
       />
     </motion.div>
   );
