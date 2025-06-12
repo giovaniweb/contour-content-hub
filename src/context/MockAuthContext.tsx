@@ -34,7 +34,25 @@ export const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setUser(authData.user);
           setIsAuthenticated(authData.isAuthenticated);
         } else {
-          console.log('🔐 Nenhuma sessão persistida encontrada');
+          // Se não há sessão salva, criar um usuário mock automaticamente para desenvolvimento
+          console.log('🔐 Criando usuário mock para desenvolvimento');
+          const mockUser: UserProfile = {
+            id: '1d0af739-6f08-4f35-83a5-8ce85b99d32a',
+            email: 'giovani.g@live.com',
+            nome: 'Dr. João Silva',
+            role: 'admin'
+          };
+          
+          setUser(mockUser);
+          setIsAuthenticated(true);
+          
+          // Salvar no localStorage
+          const authData = {
+            user: mockUser,
+            isAuthenticated: true
+          };
+          localStorage.setItem('fluida_auth_session', JSON.stringify(authData));
+          console.log('💾 Usuário mock criado e salvo:', mockUser);
         }
       } catch (error) {
         console.error('❌ Erro ao carregar sessão persistida:', error);

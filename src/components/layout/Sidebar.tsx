@@ -46,6 +46,10 @@ const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  // Debug: verificar se o usuário está sendo carregado corretamente
+  console.log('🔍 Sidebar - Usuário atual:', user);
+  console.log('🔍 Sidebar - Role do usuário:', user?.role);
+
   const mainMenuItems = [
     { icon: Home, label: 'Dashboard', path: ROUTES.DASHBOARD },
     { icon: BrainCircuit, label: 'Consultor MKT', path: ROUTES.MARKETING.CONSULTANT },
@@ -76,6 +80,10 @@ const Sidebar: React.FC = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Verificar se o usuário é admin
+  const isUserAdmin = user?.role === 'admin';
+  console.log('🔍 Sidebar - É admin?', isUserAdmin);
 
   return (
     <SidebarContainer className="h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 backdrop-blur-sm border-r border-white/20 flex flex-col">
@@ -162,8 +170,8 @@ const Sidebar: React.FC = () => {
 
         <SidebarSeparator className="border-white/10 my-2" />
 
-        {/* Admin Menu */}
-        {user?.role === 'admin' && (
+        {/* Admin Menu - com verificação corrigida */}
+        {isUserAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-white/60 text-xs uppercase tracking-wider px-4">
               Administração
