@@ -1,14 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, MessageCircle, HelpCircle, Sparkles } from "lucide-react";
+import { Wand2, MessageCircle, HelpCircle, Sparkles, Target } from "lucide-react";
 import AkinatorScriptMode from './modes/AkinatorScriptMode';
 import ChatScriptMode from './modes/ChatScriptMode';
+import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
 import { useFluidaScript } from './hooks/useFluidaScript';
 
-type FluidaMode = 'selection' | 'akinator' | 'chat' | 'results';
+type FluidaMode = 'selection' | 'akinator' | 'chat' | 'elementos' | 'results';
 
 const FluidaRoteirista: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<FluidaMode>('selection');
@@ -31,7 +33,7 @@ const FluidaRoteirista: React.FC = () => {
     }
   }, [results.length, currentMode]);
 
-  const handleModeSelect = (mode: 'akinator' | 'chat') => {
+  const handleModeSelect = (mode: 'akinator' | 'chat' | 'elementos') => {
     console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
     setCurrentMode(mode);
   };
@@ -64,6 +66,18 @@ const FluidaRoteirista: React.FC = () => {
         onGenerateAudio={generateAudio}
         onApplyDisney={applyDisneyMagic}
         isProcessing={isGenerating}
+      />
+    );
+  }
+
+  if (currentMode === 'elementos') {
+    console.log('🎯 [FluidaRoteirista] Renderizando modo 10 Elementos');
+    return (
+      <ElementosUniversaisMode
+        onScriptGenerated={handleScriptGenerated}
+        onGoBack={handleGoBack}
+        generateScript={generateScript}
+        isGenerating={isGenerating}
       />
     );
   }
@@ -120,7 +134,7 @@ const FluidaRoteirista: React.FC = () => {
       </div>
 
       {/* Mode Selection */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <motion.h2 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -130,11 +144,61 @@ const FluidaRoteirista: React.FC = () => {
           ✨ Escolha seu estilo de criação:
         </motion.h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Modo 10 Elementos Universais - NOVO */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <Card className="aurora-glass border-aurora-electric-purple/50 hover:border-aurora-electric-purple/70 transition-all cursor-pointer h-full relative overflow-hidden"
+                  onClick={() => handleModeSelect('elementos')}>
+              <div className="absolute top-2 right-2">
+                <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                  NOVO ✨
+                </span>
+              </div>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <motion.div
+                    whileHover={{ 
+                      rotate: [0, -10, 10, -10, 0],
+                      scale: [1, 1.2, 1.2, 1.2, 1]
+                    }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Target className="h-16 w-16 text-aurora-electric-purple" />
+                  </motion.div>
+                </div>
+                <CardTitle className="text-white text-xl">
+                  🎯 Roteiro Científico
+                </CardTitle>
+                <p className="text-aurora-electric-purple font-medium">
+                  10 Elementos Universais
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-slate-300 text-center">
+                  Metodologia científica com 10 passos estruturados
+                </p>
+                <div className="space-y-2 text-sm text-slate-400">
+                  <p>🎯 Storytelling + Público-alvo</p>
+                  <p>📈 Headlines + Gatilhos mentais</p>
+                  <p>🧠 Lógica + Educação + Empatia</p>
+                  <p>📊 Copy + Ferramentas + Dados</p>
+                </div>
+                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white">
+                  Criar com Método
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Modo Akinator */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             whileHover={{ scale: 1.02 }}
           >
@@ -166,7 +230,7 @@ const FluidaRoteirista: React.FC = () => {
                 <div className="space-y-2 text-sm text-slate-400">
                   <p>✅ Ideal para usuários iniciantes</p>
                   <p>✅ Interface com perguntas visuais</p>
-                  <p>✅ Salva progresso automaticamente</p>
+                  <p>✅ 6 passos estruturados</p>
                   <p>✅ Árvore de intenção inteligente</p>
                 </div>
                 <Button className="w-full bg-aurora-gradient-primary hover:opacity-90 text-white">
@@ -178,8 +242,8 @@ const FluidaRoteirista: React.FC = () => {
 
           {/* Modo Chat */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             whileHover={{ scale: 1.02 }}
           >
@@ -261,8 +325,8 @@ const FluidaRoteirista: React.FC = () => {
               className="text-center"
               whileHover={{ scale: 1.05 }}
             >
-              <div className="text-aurora-electric-purple font-medium">📱 Multi-formato</div>
-              <div>Stories, carrossel, imagem</div>
+              <div className="text-aurora-electric-purple font-medium">📊 Análise Científica</div>
+              <div>10 elementos estruturados</div>
             </motion.div>
           </div>
         </motion.div>
