@@ -1,3 +1,4 @@
+
 import { generateScript } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { FluidaScriptResult, ScriptGenerationData } from '../types';
@@ -12,23 +13,25 @@ export const generateFluidaScript = async (
   console.log('📋 [scriptGenerator] Dados recebidos:', data);
   console.log('🔧 [scriptGenerator] Equipamentos detalhados:', equipmentDetails);
   
-  // Validação crítica: garantir que apenas equipamentos selecionados sejam usados
+  // VALIDAÇÃO CRÍTICA: garantir que apenas equipamentos selecionados sejam usados
   if (data.equipamentos && data.equipamentos.length > 0 && equipmentDetails.length === 0) {
     console.error('❌ [scriptGenerator] ERRO CRÍTICO: Equipamentos selecionados mas detalhes vazios');
-    // Não falhar, mas avisar
     console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
   // Construir prompt do sistema com ênfase nos equipamentos
   const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo');
   
-  // Construir prompt do usuário com ênfase nos equipamentos
+  // CORREÇÃO: Construir prompt mais enfático para equipamentos
   const equipmentEmphasis = equipmentDetails.length > 0 
-    ? `EQUIPAMENTOS OBRIGATÓRIOS A MENCIONAR:
-${equipmentDetails.map(eq => `- ${eq.nome}: ${eq.tecnologia} (Benefícios: ${eq.beneficios})`).join('\n')}
+    ? `🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
+${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
+   - Benefícios: ${eq.beneficios}
+   - Diferenciais: ${eq.diferenciais}`).join('\n')}
 
-IMPORTANTE: O roteiro DEVE mencionar especificamente estes equipamentos e suas tecnologias.`
-    : 'Nenhum equipamento específico foi selecionado.';
+🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
+⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.`
+    : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.';
 
   const userPrompt = `
 TEMA PRINCIPAL: ${data.tema}
@@ -40,11 +43,11 @@ ${equipmentEmphasis}
 INSTRUÇÕES ESPECÍFICAS:
 - Crie um roteiro de MÁXIMO 60 segundos
 - Use a estrutura: Gancho → Conflito → Virada → CTA
-- Se equipamentos foram especificados, MENCIONE-OS no roteiro
+- OBRIGATÓRIO: Se equipamentos foram especificados acima, MENCIONE-OS TODOS no roteiro
 - Mantenha tom ${data.mentor || 'criativo'} e emoção envolvente
 - Formato para ${data.formato || 'carrossel'}
 
-Crie o roteiro agora integrando os equipamentos especificados.
+🎯 MISSÃO: Integrar TODOS os equipamentos listados de forma natural no roteiro.
   `;
 
   console.log('📤 [scriptGenerator] Prompts construídos:');
@@ -98,28 +101,13 @@ Crie o roteiro agora integrando os equipamentos especificados.
     console.log('✅ [scriptGenerator] JSON parseado com sucesso');
   } catch (parseError) {
     console.warn('⚠️ [scriptGenerator] Erro ao parsear JSON, usando fallback:', parseError);
-    // Se não for JSON válido, usar o conteúdo direto
     scriptResult = createFallbackScript(response.content, data, equipmentDetails);
   }
 
-  // Validação final: garantir que o roteiro não está vazio
+  // CORREÇÃO: Validação mais rigorosa e correção automática
   if (!scriptResult.roteiro || scriptResult.roteiro.trim() === '') {
     console.error('❌ [scriptGenerator] ERRO CRÍTICO: Roteiro final está vazio');
-    
-    // Criar roteiro de fallback que mencione os equipamentos
-    const equipmentMention = equipmentDetails.length > 0 
-      ? `Com nosso ${equipmentDetails[0].nome}, você pode alcançar resultados incríveis de forma segura e eficaz.`
-      : 'Nossos tratamentos avançados podem te ajudar a alcançar os resultados que você deseja.';
-    
-    scriptResult.roteiro = `🎯 ${data.tema}
-
-Você já pensou em como transformar sua autoestima? 
-
-${equipmentMention}
-
-✨ Resultados comprovados, tecnologia de ponta, cuidado personalizado.
-
-📲 Agende sua consulta e descubra como podemos transformar seu cuidado pessoal.`;
+    scriptResult = createEmergencyScript(data, equipmentDetails);
   }
 
   // VALIDAÇÃO PÓS-GERAÇÃO: Verificar se equipamentos foram mencionados
@@ -133,9 +121,13 @@ ${equipmentMention}
     console.log('✅ [scriptGenerator] Equipamentos mencionados:', equipmentsMentioned.map(eq => eq.nome));
     
     if (equipmentsMentioned.length === 0) {
-      console.error('❌ [scriptGenerator] PROBLEMA CRÍTICO: Nenhum equipamento foi mencionado no roteiro!');
+      console.error('❌ [scriptGenerator] PROBLEMA CRÍTICO: Nenhum equipamento foi mencionado!');
+      // CORREÇÃO: Forçar inclusão dos equipamentos
+      scriptResult = forceEquipmentInclusion(scriptResult, equipmentDetails);
     } else if (equipmentsMentioned.length < equipmentDetails.length) {
       console.warn('⚠️ [scriptGenerator] Alguns equipamentos não foram mencionados');
+      // CORREÇÃO: Forçar inclusão dos equipamentos faltantes
+      scriptResult = forceEquipmentInclusion(scriptResult, equipmentDetails, equipmentsMentioned);
     } else {
       console.log('✅ [scriptGenerator] Todos os equipamentos foram mencionados!');
     }
@@ -144,6 +136,68 @@ ${equipmentMention}
   console.log('✅ [scriptGenerator] ===== ROTEIRO FINAL CRIADO =====');
   console.log('🎬 [scriptGenerator] Resultado:', scriptResult);
   return scriptResult;
+};
+
+// NOVA FUNÇÃO: Criar script de emergência
+const createEmergencyScript = (data: ScriptGenerationData, equipmentDetails: any[]): FluidaScriptResult => {
+  const equipmentMention = equipmentDetails.length > 0 
+    ? `Com nosso ${equipmentDetails[0].nome}, que utiliza ${equipmentDetails[0].tecnologia}, você pode alcançar resultados incríveis.`
+    : 'Nossos tratamentos avançados podem te ajudar a alcançar os resultados que você deseja.';
+  
+  const emergencyScript = `🎯 ${data.tema || 'Transforme sua vida'}
+
+Você já pensou em como transformar sua autoestima? 
+
+${equipmentMention}
+
+✨ Resultados comprovados, tecnologia de ponta, cuidado personalizado.
+
+📲 Agende sua consulta e descubra como podemos transformar seu cuidado pessoal.`;
+
+  return {
+    roteiro: emergencyScript,
+    formato: data.formato || 'carrossel',
+    emocao_central: 'confiança',
+    intencao: 'atrair',
+    objetivo: data.objetivo || 'Atrair novos clientes',
+    mentor: data.mentor || 'Criativo',
+    equipamentos_utilizados: equipmentDetails
+  };
+};
+
+// NOVA FUNÇÃO: Forçar inclusão de equipamentos
+const forceEquipmentInclusion = (
+  scriptResult: FluidaScriptResult, 
+  equipmentDetails: any[], 
+  alreadyMentioned: any[] = []
+): FluidaScriptResult => {
+  console.log('🔧 [scriptGenerator] Forçando inclusão de equipamentos...');
+  
+  const missingEquipments = equipmentDetails.filter(eq => 
+    !alreadyMentioned.some(mentioned => mentioned.nome === eq.nome)
+  );
+  
+  let updatedScript = scriptResult.roteiro;
+  
+  // Adicionar equipamentos faltantes de forma natural
+  if (missingEquipments.length > 0) {
+    const equipmentText = missingEquipments.length === 1 
+      ? `Com nosso ${missingEquipments[0].nome}, que utiliza ${missingEquipments[0].tecnologia}, você obtém ${missingEquipments[0].beneficios}.`
+      : `Com nossos equipamentos ${missingEquipments.map(eq => eq.nome).join(' e ')}, utilizando tecnologias avançadas, você alcança resultados superiores.`;
+    
+    // Inserir na seção "Virada" do roteiro (após o conflito)
+    const lines = updatedScript.split('\n');
+    const middleIndex = Math.floor(lines.length / 2);
+    lines.splice(middleIndex, 0, '', equipmentText);
+    updatedScript = lines.join('\n');
+    
+    console.log('✅ [scriptGenerator] Equipamentos forçados incluídos:', missingEquipments.map(eq => eq.nome));
+  }
+  
+  return {
+    ...scriptResult,
+    roteiro: updatedScript
+  };
 };
 
 export const applyDisneyTransformation = async (script: FluidaScriptResult): Promise<FluidaScriptResult> => {

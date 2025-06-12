@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import EnhancedAkinatorQuestion from '../components/EnhancedAkinatorQuestion';
@@ -99,11 +98,24 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
       console.log('🎬 [ElementosUniversaisMode] Iniciando geração de roteiro');
       setError(null);
       
-      // Mapear equipamentos selecionados para nomes
-      const selectedEquipmentIds = finalAnswers.equipamentos as string[] || [];
-      const selectedEquipmentNames = selectedEquipmentIds.map(id => 
-        equipments.find(eq => eq.id === id)?.nome || id
-      );
+      // CORREÇÃO: Mapear equipamentos selecionados corretamente
+      const selectedEquipmentIds = Array.isArray(finalAnswers.equipamentos) 
+        ? finalAnswers.equipamentos as string[]
+        : finalAnswers.equipamentos 
+          ? [finalAnswers.equipamentos as string]
+          : [];
+
+      console.log('🔧 [ElementosUniversaisMode] Selected equipment IDs:', selectedEquipmentIds);
+
+      const selectedEquipmentNames = selectedEquipmentIds
+        .map(id => {
+          const equipment = equipments.find(eq => eq.id === id);
+          console.log(`🔍 [ElementosUniversaisMode] Mapping ID ${id} to:`, equipment?.nome);
+          return equipment?.nome || id;
+        })
+        .filter(name => name);
+
+      console.log('✅ [ElementosUniversaisMode] Selected equipment names:', selectedEquipmentNames);
 
       const scriptData = {
         // Dados dos elementos universais
@@ -111,8 +123,8 @@ const ElementosUniversaisMode: React.FC<ElementosUniversaisModeProps> = ({
         storytelling: finalAnswers.storytelling,
         copywriting: finalAnswers.copywriting,
         conhecimento_publico: finalAnswers.conhecimento_publico,
-        equipamentos: selectedEquipmentNames.join(', '), // String para compatibilidade
-        equipamento: selectedEquipmentNames.join(', '), // Alias para compatibilidade
+        // CORREÇÃO: Usar array de equipamentos
+        equipamentos: selectedEquipmentNames,
         analises_dados: finalAnswers.analises_dados,
         gatilhos_mentais: finalAnswers.gatilhos_mentais,
         logica_argumentativa: finalAnswers.logica_argumentativa,

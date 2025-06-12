@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -62,28 +61,38 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
       console.log('🎯 [AkinatorScriptMode] Final step reached, generating script...');
       
       try {
-        // Mapear equipamentos selecionados para nomes se for array
-        let equipmentString = '';
-        if (Array.isArray(newAnswers.equipamento)) {
-          const selectedEquipmentIds = newAnswers.equipamento as string[];
-          const selectedEquipmentNames = selectedEquipmentIds.map(id => 
-            equipments.find(eq => eq.id === id)?.nome || id
-          );
-          equipmentString = selectedEquipmentNames.join(', ');
-        } else {
-          equipmentString = newAnswers.equipamento as string || '';
-        }
+        // CORREÇÃO: Mapear corretamente os equipamentos selecionados
+        const selectedEquipmentIds = Array.isArray(newAnswers.equipamento) 
+          ? newAnswers.equipamento as string[]
+          : newAnswers.equipamento 
+            ? [newAnswers.equipamento as string]
+            : [];
+
+        console.log('🔧 [AkinatorScriptMode] Selected equipment IDs:', selectedEquipmentIds);
+
+        // Mapear IDs para nomes dos equipamentos
+        const selectedEquipmentNames = selectedEquipmentIds
+          .map(id => {
+            const equipment = equipments.find(eq => eq.id === id);
+            console.log(`🔍 [AkinatorScriptMode] Mapping ID ${id} to equipment:`, equipment?.nome);
+            return equipment?.nome || id;
+          })
+          .filter(name => name); // Remove valores vazios
+
+        console.log('✅ [AkinatorScriptMode] Selected equipment names:', selectedEquipmentNames);
 
         const scriptData = {
           tipo_conteudo: newAnswers.tipo_conteudo as string || 'carrossel',
           objetivo: newAnswers.objetivo as string || 'atrair',
           canal: newAnswers.canal as string || 'instagram',
           estilo: newAnswers.estilo as string || 'criativo',
-          equipamento: equipmentString,
-          tema: value as string
+          // CORREÇÃO: Usar array de equipamentos em vez de string
+          equipamentos: selectedEquipmentNames,
+          tema: value as string,
+          modo: 'akinator'
         };
 
-        console.log('🚀 [AkinatorScriptMode] Calling generateScript with:', scriptData);
+        console.log('🚀 [AkinatorScriptMode] Calling generateScript with corrected data:', scriptData);
         
         const result = await generateScript(scriptData);
         console.log('✅ [AkinatorScriptMode] Script generated:', result);
@@ -134,7 +143,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     }
   };
 
-  // Mostrar loading se estiver gerando
+  // Mostrar loading durante geração
   if (isGenerating) {
     return <FluidaLoadingScreen mentor="akinator" />;
   }
