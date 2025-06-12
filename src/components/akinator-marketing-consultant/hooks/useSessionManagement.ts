@@ -72,13 +72,13 @@ export const useSessionManagement = ({
     }
   }, [hasLoadedSavedData, isDiagnosticLoading, forceNew, loadCurrentSession, setState, setShowDashboard, setCurrentStep, clearCurrentSession]);
 
-  // Auto-save progress
+  // Auto-save progress - corrigido para usar assinatura correta
   useEffect(() => {
     if (hasLoadedSavedData && !forceNew && Object.keys(state).some(key => state[key as keyof MarketingConsultantState])) {
       const syncData = async () => {
         setIsSyncing(true);
         try {
-          await saveCurrentSession(state, false);
+          await saveCurrentSession(state, false); // Usando assinatura correta: (state, isCompleted)
           console.log('💾 Progresso sincronizado com banco');
         } catch (error) {
           console.error('❌ Erro na sincronização:', error);

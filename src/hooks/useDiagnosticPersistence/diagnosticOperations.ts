@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DiagnosticSession } from './types';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
+import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 
 export const useDiagnosticOperations = () => {
   const [savedDiagnostics, setSavedDiagnostics] = useState<DiagnosticSession[]>([]);
@@ -36,11 +37,11 @@ export const useDiagnosticOperations = () => {
       console.log('✅ Diagnósticos carregados do banco:', data?.length || 0);
       
       if (data && data.length > 0) {
-        // Converter dados do banco para DiagnosticSession
+        // Converter dados do banco para DiagnosticSession com tipos corretos
         const sessions: DiagnosticSession[] = data.map(item => ({
           id: item.session_id,
           timestamp: item.created_at,
-          state: item.state_data || {},
+          state: (item.state_data as MarketingConsultantState) || {},
           isCompleted: item.is_completed || false,
           clinicTypeLabel: item.clinic_type || 'Clínica',
           specialty: item.specialty || 'Geral',
@@ -60,8 +61,8 @@ export const useDiagnosticOperations = () => {
     }
   }, [user?.id]);
 
-  // Salvar sessão atual
-  const saveCurrentSession = useCallback(async (session: DiagnosticSession) => {
+  // Salvar sessão atual - ajustado para receber parâmetros corretos
+  const saveCurrentSession = useCallback(async (state: MarketingConsultantState, isCompleted: boolean = false) => {
     if (!user?.id) {
       console.log('❌ Usuário não autenticado para salvar sessão');
       return false;
@@ -70,15 +71,23 @@ export const useDiagnosticOperations = () => {
     try {
       console.log('💾 Salvando sessão no banco para user_id:', user.id);
       
+      // Gerar ID determinístico baseado no estado
+      const generateSessionId = () => {
+        const content = `${state.clinicType || 'unknown'}_${state.clinicName || 'clinic'}_${Date.now()}`;
+        return `diagnostic_${Buffer.from(content).toString('base64').substring(0, 16)}`;
+      };
+
+      const sessionId = generateSessionId();
+      
       const { error } = await supabase
         .from('marketing_diagnostics')
         .upsert({
-          session_id: session.id,
+          session_id: sessionId,
           user_id: user.id, // GARANTIR QUE USA O USER_ID CORRETO
-          state_data: session.state,
-          is_completed: session.isCompleted,
-          clinic_type: session.clinicTypeLabel,
-          specialty: session.specialty,
+          state_data: state as any, // Cast para any para resolver problema de tipo Json
+          is_completed: isCompleted,
+          clinic_type: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
+          specialty: state.medicalSpecialty || state.aestheticFocus || 'Geral',
           updated_at: new Date().toISOString()
         });
 
@@ -86,6 +95,17 @@ export const useDiagnosticOperations = () => {
         console.error('❌ Erro ao salvar no banco:', error);
         return false;
       }
+
+      // Criar sessão para salvar no localStorage
+      const session: DiagnosticSession = {
+        id: sessionId,
+        timestamp: new Date().toISOString(),
+        state,
+        isCompleted,
+        clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
+        specialty: state.medicalSpecialty || state.aestheticFocus || 'Geral',
+        isPaidData: isCompleted
+      };
 
       // Salvar também no localStorage para acesso rápido
       saveCurrentSessionToStorage(session);
@@ -160,7 +180,7 @@ export const useDiagnosticOperations = () => {
       const session: DiagnosticSession = {
         id: data.session_id,
         timestamp: data.created_at,
-        state: data.state_data || {},
+        state: (data.state_data as MarketingConsultantState) || {},
         isCompleted: data.is_completed || false,
         clinicTypeLabel: data.clinic_type || 'Clínica',
         specialty: data.specialty || 'Geral',

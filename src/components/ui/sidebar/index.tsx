@@ -23,3 +23,6 @@ export {
   SidebarMenuButton,
   type SidebarMenuButtonProps
 } from "./sidebar-menu"
+
+// Export missing components
+export { SidebarInset, SidebarTrigger } from "./sidebar-components"

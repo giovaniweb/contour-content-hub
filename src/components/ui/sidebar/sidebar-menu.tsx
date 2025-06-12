@@ -2,20 +2,19 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
 import { Slot } from "@radix-ui/react-slot"
+import { cn } from "@/lib/utils"
 
-// Menu components
+// Sidebar Menu components
 export function SidebarMenu({
   children,
   className,
   ...props
-}: React.HTMLAttributes<HTMLUListElement>) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <ul className={cn("space-y-1", className)} {...props}>
+    <div className={cn("space-y-1", className)} {...props}>
       {children}
-    </ul>
+    </div>
   )
 }
 
@@ -23,75 +22,35 @@ export function SidebarMenuItem({
   children,
   className,
   ...props
-}: React.HTMLAttributes<HTMLLIElement>) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <li className={cn("", className)} {...props}>
+    <div className={cn("", className)} {...props}>
       {children}
-    </li>
+    </div>
   )
 }
 
-export interface SidebarMenuButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SidebarMenuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
-  isActive?: boolean;
-  icon?: React.ReactNode;
 }
 
 export function SidebarMenuButton({
   children,
   className,
-  isActive = false,
-  icon,
   asChild = false,
   ...props
 }: SidebarMenuButtonProps) {
-  const content = (
-    <>
-      {icon && (
-        <span className={cn(
-          "flex-shrink-0 w-5 h-5",
-          isActive && "text-purple-400"
-        )}>
-          {icon}
-        </span>
-      )}
-      <span className="flex-1 text-left">{children}</span>
-    </>
-  );
-
-  if (asChild) {
-    return (
-      <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-        <Slot
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-            "text-white/80 hover:text-white hover:bg-white/10",
-            "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
-            isActive && "bg-white/15 text-white shadow-lg shadow-purple-500/20",
-            className
-          )}
-        >
-          {React.cloneElement(children as React.ReactElement, {}, content)}
-        </Slot>
-      </motion.div>
-    );
-  }
+  const Comp = asChild ? Slot : "button"
   
   return (
-    <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-      <button
-        className={cn(
-          "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-          "text-white/80 hover:text-white hover:bg-white/10",
-          "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
-          isActive && "bg-white/15 text-white shadow-lg shadow-purple-500/20",
-          className
-        )}
-        {...props}
-      >
-        {content}
-      </button>
-    </motion.div>
+    <Comp
+      className={cn(
+        "w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Comp>
   )
 }
