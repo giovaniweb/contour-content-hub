@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -31,9 +32,10 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   dismissValidation,
   forceGenerate
 }) => {
-  const [currentStep, setCurrentStep] = useState('tipo_conteudo');
+  // CORREÇÃO: Iniciar com 'canal' em vez de 'tipo_conteudo'
+  const [currentStep, setCurrentStep] = useState('canal');
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
-  const [history, setHistory] = useState<string[]>(['tipo_conteudo']);
+  const [history, setHistory] = useState<string[]>(['canal']);
   const [pendingScriptData, setPendingScriptData] = useState<any>(null);
   const { equipments, loading: equipmentsLoading } = useEquipments();
 
@@ -88,11 +90,11 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         console.log('✅ [AkinatorScriptMode] Selected equipment names:', selectedEquipmentNames);
 
-        // Criar dados básicos do Akinator
+        // CORREÇÃO: Usar os campos corretos da nova estrutura
         const akinatorData = {
-          tipo_conteudo: newAnswers.formato as string || 'carrossel', // Correção: usar 'formato' em vez de 'tipo_conteudo'
-          objetivo: newAnswers.objetivo as string || 'atrair',
           canal: newAnswers.canal as string || 'instagram',
+          formato: newAnswers.formato as string || 'carrossel', 
+          objetivo: newAnswers.objetivo as string || 'atrair',
           estilo: newAnswers.estilo as string || 'criativo',
           equipamentos: selectedEquipmentNames,
           tema: value as string,
@@ -169,10 +171,10 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
   };
 
   const handleImproveInformation = () => {
-    // Voltar para início para melhorar as informações
-    setCurrentStep('tipo_conteudo');
+    // CORREÇÃO: Voltar para 'canal' em vez de 'tipo_conteudo'
+    setCurrentStep('canal');
     setAnswers({});
-    setHistory(['tipo_conteudo']);
+    setHistory(['canal']);
     dismissValidation();
   };
 
@@ -255,7 +257,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     console.error('❌ [AkinatorScriptMode] No question found for step:', currentStep);
     return (
       <div className="text-center space-y-4">
-        <p className="text-red-400">Erro: Pergunta não encontrada para o passo atual</p>
+        <p className="text-red-400">Erro: Pergunta não encontrada para o passo atual: {currentStep}</p>
         <Button onClick={onGoBack} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar

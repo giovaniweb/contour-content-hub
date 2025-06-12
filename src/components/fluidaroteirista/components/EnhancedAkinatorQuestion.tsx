@@ -41,6 +41,19 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [textInput, setTextInput] = useState('');
 
+  // CORREÇÃO: Mapear os passos corretamente
+  const getStepNumber = (step: string) => {
+    const stepMap: Record<string, number> = {
+      'canal': 1,
+      'formato': 2, 
+      'objetivo': 3,
+      'estilo': 4,
+      'equipamento': 5,
+      'tema': 6
+    };
+    return stepMap[step] || 1;
+  };
+
   // Para formatos condicionais (baseados no canal)
   const getConditionalOptions = () => {
     if (currentStep === 'formato' && questionData.conditional) {
@@ -91,9 +104,7 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
         )}
         <div className="flex-1">
           <Badge variant="outline" className="text-cyan-400 border-cyan-500/30 mb-2">
-            Passo {currentStep === 'canal' ? '1' : currentStep === 'formato' ? '2' : 
-                   currentStep === 'objetivo' ? '3' : currentStep === 'estilo' ? '4' :
-                   currentStep === 'equipamento' ? '5' : '6'} de 6
+            Passo {getStepNumber(currentStep)} de 6
           </Badge>
         </div>
       </div>

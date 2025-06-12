@@ -43,7 +43,7 @@ export const AKINATOR_TREE: Record<string, any> = {
     titulo: "🎬 Formato do Conteúdo",
     subtitulo: "Escolha o formato ideal baseado no canal",
     descricao: "Formatos disponíveis para o canal selecionado.",
-    conditional: true, // Indica que as opções dependem da resposta anterior
+    conditional: true,
     options: {
       instagram: [
         {
@@ -210,7 +210,7 @@ export const AKINATOR_TREE: Record<string, any> = {
     titulo: "🔧 Equipamentos Disponíveis",
     subtitulo: "Selecione os equipamentos da sua clínica",
     descricao: "Vamos criar conteúdo baseado nos seus recursos.",
-    multiSelect: true, // Permite seleção múltipla
+    multiSelect: true,
     options: [
       // Estes serão substituídos pelos equipamentos do banco de dados
       {
