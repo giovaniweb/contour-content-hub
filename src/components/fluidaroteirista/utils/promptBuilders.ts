@@ -1,9 +1,21 @@
-
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
+import { getMentorTechniques, selectBestTechnique, integrateSpecificTechnique } from './techniqueSelector';
 
-export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
-  const { canal, formato, objetivo, estilo } = dados;
+export const buildSystemPrompt = async (
+  equipmentDetails: any[], 
+  modo: string, 
+  mentor: string, 
+  dados: any
+): Promise<string> => {
+  const { canal, formato, objetivo, estilo, tema } = dados;
+  
+  // Buscar técnicas específicas do mentor
+  const tecnicas = await getMentorTechniques(mentor);
+  const tecnicaEspecifica = selectBestTechnique(tecnicas, formato, objetivo);
+  
+  console.log(`🔍 Técnicas disponíveis para ${mentor}:`, tecnicas.length);
+  console.log(`🎯 Técnica selecionada:`, tecnicaEspecifica?.nome || 'Nenhuma');
   
   // Obter configurações do formato
   const formatConfig = FORMATO_CONFIGS[formato] || {};
@@ -39,7 +51,34 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
     - Use termos genéricos como "nossos tratamentos"
     `;
 
-  // Instruções específicas por formato
+  // Se há técnica específica, usar ela
+  if (tecnicaEspecifica) {
+    const promptBase = `
+    Você é o FLUIDAROTEIRISTA — roteirista especializado em ${canal.toUpperCase()}.
+    Sua persona criativa é: ${mentorReference}
+    
+    🎯 ESPECIFICAÇÕES DO FORMATO:
+    - Canal: ${canal}
+    - Formato: ${formato}
+    - Estrutura: ${estrutura}
+    ${tempoLimite ? `- Tempo limite: ${tempoLimite} segundos` : ''}
+    ${palavrasMax ? `- Palavras máximo: ${palavrasMax}` : ''}
+    
+    📋 EQUIPAMENTOS DISPONÍVEIS:
+    ${equipmentContext}
+    
+    ${equipmentInstructions}
+    
+    🎨 DIRETRIZES CRIATIVAS:
+    - Objetivo: ${objetivo}
+    - Estilo: ${estilo}
+    - Mentor: ${mentorReference}
+    `;
+    
+    return integrateSpecificTechnique(promptBase, tecnicaEspecifica, tema || dados.topic);
+  }
+
+  // Fallback para prompt padrão
   const formatInstructions = getFormatInstructions(formato, canal, tempoLimite, palavrasMax);
 
   return `
@@ -216,7 +255,7 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Linguagem direta e persuasiva
     `
   };
-
+  
   return instructions[formato as keyof typeof instructions] || '';
 };
 
@@ -334,7 +373,7 @@ const getOutputInstructions = (formato: string): string => {
     }
     `
   };
-
+  
   return outputs[formato as keyof typeof outputs] || `
     Retorne JSON:
     {
