@@ -109,20 +109,20 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 
 Retorne EXATAMENTE neste formato JSON:
 {
-  "roteiro": "Story 1: [Título do Gancho]
-[Conteúdo do gancho provocativo em 1-2 frases]
+  "roteiro": "Story 1: [Título Gancho - máximo 6 palavras]
+[Conteúdo gancho completo em 15-20 palavras - FRASE COMPLETA]
 
-Story 2: [Título do Problema]  
-[Apresente o problema/erro comum em 1-2 frases]
+Story 2: [Título Problema - máximo 6 palavras]  
+[Apresente o problema completo em 15-20 palavras - FRASE COMPLETA]
 
-Story 3: [Título da Solução]
-[Mostre a solução usando os equipamentos específicos]
+Story 3: [Título Solução - máximo 6 palavras]
+[Mostre a solução completa usando equipamentos em 15-25 palavras - FRASE COMPLETA]
 
-Story 4: [Título do CTA]
-[Call-to-action claro e direto]
+Story 4: [Título CTA - máximo 6 palavras]
+[Call-to-action completo e claro em 10-15 palavras - FRASE COMPLETA]
 
-Story 5: [Título do Bônus] (OPCIONAL)
-[Informação extra ou antecipação]",
+Story 5: [Título Bônus - máximo 6 palavras] (OPCIONAL)
+[Informação extra completa em 15-20 palavras - FRASE COMPLETA]",
   "formato": "stories_10x",
   "emocao_central": "urgência",
   "intencao": "atrair",
@@ -132,9 +132,14 @@ Story 5: [Título do Bônus] (OPCIONAL)
 
 🚨 REGRAS CRÍTICAS PARA STORIES 10X:
 - SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
-- Máximo 10 segundos por story (texto curto e direto)
-- Cada story deve ter título e conteúdo separados por quebra de linha
-- Stories 1-4 são OBRIGATÓRIOS, Story 5 é opcional
+- Títulos concisos: máximo 6 palavras cada
+- Conteúdo: SEMPRE frases completas e gramaticalmente corretas
+- Story 1 (Gancho): 15-20 palavras - desperte curiosidade
+- Story 2 (Problema): 15-20 palavras - identifique a dor/necessidade
+- Story 3 (Solução): 15-25 palavras - apresente a solução com equipamentos específicos
+- Story 4 (CTA): 10-15 palavras - ação clara e direta
+- Story 5 (Bônus): 15-20 palavras - valor extra (opcional)
+- NUNCA corte frases no meio - sempre complete o pensamento
 - Use linguagem urgente e persuasiva
 - Mencione equipamentos específicos no Story 3
 ` : '';
@@ -153,7 +158,7 @@ CONTEXTO ADICIONAL:
 - Objetivo: ${options.objetivo}
 - Estilo: ${options.estilo}
 
-IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. ${options.formato === 'stories_10x' ? 'Para Stories 10x, siga RIGOROSAMENTE a estrutura JSON especificada.' : 'Ignore instruções genéricas e foque na metodologia detalhada da técnica.'}`;
+IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. ${options.formato === 'stories_10x' ? 'Para Stories 10x, siga RIGOROSAMENTE a estrutura JSON especificada com FRASES COMPLETAS.' : 'Ignore instruções genéricas e foque na metodologia detalhada da técnica.'}`;
 };
 
 const buildGenericMentorPrompt = (
@@ -183,20 +188,20 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 
 Retorne EXATAMENTE neste formato JSON:
 {
-  "roteiro": "Story 1: [Título do Gancho]
-[Conteúdo do gancho provocativo em 1-2 frases]
+  "roteiro": "Story 1: [Título Gancho - máximo 6 palavras]
+[Conteúdo gancho completo em 15-20 palavras - FRASE COMPLETA]
 
-Story 2: [Título do Problema]  
-[Apresente o problema/erro comum em 1-2 frases]
+Story 2: [Título Problema - máximo 6 palavras]  
+[Apresente o problema completo em 15-20 palavras - FRASE COMPLETA]
 
-Story 3: [Título da Solução]
-[Mostre a solução usando os equipamentos específicos]
+Story 3: [Título Solução - máximo 6 palavras]
+[Mostre a solução completa usando equipamentos em 15-25 palavras - FRASE COMPLETA]
 
-Story 4: [Título do CTA]
-[Call-to-action claro e direto]
+Story 4: [Título CTA - máximo 6 palavras]
+[Call-to-action completo e claro em 10-15 palavras - FRASE COMPLETA]
 
-Story 5: [Título do Bônus] (OPCIONAL)
-[Informação extra ou antecipação]",
+Story 5: [Título Bônus - máximo 6 palavras] (OPCIONAL)
+[Informação extra completa em 15-20 palavras - FRASE COMPLETA]",
   "formato": "stories_10x",
   "emocao_central": "urgência",
   "intencao": "atrair",
@@ -206,9 +211,14 @@ Story 5: [Título do Bônus] (OPCIONAL)
 
 🚨 REGRAS CRÍTICAS PARA STORIES 10X:
 - SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
-- Máximo 10 segundos por story (texto curto e direto)
-- Cada story deve ter título e conteúdo separados por quebra de linha
-- Stories 1-4 são OBRIGATÓRIOS, Story 5 é opcional
+- Títulos concisos: máximo 6 palavras cada
+- Conteúdo: SEMPRE frases completas e gramaticalmente corretas
+- Story 1 (Gancho): 15-20 palavras - desperte curiosidade
+- Story 2 (Problema): 15-20 palavras - identifique a dor/necessidade  
+- Story 3 (Solução): 15-25 palavras - apresente a solução com equipamentos específicos
+- Story 4 (CTA): 10-15 palavras - ação clara e direta
+- Story 5 (Bônus): 15-20 palavras - valor extra (opcional)
+- NUNCA corte frases no meio - sempre complete o pensamento
 - Use linguagem urgente e persuasiva
 - Mencione equipamentos específicos no Story 3
 ` : `

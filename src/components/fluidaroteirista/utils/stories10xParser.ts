@@ -58,9 +58,9 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
       
       if (!titulo.trim() && !conteudo.trim()) continue;
       
-      // NOVA LÓGICA: Dividir conteúdo longo em frases menores
+      // NOVA LÓGICA: Preservar conteúdo completo se estiver bem formatado
       const contentoPrincipal = conteudo || titulo;
-      const frasesProcessadas = processContentForStory(contentoPrincipal, numero);
+      const conteudoProcessado = processContentForStory(contentoPrincipal, numero);
       
       const tipo = getStoryType(numero, contentoPrincipal);
       const tempo = getStoryTime(numero);
@@ -69,7 +69,7 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
       slides.push({
         number: numero,
         titulo: extractBetterTitle(titulo, contentoPrincipal, tipo, numero),
-        conteudo: frasesProcessadas,
+        conteudo: conteudoProcessado,
         tempo,
         tipo,
         dispositivo
@@ -183,22 +183,24 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   return finalSlides;
 };
 
-// NOVA FUNÇÃO: Processar conteúdo para ser adequado para story de 10s
+// NOVA FUNÇÃO: Processar conteúdo para ser adequado para story de 10s - MELHORADA
 const processContentForStory = (content: string, storyNumber: number): string => {
   if (!content) return '';
   
-  // Limitar a aproximadamente 15-25 palavras (ideal para 10 segundos)
-  const words = content.split(/\s+/);
-  const maxWords = 25;
+  // Limpar o conteúdo
+  const cleanContent = content.trim();
   
-  if (words.length <= maxWords) {
-    return content.trim();
+  // Se o conteúdo já está em um tamanho bom (até 30 palavras), manter integral
+  const words = cleanContent.split(/\s+/);
+  if (words.length <= 30) {
+    return cleanContent;
   }
   
-  // Se muito longo, pegar as primeiras frases até o limite
-  const sentences = content.split(/(?<=\.)\s+/);
+  // Se muito longo, pegar frases completas até um limite razoável
+  const sentences = cleanContent.split(/(?<=\.)\s+/);
   let result = '';
   let wordCount = 0;
+  const maxWords = getMaxWordsForStoryType(storyNumber);
   
   for (const sentence of sentences) {
     const sentenceWords = sentence.split(/\s+/).length;
@@ -206,11 +208,39 @@ const processContentForStory = (content: string, storyNumber: number): string =>
       result += (result ? ' ' : '') + sentence;
       wordCount += sentenceWords;
     } else {
+      // Se a primeira frase já excede o limite, cortar mas manter completa
+      if (!result && sentence.length > 0) {
+        // Tentar encontrar um ponto de corte natural (vírgula, ponto)
+        const cutPoints = ['.', ',', ';'];
+        let bestCut = sentence.substring(0, maxWords * 6); // ~6 chars por palavra
+        
+        for (const cutPoint of cutPoints) {
+          const cutIndex = bestCut.lastIndexOf(cutPoint);
+          if (cutIndex > bestCut.length * 0.6) {
+            bestCut = sentence.substring(0, cutIndex + 1);
+            break;
+          }
+        }
+        
+        result = bestCut.trim();
+      }
       break;
     }
   }
   
-  return result.trim() || content.substring(0, 120).trim() + '...';
+  return result.trim() || cleanContent.substring(0, 100).trim() + '...';
+};
+
+// NOVA FUNÇÃO: Definir limite de palavras por tipo de story
+const getMaxWordsForStoryType = (storyNumber: number): number => {
+  switch (storyNumber) {
+    case 1: return 20; // Gancho: 15-20 palavras
+    case 2: return 20; // Problema: 15-20 palavras
+    case 3: return 25; // Solução: 15-25 palavras (pode ser um pouco maior)
+    case 4: return 15; // CTA: 10-15 palavras
+    case 5: return 20; // Bônus: 15-20 palavras
+    default: return 20;
+  }
 };
 
 // NOVA FUNÇÃO: Extrair título melhor baseado no conteúdo e tipo
