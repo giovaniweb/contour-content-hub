@@ -116,38 +116,54 @@ export const useFluidaRoteirista = () => {
         return [];
       }
 
-      // CORREÇÃO CRÍTICA: Preparar dados para inferência de mentor
-      const akinatorAnswers = {
-        formato: request.formato || 'carrossel', // MANTER formato original
-        objetivo: request.objetivo || 'atrair',
-        estilo: request.estilo || 'criativo',
-        canal: request.canal || 'instagram',
-        tema: request.tema
-      };
+      // CORREÇÃO CRÍTICA: Para Stories 10x, usar prompt específico da metodologia
+      let systemPrompt: string;
+      let userPrompt: string;
 
-      console.log('🎯 [useFluidaRoteirista] Dados para inferência:', akinatorAnswers);
-
-      // AGUARDAR corretamente a Promise do mentor
-      const inferredMentorKey = await inferMentorFromAnswers(akinatorAnswers);
-      console.log('🎯 [useFluidaRoteirista] Mentor inferido:', inferredMentorKey);
-
-      // Usar dados do diagnóstico se disponível
-      const diagnosticData: DiagnosticData = currentSession?.state || {};
-      
-      // CORREÇÃO CRÍTICA: Usar buildSystemPrompt com sistema de técnicas
-      const systemPrompt = await buildSystemPrompt(
-        equipmentDetails,
-        'akinator',
-        inferredMentorKey,
-        {
-          canal: request.canal || 'instagram',
-          formato: request.formato || 'carrossel', // MANTER formato original
+      if (request.formato === 'stories_10x') {
+        console.log('🎯 [useFluidaRoteirista] Usando prompt Stories 10x específico');
+        
+        // Importar e usar o prompt específico do Stories 10x
+        const { buildStories10xPrompt } = await import('@/components/fluidaroteirista/utils/stories10xPromptBuilder');
+        const stories10xPrompts = buildStories10xPrompt(
+          request.tema,
+          equipmentDetails,
+          request.objetivo || 'conectar',
+          request.estilo || 'conversacional'
+        );
+        
+        systemPrompt = stories10xPrompts.systemPrompt;
+        userPrompt = stories10xPrompts.userPrompt;
+      } else {
+        // CORREÇÃO CRÍTICA: Preparar dados para inferência de mentor (outros formatos)
+        const akinatorAnswers = {
+          formato: request.formato || 'carrossel',
           objetivo: request.objetivo || 'atrair',
-          estilo: request.estilo || 'criativo'
-        }
-      );
+          estilo: request.estilo || 'criativo',
+          canal: request.canal || 'instagram',
+          tema: request.tema
+        };
 
-      const userPrompt = `
+        console.log('🎯 [useFluidaRoteirista] Dados para inferência:', akinatorAnswers);
+
+        // AGUARDAR corretamente a Promise do mentor
+        const inferredMentorKey = await inferMentorFromAnswers(akinatorAnswers);
+        console.log('🎯 [useFluidaRoteirista] Mentor inferido:', inferredMentorKey);
+
+        // CORREÇÃO CRÍTICA: Usar buildSystemPrompt com sistema de técnicas
+        systemPrompt = await buildSystemPrompt(
+          equipmentDetails,
+          'akinator',
+          inferredMentorKey,
+          {
+            canal: request.canal || 'instagram',
+            formato: request.formato || 'carrossel',
+            objetivo: request.objetivo || 'atrair',
+            estilo: request.estilo || 'criativo'
+          }
+        );
+
+        userPrompt = `
         Tema: ${request.tema}
         Canal: ${request.canal || 'instagram'}
         Formato: ${request.formato || 'carrossel'}
@@ -155,12 +171,11 @@ export const useFluidaRoteirista = () => {
         Estilo: ${request.estilo || 'criativo'}
         Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
         
-        ${request.formato === 'stories_10x' ? 'CRÍTICO: Este é um STORIES 10X - use técnica específica de Leandro Ladeira para stories de alta conversão.' : ''}
-        
         Crie o roteiro seguindo exatamente as especificações do formato selecionado.
-      `;
+        `;
+      }
 
-      console.log('📤 [useFluidaRoteirista] Enviando para API com mentor:', inferredMentorKey);
+      console.log('📤 [useFluidaRoteirista] Enviando para API');
       console.log('🎯 [useFluidaRoteirista] Formato sendo enviado:', request.formato);
       console.log('🔧 [useFluidaRoteirista] Equipamentos:', equipmentDetails.map(eq => eq.nome));
 
@@ -172,10 +187,9 @@ export const useFluidaRoteirista = () => {
         topic: request.tema,
         equipment: equipmentDetails.map(eq => eq.nome).join(', '),
         additionalInfo: JSON.stringify({ 
-          mentor: inferredMentorKey,
-          formato: request.formato, // MANTER formato original
+          formato: request.formato,
           equipmentDetails,
-          diagnosticData
+          isStories10x: request.formato === 'stories_10x'
         }),
         tone: request.estilo || 'professional',
         marketingObjective: request.objetivo as any
@@ -208,39 +222,52 @@ export const useFluidaRoteirista = () => {
         }
       }
 
-      // Tentar parsear como JSON
+      // Processar resposta baseada no formato
       let scriptResult: FluidaScriptResult;
-      try {
-        scriptResult = JSON.parse(response.content);
-        scriptResult.equipamentos_utilizados = equipmentDetails;
-        scriptResult.canal = request.canal || 'instagram';
-        scriptResult.formato = request.formato || 'carrossel'; // MANTER formato original
-        // CORREÇÃO CRÍTICA: Garantir que mentor é uma string
-        scriptResult.mentor = inferredMentorKey;
-      } catch {
-        // Fallback se não for JSON válido
+      
+      if (request.formato === 'stories_10x') {
+        // Para Stories 10x, não tentar parsear como JSON - usar texto direto
         scriptResult = {
           roteiro: response.content,
-          formato: request.formato || 'carrossel', // MANTER formato original
-          emocao_central: 'confiança',
-          intencao: 'atrair',
-          objetivo: request.objetivo || 'Atrair novos clientes',
-          mentor: inferredMentorKey, // CORREÇÃO: usar mentor inferido
+          formato: 'stories_10x',
+          emocao_central: 'engajamento',
+          intencao: 'conectar',
+          objetivo: request.objetivo || 'Criar comunidade ativa',
+          mentor: 'Leandro Ladeira',
           equipamentos_utilizados: equipmentDetails,
           canal: request.canal || 'instagram'
         };
+      } else {
+        // Tentar parsear como JSON para outros formatos
+        try {
+          scriptResult = JSON.parse(response.content);
+          scriptResult.equipamentos_utilizados = equipmentDetails;
+          scriptResult.canal = request.canal || 'instagram';
+          scriptResult.formato = request.formato || 'carrossel';
+        } catch {
+          // Fallback se não for JSON válido
+          scriptResult = {
+            roteiro: response.content,
+            formato: request.formato || 'carrossel',
+            emocao_central: 'confiança',
+            intencao: 'atrair',
+            objetivo: request.objetivo || 'Atrair novos clientes',
+            mentor: 'Criativo',
+            equipamentos_utilizados: equipmentDetails,
+            canal: request.canal || 'instagram'
+          };
+        }
       }
 
       const results = [scriptResult];
       setResults(results);
 
       // CORREÇÃO: Melhorar mensagem de toast para Stories 10x
-      const formatoDisplay = request.formato === 'stories_10x' ? 'Stories 10x' : scriptResult.formato;
-      const mentorDisplay = scriptResult.mentor.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const formatoDisplay = request.formato === 'stories_10x' ? 'Stories 10x (Leandro Ladeira)' : scriptResult.formato;
 
       toast({
         title: "🎬 Roteiro FLUIDA gerado!",
-        description: `Criado com ${mentorDisplay} - ${formatoDisplay}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
+        description: `Criado: ${formatoDisplay}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
       });
 
       return results;

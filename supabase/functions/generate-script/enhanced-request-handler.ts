@@ -1,9 +1,11 @@
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { EquipmentFetcher, EquipmentData } from './equipment-fetcher.ts';
+import { EquipmentFetcher } from "./equipment-fetcher.ts";
 
 export class EnhancedRequestHandler {
-  private supabase: any;
   private openAIApiKey: string;
+  private supabase: any;
+  private equipmentFetcher: EquipmentFetcher;
 
   constructor(openAIApiKey: string) {
     this.openAIApiKey = openAIApiKey;
@@ -11,213 +13,132 @@ export class EnhancedRequestHandler {
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
+    this.equipmentFetcher = new EquipmentFetcher(this.supabase);
   }
 
-  async processFluidaRequest(request: any) {
+  async processFluidaRequest(request: any): Promise<{ systemPrompt: string; userPrompt: string; equipmentDetails: any[] }> {
     console.log('🎬 [EnhancedRequestHandler] Processando request FLUIDA:', request);
-
-    // Extrair equipamentos do request
-    let equipmentNames: string[] = [];
     
-    if (request.equipment) {
-      if (Array.isArray(request.equipment)) {
-        equipmentNames = request.equipment;
-      } else if (typeof request.equipment === 'string') {
-        equipmentNames = [request.equipment];
-      }
-    }
-
-    // Buscar dados detalhados dos equipamentos
-    const equipmentDetails = await EquipmentFetcher.fetchEquipmentDetails(
-      this.supabase, 
-      equipmentNames
-    );
-
+    // Buscar equipamentos se especificados
+    const equipmentDetails = await this.equipmentFetcher.fetchEquipmentDetails(request.equipment);
     console.log('🔧 [EnhancedRequestHandler] Equipamentos detalhados:', equipmentDetails.length);
 
-    // CORREÇÃO CRÍTICA: Construir prompt usando sistema de técnicas
-    const enhancedSystemPrompt = await this.buildTechniqueAwareSystemPrompt(
-      request.systemPrompt || '', 
-      equipmentDetails,
-      request
-    );
+    // CORREÇÃO CRÍTICA: Para Stories 10x, usar metodologia específica
+    if (this.isStories10xRequest(request)) {
+      console.log('🎯 [EnhancedRequestHandler] Detectado Stories 10x - usando metodologia Leandro Ladeira');
+      return this.buildStories10xPrompt(request, equipmentDetails);
+    }
 
-    const enhancedUserPrompt = this.buildEnhancedUserPrompt(
-      request.userPrompt || '',
-      equipmentDetails,
-      request
-    );
-
-    return {
-      systemPrompt: enhancedSystemPrompt,
-      userPrompt: enhancedUserPrompt,
-      equipmentDetails
-    };
-  }
-
-  private async buildTechniqueAwareSystemPrompt(
-    originalPrompt: string, 
-    equipments: EquipmentData[], 
-    request: any
-  ): Promise<string> {
+    // Para outros formatos, usar sistema de técnicas
     console.log('🔍 [EnhancedRequestHandler] Construindo prompt com técnicas específicas');
-    
-    // Extrair informações do prompt original para identificar mentor e formato
-    const mentorMatch = originalPrompt.match(/MENTOR: (\w+)/);
-    const formatoMatch = originalPrompt.match(/Formato: (\w+)/);
-    
-    if (!mentorMatch || !formatoMatch) {
-      console.warn('⚠️ [EnhancedRequestHandler] Não foi possível extrair mentor/formato, usando prompt original');
-      return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
-    }
-    
-    const mentorKey = mentorMatch[1];
-    const formato = formatoMatch[1];
-    
-    // Converter mentor key para nome real
-    const mentorNomeReal = this.convertMentorKeyToRealName(mentorKey);
-    console.log(`🎯 [EnhancedRequestHandler] Buscando técnicas para: ${mentorNomeReal}, formato: ${formato}`);
-    
-    try {
-      // Buscar técnicas do mentor
-      const { data, error } = await this.supabase
-        .from('mentores')
-        .select('tecnicas')
-        .eq('nome', mentorNomeReal)
-        .single();
-
-      if (error || !data?.tecnicas) {
-        console.warn(`⚠️ [EnhancedRequestHandler] Não encontrou técnicas para ${mentorNomeReal}, usando fallback`);
-        return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
-      }
-
-      const tecnicas = Array.isArray(data.tecnicas) ? data.tecnicas : [];
-      console.log(`📋 [EnhancedRequestHandler] Técnicas encontradas: ${tecnicas.length}`);
-      
-      // Selecionar melhor técnica
-      const tecnicaCompativel = this.selectBestTechnique(tecnicas, formato, request.marketingObjective || 'atrair');
-      
-      if (tecnicaCompativel) {
-        console.log(`✨ [EnhancedRequestHandler] Usando técnica: ${tecnicaCompativel.nome}`);
-        return this.buildSpecificTechniquePrompt(tecnicaCompativel, equipments, request);
-      }
-      
-    } catch (error) {
-      console.error('❌ [EnhancedRequestHandler] Erro ao buscar técnicas:', error);
-    }
-    
-    // Fallback para prompt genérico
-    return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
+    return this.buildTechniqueBasedPrompt(request, equipmentDetails);
   }
 
-  private convertMentorKeyToRealName(mentorKey: string): string {
-    const mentorMapping: Record<string, string> = {
-      'leandro_ladeira': 'Leandro Ladeira',
-      'paulo_cuenca': 'Paulo Cuenca',
-      'pedro_sobral': 'Pedro Sobral',
-      'icaro_carvalho': 'Ícaro de Carvalho',
-      'camila_porto': 'Camila Porto',
-      'hyeser_souza': 'Hyeser Souza',
-      'washington_olivetto': 'Washington Olivetto'
-    };
-    
-    return mentorMapping[mentorKey] || mentorKey;
+  private isStories10xRequest(request: any): boolean {
+    return request.additionalInfo?.includes('stories_10x') ||
+           request.systemPrompt?.includes('STORIES 10X') ||
+           request.userPrompt?.includes('stories_10x');
   }
 
-  private selectBestTechnique(tecnicas: any[], formato: string, objetivo: string): any | null {
-    if (!tecnicas || tecnicas.length === 0) {
-      return null;
-    }
+  private buildStories10xPrompt(request: any, equipmentDetails: any[]): { systemPrompt: string; userPrompt: string; equipmentDetails: any[] } {
+    console.log('🎯 [EnhancedRequestHandler] Construindo prompt Stories 10x específico');
 
-    // Filtrar técnicas compatíveis com o formato
-    const compatibleTechniques = tecnicas.filter(tecnica =>
-      tecnica.condicoes_ativacao?.formatos?.includes(formato) ||
-      tecnica.condicoes_ativacao?.formatos?.includes(formato.replace('_', ''))
-    );
-
-    if (compatibleTechniques.length === 0) {
-      return null;
-    }
-
-    // Priorizar por objetivo se especificado
-    const objectiveMatch = compatibleTechniques.filter(tecnica =>
-      tecnica.condicoes_ativacao?.objetivos?.includes(objetivo)
-    );
-
-    const candidates = objectiveMatch.length > 0 ? objectiveMatch : compatibleTechniques;
-
-    // Ordenar por prioridade (maior primeiro)
-    candidates.sort((a, b) => 
-      (b.condicoes_ativacao?.prioridade || 0) - (a.condicoes_ativacao?.prioridade || 0)
-    );
-
-    return candidates[0];
-  }
-
-  private buildSpecificTechniquePrompt(tecnica: any, equipments: EquipmentData[], request: any): string {
-    const equipmentSection = EquipmentFetcher.buildEquipmentPromptSection(equipments);
-    
-    let promptTecnica = tecnica.prompt;
-    
-    // Substituir placeholders
-    if (promptTecnica.includes('[TEMA_INSERIDO]')) {
-      promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', request.topic || 'o tema será fornecido');
-    }
-
-    return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${tecnica.nome}
-
-${promptTecnica}
-
-${equipmentSection}
-
-IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. Siga rigorosamente a metodologia da técnica.`;
-  }
-
-  private buildEnhancedSystemPromptFallback(
-    originalPrompt: string, 
-    equipments: EquipmentData[], 
-    request: any
-  ): string {
-    const equipmentSection = EquipmentFetcher.buildEquipmentPromptSection(equipments);
-    
-    // Inserir seção de equipamentos no prompt original
-    const enhancedPrompt = originalPrompt.replace(
-      'Nenhum equipamento específico foi selecionado. Use termos genéricos.',
-      equipmentSection || 'Nenhum equipamento específico foi selecionado. Use termos genéricos.'
-    );
-
-    return enhancedPrompt;
-  }
-
-  private buildEnhancedUserPrompt(
-    originalPrompt: string,
-    equipments: EquipmentData[],
-    request: any
-  ): string {
-    if (equipments.length === 0) {
-      return originalPrompt;
-    }
-
-    const equipmentEmphasis = `
-🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
-${equipments.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
+    const equipmentContext = equipmentDetails.length > 0 
+      ? `\n🔧 EQUIPAMENTOS/TRATAMENTOS:
+${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
    - Benefícios: ${eq.beneficios}
-   - Diferenciais: ${eq.diferenciais}`).join('\n')}
+   - Mencionar na Story 3 de forma natural`).join('\n')}`
+      : '';
 
-🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
-⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.
+    const systemPrompt = `Você é especialista na metodologia STORIES 10X do Leandro Ladeira.
 
-    `;
+🎯 METODOLOGIA STORIES 10X - PRINCÍPIOS:
+- Criado com Kátia Damasceno para aumentar engajamento
+- Transformar Stories em comunidade ativa
+- Sequência > Story solto: criar contexto e narrativa envolvente
+- Usar storytelling emocional com final que convida a compartilhar
+- Tom conversado, evitar excesso de "aulinha"
+- Pelo menos 3 dispositivos de engajamento por sequência
 
-    return originalPrompt.replace(
-      'INSTRUÇÕES ESPECÍFICAS:',
-      `${equipmentEmphasis}\nINSTRUÇÕES ESPECÍFICAS:`
-    );
+📋 ESTRUTURA OBRIGATÓRIA (5 Stories):
+
+Story 1 (GANCHO): 
+- Gatilho da curiosidade ("Você já passou por isso aqui?")
+- Enquete de identificação [Enquete: Sim / MUITO]
+- Pergunta direta que gera identificação
+
+Story 2 (CONTEXTO):
+- História pessoal ou de cliente
+- Tom conversado, vulnerável
+- Criar conexão emocional
+
+Story 3 (VIRADA):
+- Descoberta transformadora
+- Mudança de perspectiva
+- Solução apresentada de forma natural${equipmentDetails.length > 0 ? ' (mencionar equipamentos aqui)' : ''}
+
+Story 4 (CTA):
+- Gatilho da reciprocidade ("Se isso te ajudou, manda para alguém")
+- CTA de identificação específica
+- Pedir ação social
+
+Story 5 (BÔNUS):
+- Efeito trailer ("Quer a parte 2? Me manda um 🔥")
+- Promessa de continuação
+- Gerar antecipação
+
+${equipmentContext}
+
+🎬 FORMATO DE SAÍDA - EXATAMENTE ASSIM:
+Story 1: [Texto do gancho com dispositivo de engajamento]
+Story 2: [Texto do contexto/história pessoal]  
+Story 3: [Texto da virada/solução${equipmentDetails.length > 0 ? ' mencionando equipamentos' : ''}]
+Story 4: [Texto do CTA social específico]
+Story 5: [Texto do bônus/antecipação]
+
+🚨 REGRAS CRÍTICAS:
+- NÃO use JSON
+- NÃO limite palavras rigidamente
+- FOQUE na metodologia de criar comunidade
+- Tom conversado, sem linguagem de professor
+- Use emojis e humor leve quando apropriado`;
+
+    const userPrompt = request.userPrompt || `Tema: ${request.topic}
+Crie uma sequência Stories 10x seguindo EXATAMENTE a metodologia do Leandro Ladeira.
+
+EXEMPLO DE REFERÊNCIA:
+Story 1: "Você também trava quando liga a câmera? 😳 // [Enquete: Sim / MUITO]"
+Story 2: "Eu travava tanto que uma vez apaguei um vídeo só porque gaguejei no início 😅"  
+Story 3: "Mas aí eu descobri um truque simples que mudou tudo: FINGIR que tô explicando pra um amigo, não pra 'internet'"
+Story 4: "Se isso te ajudou, manda esse Story praquele seu amigo(a) que vive falando 'eu não nasci pra câmera' 🎥❤️"
+Story 5: "Quer a parte 2? Me manda um 🔥 que eu libero!"`;
+
+    return { systemPrompt, userPrompt, equipmentDetails };
   }
 
-  async callOpenAI(systemPrompt: string, userPrompt: string, equipments: EquipmentData[]) {
-    console.log('🤖 [EnhancedRequestHandler] Chamando OpenAI com equipamentos:', equipments.map(eq => eq.nome));
+  private async buildTechniqueBasedPrompt(request: any, equipmentDetails: any[]): Promise<{ systemPrompt: string; userPrompt: string; equipmentDetails: any[] }> {
+    // Para outros formatos, usar o prompt que já vem na requisição ou fallback
+    const systemPrompt = request.systemPrompt || this.buildFallbackPrompt(request, equipmentDetails);
+    const userPrompt = request.userPrompt || `Tema: ${request.topic}`;
 
+    return { systemPrompt, userPrompt, equipmentDetails };
+  }
+
+  private buildFallbackPrompt(request: any, equipmentDetails: any[]): string {
+    const equipmentContext = equipmentDetails.length > 0 
+      ? `Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}`
+      : '';
+
+    return `Você é um especialista em roteiros para redes sociais.
+Crie um roteiro envolvente sobre: ${request.topic}
+${equipmentContext}
+
+Use tom ${request.tone || 'profissional'} e foque no objetivo: ${request.marketingObjective || 'engajar'}.`;
+  }
+
+  async callOpenAI(systemPrompt: string, userPrompt: string, equipmentDetails: any[]): Promise<string> {
+    console.log('🤖 [EnhancedRequestHandler] Chamando OpenAI com equipamentos:', equipmentDetails.map(eq => eq.nome));
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -225,79 +146,38 @@ ${equipments.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
+        temperature: 0.8,
         max_tokens: 1500,
-        temperature: 0.7
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      const errorText = await response.text();
+      console.error('❌ [EnhancedRequestHandler] Erro na API OpenAI:', errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = data.choices[0]?.message?.content || '';
 
     // Validar se equipamentos foram mencionados
-    if (equipments.length > 0) {
-      const missingEquipments = equipments.filter(eq => 
-        !content.toLowerCase().includes(eq.nome.toLowerCase())
+    if (equipmentDetails.length > 0) {
+      const mentionedEquipments = equipmentDetails.filter(eq => 
+        content.toLowerCase().includes(eq.nome.toLowerCase())
       );
-
-      if (missingEquipments.length > 0) {
-        console.error('❌ [EnhancedRequestHandler] Equipamentos não mencionados:', missingEquipments.map(eq => eq.nome));
-        
-        // Tentar uma segunda vez com prompt ainda mais enfático
-        return await this.retryWithStrongerPrompt(systemPrompt, userPrompt, equipments, missingEquipments);
+      
+      if (mentionedEquipments.length === equipmentDetails.length) {
+        console.log('✅ [EnhancedRequestHandler] Roteiro gerado com equipamentos mencionados');
+      } else {
+        console.warn('⚠️ [EnhancedRequestHandler] Alguns equipamentos não foram mencionados');
       }
     }
 
-    console.log('✅ [EnhancedRequestHandler] Roteiro gerado com equipamentos mencionados');
     return content;
-  }
-
-  private async retryWithStrongerPrompt(
-    systemPrompt: string, 
-    userPrompt: string, 
-    equipments: EquipmentData[], 
-    missingEquipments: EquipmentData[]
-  ) {
-    console.log('🔄 [EnhancedRequestHandler] Tentativa 2 com prompt mais forte');
-
-    const strongerPrompt = `
-${userPrompt}
-
-🚨🚨🚨 ATENÇÃO CRÍTICA 🚨🚨🚨
-VOCÊ ESQUECEU DE MENCIONAR ESTES EQUIPAMENTOS:
-${missingEquipments.map(eq => `- ${eq.nome}`).join('\n')}
-
-O ROTEIRO SERÁ REJEITADO se não mencionar TODOS os equipamentos.
-REESCREVA incluindo OBRIGATORIAMENTE: ${missingEquipments.map(eq => eq.nome).join(', ')}
-    `;
-
-    const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: strongerPrompt }
-        ],
-        max_tokens: 1500,
-        temperature: 0.3 // Menor temperatura para maior precisão
-      }),
-    });
-
-    const retryData = await retryResponse.json();
-    return retryData.choices[0].message.content;
   }
 }

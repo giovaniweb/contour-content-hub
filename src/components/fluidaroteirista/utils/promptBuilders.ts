@@ -1,5 +1,5 @@
-
-import { getMentorTechniques, selectBestTechnique, integrateSpecificTechnique } from './techniqueSelector';
+import { getMentorTechniques, selectBestTechnique } from './techniqueSelector';
+import { buildStories10xPrompt } from './stories10xPromptBuilder';
 
 export const buildSystemPrompt = async (
   equipmentDetails: any[], 
@@ -14,6 +14,18 @@ export const buildSystemPrompt = async (
 ): Promise<string> => {
   console.log('🔨 [promptBuilders] Construindo prompt do sistema');
   console.log('📝 [promptBuilders] Formato recebido:', options.formato);
+  
+  // CORREÇÃO CRÍTICA: Stories 10x usa prompt específico da metodologia Leandro Ladeira
+  if (options.formato === 'stories_10x') {
+    console.log('🎯 [promptBuilders] Usando metodologia Stories 10x específica');
+    const stories10xPrompts = buildStories10xPrompt(
+      'tema será fornecido pelo usuário',
+      equipmentDetails,
+      options.objetivo,
+      options.estilo
+    );
+    return stories10xPrompts.systemPrompt;
+  }
   
   // CORREÇÃO CRÍTICA: Converter mentor key para nome real do banco
   const mentorNomeReal = convertMentorKeyToRealName(mentor);
@@ -102,51 +114,7 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
     promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', 'o tema será fornecido pelo usuário');
   }
 
-  // CORREÇÃO CRÍTICA: Prompt específico e estruturado para Stories 10x
-  const stories10xStructure = options.formato === 'stories_10x' 
-    ? `
-🎯 FORMATO STORIES 10X - ESTRUTURA OBRIGATÓRIA:
-
-Retorne EXATAMENTE neste formato JSON:
-{
-  "roteiro": "Story 1: [Título Gancho - máximo 6 palavras]
-[Conteúdo gancho completo em 15-20 palavras - FRASE COMPLETA]
-
-Story 2: [Título Problema - máximo 6 palavras]  
-[Apresente o problema completo em 15-20 palavras - FRASE COMPLETA]
-
-Story 3: [Título Solução - máximo 6 palavras]
-[Mostre a solução completa usando equipamentos em 15-25 palavras - FRASE COMPLETA]
-
-Story 4: [Título CTA - máximo 6 palavras]
-[Call-to-action completo e claro em 10-15 palavras - FRASE COMPLETA]
-
-Story 5: [Título Bônus - máximo 6 palavras] (OPCIONAL)
-[Informação extra completa em 15-20 palavras - FRASE COMPLETA]",
-  "formato": "stories_10x",
-  "emocao_central": "urgência",
-  "intencao": "atrair",
-  "objetivo": "Gerar interesse e ação",
-  "mentor": "${technique.mentor || 'Leandro Ladeira'}"
-}
-
-🚨 REGRAS CRÍTICAS PARA STORIES 10X:
-- SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
-- Títulos concisos: máximo 6 palavras cada
-- Conteúdo: SEMPRE frases completas e gramaticalmente corretas
-- Story 1 (Gancho): 15-20 palavras - desperte curiosidade
-- Story 2 (Problema): 15-20 palavras - identifique a dor/necessidade
-- Story 3 (Solução): 15-25 palavras - apresente a solução com equipamentos específicos
-- Story 4 (CTA): 10-15 palavras - ação clara e direta
-- Story 5 (Bônus): 15-20 palavras - valor extra (opcional)
-- NUNCA corte frases no meio - sempre complete o pensamento
-- Use linguagem urgente e persuasiva
-- Mencione equipamentos específicos no Story 3
-` : '';
-
   return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${technique.nome}
-
-${stories10xStructure}
 
 ${promptTecnica}
 
@@ -158,7 +126,7 @@ CONTEXTO ADICIONAL:
 - Objetivo: ${options.objetivo}
 - Estilo: ${options.estilo}
 
-IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. ${options.formato === 'stories_10x' ? 'Para Stories 10x, siga RIGOROSAMENTE a estrutura JSON especificada com FRASES COMPLETAS.' : 'Ignore instruções genéricas e foque na metodologia detalhada da técnica.'}`;
+IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. Ignore instruções genéricas e foque na metodologia detalhada da técnica.`;
 };
 
 const buildGenericMentorPrompt = (
@@ -181,47 +149,7 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.`
     : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.';
 
-  // CORREÇÃO CRÍTICA: Estrutura específica para Stories 10x
-  const stories10xStructure = options.formato === 'stories_10x' 
-    ? `
-🎯 FORMATO STORIES 10X - ESTRUTURA OBRIGATÓRIA:
-
-Retorne EXATAMENTE neste formato JSON:
-{
-  "roteiro": "Story 1: [Título Gancho - máximo 6 palavras]
-[Conteúdo gancho completo em 15-20 palavras - FRASE COMPLETA]
-
-Story 2: [Título Problema - máximo 6 palavras]  
-[Apresente o problema completo em 15-20 palavras - FRASE COMPLETA]
-
-Story 3: [Título Solução - máximo 6 palavras]
-[Mostre a solução completa usando equipamentos em 15-25 palavras - FRASE COMPLETA]
-
-Story 4: [Título CTA - máximo 6 palavras]
-[Call-to-action completo e claro em 10-15 palavras - FRASE COMPLETA]
-
-Story 5: [Título Bônus - máximo 6 palavras] (OPCIONAL)
-[Informação extra completa em 15-20 palavras - FRASE COMPLETA]",
-  "formato": "stories_10x",
-  "emocao_central": "urgência",
-  "intencao": "atrair",
-  "objetivo": "Gerar interesse e ação",
-  "mentor": "${mentor}"
-}
-
-🚨 REGRAS CRÍTICAS PARA STORIES 10X:
-- SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
-- Títulos concisos: máximo 6 palavras cada
-- Conteúdo: SEMPRE frases completas e gramaticalmente corretas
-- Story 1 (Gancho): 15-20 palavras - desperte curiosidade
-- Story 2 (Problema): 15-20 palavras - identifique a dor/necessidade  
-- Story 3 (Solução): 15-25 palavras - apresente a solução com equipamentos específicos
-- Story 4 (CTA): 10-15 palavras - ação clara e direta
-- Story 5 (Bônus): 15-20 palavras - valor extra (opcional)
-- NUNCA corte frases no meio - sempre complete o pensamento
-- Use linguagem urgente e persuasiva
-- Mencione equipamentos específicos no Story 3
-` : `
+  const generalStructure = `
 ESTRUTURA OBRIGATÓRIA:
 1. Gancho (capturar atenção)
 2. Conflito (apresentar problema)
@@ -243,7 +171,7 @@ Retorne APENAS JSON válido:
 MODO: ${mode.toUpperCase()}
 MENTOR: ${mentor}
 
-${stories10xStructure}
+${generalStructure}
 
 ${equipmentEmphasis}
 
