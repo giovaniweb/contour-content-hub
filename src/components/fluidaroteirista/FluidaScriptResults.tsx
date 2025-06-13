@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -460,7 +459,6 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           generatedImages={generatedImages}
           progress={progress}
           errors={errors}
-          onDownload={downloadImage}
           onDownloadAll={downloadAllImages}
           onRetry={handleRetryFailedImages}
         />
@@ -473,7 +471,6 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           slidePrompts={slidePrompts}
           progress={photoProgress}
           errors={photoErrors}
-          onDownload={downloadPhoto}
           onDownloadAll={downloadAllPhotos}
           onRetry={handleRetryFailedPhotos}
         />
