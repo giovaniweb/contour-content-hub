@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/sonner";
-import Layout from './components/Layout';
+import AppLayout from './components/layout/AppLayout';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -60,55 +60,55 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
-          {/* Private Routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Layout><DashboardPage /></Layout></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
-          <Route path="/workspace-settings" element={<PrivateRoute><Layout><WorkspaceSettingsPage /></Layout></PrivateRoute>} />
+          {/* Private Routes with Sidebar */}
+          <Route path="/dashboard" element={<PrivateRoute><AppLayout><DashboardPage /></AppLayout></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><AppLayout><ProfilePage /></AppLayout></PrivateRoute>} />
+          <Route path="/workspace-settings" element={<PrivateRoute><AppLayout><WorkspaceSettingsPage /></AppLayout></PrivateRoute>} />
           
-          {/* Content Routes */}
-          <Route path="/script-generator" element={<PrivateRoute><Layout><ScriptGeneratorPage /></Layout></PrivateRoute>} />
-          <Route path="/script-validation" element={<PrivateRoute><Layout><ScriptValidationPage /></Layout></PrivateRoute>} />
-          <Route path="/roteiros-aprovados" element={<PrivateRoute><Layout><ScriptApprovedPage /></Layout></PrivateRoute>} />
-          <Route path="/fluidaroteirista" element={<PrivateRoute><Layout><FluidaRoteiristPage /></Layout></PrivateRoute>} />
-          <Route path="/content-planner" element={<PrivateRoute><Layout><ContentPlannerPage /></Layout></PrivateRoute>} />
-          <Route path="/content-ideas" element={<PrivateRoute><Layout><ContentIdeasPage /></Layout></PrivateRoute>} />
-          <Route path="/content-strategy" element={<PrivateRoute><Layout><ContentStrategyPage /></Layout></PrivateRoute>} />
-          <Route path="/calendar" element={<PrivateRoute><Layout><CalendarPage /></Layout></PrivateRoute>} />
+          {/* Content Routes with Sidebar */}
+          <Route path="/script-generator" element={<PrivateRoute><AppLayout><ScriptGeneratorPage /></AppLayout></PrivateRoute>} />
+          <Route path="/script-validation" element={<PrivateRoute><AppLayout><ScriptValidationPage /></AppLayout></PrivateRoute>} />
+          <Route path="/roteiros-aprovados" element={<PrivateRoute><AppLayout><ScriptApprovedPage /></AppLayout></PrivateRoute>} />
+          <Route path="/fluidaroteirista" element={<PrivateRoute><AppLayout><FluidaRoteiristPage /></AppLayout></PrivateRoute>} />
+          <Route path="/content-planner" element={<PrivateRoute><AppLayout><ContentPlannerPage /></AppLayout></PrivateRoute>} />
+          <Route path="/content-ideas" element={<PrivateRoute><AppLayout><ContentIdeasPage /></AppLayout></PrivateRoute>} />
+          <Route path="/content-strategy" element={<PrivateRoute><AppLayout><ContentStrategyPage /></AppLayout></PrivateRoute>} />
+          <Route path="/calendar" element={<PrivateRoute><AppLayout><CalendarPage /></AppLayout></PrivateRoute>} />
 
-          {/* Video Routes */}
-          <Route path="/video-player" element={<PrivateRoute><Layout><VideoPlayerPage /></Layout></PrivateRoute>} />
-          <Route path="/videos/storage" element={<PrivateRoute><Layout><VideoStoragePage /></Layout></PrivateRoute>} />
-          <Route path="/videos/batch" element={<PrivateRoute><Layout><VideoBatchPage /></Layout></PrivateRoute>} />
-          <Route path="/videos/import" element={<PrivateRoute><Layout><VideoImportPage /></Layout></PrivateRoute>} />
-          <Route path="/videos/swipe" element={<PrivateRoute><Layout><VideoSwipePage /></Layout></PrivateRoute>} />
+          {/* Video Routes with Sidebar */}
+          <Route path="/video-player" element={<PrivateRoute><AppLayout><VideoPlayerPage /></AppLayout></PrivateRoute>} />
+          <Route path="/videos/storage" element={<PrivateRoute><AppLayout><VideoStoragePage /></AppLayout></PrivateRoute>} />
+          <Route path="/videos/batch" element={<PrivateRoute><AppLayout><VideoBatchPage /></AppLayout></PrivateRoute>} />
+          <Route path="/videos/import" element={<PrivateRoute><AppLayout><VideoImportPage /></AppLayout></PrivateRoute>} />
+          <Route path="/videos/swipe" element={<PrivateRoute><AppLayout><VideoSwipePage /></AppLayout></PrivateRoute>} />
 
-          {/* Equipment Routes */}
-          <Route path="/equipments" element={<PrivateRoute><Layout><EquipmentsPage /></Layout></PrivateRoute>} />
-          <Route path="/equipments/:id" element={<PrivateRoute><Layout><EquipmentDetailsPage /></Layout></PrivateRoute>} />
+          {/* Equipment Routes with Sidebar */}
+          <Route path="/equipments" element={<PrivateRoute><AppLayout><EquipmentsPage /></AppLayout></PrivateRoute>} />
+          <Route path="/equipments/:id" element={<PrivateRoute><AppLayout><EquipmentDetailsPage /></AppLayout></PrivateRoute>} />
 
-          {/* Media and Articles */}
-          <Route path="/media" element={<PrivateRoute><Layout><MediaLibraryPage /></Layout></PrivateRoute>} />
-          <Route path="/scientific-articles" element={<PrivateRoute><Layout><ScientificArticlesPage /></Layout></PrivateRoute>} />
+          {/* Media and Articles with Sidebar */}
+          <Route path="/media" element={<PrivateRoute><AppLayout><MediaLibraryPage /></AppLayout></PrivateRoute>} />
+          <Route path="/scientific-articles" element={<PrivateRoute><AppLayout><ScientificArticlesPage /></AppLayout></PrivateRoute>} />
           
-          {/* Marketing Routes */}
-          <Route path="/marketing-consultant" element={<PrivateRoute><Layout><MarketingConsultantPage /></Layout></PrivateRoute>} />
-          <Route path="/reports" element={<PrivateRoute><Layout><ReportsPage /></Layout></PrivateRoute>} />
-          <Route path="/diagnostic-history" element={<PrivateRoute><Layout><DiagnosticHistoryPage /></Layout></PrivateRoute>} />
+          {/* Marketing Routes with Sidebar */}
+          <Route path="/marketing-consultant" element={<PrivateRoute><AppLayout><MarketingConsultantPage /></AppLayout></PrivateRoute>} />
+          <Route path="/reports" element={<PrivateRoute><AppLayout><ReportsPage /></AppLayout></PrivateRoute>} />
+          <Route path="/diagnostic-history" element={<PrivateRoute><AppLayout><DiagnosticHistoryPage /></AppLayout></PrivateRoute>} />
 
-          {/* Consultant Routes */}
-          <Route path="/consultant-panel" element={<PrivateRoute><Layout><ConsultantPanelPage /></Layout></PrivateRoute>} />
+          {/* Consultant Routes with Sidebar */}
+          <Route path="/consultant-panel" element={<PrivateRoute><AppLayout><ConsultantPanelPage /></AppLayout></PrivateRoute>} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/videos" element={<AdminRoute><Layout><AdminVideosPage /></Layout></AdminRoute>} />
-          <Route path="/admin/equipments" element={<AdminRoute><Layout><AdminEquipmentsPage /></Layout></AdminRoute>} />
-          <Route path="/admin/equipments/create" element={<AdminRoute><Layout><AdminEquipmentCreatePage /></Layout></AdminRoute>} />
-          <Route path="/admin/equipments/edit/:id" element={<AdminRoute><Layout><AdminEquipmentEditPage /></Layout></AdminRoute>} />
-          <Route path="/admin/content" element={<AdminRoute><Layout><AdminContentPage /></Layout></AdminRoute>} />
-          <Route path="/admin/ai" element={<AdminRoute><Layout><AdminAiPage /></Layout></AdminRoute>} />
-          <Route path="/admin/system-diagnostics" element={<AdminRoute><Layout><AdminSystemDiagnosticsPage /></Layout></AdminRoute>} />
-          <Route path="/admin/system-intelligence" element={<AdminRoute><Layout><AdminSystemIntelligencePage /></Layout></AdminRoute>} />
-          <Route path="/admin/vimeo-settings" element={<AdminRoute><Layout><AdminVimeoSettingsPage /></Layout></AdminRoute>} />
-          <Route path="/admin/workspace" element={<AdminRoute><Layout><AdminWorkspacePage /></Layout></AdminRoute>} />
+          {/* Admin Routes with Sidebar */}
+          <Route path="/admin/videos" element={<AdminRoute><AppLayout requireAdmin><AdminVideosPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/equipments" element={<AdminRoute><AppLayout requireAdmin><AdminEquipmentsPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/equipments/create" element={<AdminRoute><AppLayout requireAdmin><AdminEquipmentCreatePage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/equipments/edit/:id" element={<AdminRoute><AppLayout requireAdmin><AdminEquipmentEditPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/content" element={<AdminRoute><AppLayout requireAdmin><AdminContentPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/ai" element={<AdminRoute><AppLayout requireAdmin><AdminAiPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/system-diagnostics" element={<AdminRoute><AppLayout requireAdmin><AdminSystemDiagnosticsPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/system-intelligence" element={<AdminRoute><AppLayout requireAdmin><AdminSystemIntelligencePage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/vimeo-settings" element={<AdminRoute><AppLayout requireAdmin><AdminVimeoSettingsPage /></AppLayout></AdminRoute>} />
+          <Route path="/admin/workspace" element={<AdminRoute><AppLayout requireAdmin><AdminWorkspacePage /></AppLayout></AdminRoute>} />
         </Routes>
         
         <Toaster />
