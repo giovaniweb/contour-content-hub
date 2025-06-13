@@ -8,7 +8,7 @@ interface CopyableTextProps {
   text: string;
   children: React.ReactNode;
   className?: string;
-  buttonSize?: 'sm' | 'xs';
+  buttonSize?: 'sm' | 'icon';
   showToast?: boolean;
 }
 
@@ -16,7 +16,7 @@ const CopyableText: React.FC<CopyableTextProps> = ({
   text, 
   children, 
   className = '',
-  buttonSize = 'xs',
+  buttonSize = 'icon',
   showToast = true
 }) => {
   const [copied, setCopied] = useState(false);
