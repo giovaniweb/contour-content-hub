@@ -11,7 +11,7 @@ interface FluidaScriptRequest {
   equipamentos: string[];
   objetivo?: string;
   mentor?: string;
-  formato?: 'carrossel' | 'stories' | 'imagem';
+  formato?: 'carrossel' | 'stories' | 'imagem' | 'reels';
   canal?: string;
   estilo?: string;
 }
