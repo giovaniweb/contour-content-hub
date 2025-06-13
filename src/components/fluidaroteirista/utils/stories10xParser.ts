@@ -1,4 +1,3 @@
-
 import { sanitizeText, sanitizeScriptStructure, validateTextCleanliness } from './textSanitizer';
 
 export interface Stories10xSlide {
@@ -30,11 +29,10 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
       console.log('📋 [parseStories10xSlides] Conteúdo extraído do JSON:', cleanRoteiro.substring(0, 200));
     }
   } catch (error) {
-    // Se não for JSON, continuar com o texto original
     console.log('📝 [parseStories10xSlides] Não é JSON, usando texto direto');
   }
   
-  // CORREÇÃO: Pattern mais robusto para detectar stories numerados
+  // CORREÇÃO CRÍTICA: Pattern mais robusto para detectar stories numerados
   const storyPatterns = [
     /Story\s+(\d+):\s*([^\n]+)(?:\n([^\n]*(?:\n(?!Story\s+\d)[^\n]*)*)?)/gi,
     /(\d+)\.\s*([^\n]+)(?:\n([^\n]*(?:\n(?!^\d+\.)[^\n]*)*)?)/gmi,
@@ -45,13 +43,13 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   // Tentar diferentes padrões
   for (const pattern of storyPatterns) {
     matches = [...cleanRoteiro.matchAll(pattern)];
-    if (matches.length >= 3) { // Mínimo 3 stories para considerar válido
+    if (matches.length >= 3) {
       console.log(`📋 Stories encontrados com padrão: ${matches.length}`);
       break;
     }
   }
   
-  // CORREÇÃO: Processar matches encontrados de forma mais robusta
+  // CORREÇÃO CRÍTICA: Processar matches encontrados de forma mais granular
   if (matches.length >= 3) {
     for (const match of matches) {
       const numero = parseInt(match[1]);
@@ -60,50 +58,57 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
       
       if (!titulo.trim() && !conteudo.trim()) continue;
       
-      const tipo = getStoryType(numero, titulo + ' ' + conteudo);
+      // NOVA LÓGICA: Dividir conteúdo longo em frases menores
+      const contentoPrincipal = conteudo || titulo;
+      const frasesProcessadas = processContentForStory(contentoPrincipal, numero);
+      
+      const tipo = getStoryType(numero, contentoPrincipal);
       const tempo = getStoryTime(numero);
-      const dispositivo = detectEngagementDevice(titulo + ' ' + conteudo);
+      const dispositivo = detectEngagementDevice(contentoPrincipal);
       
       slides.push({
         number: numero,
-        titulo: titulo || getStoryTitle(tipo, numero),
-        conteudo: conteudo || titulo,
+        titulo: extractBetterTitle(titulo, contentoPrincipal, tipo, numero),
+        conteudo: frasesProcessadas,
         tempo,
         tipo,
         dispositivo
       });
     }
   } else {
-    // FALLBACK INTELIGENTE: Dividir por parágrafos naturais
-    console.log('🔍 [parseStories10xSlides] Usando fallback inteligente por parágrafos');
+    // FALLBACK INTELIGENTE MELHORADO: Dividir por frases menores
+    console.log('🔍 [parseStories10xSlides] Usando fallback inteligente por frases');
     
-    // Dividir por quebras duplas de linha ou pontos finais seguidos de quebra
-    const paragraphs = cleanRoteiro
-      .split(/\n\s*\n|\.\s*\n/)
-      .map(p => p.trim())
-      .filter(p => p.length > 10); // Filtrar parágrafos muito curtos
+    // Dividir por frases (pontos finais seguidos de espaço/quebra)
+    const frases = cleanRoteiro
+      .split(/(?<=\.)\s+|\n\s*\n/)
+      .map(f => f.trim())
+      .filter(f => f.length > 5); // Filtrar frases muito curtas
     
-    if (paragraphs.length >= 3) {
-      // Dividir em 4-5 stories baseado no conteúdo
-      const storiesCount = Math.min(5, Math.max(4, paragraphs.length));
-      const itemsPerStory = Math.ceil(paragraphs.length / storiesCount);
+    console.log(`📝 [parseStories10xSlides] ${frases.length} frases encontradas`);
+    
+    if (frases.length >= 4) {
+      // Distribuir frases de forma mais equilibrada
+      const storiesCount = Math.min(5, Math.max(4, frases.length));
+      
+      // NOVA LÓGICA: Distribuir frases de forma mais inteligente
+      const frasesPerStory = distributeContentIntelligently(frases, storiesCount);
       
       for (let i = 0; i < storiesCount; i++) {
-        const startIndex = i * itemsPerStory;
-        const endIndex = Math.min(startIndex + itemsPerStory, paragraphs.length);
-        const storyContent = paragraphs.slice(startIndex, endIndex).join('\n\n');
-        
-        if (storyContent.trim()) {
+        const storyFrases = frasesPerStory[i];
+        if (storyFrases && storyFrases.length > 0) {
           const numero = i + 1;
-          const tipo = getStoryType(numero, storyContent);
-          const titulo = getStoryTitle(tipo, numero);
+          const conteudoCompleto = storyFrases.join(' ');
+          const tipo = getStoryType(numero, conteudoCompleto);
+          const titulo = extractBetterTitle('', conteudoCompleto, tipo, numero);
+          const conteudoProcessado = processContentForStory(conteudoCompleto, numero);
           const tempo = getStoryTime(numero);
-          const dispositivo = detectEngagementDevice(storyContent);
+          const dispositivo = detectEngagementDevice(conteudoCompleto);
           
           slides.push({
             number: numero,
             titulo,
-            conteudo: sanitizeText(storyContent),
+            conteudo: conteudoProcessado,
             tempo,
             tipo,
             dispositivo
@@ -111,22 +116,22 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
         }
       }
     } else {
-      // ÚLTIMO FALLBACK: Dividir texto corrido em partes iguais
-      console.log('🚨 [parseStories10xSlides] Último fallback - divisão por caracteres');
+      // ÚLTIMO FALLBACK: Dividir texto corrido em partes mais curtas
+      console.log('🚨 [parseStories10xSlides] Último fallback - divisão por caracteres otimizada');
       
       const textLength = cleanRoteiro.length;
       const storiesCount = 4;
-      const charsPerStory = Math.ceil(textLength / storiesCount);
+      const idealCharsPerStory = Math.ceil(textLength / storiesCount);
       
       for (let i = 0; i < storiesCount; i++) {
-        const startPos = i * charsPerStory;
-        const endPos = Math.min(startPos + charsPerStory, textLength);
+        const startPos = i * idealCharsPerStory;
+        const endPos = Math.min(startPos + idealCharsPerStory, textLength);
         let storyContent = cleanRoteiro.substring(startPos, endPos);
         
         // Tentar quebrar em uma frase completa
         if (i < storiesCount - 1) {
           const lastSentenceEnd = storyContent.lastIndexOf('.');
-          if (lastSentenceEnd > charsPerStory * 0.5) {
+          if (lastSentenceEnd > idealCharsPerStory * 0.4) {
             storyContent = storyContent.substring(0, lastSentenceEnd + 1);
           }
         }
@@ -134,14 +139,15 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
         if (storyContent.trim()) {
           const numero = i + 1;
           const tipo = getStoryType(numero, storyContent);
-          const titulo = getStoryTitle(tipo, numero);
+          const titulo = extractBetterTitle('', storyContent, tipo, numero);
+          const conteudoProcessado = processContentForStory(storyContent, numero);
           const tempo = getStoryTime(numero);
           const dispositivo = detectEngagementDevice(storyContent);
           
           slides.push({
             number: numero,
             titulo,
-            conteudo: sanitizeText(storyContent),
+            conteudo: conteudoProcessado,
             tempo,
             tipo,
             dispositivo
@@ -175,6 +181,91 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   });
   
   return finalSlides;
+};
+
+// NOVA FUNÇÃO: Processar conteúdo para ser adequado para story de 10s
+const processContentForStory = (content: string, storyNumber: number): string => {
+  if (!content) return '';
+  
+  // Limitar a aproximadamente 15-25 palavras (ideal para 10 segundos)
+  const words = content.split(/\s+/);
+  const maxWords = 25;
+  
+  if (words.length <= maxWords) {
+    return content.trim();
+  }
+  
+  // Se muito longo, pegar as primeiras frases até o limite
+  const sentences = content.split(/(?<=\.)\s+/);
+  let result = '';
+  let wordCount = 0;
+  
+  for (const sentence of sentences) {
+    const sentenceWords = sentence.split(/\s+/).length;
+    if (wordCount + sentenceWords <= maxWords) {
+      result += (result ? ' ' : '') + sentence;
+      wordCount += sentenceWords;
+    } else {
+      break;
+    }
+  }
+  
+  return result.trim() || content.substring(0, 120).trim() + '...';
+};
+
+// NOVA FUNÇÃO: Extrair título melhor baseado no conteúdo e tipo
+const extractBetterTitle = (originalTitle: string, content: string, tipo: string, numero: number): string => {
+  if (originalTitle && originalTitle.length > 5 && originalTitle.length < 40) {
+    return originalTitle;
+  }
+  
+  // Tentar extrair título do início do conteúdo
+  const firstSentence = content.split(/[.!?]/)[0].trim();
+  
+  if (firstSentence.length > 5 && firstSentence.length < 50) {
+    // Personalizar baseado no tipo
+    switch (tipo) {
+      case 'gancho':
+        return firstSentence.length < 30 ? firstSentence : `Gancho: ${firstSentence.substring(0, 25)}...`;
+      case 'erro':
+        return firstSentence.includes('problema') || firstSentence.includes('erro') 
+          ? firstSentence 
+          : `O Problema: ${firstSentence.substring(0, 20)}...`;
+      case 'virada':
+        return firstSentence.includes('solução') || firstSentence.includes('descobr') 
+          ? firstSentence 
+          : `A Solução: ${firstSentence.substring(0, 20)}...`;
+      case 'cta':
+        return firstSentence.includes('compartilha') || firstSentence.includes('manda') 
+          ? firstSentence 
+          : `Ação: ${firstSentence.substring(0, 25)}...`;
+      case 'bonus':
+        return `Bônus: ${firstSentence.substring(0, 25)}...`;
+    }
+  }
+  
+  // Fallback para título padrão
+  return getStoryTitle(tipo, numero);
+};
+
+// NOVA FUNÇÃO: Distribuir conteúdo de forma mais inteligente
+const distributeContentIntelligently = (frases: string[], storiesCount: number): string[][] => {
+  const resultado: string[][] = [];
+  
+  // Inicializar arrays para cada story
+  for (let i = 0; i < storiesCount; i++) {
+    resultado.push([]);
+  }
+  
+  // Distribuir frases de forma mais equilibrada
+  const frasesPerStory = Math.ceil(frases.length / storiesCount);
+  
+  for (let i = 0; i < frases.length; i++) {
+    const storyIndex = Math.min(Math.floor(i / frasesPerStory), storiesCount - 1);
+    resultado[storyIndex].push(frases[i]);
+  }
+  
+  return resultado;
 };
 
 const getStoryType = (numero: number, conteudo: string): 'gancho' | 'erro' | 'virada' | 'cta' | 'bonus' => {
