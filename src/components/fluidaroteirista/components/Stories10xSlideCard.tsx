@@ -19,7 +19,7 @@ interface Stories10xSlideCardProps {
 
 const getSlideIcon = (tipo: string): string => {
   const icons = {
-    gancho: "🎯", // Hook
+    gancho: "🎯", // Gancho
     erro: "❌", // Erro comum
     virada: "💡", // Virada + solução
     cta: "📲"  // Call to action
@@ -133,9 +133,9 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
                 <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-cyan-400">Conteúdo do Story</span>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
+              <div className="text-slate-200 leading-relaxed text-sm aurora-body pr-12 whitespace-pre-wrap">
                 {slide.conteudo}
-              </p>
+              </div>
               <CopyButton 
                 text={slide.conteudo}
                 successMessage={`Conteúdo do story ${slide.number} copiado!`}
@@ -163,9 +163,9 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
                 <div className="w-2 h-2 bg-yellow-400 rounded-full aurora-pulse"></div>
                 <span className="text-xs font-medium text-yellow-400">Dica Leandro Ladeira</span>
               </div>
-              <p className="text-slate-300 text-xs italic aurora-body">
+              <div className="text-slate-300 text-xs italic aurora-body whitespace-pre-wrap">
                 {getTipByType(slide.tipo)}
-              </p>
+              </div>
             </div>
           </div>
         </CardContent>

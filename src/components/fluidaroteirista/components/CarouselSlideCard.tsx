@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ interface CarouselSlideCardProps {
 
 const getSlideIcon = (slideNumber: number): string => {
   const icons = {
-    1: "🎯", // Hook/Gancho
+    1: "🎯", // Gancho/Abertura
     2: "⚡", // Problema
     3: "💡", // Solução
     4: "✨", // Benefícios
@@ -100,30 +101,30 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
           </div>
 
           <div className="space-y-4">
-            {/* Seção Texto */}
+            {/* Seção Texto do Slide */}
             <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-emerald rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-emerald">Texto do Slide</span>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
+              <div className="text-slate-200 leading-relaxed text-sm aurora-body pr-12 whitespace-pre-wrap">
                 {slide.texto}
-              </p>
+              </div>
               <CopyButton 
                 text={slide.texto}
                 successMessage={`Texto do slide ${slide.number} copiado!`}
               />
             </div>
 
-            {/* Seção Imagem */}
+            {/* Seção Descrição da Imagem */}
             <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-neon-blue rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-neon-blue">Descrição da Imagem</span>
               </div>
-              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12">
+              <div className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12 whitespace-pre-wrap">
                 {slide.imagem}
-              </p>
+              </div>
               <CopyButton 
                 text={slide.imagem}
                 successMessage={`Descrição da imagem do slide ${slide.number} copiada!`}

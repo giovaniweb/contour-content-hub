@@ -1,10 +1,30 @@
 
+// Função para limpar texto de caracteres indesejados
+const sanitizeText = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    // Remove caracteres de escape e formatação markdown
+    .replace(/\[|\]|\n\n\s*\\|\\\s*\[|\\\s*\]/g, '')
+    // Remove quebras de linha múltiplas
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove espaços extras
+    .replace(/\s{2,}/g, ' ')
+    // Remove caracteres de controle
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    // Limpa início e fim
+    .trim();
+};
+
 export const parseAndLimitCarousel = (roteiro: string): string => {
   console.log('🎠 [parseAndLimitCarousel] Processando roteiro do carrossel...');
   
+  // Primeiro, limpar o roteiro inteiro
+  const cleanRoteiro = sanitizeText(roteiro);
+  
   // NOVO: Padrão para slides com estrutura limpa (sem hífens)
   const slidePattern = /Slide:\s*([^\n]+)/gi;
-  const matches = roteiro.match(slidePattern);
+  const matches = cleanRoteiro.match(slidePattern);
   
   if (!matches) {
     console.log('⚠️ Nenhum slide encontrado, criando estrutura padrão');
@@ -12,34 +32,39 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   }
   
   const processedSlides: string[] = [];
-  const parts = roteiro.split(/Slide:\s*/gi).filter(part => part.trim());
+  const parts = cleanRoteiro.split(/Slide:\s*/gi).filter(part => part.trim());
   
   // Processar cada slide
   for (let i = 1; i < parts.length; i++) { // Pular o primeiro item vazio
-    const slideContent = parts[i].trim();
+    const slideContent = sanitizeText(parts[i]);
     const lines = slideContent.split('\n').filter(line => line.trim());
     
     if (lines.length === 0) continue;
     
-    const slideTitle = lines[0].replace(/^\s*([^\n]+).*/, '$1').trim();
+    const slideTitle = sanitizeText(lines[0].replace(/^\s*([^\n]+).*/, '$1'));
     let texto = '';
     let imagem = '';
     
-    // Extrair Texto: e Imagem: da estrutura limpa
+    // Extrair Texto: e Imagem: da estrutura limpa (sem hífens)
     for (const line of lines) {
-      if (line.startsWith('Texto:')) {
-        texto = line.replace('Texto:', '').trim();
-      } else if (line.startsWith('Imagem:')) {
-        imagem = line.replace('Imagem:', '').trim();
+      const cleanLine = sanitizeText(line);
+      if (cleanLine.startsWith('Texto:')) {
+        texto = sanitizeText(cleanLine.replace('Texto:', ''));
+      } else if (cleanLine.startsWith('Imagem:')) {
+        imagem = sanitizeText(cleanLine.replace('Imagem:', ''));
       }
     }
     
     // Se não encontrou estrutura específica, usar conteúdo como texto
     if (!texto && !imagem) {
       const content = lines.slice(1).join(' ').trim();
-      texto = content.substring(0, 150) || 'Conteúdo do slide';
+      texto = sanitizeText(content.substring(0, 150)) || 'Conteúdo do slide';
       imagem = 'Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave';
     }
+    
+    // Garantir que não há textos vazios
+    if (!texto) texto = 'Conteúdo do slide';
+    if (!imagem) imagem = 'Ambiente clínico moderno e acolhedor';
     
     processedSlides.push(`Slide: ${slideTitle}\nTexto: ${texto}\nImagem: ${imagem}`);
   }
@@ -77,7 +102,8 @@ const createDefaultCarousel = (): string => {
 };
 
 export const validateCarouselSlides = (roteiro: string): { isValid: boolean; slideCount: number; errors: string[] } => {
-  const slides = roteiro.match(/Slide:\s*[^\n]+/gi) || [];
+  const cleanRoteiro = sanitizeText(roteiro);
+  const slides = cleanRoteiro.match(/Slide:\s*[^\n]+/gi) || [];
   const errors: string[] = [];
   const slideCount = slides.length;
   
@@ -90,9 +116,10 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
   }
   
   // Verificar estrutura Texto: e Imagem: (sem hífens)
-  const slideContents = roteiro.split(/Slide:\s*[^\n]+/gi).slice(1);
+  const slideContents = cleanRoteiro.split(/Slide:\s*[^\n]+/gi).slice(1);
   slideContents.forEach((content, index) => {
-    if (!content.includes('Texto:') || !content.includes('Imagem:')) {
+    const cleanContent = sanitizeText(content);
+    if (!cleanContent.includes('Texto:') || !cleanContent.includes('Imagem:')) {
       errors.push(`Slide ${index + 1} não tem estrutura "Texto:" e "Imagem:" obrigatória`);
     }
   });
@@ -107,15 +134,18 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
 export const parseCarouselSlides = (roteiro: string) => {
   console.log('🎠 [parseCarouselSlides] Analisando roteiro:', roteiro.substring(0, 200));
   
+  // Primeiro limpar o roteiro
+  const cleanRoteiro = sanitizeText(roteiro);
+  
   // Parser para estrutura limpa: Slide:, Texto:, Imagem:
   const slidePattern = /Slide:\s*([^\n]+)/gi;
-  const parts = roteiro.split(slidePattern).filter(part => part.trim());
+  const parts = cleanRoteiro.split(slidePattern).filter(part => part.trim());
   const slides = [];
   
   for (let i = 0; i < parts.length; i += 2) {
     if (i + 1 < parts.length) {
-      const slideTitle = parts[i].trim();
-      const slideContent = parts[i + 1].trim();
+      const slideTitle = sanitizeText(parts[i]);
+      const slideContent = sanitizeText(parts[i + 1]);
       
       console.log(`📋 Processando slide: "${slideTitle}"`);
       console.log(`📝 Conteúdo: ${slideContent.substring(0, 100)}...`);
@@ -124,8 +154,8 @@ export const parseCarouselSlides = (roteiro: string) => {
       const textoMatch = slideContent.match(/Texto:\s*([^\n]+)/i);
       const imagemMatch = slideContent.match(/Imagem:\s*([^\n]+)/i);
       
-      const texto = textoMatch ? textoMatch[1].trim() : slideContent.split('\n')[0] || 'Texto do slide';
-      const imagem = imagemMatch ? imagemMatch[1].trim() : 'Ambiente clínico moderno, profissional especializado, iluminação suave';
+      const texto = textoMatch ? sanitizeText(textoMatch[1]) : sanitizeText(slideContent.split('\n')[0]) || 'Texto do slide';
+      const imagem = imagemMatch ? sanitizeText(imagemMatch[1]) : 'Ambiente clínico moderno, profissional especializado, iluminação suave';
       
       console.log(`✅ Texto extraído: ${texto.substring(0, 50)}...`);
       console.log(`🖼️ Imagem extraída: ${imagem.substring(0, 50)}...`);
