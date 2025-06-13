@@ -17,8 +17,8 @@ interface Equipment {
 interface ScriptGeneratorFormProps {
   tema: string;
   onTemaChange: (tema: string) => void;
-  formato: 'carrossel' | 'imagem' | 'stories_10x' | 'reels';
-  onFormatoChange: (formato: 'carrossel' | 'imagem' | 'stories_10x' | 'reels') => void;
+  formato: 'carrossel' | 'imagem' | 'stories_10x' | 'reels' | 'tiktok' | 'youtube_shorts' | 'youtube_video' | 'ads_estatico' | 'ads_video';
+  onFormatoChange: (formato: 'carrossel' | 'imagem' | 'stories_10x' | 'reels' | 'tiktok' | 'youtube_shorts' | 'youtube_video' | 'ads_estatico' | 'ads_video') => void;
   objetivo: string;
   onObjetivoChange: (objetivo: string) => void;
   selectedEquipments: string[];
