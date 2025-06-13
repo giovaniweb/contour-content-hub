@@ -460,7 +460,8 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           progress={progress}
           errors={errors}
           onDownloadAll={downloadAllImages}
-          onRetry={handleRetryFailedImages}
+          onRetryFailed={handleRetryFailedImages}
+          formato={script.formato}
         />
 
         <PhotographicImageModal
@@ -472,7 +473,8 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           progress={photoProgress}
           errors={photoErrors}
           onDownloadAll={downloadAllPhotos}
-          onRetry={handleRetryFailedPhotos}
+          onRetryFailed={handleRetryFailedPhotos}
+          formato={script.formato}
         />
       </div>
     </>
