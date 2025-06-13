@@ -34,14 +34,32 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     generatedImageUrl 
   } = useImageGeneration();
 
-  // Monitorar mudanças nos resultados para mudar automaticamente para 'results'
+  // CORREÇÃO CRÍTICA: Melhorar detecção de mudanças nos resultados
   useEffect(() => {
-    console.log('📊 [FluidaRoteirista] Results changed:', results.length, 'current mode:', currentMode);
-    if (results.length > 0 && currentMode !== 'results') {
-      console.log('🔄 [FluidaRoteirista] Mudando para modo results');
+    console.log('📊 [FluidaRoteirista] Results state changed:', {
+      resultsLength: results.length,
+      currentMode,
+      isGenerating,
+      firstResult: results[0] ? 'exists' : 'null'
+    });
+    
+    // Verificação mais robusta para mudança de modo
+    if (results.length > 0 && currentMode !== 'results' && !isGenerating) {
+      console.log('🔄 [FluidaRoteirista] Transition to results mode triggered');
+      console.log('✅ [FluidaRoteirista] First result preview:', results[0].formato, results[0].mentor);
       setCurrentMode('results');
     }
-  }, [results.length, currentMode]);
+  }, [results.length, currentMode, isGenerating]);
+
+  // CORREÇÃO ADICIONAL: Log adicional para debug
+  useEffect(() => {
+    console.log('🎬 [FluidaRoteirista] Component state:', {
+      currentMode,
+      resultsCount: results.length,
+      isGenerating,
+      showValidation
+    });
+  }, [currentMode, results.length, isGenerating, showValidation]);
 
   const handleModeSelect = (mode: 'akinator' | 'elementos') => {
     console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
@@ -50,11 +68,26 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
   const handleScriptGenerated = (script: any) => {
     console.log('✅ [FluidaRoteirista] Script gerado recebido:', script);
+    console.log('📝 [FluidaRoteirista] Script details:', {
+      formato: script?.formato,
+      mentor: script?.mentor,
+      hasRoteiro: !!script?.roteiro
+    });
+    
     // Chamar callback opcional se fornecido
     if (onScriptGenerated) {
+      console.log('📞 [FluidaRoteirista] Calling parent callback');
       onScriptGenerated(script);
     }
-    // O useEffect já vai mudar para 'results' quando results.length > 0
+    
+    // CORREÇÃO: Forçar mudança de modo se o useEffect não detectar
+    console.log('🔄 [FluidaRoteirista] Checking if should force mode change...');
+    setTimeout(() => {
+      if (currentMode !== 'results') {
+        console.log('⚡ [FluidaRoteirista] Force changing to results mode');
+        setCurrentMode('results');
+      }
+    }, 100);
   };
 
   const handleNewScript = () => {
@@ -80,9 +113,10 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     });
   };
 
-  console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
+  console.log('🎬 [FluidaRoteirista] Render decision - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
 
-  if (currentMode === 'results' && results.length > 0) {
+  // CORREÇÃO: Verificação mais rigorosa para exibir resultados
+  if ((currentMode === 'results' || results.length > 0) && results.length > 0 && !isGenerating) {
     console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
       <FluidaScriptResults
@@ -124,6 +158,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     );
   }
 
+  // Render mode selection UI
   console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
   return (
     <div className="container mx-auto py-6 space-y-8">

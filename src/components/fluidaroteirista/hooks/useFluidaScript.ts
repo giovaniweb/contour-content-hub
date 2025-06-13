@@ -145,18 +145,30 @@ export const useFluidaScript = () => {
       };
 
       console.log('✅ [useFluidaScript] Script result created:', scriptResult);
+
+      // CORREÇÃO CRÍTICA: Garantir que setResults seja chamado ANTES do return
+      // e aguardar um microtask para garantir que o estado seja atualizado
       setResults([scriptResult]);
+      console.log('📝 [useFluidaScript] Results state updated, length:', 1);
+      
+      // Aguardar um microtask para garantir atualização do state
+      await new Promise(resolve => setTimeout(resolve, 10));
       
       toast({
         title: "✨ Roteiro gerado!",
         description: `${scriptResult.formato} para ${scriptResult.canal} no estilo ${scriptResult.mentor}`,
       });
 
+      console.log('🎯 [useFluidaScript] Returning script result for callbacks');
       return [scriptResult];
 
     } catch (error) {
       console.error('❌ [useFluidaScript] Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      // Limpar results em caso de erro
+      setResults([]);
+      
       toast({
         title: "Erro na geração",
         description: `Erro: ${errorMessage}. Tente novamente em alguns instantes.`,
