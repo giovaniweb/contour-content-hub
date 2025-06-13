@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { parseStories10xSlides, validateStories10x } from '../utils/stories10xParser';
 import Stories10xSlideCard from './Stories10xSlideCard';
-import CopyableText from './CopyableText';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Instagram, Timer, Zap, Target, CheckCircle, AlertTriangle } from 'lucide-react';
@@ -22,11 +21,6 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
       </div>
     );
   }
-
-  // Texto completo para copiar todos os stories
-  const allStoriesText = slides.map((slide, index) => 
-    `Story ${slide.number}: ${slide.titulo}\n${slide.conteudo}\n${slide.dispositivo ? `Dispositivo: ${slide.dispositivo}\n` : ''}`
-  ).join('\n---\n\n');
 
   return (
     <div className="space-y-8">
@@ -57,13 +51,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
           </Badge>
         </div>
         
-        <CopyableText text={allStoriesText}>
-          <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm max-w-2xl mx-auto">
-            <p className="text-sm text-slate-300 aurora-body pr-8">
-              Estratégia de Stories que gera até 10x mais engajamento através de sequência inteligente com dispositivos de reciprocidade
-            </p>
-          </div>
-        </CopyableText>
+        <p className="text-sm text-slate-300 aurora-body max-w-2xl mx-auto">
+          Estratégia de Stories que gera até 10x mais engajamento através de sequência inteligente com dispositivos de reciprocidade
+        </p>
       </motion.div>
 
       {/* Validação da Metodologia */}
@@ -108,7 +98,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
         </Card>
       </motion.div>
 
-      {/* Timeline da Sequência */}
+      {/* Timeline da Sequência - REDESENHADA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -123,6 +113,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
+            {/* Timeline Responsiva */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {slides.map((slide, index) => (
                 <motion.div 
@@ -132,10 +123,12 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                 >
+                  {/* Conector horizontal (apenas desktop) */}
                   {index < slides.length - 1 && (
                     <div className="hidden md:block absolute top-6 left-full w-full h-0.5 bg-gradient-to-r from-purple-400 to-orange-400 opacity-60 z-0" />
                   )}
                   
+                  {/* Conector vertical (apenas mobile) */}
                   {index < slides.length - 1 && (
                     <div className="md:hidden absolute left-6 top-full w-0.5 h-4 bg-gradient-to-b from-purple-400 to-orange-400 opacity-60 z-0" />
                   )}
@@ -189,20 +182,19 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
             </CardHeader>
             <CardContent className="space-y-4 text-sm relative z-10">
               {slides.filter(s => s.dispositivo).map((slide, index) => (
-                <CopyableText key={index} text={`Story ${slide.number}: ${slide.dispositivo}\n${slide.conteudo}`}>
-                  <motion.div 
-                    className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <span className="text-cyan-400 text-lg font-bold">Story {slide.number}</span>
-                    <div className="flex-1 pr-8">
-                      <div className="text-cyan-300 font-medium">{slide.dispositivo}</div>
-                      <div className="text-slate-300 text-xs mt-1">
-                        {slide.conteudo.substring(0, 80)}...
-                      </div>
+                <motion.div 
+                  key={index}
+                  className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <span className="text-cyan-400 text-lg font-bold">Story {slide.number}</span>
+                  <div className="flex-1">
+                    <div className="text-cyan-300 font-medium">{slide.dispositivo}</div>
+                    <div className="text-slate-300 text-xs mt-1">
+                      {slide.conteudo.substring(0, 80)}...
                     </div>
-                  </motion.div>
-                </CopyableText>
+                  </div>
+                </motion.div>
               ))}
             </CardContent>
           </Card>
@@ -225,22 +217,34 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm relative z-10">
-            {[
-              { icon: "🎯", text: "Stories não são aulas soltas, são conversas que criam comunidade" },
-              { icon: "🔥", text: "Cada story deve pedir uma ação: emoji, resposta, compartilhamento" },
-              { icon: "💬", text: "Reciprocidade é a chave: 'manda um foguinho que eu te conto o resto'" },
-              { icon: "⚡", text: "Sequência viciante: sempre deixar gancho para o próximo conteúdo" }
-            ].map((tip, index) => (
-              <CopyableText key={index} text={tip.text}>
-                <motion.div 
-                  className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <span className="text-orange-400 text-lg">{tip.icon}</span>
-                  <span className="aurora-body pr-8">{tip.text}</span>
-                </motion.div>
-              </CopyableText>
-            ))}
+            <motion.div 
+              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
+              whileHover={{ scale: 1.02 }}
+            >
+              <span className="text-orange-400 text-lg">🎯</span>
+              <span className="aurora-body">Stories não são aulas soltas, são conversas que criam comunidade</span>
+            </motion.div>
+            <motion.div 
+              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
+              whileHover={{ scale: 1.02 }}
+            >
+              <span className="text-orange-400 text-lg">🔥</span>
+              <span className="aurora-body">Cada story deve pedir uma ação: emoji, resposta, compartilhamento</span>
+            </motion.div>
+            <motion.div 
+              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
+              whileHover={{ scale: 1.02 }}
+            >
+              <span className="text-orange-400 text-lg">💬</span>
+              <span className="aurora-body">Reciprocidade é a chave: "manda um foguinho que eu te conto o resto"</span>
+            </motion.div>
+            <motion.div 
+              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
+              whileHover={{ scale: 1.02 }}
+            >
+              <span className="text-orange-400 text-lg">⚡</span>
+              <span className="aurora-body">Sequência viciante: sempre deixar gancho para o próximo conteúdo</span>
+            </motion.div>
           </CardContent>
         </Card>
       </motion.div>

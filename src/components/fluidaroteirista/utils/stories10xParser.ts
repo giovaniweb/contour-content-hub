@@ -8,29 +8,9 @@ export interface Stories10xSlide {
   tipo: 'gancho' | 'erro' | 'virada' | 'cta';
 }
 
-// Função para limpar JSON do conteúdo do texto
-const cleanJsonFromText = (content: string): string => {
-  // Remove blocos JSON que começam com { e terminam com }
-  let cleaned = content.replace(/\{[\s\S]*?\}/g, '');
-  
-  // Remove linhas que contêm apenas aspas e vírgulas (restos de JSON)
-  cleaned = cleaned.replace(/^["',\s]*$/gm, '');
-  
-  // Remove múltiplas quebras de linha
-  cleaned = cleaned.replace(/\n\n+/g, '\n\n');
-  
-  // Remove espaços múltiplos
-  cleaned = cleaned.replace(/\s+/g, ' ');
-  
-  // Remove backticks de markdown
-  cleaned = cleaned.replace(/```json|```/g, '');
-  
-  return cleaned.trim();
-};
-
 // Função para limpar o conteúdo do texto
 const cleanContent = (content: string): string => {
-  return cleanJsonFromText(content)
+  return content
     .replace(/\n\n+/g, ' ') // Remove múltiplas quebras de linha
     .replace(/\n/g, ' ') // Remove quebras de linha simples
     .replace(/\s+/g, ' ') // Remove espaços múltiplos
@@ -39,10 +19,6 @@ const cleanContent = (content: string): string => {
 
 export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   console.log('🔍 [Stories10xParser] Iniciando parse do roteiro:', roteiro);
-  
-  // Primeiro, limpar JSON do roteiro completo
-  const cleanedRoteiro = cleanJsonFromText(roteiro);
-  console.log('🧹 [Stories10xParser] Roteiro limpo:', cleanedRoteiro);
   
   // Padrões para identificar stories
   const storyPatterns = [
@@ -62,10 +38,10 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   ];
 
   storyPatterns.forEach((pattern, index) => {
-    const match = pattern.exec(cleanedRoteiro);
+    const match = pattern.exec(roteiro);
     if (match && match[1]) {
       const rawContent = match[1].trim();
-      const cleanedContent = cleanContent(rawContent);
+      const cleanedContent = cleanContent(rawContent); // Limpar o conteúdo
       
       // Detectar dispositivos no conteúdo
       const dispositivos = detectarDispositivos(cleanedContent);
@@ -90,7 +66,7 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   // Fallback: se não encontrou stories estruturados, dividir por quebras de linha
   if (slides.length === 0) {
     console.warn('⚠️ [Stories10xParser] Padrão de Story não encontrado, usando fallback');
-    return parseFallbackStories10x(cleanedRoteiro);
+    return parseFallbackStories10x(roteiro);
   }
 
   console.log(`✅ [Stories10xParser] Parse concluído: ${slides.length} stories encontrados`);
@@ -126,7 +102,7 @@ const detectarDispositivos = (content: string): string[] => {
 };
 
 const parseFallbackStories10x = (roteiro: string): Stories10xSlide[] => {
-  const cleanedRoteiro = cleanContent(roteiro);
+  const cleanedRoteiro = cleanContent(roteiro); // Limpar o roteiro completo
   const lines = cleanedRoteiro.split(' ').filter(word => word.trim() !== '');
   const slides: Stories10xSlide[] = [];
   
@@ -173,12 +149,14 @@ export const validateStories10x = (slides: Stories10xSlide[]): {
   const issues: string[] = [];
   let score = 0;
 
+  // Validar número de stories
   if (slides.length !== 4) {
     issues.push(`Devem ser exatamente 4 stories (encontrados: ${slides.length})`);
   } else {
     score += 25;
   }
 
+  // Validar se cada story tem conteúdo
   slides.forEach((slide, index) => {
     if (!slide.conteudo || slide.conteudo.trim() === '') {
       issues.push(`Story ${index + 1} está vazio`);
@@ -189,6 +167,7 @@ export const validateStories10x = (slides: Stories10xSlide[]): {
     }
   });
 
+  // Validar presença de dispositivos (pelo menos no Story 3)
   const story3 = slides.find(s => s.number === 3);
   if (story3 && !story3.dispositivo) {
     issues.push('Story 3 deve conter dispositivo de engajamento');
@@ -196,6 +175,7 @@ export const validateStories10x = (slides: Stories10xSlide[]): {
     score += 20;
   }
 
+  // Validar características específicas
   const story1 = slides.find(s => s.number === 1);
   if (story1 && !isProvocativeHook(story1.conteudo)) {
     issues.push('Story 1 deve ter gancho provocativo');

@@ -1,3 +1,4 @@
+
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
 
@@ -180,7 +181,7 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     
     short: `
     ⚡ YOUTUBE SHORT - INSTRUÇÕES:
-    - Roteiro para 40 segundos máximo
+    - Roteiro para 50 segundos máximo
     - Início impactante nos primeiros 3 segundos
     - Informação densa e valiosa
     - CTA para inscrever no canal
@@ -294,9 +295,9 @@ const getOutputInstructions = (formato: string): string => {
     short: `
     Retorne JSON:
     {
-      "roteiro": "[0-3s] Hook\n[3-30s] Conteúdo\n[30-40s] CTA",
+      "roteiro": "[0-3s] Hook\n[3-45s] Conteúdo\n[45-50s] CTA",
       "formato": "short",
-      "tempo_total": "40s", 
+      "tempo_total": "50s", 
       "sugestoes_edicao": "Cortes rápidos, texto na tela"
     }
     `,
