@@ -11,7 +11,8 @@ export const ROUTES = {
     SCRIPTS: {
       ROOT: '/content/scripts',
       GENERATOR: '/script-generator',
-      VALIDATION: '/script-validation'
+      VALIDATION: '/script-validation',
+      APPROVED: '/roteiros-aprovados'
     },
     FLUIDAROTEIRISTA: '/fluidaroteirista',
     PLANNER: '/content-planner',

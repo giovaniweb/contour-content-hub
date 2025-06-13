@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, RotateCcw, Check, AlertTriangle } from 'lucide-react';
+import { Sparkles, RotateCcw, Check, AlertTriangle, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sanitizeText } from '../utils/textSanitizer';
 
 interface DisneyMagicButtonProps {
   originalScript: string;
@@ -30,7 +31,8 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
     try {
       setShowValidation(true);
       const transformed = await onApplyDisney();
-      setPreviewScript(transformed);
+      const cleanTransformed = sanitizeText(transformed);
+      setPreviewScript(cleanTransformed);
       setShowPreview(true);
       setShowValidation(false);
     } catch (error) {
@@ -51,8 +53,12 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
 
   if (isDisneyApplied) {
     return (
-      <div className="flex items-center gap-3">
-        <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30 px-3 py-1">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-3"
+      >
+        <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30 px-3 py-1 animate-pulse">
           <Sparkles className="h-3 w-3 mr-1" />
           Disney Magic Ativa
         </Badge>
@@ -60,12 +66,12 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
           onClick={onRevertDisney}
           variant="outline"
           size="sm"
-          className="border-yellow-400/50 text-yellow-300 hover:bg-yellow-500/10"
+          className="border-yellow-400/50 text-yellow-300 hover:bg-yellow-500/10 transition-all duration-200"
         >
           <RotateCcw className="h-4 w-4 mr-2" />
           Reverter
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
@@ -77,10 +83,10 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="border-yellow-400/50 text-yellow-300 hover:bg-yellow-500/10"
+            className="border-yellow-400/50 text-yellow-300 hover:bg-yellow-500/10 transition-all duration-200 hover:scale-105"
             disabled={isProcessing}
           >
-            <Sparkles className="h-4 w-4 mr-2" />
+            <Wand2 className="h-4 w-4 mr-2" />
             {isProcessing ? 'Aplicando Magia...' : 'Disney Magic'}
           </Button>
         </DialogTrigger>
@@ -107,6 +113,28 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
                   criando uma história mais envolvente e emocional com elementos de 
                   storytelling clássico.
                 </p>
+                
+                <div className="mt-4 space-y-2">
+                  <h4 className="text-xs font-semibold text-yellow-400">Transformações incluídas:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <Check className="h-3 w-3 text-green-400" />
+                      <span className="text-slate-400">Narrativa emocional</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Check className="h-3 w-3 text-green-400" />
+                      <span className="text-slate-400">Storytelling clássico</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Check className="h-3 w-3 text-green-400" />
+                      <span className="text-slate-400">Linguagem encantadora</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Check className="h-3 w-3 text-green-400" />
+                      <span className="text-slate-400">Conexão humana</span>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
             
@@ -119,7 +147,7 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
               </Button>
               <Button
                 onClick={handlePreviewDisney}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
                 disabled={isProcessing}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -149,6 +177,9 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
                 <p className="text-sm text-slate-400">
                   Transformando seu roteiro com a magia de Walt Disney
                 </p>
+                <div className="mt-4 text-xs text-slate-500">
+                  Esta transformação pode levar alguns segundos
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -174,7 +205,7 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-slate-200 bg-slate-900/50 p-3 rounded border max-h-40 overflow-y-auto">
-                    {originalScript.substring(0, 300)}...
+                    {sanitizeText(originalScript).substring(0, 300)}...
                   </div>
                 </CardContent>
               </Card>
@@ -221,13 +252,14 @@ const DisneyMagicButton: React.FC<DisneyMagicButtonProps> = ({
               <Button
                 variant="outline"
                 onClick={handleRejectDisney}
+                className="border-red-400/50 text-red-300 hover:bg-red-500/10"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Rejeitar
               </Button>
               <Button
                 onClick={handleConfirmDisney}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
               >
                 <Check className="h-4 w-4 mr-2" />
                 Confirmar Magia

@@ -5,12 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CarouselFormatter from './CarouselFormatter';
 import Stories10xFormatter from './Stories10xFormatter';
 import PostEstaticoFormatter from './PostEstaticoFormatter';
+import ReelsFormatter from './ReelsFormatter';
 import ScriptMetrics from './ScriptMetrics';
 import EquipmentStatus from './EquipmentStatus';
 import DisneyMagicIndicator from './DisneyMagicIndicator';
 import EquipmentDetails from './EquipmentDetails';
 import TimeWarning from './TimeWarning';
 import CopyButton from '@/components/ui/CopyButton';
+import { getFormatterType, shouldShowTimeMetrics } from '../utils/formatMapper';
+import { sanitizeText } from '../utils/textSanitizer';
 
 interface ScriptFormatterProps {
   script: {
@@ -26,70 +29,90 @@ interface ScriptFormatterProps {
 }
 
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
+  console.log('🎬 [ScriptFormatter] Formatando script:', { 
+    formato: script.formato, 
+    roteiro: script.roteiro.substring(0, 100) 
+  });
+
+  // Sanitizar texto antes de usar
+  const cleanScript = {
+    ...script,
+    roteiro: sanitizeText(script.roteiro)
+  };
+
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
     return Math.round((words / 150) * 60); // 150 palavras/minuto
   };
 
-  const estimatedTime = estimateReadingTime(script.roteiro);
+  const estimatedTime = estimateReadingTime(cleanScript.roteiro);
   const isWithinTimeLimit = estimatedTime <= 60;
-  const wordCount = script.roteiro.split(/\s+/).length;
-  const hasEquipments = script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0;
+  const wordCount = cleanScript.roteiro.split(/\s+/).length;
+  const hasEquipments = cleanScript.equipamentos_utilizados && cleanScript.equipamentos_utilizados.length > 0;
 
   // Verificar se equipamentos foram realmente utilizados no roteiro
   const equipmentUsedInScript = hasEquipments ? 
-    script.equipamentos_utilizados.some(eq => {
+    cleanScript.equipamentos_utilizados.some(eq => {
       const equipmentName = typeof eq === 'string' ? eq : (eq?.nome || '');
-      return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
+      return cleanScript.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
+
+  // Determinar formatter baseado no formato
+  const formatterType = getFormatterType(cleanScript.formato);
+  const showTimeMetrics = shouldShowTimeMetrics(cleanScript.formato);
+
+  console.log('🎯 [ScriptFormatter] Usando formatter:', formatterType);
 
   // Renderização condicional baseada no formato
   const renderScriptContent = () => {
-    if (script.formato.toLowerCase() === 'carrossel') {
-      return <CarouselFormatter roteiro={script.roteiro} />;
+    switch (formatterType) {
+      case 'carrossel':
+        return <CarouselFormatter roteiro={cleanScript.roteiro} />;
+      
+      case 'stories_10x':
+        return <Stories10xFormatter roteiro={cleanScript.roteiro} />;
+      
+      case 'post_estatico':
+        return <PostEstaticoFormatter roteiro={cleanScript.roteiro} />;
+      
+      case 'reels':
+        return <ReelsFormatter 
+          roteiro={cleanScript.roteiro} 
+          formato={cleanScript.formato as 'reels' | 'tiktok' | 'youtube_shorts' | 'youtube_video' | 'ads_video'} 
+        />;
+      
+      default:
+        // Renderização padrão para outros formatos
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full"
+          >
+            <Card className="aurora-glass border border-cyan-500/30 relative">
+              <CardHeader>
+                <CardTitle className="text-cyan-300 text-center text-2xl">
+                  📝 Seu Roteiro FLUIDA
+                </CardTitle>
+                <p className="text-cyan-400/80 text-center">
+                  Formato: {cleanScript.formato.toUpperCase()}
+                </p>
+              </CardHeader>
+              <CardContent className="p-8 relative">
+                <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-8 bg-slate-900/30 rounded-lg min-h-[300px] w-full relative">
+                  {cleanScript.roteiro}
+                  <CopyButton 
+                    text={cleanScript.roteiro}
+                    successMessage="Roteiro copiado!"
+                    className="top-4 right-4"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
     }
-
-    if (script.formato.toLowerCase() === 'stories_10x') {
-      return <Stories10xFormatter roteiro={script.roteiro} />;
-    }
-
-    if (script.formato.toLowerCase() === 'post_estatico') {
-      return <PostEstaticoFormatter roteiro={script.roteiro} />;
-    }
-
-    // Renderização padrão para outros formatos
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full"
-      >
-        <Card className="aurora-glass border border-cyan-500/30 relative">
-          <CardHeader>
-            <CardTitle className="text-cyan-300 text-center text-2xl">
-              📝 Seu Roteiro FLUIDA
-            </CardTitle>
-            <p className="text-cyan-400/80 text-center">
-              Formato: {script.formato.toUpperCase()}
-            </p>
-          </CardHeader>
-          <CardContent className="p-8 relative">
-            <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-8 bg-slate-900/30 rounded-lg min-h-[300px] w-full relative">
-              {script.roteiro}
-              <CopyButton 
-                text={script.roteiro}
-                successMessage="Roteiro copiado!"
-                className="top-4 right-4"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
   };
-
-  // Stories 10x também não precisa de contagem de tempo (formato estático)
-  const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes(script.formato.toLowerCase());
 
   return (
     <div className="space-y-6 w-full">
@@ -101,24 +124,24 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         estimatedTime={estimatedTime}
         isWithinTimeLimit={isWithinTimeLimit}
         wordCount={wordCount}
-        emocao_central={script.emocao_central}
-        formato={script.formato}
-        showTime={showTimeMetric}
+        emocao_central={cleanScript.emocao_central}
+        formato={cleanScript.formato}
+        showTime={showTimeMetrics}
       />
 
       {/* Disney Magic Badge */}
-      <DisneyMagicIndicator disneyApplied={script.disney_applied || false} />
+      <DisneyMagicIndicator disneyApplied={cleanScript.disney_applied || false} />
 
       {/* Equipamentos Detalhados - Mostrar apenas se houver equipamentos utilizados */}
       {hasEquipments && equipmentUsedInScript && (
         <EquipmentDetails
-          equipments={script.equipamentos_utilizados || []}
-          roteiro={script.roteiro}
+          equipments={cleanScript.equipamentos_utilizados || []}
+          roteiro={cleanScript.roteiro}
         />
       )}
 
       {/* Aviso de Tempo - Apenas para formatos com tempo */}
-      {showTimeMetric && (
+      {showTimeMetrics && (
         <TimeWarning
           isWithinTimeLimit={isWithinTimeLimit}
           estimatedTime={estimatedTime}
