@@ -18,12 +18,16 @@ export const buildSystemPrompt = async (
   const mentorNomeReal = convertMentorKeyToRealName(mentor);
   console.log(`🎯 [promptBuilders] Mentor convertido: ${mentor} -> ${mentorNomeReal}`);
   
+  // CORREÇÃO: Normalizar formato para busca de técnicas
+  const formatoNormalizado = normalizeFormatoForTechniques(options.formato);
+  console.log(`📝 [promptBuilders] Formato normalizado: ${options.formato} -> ${formatoNormalizado}`);
+  
   // Buscar técnicas específicas do mentor
   const mentorTechniques = await getMentorTechniques(mentorNomeReal);
   console.log(`🎯 [promptBuilders] Técnicas encontradas para ${mentorNomeReal}:`, mentorTechniques.length);
   
   // Selecionar melhor técnica baseada no formato e objetivo
-  const selectedTechnique = selectBestTechnique(mentorTechniques, options.formato, options.objetivo);
+  const selectedTechnique = selectBestTechnique(mentorTechniques, formatoNormalizado, options.objetivo);
   
   if (selectedTechnique) {
     console.log(`✨ [promptBuilders] Técnica selecionada: ${selectedTechnique.nome}`);
@@ -36,7 +40,25 @@ export const buildSystemPrompt = async (
   return buildGenericMentorPrompt(mentorNomeReal, equipmentDetails, mode, options);
 };
 
-// NOVA FUNÇÃO: Converter chave do mentor para nome real do banco
+// NOVA FUNÇÃO: Normalizar formato para busca de técnicas
+const normalizeFormatoForTechniques = (formato: string): string => {
+  // Mapear formatos para valores que existem nas técnicas
+  const formatMapping: Record<string, string> = {
+    'stories_10x': 'stories',
+    'reels': 'stories',
+    'tiktok': 'stories',
+    'youtube_shorts': 'stories',
+    'youtube_video': 'stories',
+    'ads_video': 'stories',
+    'ads_estatico': 'imagem',
+    'carrossel': 'carrossel',
+    'imagem': 'imagem'
+  };
+  
+  return formatMapping[formato] || formato;
+};
+
+// CORREÇÃO: Converter chave do mentor para nome real do banco
 const convertMentorKeyToRealName = (mentorKey: string): string => {
   const mentorMapping: Record<string, string> = {
     'leandro_ladeira': 'Leandro Ladeira',

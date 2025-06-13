@@ -5,11 +5,24 @@ import { MENTOR_ENIGMAS, MENTOR_PROFILES } from '../../smart-script-generator/in
 export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   console.log('🤔 [inferMentorFromAnswers] Respostas recebidas:', answers);
 
-  // NOVA LÓGICA: Buscar mentor baseado em técnicas disponíveis para o formato
-  const formato = answers.formato || 'carrossel';
+  // CORREÇÃO CRÍTICA: Normalizar formato para decisões
+  const formato = normalizeFormato(answers.formato || 'carrossel');
   const objetivo = answers.objetivo || 'atrair';
 
-  // Lista de mentores para verificar (ordem de prioridade)
+  console.log(`🎯 [inferMentorFromAnswers] Formato normalizado: ${answers.formato} -> ${formato}`);
+
+  // REGRAS ESPECÍFICAS DE FORMATO - PRIORIDADE MÁXIMA
+  if (formato === 'stories' || answers.formato === 'stories_10x') {
+    console.log('🎯 [inferMentorFromAnswers] Stories detectado - usando Leandro Ladeira');
+    return 'leandro_ladeira';
+  }
+
+  if (formato === 'carrossel') {
+    console.log('🎠 [inferMentorFromAnswers] Carrossel detectado - usando Paulo Cuenca');
+    return 'paulo_cuenca';
+  }
+
+  // Lista de mentores para verificar (ordem de prioridade para outros casos)
   const mentoresParaVerificar = [
     'Leandro Ladeira',
     'Paulo Cuenca', 
@@ -37,18 +50,6 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
     }
   }
 
-  // REGRA ESPECÍFICA: Stories 10x sempre usa Leandro Ladeira
-  if (formato === 'stories_10x' || formato === 'stories') {
-    console.log('🎯 [inferMentorFromAnswers] Stories detectado - usando Leandro Ladeira');
-    return 'leandro_ladeira';
-  }
-
-  // REGRA ESPECÍFICA: Carrossel sempre usa Paulo Cuenca
-  if (formato === 'carrossel') {
-    console.log('🎠 [inferMentorFromAnswers] Carrossel detectado - usando Paulo Cuenca');
-    return 'paulo_cuenca';
-  }
-
   // Fallback para lógica original simplificada
   if (answers.objetivo === 'vendas' && answers.estilo === 'direto') {
     console.log('🎯 [inferMentorFromAnswers] Mentor inferido: Leandro Ladeira (vendas diretas)');
@@ -68,6 +69,23 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   // Caso padrão
   console.log('✨ [inferMentorFromAnswers] Mentor inferido: Camila Porto (padrão)');
   return 'camila_porto';
+};
+
+// NOVA FUNÇÃO: Normalizar formato para decisões consistentes
+const normalizeFormato = (formato: string): string => {
+  const formatMapping: Record<string, string> = {
+    'stories_10x': 'stories',
+    'reels': 'stories',
+    'tiktok': 'stories',
+    'youtube_shorts': 'stories',
+    'youtube_video': 'stories',
+    'ads_video': 'stories',
+    'ads_estatico': 'imagem',
+    'carrossel': 'carrossel',
+    'imagem': 'imagem'
+  };
+  
+  return formatMapping[formato] || formato;
 };
 
 // Função para gerar o enigma do mentor
@@ -94,7 +112,7 @@ export const buildEnhancedScriptData = (akinatorData: any) => {
     tema: akinatorData.tema,
     equipamentos: akinatorData.equipamentos || [],
     objetivo: akinatorData.objetivo,
-    mentor: inferMentorFromAnswers(akinatorData),
+    mentor: inferMentorFromAnswers(akinatorData), // Esta função já é async, mas aqui não estamos aguardando
     formato: akinatorData.formato,
     canal: akinatorData.canal,
     estilo: akinatorData.estilo,

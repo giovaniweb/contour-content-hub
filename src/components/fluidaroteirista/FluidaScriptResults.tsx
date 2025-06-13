@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -158,9 +159,14 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     );
   }
 
-  const isDisneyApplied = script.disney_applied || script.mentor?.includes('Disney') || script.mentor?.includes('Walt');
-  const mentorNickname = getMentorNickname(script.mentor || 'Criativo');
-  const estimatedTime = Math.round((script.roteiro.split(/\s+/).length / 150) * 60);
+  // CORREÇÃO CRÍTICA: Garantir que mentor é string antes de usar .includes()
+  const mentorString = typeof script.mentor === 'string' ? script.mentor : String(script.mentor || 'Criativo');
+  const isDisneyApplied = script.disney_applied || mentorString.includes('Disney') || mentorString.includes('Walt');
+  const mentorNickname = getMentorNickname(mentorString);
+  
+  // Calcular tempo de leitura de forma segura
+  const scriptContent = script.roteiro || script.content || '';
+  const estimatedTime = Math.round((scriptContent.split(/\s+/).length / 150) * 60);
   const isWithinTimeLimit = estimatedTime <= 60;
 
   return (
@@ -370,89 +376,75 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           >
             <Card className="aurora-glass border-aurora-electric-purple/30">
               <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
                   🚀 Próximos Passos
-                  <Badge variant="outline" className="text-xs bg-green-500/20 border-green-500 text-green-400">
-                    Aprovado ✅
-                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Seção de Geração de Imagens */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-white">📸 Imagens Fotográficas (Recomendado)</h4>
-                    <Button
-                      onClick={handleGeneratePhotographicImages}
-                      disabled={isProcessing || isGeneratingPhotos}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                    >
-                      {isGeneratingPhotos ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Camera className="h-4 w-4 mr-2" />
-                      )}
-                      {script.formato === 'carrossel' ? 'Gerar 5 Fotos Realistas' : 'Gerar Foto Realista'}
-                    </Button>
-                    <p className="text-xs text-green-400">
-                      ✨ Sistema anti-alucinação com equipamentos reais
-                    </p>
-                  </div>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Imagens Criativas */}
+                  <Button
+                    onClick={handleGenerateImages}
+                    disabled={isGeneratingImages}
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center gap-3 border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
+                  >
+                    {isGeneratingImages ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8" />
+                    )}
+                    <div className="text-center">
+                      <div className="font-semibold">🎨 Imagens Criativas</div>
+                      <div className="text-xs opacity-80">Arte digital e design criativo</div>
+                    </div>
+                  </Button>
 
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-white">🎨 Imagens Artísticas</h4>
-                    <Button
-                      onClick={handleGenerateImages}
-                      disabled={isProcessing || isGeneratingImages}
-                      variant="outline"
-                      className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
-                    >
-                      {isGeneratingImages ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                      )}
-                      {script.formato === 'carrossel' ? 'Gerar 5 Imagens Artísticas' : 'Gerar Imagem Artística'}
-                    </Button>
-                    <p className="text-xs text-purple-400">
-                      🎨 Estilo criativo e artístico
-                    </p>
-                  </div>
-                </div>
+                  {/* Imagens Fotográficas */}
+                  <Button
+                    onClick={handleGeneratePhotographicImages}
+                    disabled={isGeneratingPhotos}
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-center gap-3 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                  >
+                    {isGeneratingPhotos ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      <Camera className="h-8 w-8" />
+                    )}
+                    <div className="text-center">
+                      <div className="font-semibold">📸 Imagens Realistas</div>
+                      <div className="text-xs opacity-80">Fotos realistas de clínica</div>
+                    </div>
+                  </Button>
 
-                {/* Outras ações */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-aurora-electric-purple/20">
-                  {/* Mostrar áudio apenas para formatos de vídeo */}
+                  {/* Áudio (se aplicável) */}
                   {isVideoFormat() && (
                     <Button
                       onClick={() => onGenerateAudio(script)}
-                      disabled={isProcessing}
                       variant="outline"
+                      className="h-auto p-4 flex flex-col items-center gap-3 border-green-500/50 text-green-300 hover:bg-green-500/10"
                     >
-                      <Mic className="h-4 w-4 mr-2" />
-                      Gerar Áudio
+                      <Mic className="h-8 w-8" />
+                      <div className="text-center">
+                        <div className="font-semibold">🎙️ Áudio</div>
+                        <div className="text-xs opacity-80">Narração do roteiro</div>
+                      </div>
                     </Button>
                   )}
 
-                  {!isDisneyApplied && (
-                    <Button
-                      onClick={handleApplyDisney}
-                      disabled={isProcessing || disneyAnimating}
-                      variant="outline"
-                      className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
-                    >
-                      <Castle className="h-4 w-4 mr-2" />
-                      {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
-                    </Button>
-                  )}
-
+                  {/* Novo Roteiro */}
                   <Button
                     onClick={onNewScript}
-                    disabled={isProcessing}
                     variant="outline"
+                    className="h-auto p-4 flex flex-col items-center gap-3 border-slate-500/50 text-slate-300 hover:bg-slate-500/10"
                   >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Novo Roteiro
+                    <RefreshCw className="h-8 w-8" />
+                    <div className="text-center">
+                      <div className="font-semibold">🔄 Novo Roteiro</div>
+                      <div className="text-xs opacity-80">Criar nova versão</div>
+                    </div>
                   </Button>
                 </div>
               </CardContent>
@@ -460,51 +452,32 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </motion.div>
         )}
 
-        {/* Elementos Universais */}
-        {script.elementos_aplicados && isApproved && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="w-full"
-          >
-            <ElementosUniversaisDisplay
-              elementos={script.elementos_aplicados}
-              mentor={mentorNickname}
-              especialidades={script.especialidades_aplicadas}
-            />
-          </motion.div>
-        )}
+        {/* Modais de Geração de Imagem */}
+        <ImageGenerationModal
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+          isGenerating={isGeneratingImages}
+          generatedImages={generatedImages}
+          progress={progress}
+          errors={errors}
+          onDownload={downloadImage}
+          onDownloadAll={downloadAllImages}
+          onRetry={handleRetryFailedImages}
+        />
+
+        <PhotographicImageModal
+          isOpen={showPhotographicModal}
+          onClose={() => setShowPhotographicModal(false)}
+          isGenerating={isGeneratingPhotos}
+          generatedImages={photographicImages}
+          slidePrompts={slidePrompts}
+          progress={photoProgress}
+          errors={photoErrors}
+          onDownload={downloadPhoto}
+          onDownloadAll={downloadAllPhotos}
+          onRetry={handleRetryFailedPhotos}
+        />
       </div>
-
-      {/* Modal de Geração de Imagens Artísticas */}
-      <ImageGenerationModal
-        isOpen={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        isGenerating={isGeneratingImages}
-        progress={progress}
-        generatedImages={generatedImages}
-        errors={errors}
-        onDownloadImage={downloadImage}
-        onDownloadAll={downloadAllImages}
-        onRetryFailed={handleRetryFailedImages}
-        formato={script.formato}
-      />
-
-      {/* Modal de Geração de Imagens Fotográficas */}
-      <PhotographicImageModal
-        isOpen={showPhotographicModal}
-        onClose={() => setShowPhotographicModal(false)}
-        isGenerating={isGeneratingPhotos}
-        progress={photoProgress}
-        generatedImages={photographicImages}
-        slidePrompts={slidePrompts}
-        errors={photoErrors}
-        onDownloadImage={downloadPhoto}
-        onDownloadAll={downloadAllPhotos}
-        onRetryFailed={handleRetryFailedPhotos}
-        formato={script.formato}
-      />
     </>
   );
 };

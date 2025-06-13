@@ -5,13 +5,15 @@ import { generateScript } from '@/services/supabaseService';
 import { useClinicSegmentation } from './useClinicSegmentation';
 import { useDiagnosticPersistence } from './useDiagnosticPersistence';
 import { supabase } from '@/integrations/supabase/client';
+import { inferMentorFromAnswers } from '@/components/fluidaroteirista/utils/mentorInference';
+import { buildSystemPrompt } from '@/components/fluidaroteirista/utils/promptBuilders';
 
 interface FluidaScriptRequest {
   tema: string;
   equipamentos: string[];
   objetivo?: string;
   mentor?: string;
-  formato?: 'carrossel' | 'stories' | 'imagem';
+  formato?: 'carrossel' | 'stories_10x' | 'imagem';
   canal?: string;
   estilo?: string;
 }
@@ -113,91 +115,60 @@ export const useFluidaRoteirista = () => {
         return [];
       }
 
-      // Usar dados do diagnóstico se disponível
-      const diagnosticData: DiagnosticData = currentSession?.state || {};
-      const clinicType = diagnosticData.clinicType || 'estetico';
-      
-      // Construir contexto enriquecido
-      const enrichedContext = {
-        tipo_de_clinica: clinicType,
-        especialidade: diagnosticData.medicalSpecialty || diagnosticData.aestheticFocus || '',
-        equipamentos: equipmentDetails.map(eq => eq.nome).join(', '),
-        protocolo: diagnosticData.medicalBestSeller || diagnosticData.aestheticBestSeller || '',
-        ticket_medio: diagnosticData.medicalTicket || diagnosticData.aestheticTicket || '',
-        publico_ideal: diagnosticData.targetAudience || '',
-        estilo_clinica: diagnosticData.medicalClinicStyle || diagnosticData.aestheticClinicStyle || '',
-        estilo_linguagem: diagnosticData.communicationStyle || '',
-        mentor_nome: request.mentor || 'Criativo'
+      // CORREÇÃO CRÍTICA: Inferir mentor corretamente baseado em respostas
+      const akinatorAnswers = {
+        formato: request.formato || 'carrossel',
+        objetivo: request.objetivo || 'atrair',
+        estilo: request.estilo || 'criativo',
+        canal: request.canal || 'instagram',
+        tema: request.tema
       };
 
-      // Prompt FLUIDAROTEIRISTA com integração de equipamentos
-      const systemPrompt = `
-        Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
-        
-        Sua missão é gerar roteiros criativos, impactantes e prontos para redes sociais.
-        
-        Contexto da clínica:
-        - Tipo: ${enrichedContext.tipo_de_clinica}
-        - Especialidade: ${enrichedContext.especialidade}
-        - Equipamentos: ${enrichedContext.equipamentos}
-        - Protocolo mais vendido: ${enrichedContext.protocolo}
-        - Ticket médio: ${enrichedContext.ticket_medio}
-        - Público ideal: ${enrichedContext.publico_ideal}
-        - Estilo da clínica: ${enrichedContext.estilo_clinica}
-        - Mentor: ${enrichedContext.mentor_nome}
-        
-        ${equipmentDetails.length > 0 ? `
-        🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
-        ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
-           - Benefícios: ${eq.beneficios}
-           - Diferenciais: ${eq.diferenciais}`).join('\n')}
-        
-        🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
-        ⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.
-        ` : ''}
-        
-        ESTRUTURA OBRIGATÓRIA:
-        1. Gancho (capturar atenção)
-        2. Conflito (apresentar problema)
-        3. Virada (mostrar solução com equipamentos específicos)
-        4. CTA (chamada para ação)
-        
-        FORMATO: ${request.formato || 'carrossel'}
-        
-        Retorne APENAS JSON válido:
+      // AGUARDAR corretamente a Promise do mentor
+      const inferredMentorKey = await inferMentorFromAnswers(akinatorAnswers);
+      console.log('🎯 [useFluidaRoteirista] Mentor inferido:', inferredMentorKey);
+
+      // Usar dados do diagnóstico se disponível
+      const diagnosticData: DiagnosticData = currentSession?.state || {};
+      
+      // CORREÇÃO CRÍTICA: Usar buildSystemPrompt com sistema de técnicas
+      const systemPrompt = await buildSystemPrompt(
+        equipmentDetails,
+        'akinator',
+        inferredMentorKey,
         {
-          "roteiro": "Conteúdo do roteiro",
-          "formato": "carrossel/stories/imagem",
-          "emocao_central": "esperança/confiança/urgência/etc",
-          "intencao": "atrair/vender/educar/conectar",
-          "objetivo": "Objetivo específico do post",
-          "mentor": "Nome do mentor usado"
+          canal: request.canal || 'instagram',
+          formato: request.formato || 'carrossel',
+          objetivo: request.objetivo || 'atrair',
+          estilo: request.estilo || 'criativo'
         }
-      `;
+      );
 
       const userPrompt = `
         Tema: ${request.tema}
         Canal: ${request.canal || 'instagram'}
         Formato: ${request.formato || 'carrossel'}
         Objetivo: ${request.objetivo || 'atrair'}
-        Estilo: ${request.estilo || 'cientifico'}
+        Estilo: ${request.estilo || 'criativo'}
         Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
         
         Crie o roteiro seguindo exatamente as especificações do formato selecionado.
       `;
 
-      console.log('📤 [useFluidaRoteirista] Enviando para API com equipamentos:', equipmentDetails.map(eq => eq.nome));
+      console.log('📤 [useFluidaRoteirista] Enviando para API com mentor:', inferredMentorKey);
+      console.log('🔧 [useFluidaRoteirista] Equipamentos:', equipmentDetails.map(eq => eq.nome));
 
-      // FIX: Convert equipment array to string for the API call
+      // Chamar API com dados corretos
       const response = await generateScript({
         type: 'fluidaroteirista',
         systemPrompt,
         userPrompt,
         topic: request.tema,
-        equipment: equipmentDetails.map(eq => eq.nome).join(', '), // Convert array to comma-separated string
+        equipment: equipmentDetails.map(eq => eq.nome).join(', '),
         additionalInfo: JSON.stringify({ 
-          ...enrichedContext,
-          equipmentDetails // Passar detalhes completos
+          mentor: inferredMentorKey,
+          equipmentDetails,
+          diagnosticData
         }),
         tone: request.estilo || 'professional',
         marketingObjective: request.objetivo as any
@@ -224,12 +195,9 @@ export const useFluidaRoteirista = () => {
           
           toast({
             title: "⚠️ Equipamentos não incluídos",
-            description: `Os equipamentos ${missing.map(eq => eq.nome).join(', ')} não foram mencionados no roteiro. Tentando novamente...`,
+            description: `Os equipamentos ${missing.map(eq => eq.nome).join(', ')} não foram mencionados no roteiro.`,
             variant: "destructive"
           });
-          
-          // Por enquanto, vamos continuar mas alertar o usuário
-          console.warn('⚠️ [useFluidaRoteirista] Continuando com roteiro incompleto');
         }
       }
 
@@ -239,6 +207,8 @@ export const useFluidaRoteirista = () => {
         scriptResult = JSON.parse(response.content);
         scriptResult.equipamentos_utilizados = equipmentDetails;
         scriptResult.canal = request.canal || 'instagram';
+        // CORREÇÃO CRÍTICA: Garantir que mentor é uma string
+        scriptResult.mentor = inferredMentorKey;
       } catch {
         // Fallback se não for JSON válido
         scriptResult = {
@@ -247,7 +217,7 @@ export const useFluidaRoteirista = () => {
           emocao_central: 'confiança',
           intencao: 'atrair',
           objetivo: request.objetivo || 'Atrair novos clientes',
-          mentor: request.mentor || 'Criativo',
+          mentor: inferredMentorKey, // CORREÇÃO: usar mentor inferido
           equipamentos_utilizados: equipmentDetails,
           canal: request.canal || 'instagram'
         };

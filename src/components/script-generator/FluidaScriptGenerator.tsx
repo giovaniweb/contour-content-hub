@@ -27,20 +27,20 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   const { clinicType, allowedEquipments, recommendation, hasInvasiveEquipments } = 
     useClinicSegmentation(selectedEquipments);
 
-  // Convert format to compatible type for useFluidaRoteirista
-  const getCompatibleFormat = (format: typeof formato): 'carrossel' | 'imagem' | 'stories' => {
+  // CORREÇÃO CRÍTICA: Mapear formatos corretamente, mantendo stories_10x
+  const getCompatibleFormat = (format: typeof formato): 'carrossel' | 'imagem' | 'stories_10x' => {
     switch (format) {
       case 'stories_10x':
-        return 'stories';
+        return 'stories_10x'; // MANTER original para técnicas específicas
       case 'reels':
       case 'tiktok':
       case 'youtube_shorts':
       case 'youtube_video':
-        return 'stories'; // Using stories format for video content
+        return 'stories_10x'; // Usar stories_10x para vídeos também
       case 'ads_estatico':
         return 'imagem';
       case 'ads_video':
-        return 'stories'; // Using stories format for video ads
+        return 'stories_10x';
       default:
         return format as 'carrossel' | 'imagem';
     }
