@@ -16,7 +16,8 @@ import {
   Zap,
   CheckCircle,
   ThumbsUp,
-  Loader2
+  Loader2,
+  Camera
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
@@ -25,6 +26,7 @@ import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay'
 import DisneyTransformation from './components/DisneyTransformation';
 import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
 import ImageGenerationModal from './components/ImageGenerationModal';
+import { usePhotographicImageGeneration } from '@/hooks/usePhotographicImageGeneration';
 
 interface FluidaScriptResultsProps {
   results: any[];
@@ -46,9 +48,10 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
   const [disneyAnimating, setDisneyAnimating] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showPhotographicModal, setShowPhotographicModal] = useState(false);
   const script = results[0];
 
-  // Hook para geração múltipla de imagens com novas funcionalidades
+  // Hook original para geração múltipla de imagens
   const { 
     generateImages, 
     retryFailedImages,
@@ -60,6 +63,20 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     downloadAllImages,
     clearImages 
   } = useMultipleImageGeneration();
+
+  // Hook novo para geração fotográfica
+  const { 
+    generatePhotographicImages, 
+    retryFailedImages: retryFailedPhotos,
+    isGenerating: isGeneratingPhotos, 
+    generatedImages: photographicImages, 
+    slidePrompts,
+    progress: photoProgress,
+    errors: photoErrors,
+    downloadImage: downloadPhoto, 
+    downloadAllImages: downloadAllPhotos,
+    clearImages: clearPhotos 
+  } = usePhotographicImageGeneration();
 
   const handleCopyScript = () => {
     const textToCopy = script.roteiro || script.content || '';
@@ -94,14 +111,25 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
   };
 
   const handleGenerateImages = async () => {
-    console.log('🖼️ [FluidaScriptResults] Iniciando geração de imagens para:', script.formato);
-    clearImages(); // Limpar imagens anteriores
+    console.log('🖼️ [FluidaScriptResults] Iniciando geração de imagens padrão para:', script.formato);
+    clearImages();
     setShowImageModal(true);
     await generateImages(script);
   };
 
+  const handleGeneratePhotographicImages = async () => {
+    console.log('📸 [FluidaScriptResults] Iniciando geração de imagens fotográficas para:', script.formato);
+    clearPhotos();
+    setShowPhotographicModal(true);
+    await generatePhotographicImages(script);
+  };
+
   const handleRetryFailedImages = async (failedIndexes: number[]) => {
     await retryFailedImages(script, failedIndexes);
+  };
+
+  const handleRetryFailedPhotos = async (failedIndexes: number[]) => {
+    await retryFailedPhotos(script, failedIndexes);
   };
 
   const handleApplyDisney = async () => {
@@ -348,52 +376,84 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <Button
-                  onClick={handleGenerateImages}
-                  disabled={isProcessing || isGeneratingImages}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                >
-                  {isGeneratingImages ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                  )}
-                  {script.formato === 'carrossel' ? 'Gerar 5 Imagens' : 'Gerar Imagem'}
-                </Button>
+              <CardContent className="space-y-4">
+                {/* Seção de Geração de Imagens */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-white">📸 Imagens Fotográficas (Recomendado)</h4>
+                    <Button
+                      onClick={handleGeneratePhotographicImages}
+                      disabled={isProcessing || isGeneratingPhotos}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      {isGeneratingPhotos ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4 mr-2" />
+                      )}
+                      {script.formato === 'carrossel' ? 'Gerar 5 Fotos Realistas' : 'Gerar Foto Realista'}
+                    </Button>
+                    <p className="text-xs text-green-400">
+                      ✨ Sistema anti-alucinação com equipamentos reais
+                    </p>
+                  </div>
 
-                {/* Mostrar áudio apenas para formatos de vídeo */}
-                {isVideoFormat() && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-white">🎨 Imagens Artísticas</h4>
+                    <Button
+                      onClick={handleGenerateImages}
+                      disabled={isProcessing || isGeneratingImages}
+                      variant="outline"
+                      className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
+                    >
+                      {isGeneratingImages ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                      )}
+                      {script.formato === 'carrossel' ? 'Gerar 5 Imagens Artísticas' : 'Gerar Imagem Artística'}
+                    </Button>
+                    <p className="text-xs text-purple-400">
+                      🎨 Estilo criativo e artístico
+                    </p>
+                  </div>
+                </div>
+
+                {/* Outras ações */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-aurora-electric-purple/20">
+                  {/* Mostrar áudio apenas para formatos de vídeo */}
+                  {isVideoFormat() && (
+                    <Button
+                      onClick={() => onGenerateAudio(script)}
+                      disabled={isProcessing}
+                      variant="outline"
+                    >
+                      <Mic className="h-4 w-4 mr-2" />
+                      Gerar Áudio
+                    </Button>
+                  )}
+
+                  {!isDisneyApplied && (
+                    <Button
+                      onClick={handleApplyDisney}
+                      disabled={isProcessing || disneyAnimating}
+                      variant="outline"
+                      className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                    >
+                      <Castle className="h-4 w-4 mr-2" />
+                      {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
+                    </Button>
+                  )}
+
                   <Button
-                    onClick={() => onGenerateAudio(script)}
+                    onClick={onNewScript}
                     disabled={isProcessing}
                     variant="outline"
                   >
-                    <Mic className="h-4 w-4 mr-2" />
-                    Gerar Áudio
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Novo Roteiro
                   </Button>
-                )}
-
-                {!isDisneyApplied && (
-                  <Button
-                    onClick={handleApplyDisney}
-                    disabled={isProcessing || disneyAnimating}
-                    variant="outline"
-                    className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
-                  >
-                    <Castle className="h-4 w-4 mr-2" />
-                    {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
-                  </Button>
-                )}
-
-                <Button
-                  onClick={onNewScript}
-                  disabled={isProcessing}
-                  variant="outline"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Novo Roteiro
-                </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -416,7 +476,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
         )}
       </div>
 
-      {/* Modal de Geração de Imagens com melhorias */}
+      {/* Modal de Geração de Imagens Artísticas */}
       <ImageGenerationModal
         isOpen={showImageModal}
         onClose={() => setShowImageModal(false)}
@@ -427,6 +487,21 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
         onDownloadImage={downloadImage}
         onDownloadAll={downloadAllImages}
         onRetryFailed={handleRetryFailedImages}
+        formato={script.formato}
+      />
+
+      {/* Modal de Geração de Imagens Fotográficas */}
+      <PhotographicImageModal
+        isOpen={showPhotographicModal}
+        onClose={() => setShowPhotographicModal(false)}
+        isGenerating={isGeneratingPhotos}
+        progress={photoProgress}
+        generatedImages={photographicImages}
+        slidePrompts={slidePrompts}
+        errors={photoErrors}
+        onDownloadImage={downloadPhoto}
+        onDownloadAll={downloadAllPhotos}
+        onRetryFailed={handleRetryFailedPhotos}
         formato={script.formato}
       />
     </>

@@ -13,9 +13,15 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, quality = 'standard', size = '1024x1024' } = await req.json()
+    const { prompt, quality = 'standard', size = '1024x1024', style = 'natural' } = await req.json()
 
-    console.log('🖼️ [generate-image] Recebendo solicitação:', { prompt: prompt.substring(0, 100), quality, size })
+    console.log('🖼️ [generate-image] Recebendo solicitação:', { 
+      prompt: prompt.substring(0, 100), 
+      quality, 
+      size,
+      style,
+      promptLength: prompt.length
+    })
 
     if (!prompt) {
       throw new Error('Prompt é obrigatório')
@@ -26,7 +32,19 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY não configurada')
     }
 
-    // Chamar API do OpenAI para geração de imagem com dall-e-3
+    // Validar e preparar parâmetros para DALL-E-3
+    const validQuality = quality === 'hd' ? 'hd' : 'standard';
+    const validSize = ['1024x1024', '1792x1024', '1024x1792'].includes(size) ? size : '1024x1024';
+    const validStyle = ['vivid', 'natural'].includes(style) ? style : 'natural';
+
+    console.log('🎨 [generate-image] Usando DALL-E-3 com parâmetros:', {
+      model: 'dall-e-3',
+      quality: validQuality,
+      size: validSize,
+      style: validStyle
+    });
+
+    // Chamar API do OpenAI para geração de imagem com DALL-E-3
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -37,8 +55,9 @@ serve(async (req) => {
         model: 'dall-e-3',
         prompt: prompt,
         n: 1,
-        size: size,
-        quality: quality,
+        size: validSize,
+        quality: validQuality,
+        style: validStyle,
         response_format: 'b64_json'
       }),
     })
@@ -59,7 +78,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         image: imageUrl,
-        success: true 
+        success: true,
+        revised_prompt: result.data[0].revised_prompt // DALL-E-3 pode revisar o prompt
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
