@@ -81,6 +81,16 @@ const getDispositivoIcon = (dispositivo: string) => {
   return <Zap className="h-4 w-4 text-cyan-400" />;
 };
 
+const getTipByType = (tipo: string): string => {
+  const tips = {
+    gancho: "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll.",
+    erro: "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'",
+    virada: "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta.",
+    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício."
+  };
+  return tips[tipo as keyof typeof tips] || "Mantenha o foco na metodologia Stories 10x.";
+};
+
 const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
   const icon = getSlideIcon(slide.tipo);
   const theme = getSlideTheme(slide.tipo);
@@ -162,80 +172,6 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
       </Card>
     </motion.div>
   );
-};
-
-const getSlideIcon = (tipo: string): string => {
-  const icons = {
-    gancho: "🎯", // Hook
-    erro: "❌", // Erro comum
-    virada: "💡", // Virada + solução
-    cta: "📲"  // Call to action
-  };
-  return icons[tipo as keyof typeof icons] || "📝";
-};
-
-const getSlideTheme = (tipo: string) => {
-  const themes = {
-    gancho: { 
-      bg: "aurora-glass", 
-      border: "border-red-400/30", 
-      text: "text-red-300", 
-      badge: "bg-red-500/20 text-red-300 border-red-400/30",
-      glow: "shadow-red-400/20",
-      gradient: "bg-gradient-to-br from-red-500/10 to-orange-500/10"
-    },
-    erro: { 
-      bg: "aurora-glass", 
-      border: "border-yellow-400/30", 
-      text: "text-yellow-300", 
-      badge: "bg-yellow-500/20 text-yellow-300 border-yellow-400/30",
-      glow: "shadow-yellow-400/20",
-      gradient: "bg-gradient-to-br from-yellow-500/10 to-orange-500/10"
-    },
-    virada: { 
-      bg: "aurora-glass", 
-      border: "border-green-400/30", 
-      text: "text-green-300", 
-      badge: "bg-green-500/20 text-green-300 border-green-400/30",
-      glow: "shadow-green-400/20",
-      gradient: "bg-gradient-to-br from-green-500/10 to-cyan-500/10"
-    },
-    cta: { 
-      bg: "aurora-glass", 
-      border: "border-blue-400/30", 
-      text: "text-blue-300", 
-      badge: "bg-blue-500/20 text-blue-300 border-blue-400/30",
-      glow: "shadow-blue-400/20",
-      gradient: "bg-gradient-to-br from-blue-500/10 to-purple-500/10"
-    }
-  };
-  return themes[tipo as keyof typeof themes] || themes.gancho;
-};
-
-const getDispositivoIcon = (dispositivo: string) => {
-  if (dispositivo.includes('Foguinho') || dispositivo.includes('🔥')) {
-    return <Zap className="h-4 w-4 text-orange-400" />;
-  }
-  if (dispositivo.includes('Compartilhamento') || dispositivo.includes('📲')) {
-    return <Share2 className="h-4 w-4 text-blue-400" />;
-  }
-  if (dispositivo.includes('Reciprocidade') || dispositivo.includes('🔄')) {
-    return <MessageCircle className="h-4 w-4 text-green-400" />;
-  }
-  if (dispositivo.includes('Enquete') || dispositivo.includes('📊')) {
-    return <ThumbsUp className="h-4 w-4 text-purple-400" />;
-  }
-  return <Zap className="h-4 w-4 text-cyan-400" />;
-};
-
-const getTipByType = (tipo: string): string => {
-  const tips = {
-    gancho: "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll.",
-    erro: "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'",
-    virada: "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta.",
-    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício."
-  };
-  return tips[tipo as keyof typeof tips] || "Mantenha o foco na metodologia Stories 10x.";
 };
 
 export default Stories10xSlideCard;
