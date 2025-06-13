@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Wand2 } from 'lucide-react';
@@ -18,7 +19,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
 }) => {
   const [tema, setTema] = useState('');
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
-  const [formato, setFormato] = useState<'carrossel' | 'stories' | 'imagem'>('carrossel');
+  const [formato, setFormato] = useState<'carrossel' | 'imagem' | 'stories_10x' | 'reels'>('carrossel');
   const [objetivo, setObjetivo] = useState('🟡 Atrair Atenção');
   const [mentor, setMentor] = useState('Criativo');
 
