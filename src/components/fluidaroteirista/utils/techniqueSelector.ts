@@ -40,8 +40,8 @@ export const getMentorTechniques = async (mentorNome: string): Promise<TecnicaMe
       return [];
     }
 
-    // Verificar se tecnicas é um array e fazer conversão segura
-    const tecnicas = Array.isArray(data.tecnicas) ? data.tecnicas as TecnicaMentor[] : [];
+    // Verificar se tecnicas é um array e fazer conversão segura através de unknown
+    const tecnicas = Array.isArray(data.tecnicas) ? data.tecnicas as unknown as TecnicaMentor[] : [];
     
     return tecnicas;
   } catch (error) {
