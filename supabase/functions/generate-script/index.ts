@@ -2,10 +2,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { RequestHandler } from "./request-handler.ts";
-import { ErrorHandler } from "./error-handler.ts";
 import { RequestValidator } from "./request-validator.ts";
+import { ErrorHandler } from "./error-handler.ts";
 import { saveScriptToDatabase, getUserFromToken } from "./database-operations.ts";
+import { EnhancedRequestHandler } from "./enhanced-request-handler.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,28 +28,43 @@ serve(async (req) => {
     let requestData;
     try {
       requestData = await req.json();
-      console.log("📥 Dados recebidos:", JSON.stringify(requestData));
+      console.log("📥 Dados recebidos:", JSON.stringify(requestData, null, 2));
     } catch (parseError) {
       console.error("❌ Erro ao processar JSON da requisição:", parseError);
       throw new Error("Formato de requisição inválido: não foi possível processar JSON");
     }
     
     const request = RequestValidator.validateRequest(requestData);
-    const { type, topic, equipment, bodyArea, purpose, additionalInfo, tone, language, marketingObjective } = request;
     
-    // Initialize request handler with timeout
-    const requestHandler = new RequestHandler(openAIApiKey);
+    // Initialize enhanced request handler
+    const enhancedHandler = new EnhancedRequestHandler(openAIApiKey);
     
-    // Process request and get prompts
-    const { finalSystemPrompt, finalUserPrompt } = await requestHandler.processRequest(request);
+    // Process request with equipment integration
+    console.log("🔧 Processando request com integração de equipamentos...");
+    const { systemPrompt, userPrompt, equipmentDetails } = await enhancedHandler.processFluidaRequest(request);
     
-    // Call OpenAI API with optimized settings for speed
-    console.log("🤖 Chamando OpenAI API com configurações otimizadas...");
-    const content = await requestHandler.callOpenAI(finalSystemPrompt, finalUserPrompt, type, true); // true para modo rápido
-    console.log("✅ Resposta recebida da OpenAI");
+    console.log("📋 Equipamentos integrados:", equipmentDetails.length);
+    equipmentDetails.forEach(eq => {
+      console.log(`✅ ${eq.nome}: ${eq.tecnologia}`);
+    });
+    
+    // Call OpenAI API with enhanced prompts and equipment validation
+    console.log("🤖 Chamando OpenAI API com validação de equipamentos...");
+    const content = await enhancedHandler.callOpenAI(systemPrompt, userPrompt, equipmentDetails);
+    console.log("✅ Resposta recebida da OpenAI com equipamentos validados");
     
     // Format the response
-    const scriptResponse = requestHandler.formatResponse(content, type, topic, equipment, bodyArea);
+    const { type, topic, equipment, bodyArea } = request;
+    const scriptResponse = {
+      content,
+      title: `Roteiro FLUIDAROTEIRISTA - ${topic}`,
+      topic,
+      equipment: equipmentDetails.map(eq => eq.nome),
+      equipmentDetails,
+      bodyArea,
+      type: type === 'custom' ? 'fluidaroteirista' : type,
+      success: true
+    };
 
     // Tentar salvar no banco (sem quebrar o fluxo se falhar)
     try {
@@ -71,7 +86,7 @@ serve(async (req) => {
             titulo: scriptResponse.title || 'Roteiro FLUIDAROTEIRISTA',
             conteudo: content,
             status: 'gerado',
-            objetivo_marketing: marketingObjective || null
+            objetivo_marketing: request.marketingObjective || null
           });
         }
       }
