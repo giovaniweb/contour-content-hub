@@ -60,8 +60,8 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Construir system prompt com nova estrutura
-      const systemPrompt = buildSystemPrompt(
+      // Construir system prompt com nova estrutura - AWAIT necessário
+      const systemPrompt = await buildSystemPrompt(
         [], // equipamentos detalhados - será populado depois
         data.modo || 'normal',
         data.mentor || 'Criativo',
@@ -92,7 +92,7 @@ export const useFluidaScript = () => {
         additionalInfo: `Canal: ${data.canal}, Formato: ${data.tipo_conteudo || data.formato}, Objetivo: ${data.objetivo}, Estilo: ${data.estilo}`,
         tone: data.estilo || 'profissional',
         marketingObjective: data.objetivo || 'atrair',
-        systemPrompt,
+        systemPrompt, // Now properly awaited
         userPrompt
       };
 
