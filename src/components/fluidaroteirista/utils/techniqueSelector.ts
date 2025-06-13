@@ -35,7 +35,15 @@ export const getMentorTechniques = async (mentorNome: string): Promise<TecnicaMe
       return [];
     }
 
-    return data?.tecnicas || [];
+    // Fazer parsing seguro do JSONB para TecnicaMentor[]
+    if (!data?.tecnicas) {
+      return [];
+    }
+
+    // Verificar se tecnicas é um array e fazer conversão segura
+    const tecnicas = Array.isArray(data.tecnicas) ? data.tecnicas as TecnicaMentor[] : [];
+    
+    return tecnicas;
   } catch (error) {
     console.warn('Erro ao buscar técnicas do mentor:', error);
     return [];
