@@ -27,21 +27,28 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   const { clinicType, allowedEquipments, recommendation, hasInvasiveEquipments } = 
     useClinicSegmentation(selectedEquipments);
 
-  // CORREÇÃO CRÍTICA: Mapear formatos corretamente, mantendo stories_10x
+  // CORREÇÃO CRÍTICA: Melhorar mapeamento de formatos mantendo stories_10x
   const getCompatibleFormat = (format: typeof formato): 'carrossel' | 'imagem' | 'stories_10x' => {
+    console.log('🔄 [FluidaScriptGenerator] Convertendo formato:', format);
+    
     switch (format) {
       case 'stories_10x':
+        console.log('✅ [FluidaScriptGenerator] Mantendo stories_10x original');
         return 'stories_10x'; // MANTER original para técnicas específicas
       case 'reels':
       case 'tiktok':
       case 'youtube_shorts':
       case 'youtube_video':
+        console.log('📱 [FluidaScriptGenerator] Convertendo para stories_10x:', format);
         return 'stories_10x'; // Usar stories_10x para vídeos também
       case 'ads_estatico':
+        console.log('🖼️ [FluidaScriptGenerator] Convertendo para imagem:', format);
         return 'imagem';
       case 'ads_video':
+        console.log('🎥 [FluidaScriptGenerator] Convertendo para stories_10x:', format);
         return 'stories_10x';
       default:
+        console.log('📋 [FluidaScriptGenerator] Usando formato padrão:', format);
         return format as 'carrossel' | 'imagem';
     }
   };
@@ -63,12 +70,20 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
       equipments.find(eq => eq.id === id)?.nome || id
     );
 
+    const formatoCompativel = getCompatibleFormat(formato);
+    
+    console.log('🚀 [FluidaScriptGenerator] Iniciando geração:');
+    console.log('📝 Formato original:', formato);
+    console.log('🔄 Formato compatível:', formatoCompativel);
+    console.log('🎯 Objetivo:', objetivo);
+    console.log('🔧 Equipamentos:', equipmentNames);
+
     await generateFluidaScript({
       tema,
       equipamentos: equipmentNames,
       objetivo,
       mentor,
-      formato: getCompatibleFormat(formato)
+      formato: formatoCompativel
     });
   };
 

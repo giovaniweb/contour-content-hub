@@ -13,12 +13,13 @@ export const buildSystemPrompt = async (
   }
 ): Promise<string> => {
   console.log('🔨 [promptBuilders] Construindo prompt do sistema');
+  console.log('📝 [promptBuilders] Formato recebido:', options.formato);
   
   // CORREÇÃO CRÍTICA: Converter mentor key para nome real do banco
   const mentorNomeReal = convertMentorKeyToRealName(mentor);
   console.log(`🎯 [promptBuilders] Mentor convertido: ${mentor} -> ${mentorNomeReal}`);
   
-  // CORREÇÃO: Normalizar formato para busca de técnicas
+  // CORREÇÃO: Normalizar formato para busca de técnicas, mas preservar original
   const formatoNormalizado = normalizeFormatoForTechniques(options.formato);
   console.log(`📝 [promptBuilders] Formato normalizado: ${options.formato} -> ${formatoNormalizado}`);
   
@@ -31,6 +32,7 @@ export const buildSystemPrompt = async (
   
   if (selectedTechnique) {
     console.log(`✨ [promptBuilders] Técnica selecionada: ${selectedTechnique.nome}`);
+    console.log(`🎯 [promptBuilders] Usando técnica específica para formato: ${options.formato}`);
     // Se há técnica específica, usar prompt dedicado
     return buildSpecificTechniquePrompt(selectedTechnique, equipmentDetails, options);
   }
@@ -40,11 +42,11 @@ export const buildSystemPrompt = async (
   return buildGenericMentorPrompt(mentorNomeReal, equipmentDetails, mode, options);
 };
 
-// NOVA FUNÇÃO: Normalizar formato para busca de técnicas
+// CORREÇÃO: Melhorar normalização para preservar especificidade do stories_10x
 const normalizeFormatoForTechniques = (formato: string): string => {
   // Mapear formatos para valores que existem nas técnicas
   const formatMapping: Record<string, string> = {
-    'stories_10x': 'stories',
+    'stories_10x': 'stories', // Buscar técnicas de stories, mas preservar original
     'reels': 'stories',
     'tiktok': 'stories',
     'youtube_shorts': 'stories',
@@ -84,7 +86,7 @@ const buildSpecificTechniquePrompt = (
   }
 ): string => {
   const equipmentContext = equipmentDetails.length > 0 
-    ? `🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
+    ? `🚨 EQUIPAMENTOS OB RIGATÓRIOS (MENCIONE TODOS):
 ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
    - Benefícios: ${eq.beneficios}
    - Diferenciais: ${eq.diferenciais}`).join('\n')}
@@ -100,7 +102,20 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
     promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', 'o tema será fornecido pelo usuário');
   }
 
+  // ÊNFASE ESPECIAL para Stories 10x
+  const stories10xEmphasis = options.formato === 'stories_10x' 
+    ? `
+🎯 ATENÇÃO ESPECIAL: STORIES 10X DETECTADO!
+Este é um formato de ALTA CONVERSÃO. Use técnicas avançadas de:
+- Ganchos irresistíveis nos primeiros 3 segundos
+- Storytelling com tensão dramática
+- CTAs poderosos e urgentes
+- Gatilhos mentais de escassez e autoridade
+` : '';
+
   return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${technique.nome}
+
+${stories10xEmphasis}
 
 ${promptTecnica}
 
@@ -135,10 +150,23 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.`
     : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.';
 
+  // ÊNFASE ESPECIAL para Stories 10x
+  const stories10xEmphasis = options.formato === 'stories_10x' 
+    ? `
+🎯 ATENÇÃO: STORIES 10X DETECTADO!
+Este é um formato de ALTA CONVERSÃO que exige:
+- Gancho poderoso nos primeiros 3 segundos
+- Narrativa envolvente com tensão
+- CTA forte e claro
+- Gatilhos mentais estratégicos
+` : '';
+
   return `Você é o FLUIDAROTEIRISTA especializado no estilo ${mentor}.
 
 MODO: ${mode.toUpperCase()}
 MENTOR: ${mentor}
+
+${stories10xEmphasis}
 
 ${equipmentEmphasis}
 

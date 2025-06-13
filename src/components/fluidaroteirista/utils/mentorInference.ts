@@ -13,12 +13,38 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
 
   // REGRAS ESPECÍFICAS DE FORMATO - PRIORIDADE MÁXIMA
   if (formato === 'stories' || answers.formato === 'stories_10x') {
-    console.log('🎯 [inferMentorFromAnswers] Stories detectado - usando Leandro Ladeira');
+    console.log('🎯 [inferMentorFromAnswers] Stories/Stories 10x detectado - usando Leandro Ladeira');
+    
+    // Verificar se Leandro Ladeira tem técnica para stories
+    try {
+      const tecnicas = await getMentorTechniques('Leandro Ladeira');
+      const tecnicaCompativel = selectBestTechnique(tecnicas, 'stories', objetivo);
+      
+      if (tecnicaCompativel) {
+        console.log(`✅ [inferMentorFromAnswers] Leandro Ladeira confirmado com técnica: ${tecnicaCompativel.nome}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ [inferMentorFromAnswers] Erro ao verificar técnicas de Leandro Ladeira:', error);
+    }
+    
     return 'leandro_ladeira';
   }
 
   if (formato === 'carrossel') {
     console.log('🎠 [inferMentorFromAnswers] Carrossel detectado - usando Paulo Cuenca');
+    
+    // Verificar se Paulo Cuenca tem técnica para carrossel
+    try {
+      const tecnicas = await getMentorTechniques('Paulo Cuenca');
+      const tecnicaCompativel = selectBestTechnique(tecnicas, 'carrossel', objetivo);
+      
+      if (tecnicaCompativel) {
+        console.log(`✅ [inferMentorFromAnswers] Paulo Cuenca confirmado com técnica: ${tecnicaCompativel.nome}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ [inferMentorFromAnswers] Erro ao verificar técnicas de Paulo Cuenca:', error);
+    }
+    
     return 'paulo_cuenca';
   }
 
@@ -71,10 +97,10 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   return 'camila_porto';
 };
 
-// NOVA FUNÇÃO: Normalizar formato para decisões consistentes
+// CORREÇÃO CRÍTICA: Melhorar normalização para preservar stories_10x
 const normalizeFormato = (formato: string): string => {
   const formatMapping: Record<string, string> = {
-    'stories_10x': 'stories',
+    'stories_10x': 'stories', // Normalizar para busca de técnicas, mas preservar original
     'reels': 'stories',
     'tiktok': 'stories',
     'youtube_shorts': 'stories',
@@ -104,16 +130,20 @@ export const generateMentorProfile = (mentor: string): { name: string; focus: st
   };
 };
 
-export const buildEnhancedScriptData = (akinatorData: any) => {
+// CORREÇÃO CRÍTICA: Tornar função async e aguardar Promise
+export const buildEnhancedScriptData = async (akinatorData: any) => {
   console.log('🔧 [buildEnhancedScriptData] Enriquecendo dados do Akinator:', akinatorData);
+  
+  // AGUARDAR corretamente a Promise do mentor
+  const mentorInferido = await inferMentorFromAnswers(akinatorData);
   
   // CORREÇÃO: Mapear dados da nova estrutura para o formato esperado
   const enhancedData = {
     tema: akinatorData.tema,
     equipamentos: akinatorData.equipamentos || [],
     objetivo: akinatorData.objetivo,
-    mentor: inferMentorFromAnswers(akinatorData), // Esta função já é async, mas aqui não estamos aguardando
-    formato: akinatorData.formato,
+    mentor: mentorInferido, // Agora é string, não Promise
+    formato: akinatorData.formato, // MANTER formato original
     canal: akinatorData.canal,
     estilo: akinatorData.estilo,
     modo: akinatorData.modo || 'akinator'

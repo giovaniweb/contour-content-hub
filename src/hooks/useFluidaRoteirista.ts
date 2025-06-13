@@ -98,6 +98,7 @@ export const useFluidaRoteirista = () => {
 
   const generateFluidaScript = async (request: FluidaScriptRequest): Promise<FluidaScriptResult[]> => {
     console.log('🎬 FLUIDAROTEIRISTA - Iniciando geração', request);
+    console.log('📝 [useFluidaRoteirista] Formato recebido:', request.formato);
     
     setIsGenerating(true);
     
@@ -115,14 +116,16 @@ export const useFluidaRoteirista = () => {
         return [];
       }
 
-      // CORREÇÃO CRÍTICA: Inferir mentor corretamente baseado em respostas
+      // CORREÇÃO CRÍTICA: Preparar dados para inferência de mentor
       const akinatorAnswers = {
-        formato: request.formato || 'carrossel',
+        formato: request.formato || 'carrossel', // MANTER formato original
         objetivo: request.objetivo || 'atrair',
         estilo: request.estilo || 'criativo',
         canal: request.canal || 'instagram',
         tema: request.tema
       };
+
+      console.log('🎯 [useFluidaRoteirista] Dados para inferência:', akinatorAnswers);
 
       // AGUARDAR corretamente a Promise do mentor
       const inferredMentorKey = await inferMentorFromAnswers(akinatorAnswers);
@@ -138,7 +141,7 @@ export const useFluidaRoteirista = () => {
         inferredMentorKey,
         {
           canal: request.canal || 'instagram',
-          formato: request.formato || 'carrossel',
+          formato: request.formato || 'carrossel', // MANTER formato original
           objetivo: request.objetivo || 'atrair',
           estilo: request.estilo || 'criativo'
         }
@@ -152,10 +155,13 @@ export const useFluidaRoteirista = () => {
         Estilo: ${request.estilo || 'criativo'}
         Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
         
+        ${request.formato === 'stories_10x' ? 'CRÍTICO: Este é um STORIES 10X - use técnica específica de Leandro Ladeira para stories de alta conversão.' : ''}
+        
         Crie o roteiro seguindo exatamente as especificações do formato selecionado.
       `;
 
       console.log('📤 [useFluidaRoteirista] Enviando para API com mentor:', inferredMentorKey);
+      console.log('🎯 [useFluidaRoteirista] Formato sendo enviado:', request.formato);
       console.log('🔧 [useFluidaRoteirista] Equipamentos:', equipmentDetails.map(eq => eq.nome));
 
       // Chamar API com dados corretos
@@ -167,6 +173,7 @@ export const useFluidaRoteirista = () => {
         equipment: equipmentDetails.map(eq => eq.nome).join(', '),
         additionalInfo: JSON.stringify({ 
           mentor: inferredMentorKey,
+          formato: request.formato, // MANTER formato original
           equipmentDetails,
           diagnosticData
         }),
@@ -207,13 +214,14 @@ export const useFluidaRoteirista = () => {
         scriptResult = JSON.parse(response.content);
         scriptResult.equipamentos_utilizados = equipmentDetails;
         scriptResult.canal = request.canal || 'instagram';
+        scriptResult.formato = request.formato || 'carrossel'; // MANTER formato original
         // CORREÇÃO CRÍTICA: Garantir que mentor é uma string
         scriptResult.mentor = inferredMentorKey;
       } catch {
         // Fallback se não for JSON válido
         scriptResult = {
           roteiro: response.content,
-          formato: request.formato || 'carrossel',
+          formato: request.formato || 'carrossel', // MANTER formato original
           emocao_central: 'confiança',
           intencao: 'atrair',
           objetivo: request.objetivo || 'Atrair novos clientes',
@@ -226,9 +234,13 @@ export const useFluidaRoteirista = () => {
       const results = [scriptResult];
       setResults(results);
 
+      // CORREÇÃO: Melhorar mensagem de toast para Stories 10x
+      const formatoDisplay = request.formato === 'stories_10x' ? 'Stories 10x' : scriptResult.formato;
+      const mentorDisplay = scriptResult.mentor.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
       toast({
         title: "🎬 Roteiro FLUIDA gerado!",
-        description: `Criado com ${scriptResult.mentor} - ${scriptResult.formato}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
+        description: `Criado com ${mentorDisplay} - ${formatoDisplay}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
       });
 
       return results;
