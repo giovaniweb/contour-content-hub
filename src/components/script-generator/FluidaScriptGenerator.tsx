@@ -26,6 +26,26 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
   const { equipments, loading: equipmentsLoading } = useEquipments();
   const { clinicType, allowedEquipments, recommendation, hasInvasiveEquipments } = 
     useClinicSegmentation(selectedEquipments);
+
+  // Convert format to compatible type for useFluidaRoteirista
+  const getCompatibleFormat = (format: typeof formato): 'carrossel' | 'imagem' | 'stories' => {
+    switch (format) {
+      case 'stories_10x':
+        return 'stories';
+      case 'reels':
+      case 'tiktok':
+      case 'youtube_shorts':
+      case 'youtube_video':
+        return 'stories'; // Using stories format for video content
+      case 'ads_estatico':
+        return 'imagem';
+      case 'ads_video':
+        return 'stories'; // Using stories format for video ads
+      default:
+        return format as 'carrossel' | 'imagem';
+    }
+  };
+
   const { generateFluidaScript, isGenerating, results } = useFluidaRoteirista();
 
   const handleEquipmentChange = (equipmentId: string) => {
@@ -48,7 +68,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
       equipamentos: equipmentNames,
       objetivo,
       mentor,
-      formato
+      formato: getCompatibleFormat(formato)
     });
   };
 
