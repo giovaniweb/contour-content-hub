@@ -1,17 +1,54 @@
 
-import { ScriptIntention, MENTOR_ENIGMAS, MENTOR_PROFILES } from '../constants/intentionTree';
+import { getMentorTechniques, selectBestTechnique } from './techniqueSelector';
 
-// Função para inferir o mentor com base nas respostas
-export const inferMentorFromAnswers = (answers: any): string => {
+export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   console.log('🤔 [inferMentorFromAnswers] Respostas recebidas:', answers);
 
-  // REGRA PRIORITÁRIA: Carrossel sempre usa Paulo Cuenca
-  if (answers.formato === 'carrossel') {
+  // NOVA LÓGICA: Buscar mentor baseado em técnicas disponíveis para o formato
+  const formato = answers.formato || 'carrossel';
+  const objetivo = answers.objetivo || 'atrair';
+
+  // Lista de mentores para verificar (ordem de prioridade)
+  const mentoresParaVerificar = [
+    'Leandro Ladeira',
+    'Paulo Cuenca', 
+    'Pedro Sobral',
+    'Ícaro de Carvalho',
+    'Camila Porto',
+    'Hyeser Souza'
+  ];
+
+  // Buscar mentor que tem técnica compatível com formato e objetivo
+  for (const mentorNome of mentoresParaVerificar) {
+    try {
+      const tecnicas = await getMentorTechniques(mentorNome);
+      
+      if (tecnicas.length > 0) {
+        const tecnicaCompativel = selectBestTechnique(tecnicas, formato, objetivo);
+        
+        if (tecnicaCompativel) {
+          console.log(`✅ [inferMentorFromAnswers] Mentor selecionado: ${mentorNome} com técnica: ${tecnicaCompativel.nome}`);
+          return mentorNome.toLowerCase().replace(' ', '_');
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ [inferMentorFromAnswers] Erro ao verificar técnicas de ${mentorNome}:`, error);
+    }
+  }
+
+  // REGRA ESPECÍFICA: Stories 10x sempre usa Leandro Ladeira
+  if (formato === 'stories_10x' || formato === 'stories') {
+    console.log('🎯 [inferMentorFromAnswers] Stories detectado - usando Leandro Ladeira');
+    return 'leandro_ladeira';
+  }
+
+  // REGRA ESPECÍFICA: Carrossel sempre usa Paulo Cuenca
+  if (formato === 'carrossel') {
     console.log('🎠 [inferMentorFromAnswers] Carrossel detectado - usando Paulo Cuenca');
     return 'paulo_cuenca';
   }
 
-  // Lógica de inferência (simplificada)
+  // Fallback para lógica original simplificada
   if (answers.objetivo === 'vendas' && answers.estilo === 'direto') {
     console.log('🎯 [inferMentorFromAnswers] Mentor inferido: Leandro Ladeira (vendas diretas)');
     return 'leandro_ladeira';
@@ -27,7 +64,7 @@ export const inferMentorFromAnswers = (answers: any): string => {
     return 'paulo_cuenca';
   }
 
-  // Caso padrão (pode ser um mentor genérico ou aleatório)
+  // Caso padrão
   console.log('✨ [inferMentorFromAnswers] Mentor inferido: Camila Porto (padrão)');
   return 'camila_porto';
 };

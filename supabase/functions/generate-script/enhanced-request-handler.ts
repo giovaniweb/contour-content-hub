@@ -1,4 +1,3 @@
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { EquipmentFetcher, EquipmentData } from './equipment-fetcher.ts';
 
@@ -36,8 +35,8 @@ export class EnhancedRequestHandler {
 
     console.log('🔧 [EnhancedRequestHandler] Equipamentos detalhados:', equipmentDetails.length);
 
-    // Construir prompt aprimorado
-    const enhancedSystemPrompt = this.buildEnhancedSystemPrompt(
+    // CORREÇÃO CRÍTICA: Construir prompt usando sistema de técnicas
+    const enhancedSystemPrompt = await this.buildTechniqueAwareSystemPrompt(
       request.systemPrompt || '', 
       equipmentDetails,
       request
@@ -56,7 +55,125 @@ export class EnhancedRequestHandler {
     };
   }
 
-  private buildEnhancedSystemPrompt(
+  private async buildTechniqueAwareSystemPrompt(
+    originalPrompt: string, 
+    equipments: EquipmentData[], 
+    request: any
+  ): Promise<string> {
+    console.log('🔍 [EnhancedRequestHandler] Construindo prompt com técnicas específicas');
+    
+    // Extrair informações do prompt original para identificar mentor e formato
+    const mentorMatch = originalPrompt.match(/MENTOR: (\w+)/);
+    const formatoMatch = originalPrompt.match(/Formato: (\w+)/);
+    
+    if (!mentorMatch || !formatoMatch) {
+      console.warn('⚠️ [EnhancedRequestHandler] Não foi possível extrair mentor/formato, usando prompt original');
+      return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
+    }
+    
+    const mentorKey = mentorMatch[1];
+    const formato = formatoMatch[1];
+    
+    // Converter mentor key para nome real
+    const mentorNomeReal = this.convertMentorKeyToRealName(mentorKey);
+    console.log(`🎯 [EnhancedRequestHandler] Buscando técnicas para: ${mentorNomeReal}, formato: ${formato}`);
+    
+    try {
+      // Buscar técnicas do mentor
+      const { data, error } = await this.supabase
+        .from('mentores')
+        .select('tecnicas')
+        .eq('nome', mentorNomeReal)
+        .single();
+
+      if (error || !data?.tecnicas) {
+        console.warn(`⚠️ [EnhancedRequestHandler] Não encontrou técnicas para ${mentorNomeReal}, usando fallback`);
+        return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
+      }
+
+      const tecnicas = Array.isArray(data.tecnicas) ? data.tecnicas : [];
+      console.log(`📋 [EnhancedRequestHandler] Técnicas encontradas: ${tecnicas.length}`);
+      
+      // Selecionar melhor técnica
+      const tecnicaCompativel = this.selectBestTechnique(tecnicas, formato, request.marketingObjective || 'atrair');
+      
+      if (tecnicaCompativel) {
+        console.log(`✨ [EnhancedRequestHandler] Usando técnica: ${tecnicaCompativel.nome}`);
+        return this.buildSpecificTechniquePrompt(tecnicaCompativel, equipments, request);
+      }
+      
+    } catch (error) {
+      console.error('❌ [EnhancedRequestHandler] Erro ao buscar técnicas:', error);
+    }
+    
+    // Fallback para prompt genérico
+    return this.buildEnhancedSystemPromptFallback(originalPrompt, equipments, request);
+  }
+
+  private convertMentorKeyToRealName(mentorKey: string): string {
+    const mentorMapping: Record<string, string> = {
+      'leandro_ladeira': 'Leandro Ladeira',
+      'paulo_cuenca': 'Paulo Cuenca',
+      'pedro_sobral': 'Pedro Sobral',
+      'icaro_carvalho': 'Ícaro de Carvalho',
+      'camila_porto': 'Camila Porto',
+      'hyeser_souza': 'Hyeser Souza',
+      'washington_olivetto': 'Washington Olivetto'
+    };
+    
+    return mentorMapping[mentorKey] || mentorKey;
+  }
+
+  private selectBestTechnique(tecnicas: any[], formato: string, objetivo: string): any | null {
+    if (!tecnicas || tecnicas.length === 0) {
+      return null;
+    }
+
+    // Filtrar técnicas compatíveis com o formato
+    const compatibleTechniques = tecnicas.filter(tecnica =>
+      tecnica.condicoes_ativacao?.formatos?.includes(formato) ||
+      tecnica.condicoes_ativacao?.formatos?.includes(formato.replace('_', ''))
+    );
+
+    if (compatibleTechniques.length === 0) {
+      return null;
+    }
+
+    // Priorizar por objetivo se especificado
+    const objectiveMatch = compatibleTechniques.filter(tecnica =>
+      tecnica.condicoes_ativacao?.objetivos?.includes(objetivo)
+    );
+
+    const candidates = objectiveMatch.length > 0 ? objectiveMatch : compatibleTechniques;
+
+    // Ordenar por prioridade (maior primeiro)
+    candidates.sort((a, b) => 
+      (b.condicoes_ativacao?.prioridade || 0) - (a.condicoes_ativacao?.prioridade || 0)
+    );
+
+    return candidates[0];
+  }
+
+  private buildSpecificTechniquePrompt(tecnica: any, equipments: EquipmentData[], request: any): string {
+    const equipmentSection = EquipmentFetcher.buildEquipmentPromptSection(equipments);
+    
+    let promptTecnica = tecnica.prompt;
+    
+    // Substituir placeholders
+    if (promptTecnica.includes('[TEMA_INSERIDO]')) {
+      promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', request.topic || 'o tema será fornecido');
+    }
+
+    return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${tecnica.nome}
+
+${promptTecnica}
+
+${equipmentSection}
+
+IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. Siga rigorosamente a metodologia da técnica.`;
+  }
+
+  private buildEnhancedSystemPromptFallback(
     originalPrompt: string, 
     equipments: EquipmentData[], 
     request: any
@@ -65,8 +182,8 @@ export class EnhancedRequestHandler {
     
     // Inserir seção de equipamentos no prompt original
     const enhancedPrompt = originalPrompt.replace(
-      '📋 EQUIPAMENTOS DISPONÍVEIS:',
-      equipmentSection
+      'Nenhum equipamento específico foi selecionado. Use termos genéricos.',
+      equipmentSection || 'Nenhum equipamento específico foi selecionado. Use termos genéricos.'
     );
 
     return enhancedPrompt;

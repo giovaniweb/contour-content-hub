@@ -14,9 +14,13 @@ export const buildSystemPrompt = async (
 ): Promise<string> => {
   console.log('🔨 [promptBuilders] Construindo prompt do sistema');
   
+  // CORREÇÃO CRÍTICA: Converter mentor key para nome real do banco
+  const mentorNomeReal = convertMentorKeyToRealName(mentor);
+  console.log(`🎯 [promptBuilders] Mentor convertido: ${mentor} -> ${mentorNomeReal}`);
+  
   // Buscar técnicas específicas do mentor
-  const mentorTechniques = await getMentorTechniques(mentor);
-  console.log(`🎯 [promptBuilders] Técnicas encontradas para ${mentor}:`, mentorTechniques.length);
+  const mentorTechniques = await getMentorTechniques(mentorNomeReal);
+  console.log(`🎯 [promptBuilders] Técnicas encontradas para ${mentorNomeReal}:`, mentorTechniques.length);
   
   // Selecionar melhor técnica baseada no formato e objetivo
   const selectedTechnique = selectBestTechnique(mentorTechniques, options.formato, options.objetivo);
@@ -29,7 +33,22 @@ export const buildSystemPrompt = async (
   
   console.log('📝 [promptBuilders] Usando prompt genérico do mentor');
   // Fallback para prompt genérico
-  return buildGenericMentorPrompt(mentor, equipmentDetails, mode, options);
+  return buildGenericMentorPrompt(mentorNomeReal, equipmentDetails, mode, options);
+};
+
+// NOVA FUNÇÃO: Converter chave do mentor para nome real do banco
+const convertMentorKeyToRealName = (mentorKey: string): string => {
+  const mentorMapping: Record<string, string> = {
+    'leandro_ladeira': 'Leandro Ladeira',
+    'paulo_cuenca': 'Paulo Cuenca',
+    'pedro_sobral': 'Pedro Sobral',
+    'icaro_carvalho': 'Ícaro de Carvalho',
+    'camila_porto': 'Camila Porto',
+    'hyeser_souza': 'Hyeser Souza',
+    'washington_olivetto': 'Washington Olivetto'
+  };
+  
+  return mentorMapping[mentorKey] || mentorKey;
 };
 
 const buildSpecificTechniquePrompt = (
@@ -51,9 +70,17 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.`
     : '';
 
+  // CORREÇÃO CRÍTICA: Usar o prompt da técnica diretamente
+  let promptTecnica = technique.prompt;
+  
+  // Substituir placeholders se existirem
+  if (promptTecnica.includes('[TEMA_INSERIDO]')) {
+    promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', 'o tema será fornecido pelo usuário');
+  }
+
   return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${technique.nome}
 
-${technique.prompt}
+${promptTecnica}
 
 ${equipmentContext}
 
