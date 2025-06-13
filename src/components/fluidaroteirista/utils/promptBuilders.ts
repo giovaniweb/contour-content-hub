@@ -85,6 +85,59 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Use linguagem casual e direta
     ${tempoLimite ? `- Tempo total: ${tempoLimite}s` : ''}
     `,
+
+    stories_10x: `
+    🔥 STORIES 10X - METODOLOGIA LEANDRO LADEIRA:
+    
+    📊 ESPECIFICAÇÕES TÉCNICAS:
+    - EXATAMENTE 4 stories conectados
+    - MÁXIMO 40 segundos total (10s por story)
+    - Sequência narrativa com dispositivos de engajamento
+    - Tom: provocativo, inteligente, engraçado (estilo Leandro Ladeira)
+    
+    🎯 ESTRUTURA OBRIGATÓRIA STORIES 10X:
+    Story 1: GANCHO PROVOCATIVO (3s de atenção + 7s desenvolvimento)
+    - Provocação inteligente tipo "Você tá fazendo Stories como quem manda bom dia no grupo da família?"
+    - Questão que para o scroll
+    - Tom humorístico mas inteligente
+    
+    Story 2: ERRO COMUM + IDENTIFICAÇÃO (10s)
+    - Mostrar o erro que todo mundo comete
+    - Criar identificação com a audiência
+    - Usar referências cotidianas engraçadas
+    
+    Story 3: VIRADA + DISPOSITIVO DE ENGAJAMENTO (10s)
+    - Apresentar a solução/insight
+    - OBRIGATÓRIO: Incluir dispositivo (emoji foguinho 🔥, enquete, pergunta)
+    - Criar reciprocidade: "manda um foguinho que eu te conto o resto"
+    - Integrar equipamentos naturalmente se selecionados
+    
+    Story 4: CTA SUAVE + ANTECIPAÇÃO (10s)
+    - Call-to-action leve e inteligente
+    - Criar antecipação para próximo conteúdo
+    - Ex: "Se esse roteiro valeu, compartilha com um amigo perdido no Storytelling"
+    - Deixar gancho para continuar o relacionamento
+    
+    🧠 DISPOSITIVOS OBRIGATÓRIOS (usar pelo menos 2):
+    - 🔥 Emoji foguinho: "manda um foguinho nos comentários"
+    - 📊 Enquete: pergunta binária para gerar engajamento
+    - ❓ Pergunta direta: "qual sua maior dificuldade com..."
+    - 🔄 Reciprocidade: "se você fizer X, eu te entrego Y"
+    - 📲 Compartilhamento: "marca um amigo que precisa ver isso"
+    
+    🎭 TOM DE VOZ LEANDRO LADEIRA:
+    - Provocativo mas educativo
+    - Humor inteligente (não palhaçada)
+    - Referências cotidianas engraçadas
+    - Direto ao ponto
+    - Cria comunidade, não só conteúdo
+    
+    ⚡ REGRAS DE ENGAJAMENTO:
+    - Transformar Stories em conversa, não aula
+    - Cada story deve pedir uma ação
+    - Criar sequência que vicia (antecipação)
+    - Gerar reciprocidade através de troca de valor
+    `,
     
     carrossel: `
     🎠 CARROSSEL INSTAGRAM - INSTRUÇÕES RÍGIDAS:
@@ -177,6 +230,28 @@ const getOutputInstructions = (formato: string): string => {
       "tempo_por_card": "15s",
       "sugestao_visual": "Descrição visual para cada card"
     }
+    `,
+
+    stories_10x: `
+    🔥 STORIES 10X - OUTPUT OBRIGATÓRIO:
+    Retorne JSON:
+    {
+      "roteiro": "Story 1: [Gancho provocativo - 10s]\n[Dispositivo incluído: emoji/enquete/pergunta]\n\nStory 2: [Erro comum + identificação - 10s]\n[Tom humorístico e identificação]\n\nStory 3: [Virada + dispositivo de engajamento - 10s]\n[OBRIGATÓRIO: dispositivo 🔥/📊/❓ + equipamentos se selecionados]\n\nStory 4: [CTA suave + antecipação - 10s]\n[Compartilhamento/reciprocidade]",
+      "formato": "stories_10x",
+      "metodologia": "leandro_ladeira",
+      "stories_total": 4,
+      "tempo_total": "40s",
+      "dispositivos_usados": ["emoji_foguinho", "enquete", "pergunta", "reciprocidade"],
+      "tom_narrativo": "provocativo_inteligente",
+      "engajamento_esperado": "alto"
+    }
+    
+    VALIDAÇÃO STORIES 10X:
+    - Verificar se tem EXATAMENTE 4 stories
+    - Confirmar tempo total máximo 40s (10s por story)
+    - Validar se pelo menos 2 dispositivos foram incluídos
+    - Checar tom provocativo mas educativo
+    - Se equipamentos selecionados: DEVEM aparecer no Story 3
     `,
     
     carrossel: `

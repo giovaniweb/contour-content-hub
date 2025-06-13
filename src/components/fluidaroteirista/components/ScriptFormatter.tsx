@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Heart, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
 import CarouselFormatter from './CarouselFormatter';
+import Stories10xFormatter from './Stories10xFormatter';
 
 interface ScriptFormatterProps {
   script: {
@@ -47,6 +48,10 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const renderScriptContent = () => {
     if (script.formato.toLowerCase() === 'carrossel') {
       return <CarouselFormatter roteiro={script.roteiro} />;
+    }
+
+    if (script.formato.toLowerCase() === 'stories_10x') {
+      return <Stories10xFormatter roteiro={script.roteiro} />;
     }
 
     // Renderização padrão para outros formatos
@@ -124,7 +129,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <span className="text-xs font-medium text-indigo-300">Formato</span>
           </div>
           <Badge variant="outline" className="text-indigo-400 border-indigo-500/30 text-xs">
-            {script.formato.toUpperCase()}
+            {script.formato === 'stories_10x' ? 'STORIES 10X' : script.formato.toUpperCase()}
           </Badge>
         </div>
       </motion.div>

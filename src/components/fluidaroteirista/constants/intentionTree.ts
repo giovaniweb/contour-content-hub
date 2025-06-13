@@ -54,6 +54,15 @@ export const AKINATOR_TREE: Record<string, any> = {
           output_tipo: "roteiro_temporal"
         },
         {
+          value: "stories_10x",
+          label: "Stories 10x",
+          emoji: "🔥",
+          description: "Metodologia Leandro Ladeira - Sequência engajamento",
+          tempo_limite: "40s total (4 stories de 10s)",
+          output_tipo: "sequencia_engajamento",
+          especialista: "leandro_ladeira"
+        },
+        {
           value: "carrossel",
           label: "Carrossel", 
           emoji: "🎠",
@@ -211,7 +220,6 @@ export const AKINATOR_TREE: Record<string, any> = {
     descricao: "Vamos criar conteúdo baseado nos seus recursos.",
     multiSelect: true,
     options: [
-      // Estes serão substituídos pelos equipamentos do banco de dados
       {
         value: "laser",
         label: "Laser",
@@ -230,7 +238,7 @@ export const AKINATOR_TREE: Record<string, any> = {
     placeholder: "Ex: Manchas no rosto incomodam muito / Público que quer autoestima / Dia da Mulher",
     mentorPhrase: "Quanto mais específico você for, melhor será o roteiro!",
     isTextInput: true,
-    next: null // Final da árvore
+    next: null
   }
 };
 
@@ -240,6 +248,15 @@ export const FORMATO_CONFIGS: Record<string, any> = {
     tempo_limite_segundos: 60,
     palavras_max: 100,
     estrutura: "cards_temporais"
+  },
+  stories_10x: {
+    tempo_limite_segundos: 40,
+    stories_total: 4,
+    tempo_por_story: 10,
+    palavras_por_story: 25,
+    estrutura: "sequencia_engajamento",
+    dispositivos: ["emoji_foguinho", "enquete", "pergunta", "reciprocidade"],
+    metodologia: "leandro_ladeira"
   },
   carrossel: {
     tempo_limite_segundos: null,
