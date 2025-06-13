@@ -1116,6 +1116,7 @@ export type Database = {
           exemplos: string[]
           id: string
           nome: string
+          tecnicas: Json | null
           tom: string
           updated_at: string
           uso_ideal: string
@@ -1128,6 +1129,7 @@ export type Database = {
           exemplos?: string[]
           id?: string
           nome: string
+          tecnicas?: Json | null
           tom: string
           updated_at?: string
           uso_ideal: string
@@ -1140,6 +1142,7 @@ export type Database = {
           exemplos?: string[]
           id?: string
           nome?: string
+          tecnicas?: Json | null
           tom?: string
           updated_at?: string
           uso_ideal?: string

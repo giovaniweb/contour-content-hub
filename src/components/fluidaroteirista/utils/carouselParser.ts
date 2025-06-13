@@ -3,7 +3,7 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   console.log('🎠 [parseAndLimitCarousel] Processando roteiro do carrossel...');
   
   // NOVO: Padrão para slides com estrutura limpa (sem hífens)
-  const slidePattern = /Slide:\s*([^\n]+)/gi;
+  const slidePattern = /Slide\s*\d*\s*:\s*([^\n]+)/gi;
   const matches = roteiro.match(slidePattern);
   
   if (!matches) {
@@ -12,7 +12,7 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   }
   
   const processedSlides: string[] = [];
-  const parts = roteiro.split(/Slide:\s*/gi).filter(part => part.trim());
+  const parts = roteiro.split(/Slide\s*\d*\s*:\s*/gi).filter(part => part.trim());
   
   // Processar cada slide
   for (let i = 1; i < parts.length; i++) { // Pular o primeiro item vazio
@@ -41,7 +41,10 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
       imagem = 'Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave';
     }
     
-    processedSlides.push(`Slide: ${slideTitle}\nTexto: ${texto}\nImagem: ${imagem}`);
+    const slideNumber = processedSlides.length + 1;
+    const finalTitle = slideNumber === 1 ? 'Gancho' : slideTitle;
+    
+    processedSlides.push(`Slide ${slideNumber}: ${finalTitle}\nTexto: ${texto}\nImagem: ${imagem}`);
   }
   
   // Limitar a exatamente 5 slides
@@ -50,13 +53,13 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
   // Garantir que temos exatamente 5 slides
   while (limitedSlides.length < 5) {
     const slideNum = limitedSlides.length + 1;
-    const defaultTitles = ['Introdução', 'O Problema', 'Nossa Solução', 'Benefícios', 'Call to Action'];
+    const defaultTitles = ['Gancho', 'O Problema', 'Nossa Solução', 'Benefícios', 'Call to Action'];
     const title = defaultTitles[slideNum - 1];
     
     if (slideNum === 5) {
-      limitedSlides.push(`Slide: ${title}\nTexto: Quer transformar sua vida? Entre em contato conosco! 📲\nImagem: Profissional acolhedor em recepção moderna, ambiente convidativo, informações de contato visíveis, atmosfera confiante`);
+      limitedSlides.push(`Slide ${slideNum}: ${title}\nTexto: Quer transformar sua vida? Entre em contato conosco! 📲\nImagem: Profissional acolhedor em recepção moderna, ambiente convidativo, informações de contato visíveis, atmosfera confiante`);
     } else {
-      limitedSlides.push(`Slide: ${title}\nTexto: Conteúdo adicional sobre o tema\nImagem: Ambiente clínico especializado, equipamentos modernos, atmosfera profissional e acolhedora`);
+      limitedSlides.push(`Slide ${slideNum}: ${title}\nTexto: Conteúdo adicional sobre o tema\nImagem: Ambiente clínico especializado, equipamentos modernos, atmosfera profissional e acolhedora`);
     }
   }
   
@@ -66,18 +69,18 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
 
 const createDefaultCarousel = (): string => {
   const defaultSlides = [
-    `Slide: Introdução\nTexto: Descubra a revolução na estética moderna\nImagem: Ambiente clínico luxuoso, paciente confiante conversando com profissional, iluminação suave e acolhedora`,
-    `Slide: O Desafio\nTexto: Sinais do tempo que incomodam e afetam sua autoestima\nImagem: Close-up artístico de pessoa preocupada observando reflexo no espelho, luz natural suave, expressão contemplativa`,
-    `Slide: Nossa Solução\nTexto: Tecnologia avançada para resultados surpreendentes\nImagem: Equipamento moderno em funcionamento, profissional especializado operando, ambiente high-tech e seguro`,
-    `Slide: Benefícios\nTexto: Resultados naturais e duradouros que você merece\nImagem: Paciente radiante após tratamento, sorriso genuíno, ambiente de celebração, antes e depois sutil`,
-    `Slide: Call to Action\nTexto: Agende sua consulta e transforme sua vida hoje!\nImagem: Recepcionista simpática atendendo por telefone, agenda aberta, ambiente profissional e convidativo`
+    `Slide 1: Gancho\nTexto: Descubra a revolução na estética moderna\nImagem: Ambiente clínico luxuoso, paciente confiante conversando com profissional, iluminação suave e acolhedora`,
+    `Slide 2: O Desafio\nTexto: Sinais do tempo que incomodam e afetam sua autoestima\nImagem: Close-up artístico de pessoa preocupada observando reflexo no espelho, luz natural suave, expressão contemplativa`,
+    `Slide 3: Nossa Solução\nTexto: Tecnologia avançada para resultados surpreendentes\nImagem: Equipamento moderno em funcionamento, profissional especializado operando, ambiente high-tech e seguro`,
+    `Slide 4: Benefícios\nTexto: Resultados naturais e duradouros que você merece\nImagem: Paciente radiante após tratamento, sorriso genuíno, ambiente de celebração, antes e depois sutil`,
+    `Slide 5: Call to Action\nTexto: Agende sua consulta e transforme sua vida hoje!\nImagem: Recepcionista simpática atendendo por telefone, agenda aberta, ambiente profissional e convidativo`
   ];
   
   return defaultSlides.join('\n\n');
 };
 
 export const validateCarouselSlides = (roteiro: string): { isValid: boolean; slideCount: number; errors: string[] } => {
-  const slides = roteiro.match(/Slide:\s*[^\n]+/gi) || [];
+  const slides = roteiro.match(/Slide\s*\d*\s*:\s*[^\n]+/gi) || [];
   const errors: string[] = [];
   const slideCount = slides.length;
   
@@ -90,7 +93,7 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
   }
   
   // Verificar estrutura Texto: e Imagem: (sem hífens)
-  const slideContents = roteiro.split(/Slide:\s*[^\n]+/gi).slice(1);
+  const slideContents = roteiro.split(/Slide\s*\d*\s*:\s*[^\n]+/gi).slice(1);
   slideContents.forEach((content, index) => {
     if (!content.includes('Texto:') || !content.includes('Imagem:')) {
       errors.push(`Slide ${index + 1} não tem estrutura "Texto:" e "Imagem:" obrigatória`);
@@ -108,16 +111,17 @@ export const parseCarouselSlides = (roteiro: string) => {
   console.log('🎠 [parseCarouselSlides] Analisando roteiro:', roteiro.substring(0, 200));
   
   // Parser para estrutura limpa: Slide:, Texto:, Imagem:
-  const slidePattern = /Slide:\s*([^\n]+)/gi;
+  const slidePattern = /Slide\s*(\d+)\s*:\s*([^\n]+)/gi;
   const parts = roteiro.split(slidePattern).filter(part => part.trim());
   const slides = [];
   
-  for (let i = 0; i < parts.length; i += 2) {
-    if (i + 1 < parts.length) {
-      const slideTitle = parts[i].trim();
-      const slideContent = parts[i + 1].trim();
+  for (let i = 0; i < parts.length; i += 3) {
+    if (i + 2 < parts.length) {
+      const slideNumber = parts[i].trim();
+      const slideTitle = parts[i + 1].trim();
+      const slideContent = parts[i + 2].trim();
       
-      console.log(`📋 Processando slide: "${slideTitle}"`);
+      console.log(`📋 Processando slide ${slideNumber}: "${slideTitle}"`);
       console.log(`📝 Conteúdo: ${slideContent.substring(0, 100)}...`);
       
       // Extrair texto e imagem da estrutura limpa (sem hífens)
@@ -131,7 +135,7 @@ export const parseCarouselSlides = (roteiro: string) => {
       console.log(`🖼️ Imagem extraída: ${imagem.substring(0, 50)}...`);
       
       slides.push({
-        number: slides.length + 1,
+        number: parseInt(slideNumber) || slides.length + 1,
         title: slideTitle,
         texto: texto,
         imagem: imagem,

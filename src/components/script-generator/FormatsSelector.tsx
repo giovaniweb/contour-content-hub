@@ -5,7 +5,7 @@ import { FileText, Image, Video, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Format {
-  id: 'carrossel' | 'imagem' | 'stories_10x' | 'reels';
+  id: 'carrossel' | 'imagem' | 'stories' | 'reels';
   label: string;
   icon: React.ComponentType<any>;
   description: string;
@@ -14,13 +14,13 @@ interface Format {
 const FORMATOS: Format[] = [
   { id: 'carrossel', label: 'Carrossel', icon: FileText, description: 'Múltiplos slides' },
   { id: 'imagem', label: 'Post Estático', icon: Image, description: 'Uma imagem' },
-  { id: 'stories_10x', label: 'Stories 10x', icon: Video, description: 'Metodologia avançada' },
+  { id: 'stories', label: 'Stories 10x', icon: Video, description: 'Metodologia avançada' },
   { id: 'reels', label: 'Reels', icon: Zap, description: 'Vídeo curto' }
 ];
 
 interface FormatsSelectorProps {
-  selectedFormat: 'carrossel' | 'imagem' | 'stories_10x' | 'reels';
-  onFormatChange: (format: 'carrossel' | 'imagem' | 'stories_10x' | 'reels') => void;
+  selectedFormat: 'carrossel' | 'imagem' | 'stories' | 'reels';
+  onFormatChange: (format: 'carrossel' | 'imagem' | 'stories' | 'reels') => void;
 }
 
 const FormatsSelector: React.FC<FormatsSelectorProps> = ({

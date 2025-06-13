@@ -76,7 +76,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
                       <div className="absolute inset-0 rounded-full bg-aurora-gradient-primary opacity-50 animate-ping" />
                     </div>
                     <div className="text-xs text-aurora-electric-purple font-medium aurora-body">
-                      {index === 0 && 'Hook'}
+                      {index === 0 && 'Gancho'}
                       {index === 1 && 'Problema'}
                       {index === 2 && 'Solução'}
                       {index === 3 && 'Benefícios'}
