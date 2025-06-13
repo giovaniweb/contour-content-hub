@@ -40,13 +40,18 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     errors.push('Estilo de comunicação não selecionado');
   }
 
-  // CORREÇÃO: Validação do tema mais flexível - de 10 para 5 caracteres mínimos
-  if (!data.tema || data.tema.trim().length < 5) {
+  // CORREÇÃO CRÍTICA: Validação mais permissiva para Stories 10x
+  const isStories10x = data.formato === 'stories_10x';
+  const minTemaLength = isStories10x ? 3 : 5; // Stories 10x permite temas mais curtos
+  
+  if (!data.tema || data.tema.trim().length < minTemaLength) {
     missingFields.push('tema');
-    errors.push('Tema muito curto (mínimo 5 caracteres)');
-    suggestions.push('Descreva melhor o tema do seu conteúdo');
-  } else if (data.tema.trim().length < 10) {
-    // Se tem entre 5-9 caracteres, sugerir melhoria mas não bloquear
+    errors.push(`Tema muito curto (mínimo ${minTemaLength} caracteres)`);
+    if (!isStories10x) {
+      suggestions.push('Descreva melhor o tema do seu conteúdo');
+    }
+  } else if (data.tema.trim().length < 8 && !isStories10x) {
+    // Se tem entre 5-7 caracteres e não é Stories 10x, sugerir melhoria
     suggestions.push('Considere expandir o tema para obter melhores resultados');
   }
 
@@ -55,13 +60,18 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     suggestions.push('Nenhum equipamento selecionado - o roteiro será mais genérico');
   }
 
-  // CORREÇÃO: Lógica de qualidade mais flexível
+  // CORREÇÃO: Lógica de qualidade mais permissiva para Stories 10x
   let quality: 'low' | 'medium' | 'high' = 'high';
   
-  if (missingFields.length > 2) {
-    quality = 'low';
-  } else if (missingFields.length > 0 || data.tema.trim().length < 8) {
-    quality = 'medium';
+  if (isStories10x) {
+    // Stories 10x sempre tem quality alta se tem os campos básicos
+    quality = missingFields.length === 0 ? 'high' : 'medium';
+  } else {
+    if (missingFields.length > 2) {
+      quality = 'low';
+    } else if (missingFields.length > 0 || data.tema.trim().length < 8) {
+      quality = 'medium';
+    }
   }
 
   const isValid = errors.length === 0;
@@ -71,7 +81,8 @@ export const validateAkinatorScript = (data: ScriptDataFromAkinator): Validation
     quality,
     errors: errors.length,
     missingFields: missingFields.length,
-    temaLength: data.tema?.length || 0
+    temaLength: data.tema?.length || 0,
+    isStories10x
   });
 
   return {
@@ -93,15 +104,19 @@ export const isAkinatorFlowComplete = (data: ScriptDataFromAkinator): boolean =>
     return value && (typeof value === 'string' ? value.trim().length > 0 : true);
   });
 
-  // CORREÇÃO: Tema deve ter pelo menos 5 caracteres (não 10)
-  const hasValidTema = data.tema && data.tema.trim().length >= 5;
+  // CORREÇÃO: Tema mais permissivo para Stories 10x
+  const isStories10x = data.formato === 'stories_10x';
+  const minTemaLength = isStories10x ? 3 : 5;
+  const hasValidTema = data.tema && data.tema.trim().length >= minTemaLength;
 
   const isComplete = hasAllRequired && hasValidTema;
 
   console.log('✅ [isAkinatorFlowComplete] Fluxo completo?', isComplete, {
     hasAllRequired,
     hasValidTema,
-    temaLength: data.tema?.length || 0
+    temaLength: data.tema?.length || 0,
+    isStories10x,
+    minRequired: minTemaLength
   });
 
   return isComplete;

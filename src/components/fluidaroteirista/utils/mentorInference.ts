@@ -9,7 +9,7 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   const formato = normalizeFormato(answers.formato || 'carrossel');
   const objetivo = answers.objetivo || 'atrair';
 
-  console.log(`🎯 [inferMentorFromAnswers] Formato normalizado: ${answers.formato} -> ${formato}`);
+  console.log(`🎯 [inferMentorFromAnswers] Formato original: ${answers.formato} -> normalizado: ${formato}`);
 
   // REGRAS ESPECÍFICAS DE FORMATO - PRIORIDADE MÁXIMA
   if (formato === 'stories' || answers.formato === 'stories_10x') {
@@ -22,6 +22,8 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
       
       if (tecnicaCompativel) {
         console.log(`✅ [inferMentorFromAnswers] Leandro Ladeira confirmado com técnica: ${tecnicaCompativel.nome}`);
+      } else {
+        console.log('⚠️ [inferMentorFromAnswers] Leandro Ladeira sem técnica específica, mas mantendo escolha');
       }
     } catch (error) {
       console.warn('⚠️ [inferMentorFromAnswers] Erro ao verificar técnicas de Leandro Ladeira:', error);
@@ -40,6 +42,8 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
       
       if (tecnicaCompativel) {
         console.log(`✅ [inferMentorFromAnswers] Paulo Cuenca confirmado com técnica: ${tecnicaCompativel.nome}`);
+      } else {
+        console.log('⚠️ [inferMentorFromAnswers] Paulo Cuenca sem técnica específica, mas mantendo escolha');
       }
     } catch (error) {
       console.warn('⚠️ [inferMentorFromAnswers] Erro ao verificar técnicas de Paulo Cuenca:', error);
@@ -100,7 +104,7 @@ export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
 // CORREÇÃO CRÍTICA: Melhorar normalização para preservar stories_10x
 const normalizeFormato = (formato: string): string => {
   const formatMapping: Record<string, string> = {
-    'stories_10x': 'stories', // Normalizar para busca de técnicas, mas preservar original
+    'stories_10x': 'stories', // Normalizar para busca de técnicas
     'reels': 'stories',
     'tiktok': 'stories',
     'youtube_shorts': 'stories',
@@ -130,25 +134,41 @@ export const generateMentorProfile = (mentor: string): { name: string; focus: st
   };
 };
 
-// CORREÇÃO CRÍTICA: Tornar função async e aguardar Promise
+// CORREÇÃO CRÍTICA: Aguardar Promise corretamente
 export const buildEnhancedScriptData = async (akinatorData: any) => {
   console.log('🔧 [buildEnhancedScriptData] Enriquecendo dados do Akinator:', akinatorData);
   
-  // AGUARDAR corretamente a Promise do mentor
-  const mentorInferido = await inferMentorFromAnswers(akinatorData);
-  
-  // CORREÇÃO: Mapear dados da nova estrutura para o formato esperado
-  const enhancedData = {
-    tema: akinatorData.tema,
-    equipamentos: akinatorData.equipamentos || [],
-    objetivo: akinatorData.objetivo,
-    mentor: mentorInferido, // Agora é string, não Promise
-    formato: akinatorData.formato, // MANTER formato original
-    canal: akinatorData.canal,
-    estilo: akinatorData.estilo,
-    modo: akinatorData.modo || 'akinator'
-  };
+  try {
+    // AGUARDAR corretamente a Promise do mentor
+    const mentorInferido = await inferMentorFromAnswers(akinatorData);
+    console.log('🎯 [buildEnhancedScriptData] Mentor inferido:', mentorInferido);
+    
+    // CORREÇÃO: Mapear dados da nova estrutura para o formato esperado
+    const enhancedData = {
+      tema: akinatorData.tema,
+      equipamentos: akinatorData.equipamentos || [],
+      objetivo: akinatorData.objetivo,
+      mentor: mentorInferido, // Agora é string, não Promise
+      formato: akinatorData.formato, // MANTER formato original
+      canal: akinatorData.canal,
+      estilo: akinatorData.estilo,
+      modo: akinatorData.modo || 'akinator'
+    };
 
-  console.log('✅ [buildEnhancedScriptData] Dados enriquecidos:', enhancedData);
-  return enhancedData;
+    console.log('✅ [buildEnhancedScriptData] Dados enriquecidos:', enhancedData);
+    return enhancedData;
+  } catch (error) {
+    console.error('❌ [buildEnhancedScriptData] Erro ao enriquecer dados:', error);
+    // Retornar dados básicos em caso de erro
+    return {
+      tema: akinatorData.tema,
+      equipamentos: akinatorData.equipamentos || [],
+      objetivo: akinatorData.objetivo,
+      mentor: 'camila_porto', // Fallback
+      formato: akinatorData.formato,
+      canal: akinatorData.canal,
+      estilo: akinatorData.estilo,
+      modo: akinatorData.modo || 'akinator'
+    };
+  }
 };
