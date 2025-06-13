@@ -188,12 +188,13 @@ export const useFluidaRoteirista = () => {
 
       console.log('📤 [useFluidaRoteirista] Enviando para API com equipamentos:', equipmentDetails.map(eq => eq.nome));
 
+      // FIX: Pass equipment as array instead of single string
       const response = await generateScript({
         type: 'fluidaroteirista',
         systemPrompt,
         userPrompt,
         topic: request.tema,
-        equipment: equipmentDetails.map(eq => eq.nome), // Passar nomes dos equipamentos
+        equipment: equipmentDetails.map(eq => eq.nome), // Pass as array
         additionalInfo: JSON.stringify({ 
           ...enrichedContext,
           equipmentDetails // Passar detalhes completos
