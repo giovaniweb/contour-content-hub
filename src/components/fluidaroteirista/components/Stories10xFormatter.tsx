@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parseStories10xSlides, validateStories10x } from '../utils/stories10xParser';
@@ -258,8 +257,7 @@ const getStoryColor = (tipo: string): string => {
     gancho: 'bg-gradient-to-br from-red-500 to-orange-500',
     erro: 'bg-gradient-to-br from-yellow-500 to-orange-500', 
     virada: 'bg-gradient-to-br from-green-500 to-cyan-500',
-    cta: 'bg-gradient-to-br from-blue-500 to-purple-500',
-    bonus: 'bg-gradient-to-br from-purple-500 to-pink-500'
+    cta: 'bg-gradient-to-br from-blue-500 to-purple-500'
   };
   return colors[tipo as keyof typeof colors] || colors.gancho;
 };
@@ -269,8 +267,7 @@ const getStoryBgColor = (tipo: string): string => {
     gancho: '#ef4444',
     erro: '#f59e0b',
     virada: '#10b981', 
-    cta: '#3b82f6',
-    bonus: '#8b5cf6'
+    cta: '#3b82f6'
   };
   return colors[tipo as keyof typeof colors] || colors.gancho;
 };
@@ -280,8 +277,7 @@ const getStoryTextColor = (tipo: string): string => {
     gancho: 'text-red-400',
     erro: 'text-yellow-400',
     virada: 'text-green-400',
-    cta: 'text-blue-400',
-    bonus: 'text-purple-400'
+    cta: 'text-blue-400'
   };
   return colors[tipo as keyof typeof colors] || colors.gancho;
 };

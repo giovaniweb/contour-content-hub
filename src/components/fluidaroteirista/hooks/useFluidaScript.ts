@@ -60,8 +60,8 @@ export const useFluidaScript = () => {
         return [];
       }
 
-      // Construir system prompt com nova estrutura - AWAIT necessário
-      const systemPrompt = await buildSystemPrompt(
+      // Construir system prompt com nova estrutura
+      const systemPrompt = buildSystemPrompt(
         [], // equipamentos detalhados - será populado depois
         data.modo || 'normal',
         data.mentor || 'Criativo',
@@ -92,7 +92,7 @@ export const useFluidaScript = () => {
         additionalInfo: `Canal: ${data.canal}, Formato: ${data.tipo_conteudo || data.formato}, Objetivo: ${data.objetivo}, Estilo: ${data.estilo}`,
         tone: data.estilo || 'profissional',
         marketingObjective: data.objetivo || 'atrair',
-        systemPrompt, // Now properly awaited
+        systemPrompt,
         userPrompt
       };
 
@@ -101,7 +101,7 @@ export const useFluidaScript = () => {
       const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
-      // CORREÇÃO CRÍTICA: Verificação mais robusta da resposta da API
+      // Verificação robusta da resposta da API
       if (!response) {
         throw new Error('Resposta vazia da API');
       }
@@ -145,52 +145,21 @@ export const useFluidaScript = () => {
       };
 
       console.log('✅ [useFluidaScript] Script result created:', scriptResult);
-
-      // CORREÇÃO CRÍTICA: Garantir que setResults seja chamado ANTES do return
-      // e aguardar um microtask para garantir que o estado seja atualizado
       setResults([scriptResult]);
-      console.log('📝 [useFluidaScript] Results state updated, length:', 1);
-      
-      // Aguardar um microtask para garantir atualização do state
-      await new Promise(resolve => setTimeout(resolve, 10));
       
       toast({
         title: "✨ Roteiro gerado!",
         description: `${scriptResult.formato} para ${scriptResult.canal} no estilo ${scriptResult.mentor}`,
       });
 
-      console.log('🎯 [useFluidaScript] Returning script result for callbacks');
       return [scriptResult];
 
     } catch (error) {
       console.error('❌ [useFluidaScript] Error:', error);
-      
-      // CORREÇÃO CRÍTICA: Melhor handling de erros específicos
-      let errorMessage = 'Erro desconhecido';
-      let errorTitle = 'Erro na geração';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        
-        // Identificar tipos específicos de erro
-        if (error.message.includes('FunctionsHttpError')) {
-          errorTitle = 'Erro no servidor';
-          errorMessage = 'Problema temporário no servidor. Tente novamente em alguns instantes.';
-        } else if (error.message.includes('OpenAI')) {
-          errorTitle = 'Erro na IA';
-          errorMessage = 'Problema na geração do conteúdo. Tente novamente.';
-        } else if (error.message.includes('equipamentos')) {
-          errorTitle = 'Erro nos equipamentos';
-          errorMessage = 'Problema ao processar equipamentos selecionados.';
-        }
-      }
-      
-      // Limpar results em caso de erro
-      setResults([]);
-      
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
-        title: errorTitle,
-        description: errorMessage,
+        title: "Erro na geração",
+        description: `Erro: ${errorMessage}. Tente novamente em alguns instantes.`,
         variant: "destructive",
       });
       return [];

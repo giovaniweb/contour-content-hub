@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -89,7 +90,7 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         console.log('✅ [AkinatorScriptMode] Selected equipment names:', selectedEquipmentNames);
 
-        // CORREÇÃO CRÍTICA: Criar dados com tipo correto
+        // CORREÇÃO: Criar dados com tipo correto
         const akinatorData: ScriptDataFromAkinator = {
           canal: newAnswers.canal as string || 'instagram',
           formato: newAnswers.formato as string || 'carrossel', 
@@ -102,35 +103,18 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
 
         console.log('📋 [AkinatorScriptMode] Dados básicos do Akinator:', akinatorData);
 
-        // CORREÇÃO CRÍTICA: Aguardar buildEnhancedScriptData corretamente
-        console.log('🔧 [AkinatorScriptMode] Construindo dados enriquecidos...');
-        const enhancedData = await buildEnhancedScriptData(akinatorData);
-        console.log('✅ [AkinatorScriptMode] Dados enriquecidos recebidos:', enhancedData);
-
-        // Validação específica para Stories 10x - mais permissiva
-        const isStories10x = akinatorData.formato === 'stories_10x';
-        
-        if (isStories10x) {
-          console.log('🎯 [AkinatorScriptMode] Stories 10x detectado - gerando diretamente');
-          const result = await generateScript(enhancedData);
-          console.log('✅ [AkinatorScriptMode] Stories 10x gerado:', result);
-          
-          if (result && result.length > 0) {
-            onScriptGenerated(result[0]);
-            return;
-          }
-        }
-
-        // Para outros formatos, fazer validação normal
+        // Validar com validação específica do Akinator
         const validation = validateAkinatorScript(akinatorData);
         console.log('🔍 [AkinatorScriptMode] Validação Akinator:', validation);
 
+        // Verificar se o fluxo está completo
         const isFlowComplete = isAkinatorFlowComplete(akinatorData);
         console.log('✅ [AkinatorScriptMode] Fluxo completo?', isFlowComplete);
 
-        // CORREÇÃO: Aceitar quality "medium" e "high" 
-        if (isFlowComplete && (validation.quality === 'high' || validation.quality === 'medium')) {
-          console.log('🚀 [AkinatorScriptMode] Gerando com dados enriquecidos...');
+        // CORREÇÃO: Aceitar quality "medium" também, não só "high"
+        if (isFlowComplete && validation.isValid) {
+          const enhancedData = buildEnhancedScriptData(akinatorData);
+          console.log('🚀 [AkinatorScriptMode] Gerando com dados enriquecidos:', enhancedData);
           
           const result = await generateScript(enhancedData);
           console.log('✅ [AkinatorScriptMode] Script generated:', result);
@@ -138,9 +122,18 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
           if (result && result.length > 0) {
             onScriptGenerated(result[0]);
           }
+        } else if (validation.quality === 'medium' || validation.quality === 'high') {
+          // NOVO: Para quality medium, tentar gerar mesmo assim
+          console.log('⚠️ [AkinatorScriptMode] Quality medium, tentando gerar mesmo assim...');
+          const enhancedData = buildEnhancedScriptData(akinatorData);
+          const result = await generateScript(enhancedData, true); // force generate
+          
+          if (result && result.length > 0) {
+            onScriptGenerated(result[0]);
+          }
         } else {
           // Salvar para possível força de geração
-          setPendingScriptData(enhancedData);
+          setPendingScriptData(buildEnhancedScriptData(akinatorData));
           console.log('⚠️ [AkinatorScriptMode] Validação falhou, aguardando decisão do usuário');
         }
       } catch (error) {

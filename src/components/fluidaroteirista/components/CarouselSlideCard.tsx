@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
-import CopyButton from '@/components/ui/CopyButton';
 
 interface CarouselSlideCardProps {
   slide: {
@@ -12,13 +11,11 @@ interface CarouselSlideCardProps {
     texto: string;
     imagem: string;
   };
-  index: number;
-  total: number;
 }
 
 const getSlideIcon = (slideNumber: number): string => {
   const icons = {
-    1: "🎯", // Gancho/Abertura
+    1: "🎯", // Hook/Gancho
     2: "⚡", // Problema
     3: "💡", // Solução
     4: "✨", // Benefícios
@@ -73,7 +70,7 @@ const getSlideTheme = (slideNumber: number) => {
   return themes[slideNumber as keyof typeof themes] || themes[1];
 };
 
-const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide, index, total }) => {
+const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
   const icon = getSlideIcon(slide.number);
   const theme = getSlideTheme(slide.number);
 
@@ -94,7 +91,7 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide, index, tot
             <div className="text-3xl aurora-float">{icon}</div>
             <div className="flex-1">
               <Badge variant="outline" className={`${theme.badge} border mb-2 aurora-shimmer`}>
-                Slide {slide.number} de {total}
+                Slide {slide.number}
               </Badge>
               <h3 className={`font-bold ${theme.text} text-lg aurora-heading filter drop-shadow-sm`}>
                 {slide.title}
@@ -103,34 +100,26 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide, index, tot
           </div>
 
           <div className="space-y-4">
-            {/* Seção Texto do Slide */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
+            {/* Seção Texto */}
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-emerald rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-emerald">Texto do Slide</span>
               </div>
-              <div className="text-slate-200 leading-relaxed text-sm aurora-body pr-12 whitespace-pre-wrap">
+              <p className="text-slate-200 leading-relaxed text-sm aurora-body">
                 {slide.texto}
-              </div>
-              <CopyButton 
-                text={slide.texto}
-                successMessage={`Texto do slide ${slide.number} copiado!`}
-              />
+              </p>
             </div>
 
-            {/* Seção Descrição da Imagem */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
+            {/* Seção Imagem */}
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-neon-blue rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-neon-blue">Descrição da Imagem</span>
               </div>
-              <div className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12 whitespace-pre-wrap">
+              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body">
                 {slide.imagem}
-              </div>
-              <CopyButton 
-                text={slide.imagem}
-                successMessage={`Descrição da imagem do slide ${slide.number} copiada!`}
-              />
+              </p>
             </div>
           </div>
         </CardContent>

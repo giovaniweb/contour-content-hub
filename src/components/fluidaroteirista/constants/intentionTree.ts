@@ -1,4 +1,3 @@
-
 export const AKINATOR_TREE: Record<string, any> = {
   canal: {
     pergunta: "Onde você vai publicar o conteúdo?",
@@ -17,7 +16,7 @@ export const AKINATOR_TREE: Record<string, any> = {
         value: "youtube",
         label: "YouTube",
         emoji: "📺",
-        description: "Short (50s) ou Vídeo (3 min)",
+        description: "Short (40s) ou Vídeo (3 min)",
         exemplo: "Conteúdo detalhado e educativo"
       },
       {
@@ -276,8 +275,8 @@ export const FORMATO_CONFIGS: Record<string, any> = {
     estrutura: "roteiro_video"
   },
   short: {
-    tempo_limite_segundos: 50,
-    palavras_max: 100,
+    tempo_limite_segundos: 40,
+    palavras_max: 80,
     estrutura: "roteiro_video"
   },
   video: {

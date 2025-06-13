@@ -4,7 +4,6 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './components/theme-provider';
-import { AuthProvider } from './context/AuthContext';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import './index.css';
@@ -43,9 +42,7 @@ createRoot(rootElement).render(
       <HelmetProvider>
         <ThemeProvider defaultTheme="light">
           <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
+            <App />
           </QueryClientProvider>
         </ThemeProvider>
       </HelmetProvider>

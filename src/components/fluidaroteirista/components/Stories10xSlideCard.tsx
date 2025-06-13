@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
 import { Timer, Zap, MessageCircle, Share2, ThumbsUp } from 'lucide-react';
-import CopyButton from '@/components/ui/CopyButton';
 
 interface Stories10xSlideCardProps {
   slide: {
@@ -13,17 +12,16 @@ interface Stories10xSlideCardProps {
     conteudo: string;
     dispositivo?: string;
     tempo: string;
-    tipo: 'gancho' | 'erro' | 'virada' | 'cta' | 'bonus';
+    tipo: 'gancho' | 'erro' | 'virada' | 'cta';
   };
 }
 
 const getSlideIcon = (tipo: string): string => {
   const icons = {
-    gancho: "🎯", // Gancho
+    gancho: "🎯", // Hook
     erro: "❌", // Erro comum
     virada: "💡", // Virada + solução
-    cta: "📲",  // Call to action
-    bonus: "✨"  // Bônus
+    cta: "📲"  // Call to action
   };
   return icons[tipo as keyof typeof icons] || "📝";
 };
@@ -61,14 +59,6 @@ const getSlideTheme = (tipo: string) => {
       badge: "bg-blue-500/20 text-blue-300 border-blue-400/30",
       glow: "shadow-blue-400/20",
       gradient: "bg-gradient-to-br from-blue-500/10 to-purple-500/10"
-    },
-    bonus: { 
-      bg: "aurora-glass", 
-      border: "border-purple-400/30", 
-      text: "text-purple-300", 
-      badge: "bg-purple-500/20 text-purple-300 border-purple-400/30",
-      glow: "shadow-purple-400/20",
-      gradient: "bg-gradient-to-br from-purple-500/10 to-pink-500/10"
     }
   };
   return themes[tipo as keyof typeof themes] || themes.gancho;
@@ -88,17 +78,6 @@ const getDispositivoIcon = (dispositivo: string) => {
     return <ThumbsUp className="h-4 w-4 text-purple-400" />;
   }
   return <Zap className="h-4 w-4 text-cyan-400" />;
-};
-
-const getTipByType = (tipo: string): string => {
-  const tips = {
-    gancho: "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll.",
-    erro: "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'",
-    virada: "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta.",
-    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício.",
-    bonus: "Bônus que gera antecipação e reciprocidade. Use 'Quer mais? Me manda 🔥 que eu libero!'"
-  };
-  return tips[tipo as keyof typeof tips] || "Mantenha o foco na metodologia Stories 10x.";
 };
 
 const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
@@ -138,18 +117,14 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
 
           <div className="space-y-4">
             {/* Conteúdo do Story */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-cyan-400">Conteúdo do Story</span>
               </div>
-              <div className="text-slate-200 leading-relaxed text-sm aurora-body pr-12 whitespace-pre-wrap">
+              <p className="text-slate-200 leading-relaxed text-sm aurora-body">
                 {slide.conteudo}
-              </div>
-              <CopyButton 
-                text={slide.conteudo}
-                successMessage={`Conteúdo do story ${slide.number} copiado!`}
-              />
+              </p>
             </div>
 
             {/* Dispositivo de Engajamento */}
@@ -173,15 +148,25 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
                 <div className="w-2 h-2 bg-yellow-400 rounded-full aurora-pulse"></div>
                 <span className="text-xs font-medium text-yellow-400">Dica Leandro Ladeira</span>
               </div>
-              <div className="text-slate-300 text-xs italic aurora-body whitespace-pre-wrap">
+              <p className="text-slate-300 text-xs italic aurora-body">
                 {getTipByType(slide.tipo)}
-              </div>
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
     </motion.div>
   );
+};
+
+const getTipByType = (tipo: string): string => {
+  const tips = {
+    gancho: "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll.",
+    erro: "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'",
+    virada: "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta.",
+    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício."
+  };
+  return tips[tipo as keyof typeof tips] || "Mantenha o foco na metodologia Stories 10x.";
 };
 
 export default Stories10xSlideCard;

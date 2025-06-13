@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
-import ImprovedScriptFormatter from './components/ImprovedScriptFormatter';
+import ScriptFormatter from './components/ScriptFormatter';
 import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay';
 import DisneyTransformation from './components/DisneyTransformation';
 import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
@@ -159,14 +158,9 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     );
   }
 
-  // CORREÇÃO CRÍTICA: Garantir que mentor é string antes de usar .includes()
-  const mentorString = typeof script.mentor === 'string' ? script.mentor : String(script.mentor || 'Criativo');
-  const isDisneyApplied = script.disney_applied || mentorString.includes('Disney') || mentorString.includes('Walt');
-  const mentorNickname = getMentorNickname(mentorString);
-  
-  // Calcular tempo de leitura de forma segura
-  const scriptContent = script.roteiro || script.content || '';
-  const estimatedTime = Math.round((scriptContent.split(/\s+/).length / 150) * 60);
+  const isDisneyApplied = script.disney_applied || script.mentor?.includes('Disney') || script.mentor?.includes('Walt');
+  const mentorNickname = getMentorNickname(script.mentor || 'Criativo');
+  const estimatedTime = Math.round((script.roteiro.split(/\s+/).length / 150) * 60);
   const isWithinTimeLimit = estimatedTime <= 60;
 
   return (
@@ -177,7 +171,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
       />
       
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header Melhorado */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -191,33 +185,27 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-bold aurora-text-gradient mb-2">
-                ✨ Roteiro FLUIDA Concluído!
+              <h1 className="text-3xl font-bold text-slate-50">
+                ✨ Seu Roteiro FLUIDA Está Pronto!
               </h1>
-              <div className="flex items-center justify-center gap-4 flex-wrap">
-                <p className="text-slate-300">
-                  Criado por: <strong className="text-aurora-electric-purple">{mentorNickname}</strong>
+              <div className="flex items-center justify-center gap-4 mt-2">
+                <p className="text-slate-400">
+                  Criado por: <strong>{mentorNickname}</strong>
                 </p>
-                <Badge className={`${
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
                   isWithinTimeLimit 
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30' 
-                    : 'bg-red-500/20 text-red-400 border-red-500/30'
-                } aurora-glass`}>
-                  <Clock className="h-3 w-3 mr-1" />
-                  {estimatedTime}s leitura
-                </Badge>
-                {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
-                  <Badge className="aurora-glass border-indigo-500/30 text-indigo-400">
-                    <Zap className="h-3 w-3 mr-1" />
-                    {script.equipamentos_utilizados.length} equipamento(s)
-                  </Badge>
-                )}
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  <Clock className="h-3 w-3" />
+                  {estimatedTime}s
+                </div>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Roteiro Formatado - NOVO COMPONENTE */}
+        {/* Roteiro Principal */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -227,14 +215,20 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  🎬 Seu Roteiro Profissional
+                  🎬 Roteiro Final
+                  {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      <Zap className="h-3 w-3 mr-1" />
+                      {script.equipamentos_utilizados.length} equipamento(s)
+                    </Badge>
+                  )}
                 </span>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCopyScript}
-                    className="text-xs aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
+                    className="text-xs"
                   >
                     <Copy className="h-3 w-3 mr-1" />
                     Copiar
@@ -243,7 +237,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={handleDownloadScript}
-                    className="text-xs aurora-glass border-aurora-sage/30 text-aurora-sage hover:bg-aurora-sage/10"
+                    className="text-xs"
                   >
                     <Download className="h-3 w-3 mr-1" />
                     Baixar
@@ -252,7 +246,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ImprovedScriptFormatter script={script} />
+              <ScriptFormatter script={script} />
             </CardContent>
           </Card>
         </motion.div>
@@ -376,75 +370,89 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           >
             <Card className="aurora-glass border-aurora-electric-purple/30">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <CheckCircle className="h-6 w-6 text-green-400" />
+                <CardTitle className="text-white text-lg flex items-center gap-2">
                   🚀 Próximos Passos
+                  <Badge variant="outline" className="text-xs bg-green-500/20 border-green-500 text-green-400">
+                    Aprovado ✅
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Imagens Criativas */}
-                  <Button
-                    onClick={handleGenerateImages}
-                    disabled={isGeneratingImages}
-                    variant="outline"
-                    className="h-auto p-4 flex flex-col items-center gap-3 border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
-                  >
-                    {isGeneratingImages ? (
-                      <Loader2 className="h-8 w-8 animate-spin" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8" />
-                    )}
-                    <div className="text-center">
-                      <div className="font-semibold">🎨 Imagens Criativas</div>
-                      <div className="text-xs opacity-80">Arte digital e design criativo</div>
-                    </div>
-                  </Button>
+              <CardContent className="space-y-4">
+                {/* Seção de Geração de Imagens */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-white">📸 Imagens Fotográficas (Recomendado)</h4>
+                    <Button
+                      onClick={handleGeneratePhotographicImages}
+                      disabled={isProcessing || isGeneratingPhotos}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      {isGeneratingPhotos ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4 mr-2" />
+                      )}
+                      {script.formato === 'carrossel' ? 'Gerar 5 Fotos Realistas' : 'Gerar Foto Realista'}
+                    </Button>
+                    <p className="text-xs text-green-400">
+                      ✨ Sistema anti-alucinação com equipamentos reais
+                    </p>
+                  </div>
 
-                  {/* Imagens Fotográficas */}
-                  <Button
-                    onClick={handleGeneratePhotographicImages}
-                    disabled={isGeneratingPhotos}
-                    variant="outline"
-                    className="h-auto p-4 flex flex-col items-center gap-3 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
-                  >
-                    {isGeneratingPhotos ? (
-                      <Loader2 className="h-8 w-8 animate-spin" />
-                    ) : (
-                      <Camera className="h-8 w-8" />
-                    )}
-                    <div className="text-center">
-                      <div className="font-semibold">📸 Imagens Realistas</div>
-                      <div className="text-xs opacity-80">Fotos realistas de clínica</div>
-                    </div>
-                  </Button>
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-white">🎨 Imagens Artísticas</h4>
+                    <Button
+                      onClick={handleGenerateImages}
+                      disabled={isProcessing || isGeneratingImages}
+                      variant="outline"
+                      className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
+                    >
+                      {isGeneratingImages ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                      )}
+                      {script.formato === 'carrossel' ? 'Gerar 5 Imagens Artísticas' : 'Gerar Imagem Artística'}
+                    </Button>
+                    <p className="text-xs text-purple-400">
+                      🎨 Estilo criativo e artístico
+                    </p>
+                  </div>
+                </div>
 
-                  {/* Áudio (se aplicável) */}
+                {/* Outras ações */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-aurora-electric-purple/20">
+                  {/* Mostrar áudio apenas para formatos de vídeo */}
                   {isVideoFormat() && (
                     <Button
                       onClick={() => onGenerateAudio(script)}
+                      disabled={isProcessing}
                       variant="outline"
-                      className="h-auto p-4 flex flex-col items-center gap-3 border-green-500/50 text-green-300 hover:bg-green-500/10"
                     >
-                      <Mic className="h-8 w-8" />
-                      <div className="text-center">
-                        <div className="font-semibold">🎙️ Áudio</div>
-                        <div className="text-xs opacity-80">Narração do roteiro</div>
-                      </div>
+                      <Mic className="h-4 w-4 mr-2" />
+                      Gerar Áudio
                     </Button>
                   )}
 
-                  {/* Novo Roteiro */}
+                  {!isDisneyApplied && (
+                    <Button
+                      onClick={handleApplyDisney}
+                      disabled={isProcessing || disneyAnimating}
+                      variant="outline"
+                      className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                    >
+                      <Castle className="h-4 w-4 mr-2" />
+                      {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
+                    </Button>
+                  )}
+
                   <Button
                     onClick={onNewScript}
+                    disabled={isProcessing}
                     variant="outline"
-                    className="h-auto p-4 flex flex-col items-center gap-3 border-slate-500/50 text-slate-300 hover:bg-slate-500/10"
                   >
-                    <RefreshCw className="h-8 w-8" />
-                    <div className="text-center">
-                      <div className="font-semibold">🔄 Novo Roteiro</div>
-                      <div className="text-xs opacity-80">Criar nova versão</div>
-                    </div>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Novo Roteiro
                   </Button>
                 </div>
               </CardContent>
@@ -452,34 +460,51 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
           </motion.div>
         )}
 
-        {/* Modais de Geração de Imagem */}
-        <ImageGenerationModal
-          isOpen={showImageModal}
-          onClose={() => setShowImageModal(false)}
-          isGenerating={isGeneratingImages}
-          generatedImages={generatedImages}
-          progress={progress}
-          errors={errors}
-          onDownloadImage={downloadImage}
-          onDownloadAll={downloadAllImages}
-          onRetryFailed={handleRetryFailedImages}
-          formato={script.formato}
-        />
-
-        <PhotographicImageModal
-          isOpen={showPhotographicModal}
-          onClose={() => setShowPhotographicModal(false)}
-          isGenerating={isGeneratingPhotos}
-          generatedImages={photographicImages}
-          slidePrompts={slidePrompts}
-          progress={photoProgress}
-          errors={photoErrors}
-          onDownloadImage={downloadPhoto}
-          onDownloadAll={downloadAllPhotos}
-          onRetryFailed={handleRetryFailedPhotos}
-          formato={script.formato}
-        />
+        {/* Elementos Universais */}
+        {script.elementos_aplicados && isApproved && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="w-full"
+          >
+            <ElementosUniversaisDisplay
+              elementos={script.elementos_aplicados}
+              mentor={mentorNickname}
+              especialidades={script.especialidades_aplicadas}
+            />
+          </motion.div>
+        )}
       </div>
+
+      {/* Modal de Geração de Imagens Artísticas */}
+      <ImageGenerationModal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        isGenerating={isGeneratingImages}
+        progress={progress}
+        generatedImages={generatedImages}
+        errors={errors}
+        onDownloadImage={downloadImage}
+        onDownloadAll={downloadAllImages}
+        onRetryFailed={handleRetryFailedImages}
+        formato={script.formato}
+      />
+
+      {/* Modal de Geração de Imagens Fotográficas */}
+      <PhotographicImageModal
+        isOpen={showPhotographicModal}
+        onClose={() => setShowPhotographicModal(false)}
+        isGenerating={isGeneratingPhotos}
+        progress={photoProgress}
+        generatedImages={photographicImages}
+        slidePrompts={slidePrompts}
+        errors={photoErrors}
+        onDownloadImage={downloadPhoto}
+        onDownloadAll={downloadAllPhotos}
+        onRetryFailed={handleRetryFailedPhotos}
+        formato={script.formato}
+      />
     </>
   );
 };

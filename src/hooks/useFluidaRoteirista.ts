@@ -5,15 +5,13 @@ import { generateScript } from '@/services/supabaseService';
 import { useClinicSegmentation } from './useClinicSegmentation';
 import { useDiagnosticPersistence } from './useDiagnosticPersistence';
 import { supabase } from '@/integrations/supabase/client';
-import { inferMentorFromAnswers } from '@/components/fluidaroteirista/utils/mentorInference';
-import { buildSystemPrompt } from '@/components/fluidaroteirista/utils/promptBuilders';
 
 interface FluidaScriptRequest {
   tema: string;
   equipamentos: string[];
   objetivo?: string;
   mentor?: string;
-  formato?: 'carrossel' | 'stories_10x' | 'imagem';
+  formato?: 'carrossel' | 'stories' | 'imagem';
   canal?: string;
   estilo?: string;
 }
@@ -98,7 +96,6 @@ export const useFluidaRoteirista = () => {
 
   const generateFluidaScript = async (request: FluidaScriptRequest): Promise<FluidaScriptResult[]> => {
     console.log('🎬 FLUIDAROTEIRISTA - Iniciando geração', request);
-    console.log('📝 [useFluidaRoteirista] Formato recebido:', request.formato);
     
     setIsGenerating(true);
     
@@ -116,80 +113,91 @@ export const useFluidaRoteirista = () => {
         return [];
       }
 
-      // CORREÇÃO CRÍTICA: Para Stories 10x, usar prompt específico da metodologia
-      let systemPrompt: string;
-      let userPrompt: string;
+      // Usar dados do diagnóstico se disponível
+      const diagnosticData: DiagnosticData = currentSession?.state || {};
+      const clinicType = diagnosticData.clinicType || 'estetico';
+      
+      // Construir contexto enriquecido
+      const enrichedContext = {
+        tipo_de_clinica: clinicType,
+        especialidade: diagnosticData.medicalSpecialty || diagnosticData.aestheticFocus || '',
+        equipamentos: equipmentDetails.map(eq => eq.nome).join(', '),
+        protocolo: diagnosticData.medicalBestSeller || diagnosticData.aestheticBestSeller || '',
+        ticket_medio: diagnosticData.medicalTicket || diagnosticData.aestheticTicket || '',
+        publico_ideal: diagnosticData.targetAudience || '',
+        estilo_clinica: diagnosticData.medicalClinicStyle || diagnosticData.aestheticClinicStyle || '',
+        estilo_linguagem: diagnosticData.communicationStyle || '',
+        mentor_nome: request.mentor || 'Criativo'
+      };
 
-      if (request.formato === 'stories_10x') {
-        console.log('🎯 [useFluidaRoteirista] Usando prompt Stories 10x específico');
+      // Prompt FLUIDAROTEIRISTA com integração de equipamentos
+      const systemPrompt = `
+        Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
         
-        // Importar e usar o prompt específico do Stories 10x
-        const { buildStories10xPrompt } = await import('@/components/fluidaroteirista/utils/stories10xPromptBuilder');
-        const stories10xPrompts = buildStories10xPrompt(
-          request.tema,
-          equipmentDetails,
-          request.objetivo || 'conectar',
-          request.estilo || 'conversacional'
-        );
+        Sua missão é gerar roteiros criativos, impactantes e prontos para redes sociais.
         
-        systemPrompt = stories10xPrompts.systemPrompt;
-        userPrompt = stories10xPrompts.userPrompt;
-      } else {
-        // CORREÇÃO CRÍTICA: Preparar dados para inferência de mentor (outros formatos)
-        const akinatorAnswers = {
-          formato: request.formato || 'carrossel',
-          objetivo: request.objetivo || 'atrair',
-          estilo: request.estilo || 'criativo',
-          canal: request.canal || 'instagram',
-          tema: request.tema
-        };
+        Contexto da clínica:
+        - Tipo: ${enrichedContext.tipo_de_clinica}
+        - Especialidade: ${enrichedContext.especialidade}
+        - Equipamentos: ${enrichedContext.equipamentos}
+        - Protocolo mais vendido: ${enrichedContext.protocolo}
+        - Ticket médio: ${enrichedContext.ticket_medio}
+        - Público ideal: ${enrichedContext.publico_ideal}
+        - Estilo da clínica: ${enrichedContext.estilo_clinica}
+        - Mentor: ${enrichedContext.mentor_nome}
+        
+        ${equipmentDetails.length > 0 ? `
+        🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
+        ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
+           - Benefícios: ${eq.beneficios}
+           - Diferenciais: ${eq.diferenciais}`).join('\n')}
+        
+        🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
+        ⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.
+        ` : ''}
+        
+        ESTRUTURA OBRIGATÓRIA:
+        1. Gancho (capturar atenção)
+        2. Conflito (apresentar problema)
+        3. Virada (mostrar solução com equipamentos específicos)
+        4. CTA (chamada para ação)
+        
+        FORMATO: ${request.formato || 'carrossel'}
+        
+        Retorne APENAS JSON válido:
+        {
+          "roteiro": "Conteúdo do roteiro",
+          "formato": "carrossel/stories/imagem",
+          "emocao_central": "esperança/confiança/urgência/etc",
+          "intencao": "atrair/vender/educar/conectar",
+          "objetivo": "Objetivo específico do post",
+          "mentor": "Nome do mentor usado"
+        }
+      `;
 
-        console.log('🎯 [useFluidaRoteirista] Dados para inferência:', akinatorAnswers);
-
-        // AGUARDAR corretamente a Promise do mentor
-        const inferredMentorKey = await inferMentorFromAnswers(akinatorAnswers);
-        console.log('🎯 [useFluidaRoteirista] Mentor inferido:', inferredMentorKey);
-
-        // CORREÇÃO CRÍTICA: Usar buildSystemPrompt com sistema de técnicas
-        systemPrompt = await buildSystemPrompt(
-          equipmentDetails,
-          'akinator',
-          inferredMentorKey,
-          {
-            canal: request.canal || 'instagram',
-            formato: request.formato || 'carrossel',
-            objetivo: request.objetivo || 'atrair',
-            estilo: request.estilo || 'criativo'
-          }
-        );
-
-        userPrompt = `
+      const userPrompt = `
         Tema: ${request.tema}
         Canal: ${request.canal || 'instagram'}
         Formato: ${request.formato || 'carrossel'}
         Objetivo: ${request.objetivo || 'atrair'}
-        Estilo: ${request.estilo || 'criativo'}
+        Estilo: ${request.estilo || 'cientifico'}
         Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
         
         Crie o roteiro seguindo exatamente as especificações do formato selecionado.
-        `;
-      }
+      `;
 
-      console.log('📤 [useFluidaRoteirista] Enviando para API');
-      console.log('🎯 [useFluidaRoteirista] Formato sendo enviado:', request.formato);
-      console.log('🔧 [useFluidaRoteirista] Equipamentos:', equipmentDetails.map(eq => eq.nome));
+      console.log('📤 [useFluidaRoteirista] Enviando para API com equipamentos:', equipmentDetails.map(eq => eq.nome));
 
-      // Chamar API com dados corretos
+      // FIX: Convert equipment array to string for the API call
       const response = await generateScript({
         type: 'fluidaroteirista',
         systemPrompt,
         userPrompt,
         topic: request.tema,
-        equipment: equipmentDetails.map(eq => eq.nome).join(', '),
+        equipment: equipmentDetails.map(eq => eq.nome).join(', '), // Convert array to comma-separated string
         additionalInfo: JSON.stringify({ 
-          formato: request.formato,
-          equipmentDetails,
-          isStories10x: request.formato === 'stories_10x'
+          ...enrichedContext,
+          equipmentDetails // Passar detalhes completos
         }),
         tone: request.estilo || 'professional',
         marketingObjective: request.objetivo as any
@@ -216,58 +224,41 @@ export const useFluidaRoteirista = () => {
           
           toast({
             title: "⚠️ Equipamentos não incluídos",
-            description: `Os equipamentos ${missing.map(eq => eq.nome).join(', ')} não foram mencionados no roteiro.`,
+            description: `Os equipamentos ${missing.map(eq => eq.nome).join(', ')} não foram mencionados no roteiro. Tentando novamente...`,
             variant: "destructive"
           });
+          
+          // Por enquanto, vamos continuar mas alertar o usuário
+          console.warn('⚠️ [useFluidaRoteirista] Continuando com roteiro incompleto');
         }
       }
 
-      // Processar resposta baseada no formato
+      // Tentar parsear como JSON
       let scriptResult: FluidaScriptResult;
-      
-      if (request.formato === 'stories_10x') {
-        // Para Stories 10x, não tentar parsear como JSON - usar texto direto
+      try {
+        scriptResult = JSON.parse(response.content);
+        scriptResult.equipamentos_utilizados = equipmentDetails;
+        scriptResult.canal = request.canal || 'instagram';
+      } catch {
+        // Fallback se não for JSON válido
         scriptResult = {
           roteiro: response.content,
-          formato: 'stories_10x',
-          emocao_central: 'engajamento',
-          intencao: 'conectar',
-          objetivo: request.objetivo || 'Criar comunidade ativa',
-          mentor: 'Leandro Ladeira',
+          formato: request.formato || 'carrossel',
+          emocao_central: 'confiança',
+          intencao: 'atrair',
+          objetivo: request.objetivo || 'Atrair novos clientes',
+          mentor: request.mentor || 'Criativo',
           equipamentos_utilizados: equipmentDetails,
           canal: request.canal || 'instagram'
         };
-      } else {
-        // Tentar parsear como JSON para outros formatos
-        try {
-          scriptResult = JSON.parse(response.content);
-          scriptResult.equipamentos_utilizados = equipmentDetails;
-          scriptResult.canal = request.canal || 'instagram';
-          scriptResult.formato = request.formato || 'carrossel';
-        } catch {
-          // Fallback se não for JSON válido
-          scriptResult = {
-            roteiro: response.content,
-            formato: request.formato || 'carrossel',
-            emocao_central: 'confiança',
-            intencao: 'atrair',
-            objetivo: request.objetivo || 'Atrair novos clientes',
-            mentor: 'Criativo',
-            equipamentos_utilizados: equipmentDetails,
-            canal: request.canal || 'instagram'
-          };
-        }
       }
 
       const results = [scriptResult];
       setResults(results);
 
-      // CORREÇÃO: Melhorar mensagem de toast para Stories 10x
-      const formatoDisplay = request.formato === 'stories_10x' ? 'Stories 10x (Leandro Ladeira)' : scriptResult.formato;
-
       toast({
         title: "🎬 Roteiro FLUIDA gerado!",
-        description: `Criado: ${formatoDisplay}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
+        description: `Criado com ${scriptResult.mentor} - ${scriptResult.formato}${equipmentDetails.length > 0 ? ` (${equipmentDetails.length} equipamento(s))` : ''}`,
       });
 
       return results;

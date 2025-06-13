@@ -1,4 +1,3 @@
-
 import { generateScript } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { FluidaScriptResult, ScriptGenerationData } from '../types';
@@ -19,8 +18,8 @@ export const generateFluidaScript = async (
     console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
-  // Construir prompt do sistema com ênfase nos equipamentos - AWAIT necessário
-  const systemPrompt = await buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo',
+  // Construir prompt do sistema com ênfase nos equipamentos
+  const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo',
     {
       canal: data.canal || 'instagram',
       formato: data.formato || 'carrossel',
