@@ -1,4 +1,3 @@
-
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
 
@@ -78,25 +77,17 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
 const getFormatInstructions = (formato: string, canal: string, tempoLimite?: number, palavrasMax?: number): string => {
   const instructions = {
     stories: `
-    📱 INSTAGRAM STORIES - INSTRUÇÕES:
-    - Máximo 60 segundos total (15s por card)
-    - 4 cards máximo
-    - Texto grande e legível no mobile
-    - Call-to-action no último card
-    - Use linguagem casual e direta
-    ${tempoLimite ? `- Tempo total: ${tempoLimite}s` : ''}
-    `,
-
-    stories_10x: `
-    🔥 STORIES 10X - METODOLOGIA LEANDRO LADEIRA:
+    🔥 STORIES 10X - METODOLOGIA LEANDRO LADEIRA - INSTRUÇÕES CRÍTICAS:
     
-    📊 ESPECIFICAÇÕES TÉCNICAS:
-    - EXATAMENTE 4 stories conectados
+    🚨 REGRA OBRIGATÓRIA: EXATAMENTE 4 STORIES - NEM MAIS, NEM MENOS
+    
+    📊 ESPECIFICAÇÕES TÉCNICAS RÍGIDAS:
+    - EXATAMENTE 4 stories conectados (OBRIGATÓRIO)
     - MÁXIMO 40 segundos total (10s por story)
     - Sequência narrativa com dispositivos de engajamento
     - Tom: provocativo, inteligente, engraçado (estilo Leandro Ladeira)
     
-    🎯 ESTRUTURA OBRIGATÓRIA STORIES 10X:
+    🎯 ESTRUTURA OBRIGATÓRIA STORIES 10X (EXATAMENTE 4):
     Story 1: GANCHO PROVOCATIVO (3s de atenção + 7s desenvolvimento)
     - Provocação inteligente tipo "Você tá fazendo Stories como quem manda bom dia no grupo da família?"
     - Questão que para o scroll
@@ -118,6 +109,12 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Criar antecipação para próximo conteúdo
     - Ex: "Se esse roteiro valeu, compartilha com um amigo perdido no Storytelling"
     - Deixar gancho para continuar o relacionamento
+    
+    🚨 VALIDAÇÃO OBRIGATÓRIA:
+    - CONTE: Deve ter EXATAMENTE 4 stories (Story 1:, Story 2:, Story 3:, Story 4:)
+    - ESTRUTURA: Cada story deve ter conteúdo de 10 segundos
+    - DISPOSITIVOS: Pelo menos 2 dispositivos de engajamento
+    - SEQUÊNCIA: Narrativa conectada do início ao fim
     
     🧠 DISPOSITIVOS OBRIGATÓRIOS (usar pelo menos 2):
     - 🔥 Emoji foguinho: "manda um foguinho nos comentários"
@@ -160,6 +157,7 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Se equipamentos foram selecionados, OBRIGATÓRIO mostrá-los nas descrições visuais E no texto
     - Mencione equipamentos pelos nomes REAIS no roteiro
     `,
+    
     
     post_estatico: `
     🖼️ POST ESTÁTICO - INSTRUÇÕES:
@@ -223,22 +221,14 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
 const getOutputInstructions = (formato: string): string => {
   const outputs = {
     stories: `
+    🔥 STORIES 10X - OUTPUT OBRIGATÓRIO - VALIDAÇÃO CRÍTICA:
+    
+    🚨 ATENÇÃO: DEVE TER EXATAMENTE 4 STORIES - CONTE ANTES DE ENVIAR
+    
     Retorne JSON:
     {
-      "roteiro": "Card 1: [texto]\nCard 2: [texto]\nCard 3: [texto]\nCard 4: [CTA]",
+      "roteiro": "Story 1: [Gancho provocativo - 10s]\n[Conteúdo do Story 1 com dispositivo incluído]\n\nStory 2: [Erro comum + identificação - 10s]\n[Conteúdo do Story 2 com tom humorístico]\n\nStory 3: [Virada + dispositivo de engajamento - 10s]\n[Conteúdo do Story 3 com OBRIGATÓRIO dispositivo 🔥/📊/❓ + equipamentos se selecionados]\n\nStory 4: [CTA suave + antecipação - 10s]\n[Conteúdo do Story 4 com compartilhamento/reciprocidade]",
       "formato": "stories",
-      "cards_total": 4,
-      "tempo_por_card": "15s",
-      "sugestao_visual": "Descrição visual para cada card"
-    }
-    `,
-
-    stories_10x: `
-    🔥 STORIES 10X - OUTPUT OBRIGATÓRIO:
-    Retorne JSON:
-    {
-      "roteiro": "Story 1: [Gancho provocativo - 10s]\n[Dispositivo incluído: emoji/enquete/pergunta]\n\nStory 2: [Erro comum + identificação - 10s]\n[Tom humorístico e identificação]\n\nStory 3: [Virada + dispositivo de engajamento - 10s]\n[OBRIGATÓRIO: dispositivo 🔥/📊/❓ + equipamentos se selecionados]\n\nStory 4: [CTA suave + antecipação - 10s]\n[Compartilhamento/reciprocidade]",
-      "formato": "stories_10x",
       "metodologia": "leandro_ladeira",
       "stories_total": 4,
       "tempo_total": "40s",
@@ -247,12 +237,18 @@ const getOutputInstructions = (formato: string): string => {
       "engajamento_esperado": "alto"
     }
     
-    VALIDAÇÃO STORIES 10X:
-    - Verificar se tem EXATAMENTE 4 stories
-    - Confirmar tempo total máximo 40s (10s por story)
-    - Validar se pelo menos 2 dispositivos foram incluídos
-    - Checar tom provocativo mas educativo
+    🚨 VALIDAÇÃO FINAL OBRIGATÓRIA:
+    - Conte os "Story X:" no seu roteiro
+    - DEVE ter exatamente: "Story 1:", "Story 2:", "Story 3:", "Story 4:"
+    - Cada story deve ter conteúdo próprio
+    - Pelo menos 2 dispositivos de engajamento incluídos
     - Se equipamentos selecionados: DEVEM aparecer no Story 3
+    
+    ❌ REJEITAR SE:
+    - Menos de 4 stories
+    - Mais de 4 stories  
+    - Stories sem conteúdo
+    - Falta de dispositivos de engajamento
     `,
     
     carrossel: `
@@ -270,6 +266,7 @@ const getOutputInstructions = (formato: string): string => {
     - Confirme estrutura: DEVE ter "Slide:", "Texto:", "Imagem:" SEM hífens
     - Se equipamentos selecionados: DEVEM aparecer com nomes REAIS no roteiro
     `,
+    
     
     post_estatico: `
     Retorne JSON:
@@ -375,4 +372,285 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
       "disney_applied": true
     }
   `;
+};
+```
+
+```typescript
+export interface Stories10xSlide {
+  number: number;
+  titulo: string;
+  conteudo: string;
+  dispositivo?: string;
+  tempo: string;
+  tipo: 'gancho' | 'erro' | 'virada' | 'cta';
+}
+
+// Função para limpar o conteúdo do texto
+const cleanContent = (content: string): string => {
+  return content
+    .replace(/\n\n+/g, ' ')
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
+  console.log('🔍 [Stories10xParser] Iniciando parse CRÍTICO do roteiro:', roteiro);
+  
+  // CRÍTICO: Padrões rigorosos para garantir detecção de 4 stories
+  const strictStoryPatterns = [
+    /Story\s*1[:\s-]+(.*?)(?=Story\s*2|$)/gis,
+    /Story\s*2[:\s-]+(.*?)(?=Story\s*3|$)/gis,
+    /Story\s*3[:\s-]+(.*?)(?=Story\s*4|$)/gis,
+    /Story\s*4[:\s-]+(.*?)$/gis
+  ];
+
+  const slides: Stories10xSlide[] = [];
+  const storyTypes: Array<'gancho' | 'erro' | 'virada' | 'cta'> = ['gancho', 'erro', 'virada', 'cta'];
+  const storyTitles = [
+    'Gancho Provocativo',
+    'Erro Comum',
+    'Virada + Dispositivo',
+    'CTA + Antecipação'
+  ];
+
+  console.log('🚨 [Stories10xParser] VALIDAÇÃO CRÍTICA: Procurando por exatamente 4 stories...');
+
+  // PRIMEIRO: Tentar padrões rigorosos
+  strictStoryPatterns.forEach((pattern, index) => {
+    const match = pattern.exec(roteiro);
+    if (match && match[1]) {
+      const rawContent = match[1].trim();
+      const cleanedContent = cleanContent(rawContent);
+      
+      // Detectar dispositivos no conteúdo
+      const dispositivos = detectarDispositivos(cleanedContent);
+      
+      slides.push({
+        number: index + 1,
+        titulo: storyTitles[index],
+        conteudo: cleanedContent,
+        dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
+        tempo: '10s',
+        tipo: storyTypes[index]
+      });
+      
+      console.log(`✅ [Stories10xParser] Story ${index + 1} detectado:`, {
+        titulo: storyTitles[index],
+        conteudo: cleanedContent.substring(0, 50) + '...',
+        dispositivos
+      });
+    } else {
+      console.warn(`⚠️ [Stories10xParser] Story ${index + 1} NÃO ENCONTRADO no padrão rigoroso`);
+    }
+  });
+
+  // CRÍTICO: Se não encontrou exatamente 4, tentar padrões alternativos
+  if (slides.length !== 4) {
+    console.error(`❌ [Stories10xParser] PROBLEMA CRÍTICO: Encontrados ${slides.length} stories, esperados 4`);
+    console.log('🔄 [Stories10xParser] Tentando padrões alternativos...');
+    
+    // Limpar slides anteriores e tentar novamente
+    slides.length = 0;
+    
+    // Padrão alternativo mais flexível
+    const alternativePatterns = [
+      /(?:Story\s*1|Gancho)[:\s-]+(.*?)(?=(?:Story\s*2|Erro)|$)/gis,
+      /(?:Story\s*2|Erro)[:\s-]+(.*?)(?=(?:Story\s*3|Virada)|$)/gis,
+      /(?:Story\s*3|Virada)[:\s-]+(.*?)(?=(?:Story\s*4|CTA)|$)/gis,
+      /(?:Story\s*4|CTA)[:\s-]+(.*?)$/gis
+    ];
+
+    alternativePatterns.forEach((pattern, index) => {
+      const match = pattern.exec(roteiro);
+      if (match && match[1]) {
+        const rawContent = match[1].trim();
+        const cleanedContent = cleanContent(rawContent);
+        const dispositivos = detectarDispositivos(cleanedContent);
+        
+        slides.push({
+          number: index + 1,
+          titulo: storyTitles[index],
+          conteudo: cleanedContent,
+          dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
+          tempo: '10s',
+          tipo: storyTypes[index]
+        });
+        
+        console.log(`🔄 [Stories10xParser] Story ${index + 1} recuperado com padrão alternativo`);
+      }
+    });
+  }
+
+  // FALLBACK FINAL: Se ainda não tem 4, forçar criação
+  if (slides.length !== 4) {
+    console.error(`❌ [Stories10xParser] FALLBACK CRÍTICO: Ainda temos ${slides.length} stories, forçando 4`);
+    return forceCreate4Stories(roteiro);
+  }
+
+  console.log(`✅ [Stories10xParser] SUCESSO: Parse concluído com exatamente ${slides.length} stories`);
+  return slides;
+};
+
+const forceCreate4Stories = (roteiro: string): Stories10xSlide[] => {
+  console.log('🚨 [Stories10xParser] FORÇANDO CRIAÇÃO DE 4 STORIES...');
+  
+  const cleanedRoteiro = cleanContent(roteiro);
+  const words = cleanedRoteiro.split(' ').filter(word => word.trim() !== '');
+  const slides: Stories10xSlide[] = [];
+  
+  // Dividir em 4 partes iguais
+  const wordsPerStory = Math.ceil(words.length / 4);
+  const storyTypes: Array<'gancho' | 'erro' | 'virada' | 'cta'> = ['gancho', 'erro', 'virada', 'cta'];
+  const storyTitles = [
+    'Gancho Provocativo',
+    'Erro Comum', 
+    'Virada + Dispositivo',
+    'CTA + Antecipação'
+  ];
+
+  for (let i = 0; i < 4; i++) {
+    const startIndex = i * wordsPerStory;
+    const endIndex = Math.min(startIndex + wordsPerStory, words.length);
+    const storyWords = words.slice(startIndex, endIndex);
+    let content = storyWords.join(' ').trim();
+    
+    // Se conteúdo muito curto, usar fallback
+    if (content.length < 20) {
+      const fallbackContent = [
+        'Você já se perguntou por que alguns resultados não aparecem? Vou te contar um segredo...',
+        'O erro que 90% das pessoas cometem: acham que basta fazer o procedimento uma vez.',
+        'Aqui está a virada: nossos equipamentos garantem resultados duradouros e naturais.',
+        'Quer transformar sua vida? Agende sua consulta agora! 📲'
+      ];
+      content = fallbackContent[i];
+    }
+    
+    const dispositivos = detectarDispositivos(content);
+    
+    slides.push({
+      number: i + 1,
+      titulo: storyTitles[i],
+      conteudo: content,
+      dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
+      tempo: '10s',
+      tipo: storyTypes[i]
+    });
+    
+    console.log(`🔧 [Stories10xParser] Story ${i + 1} FORÇADO criado:`, content.substring(0, 50) + '...');
+  }
+
+  console.log('✅ [Stories10xParser] FORÇAMENTO CONCLUÍDO: 4 stories garantidos');
+  return slides;
+};
+
+const detectarDispositivos = (content: string): string[] => {
+  const dispositivos: string[] = [];
+  const contentLower = content.toLowerCase();
+
+  // Detectar diferentes tipos de dispositivos
+  if (contentLower.includes('foguinho') || contentLower.includes('🔥')) {
+    dispositivos.push('Emoji Foguinho 🔥');
+  }
+  
+  if (contentLower.includes('enquete') || contentLower.includes('pergunta:')) {
+    dispositivos.push('Enquete 📊');
+  }
+  
+  if (contentLower.includes('manda') && (contentLower.includes('comentário') || contentLower.includes('dm'))) {
+    dispositivos.push('Reciprocidade 🔄');
+  }
+  
+  if (contentLower.includes('compartilha') || contentLower.includes('marca um amigo')) {
+    dispositivos.push('Compartilhamento 📲');
+  }
+  
+  if (contentLower.includes('qual') && contentLower.includes('?')) {
+    dispositivos.push('Pergunta Direta ❓');
+  }
+
+  return dispositivos;
+};
+
+// Utilitário para validar se o roteiro segue a metodologia Stories 10x
+export const validateStories10x = (slides: Stories10xSlide[]): {
+  isValid: boolean;
+  issues: string[];
+  score: number;
+} => {
+  const issues: string[] = [];
+  let score = 0;
+
+  // CRÍTICO: Validar número exato de stories
+  if (slides.length !== 4) {
+    issues.push(`CRÍTICO: Devem ser exatamente 4 stories (encontrados: ${slides.length})`);
+    console.error(`❌ [validateStories10x] FALHA CRÍTICA: ${slides.length} stories encontrados, esperados 4`);
+  } else {
+    score += 40; // Peso maior para ter exatamente 4
+    console.log('✅ [validateStories10x] 4 stories confirmados');
+  }
+
+  // Validar se cada story tem conteúdo substancial
+  slides.forEach((slide, index) => {
+    if (!slide.conteudo || slide.conteudo.trim() === '') {
+      issues.push(`Story ${index + 1} está vazio`);
+    } else if (slide.conteudo.length < 20) {
+      issues.push(`Story ${index + 1} muito curto (menos de 20 caracteres)`);
+    } else {
+      score += 10; // 10 pontos por story com conteúdo adequado
+    }
+  });
+
+  // Validar presença de dispositivos (crítico no Story 3)
+  const story3 = slides.find(s => s.number === 3);
+  if (story3 && !story3.dispositivo) {
+    issues.push('Story 3 DEVE conter dispositivo de engajamento');
+  } else if (story3?.dispositivo) {
+    score += 20;
+  }
+
+  // Validar características específicas
+  const story1 = slides.find(s => s.number === 1);
+  if (story1 && !isProvocativeHook(story1.conteudo)) {
+    issues.push('Story 1 deve ter gancho provocativo');
+  } else if (story1) {
+    score += 15;
+  }
+
+  const story4 = slides.find(s => s.number === 4);
+  if (story4 && !hasCTA(story4.conteudo)) {
+    issues.push('Story 4 deve conter call-to-action');
+  } else if (story4) {
+    score += 10;
+  }
+
+  return {
+    isValid: issues.length === 0,
+    issues,
+    score: Math.min(score, 100)
+  };
+};
+
+const isProvocativeHook = (content: string): boolean => {
+  const provocativeWords = [
+    'você', 'vocês', 'será que', 'imagine', 'já pensou',
+    'por que', 'como', 'quando', 'onde', 'quem',
+    'nunca', 'sempre', 'todo mundo', 'ninguém'
+  ];
+  
+  const contentLower = content.toLowerCase();
+  return provocativeWords.some(word => contentLower.includes(word)) ||
+         content.includes('?') ||
+         contentLower.includes('para');
+};
+
+const hasCTA = (content: string): boolean => {
+  const ctaWords = [
+    'compartilha', 'marca', 'manda', 'clica', 'acesse',
+    'vem', 'vamos', 'bora', 'chama', 'liga',
+    'agenda', 'agende', 'entre em contato'
+  ];
+  
+  const contentLower = content.toLowerCase();
+  return ctaWords.some(word => contentLower.includes(word));
 };
