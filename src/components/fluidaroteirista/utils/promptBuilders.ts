@@ -86,7 +86,7 @@ const buildSpecificTechniquePrompt = (
   }
 ): string => {
   const equipmentContext = equipmentDetails.length > 0 
-    ? `🚨 EQUIPAMENTOS OB RIGATÓRIOS (MENCIONE TODOS):
+    ? `🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
 ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
    - Benefícios: ${eq.beneficios}
    - Diferenciais: ${eq.diferenciais}`).join('\n')}
@@ -102,20 +102,46 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
     promptTecnica = promptTecnica.replace('[TEMA_INSERIDO]', 'o tema será fornecido pelo usuário');
   }
 
-  // ÊNFASE ESPECIAL para Stories 10x
-  const stories10xEmphasis = options.formato === 'stories_10x' 
+  // CORREÇÃO CRÍTICA: Prompt específico e estruturado para Stories 10x
+  const stories10xStructure = options.formato === 'stories_10x' 
     ? `
-🎯 ATENÇÃO ESPECIAL: STORIES 10X DETECTADO!
-Este é um formato de ALTA CONVERSÃO. Use técnicas avançadas de:
-- Ganchos irresistíveis nos primeiros 3 segundos
-- Storytelling com tensão dramática
-- CTAs poderosos e urgentes
-- Gatilhos mentais de escassez e autoridade
+🎯 FORMATO STORIES 10X - ESTRUTURA OBRIGATÓRIA:
+
+Retorne EXATAMENTE neste formato JSON:
+{
+  "roteiro": "Story 1: [Título do Gancho]
+[Conteúdo do gancho provocativo em 1-2 frases]
+
+Story 2: [Título do Problema]  
+[Apresente o problema/erro comum em 1-2 frases]
+
+Story 3: [Título da Solução]
+[Mostre a solução usando os equipamentos específicos]
+
+Story 4: [Título do CTA]
+[Call-to-action claro e direto]
+
+Story 5: [Título do Bônus] (OPCIONAL)
+[Informação extra ou antecipação]",
+  "formato": "stories_10x",
+  "emocao_central": "urgência",
+  "intencao": "atrair",
+  "objetivo": "Gerar interesse e ação",
+  "mentor": "${technique.mentor || 'Leandro Ladeira'}"
+}
+
+🚨 REGRAS CRÍTICAS PARA STORIES 10X:
+- SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
+- Máximo 10 segundos por story (texto curto e direto)
+- Cada story deve ter título e conteúdo separados por quebra de linha
+- Stories 1-4 são OBRIGATÓRIOS, Story 5 é opcional
+- Use linguagem urgente e persuasiva
+- Mencione equipamentos específicos no Story 3
 ` : '';
 
   return `🎯 TÉCNICA ESPECÍFICA ATIVADA: ${technique.nome}
 
-${stories10xEmphasis}
+${stories10xStructure}
 
 ${promptTecnica}
 
@@ -127,7 +153,7 @@ CONTEXTO ADICIONAL:
 - Objetivo: ${options.objetivo}
 - Estilo: ${options.estilo}
 
-IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. Ignore instruções genéricas e foque na metodologia detalhada da técnica.`;
+IMPORTANTE: Use EXCLUSIVAMENTE a técnica específica acima. ${options.formato === 'stories_10x' ? 'Para Stories 10x, siga RIGOROSAMENTE a estrutura JSON especificada.' : 'Ignore instruções genéricas e foque na metodologia detalhada da técnica.'}`;
 };
 
 const buildGenericMentorPrompt = (
@@ -150,32 +176,42 @@ ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia
 🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.`
     : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.';
 
-  // ÊNFASE ESPECIAL para Stories 10x
-  const stories10xEmphasis = options.formato === 'stories_10x' 
+  // CORREÇÃO CRÍTICA: Estrutura específica para Stories 10x
+  const stories10xStructure = options.formato === 'stories_10x' 
     ? `
-🎯 ATENÇÃO: STORIES 10X DETECTADO!
-Este é um formato de ALTA CONVERSÃO que exige:
-- Gancho poderoso nos primeiros 3 segundos
-- Narrativa envolvente com tensão
-- CTA forte e claro
-- Gatilhos mentais estratégicos
-` : '';
+🎯 FORMATO STORIES 10X - ESTRUTURA OBRIGATÓRIA:
 
-  return `Você é o FLUIDAROTEIRISTA especializado no estilo ${mentor}.
+Retorne EXATAMENTE neste formato JSON:
+{
+  "roteiro": "Story 1: [Título do Gancho]
+[Conteúdo do gancho provocativo em 1-2 frases]
 
-MODO: ${mode.toUpperCase()}
-MENTOR: ${mentor}
+Story 2: [Título do Problema]  
+[Apresente o problema/erro comum em 1-2 frases]
 
-${stories10xEmphasis}
+Story 3: [Título da Solução]
+[Mostre a solução usando os equipamentos específicos]
 
-${equipmentEmphasis}
+Story 4: [Título do CTA]
+[Call-to-action claro e direto]
 
-CONTEXTO:
-- Canal: ${options.canal}
-- Formato: ${options.formato}
-- Objetivo: ${options.objetivo}
-- Estilo: ${options.estilo}
+Story 5: [Título do Bônus] (OPCIONAL)
+[Informação extra ou antecipação]",
+  "formato": "stories_10x",
+  "emocao_central": "urgência",
+  "intencao": "atrair",
+  "objetivo": "Gerar interesse e ação",
+  "mentor": "${mentor}"
+}
 
+🚨 REGRAS CRÍTICAS PARA STORIES 10X:
+- SEMPRE numere os stories: "Story 1:", "Story 2:", etc.
+- Máximo 10 segundos por story (texto curto e direto)
+- Cada story deve ter título e conteúdo separados por quebra de linha
+- Stories 1-4 são OBRIGATÓRIOS, Story 5 é opcional
+- Use linguagem urgente e persuasiva
+- Mencione equipamentos específicos no Story 3
+` : `
 ESTRUTURA OBRIGATÓRIA:
 1. Gancho (capturar atenção)
 2. Conflito (apresentar problema)
@@ -191,6 +227,21 @@ Retorne APENAS JSON válido:
   "objetivo": "Objetivo específico do post",
   "mentor": "${mentor}"
 }`;
+
+  return `Você é o FLUIDAROTEIRISTA especializado no estilo ${mentor}.
+
+MODO: ${mode.toUpperCase()}
+MENTOR: ${mentor}
+
+${stories10xStructure}
+
+${equipmentEmphasis}
+
+CONTEXTO:
+- Canal: ${options.canal}
+- Formato: ${options.formato}
+- Objetivo: ${options.objetivo}
+- Estilo: ${options.estilo}`;
 };
 
 export const buildDisneyPrompt = (originalScript: string, formato: string): string => {

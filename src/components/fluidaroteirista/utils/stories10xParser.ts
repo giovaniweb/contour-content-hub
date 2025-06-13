@@ -22,7 +22,7 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   let cleanRoteiro = sanitizeScriptStructure(roteiro);
   const slides: Stories10xSlide[] = [];
   
-  // CORREÇÃO CRÍTICA: Tentar parsear como JSON primeiro
+  // CORREÇÃO CRÍTICA: Melhorar parsing de JSON aninhado
   try {
     const jsonContent = JSON.parse(cleanRoteiro);
     if (jsonContent.roteiro) {
@@ -34,11 +34,10 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
     console.log('📝 [parseStories10xSlides] Não é JSON, usando texto direto');
   }
   
-  // Pattern melhorado para detectar stories numerados
+  // CORREÇÃO: Pattern mais robusto para detectar stories numerados
   const storyPatterns = [
-    /story\s*(\d+)\s*:?\s*([^\n]*(?:\n(?!story\s*\d)[^\n]*)*)/gi,
-    /(\d+)\s*[-.:]\s*([^\n]*(?:\n(?!^\d+\s*[-.])[^\n]*)*)/gmi,
-    /slide\s*(\d+)\s*:?\s*([^\n]*(?:\n(?!slide\s*\d)[^\n]*)*)/gi
+    /Story\s+(\d+):\s*([^\n]+)(?:\n([^\n]*(?:\n(?!Story\s+\d)[^\n]*)*)?)/gi,
+    /(\d+)\.\s*([^\n]+)(?:\n([^\n]*(?:\n(?!^\d+\.)[^\n]*)*)?)/gmi,
   ];
   
   let matches: RegExpMatchArray[] = [];
@@ -46,121 +45,136 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   // Tentar diferentes padrões
   for (const pattern of storyPatterns) {
     matches = [...cleanRoteiro.matchAll(pattern)];
-    if (matches.length > 0) {
+    if (matches.length >= 3) { // Mínimo 3 stories para considerar válido
       console.log(`📋 Stories encontrados com padrão: ${matches.length}`);
       break;
     }
   }
   
-  // Se não encontrou padrões, tentar dividir por quebras de linha e números
-  if (matches.length === 0) {
-    console.log('🔍 [parseStories10xSlides] Tentando fallback por linhas');
-    const lines = cleanRoteiro.split('\n').filter(line => line.trim());
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      // Procurar por linhas que começam com número
-      const numberMatch = line.match(/^(\d+)[.\-:\s]/);
-      if (numberMatch) {
-        const numero = parseInt(numberMatch[1]);
-        let conteudo = line.replace(/^\d+[.\-:\s]*/, '').trim();
-        
-        // Pegar próximas linhas até encontrar outro número ou fim
-        let j = i + 1;
-        while (j < lines.length && !lines[j].match(/^\d+[.\-:\s]/)) {
-          conteudo += '\n' + lines[j].trim();
-          j++;
-        }
-        
-        if (conteudo.trim()) {
-          const tipo = getStoryType(numero, conteudo);
-          const titulo = getStoryTitle(tipo, numero);
-          const tempo = getStoryTime(numero);
-          const dispositivo = detectEngagementDevice(conteudo);
-          
-          slides.push({
-            number: numero,
-            titulo,
-            conteudo: sanitizeText(conteudo),
-            tempo,
-            tipo,
-            dispositivo
-          });
-        }
-        
-        i = j - 1; // Pular linhas já processadas
-      }
-    }
-  } else {
-    // Processar matches encontrados
+  // CORREÇÃO: Processar matches encontrados de forma mais robusta
+  if (matches.length >= 3) {
     for (const match of matches) {
       const numero = parseInt(match[1]);
-      const conteudo = sanitizeText(match[2]);
+      const titulo = sanitizeText(match[2] || '');
+      const conteudo = sanitizeText(match[3] || match[2] || '');
       
-      if (!conteudo.trim()) continue;
+      if (!titulo.trim() && !conteudo.trim()) continue;
       
-      const tipo = getStoryType(numero, conteudo);
-      const titulo = getStoryTitle(tipo, numero);
+      const tipo = getStoryType(numero, titulo + ' ' + conteudo);
       const tempo = getStoryTime(numero);
-      const dispositivo = detectEngagementDevice(conteudo);
+      const dispositivo = detectEngagementDevice(titulo + ' ' + conteudo);
       
       slides.push({
         number: numero,
-        titulo,
-        conteudo: sanitizeText(conteudo),
+        titulo: titulo || getStoryTitle(tipo, numero),
+        conteudo: conteudo || titulo,
         tempo,
         tipo,
         dispositivo
       });
     }
-  }
-  
-  // FALLBACK FINAL: Se ainda não encontrou nada, criar slides baseado no conteúdo completo
-  if (slides.length === 0 && cleanRoteiro.trim()) {
-    console.log('🚨 [parseStories10xSlides] Usando fallback - criando slides do conteúdo completo');
+  } else {
+    // FALLBACK INTELIGENTE: Dividir por parágrafos naturais
+    console.log('🔍 [parseStories10xSlides] Usando fallback inteligente por parágrafos');
     
-    // Dividir o conteúdo em partes menores (aproximadamente por parágrafos)
-    const paragraphs = cleanRoteiro.split(/\n\s*\n/).filter(p => p.trim());
+    // Dividir por quebras duplas de linha ou pontos finais seguidos de quebra
+    const paragraphs = cleanRoteiro
+      .split(/\n\s*\n|\.\s*\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 10); // Filtrar parágrafos muito curtos
     
-    if (paragraphs.length > 0) {
-      paragraphs.slice(0, 5).forEach((paragraph, index) => {
-        const numero = index + 1;
-        const tipo = getStoryType(numero, paragraph);
-        const titulo = getStoryTitle(tipo, numero);
-        const tempo = getStoryTime(numero);
-        const dispositivo = detectEngagementDevice(paragraph);
+    if (paragraphs.length >= 3) {
+      // Dividir em 4-5 stories baseado no conteúdo
+      const storiesCount = Math.min(5, Math.max(4, paragraphs.length));
+      const itemsPerStory = Math.ceil(paragraphs.length / storiesCount);
+      
+      for (let i = 0; i < storiesCount; i++) {
+        const startIndex = i * itemsPerStory;
+        const endIndex = Math.min(startIndex + itemsPerStory, paragraphs.length);
+        const storyContent = paragraphs.slice(startIndex, endIndex).join('\n\n');
         
-        slides.push({
-          number: numero,
-          titulo,
-          conteudo: sanitizeText(paragraph),
-          tempo,
-          tipo,
-          dispositivo
-        });
-      });
+        if (storyContent.trim()) {
+          const numero = i + 1;
+          const tipo = getStoryType(numero, storyContent);
+          const titulo = getStoryTitle(tipo, numero);
+          const tempo = getStoryTime(numero);
+          const dispositivo = detectEngagementDevice(storyContent);
+          
+          slides.push({
+            number: numero,
+            titulo,
+            conteudo: sanitizeText(storyContent),
+            tempo,
+            tipo,
+            dispositivo
+          });
+        }
+      }
     } else {
-      // Último fallback: criar um slide único
-      slides.push({
-        number: 1,
-        titulo: 'Story 1: Gancho Provocativo',
-        conteudo: sanitizeText(cleanRoteiro),
-        tempo: '10s',
-        tipo: 'gancho',
-        dispositivo: detectEngagementDevice(cleanRoteiro)
-      });
+      // ÚLTIMO FALLBACK: Dividir texto corrido em partes iguais
+      console.log('🚨 [parseStories10xSlides] Último fallback - divisão por caracteres');
+      
+      const textLength = cleanRoteiro.length;
+      const storiesCount = 4;
+      const charsPerStory = Math.ceil(textLength / storiesCount);
+      
+      for (let i = 0; i < storiesCount; i++) {
+        const startPos = i * charsPerStory;
+        const endPos = Math.min(startPos + charsPerStory, textLength);
+        let storyContent = cleanRoteiro.substring(startPos, endPos);
+        
+        // Tentar quebrar em uma frase completa
+        if (i < storiesCount - 1) {
+          const lastSentenceEnd = storyContent.lastIndexOf('.');
+          if (lastSentenceEnd > charsPerStory * 0.5) {
+            storyContent = storyContent.substring(0, lastSentenceEnd + 1);
+          }
+        }
+        
+        if (storyContent.trim()) {
+          const numero = i + 1;
+          const tipo = getStoryType(numero, storyContent);
+          const titulo = getStoryTitle(tipo, numero);
+          const tempo = getStoryTime(numero);
+          const dispositivo = detectEngagementDevice(storyContent);
+          
+          slides.push({
+            number: numero,
+            titulo,
+            conteudo: sanitizeText(storyContent),
+            tempo,
+            tipo,
+            dispositivo
+          });
+        }
+      }
     }
   }
   
-  // Ordenar por número
-  slides.sort((a, b) => a.number - b.number);
+  // Garantir pelo menos 4 stories
+  while (slides.length < 4) {
+    const numero = slides.length + 1;
+    const tipo = getStoryType(numero, '');
+    slides.push({
+      number: numero,
+      titulo: getStoryTitle(tipo, numero),
+      conteudo: 'Conteúdo personalizado baseado no tema escolhido.',
+      tempo: '10s',
+      tipo,
+      dispositivo: undefined
+    });
+  }
   
-  console.log(`✅ Stories processados: ${slides.length}`);
-  slides.forEach(slide => {
+  // Ordenar por número e limitar a 5 stories
+  slides.sort((a, b) => a.number - b.number);
+  const finalSlides = slides.slice(0, 5);
+  
+  console.log(`✅ Stories processados: ${finalSlides.length}`);
+  finalSlides.forEach(slide => {
     console.log(`📋 Story ${slide.number}: ${slide.titulo} (${slide.conteudo.substring(0, 50)}...)`);
   });
   
-  return slides;
+  return finalSlides;
 };
 
 const getStoryType = (numero: number, conteudo: string): 'gancho' | 'erro' | 'virada' | 'cta' | 'bonus' => {
