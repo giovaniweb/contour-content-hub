@@ -8,6 +8,15 @@ export interface Stories10xSlide {
   tipo: 'gancho' | 'erro' | 'virada' | 'cta';
 }
 
+// Função para limpar o conteúdo do texto
+const cleanContent = (content: string): string => {
+  return content
+    .replace(/\n\n+/g, ' ') // Remove múltiplas quebras de linha
+    .replace(/\n/g, ' ') // Remove quebras de linha simples
+    .replace(/\s+/g, ' ') // Remove espaços múltiplos
+    .trim(); // Remove espaços nas extremidades
+};
+
 export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   console.log('🔍 [Stories10xParser] Iniciando parse do roteiro:', roteiro);
   
@@ -31,15 +40,16 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
   storyPatterns.forEach((pattern, index) => {
     const match = pattern.exec(roteiro);
     if (match && match[1]) {
-      const content = match[1].trim();
+      const rawContent = match[1].trim();
+      const cleanedContent = cleanContent(rawContent); // Limpar o conteúdo
       
       // Detectar dispositivos no conteúdo
-      const dispositivos = detectarDispositivos(content);
+      const dispositivos = detectarDispositivos(cleanedContent);
       
       slides.push({
         number: index + 1,
         titulo: storyTitles[index],
-        conteudo: content,
+        conteudo: cleanedContent,
         dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
         tempo: '10s',
         tipo: storyTypes[index]
@@ -47,7 +57,7 @@ export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
       
       console.log(`✅ [Stories10xParser] Story ${index + 1} parseado:`, {
         titulo: storyTitles[index],
-        conteudo: content.substring(0, 50) + '...',
+        conteudo: cleanedContent.substring(0, 50) + '...',
         dispositivos
       });
     }
@@ -92,11 +102,12 @@ const detectarDispositivos = (content: string): string[] => {
 };
 
 const parseFallbackStories10x = (roteiro: string): Stories10xSlide[] => {
-  const lines = roteiro.split('\n').filter(line => line.trim() !== '');
+  const cleanedRoteiro = cleanContent(roteiro); // Limpar o roteiro completo
+  const lines = cleanedRoteiro.split(' ').filter(word => word.trim() !== '');
   const slides: Stories10xSlide[] = [];
   
   // Dividir em 4 partes aproximadamente iguais
-  const linesPerStory = Math.ceil(lines.length / 4);
+  const wordsPerStory = Math.ceil(lines.length / 4);
   const storyTypes: Array<'gancho' | 'erro' | 'virada' | 'cta'> = ['gancho', 'erro', 'virada', 'cta'];
   const storyTitles = [
     'Gancho Provocativo',
@@ -106,10 +117,10 @@ const parseFallbackStories10x = (roteiro: string): Stories10xSlide[] => {
   ];
 
   for (let i = 0; i < 4; i++) {
-    const startIndex = i * linesPerStory;
-    const endIndex = Math.min(startIndex + linesPerStory, lines.length);
-    const storyLines = lines.slice(startIndex, endIndex);
-    const content = storyLines.join(' ').trim();
+    const startIndex = i * wordsPerStory;
+    const endIndex = Math.min(startIndex + wordsPerStory, lines.length);
+    const storyWords = lines.slice(startIndex, endIndex);
+    const content = storyWords.join(' ').trim();
     
     if (content) {
       const dispositivos = detectarDispositivos(content);

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parseStories10xSlides, validateStories10x } from '../utils/stories10xParser';
@@ -99,7 +98,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
         </Card>
       </motion.div>
 
-      {/* Timeline da Sequência */}
+      {/* Timeline da Sequência - REDESENHADA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -114,33 +113,41 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+            {/* Timeline Responsiva */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {slides.map((slide, index) => (
-                <React.Fragment key={index}>
-                  <motion.div 
-                    className="flex flex-col items-center"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold aurora-glow mb-2 relative ${getStoryColor(slide.tipo)}`}>
-                      <span className="relative z-10">{index + 1}</span>
-                      <div className="absolute inset-0 rounded-full opacity-50 animate-ping" style={{backgroundColor: getStoryBgColor(slide.tipo)}} />
-                    </div>
-                    <div className={`text-xs font-medium aurora-body ${getStoryTextColor(slide.tipo)}`}>
-                      {slide.titulo}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {slide.tempo}
-                    </div>
-                  </motion.div>
+                <motion.div 
+                  key={index}
+                  className="relative"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                >
+                  {/* Conector horizontal (apenas desktop) */}
                   {index < slides.length - 1 && (
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-0.5 bg-gradient-to-r from-purple-400 to-orange-400 opacity-60" />
-                      <div className="text-xs text-slate-500 mt-1">→</div>
-                    </div>
+                    <div className="hidden md:block absolute top-6 left-full w-full h-0.5 bg-gradient-to-r from-purple-400 to-orange-400 opacity-60 z-0" />
                   )}
-                </React.Fragment>
+                  
+                  {/* Conector vertical (apenas mobile) */}
+                  {index < slides.length - 1 && (
+                    <div className="md:hidden absolute left-6 top-full w-0.5 h-4 bg-gradient-to-b from-purple-400 to-orange-400 opacity-60 z-0" />
+                  )}
+                  
+                  <div className="flex flex-col items-center relative z-10">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg mb-3 relative ${getStoryColor(slide.tipo)}`}>
+                      <span className="relative z-10">{index + 1}</span>
+                      <div className="absolute inset-0 rounded-full opacity-30 animate-ping" style={{backgroundColor: getStoryBgColor(slide.tipo)}} />
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-sm font-medium aurora-body ${getStoryTextColor(slide.tipo)} mb-1`}>
+                        {slide.titulo}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {slide.tempo}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
             <p className="text-center text-sm aurora-body">
@@ -150,8 +157,8 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) =>
         </Card>
       </motion.div>
 
-      {/* Stories Individuais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Stories Individuais - Grid 2x2 */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {slides.map((slide, index) => (
           <Stories10xSlideCard key={index} slide={slide} />
         ))}
