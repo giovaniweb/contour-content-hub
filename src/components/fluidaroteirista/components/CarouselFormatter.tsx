@@ -5,7 +5,7 @@ import { parseCarouselSlides } from '../utils/carouselParser';
 import CarouselSlideCard from './CarouselSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, Instagram, ArrowRight } from 'lucide-react';
+import { Images, Instagram, ArrowRight } from 'lucide-react';
 
 interface CarouselFormatterProps {
   roteiro: string;
@@ -31,7 +31,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         className="text-center space-y-3"
       >
         <div className="flex items-center justify-center gap-3">
-          <Carousel className="h-8 w-8 text-purple-600" />
+          <Images className="h-8 w-8 text-purple-600" />
           <h2 className="text-2xl font-bold text-slate-50">Carrossel Instagram</h2>
           <Instagram className="h-6 w-6 text-pink-500" />
         </div>
