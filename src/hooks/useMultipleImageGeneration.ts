@@ -14,45 +14,49 @@ export const useMultipleImageGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [progress, setProgress] = useState(0);
+  const [errors, setErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
   const extractImagePrompts = (script: any) => {
     const prompts: Array<{prompt: string, slideTitle?: string}> = [];
     
     if (script.formato === 'carrossel') {
-      // Extrair prompts das seções "Imagem:" do carrossel
-      const imageMatches = script.roteiro.match(/Slide:\s*([^\n]+)[\s\S]*?Imagem:\s*([^\n]+)/gi);
+      // Melhor extração de prompts das seções "Imagem:" do carrossel
+      const slides = script.roteiro.split(/(?=Slide:\s)/gi).filter(Boolean);
       
-      if (imageMatches && imageMatches.length > 0) {
-        imageMatches.forEach((match: string) => {
-          const slideMatch = match.match(/Slide:\s*([^\n]+)/i);
-          const imageMatch = match.match(/Imagem:\s*([^\n]+)/i);
-          
-          if (slideMatch && imageMatch) {
-            prompts.push({
-              slideTitle: slideMatch[1].trim(),
-              prompt: imageMatch[1].trim()
-            });
-          }
-        });
-      }
+      slides.forEach((slide: string, index: number) => {
+        const slideMatch = slide.match(/Slide:\s*([^\n]+)/i);
+        const imageMatch = slide.match(/Imagem:\s*([^\n]+)/i);
+        
+        if (slideMatch && imageMatch) {
+          prompts.push({
+            slideTitle: slideMatch[1].trim(),
+            prompt: `Imagem profissional para clínica estética: ${imageMatch[1].trim()}, alta qualidade, iluminação cinematográfica, composição elegante`
+          });
+        } else if (slideMatch) {
+          // Fallback se não encontrar descrição de imagem
+          prompts.push({
+            slideTitle: slideMatch[1].trim(),
+            prompt: `Ambiente clínico moderno e luxuoso, profissional especializado, equipamentos de alta tecnologia, iluminação suave e acolhedora, atmosfera de confiança e bem-estar, composição elegante, alta qualidade`
+          });
+        }
+      });
       
       // Garantir exatamente 5 prompts para carrossel
       while (prompts.length < 5) {
         const slideNum = prompts.length + 1;
         prompts.push({
           slideTitle: `Slide ${slideNum}`,
-          prompt: `Ambiente clínico moderno para tratamento estético, profissional especializado, equipamentos de alta tecnologia, iluminação suave, atmosfera acolhedora e profissional`
+          prompt: `Ambiente clínico moderno para tratamento estético, profissional especializado, equipamentos de alta tecnologia, iluminação suave, atmosfera acolhedora e profissional, composição elegante`
         });
       }
       
-      // Limitar a 5 prompts
       return prompts.slice(0, 5);
     } else {
       // Para outros formatos, gerar 1 prompt baseado no conteúdo
       const tema = script.tema || 'tratamento estético';
       return [{
-        prompt: `Ambiente clínico luxuoso e moderno para ${tema}, profissional sorridente atendendo cliente, equipamentos de alta tecnologia, iluminação suave e acolhedora, cores suaves, composição profissional, atmosfera de confiança e bem-estar`
+        prompt: `Ambiente clínico luxuoso e moderno para ${tema}, profissional sorridente atendendo cliente, equipamentos de alta tecnologia, iluminação suave e acolhedora, cores suaves, composição profissional, atmosfera de confiança e bem-estar, alta qualidade`
       }];
     }
   };
@@ -61,6 +65,7 @@ export const useMultipleImageGeneration = () => {
     setIsGenerating(true);
     setProgress(0);
     setGeneratedImages([]);
+    setErrors([]);
     
     try {
       console.log('🖼️ [useMultipleImageGeneration] Iniciando geração de imagens para:', script.formato);
@@ -68,55 +73,73 @@ export const useMultipleImageGeneration = () => {
       const prompts = extractImagePrompts(script);
       const totalImages = prompts.length;
       const newImages: GeneratedImage[] = [];
+      const newErrors: string[] = [];
       
       console.log(`🎨 [useMultipleImageGeneration] Gerando ${totalImages} imagens`);
       
-      // Gerar imagens sequencialmente
+      // Gerar imagens sequencialmente com retry
       for (let i = 0; i < prompts.length; i++) {
         const promptData = prompts[i];
+        let attempts = 0;
+        const maxAttempts = 2;
         
-        try {
-          console.log(`🖼️ Gerando imagem ${i + 1}/${totalImages}: ${promptData.prompt.substring(0, 50)}...`);
-          
-          const { data, error } = await supabase.functions.invoke('generate-image', {
-            body: {
-              prompt: promptData.prompt,
-              quality: 'high',
-              size: '1024x1024',
-              style: 'natural'
-            }
-          });
-
-          if (error) {
-            console.error(`❌ Erro na geração da imagem ${i + 1}:`, error);
-            throw error;
-          }
-
-          if (data?.image) {
-            newImages.push({
-              id: `img-${i + 1}`,
-              prompt: promptData.prompt,
-              imageUrl: data.image,
-              slideTitle: promptData.slideTitle
+        while (attempts < maxAttempts) {
+          try {
+            attempts++;
+            console.log(`🖼️ Gerando imagem ${i + 1}/${totalImages} (tentativa ${attempts}): ${promptData.prompt.substring(0, 50)}...`);
+            
+            const { data, error } = await supabase.functions.invoke('generate-image', {
+              body: {
+                prompt: promptData.prompt,
+                quality: 'standard',
+                size: '1024x1024'
+              }
             });
-            
-            setGeneratedImages([...newImages]);
-            setProgress(((i + 1) / totalImages) * 100);
-            
-            console.log(`✅ Imagem ${i + 1} gerada com sucesso`);
-          } else {
-            throw new Error(`Nenhuma imagem retornada para o prompt ${i + 1}`);
+
+            if (error) {
+              console.error(`❌ Erro na geração da imagem ${i + 1} (tentativa ${attempts}):`, error);
+              if (attempts === maxAttempts) {
+                newErrors.push(`Imagem ${i + 1}: ${error.message}`);
+                break;
+              }
+              continue;
+            }
+
+            if (data?.image) {
+              newImages.push({
+                id: `img-${i + 1}`,
+                prompt: promptData.prompt,
+                imageUrl: data.image,
+                slideTitle: promptData.slideTitle
+              });
+              
+              setGeneratedImages([...newImages]);
+              setProgress(((i + 1) / totalImages) * 100);
+              
+              console.log(`✅ Imagem ${i + 1} gerada com sucesso`);
+              break;
+            } else {
+              if (attempts === maxAttempts) {
+                newErrors.push(`Imagem ${i + 1}: Nenhuma imagem retornada`);
+              }
+            }
+          } catch (imageError: any) {
+            console.error(`❌ Erro ao gerar imagem ${i + 1} (tentativa ${attempts}):`, imageError);
+            if (attempts === maxAttempts) {
+              newErrors.push(`Imagem ${i + 1}: ${imageError.message}`);
+            }
           }
-        } catch (imageError: any) {
-          console.error(`❌ Erro ao gerar imagem ${i + 1}:`, imageError);
-          // Continuar com as outras imagens mesmo se uma falhar
         }
       }
+      
+      setErrors(newErrors);
       
       if (newImages.length > 0) {
         toast({
           title: `🖼️ ${newImages.length} Imagem(ns) gerada(s)!`,
-          description: `Suas imagens estão prontas para download.`,
+          description: newErrors.length > 0 
+            ? `${newErrors.length} imagem(ns) falharam. Veja os detalhes no modal.`
+            : `Suas imagens estão prontas para download.`,
         });
       } else {
         throw new Error('Nenhuma imagem foi gerada com sucesso');
@@ -136,7 +159,64 @@ export const useMultipleImageGeneration = () => {
       return [];
     } finally {
       setIsGenerating(false);
-      setProgress(0);
+    }
+  };
+
+  const retryFailedImages = async (script: any, failedIndexes: number[]) => {
+    if (failedIndexes.length === 0) return;
+    
+    setIsGenerating(true);
+    const prompts = extractImagePrompts(script);
+    const currentImages = [...generatedImages];
+    
+    try {
+      for (const index of failedIndexes) {
+        const promptData = prompts[index];
+        if (!promptData) continue;
+        
+        console.log(`🔄 Tentando novamente imagem ${index + 1}`);
+        
+        const { data, error } = await supabase.functions.invoke('generate-image', {
+          body: {
+            prompt: promptData.prompt,
+            quality: 'standard',
+            size: '1024x1024'
+          }
+        });
+
+        if (!error && data?.image) {
+          const newImage = {
+            id: `img-${index + 1}`,
+            prompt: promptData.prompt,
+            imageUrl: data.image,
+            slideTitle: promptData.slideTitle
+          };
+          
+          currentImages[index] = newImage;
+          setGeneratedImages([...currentImages]);
+          
+          // Remove error for this index
+          const newErrors = errors.filter((_, i) => i !== index);
+          setErrors(newErrors);
+          
+          console.log(`✅ Imagem ${index + 1} gerada com sucesso no retry`);
+        }
+      }
+      
+      toast({
+        title: "🔄 Retry concluído!",
+        description: "Algumas imagens foram regeneradas.",
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Erro no retry:', error);
+      toast({
+        title: "Erro no retry",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -167,20 +247,23 @@ export const useMultipleImageGeneration = () => {
     generatedImages.forEach((image, index) => {
       setTimeout(() => {
         downloadImage(image);
-      }, index * 500); // Delay entre downloads
+      }, index * 500);
     });
   };
 
   const clearImages = () => {
     setGeneratedImages([]);
     setProgress(0);
+    setErrors([]);
   };
 
   return {
     generateImages,
+    retryFailedImages,
     isGenerating,
     generatedImages,
     progress,
+    errors,
     downloadImage,
     downloadAllImages,
     clearImages

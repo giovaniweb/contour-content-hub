@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,12 +48,14 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
   const [showImageModal, setShowImageModal] = useState(false);
   const script = results[0];
 
-  // Hook para geração múltipla de imagens
+  // Hook para geração múltipla de imagens com novas funcionalidades
   const { 
     generateImages, 
+    retryFailedImages,
     isGenerating: isGeneratingImages, 
     generatedImages, 
-    progress, 
+    progress,
+    errors,
     downloadImage, 
     downloadAllImages,
     clearImages 
@@ -97,6 +98,10 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
     clearImages(); // Limpar imagens anteriores
     setShowImageModal(true);
     await generateImages(script);
+  };
+
+  const handleRetryFailedImages = async (failedIndexes: number[]) => {
+    await retryFailedImages(script, failedIndexes);
   };
 
   const handleApplyDisney = async () => {
@@ -411,15 +416,17 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
         )}
       </div>
 
-      {/* Modal de Geração de Imagens */}
+      {/* Modal de Geração de Imagens com melhorias */}
       <ImageGenerationModal
         isOpen={showImageModal}
         onClose={() => setShowImageModal(false)}
         isGenerating={isGeneratingImages}
         progress={progress}
         generatedImages={generatedImages}
+        errors={errors}
         onDownloadImage={downloadImage}
         onDownloadAll={downloadAllImages}
+        onRetryFailed={handleRetryFailedImages}
         formato={script.formato}
       />
     </>

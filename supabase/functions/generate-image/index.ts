@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, quality = 'high', size = '1024x1024', style = 'natural' } = await req.json()
+    const { prompt, quality = 'standard', size = '1024x1024' } = await req.json()
 
-    console.log('🖼️ [generate-image] Recebendo solicitação:', { prompt: prompt.substring(0, 100), quality, size, style })
+    console.log('🖼️ [generate-image] Recebendo solicitação:', { prompt: prompt.substring(0, 100), quality, size })
 
     if (!prompt) {
       throw new Error('Prompt é obrigatório')
@@ -26,7 +26,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY não configurada')
     }
 
-    // Chamar API do OpenAI para geração de imagem
+    // Chamar API do OpenAI para geração de imagem com dall-e-3
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -34,13 +34,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1', // Modelo mais avançado
+        model: 'dall-e-3',
         prompt: prompt,
         n: 1,
         size: size,
         quality: quality,
-        style: style,
-        response_format: 'b64_json' // Retornar em base64
+        response_format: 'b64_json'
       }),
     })
 

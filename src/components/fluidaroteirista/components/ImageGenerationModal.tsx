@@ -5,12 +5,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Download, 
   X, 
   Image as ImageIcon, 
   Loader2,
-  Package
+  Package,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 interface GeneratedImage {
@@ -26,8 +29,10 @@ interface ImageGenerationModalProps {
   isGenerating: boolean;
   progress: number;
   generatedImages: GeneratedImage[];
+  errors: string[];
   onDownloadImage: (image: GeneratedImage) => void;
   onDownloadAll: () => void;
+  onRetryFailed?: (failedIndexes: number[]) => void;
   formato: string;
 }
 
@@ -37,12 +42,18 @@ const ImageGenerationModal: React.FC<ImageGenerationModalProps> = ({
   isGenerating,
   progress,
   generatedImages,
+  errors = [],
   onDownloadImage,
   onDownloadAll,
+  onRetryFailed,
   formato
 }) => {
   const isCarrossel = formato === 'carrossel';
   const expectedImages = isCarrossel ? 5 : 1;
+  
+  const failedIndexes = errors.map((_, index) => index).filter(index => 
+    !generatedImages.find(img => img.id === `img-${index + 1}`)
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -75,23 +86,53 @@ const ImageGenerationModal: React.FC<ImageGenerationModalProps> = ({
             </div>
           )}
 
+          {/* Error Display */}
+          {errors.length > 0 && !isGenerating && (
+            <Alert className="border-red-500/50 bg-red-500/10">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
+                <div className="space-y-1">
+                  <p className="font-medium">Algumas imagens falharam:</p>
+                  {errors.map((error, index) => (
+                    <p key={index} className="text-sm">{error}</p>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Generated Images Grid */}
           {generatedImages.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">
-                  Imagens Geradas ({generatedImages.length})
+                  Imagens Geradas ({generatedImages.length}/{expectedImages})
                 </h3>
                 
-                {generatedImages.length > 1 && (
-                  <Button
-                    onClick={onDownloadAll}
-                    className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300"
-                  >
-                    <Package className="h-4 w-4 mr-2" />
-                    Download Todas
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {failedIndexes.length > 0 && onRetryFailed && (
+                    <Button
+                      onClick={() => onRetryFailed(failedIndexes)}
+                      disabled={isGenerating}
+                      variant="outline"
+                      size="sm"
+                      className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Tentar Novamente ({failedIndexes.length})
+                    </Button>
+                  )}
+                  
+                  {generatedImages.length > 1 && (
+                    <Button
+                      onClick={onDownloadAll}
+                      className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300"
+                    >
+                      <Package className="h-4 w-4 mr-2" />
+                      Download Todas
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className={`grid gap-4 ${
@@ -133,7 +174,7 @@ const ImageGenerationModal: React.FC<ImageGenerationModalProps> = ({
                         </h4>
                       )}
                       <p className="text-xs text-purple-300 line-clamp-2">
-                        {image.prompt}
+                        {image.prompt.substring(0, 100)}...
                       </p>
                     </div>
                   </motion.div>
@@ -143,7 +184,7 @@ const ImageGenerationModal: React.FC<ImageGenerationModalProps> = ({
           )}
 
           {/* Empty State */}
-          {!isGenerating && generatedImages.length === 0 && (
+          {!isGenerating && generatedImages.length === 0 && errors.length === 0 && (
             <div className="text-center py-8">
               <ImageIcon className="h-16 w-16 text-purple-400 mx-auto mb-4 opacity-50" />
               <p className="text-purple-300">Nenhuma imagem foi gerada ainda.</p>
