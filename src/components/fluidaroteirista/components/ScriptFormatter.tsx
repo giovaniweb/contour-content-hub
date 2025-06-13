@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Heart, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
 import CarouselFormatter from './CarouselFormatter';
 import Stories10xFormatter from './Stories10xFormatter';
+import PostEstaticoFormatter from './PostEstaticoFormatter';
 
 interface ScriptFormatterProps {
   script: {
@@ -54,6 +55,10 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return <Stories10xFormatter roteiro={script.roteiro} />;
     }
 
+    if (script.formato.toLowerCase() === 'post_estatico') {
+      return <PostEstaticoFormatter roteiro={script.roteiro} />;
+    }
+
     // Renderização padrão para outros formatos
     return (
       <motion.div
@@ -91,18 +96,20 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-3"
+        className={`grid gap-3 ${script.formato.toLowerCase() === 'post_estatico' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}
       >
-        {/* Tempo de Leitura */}
-        <div className="aurora-glass border border-blue-500/20 p-3 rounded-lg text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Clock className="h-4 w-4 text-blue-400" />
-            <span className="text-xs font-medium text-blue-300">Tempo</span>
+        {/* Tempo de Leitura - Apenas para formatos com tempo */}
+        {script.formato.toLowerCase() !== 'post_estatico' && script.formato.toLowerCase() !== 'carrossel' && (
+          <div className="aurora-glass border border-blue-500/20 p-3 rounded-lg text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Clock className="h-4 w-4 text-blue-400" />
+              <span className="text-xs font-medium text-blue-300">Tempo</span>
+            </div>
+            <div className={`text-lg font-bold ${isWithinTimeLimit ? 'text-green-400' : 'text-red-400'}`}>
+              {estimatedTime}s
+            </div>
           </div>
-          <div className={`text-lg font-bold ${isWithinTimeLimit ? 'text-green-400' : 'text-red-400'}`}>
-            {estimatedTime}s
-          </div>
-        </div>
+        )}
 
         {/* Contagem de Palavras */}
         <div className="aurora-glass border border-purple-500/20 p-3 rounded-lg text-center">
@@ -129,7 +136,9 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
             <span className="text-xs font-medium text-indigo-300">Formato</span>
           </div>
           <Badge variant="outline" className="text-indigo-400 border-indigo-500/30 text-xs">
-            {script.formato === 'stories_10x' ? 'STORIES 10X' : script.formato.toUpperCase()}
+            {script.formato === 'stories_10x' ? 'STORIES 10X' : 
+             script.formato === 'post_estatico' ? 'POST ESTÁTICO' :
+             script.formato.toUpperCase()}
           </Badge>
         </div>
       </motion.div>
