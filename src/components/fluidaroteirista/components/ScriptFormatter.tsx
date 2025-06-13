@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Heart, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
+import CarouselFormatter from './CarouselFormatter';
 
 interface ScriptFormatterProps {
   script: {
@@ -32,7 +32,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   // Verificar se equipamentos foram realmente utilizados no roteiro
   const equipmentUsedInScript = hasEquipments ? 
     script.equipamentos_utilizados.some(eq => {
-      // Normalizar o equipamento para verificação
       const equipmentName = typeof eq === 'string' ? eq : (eq?.nome || '');
       return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
@@ -44,10 +43,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     return 'Equipamento não especificado';
   };
 
-  return (
-    <div className="space-y-6 w-full">
-      
-      {/* Roteiro Principal - Largura Total */}
+  // Renderização condicional baseada no formato
+  const renderScriptContent = () => {
+    if (script.formato.toLowerCase() === 'carrossel') {
+      return <CarouselFormatter roteiro={script.roteiro} />;
+    }
+
+    // Renderização padrão para outros formatos
+    return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,7 +62,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
               📝 Seu Roteiro FLUIDA
             </CardTitle>
             <p className="text-cyan-400/80 text-center">
-              Pronto para usar nas redes sociais
+              Formato: {script.formato.toUpperCase()}
             </p>
           </CardHeader>
           <CardContent className="p-8">
@@ -69,6 +72,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           </CardContent>
         </Card>
       </motion.div>
+    );
+  };
+
+  return (
+    <div className="space-y-6 w-full">
+      
+      {/* Conteúdo Principal do Roteiro */}
+      {renderScriptContent()}
 
       {/* Métricas Básicas - Layout Horizontal Compacto */}
       <motion.div
