@@ -39,14 +39,29 @@ serve(async (req) => {
     // Initialize enhanced request handler
     const enhancedHandler = new EnhancedRequestHandler(openAIApiKey);
     
-    // Process request with equipment integration
+    // Process request with equipment integration and robust error handling
     console.log("🔧 Processando request com integração de equipamentos...");
-    const { systemPrompt, userPrompt, equipmentDetails } = await enhancedHandler.processFluidaRequest(request);
+    let systemPrompt: string;
+    let userPrompt: string;
+    let equipmentDetails: any[] = [];
     
-    console.log("📋 Equipamentos integrados:", equipmentDetails.length);
-    equipmentDetails.forEach(eq => {
-      console.log(`✅ ${eq.nome}: ${eq.tecnologia}`);
-    });
+    try {
+      const result = await enhancedHandler.processFluidaRequest(request);
+      systemPrompt = result.systemPrompt;
+      userPrompt = result.userPrompt;
+      equipmentDetails = result.equipmentDetails;
+      
+      console.log("📋 Equipamentos integrados:", equipmentDetails.length);
+      equipmentDetails.forEach(eq => {
+        console.log(`✅ ${eq.nome}: ${eq.tecnologia}`);
+      });
+    } catch (processError) {
+      console.error("⚠️ Erro no processamento (usando fallback):", processError);
+      // Fallback para continuar mesmo com erro no processamento
+      systemPrompt = request.systemPrompt || `Você é um especialista em roteiros para ${request.topic}`;
+      userPrompt = request.userPrompt || `Crie um roteiro sobre: ${request.topic}`;
+      equipmentDetails = [];
+    }
     
     // Call OpenAI API with enhanced prompts and equipment validation
     console.log("🤖 Chamando OpenAI API com validação de equipamentos...");

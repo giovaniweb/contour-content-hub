@@ -5,7 +5,6 @@ import { EquipmentFetcher } from "./equipment-fetcher.ts";
 export class EnhancedRequestHandler {
   private openAIApiKey: string;
   private supabase: any;
-  private equipmentFetcher: EquipmentFetcher;
 
   constructor(openAIApiKey: string) {
     this.openAIApiKey = openAIApiKey;
@@ -13,15 +12,28 @@ export class EnhancedRequestHandler {
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
-    this.equipmentFetcher = new EquipmentFetcher(this.supabase);
   }
 
   async processFluidaRequest(request: any): Promise<{ systemPrompt: string; userPrompt: string; equipmentDetails: any[] }> {
     console.log('🎬 [EnhancedRequestHandler] Processando request FLUIDA:', request);
     
-    // Buscar equipamentos se especificados
-    const equipmentDetails = await this.equipmentFetcher.fetchEquipmentDetails(request.equipment);
-    console.log('🔧 [EnhancedRequestHandler] Equipamentos detalhados:', equipmentDetails.length);
+    // CORREÇÃO CRÍTICA: Buscar equipamentos usando método estático diretamente
+    let equipmentDetails: any[] = [];
+    try {
+      if (request.equipment && request.equipment.trim()) {
+        const equipmentNames = request.equipment.split(',').map((name: string) => name.trim()).filter(Boolean);
+        console.log('🔧 [EnhancedRequestHandler] Equipamentos a buscar:', equipmentNames);
+        
+        equipmentDetails = await EquipmentFetcher.fetchEquipmentDetails(this.supabase, equipmentNames);
+        console.log('✅ [EnhancedRequestHandler] Equipamentos encontrados:', equipmentDetails.length);
+      } else {
+        console.log('ℹ️ [EnhancedRequestHandler] Nenhum equipamento especificado');
+      }
+    } catch (equipmentError) {
+      console.error('⚠️ [EnhancedRequestHandler] Erro ao buscar equipamentos (continuando):', equipmentError);
+      // Continuar mesmo se a busca de equipamentos falhar
+      equipmentDetails = [];
+    }
 
     // CORREÇÃO CRÍTICA: Para Stories 10x, usar metodologia específica
     if (this.isStories10xRequest(request)) {
@@ -116,7 +128,7 @@ Story 5: "Quer a parte 2? Me manda um 🔥 que eu libero!"`;
     return { systemPrompt, userPrompt, equipmentDetails };
   }
 
-  private async buildTechniqueBasedPrompt(request: any, equipmentDetails: any[]): Promise<{ systemPrompt: string; userPrompt: string; equipmentDetails: any[] }> {
+  private buildTechniqueBasedPrompt(request: any, equipmentDetails: any[]): { systemPrompt: string; userPrompt: string; equipmentDetails: any[] } {
     // Para outros formatos, usar o prompt que já vem na requisição ou fallback
     const systemPrompt = request.systemPrompt || this.buildFallbackPrompt(request, equipmentDetails);
     const userPrompt = request.userPrompt || `Tema: ${request.topic}`;
@@ -146,7 +158,7 @@ Use tom ${request.tone || 'profissional'} e foque no objetivo: ${request.marketi
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-2024-11-20',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }

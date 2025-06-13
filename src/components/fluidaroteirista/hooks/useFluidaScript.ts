@@ -101,7 +101,7 @@ export const useFluidaScript = () => {
       const response = await apiGenerateScript(apiData);
       console.log('📥 [useFluidaScript] API response:', response);
 
-      // Verificação robusta da resposta da API
+      // CORREÇÃO CRÍTICA: Verificação mais robusta da resposta da API
       if (!response) {
         throw new Error('Resposta vazia da API');
       }
@@ -164,14 +164,33 @@ export const useFluidaScript = () => {
 
     } catch (error) {
       console.error('❌ [useFluidaScript] Error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      // CORREÇÃO CRÍTICA: Melhor handling de erros específicos
+      let errorMessage = 'Erro desconhecido';
+      let errorTitle = 'Erro na geração';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Identificar tipos específicos de erro
+        if (error.message.includes('FunctionsHttpError')) {
+          errorTitle = 'Erro no servidor';
+          errorMessage = 'Problema temporário no servidor. Tente novamente em alguns instantes.';
+        } else if (error.message.includes('OpenAI')) {
+          errorTitle = 'Erro na IA';
+          errorMessage = 'Problema na geração do conteúdo. Tente novamente.';
+        } else if (error.message.includes('equipamentos')) {
+          errorTitle = 'Erro nos equipamentos';
+          errorMessage = 'Problema ao processar equipamentos selecionados.';
+        }
+      }
       
       // Limpar results em caso de erro
       setResults([]);
       
       toast({
-        title: "Erro na geração",
-        description: `Erro: ${errorMessage}. Tente novamente em alguns instantes.`,
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
       return [];
