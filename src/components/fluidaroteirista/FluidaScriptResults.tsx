@@ -27,6 +27,7 @@ import DisneyTransformation from './components/DisneyTransformation';
 import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
 import ImageGenerationModal from './components/ImageGenerationModal';
 import { usePhotographicImageGeneration } from '@/hooks/usePhotographicImageGeneration';
+import PhotographicImageModal from './components/PhotographicImageModal';
 
 interface FluidaScriptResultsProps {
   results: any[];
