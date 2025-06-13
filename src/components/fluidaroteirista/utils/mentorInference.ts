@@ -1,5 +1,6 @@
 
 import { getMentorTechniques, selectBestTechnique } from './techniqueSelector';
+import { MENTOR_ENIGMAS, MENTOR_PROFILES } from '../../smart-script-generator/intentionTree';
 
 export const inferMentorFromAnswers = async (answers: any): Promise<string> => {
   console.log('🤔 [inferMentorFromAnswers] Respostas recebidas:', answers);
