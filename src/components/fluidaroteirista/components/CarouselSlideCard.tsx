@@ -12,6 +12,8 @@ interface CarouselSlideCardProps {
     texto: string;
     imagem: string;
   };
+  index: number;
+  total: number;
 }
 
 const getSlideIcon = (slideNumber: number): string => {
@@ -71,7 +73,7 @@ const getSlideTheme = (slideNumber: number) => {
   return themes[slideNumber as keyof typeof themes] || themes[1];
 };
 
-const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
+const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide, index, total }) => {
   const icon = getSlideIcon(slide.number);
   const theme = getSlideTheme(slide.number);
 
@@ -92,7 +94,7 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
             <div className="text-3xl aurora-float">{icon}</div>
             <div className="flex-1">
               <Badge variant="outline" className={`${theme.badge} border mb-2 aurora-shimmer`}>
-                Slide {slide.number}
+                Slide {slide.number} de {total}
               </Badge>
               <h3 className={`font-bold ${theme.text} text-lg aurora-heading filter drop-shadow-sm`}>
                 {slide.title}
