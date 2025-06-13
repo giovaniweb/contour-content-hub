@@ -1,125 +1,119 @@
 
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import './App.css';
-import './styles/aurora-design-system.css';
-import { AuthProvider } from './context/AuthContext';
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminEquipments from './pages/AdminEquipments';
-import EquipmentDetail from './pages/EquipmentDetails';
-import NotFound from './pages/NotFound';
-import CreateEquipment from '@/pages/admin/CreateEquipment';
-import EditEquipment from '@/pages/admin/EditEquipment';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Profile from './pages/Profile';
-import MarketingConsultant from './pages/MarketingConsultant';
-import DiagnosticHistory from './pages/DiagnosticHistory';
-import DiagnosticReport from './pages/DiagnosticReport';
-import Media from './pages/Media';
-import PhotosPage from './pages/PhotosPage';
-import EquipmentList from './pages/EquipmentList';
-import IdeaValidatorPage from './pages/IdeaValidatorPage';
-import ContentPlannerPage from './pages/ContentPlannerPage';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from "@/components/ui/sonner";
+import Layout from './components/Layout';
+import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute';
+
+// Pages
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
+import WorkspaceSettingsPage from './pages/WorkspaceSettingsPage';
+import CalendarPage from './pages/CalendarPage';
+import MediaLibraryPage from './pages/MediaLibraryPage';
+import VideoPlayerPage from './pages/VideoPlayerPage';
+import VideoStoragePage from './pages/VideoStoragePage';
+import VideoBatchPage from './pages/VideoBatchPage';
+import VideoImportPage from './pages/VideoImportPage';
+import VideoSwipePage from './pages/VideoSwipePage';
+import EquipmentsPage from './pages/EquipmentsPage';
+import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
+import ScientificArticlesPage from './pages/ScientificArticlesPage';
+import FluidaRoteiristPage from './pages/FluidaRoteiristsPage';
 import ScriptGeneratorPage from './pages/ScriptGeneratorPage';
-import AppLayout from './components/layout/AppLayout';
-import { ROUTES } from './routes';
-import FluidaRoteiristPage from '@/pages/FluidaRoteiristsPage';
+import ScriptValidationPage from './pages/ScriptValidationPage';
+import ScriptApprovedPage from './pages/ScriptApprovedPage';
+import ContentPlannerPage from './pages/ContentPlannerPage';
+import ContentIdeasPage from './pages/ContentIdeasPage';
+import ContentStrategyPage from './pages/ContentStrategyPage';
+import MarketingConsultantPage from './pages/MarketingConsultantPage';
+import ReportsPage from './pages/ReportsPage';
+import DiagnosticHistoryPage from './pages/DiagnosticHistoryPage';
+import ConsultantPanelPage from './pages/ConsultantPanelPage';
+
+// Admin Pages
+import AdminVideosPage from './pages/admin/AdminVideosPage';
+import AdminEquipmentsPage from './pages/admin/AdminEquipmentsPage';
+import AdminEquipmentCreatePage from './pages/admin/AdminEquipmentCreatePage';
+import AdminEquipmentEditPage from './pages/admin/AdminEquipmentEditPage';
+import AdminContentPage from './pages/admin/AdminContentPage';
+import AdminAiPage from './pages/admin/AdminAiPage';
+import AdminSystemDiagnosticsPage from './pages/admin/AdminSystemDiagnosticsPage';
+import AdminSystemIntelligencePage from './pages/admin/AdminSystemIntelligencePage';
+import AdminVimeoSettingsPage from './pages/admin/AdminVimeoSettingsPage';
+import AdminWorkspacePage from './pages/admin/AdminWorkspacePage';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          {/* Public Routes - without sidebar */}
-          <Route path={ROUTES.HOME} element={<Home />} />
-          <Route path={ROUTES.LOGIN} element={<Login />} />
-          <Route path={ROUTES.REGISTER} element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           
-          {/* Protected Routes - with sidebar layout */}
-          <Route path={ROUTES.DASHBOARD} element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path={ROUTES.PROFILE} element={<AppLayout><Profile /></AppLayout>} />
+          {/* Private Routes */}
+          <Route path="/dashboard" element={<PrivateRoute><Layout><DashboardPage /></Layout></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
+          <Route path="/workspace-settings" element={<PrivateRoute><Layout><WorkspaceSettingsPage /></Layout></PrivateRoute>} />
           
           {/* Content Routes */}
-          <Route path={ROUTES.CONTENT.SCRIPTS.GENERATOR} element={<AppLayout><ScriptGeneratorPage /></AppLayout>} />
-          <Route path={ROUTES.CONTENT.SCRIPTS.VALIDATION} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Script Validation</h1><p>Valide seus roteiros aqui.</p></div></AppLayout>} />
-          <Route path={ROUTES.CONTENT.PLANNER} element={<AppLayout><ContentPlannerPage /></AppLayout>} />
-          <Route path={ROUTES.CONTENT.IDEAS} element={<AppLayout><IdeaValidatorPage /></AppLayout>} />
-          <Route path={ROUTES.CONTENT.STRATEGY} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Content Strategy</h1><p>Desenvolva sua estratégia de conteúdo.</p></div></AppLayout>} />
-          <Route path={ROUTES.CONTENT.CALENDAR} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Calendar</h1><p>Calendário de publicações.</p></div></AppLayout>} />
-          
-          {/* Videos Routes */}
-          <Route path={ROUTES.VIDEOS.ROOT} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Videos</h1><p>Gerencie seus vídeos.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.CREATE} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Create Video</h1><p>Crie novos vídeos.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.PLAYER} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Video Player</h1><p>Reproduza seus vídeos.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.STORAGE} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Video Storage</h1><p>Armazenamento de vídeos.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.BATCH} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Batch Videos</h1><p>Processamento em lote.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.IMPORT} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Import Videos</h1><p>Importe vídeos externos.</p></div></AppLayout>} />
-          <Route path={ROUTES.VIDEOS.SWIPE} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Video Swipe</h1><p>Interface swipe para vídeos.</p></div></AppLayout>} />
-          
+          <Route path="/script-generator" element={<PrivateRoute><Layout><ScriptGeneratorPage /></Layout></PrivateRoute>} />
+          <Route path="/script-validation" element={<PrivateRoute><Layout><ScriptValidationPage /></Layout></PrivateRoute>} />
+          <Route path="/roteiros-aprovados" element={<PrivateRoute><Layout><ScriptApprovedPage /></Layout></PrivateRoute>} />
+          <Route path="/fluidaroteirista" element={<PrivateRoute><Layout><FluidaRoteiristPage /></Layout></PrivateRoute>} />
+          <Route path="/content-planner" element={<PrivateRoute><Layout><ContentPlannerPage /></Layout></PrivateRoute>} />
+          <Route path="/content-ideas" element={<PrivateRoute><Layout><ContentIdeasPage /></Layout></PrivateRoute>} />
+          <Route path="/content-strategy" element={<PrivateRoute><Layout><ContentStrategyPage /></Layout></PrivateRoute>} />
+          <Route path="/calendar" element={<PrivateRoute><Layout><CalendarPage /></Layout></PrivateRoute>} />
+
+          {/* Video Routes */}
+          <Route path="/video-player" element={<PrivateRoute><Layout><VideoPlayerPage /></Layout></PrivateRoute>} />
+          <Route path="/videos/storage" element={<PrivateRoute><Layout><VideoStoragePage /></Layout></PrivateRoute>} />
+          <Route path="/videos/batch" element={<PrivateRoute><Layout><VideoBatchPage /></Layout></PrivateRoute>} />
+          <Route path="/videos/import" element={<PrivateRoute><Layout><VideoImportPage /></Layout></PrivateRoute>} />
+          <Route path="/videos/swipe" element={<PrivateRoute><Layout><VideoSwipePage /></Layout></PrivateRoute>} />
+
           {/* Equipment Routes */}
-          <Route path={ROUTES.EQUIPMENTS.LIST} element={<AppLayout><EquipmentList /></AppLayout>} />
-          <Route path={ROUTES.EQUIPMENTS.DETAILS(':id')} element={<AppLayout><EquipmentDetail /></AppLayout>} />
-          
-          {/* Media Routes */}
-          <Route path={ROUTES.MEDIA} element={<AppLayout><Media /></AppLayout>} />
-          <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
-          <Route path="/arts" element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Arts Page</h1><p>Galeria de artes e designs.</p></div></AppLayout>} />
-          
-          {/* Scientific Articles */}
-          <Route path={ROUTES.SCIENTIFIC_ARTICLES} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Scientific Articles</h1><p>Artigos científicos e pesquisas.</p></div></AppLayout>} />
+          <Route path="/equipments" element={<PrivateRoute><Layout><EquipmentsPage /></Layout></PrivateRoute>} />
+          <Route path="/equipments/:id" element={<PrivateRoute><Layout><EquipmentDetailsPage /></Layout></PrivateRoute>} />
+
+          {/* Media and Articles */}
+          <Route path="/media" element={<PrivateRoute><Layout><MediaLibraryPage /></Layout></PrivateRoute>} />
+          <Route path="/scientific-articles" element={<PrivateRoute><Layout><ScientificArticlesPage /></Layout></PrivateRoute>} />
           
           {/* Marketing Routes */}
-          <Route path={ROUTES.MARKETING.CONSULTANT} element={<AppLayout><MarketingConsultant /></AppLayout>} />
-          <Route path={ROUTES.MARKETING.REPORTS} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Reports</h1><p>Relatórios de marketing.</p></div></AppLayout>} />
-          <Route path={ROUTES.MARKETING.DIAGNOSTIC_HISTORY} element={<AppLayout><DiagnosticHistory /></AppLayout>} />
-          
-          {/* Diagnostic Report Route */}
-          <Route path="/diagnostic-report/:sessionId" element={<AppLayout><DiagnosticReport /></AppLayout>} />
-          
+          <Route path="/marketing-consultant" element={<PrivateRoute><Layout><MarketingConsultantPage /></Layout></PrivateRoute>} />
+          <Route path="/reports" element={<PrivateRoute><Layout><ReportsPage /></Layout></PrivateRoute>} />
+          <Route path="/diagnostic-history" element={<PrivateRoute><Layout><DiagnosticHistoryPage /></Layout></PrivateRoute>} />
+
           {/* Consultant Routes */}
-          <Route path={ROUTES.CONSULTANT.PANEL} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Consultant Panel</h1><p>Painel de consultoria.</p></div></AppLayout>} />
-          
+          <Route path="/consultant-panel" element={<PrivateRoute><Layout><ConsultantPanelPage /></Layout></PrivateRoute>} />
+
           {/* Admin Routes */}
-          <Route path={ROUTES.ADMIN.ROOT} element={<AppLayout requireAdmin><AdminDashboard /></AppLayout>} />
-          <Route path={ROUTES.ADMIN.EQUIPMENTS.ROOT} element={<AppLayout requireAdmin><AdminEquipments /></AppLayout>} />
-          <Route path={ROUTES.ADMIN.EQUIPMENTS.CREATE} element={<AppLayout requireAdmin><CreateEquipment /></AppLayout>} />
-          <Route path={ROUTES.ADMIN.EQUIPMENTS.EDIT(':id')} element={<AppLayout requireAdmin><EditEquipment /></AppLayout>} />
-          <Route path={ROUTES.ADMIN.CONTENT} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">Admin Content</h1><p>Gerenciamento de conteúdo.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN.AI} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">Admin AI</h1><p>Configurações de IA.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN.SYSTEM.DIAGNOSTICS} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">System Diagnostics</h1><p>Diagnóstico do sistema.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN.SYSTEM.INTELLIGENCE} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">System Intelligence</h1><p>Inteligência do sistema.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN.VIMEO.SETTINGS} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">Vimeo Settings</h1><p>Configurações do Vimeo.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN.WORKSPACE} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">Admin Workspace</h1><p>Área de trabalho administrativa.</p></div></AppLayout>} />
-          <Route path={ROUTES.ADMIN_VIDEOS} element={<AppLayout requireAdmin><div className="p-6"><h1 className="text-2xl font-bold">Admin Videos</h1><p>Administração de vídeos.</p></div></AppLayout>} />
-          
-          {/* Workspace Settings */}
-          <Route path={ROUTES.WORKSPACE_SETTINGS} element={<AppLayout><div className="p-6"><h1 className="text-2xl font-bold">Workspace Settings</h1><p>Configurações do workspace.</p></div></AppLayout>} />
-          
-          {/* Script Generator Route */}
-          <Route path="/script-generator" element={<AppLayout><ScriptGeneratorPage /></AppLayout>} />
-          
-          {/* Nova rota para FLUIDAROTEIRISTA */}
-          <Route 
-            path="/fluidaroteirista" 
-            element={
-              <AppLayout>
-                <FluidaRoteiristPage />
-              </AppLayout>
-            } 
-          />
-          
-          {/* 404 - Not Found */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/admin/videos" element={<AdminRoute><Layout><AdminVideosPage /></Layout></AdminRoute>} />
+          <Route path="/admin/equipments" element={<AdminRoute><Layout><AdminEquipmentsPage /></Layout></AdminRoute>} />
+          <Route path="/admin/equipments/create" element={<AdminRoute><Layout><AdminEquipmentCreatePage /></Layout></AdminRoute>} />
+          <Route path="/admin/equipments/edit/:id" element={<AdminRoute><Layout><AdminEquipmentEditPage /></Layout></AdminRoute>} />
+          <Route path="/admin/content" element={<AdminRoute><Layout><AdminContentPage /></Layout></AdminRoute>} />
+          <Route path="/admin/ai" element={<AdminRoute><Layout><AdminAiPage /></Layout></AdminRoute>} />
+          <Route path="/admin/system-diagnostics" element={<AdminRoute><Layout><AdminSystemDiagnosticsPage /></Layout></AdminRoute>} />
+          <Route path="/admin/system-intelligence" element={<AdminRoute><Layout><AdminSystemIntelligencePage /></Layout></AdminRoute>} />
+          <Route path="/admin/vimeo-settings" element={<AdminRoute><Layout><AdminVimeoSettingsPage /></Layout></AdminRoute>} />
+          <Route path="/admin/workspace" element={<AdminRoute><Layout><AdminWorkspacePage /></Layout></AdminRoute>} />
         </Routes>
+        
+        <Toaster />
       </Router>
-    </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

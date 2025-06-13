@@ -13,7 +13,7 @@ import EquipmentDetails from './EquipmentDetails';
 import TimeWarning from './TimeWarning';
 import CopyButton from '@/components/ui/CopyButton';
 import { getFormatterType, shouldShowTimeMetrics } from '../utils/formatMapper';
-import { sanitizeText } from '../utils/textSanitizer';
+import { sanitizeText, sanitizeScriptStructure } from '../utils/textSanitizer';
 
 interface ScriptFormatterProps {
   script: {
@@ -34,11 +34,16 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     roteiro: script.roteiro.substring(0, 100) 
   });
 
-  // Sanitizar texto antes de usar
+  // Sanitizar texto UNIVERSALMENTE antes de usar
   const cleanScript = {
     ...script,
-    roteiro: sanitizeText(script.roteiro)
+    roteiro: sanitizeScriptStructure(script.roteiro)
   };
+
+  console.log('🧹 [ScriptFormatter] Texto após sanitização:', {
+    original: script.roteiro.substring(0, 50),
+    limpo: cleanScript.roteiro.substring(0, 50)
+  });
 
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
@@ -57,11 +62,11 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return cleanScript.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
 
-  // Determinar formatter baseado no formato
+  // Determinar formatter baseado no formato usando mapper
   const formatterType = getFormatterType(cleanScript.formato);
   const showTimeMetrics = shouldShowTimeMetrics(cleanScript.formato);
 
-  console.log('🎯 [ScriptFormatter] Usando formatter:', formatterType);
+  console.log('🎯 [ScriptFormatter] Usando formatter:', formatterType, 'para formato:', cleanScript.formato);
 
   // Renderização condicional baseada no formato
   const renderScriptContent = () => {
@@ -119,9 +124,9 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       {/* Conteúdo Principal do Roteiro */}
       {renderScriptContent()}
 
-      {/* Métricas Básicas */}
+      {/* Métricas Básicas - Só mostrar tempo para formatos que precisam */}
       <ScriptMetrics
-        estimatedTime={estimatedTime}
+        estimatedTime={showTimeMetrics ? estimatedTime : 0}
         isWithinTimeLimit={isWithinTimeLimit}
         wordCount={wordCount}
         emocao_central={cleanScript.emocao_central}
