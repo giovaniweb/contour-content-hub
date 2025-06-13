@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
 import { Timer, Zap, MessageCircle, Share2, ThumbsUp } from 'lucide-react';
+import CopyButton from '@/components/ui/CopyButton';
 
 interface Stories10xSlideCardProps {
   slide: {
@@ -117,14 +118,18 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
 
           <div className="space-y-4">
             {/* Conteúdo do Story */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-cyan-400">Conteúdo do Story</span>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body">
+              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
                 {slide.conteudo}
               </p>
+              <CopyButton 
+                text={slide.conteudo}
+                successMessage={`Conteúdo do story ${slide.number} copiado!`}
+              />
             </div>
 
             {/* Dispositivo de Engajamento */}
@@ -157,6 +162,70 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
       </Card>
     </motion.div>
   );
+};
+
+const getSlideIcon = (tipo: string): string => {
+  const icons = {
+    gancho: "🎯", // Hook
+    erro: "❌", // Erro comum
+    virada: "💡", // Virada + solução
+    cta: "📲"  // Call to action
+  };
+  return icons[tipo as keyof typeof icons] || "📝";
+};
+
+const getSlideTheme = (tipo: string) => {
+  const themes = {
+    gancho: { 
+      bg: "aurora-glass", 
+      border: "border-red-400/30", 
+      text: "text-red-300", 
+      badge: "bg-red-500/20 text-red-300 border-red-400/30",
+      glow: "shadow-red-400/20",
+      gradient: "bg-gradient-to-br from-red-500/10 to-orange-500/10"
+    },
+    erro: { 
+      bg: "aurora-glass", 
+      border: "border-yellow-400/30", 
+      text: "text-yellow-300", 
+      badge: "bg-yellow-500/20 text-yellow-300 border-yellow-400/30",
+      glow: "shadow-yellow-400/20",
+      gradient: "bg-gradient-to-br from-yellow-500/10 to-orange-500/10"
+    },
+    virada: { 
+      bg: "aurora-glass", 
+      border: "border-green-400/30", 
+      text: "text-green-300", 
+      badge: "bg-green-500/20 text-green-300 border-green-400/30",
+      glow: "shadow-green-400/20",
+      gradient: "bg-gradient-to-br from-green-500/10 to-cyan-500/10"
+    },
+    cta: { 
+      bg: "aurora-glass", 
+      border: "border-blue-400/30", 
+      text: "text-blue-300", 
+      badge: "bg-blue-500/20 text-blue-300 border-blue-400/30",
+      glow: "shadow-blue-400/20",
+      gradient: "bg-gradient-to-br from-blue-500/10 to-purple-500/10"
+    }
+  };
+  return themes[tipo as keyof typeof themes] || themes.gancho;
+};
+
+const getDispositivoIcon = (dispositivo: string) => {
+  if (dispositivo.includes('Foguinho') || dispositivo.includes('🔥')) {
+    return <Zap className="h-4 w-4 text-orange-400" />;
+  }
+  if (dispositivo.includes('Compartilhamento') || dispositivo.includes('📲')) {
+    return <Share2 className="h-4 w-4 text-blue-400" />;
+  }
+  if (dispositivo.includes('Reciprocidade') || dispositivo.includes('🔄')) {
+    return <MessageCircle className="h-4 w-4 text-green-400" />;
+  }
+  if (dispositivo.includes('Enquete') || dispositivo.includes('📊')) {
+    return <ThumbsUp className="h-4 w-4 text-purple-400" />;
+  }
+  return <Zap className="h-4 w-4 text-cyan-400" />;
 };
 
 const getTipByType = (tipo: string): string => {

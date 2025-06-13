@@ -10,6 +10,7 @@ import EquipmentStatus from './EquipmentStatus';
 import DisneyMagicIndicator from './DisneyMagicIndicator';
 import EquipmentDetails from './EquipmentDetails';
 import TimeWarning from './TimeWarning';
+import CopyButton from '@/components/ui/CopyButton';
 
 interface ScriptFormatterProps {
   script: {
@@ -63,7 +64,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full"
       >
-        <Card className="aurora-glass border border-cyan-500/30">
+        <Card className="aurora-glass border border-cyan-500/30 relative">
           <CardHeader>
             <CardTitle className="text-cyan-300 text-center text-2xl">
               📝 Seu Roteiro FLUIDA
@@ -72,9 +73,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
               Formato: {script.formato.toUpperCase()}
             </p>
           </CardHeader>
-          <CardContent className="p-8">
-            <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-8 bg-slate-900/30 rounded-lg min-h-[300px] w-full">
+          <CardContent className="p-8 relative">
+            <div className="text-slate-200 leading-relaxed text-lg whitespace-pre-line font-medium p-8 bg-slate-900/30 rounded-lg min-h-[300px] w-full relative">
               {script.roteiro}
+              <CopyButton 
+                text={script.roteiro}
+                successMessage="Roteiro copiado!"
+                className="top-4 right-4"
+              />
             </div>
           </CardContent>
         </Card>
@@ -82,7 +88,8 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     );
   };
 
-  const showTimeMetric = script.formato.toLowerCase() !== 'post_estatico' && script.formato.toLowerCase() !== 'carrossel';
+  // Stories 10x também não precisa de contagem de tempo (formato estático)
+  const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes(script.formato.toLowerCase());
 
   return (
     <div className="space-y-6 w-full">
@@ -99,17 +106,10 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         showTime={showTimeMetric}
       />
 
-      {/* Status dos Equipamentos */}
-      <EquipmentStatus
-        hasEquipments={hasEquipments}
-        equipmentUsedInScript={equipmentUsedInScript}
-        equipmentCount={script.equipamentos_utilizados?.length || 0}
-      />
-
       {/* Disney Magic Badge */}
       <DisneyMagicIndicator disneyApplied={script.disney_applied || false} />
 
-      {/* Equipamentos Detalhados */}
+      {/* Equipamentos Detalhados - Mostrar apenas se houver equipamentos utilizados */}
       {hasEquipments && equipmentUsedInScript && (
         <EquipmentDetails
           equipments={script.equipamentos_utilizados || []}
@@ -117,7 +117,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       )}
 
-      {/* Aviso de Tempo */}
+      {/* Aviso de Tempo - Apenas para formatos com tempo */}
       {showTimeMetric && (
         <TimeWarning
           isWithinTimeLimit={isWithinTimeLimit}

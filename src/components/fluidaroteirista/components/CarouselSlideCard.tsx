@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
+import CopyButton from '@/components/ui/CopyButton';
 
 interface CarouselSlideCardProps {
   slide: {
@@ -101,25 +101,33 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
 
           <div className="space-y-4">
             {/* Seção Texto */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-emerald rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-emerald">Texto do Slide</span>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body">
+              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
                 {slide.texto}
               </p>
+              <CopyButton 
+                text={slide.texto}
+                successMessage={`Texto do slide ${slide.number} copiado!`}
+              />
             </div>
 
             {/* Seção Imagem */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
+            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 bg-aurora-neon-blue rounded-full aurora-pulse"></div>
                 <span className="text-sm font-medium text-aurora-neon-blue">Descrição da Imagem</span>
               </div>
-              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body">
+              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12">
                 {slide.imagem}
               </p>
+              <CopyButton 
+                text={slide.imagem}
+                successMessage={`Descrição da imagem do slide ${slide.number} copiada!`}
+              />
             </div>
           </div>
         </CardContent>
