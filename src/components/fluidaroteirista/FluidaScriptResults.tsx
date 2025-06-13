@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from 'sonner';
 import { getMentorNickname } from './constants/mentorNames';
-import ScriptFormatter from './components/ScriptFormatter';
+import ImprovedScriptFormatter from './components/ImprovedScriptFormatter';
 import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay';
 import DisneyTransformation from './components/DisneyTransformation';
 import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
@@ -176,7 +177,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
       />
       
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
+        {/* Header Melhorado */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,27 +191,33 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-50">
-                ✨ Seu Roteiro FLUIDA Está Pronto!
+              <h1 className="text-3xl font-bold aurora-text-gradient mb-2">
+                ✨ Roteiro FLUIDA Concluído!
               </h1>
-              <div className="flex items-center justify-center gap-4 mt-2">
-                <p className="text-slate-400">
-                  Criado por: <strong>{mentorNickname}</strong>
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                <p className="text-slate-300">
+                  Criado por: <strong className="text-aurora-electric-purple">{mentorNickname}</strong>
                 </p>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                <Badge className={`${
                   isWithinTimeLimit 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  <Clock className="h-3 w-3" />
-                  {estimatedTime}s
-                </div>
+                    ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                    : 'bg-red-500/20 text-red-400 border-red-500/30'
+                } aurora-glass`}>
+                  <Clock className="h-3 w-3 mr-1" />
+                  {estimatedTime}s leitura
+                </Badge>
+                {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
+                  <Badge className="aurora-glass border-indigo-500/30 text-indigo-400">
+                    <Zap className="h-3 w-3 mr-1" />
+                    {script.equipamentos_utilizados.length} equipamento(s)
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Roteiro Principal */}
+        {/* Roteiro Formatado - NOVO COMPONENTE */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -220,20 +227,14 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  🎬 Roteiro Final
-                  {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      <Zap className="h-3 w-3 mr-1" />
-                      {script.equipamentos_utilizados.length} equipamento(s)
-                    </Badge>
-                  )}
+                  🎬 Seu Roteiro Profissional
                 </span>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCopyScript}
-                    className="text-xs"
+                    className="text-xs aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
                   >
                     <Copy className="h-3 w-3 mr-1" />
                     Copiar
@@ -242,7 +243,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={handleDownloadScript}
-                    className="text-xs"
+                    className="text-xs aurora-glass border-aurora-sage/30 text-aurora-sage hover:bg-aurora-sage/10"
                   >
                     <Download className="h-3 w-3 mr-1" />
                     Baixar
@@ -251,7 +252,7 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScriptFormatter script={script} />
+              <ImprovedScriptFormatter script={script} />
             </CardContent>
           </Card>
         </motion.div>
