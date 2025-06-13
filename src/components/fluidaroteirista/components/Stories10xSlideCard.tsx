@@ -13,7 +13,7 @@ interface Stories10xSlideCardProps {
     conteudo: string;
     dispositivo?: string;
     tempo: string;
-    tipo: 'gancho' | 'erro' | 'virada' | 'cta';
+    tipo: 'gancho' | 'erro' | 'virada' | 'cta' | 'bonus';
   };
 }
 
@@ -22,7 +22,8 @@ const getSlideIcon = (tipo: string): string => {
     gancho: "🎯", // Gancho
     erro: "❌", // Erro comum
     virada: "💡", // Virada + solução
-    cta: "📲"  // Call to action
+    cta: "📲",  // Call to action
+    bonus: "✨"  // Bônus
   };
   return icons[tipo as keyof typeof icons] || "📝";
 };
@@ -60,6 +61,14 @@ const getSlideTheme = (tipo: string) => {
       badge: "bg-blue-500/20 text-blue-300 border-blue-400/30",
       glow: "shadow-blue-400/20",
       gradient: "bg-gradient-to-br from-blue-500/10 to-purple-500/10"
+    },
+    bonus: { 
+      bg: "aurora-glass", 
+      border: "border-purple-400/30", 
+      text: "text-purple-300", 
+      badge: "bg-purple-500/20 text-purple-300 border-purple-400/30",
+      glow: "shadow-purple-400/20",
+      gradient: "bg-gradient-to-br from-purple-500/10 to-pink-500/10"
     }
   };
   return themes[tipo as keyof typeof themes] || themes.gancho;
@@ -86,7 +95,8 @@ const getTipByType = (tipo: string): string => {
     gancho: "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll.",
     erro: "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'",
     virada: "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta.",
-    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício."
+    cta: "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício.",
+    bonus: "Bônus que gera antecipação e reciprocidade. Use 'Quer mais? Me manda 🔥 que eu libero!'"
   };
   return tips[tipo as keyof typeof tips] || "Mantenha o foco na metodologia Stories 10x.";
 };
