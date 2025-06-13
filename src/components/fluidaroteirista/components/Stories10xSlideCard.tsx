@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
 import { Timer, Zap, MessageCircle, Share2, ThumbsUp } from 'lucide-react';
+import CopyableText from './CopyableText';
 
 interface Stories10xSlideCardProps {
   slide: {
@@ -93,7 +93,6 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
       className="h-full"
     >
       <Card className={`${theme.bg} ${theme.border} ${theme.glow} border-2 hover:shadow-lg transition-all duration-300 h-full relative overflow-hidden`}>
-        {/* Background gradient overlay */}
         <div className={`absolute inset-0 ${theme.gradient} opacity-50`} />
         
         <CardContent className="p-6 relative z-10">
@@ -116,42 +115,48 @@ const Stories10xSlideCard: React.FC<Stories10xSlideCardProps> = ({ slide }) => {
           </div>
 
           <div className="space-y-4">
-            {/* Conteúdo do Story */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
-                <span className="text-sm font-medium text-cyan-400">Conteúdo do Story</span>
+            {/* Conteúdo do Story com botão de copiar */}
+            <CopyableText text={slide.conteudo}>
+              <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
+                  <span className="text-sm font-medium text-cyan-400">Conteúdo do Story</span>
+                </div>
+                <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-8">
+                  {slide.conteudo}
+                </p>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body">
-                {slide.conteudo}
-              </p>
-            </div>
+            </CopyableText>
 
             {/* Dispositivo de Engajamento */}
             {slide.dispositivo && (
-              <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  {getDispositivoIcon(slide.dispositivo)}
-                  <span className="text-sm font-medium text-orange-400">Dispositivo de Engajamento</span>
+              <CopyableText text={slide.dispositivo}>
+                <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    {getDispositivoIcon(slide.dispositivo)}
+                    <span className="text-sm font-medium text-orange-400">Dispositivo de Engajamento</span>
+                  </div>
+                  <div className="flex items-center gap-2 pr-8">
+                    <Badge variant="outline" className="bg-orange-500/20 text-orange-300 border-orange-400/30 text-xs">
+                      {slide.dispositivo}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-orange-500/20 text-orange-300 border-orange-400/30 text-xs">
-                    {slide.dispositivo}
-                  </Badge>
-                </div>
-              </div>
+              </CopyableText>
             )}
 
             {/* Dica Específica por Tipo */}
-            <div className="aurora-glass rounded-lg p-3 border border-white/10 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full aurora-pulse"></div>
-                <span className="text-xs font-medium text-yellow-400">Dica Leandro Ladeira</span>
+            <CopyableText text={getTipByType(slide.tipo)}>
+              <div className="aurora-glass rounded-lg p-3 border border-white/10 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full aurora-pulse"></div>
+                  <span className="text-xs font-medium text-yellow-400">Dica Leandro Ladeira</span>
+                </div>
+                <p className="text-slate-300 text-xs italic aurora-body pr-8">
+                  {getTipByType(slide.tipo)}
+                </p>
               </div>
-              <p className="text-slate-300 text-xs italic aurora-body">
-                {getTipByType(slide.tipo)}
-              </p>
-            </div>
+            </CopyableText>
           </div>
         </CardContent>
       </Card>
