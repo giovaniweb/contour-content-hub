@@ -1,11 +1,12 @@
-import React from "react";
-import { CalendarCheck2, FileDown } from "lucide-react";
+import React, { useState } from "react";
+import { CalendarCheck2, FileDown, Send } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { exportElementAsPDF, exportElementAsImage, triggerDownload } from "@/utils/exportWeeklySchedule";
-import { useState } from "react";
+import SendToPlannerModal from "./SendToPlannerModal";
+import { useContentPlanner } from "@/hooks/useContentPlanner";
 
 type DayPlan = {
   day: string;
@@ -77,8 +78,15 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
   contentFrequency
 }) => {
   const [exporting, setExporting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sentCount, setSentCount] = useState<number | undefined>(undefined);
+
   const weekPlan = generateWeekPlan(specialty, mainObjective, contentFrequency);
 
+  const { addItem } = useContentPlanner();
+
+  // Exportação (PDF/imagem) - já implementado
   const handleExportPdf = async () => {
     setExporting(true);
     try {
@@ -115,6 +123,41 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
     setExporting(false);
   };
 
+  // NOVO: Envio do plano semanal ao Content Planner
+  const handleSendWeekToPlanner = async () => {
+    setSending(true);
+    let successCount = 0;
+    for (const day of weekPlan) {
+      // Convertemos para formato do ContentPlannerItem (simples)
+      // Aqui você pode customizar para mentor, tipo, etc. — fluxo inicial:
+      const item = {
+        title: day.title,
+        description: `${day.description}\n\n🔗 Origem: Calendário Fluida (${day.day})`,
+        status: "idea",
+        tags: [
+          "fluida-smart-schedule",
+          specialty?.toLowerCase().replace(/\s+/g, "-") || "clinica",
+          day.day.toLowerCase()
+        ],
+        format: "carrossel",
+        objective: "🟡 Atrair Atenção",
+        distribution: "Instagram",
+        aiGenerated: true
+      };
+      const createdItem = await addItem(item);
+      if (createdItem) successCount++;
+    }
+    setSentCount(successCount);
+    setSending(false);
+    toast.success("Semana enviada para o Planner!", {
+      description: `${successCount} sugestões adicionadas ao Content Planner!`,
+      action: {
+        label: "Ver Planejador",
+        onClick: () => window.open('/content-planner', '_blank')
+      }
+    });
+  };
+
   return (
     <Card className="aurora-card border border-aurora-sage/30 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-1 gap-2">
@@ -128,7 +171,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             variant="outline"
             onClick={handleExportPdf}
             size="sm"
@@ -147,6 +190,18 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
           >
             <FileDown className="h-4 w-4" />
             Exportar Imagem
+          </Button>
+          <Button
+            variant="aurora"
+            onClick={() => {
+              setSentCount(undefined);
+              setModalOpen(true);
+            }}
+            size="sm"
+            className="gap-2 text-xs"
+          >
+            <Send className="h-4 w-4" />
+            Enviar Semana ao Planner
           </Button>
         </div>
       </CardHeader>
@@ -171,6 +226,16 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
           ))}
         </div>
       </CardContent>
+      <SendToPlannerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        weekPlan={weekPlan}
+        loading={sending}
+        onConfirm={async () => {
+          await handleSendWeekToPlanner();
+        }}
+        resultCount={sentCount}
+      />
     </Card>
   );
 };
