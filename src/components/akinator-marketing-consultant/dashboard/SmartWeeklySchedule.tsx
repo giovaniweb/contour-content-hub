@@ -133,7 +133,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
       const item = {
         title: day.title,
         description: `${day.description}\n\n🔗 Origem: Calendário Fluida (${day.day})`,
-        status: "idea",
+        status: 'idea' as ContentPlannerStatus,
         tags: [
           "fluida-smart-schedule",
           specialty?.toLowerCase().replace(/\s+/g, "-") || "clinica",
@@ -192,7 +192,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             Exportar Imagem
           </Button>
           <Button
-            variant="aurora"
+            variant="action"
             onClick={() => {
               setSentCount(undefined);
               setModalOpen(true);

@@ -63,7 +63,7 @@ const SendToPlannerModal: React.FC<SendToPlannerModalProps> = ({
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button variant="aurora" onClick={onConfirm} disabled={loading}>
+          <Button variant="action" onClick={onConfirm} disabled={loading}>
             {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             Enviar para o Planner
           </Button>
