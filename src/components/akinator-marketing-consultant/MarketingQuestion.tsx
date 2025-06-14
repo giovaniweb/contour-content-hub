@@ -71,7 +71,14 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     if (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') {
       console.log('🔧 DEBUG EQUIPAMENTOS:');
       console.log('- Step ID:', stepData.id);
-      console.log('- Equipamentos carregados:', equipments);
+      console.log('- Equipamentos carregados:', Array.isArray(equipments) ? equipments.length : 'equipments não array');
+      if (Array.isArray(equipments)) {
+        equipments.forEach(eq => {
+          console.log('🩺 Equipamento:', eq && eq.nome, '| Categoria:', eq && eq.categoria, '| Ativo:', eq && eq.ativo, '| Akinator:', eq && eq.akinator_enabled);
+        });
+      } else {
+        console.log('❌ Equipamentos não é array:', equipments);
+      }
       console.log('- Loading state:', equipmentsLoading);
       console.log('- Error state:', equipmentsError);
       console.log('- Mock equipments fallback:', mockEquipments);
@@ -164,42 +171,46 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     }
     console.log('🔧 Gerando opções de equipamentos...');
 
-    // Primeiro, tentar usar equipamentos do banco de dados
     let availableEquipments = [];
-    if (equipments && equipments.length > 0) {
+    if (equipments && Array.isArray(equipments) && equipments.length > 0) {
       console.log('✅ Usando equipamentos do banco de dados:', equipments.length);
-
-      // LOG das categorias dos equipamentos para debugging
       equipments.forEach(eq => {
-        console.log('🩺 Equipamento:', eq.nome, 'Categoria:', eq.categoria);
+        console.log('🩺 Equipamento:', eq && eq.nome, '| Categoria:', eq && eq.categoria, '| Ativo:', eq && eq.ativo, '| Akinator:', eq && eq.akinator_enabled);
       });
-
       availableEquipments = equipments;
     } else {
       console.log('⚠️ Banco vazio ou com erro, usando mock equipments:', mockEquipments.length);
       availableEquipments = mockEquipments;
     }
 
-    // Tornar o filtro mais robusto para medical e estetico
-    const filteredEquipments = availableEquipments.filter(equipment => {
-      // Categoria pode vir em diferentes formatos
-      const cat = typeof equipment.categoria === 'string' ? equipment.categoria.toLowerCase() : '';
+    // Proteção extra ao acessar categoria e uso do campo ativo/akinator_enabled
+    const filteredEquipments = availableEquipments.filter((equipment) => {
+      const rawCategoria = equipment && typeof equipment.categoria === 'string' ? equipment.categoria.trim().toLowerCase() : '';
+      const ativo = equipment && (typeof equipment.ativo === "boolean" ? equipment.ativo : true);
+      const enabled = equipment && (typeof equipment.akinator_enabled === "boolean" ? equipment.akinator_enabled : true);
+
+      if (!ativo || !enabled) return false;
+
       if (stepData.id === 'aestheticEquipments') {
-        return cat === 'estetico' || cat === 'estético'; // aceita acentuação
+        return rawCategoria === 'estetico' || rawCategoria === 'estético';
       }
       if (stepData.id === 'medicalEquipments') {
-        return cat === 'medico' || cat === 'médico' || !cat; // aceita acento e vazio
+        return rawCategoria === 'medico' || rawCategoria === 'médico' || !rawCategoria;
       }
-      return true; // fallback: inclui tudo se não definido
+      return true;
     });
     console.log('🔧 Equipamentos após filtro:', filteredEquipments.length);
+    if (filteredEquipments.length === 0) {
+      // Mensagem extra se vier vazio
+      console.warn('❌ Nenhum equipamento disponível após filtragem! Verifique cadastro/ativos/akinator_enabled.');
+    }
 
     const equipmentOptions = filteredEquipments.map(equipment => ({
-      value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
-      label: `🔬 ${equipment.nome}`
+      value: (equipment.nome || 'desconhecido').toLowerCase().replace(/\s+/g, '_'),
+      label: `🔬 ${equipment.nome || 'Equipamento sem nome'}`
     }));
 
-    // Adicionar opções fixas
+    // Adicionar opções fixas/padrão
     const finalOptions = [
       ...equipmentOptions,
       {
@@ -211,7 +222,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
         label: '❌ Não utilizo equipamentos'
       }
     ];
-    console.log('🔧 Opções finais geradas:', finalOptions.length);
+    console.log('🔧 Opções finais geradas:', finalOptions.length, finalOptions);
     return finalOptions;
   };
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
