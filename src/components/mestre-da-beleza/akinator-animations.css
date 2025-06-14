@@ -1,0 +1,85 @@
+
+/* Animações específicas para o Akinator Mágico */
+
+@keyframes magical-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(250, 204, 21, 0.6), 0 0 60px rgba(236, 72, 153, 0.3);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.1) rotate(90deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.9) rotate(180deg);
+    opacity: 0.6;
+  }
+  75% {
+    transform: scale(1.05) rotate(270deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes crystal-pulse {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(250, 204, 21, 0.5));
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(250, 204, 21, 0.8));
+  }
+}
+
+@keyframes thought-bubble {
+  0% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.7;
+  }
+}
+
+.magical-glow {
+  animation: magical-glow 3s ease-in-out infinite;
+}
+
+.sparkle-animation {
+  animation: sparkle 4s ease-in-out infinite;
+}
+
+.crystal-pulse {
+  animation: crystal-pulse 2s ease-in-out infinite;
+}
+
+.thought-bubble {
+  animation: thought-bubble 2s ease-in-out infinite;
+}
+
+/* Gradientes mágicos */
+.gradient-magical {
+  background: linear-gradient(135deg, 
+    rgba(250, 204, 21, 0.2) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(147, 51, 234, 0.2) 100%);
+}
+
+.text-magical {
+  background: linear-gradient(135deg, #fbbf24, #ec4899, #9333ea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
