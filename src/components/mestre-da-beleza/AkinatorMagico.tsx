@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -20,6 +19,7 @@ import './akinator-animations.css';
 const AkinatorMagico: React.FC = () => {
   const {
     userProfile,
+    updateProfile,
     getRecommendation,
     resetChat,
     processUserResponse
@@ -52,7 +52,11 @@ const AkinatorMagico: React.FC = () => {
   };
 
   const handleStartNewSession = () => {
-    resetChat();
+    console.log('Starting new session...');
+    updateProfile({ 
+      step: 'intention',
+      primeira_interacao: false 
+    });
   };
 
   const renderWelcomeScreen = () => (
@@ -281,6 +285,8 @@ const AkinatorMagico: React.FC = () => {
   const isQuestioningPhase = gameState === 'intention' || gameState === 'diagnosis';
   const isThinkingPhase = false; // Mock thinking phase
   const isCompletePhase = gameState === 'recommendation' || gameState === 'completed';
+
+  console.log('Current game state:', gameState, 'User profile:', userProfile);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
