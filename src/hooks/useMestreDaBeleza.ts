@@ -88,8 +88,24 @@ export const useMestreDaBeleza = () => {
 
   // Sistema de pontuação para equipamentos
   const calculateEquipmentScore = useCallback((equipment: Equipment, responses: Record<string, any>) => {
+    console.log('🔍 [MestreDaBeleza] Iniciando cálculo de score');
+    console.log('🔍 [MestreDaBeleza] Equipment recebido:', equipment);
+    console.log('🔍 [MestreDaBeleza] Responses recebidas:', responses);
+
+    // Verificação de segurança mais robusta
     if (!equipment) {
-      console.warn('⚠️ [MestreDaBeleza] Equipment is null/undefined in calculateEquipmentScore');
+      console.error('❌ [MestreDaBeleza] Equipment é null/undefined');
+      return { score: 0, scoreBreakdown: {} };
+    }
+
+    if (typeof equipment !== 'object') {
+      console.error('❌ [MestreDaBeleza] Equipment não é um objeto:', typeof equipment);
+      return { score: 0, scoreBreakdown: {} };
+    }
+
+    // Verificar se o equipment tem as propriedades básicas
+    if (!equipment.hasOwnProperty('id') || !equipment.hasOwnProperty('nome')) {
+      console.error('❌ [MestreDaBeleza] Equipment não tem propriedades básicas:', Object.keys(equipment || {}));
       return { score: 0, scoreBreakdown: {} };
     }
 
@@ -98,74 +114,79 @@ export const useMestreDaBeleza = () => {
 
     console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome || 'Equipment sem nome');
 
-    // Análise por área de aplicação
-    if (responses.area_problema === 'Rosto' && equipment.area_aplicacao?.includes('Facial')) {
-      score += 20;
-      scoreBreakdown['area_facial'] = 20;
-    }
-    if (responses.area_problema === 'Corpo' && equipment.area_aplicacao?.includes('Corporal')) {
-      score += 20;
-      scoreBreakdown['area_corporal'] = 20;
-    }
-
-    // Análise por problemas específicos - Tratamento seguro para string ou array
-    let indicacoes = '';
-    if (equipment.indicacoes) {
-      if (Array.isArray(equipment.indicacoes)) {
-        indicacoes = equipment.indicacoes.join(' ').toLowerCase();
-      } else if (typeof equipment.indicacoes === 'string') {
-        indicacoes = equipment.indicacoes.toLowerCase();
+    try {
+      // Análise por área de aplicação
+      if (responses.area_problema === 'Rosto' && equipment.area_aplicacao?.includes('Facial')) {
+        score += 20;
+        scoreBreakdown['area_facial'] = 20;
       }
-    }
-    
-    if (responses.flacidez_facial === 'Sim' && indicacoes.includes('flacidez')) {
-      score += 25;
-      scoreBreakdown['flacidez_facial'] = 25;
-    }
-    
-    if (responses.flacidez_corporal === 'Sim' && indicacoes.includes('flacidez')) {
-      score += 25;
-      scoreBreakdown['flacidez_corporal'] = 25;
-    }
-    
-    if (responses.gordura_localizada === 'Sim' && indicacoes.includes('gordura')) {
-      score += 25;
-      scoreBreakdown['gordura_localizada'] = 25;
-    }
-    
-    if (responses.melasma_manchas === 'Sim' && indicacoes.includes('mancha')) {
-      score += 25;
-      scoreBreakdown['melasma_manchas'] = 25;
-    }
-
-    // Análise por faixa etária
-    const idade = estimateAge(responses);
-    if (idade > 35 && indicacoes.includes('rejuvenescimento')) {
-      score += 15;
-      scoreBreakdown['idade_madura'] = 15;
-    }
-    if (idade < 30 && indicacoes.includes('prevenção')) {
-      score += 10;
-      scoreBreakdown['prevencao_jovem'] = 10;
-    }
-
-    // Bonus por tecnologia avançada
-    let tecnologia = '';
-    if (equipment.tecnologia) {
-      if (Array.isArray(equipment.tecnologia)) {
-        tecnologia = equipment.tecnologia.join(' ').toLowerCase();
-      } else if (typeof equipment.tecnologia === 'string') {
-        tecnologia = equipment.tecnologia.toLowerCase();
+      if (responses.area_problema === 'Corpo' && equipment.area_aplicacao?.includes('Corporal')) {
+        score += 20;
+        scoreBreakdown['area_corporal'] = 20;
       }
-    }
+
+      // Análise por problemas específicos - Tratamento seguro para string ou array
+      let indicacoes = '';
+      if (equipment.indicacoes) {
+        if (Array.isArray(equipment.indicacoes)) {
+          indicacoes = equipment.indicacoes.join(' ').toLowerCase();
+        } else if (typeof equipment.indicacoes === 'string') {
+          indicacoes = equipment.indicacoes.toLowerCase();
+        }
+      }
       
-    if (tecnologia.includes('laser') || tecnologia.includes('ultrassom')) {
-      score += 10;
-      scoreBreakdown['tecnologia_avancada'] = 10;
-    }
+      if (responses.flacidez_facial === 'Sim' && indicacoes.includes('flacidez')) {
+        score += 25;
+        scoreBreakdown['flacidez_facial'] = 25;
+      }
+      
+      if (responses.flacidez_corporal === 'Sim' && indicacoes.includes('flacidez')) {
+        score += 25;
+        scoreBreakdown['flacidez_corporal'] = 25;
+      }
+      
+      if (responses.gordura_localizada === 'Sim' && indicacoes.includes('gordura')) {
+        score += 25;
+        scoreBreakdown['gordura_localizada'] = 25;
+      }
+      
+      if (responses.melasma_manchas === 'Sim' && indicacoes.includes('mancha')) {
+        score += 25;
+        scoreBreakdown['melasma_manchas'] = 25;
+      }
 
-    console.log('📊 [MestreDaBeleza] Score calculado:', { equipment: equipment.nome || 'Sem nome', score, scoreBreakdown });
-    return { score, scoreBreakdown };
+      // Análise por faixa etária
+      const idade = estimateAge(responses);
+      if (idade > 35 && indicacoes.includes('rejuvenescimento')) {
+        score += 15;
+        scoreBreakdown['idade_madura'] = 15;
+      }
+      if (idade < 30 && indicacoes.includes('prevenção')) {
+        score += 10;
+        scoreBreakdown['prevencao_jovem'] = 10;
+      }
+
+      // Bonus por tecnologia avançada
+      let tecnologia = '';
+      if (equipment.tecnologia) {
+        if (Array.isArray(equipment.tecnologia)) {
+          tecnologia = equipment.tecnologia.join(' ').toLowerCase();
+        } else if (typeof equipment.tecnologia === 'string') {
+          tecnologia = equipment.tecnologia.toLowerCase();
+        }
+      }
+        
+      if (tecnologia.includes('laser') || tecnologia.includes('ultrassom')) {
+        score += 10;
+        scoreBreakdown['tecnologia_avancada'] = 10;
+      }
+
+      console.log('📊 [MestreDaBeleza] Score calculado com sucesso:', { equipment: equipment.nome || 'Sem nome', score, scoreBreakdown });
+      return { score, scoreBreakdown };
+    } catch (error) {
+      console.error('❌ [MestreDaBeleza] Erro ao calcular score:', error);
+      return { score: 0, scoreBreakdown: {} };
+    }
   }, [estimateAge]);
 
   // Criar equipamento mock quando necessário
@@ -240,10 +261,25 @@ export const useMestreDaBeleza = () => {
       };
     }
     
-    // Filtrar equipamentos ativos e habilitados para Akinator
-    const availableEquipments = equipments.filter(eq => 
-      eq && eq.ativo && eq.akinator_enabled
-    );
+    // Filtrar equipamentos ativos e habilitados para Akinator com verificações de segurança
+    const availableEquipments = equipments.filter(eq => {
+      if (!eq) {
+        console.warn('⚠️ [MestreDaBeleza] Equipamento null encontrado');
+        return false;
+      }
+      
+      if (typeof eq !== 'object') {
+        console.warn('⚠️ [MestreDaBeleza] Equipamento não é objeto:', typeof eq);
+        return false;
+      }
+      
+      if (!eq.hasOwnProperty('id') || !eq.hasOwnProperty('ativo') || !eq.hasOwnProperty('akinator_enabled')) {
+        console.warn('⚠️ [MestreDaBeleza] Equipamento sem propriedades necessárias:', Object.keys(eq || {}));
+        return false;
+      }
+      
+      return eq.ativo && eq.akinator_enabled;
+    });
 
     console.log('✅ [MestreDaBeleza] Equipamentos disponíveis:', availableEquipments.length);
 
@@ -259,17 +295,30 @@ export const useMestreDaBeleza = () => {
       };
     }
 
-    // Calcular scores para todos os equipamentos
+    // Calcular scores para todos os equipamentos com verificações adicionais
     const scoredEquipments = availableEquipments
-      .filter(equipment => equipment != null) // Filtrar nulls/undefined
+      .filter(equipment => {
+        if (!equipment) {
+          console.warn('⚠️ [MestreDaBeleza] Equipment null no scoring');
+          return false;
+        }
+        return true;
+      })
       .map(equipment => {
-        const { score, scoreBreakdown } = calculateEquipmentScore(equipment, responses);
-        return {
-          equipment,
-          score,
-          scoreBreakdown
-        };
-      });
+        try {
+          console.log('🔍 [MestreDaBeleza] Processando equipment para scoring:', equipment.id);
+          const { score, scoreBreakdown } = calculateEquipmentScore(equipment, responses);
+          return {
+            equipment,
+            score,
+            scoreBreakdown
+          };
+        } catch (error) {
+          console.error('❌ [MestreDaBeleza] Erro ao processar equipment:', equipment.id, error);
+          return null;
+        }
+      })
+      .filter(item => item !== null);
 
     if (scoredEquipments.length === 0) {
       console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento válido após scoring');
