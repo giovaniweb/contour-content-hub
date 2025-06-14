@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { Crown, Wand2, Sparkles, Trophy, RefreshCw, CheckCircle, Star } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useEsteticaAkinator, AKINATOR_QUESTIONS } from "@/hooks/useEsteticaAkinator";
+import { IdentificacaoDePerfil } from "./IdentificacaoDePerfil";
+import { SugestaoClinicasProximas } from "./SugestaoClinicasProximas";
 
 const frasesFaixaEtaria = (idade?: number) => {
   if (!idade) return null;
@@ -40,6 +42,22 @@ const MestreDaBelezaAkinator: React.FC = () => {
       </div>
     );
   }
+
+  const [perfilDados, setPerfilDados] = React.useState<any>(null);
+
+  // Exibe a tela de identificação primeiro
+  if (!perfilDados) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900 p-6 flex items-center justify-center">
+        <div className="max-w-lg w-full">
+          <IdentificacaoDePerfil onFinalizado={dados => setPerfilDados(dados)} />
+        </div>
+      </div>
+    );
+  }
+
+  // Se for cliente final, ao terminar recomenda a busca pelas clínicas
+  const isClienteFinal = perfilDados.perfilTipo === "cliente_final";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900 p-6">
@@ -162,6 +180,11 @@ const MestreDaBelezaAkinator: React.FC = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Adiciona sugestão de clínicas ao final se for cliente final */}
+      {akinator.ended && isClienteFinal && akinator.ranking[0] && (
+        <SugestaoClinicasProximas equipamentoNome={akinator.ranking[0].nome} />
+      )}
     </div>
   );
 };

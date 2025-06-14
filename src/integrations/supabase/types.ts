@@ -1270,12 +1270,18 @@ export type Database = {
           clinica: string | null
           data_criacao: string | null
           email: string
+          endereco_completo: string | null
           equipamentos: string[] | null
+          especialidade: string | null
+          estado: string | null
           foto_url: string | null
           id: string
           idioma: string | null
+          lat: number | null
+          lng: number | null
           nome: string | null
           observacoes_conteudo: string | null
+          perfil_tipo: string | null
           role: string | null
           telefone: string | null
         }
@@ -1284,12 +1290,18 @@ export type Database = {
           clinica?: string | null
           data_criacao?: string | null
           email: string
+          endereco_completo?: string | null
           equipamentos?: string[] | null
+          especialidade?: string | null
+          estado?: string | null
           foto_url?: string | null
           id: string
           idioma?: string | null
+          lat?: number | null
+          lng?: number | null
           nome?: string | null
           observacoes_conteudo?: string | null
+          perfil_tipo?: string | null
           role?: string | null
           telefone?: string | null
         }
@@ -1298,12 +1310,18 @@ export type Database = {
           clinica?: string | null
           data_criacao?: string | null
           email?: string
+          endereco_completo?: string | null
           equipamentos?: string[] | null
+          especialidade?: string | null
+          estado?: string | null
           foto_url?: string | null
           id?: string
           idioma?: string | null
+          lat?: number | null
+          lng?: number | null
           nome?: string | null
           observacoes_conteudo?: string | null
+          perfil_tipo?: string | null
           role?: string | null
           telefone?: string | null
         }
