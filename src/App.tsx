@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
@@ -30,6 +29,7 @@ import AppLayout from './components/layout/AppLayout';
 import { ROUTES } from './routes';
 import FluidaRoteiristPage from '@/pages/FluidaRoteiristsPage';
 import ApprovedScriptsPage from '@/pages/ApprovedScriptsPage';
+import BeforeAfterPage from '@/pages/BeforeAfterPage';
 
 function App() {
   return (
@@ -122,6 +122,16 @@ function App() {
             element={
               <AppLayout>
                 <ApprovedScriptsPage />
+              </AppLayout>
+            } 
+          />
+          
+          {/* Nova rota para Antes & Depois */}
+          <Route 
+            path="/before-after" 
+            element={
+              <AppLayout>
+                <BeforeAfterPage />
               </AppLayout>
             } 
           />

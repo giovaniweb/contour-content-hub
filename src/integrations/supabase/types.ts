@@ -314,6 +314,59 @@ export type Database = {
           },
         ]
       }
+      before_after_photos: {
+        Row: {
+          after_image_url: string
+          approved_script_id: string | null
+          before_image_url: string
+          created_at: string
+          description: string | null
+          equipment_used: string[] | null
+          id: string
+          is_public: boolean | null
+          procedure_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          after_image_url: string
+          approved_script_id?: string | null
+          before_image_url: string
+          created_at?: string
+          description?: string | null
+          equipment_used?: string[] | null
+          id?: string
+          is_public?: boolean | null
+          procedure_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          after_image_url?: string
+          approved_script_id?: string | null
+          before_image_url?: string
+          created_at?: string
+          description?: string | null
+          equipment_used?: string[] | null
+          id?: string
+          is_public?: boolean | null
+          procedure_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "before_after_photos_approved_script_id_fkey"
+            columns: ["approved_script_id"]
+            isOneToOne: false
+            referencedRelation: "approved_scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           category: string

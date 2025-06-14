@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, HelpCircle, Sparkles, Target, Rocket, BookOpen, TrendingUp } from "lucide-react";
+import { Wand2, HelpCircle, Sparkles, Target, Rocket, BookOpen, TrendingUp, Camera } from "lucide-react";
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import AkinatorScriptMode from './modes/AkinatorScriptMode';
@@ -85,6 +84,10 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
   const handleNavigateToApprovedScripts = () => {
     navigate('/approved-scripts');
+  };
+
+  const handleNavigateToBeforeAfter = () => {
+    navigate('/before-after');
   };
 
   console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
@@ -173,7 +176,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 onClick={handleNavigateToApprovedScripts}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white h-16 flex items-center gap-3"
@@ -182,6 +185,17 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
                 <div className="text-left">
                   <div className="font-semibold">📚 Roteiros Aprovados</div>
                   <div className="text-sm opacity-90">Gerencie e avalie performance</div>
+                </div>
+              </Button>
+              
+              <Button
+                onClick={handleNavigateToBeforeAfter}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white h-16 flex items-center gap-3"
+              >
+                <Camera className="h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">📸 Antes & Depois</div>
+                  <div className="text-sm opacity-90">Documente resultados</div>
                 </div>
               </Button>
               
@@ -348,8 +362,8 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
               className="text-center"
               whileHover={{ scale: 1.05 }}
             >
-              <div className="text-aurora-electric-purple font-medium">🚀 Análise Rocket</div>
-              <div>10 elementos estruturados</div>
+              <div className="text-aurora-electric-purple font-medium">📸 Antes & Depois</div>
+              <div>Documente resultados</div>
             </motion.div>
           </div>
         </motion.div>
