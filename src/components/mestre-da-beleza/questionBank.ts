@@ -1,4 +1,3 @@
-
 /**
  * Banco configurável de perguntas para o Mestre da Beleza.
  * Suporte para perfil, intenção, diagnóstico, nostalgias e perguntas avançadas.
@@ -22,42 +21,61 @@ export const questionBank: Question[] = [
     id: 'perfil',
     text: 'Vamos começar! Quem é você na estética?',
     options: ['Sou médico(a)', 'Sou profissional de estética', 'Sou cliente final'],
-    context: 'perfil'
+    context: 'perfil',
+    scoring: {
+      'Sou médico(a)': 3,
+      'Sou profissional de estética': 2,
+      'Sou cliente final': 1,
+    }
   },
   {
     id: 'intencao',
     text: 'Qual sua intenção hoje?',
     options: ['Quero resolver um problema', 'Quero ideias', 'Só explorando'],
-    context: 'intencao'
+    context: 'intencao',
+    scoring: {
+      'Quero resolver um problema': 5,
+      'Quero ideias': 2,
+      'Só explorando': 1
+    }
   },
-  // Pergunta nostálgica (exemplo)
-  {
-    id: 'nostalgia_brasiltricampeao',
-    text: 'Você já viu o Brasil ser tetra na Copa do Mundo? (1994) ⚽',
-    options: ['Sim', 'Não lembro', 'Não era nascido(a)'],
-    context: 'brasiltricampeao',
-    nostalgic: true
-  },
-  // Diagnóstico
   {
     id: 'diagnostico_area',
     text: 'O que mais te incomoda?',
     options: ['Rosto', 'Corpo', 'Ambos', 'Nada incomoda'],
-    context: 'area_problema'
+    context: 'area_problema',
+    scoring: {
+      'Rosto': 7, 'Corpo': 7, 'Ambos': 3, 'Nada incomoda': 0
+    }
   },
+  // Perguntas Akinator-style novas:
   {
-    id: 'diagnostico_flacidez_facial',
+    id: 'flacidez_facial',
     text: 'Percebe sinais de flacidez no rosto?',
-    options: ['Sim, muita', 'Um pouco', 'Nada'],
+    options: ['Sim', 'Um pouco', 'Não'],
     context: 'flacidez_facial',
-    profile: ['cliente_final', 'profissional_estetica']
+    scoring: { 'Sim': 10, 'Um pouco': 3, 'Não': 0 }
   },
   {
-    id: 'diagnostico_flacidez_corporal',
-    text: 'Percebe sinais de flacidez no corpo?',
-    options: ['Sim, muita', 'Um pouco', 'Nada'],
+    id: 'flacidez_corporal',
+    text: 'Percebe flacidez no corpo?',
+    options: ['Sim', 'Um pouco', 'Não'],
     context: 'flacidez_corporal',
-    profile: ['cliente_final', 'profissional_estetica']
+    scoring: { 'Sim': 10, 'Um pouco': 3, 'Não': 0 }
+  },
+  {
+    id: 'gordura_localizada',
+    text: 'Tem gordura localizada que incomoda?',
+    options: ['Sim', 'Não'],
+    context: 'gordura_localizada',
+    scoring: { 'Sim': 10, 'Não': 0 }
+  },
+  {
+    id: 'melasma_manchas',
+    text: 'Possui manchas/melasma no rosto?',
+    options: ['Sim', 'Não'],
+    context: 'melasma_manchas',
+    scoring: { 'Sim': 10, 'Não': 0 }
   },
   // ...ADICIONAR MAIS de acordo com plano
   {

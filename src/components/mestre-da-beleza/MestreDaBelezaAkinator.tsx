@@ -23,6 +23,7 @@ import { useGamification } from '@/hooks/useGamification';
 import { questionBank, getNextQuestionId } from './questionBank';
 import { useMestreDaBelezaSession } from '@/hooks/useMestreDaBelezaSession';
 import { logEvent } from '@/hooks/useMestreDaBelezaAnalytics';
+import { useAkinatorInferencia } from "@/hooks/useAkinatorInferencia";
 
 const MestreDaBelezaAkinator: React.FC = () => {
   const {
@@ -187,6 +188,9 @@ const MestreDaBelezaAkinator: React.FC = () => {
     return null;
   };
 
+  const { equipments } = useMestreDaBeleza(); // hook original
+  const aki = useAkinatorInferencia(equipments);
+
   const handleAnswer = async (answer: string) => {
     const progress = Math.min(questionProgress + 15, 100);
     setQuestionProgress(progress);
@@ -249,6 +253,20 @@ const MestreDaBelezaAkinator: React.FC = () => {
         // Fix: get problema from processUserResponse return value
         const { problema } = processUserResponse(answer, context);
         
+        // Ajuste: processar nos passos de diagnostico no sistema Akinator:
+        if (
+          userProfile.step === "diagnosis" &&
+          currentQuestionObj &&
+          [
+            "flacidez_facial",
+            "flacidez_corporal",
+            "gordura_localizada",
+            "melasma_manchas",
+          ].includes(currentQuestionObj.context)
+        ) {
+          aki.processarSintoma(currentQuestionObj.context, answer);
+        }
+        
         // Verificar se ainda há perguntas específicas para fazer
         const nextAdvancedQuestion = getAdvancedQuestions();
         
@@ -276,6 +294,12 @@ const MestreDaBelezaAkinator: React.FC = () => {
         break;
     }
   };
+
+  // NOVO: Mostrar ranking durante diagnóstico
+  const showRanking =
+    userProfile.step === "diagnosis" &&
+    aki.ranking.length > 0 &&
+    questionProgress > 45; // exibe se avançou já algumas perguntas
 
   const handleNewGame = () => {
     resetChat();
@@ -539,6 +563,40 @@ const MestreDaBelezaAkinator: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Ranking Akinator-style */}
+      {showRanking && (
+        <div className="mt-8">
+          <h3 className="text-center text-white/80 mb-2">
+            <span className="font-bold text-yellow-400">🧠 Palpite do Akinator:</span>
+          </h3>
+          <div className="flex flex-wrap justify-center gap-4">
+            {aki.ranking.slice(0, 3).map((eq, idx) => (
+              <div
+                key={eq.id}
+                className="bg-gradient-to-br from-purple-800/40 to-pink-800/40 p-4 rounded-xl shadow-lg w-60 border border-purple-400/20 text-white"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="font-bold text-2xl">{idx + 1}</span>
+                  <span className="text-pink-300 font-semibold">{eq.nome}</span>
+                </div>
+                <div className="mb-1 text-sm text-purple-200">{eq.tecnologia}</div>
+                <div className="mb-2 text-xs text-yellow-300">
+                  Score: {eq._akinator_score}
+                </div>
+                {eq.image_url && (
+                  <img
+                    src={eq.image_url}
+                    alt={eq.nome}
+                    className="w-full h-24 object-cover rounded-lg mb-1"
+                  />
+                )}
+                <div className="text-xs">{eq.efeito}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
