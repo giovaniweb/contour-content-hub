@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import VideoCard from '@/components/video-storage/VideoCard';
 import VideoDownloadDialog from '@/components/video-storage/VideoDownloadDialog';
 import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import { StoredVideo, VideoFilterOptions } from '@/types/video-storage';
-import { getVideos, processVideo, reimportFromVimeo } from '@/services/videoStorageService';
+import { getVideos, processVideo } from '@/services/videoStorageService';
 import { timeAgo } from '@/utils/time';
 
 interface VideoListProps {
@@ -130,35 +129,6 @@ const VideoList: React.FC<VideoListProps> = ({
       });
     } finally {
       setReprocessingVideos(prev => ({ ...prev, [video.id]: false }));
-    }
-  };
-
-  // Handle Vimeo reimport
-  const handleReimportVimeo = async (video: StoredVideo) => {
-    setProcessingVideos(prev => ({ ...prev, [video.id]: true }));
-    try {
-      const { success, error } = await reimportFromVimeo(video.id);
-      
-      if (!success || error) {
-        throw new Error(error || 'Failed to reimport from Vimeo');
-      }
-      
-      toast({
-        title: "Reimport successful",
-        description: "Video metadata has been updated from Vimeo."
-      });
-      
-      // Refresh video list to show updated metadata
-      loadVideos();
-    } catch (error) {
-      console.error('Error reimporting from Vimeo:', error);
-      toast({
-        variant: "destructive",
-        title: "Reimport failed",
-        description: error.message || "Failed to reimport video from Vimeo"
-      });
-    } finally {
-      setProcessingVideos(prev => ({ ...prev, [video.id]: false }));
     }
   };
 

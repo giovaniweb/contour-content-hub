@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { MarketingObjectiveType } from '@/types/script';
 
 interface VideoFormFieldsProps {
   title: string;
@@ -27,8 +28,8 @@ interface VideoFormFieldsProps {
   setTags: (tags: string) => void;
   instagramCaption: string;
   setInstagramCaption: (instagramCaption: string) => void;
-  marketingObjective: string;
-  setMarketingObjective: (marketingObjective: string) => void;
+  marketingObjective: MarketingObjectiveType;
+  setMarketingObjective: (objective: MarketingObjectiveType) => void;
   equipmentsList: any[];
   bodyAreasList: any[];
   purposes: any[];
