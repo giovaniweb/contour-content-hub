@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Video, Upload, Grid, Search, VideoIcon, Filter, Play } from 'lucide-react';
+import { Video, Upload, Grid, Search, Play, Filter } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,10 @@ const VideosPage: React.FC = () => {
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-3">
-          <VideoIcon className="h-12 w-12 text-primary" />
+          <Video className="h-12 w-12 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-slate-50">Galeria de Vídeos</h1>
-            <p className="text-slate-400">Gerencie seus vídeos e conteúdo audiovisual</p>
+            <h1 className="text-3xl font-bold text-slate-50">Biblioteca de Vídeos</h1>
+            <p className="text-slate-400">Gerencie seus vídeos e produções</p>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ const VideosPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button variant="outline" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
-            Criar Vídeo
+            Reproduzir
           </Button>
           <Button className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
@@ -54,12 +54,12 @@ const VideosPage: React.FC = () => {
 
       {/* Empty State */}
       <EmptyState
-        icon={VideoIcon}
+        icon={Video}
         title="Nenhum vídeo encontrado"
-        description="Comece criando ou enviando seus primeiros vídeos"
-        actionLabel="Criar Primeiro Vídeo"
-        actionIcon={Play}
-        onAction={() => console.log('Create video')}
+        description="Comece enviando seus primeiros vídeos"
+        actionLabel="Enviar Primeiro Vídeo"
+        actionIcon={Upload}
+        onAction={() => console.log('Upload video')}
       />
     </div>
   );

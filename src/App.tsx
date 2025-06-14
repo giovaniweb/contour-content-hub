@@ -11,7 +11,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-// Lazy imports - only for pages that actually exist
+// Lazy imports - existing pages
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
@@ -20,9 +20,36 @@ const GamificationDashboard = React.lazy(() => import('@/pages/GamificationDashb
 const MestreDaBelezaPage = React.lazy(() => import('@/pages/MestreDaBelezaPage'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
+
+// Content pages
+const FluidaRoteiristPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
+const ContentPlanner = React.lazy(() => import('@/pages/ContentPlanner'));
+const ContentIdeas = React.lazy(() => import('@/pages/ContentIdeas'));
+const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
+const PhotosPage = React.lazy(() => import('@/pages/PhotosPage'));
+const ArtsPage = React.lazy(() => import('@/pages/ArtsPage'));
+
+// Marketing pages
+const MarketingConsultantHome = React.lazy(() => import('@/components/marketing-consultant/MarketingConsultantHome'));
+const Reports = React.lazy(() => import('@/pages/Reports'));
+
+// Video pages
+const VideosPage = React.lazy(() => import('@/pages/VideosPage'));
+const VideoPlayer = React.lazy(() => import('@/pages/VideoPlayer'));
+
+// Equipment pages
+const EquipmentsPage = React.lazy(() => import('@/pages/EquipmentsPage'));
+
+// Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const AdminContent = React.lazy(() => import('@/pages/admin/AdminContent'));
+const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
+const AdminAI = React.lazy(() => import('@/pages/admin/AdminAI'));
+const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSystemIntelligence'));
+const AdminVimeoSettings = React.lazy(() => import('@/pages/admin/AdminVimeoSettings'));
+const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
+const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,18 +74,46 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     
-                    {/* Protected Routes */}
+                    {/* Main Dashboard */}
                     <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
                     <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+                    
+                    {/* Main Menu Routes */}
                     <Route path="/mestre-da-beleza" element={<AppLayout><MestreDaBelezaPage /></AppLayout>} />
+                    <Route path="/marketing-consultant" element={<AppLayout><MarketingConsultantHome /></AppLayout>} />
+                    <Route path="/fluidaroteirista" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
+                    <Route path="/script-generator" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
+                    <Route path="/videos" element={<AppLayout><VideosPage /></AppLayout>} />
+                    <Route path="/video-player" element={<AppLayout><VideoPlayer /></AppLayout>} />
+                    <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
+                    <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
+                    <Route path="/content-planner" element={<AppLayout><ContentPlanner /></AppLayout>} />
+                    <Route path="/equipments" element={<AppLayout><EquipmentsPage /></AppLayout>} />
+                    
+                    {/* Content Routes */}
+                    <Route path="/content-ideas" element={<AppLayout><ContentIdeas /></AppLayout>} />
+                    <Route path="/scientific-articles" element={<AppLayout><ScientificArticles /></AppLayout>} />
+                    
+                    {/* Marketing Routes */}
+                    <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
+                    
+                    {/* Gamification Routes */}
                     <Route path="/before-after" element={<AppLayout><BeforeAfterPage /></AppLayout>} />
                     <Route path="/gamification" element={<AppLayout><GamificationDashboard /></AppLayout>} />
+                    
+                    {/* Profile */}
                     <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
                     
                     {/* Admin Routes */}
                     <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
                     <Route path="/admin/equipments" element={<AdminLayout><AdminEquipments /></AdminLayout>} />
                     <Route path="/admin/content" element={<AdminLayout><AdminContent /></AdminLayout>} />
+                    <Route path="/admin/videos" element={<AdminLayout><AdminVideos /></AdminLayout>} />
+                    <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
+                    <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
+                    <Route path="/admin/vimeo-settings" element={<AdminLayout><AdminVimeoSettings /></AdminLayout>} />
+                    <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
+                    <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                     
                     {/* 404 Route */}
                     <Route path="*" element={<NotFound />} />

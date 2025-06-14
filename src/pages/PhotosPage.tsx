@@ -16,7 +16,7 @@ const PhotosPage: React.FC = () => {
           <Image className="h-12 w-12 text-primary" />
           <div>
             <h1 className="text-3xl font-bold text-slate-50">Galeria de Fotos</h1>
-            <p className="text-slate-400">Gerencie suas fotos e imagens</p>
+            <p className="text-slate-400">Gerencie e organize suas fotos</p>
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@ const PhotosPage: React.FC = () => {
           </Button>
           <Button className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
-            Enviar Foto
+            Enviar Fotos
           </Button>
         </div>
       </div>
