@@ -1,8 +1,22 @@
-
 import { useState, useMemo } from "react";
 import { Equipment } from "@/types/equipment";
+import { perguntasInteligentes, PerguntaInteligente } from "@/components/mestre-da-beleza/perguntasInteligentes";
 
-// Perguntas (lúdicas + técnicas), adaptativas:
+// Substituir banco de perguntas antigo pelo novo inteligente:
+const PERGUNTAS: PerguntaInteligente[] = perguntasInteligentes;
+
+// Embaralhe perguntas diferentes em cada sessão (simples):
+function gerarSequenciaPerguntas() {
+  // Optional: misturar ordem, mas perguntas de perfil sempre primeiro
+  const perfil = PERGUNTAS.filter(p => p.tipo === "perfil");
+  const restantes = PERGUNTAS.filter(p => p.tipo !== "perfil");
+  for (let i = restantes.length - 1; i > 0; i--) {  // Fisher-Yates shuffle
+    const j = Math.floor(Math.random() * (i + 1));
+    [restantes[i], restantes[j]] = [restantes[j], restantes[i]];
+  }
+  return [...perfil, ...restantes];
+}
+
 export type Pergunta = {
   id: string;
   texto: string;
@@ -11,16 +25,6 @@ export type Pergunta = {
   tipo: "perfil" | "nostalgia" | "tecnica";
   nostalgiaValue?: number;
 };
-
-const PERGUNTAS: Pergunta[] = [
-  // Exemplo: pode crescer depois
-  { id: "perfil", texto: "Quem é você na estética?", opcoes: ["Cliente final", "Profissional"], contexto: "perfil", tipo: "perfil" },
-  { id: "nostalgia1", texto: "Você se lembra da Copa de 2002 (Penta)?", opcoes: ["Sim", "Não"], contexto: "brasil_penta", tipo: "nostalgia", nostalgiaValue: 2002 },
-  { id: "flacidez_facial", texto: "Sente flacidez ou falta de firmeza no rosto?", opcoes: ["Sim", "Não"], contexto: "flacidez_facial", tipo: "tecnica" },
-  { id: "gordura_localizada", texto: "Tem gordura localizada que incomoda?", opcoes: ["Sim", "Não"], contexto: "gordura_localizada", tipo: "tecnica" },
-  { id: "melasma_manchas", texto: "Possui manchas/melasma no rosto?", opcoes: ["Sim", "Não"], contexto: "melasma_manchas", tipo: "tecnica" },
-  // ... pode expandir com mais depois!
-];
 
 function estimarIdade(respostas: Record<string, string>) {
   // Avaliação simplista só de exemplo para nostalgia
@@ -46,11 +50,14 @@ function calcularRanking(equipamentos: Equipment[], respostas: Record<string, st
 }
 
 export function useAkinatorEstetico(equipamentos: Equipment[]) {
+  // Trocar para sequência dinâmica (embaralhada por sessão)
+  const [perguntasSequencia, setPerguntasSequencia] = useState<PerguntaInteligente[]>(() => gerarSequenciaPerguntas());
   const [respostas, setRespostas] = useState<Record<string, string>>({});
   const [idxPergunta, setIdxPergunta] = useState(0);
   const [finalizou, setFinalizou] = useState(false);
 
-  const perguntaAtual = PERGUNTAS[idxPergunta] ?? null;
+  // Pergunta atual vinda da sequência
+  const perguntaAtual = perguntasSequencia[idxPergunta] ?? null;
   
   const ranking = useMemo(
     () => calcularRanking(equipamentos, respostas),
@@ -59,19 +66,31 @@ export function useAkinatorEstetico(equipamentos: Equipment[]) {
 
   const idadeEstimada = useMemo(() => estimarIdade(respostas), [respostas]);
 
-  const podeFinalizar = idxPergunta >= PERGUNTAS.length-1;
+  const podeFinalizar = idxPergunta >= perguntasSequencia.length - 1;
 
+  // Ramificação pós-resposta (perguntas com .ramifica)
   function responder(resposta: string) {
-    const contexto = PERGUNTAS[idxPergunta].contexto;
+    const contexto = perguntasSequencia[idxPergunta]?.contexto;
     setRespostas(r => ({ ...r, [contexto]: resposta }));
-    if (idxPergunta === PERGUNTAS.length-1) setFinalizou(true);
-    else setIdxPergunta(i => i+1);
+    // Após responder, checa se precisa ramificar:
+    const ramificaProx = perguntasSequencia[idxPergunta]?.ramifica?.({ ...respostas, [contexto]: resposta });
+    if (ramificaProx) {
+      // Descobre posição da ramificada (se tiver):
+      const idxRamificada = perguntasSequencia.findIndex(q => q.id === ramificaProx);
+      if (idxRamificada > idxPergunta + 1) setIdxPergunta(idxRamificada);
+      else if (idxPergunta === perguntasSequencia.length - 1) setFinalizou(true);
+      else setIdxPergunta(i => i + 1);
+    } else {
+      if (idxPergunta === perguntasSequencia.length - 1) setFinalizou(true);
+      else setIdxPergunta(i => i + 1);
+    }
   }
 
   function reset() {
     setRespostas({});
     setIdxPergunta(0);
     setFinalizou(false);
+    setPerguntasSequencia(gerarSequenciaPerguntas());
   }
 
   return {
