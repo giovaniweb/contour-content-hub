@@ -168,41 +168,49 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     let availableEquipments = [];
     if (equipments && equipments.length > 0) {
       console.log('✅ Usando equipamentos do banco de dados:', equipments.length);
+
+      // LOG das categorias dos equipamentos para debugging
+      equipments.forEach(eq => {
+        console.log('🩺 Equipamento:', eq.nome, 'Categoria:', eq.categoria);
+      });
+
       availableEquipments = equipments;
     } else {
       console.log('⚠️ Banco vazio ou com erro, usando mock equipments:', mockEquipments.length);
       availableEquipments = mockEquipments;
     }
 
-    // Filtrar equipamentos por categoria
+    // Tornar o filtro mais robusto para medical e estetico
     const filteredEquipments = availableEquipments.filter(equipment => {
-      // Para equipamentos do banco, verificar se tem a propriedade categoria
-      if ('categoria' in equipment) {
-        if (stepData.id === 'aestheticEquipments') {
-          return equipment.categoria === 'estetico';
-        }
-        if (stepData.id === 'medicalEquipments') {
-          return equipment.categoria === 'medico' || !equipment.categoria; // Se não tem categoria, assumir médico para compatibilidade
-        }
+      // Categoria pode vir em diferentes formatos
+      const cat = typeof equipment.categoria === 'string' ? equipment.categoria.toLowerCase() : '';
+      if (stepData.id === 'aestheticEquipments') {
+        return cat === 'estetico' || cat === 'estético'; // aceita acentuação
       }
-      return true; // Se não tem categoria definida, incluir
+      if (stepData.id === 'medicalEquipments') {
+        return cat === 'medico' || cat === 'médico' || !cat; // aceita acento e vazio
+      }
+      return true; // fallback: inclui tudo se não definido
     });
     console.log('🔧 Equipamentos após filtro:', filteredEquipments.length);
 
-    // Criar opções baseadas nos equipamentos filtrados
     const equipmentOptions = filteredEquipments.map(equipment => ({
       value: equipment.nome.toLowerCase().replace(/\s+/g, '_'),
       label: `🔬 ${equipment.nome}`
     }));
 
     // Adicionar opções fixas
-    const finalOptions = [...equipmentOptions, {
-      value: 'outros',
-      label: '🔧 Outros Equipamentos'
-    }, {
-      value: 'nao_utilizo',
-      label: '❌ Não utilizo equipamentos'
-    }];
+    const finalOptions = [
+      ...equipmentOptions,
+      {
+        value: 'outros',
+        label: '🔧 Outros Equipamentos'
+      },
+      {
+        value: 'nao_utilizo',
+        label: '❌ Não utilizo equipamentos'
+      }
+    ];
     console.log('🔧 Opções finais geradas:', finalOptions.length);
     return finalOptions;
   };
