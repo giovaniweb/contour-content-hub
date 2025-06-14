@@ -16,6 +16,7 @@ import ContentSuggestionCards from './dashboard/ContentSuggestionCards';
 import QuickActionCards from './dashboard/QuickActionCards';
 import RealMentorSection from "./dashboard/RealMentorSection";
 import { useRealMentors } from "./hooks/useRealMentors";
+import SmartWeeklySchedule from './dashboard/SmartWeeklySchedule';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -285,6 +286,13 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
         {activeTab === 'actions' && (
           <div className="space-y-8">
+            {/* NOVO CALENDÁRIO INTELIGENTE */}
+            <SmartWeeklySchedule 
+              specialty={getMainSpecialty()}
+              mainObjective={safeState.revenueGoal || safeState.medicalObjective || safeState.aestheticObjective || ""}
+              contentFrequency={safeState.contentFrequency || ""}
+            />
+            
             <ContentSuggestionCards 
               state={safeState} 
               diagnostic={safeState.generatedDiagnostic || ''} 
