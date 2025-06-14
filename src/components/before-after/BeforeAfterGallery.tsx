@@ -19,6 +19,8 @@ import {
 import { BeforeAfterPhoto } from '@/types/before-after';
 import { beforeAfterService } from '@/services/beforeAfterService';
 import BeforeAfterCard from './BeforeAfterCard';
+import GamificationDisplay from '@/components/gamification/GamificationDisplay';
+import { useGamification } from '@/hooks/useGamification';
 import { toast } from 'sonner';
 
 const BeforeAfterGallery: React.FC = () => {
@@ -30,6 +32,8 @@ const BeforeAfterGallery: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [equipmentFilter, setEquipmentFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const { userProgress, isLoading: gamificationLoading } = useGamification();
 
   useEffect(() => {
     loadPhotos();
@@ -104,6 +108,11 @@ const BeforeAfterGallery: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-7xl mx-auto space-y-6"
     >
+      {/* Gamification Display */}
+      {!gamificationLoading && (
+        <GamificationDisplay progress={userProgress} compact />
+      )}
+
       {/* Header */}
       <Card className="aurora-glass border-aurora-electric-purple/30">
         <CardHeader>

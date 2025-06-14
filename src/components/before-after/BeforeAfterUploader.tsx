@@ -11,6 +11,8 @@ import { Upload, Image as ImageIcon, X, Camera, Sparkles } from "lucide-react";
 import { toast } from 'sonner';
 import { beforeAfterService } from '@/services/beforeAfterService';
 import { BeforeAfterUploadData } from '@/types/before-after';
+import { useGamification } from '@/hooks/useGamification';
+import GamificationDisplay from '@/components/gamification/GamificationDisplay';
 
 interface BeforeAfterUploaderProps {
   onUploadSuccess?: () => void;
@@ -22,6 +24,8 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
   const [beforePreview, setBeforePreview] = useState<string | null>(null);
   const [afterPreview, setAfterPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  const { userProgress, awardBeforeAfterUpload, isLoading: gamificationLoading } = useGamification();
   
   const [formData, setFormData] = useState<BeforeAfterUploadData>({
     title: '',
@@ -101,6 +105,14 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
         throw new Error('Falha ao criar registro');
       }
 
+      // 🎯 GAMIFICAÇÃO: Recompensar upload
+      try {
+        await awardBeforeAfterUpload();
+      } catch (gamificationError) {
+        console.error('Erro na gamificação:', gamificationError);
+        // Não bloquear o fluxo principal se a gamificação falhar
+      }
+
       toast.success('📸 Fotos antes e depois salvas com sucesso!');
       
       // Reset form
@@ -132,8 +144,13 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto"
+      className="max-w-4xl mx-auto space-y-6"
     >
+      {/* Gamification Display */}
+      {!gamificationLoading && (
+        <GamificationDisplay progress={userProgress} />
+      )}
+
       <Card className="aurora-glass border-aurora-electric-purple/30">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-3">
@@ -141,6 +158,9 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
             📸 Upload Antes & Depois
             <Sparkles className="h-5 w-5 text-yellow-400" />
           </CardTitle>
+          <p className="text-sm text-gray-400">
+            🎯 Ganhe +25 XP documentando seus resultados!
+          </p>
         </CardHeader>
         
         <CardContent className="space-y-6">
@@ -327,7 +347,7 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
               ) : (
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5" />
-                  Salvar Antes & Depois
+                  Salvar Antes & Depois (+25 XP)
                 </div>
               )}
             </Button>
