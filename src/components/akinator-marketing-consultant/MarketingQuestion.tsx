@@ -75,7 +75,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     if (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') {
       console.log('🔧 DEBUG EQUIPAMENTOS:');
       console.log('- Step ID:', stepData.id);
-      console.log('- Equipamentos carregados:', Array.isArray(equipments) ? equipments.length : 'equipments não array');
+      console.log('- Equipamentos carregados:', Array.isArray(equipments) ? equipments.length : 'equipamentos não array');
       if (Array.isArray(equipments)) {
         equipments.forEach(eq => {
           console.log('🩺 Equipamento:', eq && eq.nome, '| Categoria:', eq && eq.categoria, '| Ativo:', eq && eq.ativo, '| Akinator:', eq && eq.akinator_enabled);
@@ -199,7 +199,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       }
     }
 
-    // Filtro melhorado e mais tolerante
+    // Filtro melhorado baseado no tipo de clínica
     const filteredEquipments = availableEquipments.filter((equipment) => {
       // Validação básica do objeto
       if (!equipment || typeof equipment !== 'object') {
@@ -222,21 +222,24 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       // Filtro básico de ativação
       if (!ativo || !enabled) return false;
 
-      // Filtro por categoria
-      if (stepData.id === 'aestheticEquipments') {
-        const isAesthetic = rawCategoria.includes('estetico') || rawCategoria.includes('estético') || rawCategoria === '';
-        if (!isAesthetic) {
-          console.log(`🔧 Equipamento não estético filtrado: ${equipment.nome} (categoria: ${rawCategoria})`);
-        }
-        return isAesthetic;
+      // NOVA LÓGICA: Filtro por categoria baseado no tipo de clínica
+      if (stepData.id === 'medicalEquipments') {
+        // Clínicas médicas podem ver TODOS os equipamentos (médicos + estéticos)
+        console.log(`🏥 Clínica médica - incluindo equipamento: ${equipment.nome} (categoria: ${rawCategoria})`);
+        return true; // Médicos veem tudo
       }
       
-      if (stepData.id === 'medicalEquipments') {
-        const isMedical = rawCategoria.includes('medico') || rawCategoria.includes('médico') || rawCategoria === '';
-        if (!isMedical) {
-          console.log(`🔧 Equipamento não médico filtrado: ${equipment.nome} (categoria: ${rawCategoria})`);
+      if (stepData.id === 'aestheticEquipments') {
+        // Clínicas estéticas só podem ver equipamentos estéticos (não médicos)
+        const isMedical = rawCategoria.includes('medico') || rawCategoria.includes('médico');
+        if (isMedical) {
+          console.log(`🚫 Equipamento médico filtrado para clínica estética: ${equipment.nome} (categoria: ${rawCategoria})`);
+          return false; // Estéticos não veem equipamentos médicos
         }
-        return isMedical;
+        
+        const isAesthetic = rawCategoria.includes('estetico') || rawCategoria.includes('estético') || rawCategoria === '';
+        console.log(`💄 Clínica estética - equipamento ${isAesthetic ? 'incluído' : 'filtrado'}: ${equipment.nome} (categoria: ${rawCategoria})`);
+        return isAesthetic;
       }
       
       return true;
