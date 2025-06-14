@@ -7,14 +7,18 @@ const PERGUNTAS: PerguntaInteligente[] = perguntasInteligentes;
 
 // Embaralhe perguntas diferentes em cada sessão (simples):
 function gerarSequenciaPerguntas() {
-  // Optional: misturar ordem, mas perguntas de perfil sempre primeiro
-  const perfil = PERGUNTAS.filter(p => p.tipo === "perfil");
-  const restantes = PERGUNTAS.filter(p => p.tipo !== "perfil");
-  for (let i = restantes.length - 1; i > 0; i--) {  // Fisher-Yates shuffle
+  // Coloque sempre as perguntas obrigatórias no início
+  const obrigatorias = PERGUNTAS.filter(
+    p => ["perfil_tipo", "sexo_genero", "profissional_tipo"].includes(p.id)
+  );
+  const restantes = PERGUNTAS.filter(
+    p => !["perfil_tipo", "sexo_genero", "profissional_tipo"].includes(p.id)
+  );
+  for (let i = restantes.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [restantes[i], restantes[j]] = [restantes[j], restantes[i]];
   }
-  return [...perfil, ...restantes];
+  return [...obrigatorias, ...restantes];
 }
 
 export type Pergunta = {

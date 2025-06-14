@@ -1,4 +1,3 @@
-
 // Perguntas inteligentes e indiretas, estilo Akinator real!
 export type PerguntaInteligente = {
   id: string;
@@ -10,6 +9,54 @@ export type PerguntaInteligente = {
 };
 
 export const perguntasInteligentes: PerguntaInteligente[] = [
+  // 1. Quem é você?
+  {
+    id: "perfil_tipo",
+    texto: "Quem é você?",
+    opcoes: [
+      "Sou cliente final",
+      "Sou profissional de estética",
+      "Sou médico(a)",
+      "Outro"
+    ],
+    contexto: "perfil_tipo",
+    tipo: "perfil"
+  },
+  // 2. Sexo/gênero
+  {
+    id: "sexo_genero",
+    texto: "Qual seu sexo/gênero?",
+    opcoes: [
+      "Mulher",
+      "Homem",
+      "Outro",
+      "Prefiro não dizer"
+    ],
+    contexto: "sexo_genero",
+    tipo: "perfil"
+  },
+  // 3. Se profissional, qual ramo/profissão?
+  {
+    id: "profissional_tipo",
+    texto: "Se for profissional, qual seu ramo de atuação?",
+    opcoes: [
+      "Dermatologista",
+      "Biomédico(a)",
+      "Fisioterapeuta",
+      "Dentista",
+      "Esteticista",
+      "Outro",
+      "Não sou profissional"
+    ],
+    contexto: "profissional_tipo",
+    tipo: "perfil",
+    ramifica: (respostas) => (
+      respostas.perfil_tipo && respostas.perfil_tipo.includes("profissional")
+        ? undefined // segue normalmente
+        : "reflexo_espelho" // pula se não for profissional
+    )
+  },
+  // As perguntas antigas (começando da reflexo_espelho) — só serão exibidas depois dessas obrigatórias.
   {
     id: "reflexo_espelho",
     texto: "Quando você se olha no espelho de manhã, o que sente?",
