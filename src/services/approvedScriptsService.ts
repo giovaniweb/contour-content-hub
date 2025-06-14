@@ -52,7 +52,8 @@ export const approvedScriptsService = {
         approval_status: script.approval_status as 'pending' | 'approved' | 'rejected',
         performance: script.script_performance?.[0] ? {
           ...script.script_performance[0],
-          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending',
+          metrics: (script.script_performance[0].metrics as any) || {}
         } : undefined
       })) || [];
     } catch (error) {
@@ -87,7 +88,8 @@ export const approvedScriptsService = {
       if (error) throw error;
       return {
         ...data,
-        performance_rating: data.performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+        performance_rating: data.performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending',
+        metrics: (data.metrics as any) || {}
       } as ScriptPerformance;
     } catch (error) {
       console.error('Erro ao adicionar performance:', error);
@@ -116,7 +118,8 @@ export const approvedScriptsService = {
         approval_status: script.approval_status as 'pending' | 'approved' | 'rejected',
         performance: script.script_performance?.[0] ? {
           ...script.script_performance[0],
-          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending',
+          metrics: (script.script_performance[0].metrics as any) || {}
         } : undefined
       })) || [];
     } catch (error) {
