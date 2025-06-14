@@ -86,41 +86,55 @@ export const useMestreDaBeleza = () => {
     return 25; // Padrão jovem
   }, []);
 
-  // Sistema de pontuação para equipamentos
-  const calculateEquipmentScore = useCallback((equipment: Equipment, responses: Record<string, any>) => {
-    console.log('🔍 [MestreDaBeleza] Iniciando cálculo de score');
-    console.log('🔍 [MestreDaBeleza] Equipment recebido:', equipment);
-    console.log('🔍 [MestreDaBeleza] Responses recebidas:', responses);
-
-    // Verificação de segurança mais robusta
+  // Função para verificar se um equipamento é válido
+  const isValidEquipment = useCallback((equipment: any): equipment is Equipment => {
     if (!equipment) {
-      console.error('❌ [MestreDaBeleza] Equipment é null/undefined');
-      return { score: 0, scoreBreakdown: {} };
+      console.warn('⚠️ [MestreDaBeleza] Equipment é null/undefined');
+      return false;
     }
 
     if (typeof equipment !== 'object') {
-      console.error('❌ [MestreDaBeleza] Equipment não é um objeto:', typeof equipment);
-      return { score: 0, scoreBreakdown: {} };
+      console.warn('⚠️ [MestreDaBeleza] Equipment não é um objeto:', typeof equipment);
+      return false;
     }
 
-    // Verificar se o equipment tem as propriedades básicas
     if (!equipment.hasOwnProperty('id') || !equipment.hasOwnProperty('nome')) {
-      console.error('❌ [MestreDaBeleza] Equipment não tem propriedades básicas:', Object.keys(equipment || {}));
+      console.warn('⚠️ [MestreDaBeleza] Equipment sem propriedades básicas:', Object.keys(equipment || {}));
+      return false;
+    }
+
+    if (!equipment.id || !equipment.nome) {
+      console.warn('⚠️ [MestreDaBeleza] Equipment com propriedades vazias:', { id: equipment.id, nome: equipment.nome });
+      return false;
+    }
+
+    return true;
+  }, []);
+
+  // Sistema de pontuação para equipamentos
+  const calculateEquipmentScore = useCallback((equipment: Equipment, responses: Record<string, any>) => {
+    console.log('🔍 [MestreDaBeleza] Iniciando cálculo de score para:', equipment?.nome || 'equipment sem nome');
+
+    // Verificação robusta de segurança
+    if (!isValidEquipment(equipment)) {
+      console.error('❌ [MestreDaBeleza] Equipment inválido no cálculo de score');
       return { score: 0, scoreBreakdown: {} };
     }
 
     let score = 0;
     const scoreBreakdown: Record<string, number> = {};
 
-    console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome || 'Equipment sem nome');
-
     try {
+      console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome);
+
       // Análise por área de aplicação
-      if (responses.area_problema === 'Rosto' && equipment.area_aplicacao?.includes('Facial')) {
+      const areaAplicacao = Array.isArray(equipment.area_aplicacao) ? equipment.area_aplicacao : [];
+      
+      if (responses.area_problema === 'Rosto' && areaAplicacao.includes('Facial')) {
         score += 20;
         scoreBreakdown['area_facial'] = 20;
       }
-      if (responses.area_problema === 'Corpo' && equipment.area_aplicacao?.includes('Corporal')) {
+      if (responses.area_problema === 'Corpo' && areaAplicacao.includes('Corporal')) {
         score += 20;
         scoreBreakdown['area_corporal'] = 20;
       }
@@ -181,13 +195,13 @@ export const useMestreDaBeleza = () => {
         scoreBreakdown['tecnologia_avancada'] = 10;
       }
 
-      console.log('📊 [MestreDaBeleza] Score calculado com sucesso:', { equipment: equipment.nome || 'Sem nome', score, scoreBreakdown });
+      console.log('📊 [MestreDaBeleza] Score calculado:', { equipment: equipment.nome, score, scoreBreakdown });
       return { score, scoreBreakdown };
     } catch (error) {
       console.error('❌ [MestreDaBeleza] Erro ao calcular score:', error);
       return { score: 0, scoreBreakdown: {} };
     }
-  }, [estimateAge]);
+  }, [estimateAge, isValidEquipment]);
 
   // Criar equipamento mock quando necessário
   const createMockEquipment = useCallback((): Equipment => {
@@ -261,30 +275,19 @@ export const useMestreDaBeleza = () => {
       };
     }
     
-    // Filtrar equipamentos ativos e habilitados para Akinator com verificações de segurança
-    const availableEquipments = equipments.filter(eq => {
-      if (!eq) {
-        console.warn('⚠️ [MestreDaBeleza] Equipamento null encontrado');
-        return false;
-      }
-      
-      if (typeof eq !== 'object') {
-        console.warn('⚠️ [MestreDaBeleza] Equipamento não é objeto:', typeof eq);
-        return false;
-      }
-      
-      if (!eq.hasOwnProperty('id') || !eq.hasOwnProperty('ativo') || !eq.hasOwnProperty('akinator_enabled')) {
-        console.warn('⚠️ [MestreDaBeleza] Equipamento sem propriedades necessárias:', Object.keys(eq || {}));
+    // Filtrar equipamentos usando nossa função de validação
+    const availableEquipments = equipments.filter((eq) => {
+      if (!isValidEquipment(eq)) {
         return false;
       }
       
       return eq.ativo && eq.akinator_enabled;
     });
 
-    console.log('✅ [MestreDaBeleza] Equipamentos disponíveis:', availableEquipments.length);
+    console.log('✅ [MestreDaBeleza] Equipamentos válidos encontrados:', availableEquipments.length);
 
     if (availableEquipments.length === 0) {
-      console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento disponível para recomendação');
+      console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento válido disponível');
       const mockEquipment = createMockEquipment();
       return {
         equipamento: mockEquipment,
@@ -295,18 +298,11 @@ export const useMestreDaBeleza = () => {
       };
     }
 
-    // Calcular scores para todos os equipamentos com verificações adicionais
+    // Calcular scores para todos os equipamentos válidos
     const scoredEquipments = availableEquipments
-      .filter(equipment => {
-        if (!equipment) {
-          console.warn('⚠️ [MestreDaBeleza] Equipment null no scoring');
-          return false;
-        }
-        return true;
-      })
       .map(equipment => {
         try {
-          console.log('🔍 [MestreDaBeleza] Processando equipment para scoring:', equipment.id);
+          console.log('🔍 [MestreDaBeleza] Processando equipment válido:', equipment.id, equipment.nome);
           const { score, scoreBreakdown } = calculateEquipmentScore(equipment, responses);
           return {
             equipment,
@@ -318,7 +314,7 @@ export const useMestreDaBeleza = () => {
           return null;
         }
       })
-      .filter(item => item !== null);
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
     if (scoredEquipments.length === 0) {
       console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento válido após scoring');
@@ -337,7 +333,7 @@ export const useMestreDaBeleza = () => {
     
     const bestMatch = scoredEquipments[0];
     
-    if (!bestMatch || !bestMatch.equipment) {
+    if (!bestMatch || !isValidEquipment(bestMatch.equipment)) {
       console.warn('⚠️ [MestreDaBeleza] Best match inválido');
       const mockEquipment = createMockEquipment();
       return {
@@ -355,7 +351,7 @@ export const useMestreDaBeleza = () => {
         equipamento: bestMatch.equipment,
         confianca: 50,
         motivo: 'Baseado no seu perfil e necessidades gerais de estética',
-        cta: `Conheça mais sobre o ${bestMatch.equipment.nome || 'equipamento recomendado'}`,
+        cta: `Conheça mais sobre o ${bestMatch.equipment.nome}`,
         score_breakdown: bestMatch.scoreBreakdown
       };
       
@@ -382,13 +378,13 @@ export const useMestreDaBeleza = () => {
       equipamento: bestMatch.equipment,
       confianca: Math.round(confianca),
       motivo,
-      cta: `Descubra como o ${bestMatch.equipment.nome || 'equipamento'} pode transformar seus resultados`,
+      cta: `Descubra como o ${bestMatch.equipment.nome} pode transformar seus resultados`,
       score_breakdown: bestMatch.scoreBreakdown
     };
 
     console.log('🎯 [MestreDaBeleza] Recomendação gerada:', recommendation);
     return recommendation;
-  }, [equipments, equipmentsLoading, equipmentsError, calculateEquipmentScore, createMockEquipment]);
+  }, [equipments, equipmentsLoading, equipmentsError, calculateEquipmentScore, createMockEquipment, isValidEquipment]);
 
   // Obter pergunta atual
   const getCurrentQuestion = useCallback((): Question | null => {
@@ -502,7 +498,7 @@ export const useMestreDaBeleza = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments: equipments?.filter(eq => eq && eq.ativo) || [],
+    equipments: equipments?.filter(eq => isValidEquipment(eq) && eq.ativo) || [],
     loading: equipmentsLoading,
     error: equipmentsError
   };
