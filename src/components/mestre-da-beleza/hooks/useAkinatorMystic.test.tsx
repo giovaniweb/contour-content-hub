@@ -23,4 +23,3 @@ describe('useAkinatorMystic', () => {
     expect(r0.current).not.toEqual(r50.current);
   });
 });
-
