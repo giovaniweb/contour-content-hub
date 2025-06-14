@@ -18,7 +18,6 @@ import {
   Heart
 } from "lucide-react";
 import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
-import MestreDaBelezaEngine from './MestreDaBelezaEngine';
 import RecommendationDisplay from './RecommendationDisplay';
 import GamificationDisplay from '@/components/gamification/GamificationDisplay';
 import { useGamification } from '@/hooks/useGamification';
@@ -66,6 +65,99 @@ const MestreDaBelezaAkinator: React.FC = () => {
       case 'cliente_final': return 'Cliente';
       default: return 'Descobrindo...';
     }
+  };
+
+  const getAdvancedQuestions = () => {
+    const { perfil, responses, step } = userProfile;
+    
+    // Perguntas específicas baseadas no perfil e contexto
+    if (step === 'diagnosis' && perfil && responses.intencao) {
+      
+      // Para clientes finais com problemas
+      if (perfil === 'cliente_final' && responses.intencao?.includes('problema')) {
+        
+        // Fluxo para detectar flacidez facial
+        if (responses.area_problema?.includes('rosto') || responses.area_problema?.includes('derretendo')) {
+          if (!responses.emagreceu_rapido) {
+            return {
+              question: 'Você emagreceu rápido nos últimos meses? 🏃‍♀️',
+              options: ['Sim, bastante', 'Um pouco', 'Não emagreceu'],
+              context: 'emagreceu_rapido'
+            };
+          }
+          if (!responses.perdeu_firmeza) {
+            return {
+              question: 'Já se olhou no espelho e pensou que perdeu firmeza? 😔',
+              options: ['Sim, muito', 'Às vezes', 'Não'],
+              context: 'perdeu_firmeza'
+            };
+          }
+          if (!responses.brasiltricampeao) {
+            return {
+              question: 'Você já viu o Brasil ser tetra? ⚽ (pergunta nostálgica!)',
+              options: ['Claro! 1994 ❤️', 'Não era nascido(a)', 'Prefiro não dizer'],
+              context: 'brasiltricampeao'
+            };
+          }
+        }
+        
+        // Perguntas gerais para corpo
+        if (responses.area_problema?.includes('corpo')) {
+          if (!responses.corpo_flacido) {
+            return {
+              question: 'Você sente que seu corpo está flácido? 💪',
+              options: ['Sim, muito', 'Um pouco', 'Não sinto isso'],
+              context: 'corpo_flacido'
+            };
+          }
+          if (!responses.gordura_localizada) {
+            return {
+              question: 'Tem alguma gordurinha localizada que te incomoda? 🎯',
+              options: ['Sim, me incomoda', 'Um pouco', 'Não'],
+              context: 'gordura_localizada'
+            };
+          }
+        }
+      }
+      
+      // Para profissionais com problemas
+      if ((perfil === 'medico' || perfil === 'profissional_estetica') && responses.intencao?.includes('problema')) {
+        if (!responses.desafio_principal) {
+          return {
+            question: 'Qual seu maior desafio atual? 🎯',
+            options: ['Reter clientes', 'Equipamentos', 'Marketing', 'Concorrência'],
+            context: 'desafio_principal'
+          };
+        }
+        if (responses.desafio_principal === 'Reter clientes' && !responses.problema_retencao) {
+          return {
+            question: 'Seus clientes voltam com frequência? 🔄',
+            options: ['Poucos voltam', 'Alguns voltam', 'A maioria volta'],
+            context: 'problema_retencao'
+          };
+        }
+      }
+      
+      // Para ideias novas
+      if (responses.intencao?.includes('ideia')) {
+        if (!responses.equipamento_favorito) {
+          return {
+            question: 'Você tem algum equipamento favorito para trabalhar? ⚡',
+            options: ['HIPRO', 'Endolaser', 'Peeling', 'Não tenho específico'],
+            context: 'equipamento_favorito'
+          };
+        }
+        if (!responses.tipo_campanha) {
+          return {
+            question: 'Que tipo de campanha te anima mais? 🚀',
+            options: ['Antes e depois', 'Educativa', 'Promocional', 'Testemunhos'],
+            context: 'tipo_campanha'
+          };
+        }
+      }
+    }
+    
+    return null;
   };
 
   const handleAnswer = async (answer: string) => {
@@ -119,9 +211,24 @@ const MestreDaBelezaAkinator: React.FC = () => {
         break;
 
       case 'diagnosis':
-        const { problema } = processUserResponse(answer, 'generic_response');
+        // Processar resposta e identificar contexto
+        const advancedQuestion = getAdvancedQuestions();
+        let context = 'generic_response';
         
-        if (problema && userProfile.step === 'diagnosis') {
+        if (advancedQuestion) {
+          context = advancedQuestion.context;
+        }
+        
+        const { problema } = processUserResponse(answer, context);
+        
+        // Verificar se ainda há perguntas específicas para fazer
+        const nextAdvancedQuestion = getAdvancedQuestions();
+        
+        if (nextAdvancedQuestion) {
+          setCurrentQuestion(nextAdvancedQuestion.question);
+          setCurrentOptions(nextAdvancedQuestion.options);
+        } else if (problema && userProfile.step === 'diagnosis') {
+          // Tentar gerar recomendação
           const recommendation = getRecommendation();
           
           if (recommendation) {
@@ -133,6 +240,10 @@ const MestreDaBelezaAkinator: React.FC = () => {
             setCurrentQuestion('Interessante! Me conta mais uma coisa para eu te ajudar melhor...');
             setCurrentOptions(['Vamos continuar', 'Quero recomeçar']);
           }
+        } else {
+          // Perguntas de finalização
+          setCurrentQuestion('Ótimo! Com base no que você me contou, posso te ajudar de forma mais específica! 🎯✨');
+          setCurrentOptions(['Quero a solução!', 'Me fale mais detalhes', 'Preciso pensar um pouco']);
         }
         break;
     }
@@ -223,10 +334,10 @@ const MestreDaBelezaAkinator: React.FC = () => {
           )}
         </motion.div>
 
-        {/* Painel Principal do Akinator */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Card Principal da Pergunta */}
-          <div className="lg:col-span-2">
+        {/* Layout Centralizado */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Card Principal da Pergunta - Expandido */}
+          <div className="lg:col-span-3">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -330,36 +441,9 @@ const MestreDaBelezaAkinator: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Painel Lateral de Informações */}
+          {/* Painel Lateral - Apenas Informativo */}
           <div className="space-y-6">
-            {/* Engine de Perguntas Inteligentes (se aplicável) */}
-            {userProfile.step === 'diagnosis' && userProfile.perfil && userProfile.responses.intencao && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-              >
-                <Card className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 backdrop-blur-sm border border-indigo-400/30">
-                  <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-yellow-400" />
-                      Análise Avançada
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <MestreDaBelezaEngine
-                      currentStep={userProfile.step}
-                      userProfile={userProfile}
-                      onAnswer={(answer, context) => {
-                        processUserResponse(answer, context);
-                        handleAnswer(answer);
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* Dicas Mágicas */}
+            {/* Dicas Mágicas - Informativo */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -377,6 +461,46 @@ const MestreDaBelezaAkinator: React.FC = () => {
                   <p>🎯 Cada pergunta me ajuda a te conhecer melhor</p>
                   <p>🔮 No final, terei a solução perfeita para você</p>
                   <p>⚡ Baseado em dados reais da plataforma Fluida</p>
+                  {userProfile.perfil && (
+                    <div className="mt-4 p-3 bg-cyan-800/30 rounded-lg">
+                      <p className="font-semibold text-cyan-200">🎭 Perfil Identificado:</p>
+                      <p className="text-xs">{getProfileLabel()}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Progresso da Sessão */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <Card className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-sm border border-green-400/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-green-400" />
+                    Progresso
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-green-100 text-sm space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${userProfile.perfil ? 'bg-green-400' : 'bg-gray-500'}`} />
+                    <span>Perfil identificado</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${userProfile.responses.intencao ? 'bg-green-400' : 'bg-gray-500'}`} />
+                    <span>Intenção definida</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${userProfile.problema_identificado ? 'bg-green-400' : 'bg-gray-500'}`} />
+                    <span>Diagnóstico completo</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${showRecommendation ? 'bg-green-400' : 'bg-gray-500'}`} />
+                    <span>Recomendação gerada</span>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
