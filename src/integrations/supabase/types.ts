@@ -197,6 +197,51 @@ export type Database = {
           },
         ]
       }
+      approved_scripts: {
+        Row: {
+          approval_notes: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          equipment_used: string[] | null
+          format: string
+          id: string
+          script_content: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          equipment_used?: string[] | null
+          format?: string
+          id?: string
+          script_content: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          equipment_used?: string[] | null
+          format?: string
+          id?: string
+          script_content?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           created_at: string | null
@@ -479,6 +524,7 @@ export type Database = {
       content_planner_items: {
         Row: {
           ai_generated: boolean | null
+          approved_script_id: string | null
           author_id: string | null
           author_name: string | null
           calendar_event_id: string | null
@@ -490,6 +536,8 @@ export type Database = {
           format: string
           id: string
           objective: string
+          performance_metrics: Json | null
+          performance_rating: string | null
           responsible_id: string | null
           responsible_name: string | null
           scheduled_date: string | null
@@ -503,6 +551,7 @@ export type Database = {
         }
         Insert: {
           ai_generated?: boolean | null
+          approved_script_id?: string | null
           author_id?: string | null
           author_name?: string | null
           calendar_event_id?: string | null
@@ -514,6 +563,8 @@ export type Database = {
           format?: string
           id?: string
           objective?: string
+          performance_metrics?: Json | null
+          performance_rating?: string | null
           responsible_id?: string | null
           responsible_name?: string | null
           scheduled_date?: string | null
@@ -527,6 +578,7 @@ export type Database = {
         }
         Update: {
           ai_generated?: boolean | null
+          approved_script_id?: string | null
           author_id?: string | null
           author_name?: string | null
           calendar_event_id?: string | null
@@ -538,6 +590,8 @@ export type Database = {
           format?: string
           id?: string
           objective?: string
+          performance_metrics?: Json | null
+          performance_rating?: string | null
           responsible_id?: string | null
           responsible_name?: string | null
           scheduled_date?: string | null
@@ -549,7 +603,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_planner_items_approved_script_id_fkey"
+            columns: ["approved_script_id"]
+            isOneToOne: false
+            referencedRelation: "approved_scripts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_strategy_items: {
         Row: {
@@ -1460,6 +1522,47 @@ export type Database = {
             columns: ["script_id"]
             isOneToOne: false
             referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      script_performance: {
+        Row: {
+          approved_script_id: string
+          created_at: string
+          evaluated_at: string | null
+          evaluated_by: string | null
+          feedback_notes: string | null
+          id: string
+          metrics: Json | null
+          performance_rating: string
+        }
+        Insert: {
+          approved_script_id: string
+          created_at?: string
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          feedback_notes?: string | null
+          id?: string
+          metrics?: Json | null
+          performance_rating: string
+        }
+        Update: {
+          approved_script_id?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evaluated_by?: string | null
+          feedback_notes?: string | null
+          id?: string
+          metrics?: Json | null
+          performance_rating?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_performance_approved_script_id_fkey"
+            columns: ["approved_script_id"]
+            isOneToOne: false
+            referencedRelation: "approved_scripts"
             referencedColumns: ["id"]
           },
         ]
