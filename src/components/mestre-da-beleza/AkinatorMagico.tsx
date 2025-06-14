@@ -23,15 +23,18 @@ const AkinatorMagico: React.FC = () => {
     perguntaAtual: currentQuestion,
     confianca: confidence,
     perfil: userProfile,
-    perfilComportamental: behavioralProfile,
-    fraseAtual: currentPhrase,
-    recomendacao: currentRecommendation,
+    insightsComportamentais,
+    recomendacaoAtual: currentRecommendation,
     fase: gameState,
     pensando: isThinking,
     responderPergunta: answerQuestion,
     reiniciarJogo: resetGame,
-    iniciarNovaSessao: startNewSession
+    iniciarSessao: startNewSession
   } = useAkinatorMagico();
+
+  // Create derived values for display
+  const behavioralProfile = insightsComportamentais?.[0] || 'Analisando...';
+  const currentPhrase = isThinking ? 'Consultando os astros...' : 'Pronto para a próxima pergunta';
 
   const renderWelcomeScreen = () => (
     <div className="text-center space-y-8">
@@ -124,26 +127,26 @@ const AkinatorMagico: React.FC = () => {
           >
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white mb-4">
-                {currentQuestion?.question}
+                {currentQuestion?.texto}
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentQuestion?.options?.map((option, index) => (
+              {currentQuestion?.opcoes?.map((option, index) => (
                 <motion.div
-                  key={option.value}
+                  key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   <Button
-                    onClick={() => answerQuestion(option.value)}
+                    onClick={() => answerQuestion(option)}
                     variant="outline"
                     className="w-full p-6 text-left h-auto hover:bg-purple-500/20 hover:border-purple-400 transition-all duration-300"
                     disabled={isThinking}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-white">{option.label}</span>
+                      <span className="text-white">{option}</span>
                       <ArrowRight className="h-4 w-4 text-purple-400" />
                     </div>
                   </Button>
@@ -216,7 +219,7 @@ const AkinatorMagico: React.FC = () => {
             <div className="space-y-4">
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-white mb-2">
-                  {currentRecommendation.equipamento}
+                  {currentRecommendation.equipamento?.nome || 'Equipamento Recomendado'}
                 </h3>
                 <Badge className="bg-yellow-400 text-black">
                   Confiança: {currentRecommendation.confianca}%
@@ -225,7 +228,7 @@ const AkinatorMagico: React.FC = () => {
               
               <div className="space-y-3">
                 <p className="text-gray-300 leading-relaxed">
-                  {currentRecommendation.explicacao}
+                  {currentRecommendation.motivo}
                 </p>
                 
                 <div className="bg-purple-500/20 rounded-lg p-4">
@@ -233,7 +236,7 @@ const AkinatorMagico: React.FC = () => {
                     Por que esta é sua escolha perfeita:
                   </h4>
                   <p className="text-sm text-gray-300">
-                    {currentRecommendation.motivacao}
+                    {currentRecommendation.cta}
                   </p>
                 </div>
               </div>
@@ -258,7 +261,7 @@ const AkinatorMagico: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <AnimatePresence mode="wait">
-          {gameState === 'welcome' && (
+          {gameState === 'inicio' && (
             <motion.div
               key="welcome"
               initial={{ opacity: 0 }}
@@ -270,7 +273,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'questioning' && (
+          {gameState === 'perguntando' && (
             <motion.div
               key="questioning"
               initial={{ opacity: 0, y: 20 }}
@@ -282,7 +285,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'thinking' && (
+          {gameState === 'pensando' && (
             <motion.div
               key="thinking"
               initial={{ opacity: 0 }}
@@ -294,7 +297,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'complete' && (
+          {gameState === 'finalizado' && (
             <motion.div
               key="complete"
               initial={{ opacity: 0, y: 20 }}
