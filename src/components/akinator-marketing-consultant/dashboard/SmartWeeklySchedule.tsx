@@ -1,9 +1,11 @@
-
 import React from "react";
 import { CalendarCheck2, FileDown } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { exportElementAsPDF, exportElementAsImage, triggerDownload } from "@/utils/exportWeeklySchedule";
+import { useState } from "react";
 
 type DayPlan = {
   day: string;
@@ -67,16 +69,50 @@ const generateWeekPlan = (
   }));
 };
 
+const SCHEDULE_ELEMENT_ID = "fluida-calendar-preview";
+
 const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
   specialty,
   mainObjective,
   contentFrequency
 }) => {
+  const [exporting, setExporting] = useState(false);
   const weekPlan = generateWeekPlan(specialty, mainObjective, contentFrequency);
 
-  const handleExportPdf = () => {
-    // Placeholder para futuro: implementar exportação PDF
-    alert("Exportação para PDF em breve!");
+  const handleExportPdf = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportElementAsPDF(SCHEDULE_ELEMENT_ID, "Calendario-Semanal-Fluida");
+      if (blob) {
+        triggerDownload(blob, "Calendario-Semanal-Fluida.pdf");
+        toast.success("🎉 Calendário exportado!", {
+          description: "Seu calendário foi baixado em PDF."
+        });
+      } else {
+        toast.error("Erro ao exportar", { description: "Não foi possível gerar o PDF." });
+      }
+    } catch (err) {
+      toast.error("Erro inesperado na exportação.");
+    }
+    setExporting(false);
+  };
+
+  const handleExportImagem = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportElementAsImage(SCHEDULE_ELEMENT_ID);
+      if (blob) {
+        triggerDownload(blob, "Calendario-Semanal-Fluida.png");
+        toast.success("Imagem exportada!", {
+          description: "Imagem do calendário salva para compartilhamento."
+        });
+      } else {
+        toast.error("Erro ao exportar imagem");
+      }
+    } catch {
+      toast.error("Erro inesperado ao exportar imagem.");
+    }
+    setExporting(false);
   };
 
   return (
@@ -91,13 +127,34 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             Execução Fluida
           </Badge>
         </div>
-        <Button variant="outline" onClick={handleExportPdf} size="sm" className="gap-2 text-xs border-aurora-sage">
-          <FileDown className="h-4 w-4" />
-          Exportar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleExportPdf}
+            size="sm"
+            className="gap-2 text-xs border-aurora-sage"
+            disabled={exporting}
+          >
+            <FileDown className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportImagem}
+            size="sm"
+            className="gap-2 text-xs border-aurora-sage"
+            disabled={exporting}
+          >
+            <FileDown className="h-4 w-4" />
+            Exportar Imagem
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pt-1">
-        <div className="flex flex-col md:flex-row gap-3 md:gap-2 justify-between">
+        <div
+          id={SCHEDULE_ELEMENT_ID}
+          className="flex flex-col md:flex-row gap-3 md:gap-2 justify-between bg-white/90 md:bg-transparent rounded-lg p-2"
+        >
           {weekPlan.map((plan, idx) => (
             <div
               key={plan.day}

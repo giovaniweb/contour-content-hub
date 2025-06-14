@@ -57,6 +57,7 @@
     "eslint-plugin-prettier": "^5.4.1",
     "formik": "^2.4.6",
     "framer-motion": "^12.16.0",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "jsdom": "^26.1.0",
     "lucide-react": "^0.399.0",
