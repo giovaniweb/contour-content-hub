@@ -17,8 +17,12 @@ import {
   MessageCircle,
   Users,
   Stethoscope,
-  User
+  User,
+  RefreshCw
 } from "lucide-react";
+import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
+import MestreDaBelezaEngine from './MestreDaBelezaEngine';
+import RecommendationDisplay from './RecommendationDisplay';
 
 interface Message {
   id: string;
@@ -26,18 +30,18 @@ interface Message {
   content: string;
   timestamp: Date;
   suggestions?: string[];
-}
-
-interface UserProfile {
-  perfil?: 'medico' | 'profissional_estetica' | 'cliente_final';
-  primeira_interacao: boolean;
-  cadastrado: boolean;
-  tipo_usuario?: 'cliente_final' | 'clinica_contourline' | 'clinica_externa';
-  equipamento_informado: boolean;
-  step: 'profile' | 'intention' | 'diagnosis' | 'completed';
+  isRecommendation?: boolean;
 }
 
 const MestreDaBelezaChat: React.FC = () => {
+  const {
+    userProfile,
+    updateProfile,
+    processUserResponse,
+    getRecommendation,
+    resetChat
+  } = useMestreDaBeleza();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -50,12 +54,8 @@ const MestreDaBelezaChat: React.FC = () => {
   
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    primeira_interacao: true,
-    cadastrado: false,
-    equipamento_informado: false,
-    step: 'profile'
-  });
+  const [showRecommendation, setShowRecommendation] = useState(false);
+  const [currentRecommendation, setCurrentRecommendation] = useState(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +87,7 @@ const MestreDaBelezaChat: React.FC = () => {
 
   const handleProfileQuestion = async (userResponse: string) => {
     if (userResponse.toLowerCase().includes('médico') || userResponse.toLowerCase().includes('sim')) {
-      setUserProfile(prev => ({ ...prev, perfil: 'medico' }));
+      updateProfile({ perfil: 'medico' });
       await simulateTyping(
         'Que incrível! Um(a) médico(a)! 👨‍⚕️✨ Agora me conta, você tem clínica própria?',
         ['Sim, tenho clínica', 'Não, trabalho em clínica', 'Estou planejando abrir']
@@ -107,11 +107,10 @@ const MestreDaBelezaChat: React.FC = () => {
         ['Sim, trabalho', 'Já trabalhei', 'Não, nunca trabalhei']
       );
     } else {
-      setUserProfile(prev => ({ 
-        ...prev, 
+      updateProfile({ 
         perfil: 'cliente_final',
         step: 'intention'
-      }));
+      });
       await simulateTyping(
         'Perfeito! Você é nosso cliente especial! 💎 Agora me conta, você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?',
         ['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']
@@ -121,21 +120,19 @@ const MestreDaBelezaChat: React.FC = () => {
 
   const handleWorkQuestion = async (userResponse: string) => {
     if (userResponse.toLowerCase().includes('sim') || userResponse.toLowerCase().includes('trabalho')) {
-      setUserProfile(prev => ({ 
-        ...prev, 
+      updateProfile({ 
         perfil: 'profissional_estetica',
         step: 'intention'
-      }));
+      });
       await simulateTyping(
         'Que demais! Profissional da área! 💪 Você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?',
         ['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']
       );
     } else {
-      setUserProfile(prev => ({ 
-        ...prev, 
+      updateProfile({ 
         perfil: 'cliente_final',
         step: 'intention'
-      }));
+      });
       await simulateTyping(
         'Entendi! Você é nosso cliente especial! 💎 Agora me conta, você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?',
         ['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']
@@ -144,10 +141,13 @@ const MestreDaBelezaChat: React.FC = () => {
   };
 
   const handleIntentionQuestion = async (userResponse: string) => {
+    const responses = { ...userProfile.responses, intencao: userResponse };
+    updateProfile({ responses, step: 'diagnosis' });
+
     if (userResponse.includes('resolver um problema')) {
       if (userProfile.perfil === 'cliente_final') {
         await simulateTyping(
-          'Vamos lá! Algo em você incomoda? 🤔 É o rosto? Corpo? Ou aquela sensação de que tá "derretendo"? 😅',
+          'Vamos lá! Algo em você incomoda? 🤔',
           ['É o rosto mesmo', 'É o corpo', 'Tô me sentindo derretendo 😭', 'É meio que tudo']
         );
       } else {
@@ -169,6 +169,30 @@ const MestreDaBelezaChat: React.FC = () => {
     }
   };
 
+  const handleDiagnosisResponse = async (userResponse: string, context: string) => {
+    const { problema, area } = processUserResponse(userResponse, context);
+    
+    // Se identificou um problema específico, gerar recomendação
+    if (problema && userProfile.step === 'diagnosis') {
+      const recommendation = getRecommendation();
+      
+      if (recommendation) {
+        setCurrentRecommendation(recommendation);
+        updateProfile({ step: 'recommendation' });
+        
+        await simulateTyping(
+          `Interessante! Com base no que você me contou, posso te ajudar de forma mais específica. Que tal conectarmos você com a solução ideal? 🎯✨`,
+          ['Quero a solução!', 'Me fale mais detalhes', 'Preciso pensar um pouco']
+        );
+      } else {
+        await simulateTyping(
+          'Entendi suas respostas! Me conta mais uma coisa para eu te ajudar melhor...',
+          ['Vamos continuar', 'Quero recomeçar']
+        );
+      }
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
     
@@ -183,7 +207,7 @@ const MestreDaBelezaChat: React.FC = () => {
         if (!userProfile.perfil) {
           await handleProfileQuestion(userMessage);
         } else if (userProfile.perfil === 'medico') {
-          setUserProfile(prev => ({ ...prev, step: 'intention' }));
+          updateProfile({ step: 'intention' });
           await simulateTyping(
             'Maravilha! Agora me conta, você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?',
             ['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']
@@ -195,15 +219,21 @@ const MestreDaBelezaChat: React.FC = () => {
         
       case 'intention':
         await handleIntentionQuestion(userMessage);
-        setUserProfile(prev => ({ ...prev, step: 'diagnosis' }));
         break;
         
       case 'diagnosis':
-        // Lógica de diagnóstico mais profunda
-        await simulateTyping(
-          'Interessante! Com base no que você me contou, posso te ajudar de forma mais específica. Que tal conectarmos você com a solução ideal? 🎯✨',
-          ['Quero a solução!', 'Me fale mais detalhes', 'Preciso pensar um pouco']
-        );
+        await handleDiagnosisResponse(userMessage, 'generic_response');
+        break;
+
+      case 'recommendation':
+        if (userMessage.toLowerCase().includes('solução')) {
+          setShowRecommendation(true);
+        } else {
+          await simulateTyping(
+            'Que legal continuar nossa conversa! Como posso te ajudar mais? 😊',
+            ['Tenho outra dúvida', 'Quero recomeçar', 'Tá perfeito assim']
+          );
+        }
         break;
         
       default:
@@ -216,6 +246,32 @@ const MestreDaBelezaChat: React.FC = () => {
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
+  };
+
+  const handleEngineAnswer = async (answer: string, context: string) => {
+    addMessage('user', answer);
+    await handleDiagnosisResponse(answer, context);
+  };
+
+  const handleNewChat = () => {
+    resetChat();
+    setMessages([{
+      id: '1',
+      role: 'mestre',
+      content: 'Vamos brincar de descobrir quem é você nesse mundão da estética? 😄 Primeiro me conta…',
+      timestamp: new Date(),
+      suggestions: ['Sou médico(a)', 'Não sou médico(a)', 'Prefiro não dizer agora']
+    }]);
+    setShowRecommendation(false);
+    setCurrentRecommendation(null);
+  };
+
+  const handleContinueFromRecommendation = () => {
+    setShowRecommendation(false);
+    simulateTyping(
+      'Quer ver outras ideias que combinem com você? 🌟',
+      ['Sim, quero mais opções', 'Quero nova consulta', 'Estou satisfeito(a)']
+    );
   };
 
   const getProfileIcon = () => {
@@ -236,6 +292,46 @@ const MestreDaBelezaChat: React.FC = () => {
     }
   };
 
+  // Se há recomendação para mostrar
+  if (showRecommendation && currentRecommendation) {
+    return (
+      <Card className="h-[600px] bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm border border-purple-400/30 shadow-2xl">
+        <CardHeader className="pb-4 border-b border-purple-400/20">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-gradient-to-r from-yellow-400 to-pink-500">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Mestre da Beleza</h3>
+                <p className="text-purple-200 text-xs">Sua IA mágica e inteligente</p>
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleNewChat}
+              variant="ghost"
+              size="sm"
+              className="text-purple-200 hover:text-white"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="flex flex-col h-[calc(100%-120px)] p-4">
+          <ScrollArea className="flex-1">
+            <RecommendationDisplay
+              recommendation={currentRecommendation}
+              onContinue={handleContinueFromRecommendation}
+              onNewChat={handleNewChat}
+            />
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="h-[600px] bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm border border-purple-400/30 shadow-2xl">
       <CardHeader className="pb-4 border-b border-purple-400/20">
@@ -246,16 +342,27 @@ const MestreDaBelezaChat: React.FC = () => {
             </div>
             <div>
               <h3 className="text-white font-semibold">Mestre da Beleza</h3>
-              <p className="text-purple-200 text-xs">Sua IA mágica e divertida</p>
+              <p className="text-purple-200 text-xs">Sua IA mágica e inteligente</p>
             </div>
           </div>
           
-          {userProfile.perfil && (
-            <Badge variant="secondary" className="bg-purple-600/30 text-purple-100 border-purple-400/50">
-              {getProfileIcon()}
-              <span className="ml-1">{getProfileLabel()}</span>
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {userProfile.perfil && (
+              <Badge variant="secondary" className="bg-purple-600/30 text-purple-100 border-purple-400/50">
+                {getProfileIcon()}
+                <span className="ml-1">{getProfileLabel()}</span>
+              </Badge>
+            )}
+            
+            <Button
+              onClick={handleNewChat}
+              variant="ghost"
+              size="sm"
+              className="text-purple-200 hover:text-white"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
 
@@ -312,6 +419,21 @@ const MestreDaBelezaChat: React.FC = () => {
               </motion.div>
             ))}
           </AnimatePresence>
+          
+          {/* Engine de Perguntas Inteligentes */}
+          {userProfile.step === 'diagnosis' && userProfile.perfil && userProfile.responses.intencao && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4"
+            >
+              <MestreDaBelezaEngine
+                currentStep={userProfile.step}
+                userProfile={userProfile}
+                onAnswer={handleEngineAnswer}
+              />
+            </motion.div>
+          )}
           
           {isTyping && (
             <motion.div
