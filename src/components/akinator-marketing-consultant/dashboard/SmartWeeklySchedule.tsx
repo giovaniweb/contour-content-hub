@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { exportElementAsPDF, exportElementAsImage, triggerDownload } from "@/utils/exportWeeklySchedule";
 import SendToPlannerModal from "./SendToPlannerModal";
 import { useContentPlanner } from "@/hooks/useContentPlanner";
+import { ContentPlannerStatus, ContentFormat } from "@/types/content-planner";
 
 type DayPlan = {
   day: string;
@@ -139,9 +140,9 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
           specialty?.toLowerCase().replace(/\s+/g, "-") || "clinica",
           day.day.toLowerCase()
         ],
-        format: "carrossel",
+        format: 'carrossel' as ContentFormat,
         objective: "🟡 Atrair Atenção",
-        distribution: "Instagram",
+        distribution: "Instagram" as const,
         aiGenerated: true
       };
       const createdItem = await addItem(item);
