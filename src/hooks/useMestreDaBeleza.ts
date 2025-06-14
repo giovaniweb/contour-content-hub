@@ -31,18 +31,54 @@ const SESSION_KEY = 'mestre_da_beleza_session';
 export const useMestreDaBeleza = () => {
   const { equipments, loading: equipmentsLoading, error: equipmentsError } = useEquipments();
   
+  // VALIDAÇÃO do perfil ao carregar session storage
+  const ensureValidUserProfile = (profile: any): UserProfile => {
+    // verifica se campos obrigatórios existem, se não recria
+    if (
+      typeof profile !== 'object' ||
+      typeof profile.session_id !== 'string' ||
+      typeof profile.current_question_index !== 'number'
+    ) {
+      console.warn('❗ [MestreDaBeleza] Sessão inválida detectada, criando nova.');
+      return {
+        primeira_interacao: true,
+        cadastrado: false,
+        equipamento_informado: false,
+        step: 'profile',
+        responses: {},
+        current_question_index: 0,
+        session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+    }
+    // Atualiza campos novos (para retrocompatibilidade)
+    return {
+      primeira_interacao: profile.primeira_interacao ?? true,
+      cadastrado: profile.cadastrado ?? false,
+      equipamento_informado: profile.equipamento_informado ?? false,
+      step: profile.step ?? 'profile',
+      responses: profile.responses ?? {},
+      current_question_index: profile.current_question_index ?? 0,
+      session_id: profile.session_id || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      tipo_usuario: profile.tipo_usuario,
+      idade_estimada: profile.idade_estimada,
+      area_problema: profile.area_problema,
+      problema_identificado: profile.problema_identificado,
+      perfil: profile.perfil,
+    };
+  };
+
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
       const savedSession = localStorage.getItem(SESSION_KEY);
       if (savedSession) {
         const parsed = JSON.parse(savedSession);
-        console.log('📱 [MestreDaBeleza] Sessão carregada:', parsed);
-        return parsed;
+        const validProfile = ensureValidUserProfile(parsed);
+        console.log('📱 [MestreDaBeleza] Sessão carregada:', validProfile);
+        return validProfile;
       }
     } catch (error) {
       console.warn('⚠️ [MestreDaBeleza] Erro ao carregar sessão salva:', error);
     }
-    
     const initialProfile = {
       primeira_interacao: true,
       cadastrado: false,
@@ -52,7 +88,6 @@ export const useMestreDaBeleza = () => {
       current_question_index: 0,
       session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
-    
     console.log('🆕 [MestreDaBeleza] Nova sessão criada:', initialProfile);
     return initialProfile;
   });
@@ -276,13 +311,8 @@ export const useMestreDaBeleza = () => {
     }
     
     // Filtrar equipamentos usando nossa função de validação
-    const availableEquipments = equipments.filter((eq) => {
-      if (!isValidEquipment(eq)) {
-        return false;
-      }
-      
-      return eq.ativo && eq.akinator_enabled;
-    });
+    const availableEquipments = equipments
+      .filter(eq => !!eq && isValidEquipment(eq) && eq.ativo && eq.akinator_enabled);
 
     console.log('✅ [MestreDaBeleza] Equipamentos válidos encontrados:', availableEquipments.length);
 
@@ -300,6 +330,7 @@ export const useMestreDaBeleza = () => {
 
     // Calcular scores para todos os equipamentos válidos
     const scoredEquipments = availableEquipments
+      .filter(eq => !!eq) // Proteção absoluta
       .map(equipment => {
         try {
           console.log('🔍 [MestreDaBeleza] Processando equipment válido:', equipment.id, equipment.nome);
@@ -314,7 +345,7 @@ export const useMestreDaBeleza = () => {
           return null;
         }
       })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
+      .filter((item): item is NonNullable<typeof item> => item !== null && !!item.equipment);
 
     if (scoredEquipments.length === 0) {
       console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento válido após scoring');
@@ -333,7 +364,7 @@ export const useMestreDaBeleza = () => {
     
     const bestMatch = scoredEquipments[0];
     
-    if (!bestMatch || !isValidEquipment(bestMatch.equipment)) {
+    if (!bestMatch || !bestMatch.equipment || !isValidEquipment(bestMatch.equipment)) {
       console.warn('⚠️ [MestreDaBeleza] Best match inválido');
       const mockEquipment = createMockEquipment();
       return {
@@ -498,7 +529,9 @@ export const useMestreDaBeleza = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments: equipments?.filter(eq => isValidEquipment(eq) && eq.ativo) || [],
+    equipments: Array.isArray(equipments)
+      ? equipments.filter(eq => !!eq && isValidEquipment(eq) && eq.ativo)
+      : [],
     loading: equipmentsLoading,
     error: equipmentsError
   };
