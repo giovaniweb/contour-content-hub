@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAkinatorEstetico } from "@/hooks/useAkinatorEstetico";
 import { useEquipments } from "@/hooks/useEquipments";
@@ -13,26 +12,46 @@ export const AkinatorEstetico: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white/15 rounded-2xl shadow-2xl border border-yellow-400/40 px-7 py-8 flex flex-col items-center animate-fade-in">
-        {/* Personagem "Mestre da Beleza" */}
+      <div className="max-w-md w-full bg-white/15 rounded-2xl shadow-2xl border border-yellow-400/40 px-7 py-10 flex flex-col items-center animate-fade-in">
+        {/* Personagem "Mestre da Beleza" lúdico */}
         <div className="flex flex-col items-center mb-8">
-          <img src={avatarUrl} alt="Mestre da Beleza" className="w-24 h-24 rounded-full border-4 border-yellow-200 shadow-lg mb-3" />
-          <div className="text-2xl font-bold text-yellow-300">Mestre da Beleza</div>
-          <div className="text-purple-100/90 text-center mt-1">Responda e eu vou descobrir seu melhor caminho estético! ✨</div>
+          <img src={avatarUrl} alt="Mestre da Beleza" className="w-24 h-24 rounded-full border-4 border-yellow-200 shadow-lg mb-2" />
+          <div className="text-3xl font-bold text-yellow-300 flex items-center gap-2">
+            <span className="text-4xl drop-shadow">😃</span>
+            Mestre da Beleza
+          </div>
+          <div className="text-purple-100/90 text-center mt-2 text-lg font-medium max-w-xs">
+            <span className="text-yellow-100">✨</span>
+            <span>Bem-vindo(a) à Jornada da Beleza!</span>
+            <br />
+            <span>
+              Responda às perguntas mágicas abaixo <br />
+              e descubra o seu melhor caminho estético! ✨
+            </span>
+          </div>
         </div>
 
         {!akinator.finalizou && akinator.perguntaAtual && (
           <div className="w-full flex flex-col items-center animate-fade-in">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="text-yellow-400" />
-              <span className="text-base text-purple-100 font-medium drop-shadow">{`Pergunta ${akinator.idxPergunta + 1}`}</span>
+            <div className="flex flex-col items-center gap-0.5 mb-3">
+              <div className="flex items-center gap-1">
+                <Sparkles className="text-yellow-400 animate-pulse" />
+                <span className="text-base text-purple-100 font-medium drop-shadow">
+                  Pergunta <span className="font-bold text-yellow-200">{akinator.idxPergunta + 1}</span>
+                </span>
+              </div>
+              <span className="text-xs text-purple-200 italic">💡 Dica: não existe resposta certa, siga seu coração!</span>
             </div>
-            <div className="text-xl text-purple-50 font-semibold text-center mb-3">{akinator.perguntaAtual.texto}</div>
+            <div className="text-2xl text-purple-50 font-semibold text-center mb-3 drop-shadow">
+              {akinator.perguntaAtual.texto}
+            </div>
             <div className="flex flex-col gap-2 w-full">
               {akinator.perguntaAtual.opcoes.map(opc => (
                 <Button
                   key={opc}
-                  className="w-full bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 text-white font-semibold shadow-md hover:scale-105 hover:bg-yellow-500 transition"
+                  className="w-full bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400 
+                  text-white font-bold shadow-md hover:scale-105 hover:bg-yellow-500 transition
+                  text-lg"
                   onClick={() => akinator.responder(opc)}
                 >
                   {opc}
@@ -41,7 +60,7 @@ export const AkinatorEstetico: React.FC = () => {
             </div>
             <div className="mt-8 flex gap-2">
               <Button variant="outline" className="text-xs" onClick={akinator.reset}>
-                Reiniciar
+                Reiniciar Jornada
               </Button>
             </div>
           </div>
