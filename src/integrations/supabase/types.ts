@@ -1757,6 +1757,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_gamification: {
+        Row: {
+          badges: string[] | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          xp_total: number
+        }
+        Insert: {
+          badges?: string[] | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          xp_total?: number
+        }
+        Update: {
+          badges?: string[] | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          xp_total?: number
+        }
+        Relationships: []
+      }
       user_invites: {
         Row: {
           atualizado_em: string | null

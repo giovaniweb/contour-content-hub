@@ -19,6 +19,16 @@ export interface UserProgress {
   badges: string[];
 }
 
+// Interface for user_gamification table (temporary until types are regenerated)
+interface UserGamificationRow {
+  id: string;
+  user_id: string;
+  xp_total: number;
+  badges: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 const LEVEL_THRESHOLDS = {
   Bronze: { min: 0, max: 99 },
   Prata: { min: 100, max: 249 },
@@ -53,9 +63,9 @@ export const useGamification = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
 
-      // Buscar ou criar progresso do usuário
+      // Buscar ou criar progresso do usuário usando query raw
       const { data: progress, error } = await supabase
-        .from('user_gamification')
+        .from('user_gamification' as any)
         .select('*')
         .eq('user_id', userData.user.id)
         .single();
@@ -63,7 +73,7 @@ export const useGamification = () => {
       if (error && error.code === 'PGRST116') {
         // Criar registro inicial
         const { data: newProgress } = await supabase
-          .from('user_gamification')
+          .from('user_gamification' as any)
           .insert({
             user_id: userData.user.id,
             xp_total: 0,
@@ -80,10 +90,11 @@ export const useGamification = () => {
           });
         }
       } else if (progress) {
+        const gamificationData = progress as UserGamificationRow;
         setUserProgress({
-          xp_total: progress.xp_total,
-          nivel: calculateLevel(progress.xp_total),
-          badges: progress.badges || []
+          xp_total: gamificationData.xp_total,
+          nivel: calculateLevel(gamificationData.xp_total),
+          badges: gamificationData.badges || []
         });
       }
     } catch (error) {
@@ -132,9 +143,9 @@ export const useGamification = () => {
       novasBadges.push('Mestre da Transformação');
     }
 
-    // Atualizar no banco
+    // Atualizar no banco usando type assertion
     await supabase
-      .from('user_gamification')
+      .from('user_gamification' as any)
       .upsert({
         user_id: userData.user.id,
         xp_total: novoXp,
