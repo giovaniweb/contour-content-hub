@@ -2,8 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import {
+  fetchUserScripts,
+  fetchUserContentPlanner,
+  fetchUserEquipments
+} from './fetchUserActivity';
+import { supabase } from "@/integrations/supabase/client";
 
-// Define suggestion types directly here to avoid circular dependencies
 type SuggestionType = 'script' | 'content' | 'marketing' | 'video' | 'equipment';
 
 interface Suggestion {
@@ -26,66 +31,105 @@ export const usePredictiveConsultant = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulação de carregamento de sugestões
-    const fetchSuggestions = () => {
-      setTimeout(() => {
-        const mockSuggestions: Suggestion[] = [
-          {
-            id: '1',
-            title: 'Criar roteiro sobre Equipamento XYZ',
-            description: 'Baseado nos seus roteiros recentes, este equipamento está alinhado com sua estratégia de conteúdo.',
-            type: 'script',
-            path: '/script-generator',
-            action: 'Criar Roteiro',
-            isNew: true,
-            score: 87,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'Valide seu último roteiro',
-            description: 'Você criou um roteiro recentemente mas não o validou. Recomendamos validá-lo para garantir qualidade.',
-            type: 'script',
-            path: '/script-validation',
-            action: 'Validar Roteiro',
-            score: 92,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '3',
-            title: 'Estratégia de Conteúdo para Q3',
-            description: 'Com base no seu histórico, é hora de planejar o próximo trimestre.',
-            type: 'content',
-            path: '/content-strategy',
-            action: 'Planejar Estratégia',
-            score: 85,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '4',
-            title: 'Novo lançamento de produto',
-            description: 'Planeje um lançamento para seu novo produto usando o consultor de marketing.',
-            type: 'marketing',
-            path: '/marketing-consultant',
-            action: 'Iniciar Planejamento',
-            isNew: true,
-            score: 95,
-            createdAt: new Date().toISOString()
-          },
-        ];
-        
-        setSuggestions(mockSuggestions);
+    const fetchSuggestions = async () => {
+      setLoading(true);
+
+      // Buscar sessão do Supabase para pegar o userId atual
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+
+      if (!userId) {
+        setSuggestions([]);
         setLoading(false);
-      }, 1500);
+        toast({
+          title: "Faça login para ver sugestões personalizadas",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Buscar dados reais do usuário
+      const [scripts, planner, equipamentos] = await Promise.all([
+        fetchUserScripts(userId),
+        fetchUserContentPlanner(userId),
+        fetchUserEquipments(userId)
+      ]);
+
+      const realSuggestions: Suggestion[] = [];
+
+      // Sugestão de roteiro baseada em roteiros não validados
+      const latestScript = scripts[0];
+      if (latestScript && latestScript.status !== "validado") {
+        realSuggestions.push({
+          id: `script-${latestScript.id}`,
+          title: `Valide seu roteiro: ${latestScript.titulo}`,
+          description: "Você gerou um roteiro recentemente e pode validá-lo para melhorar sua performance.",
+          type: "script",
+          path: "/script-validation",
+          isNew: true,
+          action: "Validar Roteiro",
+          createdAt: latestScript.data_criacao,
+          score: 90
+        });
+      }
+
+      // Sugestão para criar conteúdo baseado em atividades recentes
+      if (planner && planner.length > 0) {
+        realSuggestions.push({
+          id: `planner-${planner[0].id}`,
+          title: `Continue sua ideia de conteúdo: ${planner[0].title}`,
+          description: planner[0].description || "Ideia aguardando execução.",
+          type: "content",
+          path: "/content-planner",
+          action: "Planejar",
+          isNew: false,
+          createdAt: planner[0].created_at,
+          score: 80
+        });
+      }
+
+      // Equipamentos utilizados
+      if (equipamentos && equipamentos.length > 0) {
+        equipamentos.slice(0, 1).forEach((equip: string, idx: number) => {
+          realSuggestions.push({
+            id: `equipment-${equip}`,
+            title: `Destaque seu equipamento: ${equip}`,
+            description: `Mostre nas redes sociais um diferencial do equipamento "${equip}".`,
+            type: "equipment",
+            path: "/marketing-consultant",
+            action: "Criar Post",
+            isNew: idx === 0,
+            createdAt: new Date().toISOString(),
+            score: 75
+          });
+        });
+      }
+
+      // Caso nenhum dado, fallback sugestão simples
+      if (realSuggestions.length === 0) {
+        realSuggestions.push({
+          id: `onboarding`,
+          title: "Comece agora!",
+          description: "Gere seu primeiro roteiro, estratégia de conteúdo ou registre seus equipamentos.",
+          type: "marketing",
+          path: "/marketing-consultant",
+          action: "Iniciar",
+          isNew: true,
+          createdAt: new Date().toISOString(),
+          score: 70
+        });
+      }
+
+      setSuggestions(realSuggestions);
+      setLoading(false);
     };
-    
     fetchSuggestions();
   }, []);
-  
+
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
   };
-  
+
   const handleActionClick = (suggestion: Suggestion) => {
     if (suggestion.path) {
       navigate(suggestion.path);
@@ -96,7 +140,7 @@ export const usePredictiveConsultant = () => {
       });
     }
   };
-  
+
   return {
     suggestions,
     loading,
