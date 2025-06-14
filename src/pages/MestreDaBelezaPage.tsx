@@ -1,9 +1,9 @@
 
 import React from 'react';
-import MestreDaBelezaAkinator from '@/components/mestre-da-beleza/MestreDaBelezaAkinator';
+import AkinatorEstetico from '@/components/mestre-da-beleza/AkinatorEstetico';
 
 const MestreDaBelezaPage: React.FC = () => {
-  return <MestreDaBelezaAkinator />;
+  return <AkinatorEstetico />;
 };
 
 export default MestreDaBelezaPage;
