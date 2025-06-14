@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -35,7 +36,8 @@ import {
   Brain,
   LinkIcon,
   TestTube,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Trophy
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
 import { useAuth } from '@/context/AuthContext';
@@ -57,7 +59,6 @@ const Sidebar: React.FC = () => {
     { icon: Wand2, label: 'FLUIDAROTEIRISTA', path: ROUTES.CONTENT.FLUIDAROTEIRISTA },
     { icon: Video, label: 'Video', path: ROUTES.VIDEOS.ROOT },
     { icon: Image, label: 'Imagem', path: '/photos' },
-    { icon: ArrowLeftRight, label: 'Antes & Depois', path: '/before-after' },
     { icon: Palette, label: 'Artes', path: '/arts' },
     { icon: Calendar, label: 'Planejador', path: ROUTES.CONTENT.PLANNER },
     { icon: Wrench, label: 'Equipamentos', path: ROUTES.EQUIPMENTS.LIST },
@@ -67,6 +68,10 @@ const Sidebar: React.FC = () => {
     { icon: Lightbulb, label: 'Ideias', path: ROUTES.CONTENT.IDEAS },
     { icon: BarChart3, label: 'Estratégia', path: ROUTES.CONTENT.STRATEGY },
     { icon: Heart, label: 'Validador', path: ROUTES.CONTENT.SCRIPTS.VALIDATION },
+  ];
+
+  const gamificationMenuItems = [
+    { icon: ArrowLeftRight, label: 'Antes & Depois', path: '/before-after' },
   ];
 
   const adminMenuItems = [
@@ -147,6 +152,39 @@ const Sidebar: React.FC = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {contentMenuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton asChild>
+                    <motion.button
+                      onClick={() => navigate(item.path)}
+                      whileHover={{ x: 4 }}
+                      transition={{ duration: 0.2 }}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "text-white/80 hover:text-white hover:bg-white/10",
+                        "focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                        isActive(item.path) && "bg-white/15 text-white shadow-lg shadow-purple-500/20"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="flex-1 text-left">{item.label}</span>
+                    </motion.button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator className="border-white/10 my-2" />
+
+        {/* Gamification Menu */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-white/60 text-xs uppercase tracking-wider px-4">
+            🎯 Gamificação
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {gamificationMenuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <motion.button
