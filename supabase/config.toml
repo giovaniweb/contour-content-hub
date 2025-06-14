@@ -18,13 +18,16 @@ enable_signup = true
 enable_anonymous_sign_ins = false
 
 [functions.generate-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-script]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-with-ai]
-verify_jwt = false
+verify_jwt = true
+
+# As demais funções, se existirem, devem ser auditadas e seguir o mesmo padrão:
+# verifique se precisam ser públicas ou não, e defina verify_jwt accordingly.
 
 [db]
 enabled = true
