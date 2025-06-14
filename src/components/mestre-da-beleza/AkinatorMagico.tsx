@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAkinatorMagico } from "@/hooks/useAkinatorMagico";
@@ -14,7 +13,7 @@ import {
   RefreshCw, 
   Zap,
   Brain,
-  Crystal
+  Gem
 } from "lucide-react";
 
 // Componente de Loading Mágico
@@ -282,7 +281,7 @@ export const AkinatorMagico: React.FC = () => {
             className="inline-block mb-4"
           >
             <div className="relative">
-              <Crystal className="w-16 h-16 text-yellow-400" />
+              <Gem className="w-16 h-16 text-yellow-400" />
               <motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
