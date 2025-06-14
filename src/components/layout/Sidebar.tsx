@@ -71,6 +71,7 @@ const Sidebar: React.FC = () => {
   ];
 
   const gamificationMenuItems = [
+    { icon: Trophy, label: 'Dashboard', path: '/gamification' },
     { icon: ArrowLeftRight, label: 'Antes & Depois', path: '/before-after' },
   ];
 
