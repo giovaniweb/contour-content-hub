@@ -6,6 +6,14 @@ import { Crown, Wand2, Sparkles, Trophy, RefreshCw, CheckCircle, Star } from "lu
 import { useEquipments } from "@/hooks/useEquipments";
 import { useEsteticaAkinator, AKINATOR_QUESTIONS } from "@/hooks/useEsteticaAkinator";
 
+const frasesFaixaEtaria = (idade?: number) => {
+  if (!idade) return null;
+  if (idade >= 40) return "Você é da época do VHS, hein? 😁";
+  if (idade >= 30) return "Pegou TV Colosso e Brasil Penta! 🙌";
+  if (idade >= 20) return "Geração TikTok, mas conhece o Orkut! 😎";
+  return "Uh, muito jovem! Será que conhece o ICQ? 👾";
+};
+
 const MestreDaBelezaAkinator: React.FC = () => {
   const { equipments } = useEquipments();
   const akinator = useEsteticaAkinator(equipments);
@@ -48,6 +56,16 @@ const MestreDaBelezaAkinator: React.FC = () => {
           </h1>
           <p className="text-white/80">Responda sinceramente — eu vou adivinhar o melhor equipamento para você 🚀</p>
         </motion.div>
+
+        {/* Mostra faixa etária estimada de forma divertida se já houver respostas nostálgicas */}
+        {akinator.faixaEtaria && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="px-3 py-1 bg-yellow-100 rounded-full shadow-md text-purple-900 font-semibold text-base flex items-center gap-2"
+          >
+            <span>🕰️</span> {frasesFaixaEtaria(akinator.faixaEtaria)} <span className="ml-2 text-xs">(Só entre a gente: calculando sua idade...)</span>
+          </motion.div>
+        )}
 
         {/* Barra de perguntas */}
         <div className="w-full flex items-center justify-between mb-2">

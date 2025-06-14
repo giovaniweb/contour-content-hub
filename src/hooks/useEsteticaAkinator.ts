@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Equipment } from "@/types/equipment";
 
@@ -77,23 +76,56 @@ const SINTOMAS_MAPA = [
   }
 ];
 
+// Perguntas nostálgicas
+const NOSTALGIC_QUESTIONS = [
+  {
+    context: "tv_colosso",
+    text: "Você já assistiu TV Colosso quando era criança?",
+    options: ["Sim", "Não", "Nem sei o que é isso!"],
+    nostalgiaValue: 1993, // Ano de estreia ~ para cálculo de idade
+  },
+  {
+    context: "xuxa",
+    text: "As músicas da Xuxa fizeram parte da sua infância/adolescência?",
+    options: ["Sim", "Não", "Só um pouco"],
+    nostalgiaValue: 1987,
+  },
+  {
+    context: "video_game",
+    text: "Você se lembra (ou jogou) Super Nintendo ou Mega Drive?",
+    options: ["Sim", "Não", "Nunca ouvi falar"],
+    nostalgiaValue: 1991,
+  },
+  {
+    context: "brasil_penta",
+    text: "Você se recorda da Copa do Mundo de 2002? (Brasil Pentacampeão!)",
+    options: ["Sim", "Não", "Não lembro disso"],
+    nostalgiaValue: 2002,
+  },
+];
+
 // Novo banco de perguntas (maior variedade estratégica e mais diferenciais)
 export const AKINATOR_QUESTIONS = [
+  // Intercala lúdicas e técnicas!
+  NOSTALGIC_QUESTIONS[0],
   {
     context: "flacidez_facial",
     text: "Você percebe sinais de flacidez ou falta de firmeza no rosto?",
     options: ["Sim", "Um pouco", "Não", "Não sei"],
   },
+  NOSTALGIC_QUESTIONS[1],
   {
     context: "flacidez_corporal",
     text: "Você sente flacidez ou falta de firmeza no corpo?",
     options: ["Sim", "Um pouco", "Não", "Não sei"],
   },
+  NOSTALGIC_QUESTIONS[2],
   {
     context: "gordura_localizada",
     text: "Gostaria de reduzir gordura localizada em alguma área do corpo?",
     options: ["Sim", "Não"],
   },
+  NOSTALGIC_QUESTIONS[3],
   {
     context: "musculatura",
     text: "Você quer tonificar ou fortalecer a musculatura?",
@@ -182,6 +214,34 @@ function calcularPontuacoes(intl_respostas: Record<string, string>, equipamentos
   return { scores, matchExplicacao };
 }
 
+// Função auxiliar para estimar faixa etária pelas respostas nostálgicas
+function inferNostalgicAge(responses: Record<string, string>) {
+  // Mais respostas "Sim" em nostálgicas antigas = usuário mais velho
+  let ageScore = 0;
+  let count = 0;
+  const currentYear = new Date().getFullYear();
+
+  NOSTALGIC_QUESTIONS.forEach(q => {
+    const val = responses[q.context];
+    if (val === "Sim") {
+      // Assume que a pessoa lembra desse evento com no mínimo 7 anos na época
+      const estimatedBirth = q.nostalgiaValue - 7;
+      const edad = currentYear - estimatedBirth;
+      ageScore += edad;
+      count++;
+    }
+    if (val === "Nem sei o que é isso!" || val === "Nunca ouvi falar" || val === "Não lembro disso") {
+      // Assume pessoa mais nova (17 anos para trás)
+      const minAge = currentYear - (q.nostalgiaValue + 15);
+      ageScore += minAge;
+      count++;
+    }
+  });
+
+  if (count === 0) return null;
+  return Math.round(ageScore / count);
+}
+
 export function useEsteticaAkinator(equipamentos: Equipment[]) {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<{ context: string; answer: string }[]>([]);
@@ -223,6 +283,10 @@ export function useEsteticaAkinator(equipamentos: Equipment[]) {
     return Math.round(100 * top / sum);
   }, [ranking]);
 
+  const faixaEtaria = useMemo(
+    () => inferNostalgicAge(responses), [responses]
+  );
+
   function answer(context: string, answer: string) {
     setResponses((prev) => ({ ...prev, [context]: answer }));
     setHistory((prev) => [...prev, { context, answer }]);
@@ -247,5 +311,6 @@ export function useEsteticaAkinator(equipamentos: Equipment[]) {
     answer,
     reset,
     explicacoes: matchExplicacao,
+    faixaEtaria,
   };
 }
