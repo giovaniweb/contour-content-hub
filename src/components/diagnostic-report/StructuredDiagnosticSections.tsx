@@ -49,7 +49,8 @@ const StructuredDiagnosticSections: React.FC<StructuredDiagnosticSectionsProps> 
     try {
       console.log(`🔄 Tentativa ${retryCount + 1} - Reanalisando com IA Fluida`);
       
-      toast.info("🎯 Reanalisando com IA Fluida...", {
+      // Corrigido: usar toast() ao invés de toast.info()
+      toast("🎯 Reanalisando com IA Fluida...", {
         description: `Tentativa ${retryCount + 1} - Pode levar até 60 segundos`,
         id: "retry-diagnostic"
       });

@@ -103,9 +103,7 @@ export const useQuestionNavigation = ({
       console.log('🟢 Navegando para próxima pergunta:', nextStep, MARKETING_STEPS[nextStep]);
       setCurrentStep(nextStep);
       
-      toast.success("Resposta salva!", {
-        description: "Progresso sincronizado automaticamente"
-      });
+      // Removido: toast.success para "Resposta salva!" - feedback visual através de animações
     }
     
     console.log('🟢 FIM handleOptionSelect');
@@ -116,9 +114,7 @@ export const useQuestionNavigation = ({
     console.log('⬅️ Voltando para step:', previousStep);
     setCurrentStep(previousStep);
     
-    toast.success("Voltando à pergunta anterior", {
-      description: "Você pode revisar sua resposta."
-    });
+    // Removido: toast.success para "Voltando à pergunta anterior" - navegação silenciosa
   };
 
   const handleContinueWithoutAI = async () => {

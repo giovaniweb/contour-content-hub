@@ -100,11 +100,6 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const handleOpenSubmit = () => {
     if (openAnswer.trim()) {
       setIsAnimating(true);
-      showNotification({
-        title: "✨ Resposta registrada!",
-        message: "Sua resposta foi salva com sucesso.",
-        type: "success"
-      });
       setTimeout(() => {
         onOptionSelect(openAnswer.trim());
         setOpenAnswer('');
@@ -120,11 +115,6 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const handleCustomEquipmentSubmit = () => {
     if (customEquipment.trim()) {
       setIsAnimating(true);
-      showNotification({
-        title: "🔧 Equipamento personalizado adicionado!",
-        message: `${customEquipment} foi registrado com sucesso.`,
-        type: "success"
-      });
       setTimeout(() => {
         onOptionSelect(customEquipment.trim());
         setCustomEquipment('');
@@ -141,17 +131,9 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const handleOptionClick = (value: string, label: string) => {
     if (value === 'outros' && (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments')) {
       setShowCustomInput(true);
-      toast.success("🎯 Personalize sua escolha", {
-        description: "Digite o equipamento específico que você utiliza."
-      });
     } else {
       setSelectedOption(value);
       setIsAnimating(true);
-      showNotification({
-        title: "✅ Opção selecionada!",
-        message: `${label.replace(/[🔬🎯❌🔧]/g, '').trim()} foi registrado.`,
-        type: "success"
-      });
       setTimeout(() => {
         onOptionSelect(value);
         setSelectedOption(null);
