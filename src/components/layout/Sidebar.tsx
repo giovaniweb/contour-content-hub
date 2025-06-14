@@ -85,7 +85,7 @@ const Sidebar: React.FC = () => {
     { icon: LinkIcon, label: 'Integrações', path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE },
     { icon: Video, label: 'Config. Vimeo', path: ROUTES.ADMIN.VIMEO.SETTINGS },
     { icon: TestTube, label: 'Diagnóstico', path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS },
-    { icon: Settings, label: 'Configurações', path: ROUTES.WORKSPACE_SETTINGS },
+    { icon: Settings, label: ROUTES.WORKSPACE_SETTINGS },
   ];
 
   const isActive = (path: string) => location.pathname === path;
