@@ -43,6 +43,7 @@ const getIcon = (stepId: string) => {
   const IconComponent = icons[stepId as keyof typeof icons] || Building2;
   return <IconComponent className="h-6 w-6 text-aurora-electric-purple" />;
 };
+
 const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   stepData,
   currentStep,
@@ -227,7 +228,70 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   };
   const shouldUseDynamicEquipments = stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments';
   const optionsToShow = shouldUseDynamicEquipments ? getEquipmentOptions() : stepData.options || [];
+
+  // [ADDED] Função auxiliar para verificar se o usuário é admin localmente (vem do contexto Auth aqui só para debug)
+  const isAdmin = (() => {
+    try {
+      const userStr = localStorage.getItem('authUser');
+      if (!userStr) return false;
+      const user = JSON.parse(userStr);
+      return user && (user.role === 'admin' || user.role === 'superadmin');
+    } catch {
+      return false;
+    }
+  })();
+
+  // [ADDED] Renderização do painel de debug dos equipamentos carregados do banco
+  const showEquipmentDebugPanel =
+    isAdmin &&
+    (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') &&
+    Array.isArray(equipments) &&
+    equipments.length > 0;
+
   return <div className="max-w-4xl mx-auto p-6">
+      {/* Painel de debug de equipamentos para ADMIN */}
+      {showEquipmentDebugPanel && (
+        <div className="mb-6 p-4 rounded-xl bg-slate-900 border border-aurora-electric-purple/30 text-sm text-white/90">
+          <div className="mb-2 flex items-center gap-2 font-bold text-aurora-sage">
+            [DEBUG] Equipamentos carregados do banco ({equipments.length})
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-aurora-electric-purple/30">
+                  <th className="px-2 py-1">Nome</th>
+                  <th className="px-2 py-1">Categoria</th>
+                  <th className="px-2 py-1">Ativo</th>
+                  <th className="px-2 py-1">Akinator</th>
+                </tr>
+              </thead>
+              <tbody>
+                {equipments.map((eq, i) => (
+                  <tr
+                    key={eq.id ? eq.id : eq.nome + i}
+                    className={`
+                      ${(!eq.ativo || !eq.akinator_enabled) ? 'bg-aurora-electric-purple/10' : ''}
+                    `}
+                  >
+                    <td className="px-2 py-1">{eq.nome || <span className="italic text-gray-400">sem nome</span>}</td>
+                    <td className="px-2 py-1">{eq.categoria || <span className="italic text-gray-400">indefinida</span>}</td>
+                    <td className="px-2 py-1 text-center">
+                      {eq.ativo === undefined ? <span className="italic text-gray-400">?</span> : eq.ativo ? '✅' : '❌'}
+                    </td>
+                    <td className="px-2 py-1 text-center">
+                      {eq.akinator_enabled === undefined ? <span className="italic text-gray-400">?</span> : eq.akinator_enabled ? '✅' : '❌'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-2 text-xs text-aurora-sage/80">
+              <span className="font-semibold">Legenda:</span> Linhas em roxo claro = equipamento não exibido devido ao campo <b>ativo</b> ou <b>akinator_enabled</b> falso.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating Particles Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {[...Array(8)].map((_, i) => <motion.div key={i} className="absolute w-2 h-2 bg-aurora-electric-purple/30 rounded-full" animate={{
