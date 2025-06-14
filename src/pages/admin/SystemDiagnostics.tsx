@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import ContentLayout from "@/components/layout/ContentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +9,20 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle2, RefreshCw, Database, Server, Cpu } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import GlassContainer from "@/components/ui/GlassContainer";
+import { ServiceStatusList } from "@/components/admin/ServiceStatusList";
+import { useSystemServicesStatus } from "@/hooks/useSystemServicesStatus";
 
 const AdminSystemDiagnostics: React.FC = () => {
   const { isAdmin } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
-  
+
+  const {
+    data: services,
+    isLoading: isLoadingServices,
+    isError: isErrorServices,
+    refetch: refetchServices,
+  } = useSystemServicesStatus();
+
   // If not admin, redirect to dashboard
   if (!isAdmin()) {
     return <Navigate to="/dashboard" replace />;
@@ -22,7 +30,10 @@ const AdminSystemDiagnostics: React.FC = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    Promise.all([
+      refetchServices(),
+      new Promise((res) => setTimeout(res, 1000)),
+    ]).finally(() => setRefreshing(false));
   };
 
   return (
@@ -47,6 +58,16 @@ const AdminSystemDiagnostics: React.FC = () => {
           </Button>
         </div>
         
+        {/* NOVO BLOCO: STATUS DOS SERVIÇOS */}
+        <div>
+          <h2 className="text-lg font-bold mb-2">Serviços Monitorados</h2>
+          <ServiceStatusList
+            services={services || []}
+            isLoading={isLoadingServices}
+            isError={isErrorServices}
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <GlassContainer>
             <div className="flex items-center justify-between">

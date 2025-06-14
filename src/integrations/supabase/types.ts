@@ -1715,6 +1715,42 @@ export type Database = {
         }
         Relationships: []
       }
+      system_services_status: {
+        Row: {
+          endpoint: string | null
+          id: string
+          last_checked_at: string
+          latency_ms: number | null
+          message: string | null
+          name: string
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          endpoint?: string | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          message?: string | null
+          name: string
+          slug: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          endpoint?: string | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          message?: string | null
+          name?: string
+          slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           categoria: string | null
