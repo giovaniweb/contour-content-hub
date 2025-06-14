@@ -19,6 +19,8 @@ const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 import InstagramCallback from "@/pages/auth/InstagramCallback";
 
+const AdminSystemDiagnostics = lazy(() => import("@/pages/AdminSystemDiagnostics"));
+
 const routes = [
   {
     path: "/",
@@ -130,6 +132,17 @@ const routes = [
       <AuthGuard>
         <Main>
           <Onboarding />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  {
+    path: "/admin/system-diagnostics",
+    element: (
+      <AuthGuard>
+        <Main>
+          <AdminSystemDiagnostics />
         </Main>
       </AuthGuard>
     ),
