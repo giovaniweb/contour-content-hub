@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -37,7 +36,8 @@ import {
   LinkIcon,
   TestTube,
   ArrowLeftRight,
-  Trophy
+  Trophy,
+  Crown
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
 import { useAuth } from '@/context/AuthContext';
@@ -55,6 +55,7 @@ const Sidebar: React.FC = () => {
 
   const mainMenuItems = [
     { icon: Home, label: 'Dashboard', path: ROUTES.DASHBOARD },
+    { icon: Crown, label: 'Mestre da Beleza', path: '/mestre-da-beleza' },
     { icon: BrainCircuit, label: 'Consultor MKT', path: ROUTES.MARKETING.CONSULTANT },
     { icon: Wand2, label: 'FLUIDAROTEIRISTA', path: ROUTES.CONTENT.FLUIDAROTEIRISTA },
     { icon: Video, label: 'Video', path: ROUTES.VIDEOS.ROOT },

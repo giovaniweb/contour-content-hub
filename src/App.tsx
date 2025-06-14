@@ -17,6 +17,7 @@ const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
 const BeforeAfterPage = React.lazy(() => import('@/pages/BeforeAfterPage'));
 const GamificationDashboard = React.lazy(() => import('@/pages/GamificationDashboard'));
+const MestreDaBelezaPage = React.lazy(() => import('@/pages/MestreDaBelezaPage'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
@@ -49,6 +50,7 @@ function App() {
                     {/* Protected Routes */}
                     <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
                     <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+                    <Route path="/mestre-da-beleza" element={<AppLayout><MestreDaBelezaPage /></AppLayout>} />
                     <Route path="/before-after" element={<AppLayout><BeforeAfterPage /></AppLayout>} />
                     <Route path="/gamification" element={<AppLayout><GamificationDashboard /></AppLayout>} />
                     <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
