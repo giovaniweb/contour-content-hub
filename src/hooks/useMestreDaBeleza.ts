@@ -1,7 +1,7 @@
-
 import { useState, useCallback } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Equipment } from '@/types/equipment';
+import { questionBank } from '@/components/mestre-da-beleza/questionBank';
 
 interface UserProfile {
   perfil?: 'medico' | 'profissional_estetica' | 'cliente_final';
@@ -156,6 +156,13 @@ export const useMestreDaBeleza = () => {
   }, []);
 
   const processUserResponse = useCallback((response: string, context: string) => {
+    // Nova lógica: associar scoring/contextos via questionBank
+    let score = 0;
+    const q = questionBank.find(q => q.context === context);
+    if (q && q.scoring && q.scoring[response]) {
+      score = q.scoring[response];
+    }
+    // Usar score para gerar recomendação futura se desejar
     const newResponses = { ...userProfile.responses, [context]: response };
     const idade_estimada = estimateAge(newResponses);
     const { problema, area } = analyzeResponses(newResponses);
@@ -167,7 +174,7 @@ export const useMestreDaBeleza = () => {
       problema_identificado: problema
     });
 
-    return { problema, area, idade_estimada };
+    return { score };
   }, [userProfile.responses, estimateAge, analyzeResponses, updateProfile]);
 
   const getRecommendation = useCallback(() => {

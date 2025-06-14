@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,9 @@ import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
 import RecommendationDisplay from './RecommendationDisplay';
 import GamificationDisplay from '@/components/gamification/GamificationDisplay';
 import { useGamification } from '@/hooks/useGamification';
+import { questionBank, getNextQuestionId } from './questionBank';
+import { useMestreDaBelezaSession } from '@/hooks/useMestreDaBelezaSession';
+import { logEvent } from '@/hooks/useMestreDaBelezaAnalytics';
 
 const MestreDaBelezaAkinator: React.FC = () => {
   const {
@@ -41,6 +43,30 @@ const MestreDaBelezaAkinator: React.FC = () => {
   const [questionProgress, setQuestionProgress] = useState(0);
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [currentRecommendation, setCurrentRecommendation] = useState(null);
+
+  const sessionUtils = useMestreDaBelezaSession();
+
+  // Estado com base no banco configurável de perguntas
+  const [qIndex, setQIndex] = React.useState(0);
+  const [userResponses, setUserResponses] = React.useState<{[ctx: string]: string}>({});
+  const [analyticsSent, setAnalyticsSent] = React.useState(false);
+
+  // Carregar sessão ao abrir
+  React.useEffect(() => {
+    const s = sessionUtils.load();
+    if (s && s.responses) {
+      setUserResponses(s.responses);
+      setQIndex(s.qIndex || 0);
+    }
+  }, []);
+
+  // Salvar sessão a cada resposta
+  React.useEffect(() => {
+    sessionUtils.save({ responses: userResponses, qIndex });
+  }, [userResponses, qIndex]);
+
+  // Capta pergunta corrente do questionBank
+  const currentQuestion = questionBank[qIndex];
 
   React.useEffect(() => {
     if (userProfile.step === 'profile' && !userProfile.perfil) {
@@ -256,6 +282,10 @@ const MestreDaBelezaAkinator: React.FC = () => {
     setQuestionProgress(0);
     setCurrentQuestion('Vamos brincar de descobrir quem é você nesse mundão da estética? 😄');
     setCurrentOptions(['Sou médico(a)', 'Não sou médico(a)', 'Prefiro não dizer agora']);
+    setUserResponses({});
+    setQIndex(0);
+    setAnalyticsSent(false);
+    sessionUtils.clear();
   };
 
   const handleContinueFromRecommendation = () => {
