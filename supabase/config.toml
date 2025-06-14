@@ -1,4 +1,3 @@
-
 project_id = "default"
 
 [api]
@@ -26,8 +25,10 @@ verify_jwt = true
 [functions.generate-with-ai]
 verify_jwt = true
 
-# As demais funções, se existirem, devem ser auditadas e seguir o mesmo padrão:
-# verifique se precisam ser públicas ou não, e defina verify_jwt accordingly.
+[functions.generate-marketing-diagnostic]
+verify_jwt = true
+
+# Outras funções, se existirem, manter verify_jwt = true (padrão seguro).
 
 [db]
 enabled = true

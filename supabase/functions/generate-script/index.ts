@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -20,7 +19,25 @@ serve(async (req) => {
 
   try {
     console.log("🎬 FLUIDAROTEIRISTA Edge function iniciada");
-    
+
+    // VALIDAR AUTENTICAÇÃO
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: "Autenticação obrigatória (token não fornecido)" }), { status: 401, headers: corsHeaders });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('❌ Não autenticado/usuário inválido:', userError);
+      return new Response(JSON.stringify({ error: "Usuário não autenticado" }), { status: 401, headers: corsHeaders });
+    }
+
     // Validate OpenAI API key
     const openAIApiKey = RequestValidator.validateOpenAIKey();
     
