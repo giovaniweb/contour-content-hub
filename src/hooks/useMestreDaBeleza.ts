@@ -166,7 +166,7 @@ export const useMestreDaBeleza = () => {
     const newResponses = { ...userProfile.responses, [context]: response };
     const idade_estimada = estimateAge(newResponses);
     const { problema, area } = analyzeResponses(newResponses);
-    
+
     updateProfile({
       responses: newResponses,
       idade_estimada,
@@ -174,7 +174,8 @@ export const useMestreDaBeleza = () => {
       problema_identificado: problema
     });
 
-    return { score };
+    // FIX: Return also problema (required by Akinator)
+    return { score, problema };
   }, [userProfile.responses, estimateAge, analyzeResponses, updateProfile]);
 
   const getRecommendation = useCallback(() => {

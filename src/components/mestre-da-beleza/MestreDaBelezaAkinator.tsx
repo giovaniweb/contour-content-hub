@@ -34,7 +34,8 @@ const MestreDaBelezaAkinator: React.FC = () => {
   } = useMestreDaBeleza();
 
   const { userProgress } = useGamification();
-  const [currentQuestion, setCurrentQuestion] = useState<string>('');
+  // Renamed to avoid conflict with question object
+  const [currentQuestionText, setCurrentQuestionText] = useState<string>('');
   const [currentOptions, setCurrentOptions] = useState<string[]>([
     'Sou médico(a)', 
     'Não sou médico(a)', 
@@ -66,11 +67,11 @@ const MestreDaBelezaAkinator: React.FC = () => {
   }, [userResponses, qIndex]);
 
   // Capta pergunta corrente do questionBank
-  const currentQuestion = questionBank[qIndex];
+  const currentQuestionObj = questionBank[qIndex];
 
   React.useEffect(() => {
     if (userProfile.step === 'profile' && !userProfile.perfil) {
-      setCurrentQuestion('Vamos brincar de descobrir quem é você nesse mundão da estética? 😄');
+      setCurrentQuestionText('Vamos brincar de descobrir quem é você nesse mundão da estética? 😄');
       setQuestionProgress(10);
     }
   }, [userProfile.step, userProfile.perfil]);
@@ -196,20 +197,20 @@ const MestreDaBelezaAkinator: React.FC = () => {
         if (!userProfile.perfil) {
           if (answer.toLowerCase().includes('médico') || answer.toLowerCase().includes('sim')) {
             updateProfile({ perfil: 'medico', step: 'intention' });
-            setCurrentQuestion('Que incrível! Um(a) médico(a)! 👨‍⚕️✨ Você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?');
+            setCurrentQuestionText('Que incrível! Um(a) médico(a)! 👨‍⚕️✨ Você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?');
             setCurrentOptions(['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']);
           } else {
-            setCurrentQuestion('Entendi! E me conta... você já estudou usando jaleco? 🥼');
+            setCurrentQuestionText('Entendi! E me conta... você já estudou usando jaleco? 🥼');
             setCurrentOptions(['Sim, usei jaleco', 'Não, nunca usei', 'Que pergunta engraçada! 😄']);
           }
         } else {
           // Pergunta sobre jaleco
           if (answer.toLowerCase().includes('sim')) {
-            setCurrentQuestion('Aha! Então você trabalha ou já trabalhou em clínica de estética? 💅✨');
+            setCurrentQuestionText('Aha! Então você trabalha ou já trabalhou em clínica de estética? 💅✨');
             setCurrentOptions(['Sim, trabalho', 'Já trabalhei', 'Não, nunca trabalhei']);
           } else {
             updateProfile({ perfil: 'cliente_final', step: 'intention' });
-            setCurrentQuestion('Perfeito! Você é nosso cliente especial! 💎 Você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?');
+            setCurrentQuestionText('Perfeito! Você é nosso cliente especial! 💎 Você quer resolver algo agora, ou tá mais no clima de descobrir coisas novas comigo?');
             setCurrentOptions(['✅ Quero resolver um problema', '💡 Quero ter uma ideia nova', '🔍 Só tô curiosando mesmo']);
           }
         }
@@ -221,17 +222,17 @@ const MestreDaBelezaAkinator: React.FC = () => {
         
         if (answer.includes('resolver um problema')) {
           if (userProfile.perfil === 'cliente_final') {
-            setCurrentQuestion('Vamos lá! Algo em você incomoda? 🤔');
+            setCurrentQuestionText('Vamos lá! Algo em você incomoda? 🤔');
             setCurrentOptions(['É o rosto mesmo', 'É o corpo', 'Tô me sentindo derretendo 😭', 'É meio que tudo']);
           } else {
-            setCurrentQuestion('Perfeito! Como profissional, você tem enfrentado algum desafio específico? 🎯');
+            setCurrentQuestionText('Perfeito! Como profissional, você tem enfrentado algum desafio específico? 🎯');
             setCurrentOptions(['Dificuldade em reter clientes', 'Problemas com equipamentos', 'Questões de marketing', 'Concorrência muito forte']);
           }
         } else if (answer.includes('ideia nova')) {
-          setCurrentQuestion('Adoro isso! Que tal montar uma campanha criativa? 🚀 Você tem algum equipamento favorito para trabalhar?');
+          setCurrentQuestionText('Adoro isso! Que tal montar uma campanha criativa? 🚀 Você tem algum equipamento favorito para trabalhar?');
           setCurrentOptions(['HIPRO', 'Endolaser', 'Peeling', 'Não tenho equipamento específico']);
         } else {
-          setCurrentQuestion('Que gostoso! Curiosidade é o primeiro passo para a descoberta! 🔍✨ Quer que eu te conte sobre algum tratamento específico ou prefere que eu te surpreenda?');
+          setCurrentQuestionText('Que gostoso! Curiosidade é o primeiro passo para a descoberta! 🔍✨ Quer que eu te conte sobre algum tratamento específico ou prefere que eu te surpreenda?');
           setCurrentOptions(['Me surpreenda!', 'Quero saber sobre flacidez', 'Fale sobre rejuvenescimento', 'Conte sobre tecnologias novas']);
         }
         break;
@@ -245,13 +246,14 @@ const MestreDaBelezaAkinator: React.FC = () => {
           context = advancedQuestion.context;
         }
         
+        // Fix: get problema from processUserResponse return value
         const { problema } = processUserResponse(answer, context);
         
         // Verificar se ainda há perguntas específicas para fazer
         const nextAdvancedQuestion = getAdvancedQuestions();
         
         if (nextAdvancedQuestion) {
-          setCurrentQuestion(nextAdvancedQuestion.question);
+          setCurrentQuestionText(nextAdvancedQuestion.question);
           setCurrentOptions(nextAdvancedQuestion.options);
         } else if (problema && userProfile.step === 'diagnosis') {
           // Tentar gerar recomendação
@@ -263,12 +265,12 @@ const MestreDaBelezaAkinator: React.FC = () => {
             setShowRecommendation(true);
             setQuestionProgress(100);
           } else {
-            setCurrentQuestion('Interessante! Me conta mais uma coisa para eu te ajudar melhor...');
+            setCurrentQuestionText('Interessante! Me conta mais uma coisa para eu te ajudar melhor...');
             setCurrentOptions(['Vamos continuar', 'Quero recomeçar']);
           }
         } else {
           // Perguntas de finalização
-          setCurrentQuestion('Ótimo! Com base no que você me contou, posso te ajudar de forma mais específica! 🎯✨');
+          setCurrentQuestionText('Ótimo! Com base no que você me contou, posso te ajudar de forma mais específica! 🎯✨');
           setCurrentOptions(['Quero a solução!', 'Me fale mais detalhes', 'Preciso pensar um pouco']);
         }
         break;
@@ -280,7 +282,7 @@ const MestreDaBelezaAkinator: React.FC = () => {
     setShowRecommendation(false);
     setCurrentRecommendation(null);
     setQuestionProgress(0);
-    setCurrentQuestion('Vamos brincar de descobrir quem é você nesse mundão da estética? 😄');
+    setCurrentQuestionText('Vamos brincar de descobrir quem é você nesse mundão da estética? 😄');
     setCurrentOptions(['Sou médico(a)', 'Não sou médico(a)', 'Prefiro não dizer agora']);
     setUserResponses({});
     setQIndex(0);
@@ -290,7 +292,7 @@ const MestreDaBelezaAkinator: React.FC = () => {
 
   const handleContinueFromRecommendation = () => {
     setShowRecommendation(false);
-    setCurrentQuestion('Quer ver outras ideias que combinem com você? 🌟');
+    setCurrentQuestionText('Quer ver outras ideias que combinem com você? 🌟');
     setCurrentOptions(['Sim, quero mais opções', 'Quero nova consulta', 'Estou satisfeito(a)']);
   };
 
@@ -417,13 +419,13 @@ const MestreDaBelezaAkinator: React.FC = () => {
 
                   {/* Pergunta */}
                   <motion.div
-                    key={currentQuestion}
+                    key={currentQuestionText}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="text-center space-y-4"
                   >
                     <div className="text-2xl text-white font-medium leading-relaxed">
-                      {currentQuestion || 'Vamos brincar de descobrir quem é você nesse mundão da estética? 😄'}
+                      {currentQuestionText || 'Vamos brincar de descobrir quem é você nesse mundão da estética? 😄'}
                     </div>
                     
                     <div className="flex items-center justify-center gap-2">
