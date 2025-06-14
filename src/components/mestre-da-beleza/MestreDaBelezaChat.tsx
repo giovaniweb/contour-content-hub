@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +20,6 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
-import MestreDaBelezaEngine from './MestreDaBelezaEngine';
 import RecommendationDisplay from './RecommendationDisplay';
 
 interface Message {
@@ -419,21 +417,6 @@ const MestreDaBelezaChat: React.FC = () => {
               </motion.div>
             ))}
           </AnimatePresence>
-          
-          {/* Engine de Perguntas Inteligentes */}
-          {userProfile.step === 'diagnosis' && userProfile.perfil && userProfile.responses.intencao && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4"
-            >
-              <MestreDaBelezaEngine
-                currentStep={userProfile.step}
-                userProfile={userProfile}
-                onAnswer={handleEngineAnswer}
-              />
-            </motion.div>
-          )}
           
           {isTyping && (
             <motion.div
