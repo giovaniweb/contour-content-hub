@@ -78,17 +78,25 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
 const getFormatInstructions = (formato: string, canal: string, tempoLimite?: number, palavrasMax?: number): string => {
   const instructions = {
     stories: `
-    🔥 STORIES 10X - METODOLOGIA LEANDRO LADEIRA - INSTRUÇÕES CRÍTICAS:
+    📱 INSTAGRAM STORIES - INSTRUÇÕES:
+    - Máximo 60 segundos total (15s por card)
+    - 4 cards máximo
+    - Texto grande e legível no mobile
+    - Call-to-action no último card
+    - Use linguagem casual e direta
+    ${tempoLimite ? `- Tempo total: ${tempoLimite}s` : ''}
+    `,
+
+    stories_10x: `
+    🔥 STORIES 10X - METODOLOGIA LEANDRO LADEIRA:
     
-    🚨 REGRA OBRIGATÓRIA: EXATAMENTE 4 STORIES - NEM MAIS, NEM MENOS
-    
-    📊 ESPECIFICAÇÕES TÉCNICAS RÍGIDAS:
-    - EXATAMENTE 4 stories conectados (OBRIGATÓRIO)
+    📊 ESPECIFICAÇÕES TÉCNICAS:
+    - EXATAMENTE 4 stories conectados
     - MÁXIMO 40 segundos total (10s por story)
     - Sequência narrativa com dispositivos de engajamento
     - Tom: provocativo, inteligente, engraçado (estilo Leandro Ladeira)
     
-    🎯 ESTRUTURA OBRIGATÓRIA STORIES 10X (EXATAMENTE 4):
+    🎯 ESTRUTURA OBRIGATÓRIA STORIES 10X:
     Story 1: GANCHO PROVOCATIVO (3s de atenção + 7s desenvolvimento)
     - Provocação inteligente tipo "Você tá fazendo Stories como quem manda bom dia no grupo da família?"
     - Questão que para o scroll
@@ -110,12 +118,6 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Criar antecipação para próximo conteúdo
     - Ex: "Se esse roteiro valeu, compartilha com um amigo perdido no Storytelling"
     - Deixar gancho para continuar o relacionamento
-    
-    🚨 VALIDAÇÃO OBRIGATÓRIA:
-    - CONTE: Deve ter EXATAMENTE 4 stories (Story 1:, Story 2:, Story 3:, Story 4:)
-    - ESTRUTURA: Cada story deve ter conteúdo de 10 segundos
-    - DISPOSITIVOS: Pelo menos 2 dispositivos de engajamento
-    - SEQUÊNCIA: Narrativa conectada do início ao fim
     
     🧠 DISPOSITIVOS OBRIGATÓRIOS (usar pelo menos 2):
     - 🔥 Emoji foguinho: "manda um foguinho nos comentários"
@@ -221,14 +223,22 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
 const getOutputInstructions = (formato: string): string => {
   const outputs = {
     stories: `
-    🔥 STORIES 10X - OUTPUT OBRIGATÓRIO - VALIDAÇÃO CRÍTICA:
-    
-    🚨 ATENÇÃO: DEVE TER EXATAMENTE 4 STORIES - CONTE ANTES DE ENVIAR
-    
     Retorne JSON:
     {
-      "roteiro": "Story 1: [Gancho provocativo - 10s]\\n[Conteúdo do Story 1 com dispositivo incluído]\\n\\nStory 2: [Erro comum + identificação - 10s]\\n[Conteúdo do Story 2 com tom humorístico]\\n\\nStory 3: [Virada + dispositivo de engajamento - 10s]\\n[Conteúdo do Story 3 com OBRIGATÓRIO dispositivo 🔥/📊/❓ + equipamentos se selecionados]\\n\\nStory 4: [CTA suave + antecipação - 10s]\\n[Conteúdo do Story 4 com compartilhamento/reciprocidade]",
+      "roteiro": "Card 1: [texto]\nCard 2: [texto]\nCard 3: [texto]\nCard 4: [CTA]",
       "formato": "stories",
+      "cards_total": 4,
+      "tempo_por_card": "15s",
+      "sugestao_visual": "Descrição visual para cada card"
+    }
+    `,
+
+    stories_10x: `
+    🔥 STORIES 10X - OUTPUT OBRIGATÓRIO:
+    Retorne JSON:
+    {
+      "roteiro": "Story 1: [Gancho provocativo - 10s]\n[Dispositivo incluído: emoji/enquete/pergunta]\n\nStory 2: [Erro comum + identificação - 10s]\n[Tom humorístico e identificação]\n\nStory 3: [Virada + dispositivo de engajamento - 10s]\n[OBRIGATÓRIO: dispositivo 🔥/📊/❓ + equipamentos se selecionados]\n\nStory 4: [CTA suave + antecipação - 10s]\n[Compartilhamento/reciprocidade]",
+      "formato": "stories_10x",
       "metodologia": "leandro_ladeira",
       "stories_total": 4,
       "tempo_total": "40s",
@@ -237,25 +247,19 @@ const getOutputInstructions = (formato: string): string => {
       "engajamento_esperado": "alto"
     }
     
-    🚨 VALIDAÇÃO FINAL OBRIGATÓRIA:
-    - Conte os "Story X:" no seu roteiro
-    - DEVE ter exatamente: "Story 1:", "Story 2:", "Story 3:", "Story 4:"
-    - Cada story deve ter conteúdo próprio
-    - Pelo menos 2 dispositivos de engajamento incluídos
+    VALIDAÇÃO STORIES 10X:
+    - Verificar se tem EXATAMENTE 4 stories
+    - Confirmar tempo total máximo 40s (10s por story)
+    - Validar se pelo menos 2 dispositivos foram incluídos
+    - Checar tom provocativo mas educativo
     - Se equipamentos selecionados: DEVEM aparecer no Story 3
-    
-    ❌ REJEITAR SE:
-    - Menos de 4 stories
-    - Mais de 4 stories  
-    - Stories sem conteúdo
-    - Falta de dispositivos de engajamento
     `,
     
     carrossel: `
     🚨 IMPORTANTE: EXATAMENTE 5 SLIDES COM ESTRUTURA LIMPA (SEM HÍFENS)
     Retorne JSON:
     {
-      "roteiro": "Slide: Introdução\\nTexto: [Gancho impactante em até 25 palavras]\\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante, equipamento específico em destaque, iluminação suave, composição profissional, cores predominantes]\\n\\nSlide: O Problema\\nTexto: [Desenvolvimento do problema]\\nImagem: [Descrição visual específica mostrando o desafio, com detalhes de ambiente, expressão, situação]\\n\\nSlide: Nossa Solução\\nTexto: [Solução apresentada com nome REAL do equipamento]\\nImagem: [Descrição visual com equipamento REAL em ação, resultados visíveis, ambiente específico]\\n\\nSlide: Benefícios\\nTexto: [Benefícios e diferenciais específicos]\\nImagem: [Descrição visual do resultado final, satisfação do cliente, ambiente de resultado]\\n\\nSlide: Call to Action\\nTexto: [CTA forte e direto com convite à ação]\\nImagem: [Descrição visual de chamada para ação, profissional acolhedor, contato da clínica, ambiente convidativo]",
+      "roteiro": "Slide: Introdução\nTexto: [Gancho impactante em até 25 palavras]\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante, equipamento específico em destaque, iluminação suave, composição profissional, cores predominantes]\n\nSlide: O Problema\nTexto: [Desenvolvimento do problema]\nImagem: [Descrição visual específica mostrando o desafio, com detalhes de ambiente, expressão, situação]\n\nSlide: Nossa Solução\nTexto: [Solução apresentada com nome REAL do equipamento]\nImagem: [Descrição visual com equipamento REAL em ação, resultados visíveis, ambiente específico]\n\nSlide: Benefícios\nTexto: [Benefícios e diferenciais específicos]\nImagem: [Descrição visual do resultado final, satisfação do cliente, ambiente de resultado]\n\nSlide: Call to Action\nTexto: [CTA forte e direto com convite à ação]\nImagem: [Descrição visual de chamada para ação, profissional acolhedor, contato da clínica, ambiente convidativo]",
       "formato": "carrossel", 
       "slides_total": 5,
       "sugestao_visual": "Cada slide tem descrição visual específica integrada com estrutura limpa"
@@ -281,7 +285,7 @@ const getOutputInstructions = (formato: string): string => {
     reels: `
     Retorne JSON:
     {
-      "roteiro": "[0-5s] Gancho\\n[5-20s] Desenvolvimento\\n[20-50s] Solução\\n[50-60s] CTA",
+      "roteiro": "[0-5s] Gancho\n[5-20s] Desenvolvimento\n[20-50s] Solução\n[50-60s] CTA",
       "formato": "reels",
       "tempo_total": "60s",
       "sugestoes_edicao": "Cortes, transições, efeitos"
@@ -291,7 +295,7 @@ const getOutputInstructions = (formato: string): string => {
     short: `
     Retorne JSON:
     {
-      "roteiro": "[0-3s] Hook\\n[3-45s] Conteúdo\\n[45-50s] CTA",
+      "roteiro": "[0-3s] Hook\n[3-45s] Conteúdo\n[45-50s] CTA",
       "formato": "short",
       "tempo_total": "50s", 
       "sugestoes_edicao": "Cortes rápidos, texto na tela"
@@ -301,7 +305,7 @@ const getOutputInstructions = (formato: string): string => {
     video: `
     Retorne JSON:
     {
-      "roteiro": "Introdução (0-30s)\\nDesenvolvimento (30s-2m30s)\\nConclusão (2m30s-3m)",
+      "roteiro": "Introdução (0-30s)\nDesenvolvimento (30s-2m30s)\nConclusão (2m30s-3m)",
       "formato": "video",
       "tempo_total": "3min",
       "momentos_chave": "Lista de momentos importantes",
@@ -323,7 +327,7 @@ const getOutputInstructions = (formato: string): string => {
     reels_ads: `
     Retorne JSON:
     {
-      "roteiro": "[0-3s] Hook\\n[3-20s] Problema\\n[20-25s] Solução\\n[25-30s] CTA",
+      "roteiro": "[0-3s] Hook\n[3-20s] Problema\n[20-25s] Solução\n[25-30s] CTA",
       "formato": "reels_ads",
       "tempo_total": "30s",
       "foco_conversao": "Elementos para maximizar conversão"

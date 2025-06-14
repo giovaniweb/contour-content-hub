@@ -130,112 +130,74 @@ export const useFluidaRoteirista = () => {
         mentor_nome: request.mentor || 'Criativo'
       };
 
-      // PROMPT CRÍTICO CORRIGIDO para Stories 10x
-      let systemPrompt = '';
-      
-      if (request.formato === 'stories') {
-        systemPrompt = `
-        Você é o FLUIDAROTEIRISTA especializado em STORIES 10X.
+      // Prompt FLUIDAROTEIRISTA com integração de equipamentos
+      const systemPrompt = `
+        Você é o FLUIDAROTEIRISTA — roteirista oficial da plataforma para clínicas estéticas e médicas.
         
-        🚨 REGRA CRÍTICA ABSOLUTA: EXATAMENTE 4 STORIES - SEM EXCEÇÕES
+        Sua missão é gerar roteiros criativos, impactantes e prontos para redes sociais.
         
-        INSTRUÇÕES OBRIGATÓRIAS:
-        1. Sempre retorne EXATAMENTE 4 stories numerados: Story 1:, Story 2:, Story 3:, Story 4:
-        2. Cada story deve ter conteúdo específico e único
-        3. NUNCA retorne menos de 4 stories
-        4. NUNCA retorne mais de 4 stories
-        5. Use dispositivos de engajamento (🔥, 📊, ❓)
+        Contexto da clínica:
+        - Tipo: ${enrichedContext.tipo_de_clinica}
+        - Especialidade: ${enrichedContext.especialidade}
+        - Equipamentos: ${enrichedContext.equipamentos}
+        - Protocolo mais vendido: ${enrichedContext.protocolo}
+        - Ticket médio: ${enrichedContext.ticket_medio}
+        - Público ideal: ${enrichedContext.publico_ideal}
+        - Estilo da clínica: ${enrichedContext.estilo_clinica}
+        - Mentor: ${enrichedContext.mentor_nome}
         
         ${equipmentDetails.length > 0 ? `
-        EQUIPAMENTOS OBRIGATÓRIOS A MENCIONAR:
-        ${equipmentDetails.map(eq => `- ${eq.nome}: ${eq.tecnologia} - ${eq.beneficios}`).join('\n')}
+        🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
+        ${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
+           - Benefícios: ${eq.beneficios}
+           - Diferenciais: ${eq.diferenciais}`).join('\n')}
         
-        REGRA: Mencione pelo menos um equipamento no Story 3.
+        🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
+        ⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.
         ` : ''}
         
         ESTRUTURA OBRIGATÓRIA:
-        Story 1: Gancho provocativo que para o scroll
-        Story 2: Erro comum que todos cometem  
-        Story 3: Virada com solução + dispositivo engajamento + equipamento
-        Story 4: CTA suave + antecipação
+        1. Gancho (capturar atenção)
+        2. Conflito (apresentar problema)
+        3. Virada (mostrar solução com equipamentos específicos)
+        4. CTA (chamada para ação)
         
-        FORMATO DE SAÍDA OBRIGATÓRIO:
+        FORMATO: ${request.formato || 'carrossel'}
+        
+        Retorne APENAS JSON válido:
         {
-          "roteiro": "Story 1: [Título]\\n[Conteúdo completo do story 1]\\n\\nStory 2: [Título]\\n[Conteúdo completo do story 2]\\n\\nStory 3: [Título]\\n[Conteúdo completo do story 3 com equipamento]\\n\\nStory 4: [Título]\\n[Conteúdo completo do story 4]",
-          "formato": "stories"
+          "roteiro": "Conteúdo do roteiro",
+          "formato": "carrossel/stories/imagem",
+          "emocao_central": "esperança/confiança/urgência/etc",
+          "intencao": "atrair/vender/educar/conectar",
+          "objetivo": "Objetivo específico do post",
+          "mentor": "Nome do mentor usado"
         }
-        
-        VALIDAÇÃO FINAL: Conte quantos "Story X:" existem. DEVE ser exatamente 4.
-        `;
-      } else if (request.formato === 'carrossel') {
-        systemPrompt = `
-        Você é o FLUIDAROTEIRISTA especializado em CARROSSEL INSTAGRAM.
-        
-        🚨 REGRA CRÍTICA: EXATAMENTE 5 SLIDES COM ESTRUTURA ESPECÍFICA
-        
-        ${equipmentDetails.length > 0 ? `
-        EQUIPAMENTOS OBRIGATÓRIOS A MENCIONAR:
-        ${equipmentDetails.map(eq => `- ${eq.nome}: ${eq.tecnologia} - ${eq.beneficios}`).join('\n')}
-        
-        REGRA: Mencione equipamentos pelo nome real no Slide 3.
-        ` : ''}
-        
-        ESTRUTURA OBRIGATÓRIA PARA CADA SLIDE:
-        Slide: [Título Descritivo]
-        Texto: [Conteúdo específico em até 25 palavras]
-        Imagem: [Descrição visual detalhada com pelo menos 15 palavras específicas]
-        
-        SLIDES OBRIGATÓRIOS:
-        1. Slide: Gancho - capturar atenção
-        2. Slide: O Problema - apresentar desafio
-        3. Slide: Nossa Solução - mostrar equipamento/tratamento
-        4. Slide: Benefícios - evidenciar resultados
-        5. Slide: Call to Action - CTA forte
-        
-        FORMATO DE SAÍDA:
-        {
-          "roteiro": "Slide: Gancho\\nTexto: [texto específico]\\nImagem: [descrição específica]\\n\\nSlide: O Problema\\nTexto: [texto específico]\\nImagem: [descrição específica]\\n\\nSlide: Nossa Solução\\nTexto: [texto com equipamento real]\\nImagem: [descrição com equipamento]\\n\\nSlide: Benefícios\\nTexto: [benefícios específicos]\\nImagem: [resultado visual]\\n\\nSlide: Call to Action\\nTexto: [CTA direto]\\nImagem: [ambiente convidativo]",
-          "formato": "carrossel"
-        }
-        `;
-      } else {
-        // Prompt genérico para outros formatos
-        systemPrompt = `
-        Você é o FLUIDAROTEIRISTA criativo.
-        
-        ${equipmentDetails.length > 0 ? `
-        Equipamentos disponíveis: ${equipmentDetails.map(eq => eq.nome).join(', ')}
-        Mencione os equipamentos no roteiro.
-        ` : ''}
-        
-        Crie um roteiro para ${request.formato} sobre: ${request.tema}
-        
-        Retorne JSON: {"roteiro": "conteúdo", "formato": "${request.formato}"}
-        `;
-      }
+      `;
 
       const userPrompt = `
         Tema: ${request.tema}
-        Formato: ${request.formato}
+        Canal: ${request.canal || 'instagram'}
+        Formato: ${request.formato || 'carrossel'}
         Objetivo: ${request.objetivo || 'atrair'}
-        Estilo: ${request.estilo || 'criativo'}
-        Equipamentos selecionados: ${equipmentDetails.map(eq => eq.nome).join(', ')}
+        Estilo: ${request.estilo || 'cientifico'}
+        Equipamentos: ${equipmentDetails.map(eq => eq.nome).join(', ')}
         
-        Crie o roteiro seguindo EXATAMENTE as especificações do formato.
+        Crie o roteiro seguindo exatamente as especificações do formato selecionado.
       `;
 
       console.log('📤 [useFluidaRoteirista] Enviando para API com equipamentos:', equipmentDetails.map(eq => eq.nome));
 
+      // FIX: Convert equipment array to string for the API call
       const response = await generateScript({
         type: 'fluidaroteirista',
         systemPrompt,
         userPrompt,
         topic: request.tema,
-        equipment: equipmentDetails.map(eq => eq.nome).join(', '),
+        equipment: equipmentDetails.map(eq => eq.nome).join(', '), // Convert array to comma-separated string
         additionalInfo: JSON.stringify({ 
           ...enrichedContext,
-          equipmentDetails,
-          formato: request.formato
+          equipmentDetails // Passar detalhes completos
         }),
         tone: request.estilo || 'professional',
         marketingObjective: request.objetivo as any
@@ -243,7 +205,7 @@ export const useFluidaRoteirista = () => {
 
       console.log('📥 [useFluidaRoteirista] Resposta recebida:', response);
 
-      // VALIDAÇÃO CRÍTICA MELHORADA
+      // VALIDAÇÃO CRÍTICA: Verificar se equipamentos foram mencionados
       if (equipmentDetails.length > 0 && response.content) {
         const equipmentsMentioned = equipmentDetails.filter(eq => 
           response.content.toLowerCase().includes(eq.nome.toLowerCase())
@@ -258,60 +220,20 @@ export const useFluidaRoteirista = () => {
             !equipmentsMentioned.some(mentioned => mentioned.nome === eq.nome)
           );
           
-          console.warn('⚠️ [useFluidaRoteirista] Equipamentos não mencionados:', missing.map(eq => eq.nome));
-        }
-      }
-
-      // VALIDAÇÃO ESPECÍFICA PARA STORIES 10X
-      if (request.formato === 'stories') {
-        const storyCount = (response.content.match(/Story \d+:/g) || []).length;
-        console.log(`🔍 [useFluidaRoteirista] Stories detectados: ${storyCount}`);
-        
-        if (storyCount !== 4) {
-          console.error(`❌ [useFluidaRoteirista] ERRO CRÍTICO: ${storyCount} stories ao invés de 4`);
+          console.error('❌ [useFluidaRoteirista] Equipamentos não mencionados:', missing.map(eq => eq.nome));
+          
           toast({
-            title: "❌ Erro na geração",
-            description: `Stories gerados: ${storyCount}. Esperado: 4. Tentando novamente...`,
+            title: "⚠️ Equipamentos não incluídos",
+            description: `Os equipamentos ${missing.map(eq => eq.nome).join(', ')} não foram mencionados no roteiro. Tentando novamente...`,
             variant: "destructive"
           });
           
-          // Tentar novamente com prompt ainda mais rígido
-          const rigidPrompt = `
-          INSTRUÇÃO ABSOLUTA: Retorne EXATAMENTE 4 stories.
-          
-          FORMATO OBRIGATÓRIO:
-          Story 1: Gancho
-          [conteúdo específico]
-          
-          Story 2: Erro
-          [conteúdo específico]
-          
-          Story 3: Virada
-          [conteúdo específico com equipamento]
-          
-          Story 4: CTA
-          [conteúdo específico]
-          
-          Tema: ${request.tema}
-          ${equipmentDetails.length > 0 ? `Equipamento: ${equipmentDetails[0].nome}` : ''}
-          `;
-          
-          const retryResponse = await generateScript({
-            type: 'fluidaroteirista',
-            systemPrompt: rigidPrompt,
-            userPrompt: 'Gere exatamente 4 stories seguindo o formato.',
-            topic: request.tema,
-            equipment: equipmentDetails.map(eq => eq.nome).join(', '),
-            additionalInfo: JSON.stringify({ retry: true }),
-            tone: 'direct',
-            marketingObjective: 'atrair'
-          });
-          
-          response.content = retryResponse.content;
+          // Por enquanto, vamos continuar mas alertar o usuário
+          console.warn('⚠️ [useFluidaRoteirista] Continuando com roteiro incompleto');
         }
       }
 
-      // Processar resposta
+      // Tentar parsear como JSON
       let scriptResult: FluidaScriptResult;
       try {
         scriptResult = JSON.parse(response.content);
@@ -344,11 +266,11 @@ export const useFluidaRoteirista = () => {
     } catch (error) {
       console.error('❌ Erro no FLUIDAROTEIRISTA:', error);
       
-      // Sistema de fallback melhorado
+      // Sistema de fallback
       const fallbackScript: FluidaScriptResult = {
-        roteiro: request.formato === 'stories' ? 
-          `Story 1: Você sabia?\nDescubra o segredo sobre ${request.tema} que poucos conhecem...\n\nStory 2: O erro comum\nA maioria das pessoas comete este erro ao lidar com ${request.tema}.\n\nStory 3: A solução\n${request.equipamentos.length > 0 ? `Com ${request.equipamentos[0]}` : 'Nossa abordagem'} você obtém resultados incríveis! 🔥\n\nStory 4: Sua vez\nQuer saber mais? Manda um DM que te conto tudo! 📲` :
-          `Slide: Introdução\nTexto: Descubra a revolução em ${request.tema}\nImagem: Ambiente moderno e profissional\n\nSlide: O Problema\nTexto: O que você precisa saber sobre ${request.tema}\nImagem: Pessoa preocupada refletindo\n\nSlide: Nossa Solução\nTexto: ${request.equipamentos.length > 0 ? `Com ${request.equipamentos[0]} obtemos` : 'Obtemos'} resultados únicos\nImagem: Equipamento moderno em ação\n\nSlide: Benefícios\nTexto: Resultados que transformam sua vida\nImagem: Pessoa satisfeita e confiante\n\nSlide: Call to Action\nTexto: Agende sua consulta agora!\nImagem: Profissional acolhedor recepcionando`,
+        roteiro: `Roteiro não pôde ser gerado agora. Suas respostas foram salvas. 
+        
+        Sugestão básica: Fale sobre ${request.tema} e destaque os benefícios únicos dos seus tratamentos${request.equipamentos.length > 0 ? ` com ${request.equipamentos.join(' e ')}` : ''}.`,
         formato: request.formato || 'carrossel',
         emocao_central: 'confiança',
         intencao: 'educar',

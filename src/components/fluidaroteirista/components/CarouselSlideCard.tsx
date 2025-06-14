@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
-import { Image, FileText, Eye } from 'lucide-react';
 import CopyButton from '@/components/ui/CopyButton';
 
 interface CarouselSlideCardProps {
@@ -12,11 +10,70 @@ interface CarouselSlideCardProps {
     title: string;
     texto: string;
     imagem: string;
-    content: string;
   };
 }
 
+const getSlideIcon = (slideNumber: number): string => {
+  const icons = {
+    1: "🎯", // Hook/Gancho
+    2: "⚡", // Problema
+    3: "💡", // Solução
+    4: "✨", // Benefícios
+    5: "📲"  // CTA
+  };
+  return icons[slideNumber as keyof typeof icons] || "📝";
+};
+
+const getSlideTheme = (slideNumber: number) => {
+  const themes = {
+    1: { 
+      bg: "aurora-glass", 
+      border: "border-aurora-electric-purple/30", 
+      text: "text-aurora-electric-purple", 
+      badge: "bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30",
+      glow: "aurora-glow",
+      gradient: "bg-gradient-to-br from-aurora-electric-purple/10 to-aurora-neon-blue/10"
+    },
+    2: { 
+      bg: "aurora-glass", 
+      border: "border-red-400/30", 
+      text: "text-red-300", 
+      badge: "bg-red-500/20 text-red-300 border-red-400/30",
+      glow: "shadow-red-400/20",
+      gradient: "bg-gradient-to-br from-red-500/10 to-orange-500/10"
+    },
+    3: { 
+      bg: "aurora-glass", 
+      border: "border-aurora-emerald/30", 
+      text: "text-aurora-emerald", 
+      badge: "bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30",
+      glow: "aurora-glow-emerald",
+      gradient: "bg-gradient-to-br from-aurora-emerald/10 to-aurora-lime/10"
+    },
+    4: { 
+      bg: "aurora-glass", 
+      border: "border-aurora-lavender/30", 
+      text: "text-aurora-lavender", 
+      badge: "bg-aurora-lavender/20 text-aurora-lavender border-aurora-lavender/30",
+      glow: "shadow-aurora-lavender/20",
+      gradient: "bg-gradient-to-br from-aurora-lavender/10 to-aurora-soft-pink/10"
+    },
+    5: { 
+      bg: "aurora-glass", 
+      border: "border-aurora-neon-blue/30", 
+      text: "text-aurora-neon-blue", 
+      badge: "bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30",
+      glow: "aurora-glow-blue",
+      gradient: "bg-gradient-to-br from-aurora-neon-blue/10 to-aurora-cyan/10"
+    }
+  };
+  return themes[slideNumber as keyof typeof themes] || themes[1];
+};
+
 const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
+  const icon = getSlideIcon(slide.number);
+  const theme = getSlideTheme(slide.number);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,32 +82,29 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
       whileHover={{ y: -5, scale: 1.02 }}
       className="h-full"
     >
-      <Card className="aurora-glass border-purple-400/30 border-2 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 h-full relative overflow-hidden">
+      <Card className={`${theme.bg} ${theme.border} ${theme.glow} border-2 hover:shadow-lg transition-all duration-300 h-full relative overflow-hidden`}>
         {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-50" />
+        <div className={`absolute inset-0 ${theme.gradient} opacity-50`} />
         
         <CardContent className="p-6 relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="text-3xl aurora-float">🎠</div>
+            <div className="text-3xl aurora-float">{icon}</div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-400/30 aurora-shimmer">
-                  Slide {slide.number}
-                </Badge>
-                <FileText className="h-4 w-4 text-purple-400" />
-              </div>
-              <h3 className="font-bold text-purple-300 text-lg aurora-heading filter drop-shadow-sm">
+              <Badge variant="outline" className={`${theme.badge} border mb-2 aurora-shimmer`}>
+                Slide {slide.number}
+              </Badge>
+              <h3 className={`font-bold ${theme.text} text-lg aurora-heading filter drop-shadow-sm`}>
                 {slide.title}
               </h3>
             </div>
           </div>
 
           <div className="space-y-4">
-            {/* Texto do Slide */}
+            {/* Seção Texto */}
             <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full aurora-pulse"></div>
-                <span className="text-sm font-medium text-cyan-400">Texto do Slide</span>
+                <div className="w-2 h-2 bg-aurora-emerald rounded-full aurora-pulse"></div>
+                <span className="text-sm font-medium text-aurora-emerald">Texto do Slide</span>
               </div>
               <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
                 {slide.texto}
@@ -61,47 +115,25 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
               />
             </div>
 
-            {/* Descrição da Imagem */}
+            {/* Seção Imagem */}
             <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
               <div className="flex items-center gap-2 mb-3">
-                <Image className="h-4 w-4 text-green-400" />
-                <span className="text-sm font-medium text-green-400">Descrição Visual</span>
+                <div className="w-2 h-2 bg-aurora-neon-blue rounded-full aurora-pulse"></div>
+                <span className="text-sm font-medium text-aurora-neon-blue">Descrição da Imagem</span>
               </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
+              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12">
                 {slide.imagem}
               </p>
               <CopyButton 
                 text={slide.imagem}
-                successMessage={`Descrição visual do slide ${slide.number} copiada!`}
+                successMessage={`Descrição da imagem do slide ${slide.number} copiada!`}
               />
-            </div>
-
-            {/* Preview Dica */}
-            <div className="aurora-glass rounded-lg p-3 border border-white/10 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-4 w-4 text-yellow-400" />
-                <span className="text-xs font-medium text-yellow-400">Dica Visual</span>
-              </div>
-              <p className="text-slate-300 text-xs italic aurora-body">
-                {getVisualTip(slide.number)}
-              </p>
             </div>
           </div>
         </CardContent>
       </Card>
     </motion.div>
   );
-};
-
-const getVisualTip = (slideNumber: number): string => {
-  const tips = {
-    1: "Primeira impressão é tudo! Use imagem impactante que pare o scroll nos primeiros segundos.",
-    2: "Mostre o problema de forma visual. Use expressões e situações que gerem identificação.",
-    3: "Destaque o equipamento ou solução em ação. Mostre tecnologia e profissionalismo.",
-    4: "Evidencie os benefícios visualmente. Satisfação e resultados devem ser óbvios.",
-    5: "CTA visual forte! Ambiente convidativo que convide à ação imediata."
-  };
-  return tips[slideNumber as keyof typeof tips] || "Mantenha consistência visual em todo o carrossel.";
 };
 
 export default CarouselSlideCard;
