@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Crown, Wand2, Sparkles, Trophy, RefreshCw, CheckCircle, Star } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useEsteticaAkinator, AKINATOR_QUESTIONS } from "@/hooks/useEsteticaAkinator";
-import { IdentificacaoDePerfil } from "./IdentificacaoDePerfil";
+// import { IdentificacaoDePerfil } from "./IdentificacaoDePerfil"; // REMOVIDO: componente não existe mais
 import { SugestaoClinicasProximas } from "./SugestaoClinicasProximas";
 
 const frasesFaixaEtaria = (idade?: number) => {
@@ -50,7 +50,7 @@ const MestreDaBelezaAkinator: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900 p-6 flex items-center justify-center">
         <div className="max-w-lg w-full">
-          <IdentificacaoDePerfil onFinalizado={dados => setPerfilDados(dados)} />
+          {/* <IdentificacaoDePerfil onFinalizado={dados => setPerfilDados(dados)} /> */}
         </div>
       </div>
     );
