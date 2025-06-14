@@ -14,27 +14,46 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAkinatorMagico } from '@/hooks/useAkinatorMagico';
+import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
 import './akinator-animations.css';
 
 const AkinatorMagico: React.FC = () => {
-  const hookData = useAkinatorMagico();
+  const {
+    userProfile,
+    getRecommendation,
+    resetChat,
+    processUserResponse
+  } = useMestreDaBeleza();
   
-  // Extract data from hook with proper property names
-  const currentQuestion = hookData.perguntaAtual;
-  const confidence = hookData.confianca;
-  const userProfile = hookData.perfil;
-  const insightsComportamentais = hookData.insightsComportamentais;
-  const currentRecommendation = hookData.recomendacao || hookData.resultado;
-  const gameState = hookData.fase;
-  const isThinking = hookData.pensando;
-  const answerQuestion = hookData.responder || hookData.responderPergunta;
-  const resetGame = hookData.reiniciar || hookData.reiniciarJogo;
-  const startNewSession = hookData.iniciar || hookData.iniciarSessao;
-
+  // Mock current question for now - this should come from a proper akinator flow
+  const currentQuestion = {
+    id: 1,
+    texto: "Você está preocupado(a) com a firmeza da pele do seu rosto?",
+    opcoes: ["Sim, muito preocupado(a)", "Um pouco preocupado(a)", "Não muito", "Não me preocupo"]
+  };
+  
+  // Extract data with proper fallbacks
+  const confidence = 75; // Mock confidence level
+  const insightsComportamentais = ["Perfil analítico"];
+  const currentRecommendation = getRecommendation();
+  const gameState = userProfile.step || 'profile';
+  const isThinking = false; // Mock thinking state
+  
   // Create derived values for display
   const behavioralProfile = insightsComportamentais?.[0] || 'Analisando...';
   const currentPhrase = isThinking ? 'Consultando os astros...' : 'Pronto para a próxima pergunta';
+
+  const handleAnswerQuestion = (answer: string) => {
+    processUserResponse(answer, 'firmeza_facial');
+  };
+
+  const handleResetGame = () => {
+    resetChat();
+  };
+
+  const handleStartNewSession = () => {
+    resetChat();
+  };
 
   const renderWelcomeScreen = () => (
     <div className="text-center space-y-8">
@@ -77,7 +96,7 @@ const AkinatorMagico: React.FC = () => {
         </div>
         
         <Button
-          onClick={() => startNewSession && startNewSession()}
+          onClick={handleStartNewSession}
           size="lg"
           className="magical-glow bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold text-lg"
         >
@@ -140,7 +159,7 @@ const AkinatorMagico: React.FC = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Button
-                    onClick={() => answerQuestion && answerQuestion(option)}
+                    onClick={() => handleAnswerQuestion(option)}
                     variant="outline"
                     className="w-full p-6 text-left h-auto hover:bg-purple-500/20 hover:border-purple-400 transition-all duration-300"
                     disabled={isThinking}
@@ -160,7 +179,7 @@ const AkinatorMagico: React.FC = () => {
       {/* Reset option */}
       <div className="text-center">
         <Button
-          onClick={() => resetGame && resetGame()}
+          onClick={handleResetGame}
           variant="ghost"
           size="sm"
           className="text-gray-400 hover:text-white"
@@ -247,7 +266,7 @@ const AkinatorMagico: React.FC = () => {
 
       <div className="text-center space-y-4">
         <Button
-          onClick={() => resetGame && resetGame()}
+          onClick={handleResetGame}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         >
           <Sparkles className="mr-2 h-4 w-4" />
@@ -257,11 +276,11 @@ const AkinatorMagico: React.FC = () => {
     </div>
   );
 
-  // Check the actual phase values from the enum
-  const isWelcomePhase = gameState === 'inicio' || gameState === 'INICIO' || !gameState;
-  const isQuestioningPhase = gameState === 'perguntando' || gameState === 'PERGUNTANDO';
-  const isThinkingPhase = gameState === 'pensando' || gameState === 'PENSANDO';
-  const isCompletePhase = gameState === 'finalizado' || gameState === 'FINALIZADO';
+  // Check the actual phase values from the userProfile step
+  const isWelcomePhase = gameState === 'profile' || !gameState;
+  const isQuestioningPhase = gameState === 'intention' || gameState === 'diagnosis';
+  const isThinkingPhase = false; // Mock thinking phase
+  const isCompletePhase = gameState === 'recommendation' || gameState === 'completed';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
