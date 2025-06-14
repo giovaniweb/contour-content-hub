@@ -9,6 +9,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import AppLayout from '@/components/layout/AppLayout';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { SlideNotificationProvider } from "@/components/notifications/SlideNotificationProvider";
 
 // Lazy imports - existing pages
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
@@ -54,71 +55,73 @@ import { queryClient } from './config/queryClient';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <SidebarProvider>
-            <Router>
-              <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Routes>
-                    {/* Auth Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    
-                    {/* Main Dashboard */}
-                    <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-                    <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-                    
-                    {/* Main Menu Routes */}
-                    <Route path="/mestre-da-beleza" element={<AppLayout><MestreDaBelezaPage /></AppLayout>} />
-                    <Route path="/marketing-consultant" element={<AppLayout><MarketingConsultantHome /></AppLayout>} />
-                    <Route path="/fluidaroteirista" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
-                    <Route path="/script-generator" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
-                    <Route path="/videos" element={<AppLayout><VideosPage /></AppLayout>} />
-                    <Route path="/video-player" element={<AppLayout><VideoPlayer /></AppLayout>} />
-                    <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
-                    <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
-                    <Route path="/content-planner" element={<AppLayout><ContentPlanner /></AppLayout>} />
-                    <Route path="/equipments" element={<AppLayout><EquipmentsPage /></AppLayout>} />
-                    
-                    {/* Content Routes */}
-                    <Route path="/content-ideas" element={<AppLayout><ContentIdeas /></AppLayout>} />
-                    <Route path="/scientific-articles" element={<AppLayout><ScientificArticles /></AppLayout>} />
-                    
-                    {/* Marketing Routes */}
-                    <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
-                    
-                    {/* Gamification Routes */}
-                    <Route path="/before-after" element={<AppLayout><BeforeAfterPage /></AppLayout>} />
-                    <Route path="/gamification" element={<AppLayout><GamificationDashboard /></AppLayout>} />
-                    
-                    {/* Profile */}
-                    <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
-                    
-                    {/* Admin Routes */}
-                    <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-                    <Route path="/admin/equipments" element={<AdminLayout><AdminEquipments /></AdminLayout>} />
-                    <Route path="/admin/content" element={<AdminLayout><AdminContent /></AdminLayout>} />
-                    <Route path="/admin/videos" element={<AdminLayout><AdminVideos /></AdminLayout>} />
-                    <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
-                    <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
-                    <Route path="/admin/vimeo-settings" element={<AdminLayout><AdminVimeoSettings /></AdminLayout>} />
-                    <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
-                    <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
-                    
-                    {/* 404 Route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-                <Toaster />
-              </div>
-            </Router>
-          </SidebarProvider>
-        </AuthProvider>
-      </LanguageProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <SlideNotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              <Router>
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                      {/* Auth Routes */}
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      
+                      {/* Main Dashboard */}
+                      <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+                      <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+                      
+                      {/* Main Menu Routes */}
+                      <Route path="/mestre-da-beleza" element={<AppLayout><MestreDaBelezaPage /></AppLayout>} />
+                      <Route path="/marketing-consultant" element={<AppLayout><MarketingConsultantHome /></AppLayout>} />
+                      <Route path="/fluidaroteirista" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
+                      <Route path="/script-generator" element={<AppLayout><FluidaRoteiristPage /></AppLayout>} />
+                      <Route path="/videos" element={<AppLayout><VideosPage /></AppLayout>} />
+                      <Route path="/video-player" element={<AppLayout><VideoPlayer /></AppLayout>} />
+                      <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
+                      <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
+                      <Route path="/content-planner" element={<AppLayout><ContentPlanner /></AppLayout>} />
+                      <Route path="/equipments" element={<AppLayout><EquipmentsPage /></AppLayout>} />
+                      
+                      {/* Content Routes */}
+                      <Route path="/content-ideas" element={<AppLayout><ContentIdeas /></AppLayout>} />
+                      <Route path="/scientific-articles" element={<AppLayout><ScientificArticles /></AppLayout>} />
+                      
+                      {/* Marketing Routes */}
+                      <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
+                      
+                      {/* Gamification Routes */}
+                      <Route path="/before-after" element={<AppLayout><BeforeAfterPage /></AppLayout>} />
+                      <Route path="/gamification" element={<AppLayout><GamificationDashboard /></AppLayout>} />
+                      
+                      {/* Profile */}
+                      <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
+                      
+                      {/* Admin Routes */}
+                      <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+                      <Route path="/admin/equipments" element={<AdminLayout><AdminEquipments /></AdminLayout>} />
+                      <Route path="/admin/content" element={<AdminLayout><AdminContent /></AdminLayout>} />
+                      <Route path="/admin/videos" element={<AdminLayout><AdminVideos /></AdminLayout>} />
+                      <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
+                      <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
+                      <Route path="/admin/vimeo-settings" element={<AdminLayout><AdminVimeoSettings /></AdminLayout>} />
+                      <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
+                      <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
+                      
+                      {/* 404 Route */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                  <Toaster />
+                </div>
+              </Router>
+            </SidebarProvider>
+          </AuthProvider>
+        </LanguageProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </SlideNotificationProvider>
   );
 }
 
