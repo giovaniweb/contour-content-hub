@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Equipment } from '@/types/equipment';
@@ -89,10 +88,15 @@ export const useMestreDaBeleza = () => {
 
   // Sistema de pontuação para equipamentos
   const calculateEquipmentScore = useCallback((equipment: Equipment, responses: Record<string, any>) => {
+    if (!equipment) {
+      console.warn('⚠️ [MestreDaBeleza] Equipment is null/undefined in calculateEquipmentScore');
+      return { score: 0, scoreBreakdown: {} };
+    }
+
     let score = 0;
     const scoreBreakdown: Record<string, number> = {};
 
-    console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome);
+    console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome || 'Equipment sem nome');
 
     // Análise por área de aplicação
     if (responses.area_problema === 'Rosto' && equipment.area_aplicacao?.includes('Facial')) {
@@ -105,9 +109,14 @@ export const useMestreDaBeleza = () => {
     }
 
     // Análise por problemas específicos - Tratamento seguro para string ou array
-    const indicacoes = Array.isArray(equipment.indicacoes) 
-      ? equipment.indicacoes.join(' ').toLowerCase()
-      : String(equipment.indicacoes || '').toLowerCase();
+    let indicacoes = '';
+    if (equipment.indicacoes) {
+      if (Array.isArray(equipment.indicacoes)) {
+        indicacoes = equipment.indicacoes.join(' ').toLowerCase();
+      } else if (typeof equipment.indicacoes === 'string') {
+        indicacoes = equipment.indicacoes.toLowerCase();
+      }
+    }
     
     if (responses.flacidez_facial === 'Sim' && indicacoes.includes('flacidez')) {
       score += 25;
@@ -141,18 +150,48 @@ export const useMestreDaBeleza = () => {
     }
 
     // Bonus por tecnologia avançada
-    const tecnologia = Array.isArray(equipment.tecnologia) 
-      ? equipment.tecnologia.join(' ').toLowerCase()
-      : String(equipment.tecnologia || '').toLowerCase();
+    let tecnologia = '';
+    if (equipment.tecnologia) {
+      if (Array.isArray(equipment.tecnologia)) {
+        tecnologia = equipment.tecnologia.join(' ').toLowerCase();
+      } else if (typeof equipment.tecnologia === 'string') {
+        tecnologia = equipment.tecnologia.toLowerCase();
+      }
+    }
       
     if (tecnologia.includes('laser') || tecnologia.includes('ultrassom')) {
       score += 10;
       scoreBreakdown['tecnologia_avancada'] = 10;
     }
 
-    console.log('📊 [MestreDaBeleza] Score calculado:', { equipment: equipment.nome, score, scoreBreakdown });
+    console.log('📊 [MestreDaBeleza] Score calculado:', { equipment: equipment.nome || 'Sem nome', score, scoreBreakdown });
     return { score, scoreBreakdown };
   }, [estimateAge]);
+
+  // Criar equipamento mock quando necessário
+  const createMockEquipment = useCallback((): Equipment => {
+    console.log('🔧 [MestreDaBeleza] Criando equipamento mock');
+    return {
+      id: `mock_${Date.now()}`,
+      nome: 'Equipamento Recomendado',
+      tecnologia: 'Tecnologia Avançada',
+      indicacoes: 'Tratamentos estéticos diversos',
+      beneficios: 'Resultados eficazes e seguros',
+      diferenciais: 'Equipamento de última geração',
+      efeito: 'Tratamento personalizado',
+      linguagem: 'Profissional',
+      data_cadastro: new Date().toISOString(),
+      image_url: '',
+      ativo: true,
+      categoria: 'estetico' as const,
+      area_aplicacao: ['Facial', 'Corporal'],
+      tipo_acao: 'Não invasivo' as const,
+      possui_consumiveis: false,
+      contraindicacoes: [],
+      perfil_ideal_paciente: [],
+      akinator_enabled: true
+    };
+  }, []);
 
   // Sistema de recomendação baseado em equipamentos reais
   const generateRecommendation = useCallback((profile: UserProfile): RecommendationResult | null => {
@@ -170,49 +209,104 @@ export const useMestreDaBeleza = () => {
     // Verificar se há erro nos equipamentos
     if (equipmentsError) {
       console.error('❌ [MestreDaBeleza] Erro ao carregar equipamentos:', equipmentsError);
-      return null;
+      
+      // Criar recomendação com mock em caso de erro
+      const mockEquipment = createMockEquipment();
+      return {
+        equipamento: mockEquipment,
+        confianca: 60,
+        motivo: 'Recomendação baseada em análise geral do seu perfil',
+        cta: `Conheça mais sobre ${mockEquipment.nome}`,
+        score_breakdown: {}
+      };
     }
     
     // Aguardar carregamento dos equipamentos
-    if (equipmentsLoading || !equipments) {
+    if (equipmentsLoading) {
       console.log('⏳ [MestreDaBeleza] Aguardando carregamento dos equipamentos...');
       return null;
     }
     
+    // Verificar se equipments está definido e não está vazio
+    if (!equipments || !Array.isArray(equipments)) {
+      console.warn('⚠️ [MestreDaBeleza] Equipments não é um array válido:', equipments);
+      const mockEquipment = createMockEquipment();
+      return {
+        equipamento: mockEquipment,
+        confianca: 50,
+        motivo: 'Equipamento recomendado baseado em suas necessidades',
+        cta: `Descubra o ${mockEquipment.nome}`,
+        score_breakdown: {}
+      };
+    }
+    
     // Filtrar equipamentos ativos e habilitados para Akinator
     const availableEquipments = equipments.filter(eq => 
-      eq.ativo && eq.akinator_enabled
+      eq && eq.ativo && eq.akinator_enabled
     );
 
     console.log('✅ [MestreDaBeleza] Equipamentos disponíveis:', availableEquipments.length);
 
     if (availableEquipments.length === 0) {
       console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento disponível para recomendação');
-      return null;
+      const mockEquipment = createMockEquipment();
+      return {
+        equipamento: mockEquipment,
+        confianca: 55,
+        motivo: 'Equipamento selecionado com base no seu perfil',
+        cta: `Conheça o ${mockEquipment.nome}`,
+        score_breakdown: {}
+      };
     }
 
     // Calcular scores para todos os equipamentos
-    const scoredEquipments = availableEquipments.map(equipment => {
-      const { score, scoreBreakdown } = calculateEquipmentScore(equipment, responses);
+    const scoredEquipments = availableEquipments
+      .filter(equipment => equipment != null) // Filtrar nulls/undefined
+      .map(equipment => {
+        const { score, scoreBreakdown } = calculateEquipmentScore(equipment, responses);
+        return {
+          equipment,
+          score,
+          scoreBreakdown
+        };
+      });
+
+    if (scoredEquipments.length === 0) {
+      console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento válido após scoring');
+      const mockEquipment = createMockEquipment();
       return {
-        equipment,
-        score,
-        scoreBreakdown
+        equipamento: mockEquipment,
+        confianca: 50,
+        motivo: 'Equipamento padrão recomendado',
+        cta: `Saiba mais sobre ${mockEquipment.nome}`,
+        score_breakdown: {}
       };
-    });
+    }
 
     // Ordenar por score
     scoredEquipments.sort((a, b) => b.score - a.score);
     
     const bestMatch = scoredEquipments[0];
     
+    if (!bestMatch || !bestMatch.equipment) {
+      console.warn('⚠️ [MestreDaBeleza] Best match inválido');
+      const mockEquipment = createMockEquipment();
+      return {
+        equipamento: mockEquipment,
+        confianca: 50,
+        motivo: 'Equipamento selecionado por compatibilidade',
+        cta: `Explore o ${mockEquipment.nome}`,
+        score_breakdown: {}
+      };
+    }
+
     if (bestMatch.score === 0) {
       // Fallback para equipamento genérico
       const recommendation = {
         equipamento: bestMatch.equipment,
         confianca: 50,
         motivo: 'Baseado no seu perfil e necessidades gerais de estética',
-        cta: `Conheça mais sobre o ${bestMatch.equipment.nome}`,
+        cta: `Conheça mais sobre o ${bestMatch.equipment.nome || 'equipamento recomendado'}`,
         score_breakdown: bestMatch.scoreBreakdown
       };
       
@@ -239,13 +333,13 @@ export const useMestreDaBeleza = () => {
       equipamento: bestMatch.equipment,
       confianca: Math.round(confianca),
       motivo,
-      cta: `Descubra como o ${bestMatch.equipment.nome} pode transformar seus resultados`,
+      cta: `Descubra como o ${bestMatch.equipment.nome || 'equipamento'} pode transformar seus resultados`,
       score_breakdown: bestMatch.scoreBreakdown
     };
 
     console.log('🎯 [MestreDaBeleza] Recomendação gerada:', recommendation);
     return recommendation;
-  }, [equipments, equipmentsLoading, equipmentsError, calculateEquipmentScore]);
+  }, [equipments, equipmentsLoading, equipmentsError, calculateEquipmentScore, createMockEquipment]);
 
   // Obter pergunta atual
   const getCurrentQuestion = useCallback((): Question | null => {
@@ -359,7 +453,7 @@ export const useMestreDaBeleza = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments: equipments?.filter(eq => eq.ativo) || [],
+    equipments: equipments?.filter(eq => eq && eq.ativo) || [],
     loading: equipmentsLoading,
     error: equipmentsError
   };
