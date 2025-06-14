@@ -2,462 +2,430 @@
 import { useState, useMemo, useCallback } from "react";
 import { Equipment } from "@/types/equipment";
 
-// Estrutura para perguntas estratégicas do Akinator
+// Tipos específicos para o novo sistema
+export type PerfilUsuario = "profissional" | "cliente_final" | null;
+export type FaseAkinator = "perfil" | "questionando" | "tentativa" | "revelacao";
+
 export interface PerguntaAkinator {
   id: string;
   texto: string;
   opcoes: string[];
-  tipo: "eliminacao" | "psicologica" | "comportamental" | "tecnica" | "nostalgia";
+  tipo: "perfil" | "eliminacao" | "refinamento" | "nostalgia";
+  aplicavel_para: ("profissional" | "cliente_final")[];
   peso: number;
   criterios: {
-    campo: keyof Equipment | "meta";
-    valores: string[];
-    elimina?: boolean;
+    campo: "tecnologia" | "indicacoes" | "nome" | "categoria";
+    palavras_chave: string[];
+    pontuacao: number;
   }[];
 }
 
-// Estado do Akinator
+// Estado do Akinator renovado
 interface EstadoAkinator {
-  equipamentosAtivos: Equipment[];
-  perguntasFeitas: string[];
+  perfil_usuario: PerfilUsuario;
+  equipamentos_ativos: Equipment[];
+  equipamentos_pontuacao: Record<string, number>;
+  perguntas_feitas: string[];
   respostas: Record<string, string>;
-  confianca: number;
-  fase: "questionando" | "tentativa" | "revelacao" | "finalizado";
+  fase: FaseAkinator;
   tentativas: number;
   pensando: boolean;
-  explicacaoEscolha: string;
+  explicacao_escolha: string;
+  confianca_real: number;
 }
 
-// Banco de perguntas estratégicas otimizado
-const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
-  // === PERGUNTAS DE ELIMINAÇÃO BÁSICA ===
+// Banco de perguntas estratégicas que funcionam com dados reais
+const PERGUNTAS_ESTRATEGICAS: PerguntaAkinator[] = [
+  // === PERGUNTA INICIAL OBRIGATÓRIA ===
   {
-    id: "area_principal",
-    texto: "Onde você imagina usando este equipamento principalmente?",
-    opcoes: ["No rosto", "No corpo", "Ambos", "Não tenho certeza"],
-    tipo: "eliminacao",
+    id: "perfil_inicial",
+    texto: "Primeiro, preciso saber quem você é...",
+    opcoes: ["Sou profissional da estética", "Sou cliente final", "Médico(a)", "Estudante da área"],
+    tipo: "perfil",
+    aplicavel_para: ["profissional", "cliente_final"],
     peso: 10,
-    criterios: [
-      { campo: "area_aplicacao", valores: ["facial", "rosto"], elimina: false },
-      { campo: "area_aplicacao", valores: ["corporal", "corpo"], elimina: false }
-    ]
+    criterios: []
   },
+
+  // === PERGUNTAS PARA PROFISSIONAIS ===
   {
-    id: "invasividade_comfort",
-    texto: "Como você se sente sobre procedimentos invasivos?",
-    opcoes: ["Prefiro nada invasivo", "Um pouco invasivo é ok", "Não me importo", "Depende do resultado"],
+    id: "foco_profissional",
+    texto: "Qual é seu foco principal no atendimento?",
+    opcoes: ["Resultados rápidos e visíveis", "Tratamentos não invasivos", "Tecnologia avançada", "Versatilidade de protocolos"],
     tipo: "eliminacao",
+    aplicavel_para: ["profissional"],
     peso: 9,
     criterios: [
-      { campo: "tipo_acao", valores: ["Não invasivo"], elimina: false },
-      { campo: "tipo_acao", valores: ["Minimante invasivo"], elimina: false }
+      { campo: "tecnologia", palavras_chave: ["laser", "radiofrequência", "ultrassom"], pontuacao: 8 },
+      { campo: "indicacoes", palavras_chave: ["não invasivo", "lifting", "firmeza"], pontuacao: 7 }
     ]
   },
   {
-    id: "flacidez_concern",
-    texto: "A flacidez é uma preocupação para você?",
-    opcoes: ["Sim, muito", "Um pouco", "Não muito", "Não é problema"],
-    tipo: "tecnica",
+    id: "publico_atendimento",
+    texto: "Que tipo de público você mais atende?",
+    opcoes: ["Clientes jovens (20-35)", "Meia idade (35-50)", "Público maduro (50+)", "Todos os perfis"],
+    tipo: "refinamento",
+    aplicavel_para: ["profissional"],
+    peso: 7,
+    criterios: [
+      { campo: "indicacoes", palavras_chave: ["prevenção", "manutenção"], pontuacao: 6 },
+      { campo: "indicacoes", palavras_chave: ["anti-aging", "rejuvenescimento"], pontuacao: 8 }
+    ]
+  },
+
+  // === PERGUNTAS PARA CLIENTES FINAIS ===
+  {
+    id: "motivacao_pessoal",
+    texto: "O que mais te motiva a buscar um tratamento estético?",
+    opcoes: ["Quero me sentir mais jovem", "Tenho algo específico que me incomoda", "Quero prevenir o envelhecimento", "Curiosidade sobre novidades"],
+    tipo: "eliminacao",
+    aplicavel_para: ["cliente_final"],
     peso: 9,
     criterios: [
-      { campo: "indicacoes", valores: ["flacidez", "firmeza", "lifting"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["rejuvenescimento", "lifting", "anti-aging"], pontuacao: 8 },
+      { campo: "indicacoes", palavras_chave: ["flacidez", "rugas", "manchas"], pontuacao: 7 }
     ]
   },
   {
-    id: "gordura_localizada",
-    texto: "Tem alguma 'gordurinha' que te incomoda?",
-    opcoes: ["Sim, bastante", "Um pouco", "Quase nada", "Não tenho"],
-    tipo: "tecnica",
+    id: "area_preocupacao",
+    texto: "Qual área do seu corpo mais te preocupa?",
+    opcoes: ["Rosto (rugas, flacidez)", "Corpo (gordura localizada)", "Pele (manchas, textura)", "Não tenho área específica"],
+    tipo: "eliminacao",
+    aplicavel_para: ["cliente_final"],
     peso: 9,
     criterios: [
-      { campo: "indicacoes", valores: ["gordura", "lipólise", "redução"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["facial", "rosto", "rugas"], pontuacao: 8 },
+      { campo: "indicacoes", palavras_chave: ["corporal", "gordura", "lipólise"], pontuacao: 8 },
+      { campo: "indicacoes", palavras_chave: ["mancha", "melasma", "pigmentação"], pontuacao: 7 }
     ]
   },
-  {
-    id: "manchas_pigmentacao",
-    texto: "Manchas ou descoloração na pele te incomodam?",
-    opcoes: ["Sim, muito", "Algumas manchas", "Poucas", "Não tenho"],
-    tipo: "tecnica",
-    peso: 9,
-    criterios: [
-      { campo: "indicacoes", valores: ["mancha", "melasma", "pigmentação"], elimina: false }
-    ]
-  },
+
+  // === PERGUNTAS UNIVERSAIS (ELIMINAÇÃO TÉCNICA) ===
   {
     id: "tecnologia_preferencia",
-    texto: "Que tipo de tecnologia mais te atrai?",
-    opcoes: ["Laser e luz", "Radiofrequência", "Ultrassom", "Qualquer uma"],
-    tipo: "tecnica",
+    texto: "Que tipo de tecnologia mais desperta seu interesse?",
+    opcoes: ["Laser e luz intensa", "Radiofrequência", "Ultrassom focado", "Não sei a diferença"],
+    tipo: "eliminacao",
+    aplicavel_para: ["profissional", "cliente_final"],
     peso: 8,
     criterios: [
-      { campo: "tecnologia", valores: ["laser", "IPL"], elimina: false },
-      { campo: "tecnologia", valores: ["radiofrequência", "RF"], elimina: false },
-      { campo: "tecnologia", valores: ["ultrassom", "HIFU"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS PSICOLÓGICAS ===
-  {
-    id: "espelho_manha",
-    texto: "Quando se olha no espelho de manhã...",
-    opcoes: ["Sinto que preciso melhorar algo", "Me sinto bem", "Evito me olhar muito", "Analiso cada detalhe"],
-    tipo: "psicologica",
-    peso: 7,
-    criterios: [
-      { campo: "meta", valores: ["autoestima", "melhoria"], elimina: false }
+      { campo: "tecnologia", palavras_chave: ["laser", "IPL", "luz"], pontuacao: 9 },
+      { campo: "tecnologia", palavras_chave: ["radiofrequência", "RF"], pontuacao: 9 },
+      { campo: "tecnologia", palavras_chave: ["ultrassom", "HIFU"], pontuacao: 9 }
     ]
   },
   {
-    id: "idade_aparencia",
-    texto: "Como se sente em relação à sua idade atual?",
-    opcoes: ["Quero parecer mais jovem", "Estou ok com minha idade", "Idade não importa", "Quero envelhecer bem"],
-    tipo: "psicologica",
-    peso: 7,
-    criterios: [
-      { campo: "indicacoes", valores: ["rejuvenescimento", "anti-aging"], elimina: false }
-    ]
-  },
-  {
-    id: "exercicio_relacao",
-    texto: "Qual sua relação com exercícios físicos?",
-    opcoes: ["Pratico regularmente", "Às vezes", "Evito", "Quero complementar resultados"],
-    tipo: "comportamental",
+    id: "invasividade_conforto",
+    texto: "Como você se sente sobre procedimentos que causam desconforto?",
+    opcoes: ["Prefiro totalmente indolor", "Um pouco de desconforto é ok", "Não me importo se for eficaz", "Depende do resultado"],
+    tipo: "refinamento",
+    aplicavel_para: ["profissional", "cliente_final"],
     peso: 6,
     criterios: [
-      { campo: "meta", valores: ["corporal", "tonificacao"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["não invasivo", "conforto", "indolor"], pontuacao: 7 },
+      { campo: "tecnologia", palavras_chave: ["laser", "agulhas"], pontuacao: 5 }
     ]
   },
 
-  // === PERGUNTAS NOSTÁLGICAS ===
+  // === PERGUNTAS DE REFINAMENTO ===
   {
-    id: "novela_dancinha",
-    texto: "Lembra das 'dancinhas' de novela dos anos 90?",
-    opcoes: ["Sim, dancei muito!", "Lembro vagamente", "Não lembro", "Que dancinhas?"],
-    tipo: "nostalgia",
-    peso: 5,
-    criterios: [
-      { campo: "meta", valores: ["idade_35_45"], elimina: false }
-    ]
-  },
-  {
-    id: "orkut_memories",
-    texto: "Teve Orkut ou Fotolog?",
-    opcoes: ["Tive os dois!", "Só Orkut", "Só Fotolog", "Não tive"],
-    tipo: "nostalgia",
-    peso: 5,
-    criterios: [
-      { campo: "meta", valores: ["idade_25_35"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS ESPECÍFICAS TÉCNICAS ===
-  {
-    id: "musculo_tonus",
-    texto: "Como avalia o tônus muscular do seu corpo?",
-    opcoes: ["Muito flácido", "Pouco tônus", "Razoável", "Bem tonificado"],
-    tipo: "tecnica",
-    peso: 8,
-    criterios: [
-      { campo: "indicacoes", valores: ["tonificação", "músculo", "fortalecimento"], elimina: false }
-    ]
-  },
-  {
-    id: "tempo_resultado",
+    id: "expectativa_resultado",
     texto: "Qual sua expectativa sobre resultados?",
-    opcoes: ["Quero resultados rápidos", "Posso esperar", "Resultados graduais ok", "Não tenho pressa"],
-    tipo: "comportamental",
-    peso: 6,
-    criterios: [
-      { campo: "meta", valores: ["rapido", "imediato"], elimina: false }
-    ]
-  },
-  {
-    id: "investimento_disposicao",
-    texto: "Como vê investimento em estética?",
-    opcoes: ["Prioridade máxima", "Importante mas com limites", "Gasto ocasional", "Evito gastos"],
-    tipo: "comportamental",
-    peso: 6,
-    criterios: [
-      { campo: "nivel_investimento", valores: ["Alto", "Médio", "Baixo"], elimina: false }
-    ]
-  },
-  {
-    id: "profissao_aparencia",
-    texto: "Sua profissão exige boa aparência?",
-    opcoes: ["Sim, é fundamental", "Um pouco", "Não muito", "Não interfere"],
-    tipo: "comportamental",
+    opcoes: ["Quero resultados imediatos", "Posso aguardar algumas sessões", "Prefiro resultados graduais", "Não tenho pressa"],
+    tipo: "refinamento",
+    aplicavel_para: ["profissional", "cliente_final"],
     peso: 5,
     criterios: [
-      { campo: "meta", valores: ["profissional", "aparência"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["imediato", "rápido"], pontuacao: 6 },
+      { campo: "indicacoes", palavras_chave: ["gradual", "progressivo"], pontuacao: 4 }
     ]
   },
   {
-    id: "sessoes_preferencia",
-    texto: "Qual frequência de sessões prefere?",
-    opcoes: ["Poucas sessões intensas", "Muitas sessões suaves", "Depende do resultado", "Uma sessão só"],
-    tipo: "comportamental",
-    peso: 6,
+    id: "problema_principal",
+    texto: "Se tivesse que escolher UM problema para resolver hoje, seria:",
+    opcoes: ["Flacidez que me incomoda", "Gordura localizada", "Manchas na pele", "Rugas e linhas de expressão"],
+    tipo: "eliminacao",
+    aplicavel_para: ["profissional", "cliente_final"],
+    peso: 9,
     criterios: [
-      { campo: "meta", valores: ["intensivo", "suave"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["flacidez", "firmeza", "lifting"], pontuacao: 10 },
+      { campo: "indicacoes", palavras_chave: ["gordura", "lipólise", "redução"], pontuacao: 10 },
+      { campo: "indicacoes", palavras_chave: ["mancha", "melasma", "pigmentação"], pontuacao: 10 },
+      { campo: "indicacoes", palavras_chave: ["rugas", "linhas", "anti-aging"], pontuacao: 10 }
     ]
   },
+
+  // === PERGUNTAS NOSTÁLGICAS (SÓ CLIENTES) ===
   {
-    id: "dor_tolerancia",
-    texto: "Como é sua tolerância à dor/desconforto?",
-    opcoes: ["Muito baixa", "Baixa", "Média", "Alta"],
-    tipo: "tecnica",
-    peso: 7,
+    id: "nostalgia_novela",
+    texto: "Você lembra das novelas da Globo dos anos 90?",
+    opcoes: ["Claro! Adorava as novelas", "Lembro vagamente", "Não lembro bem", "Não assistia novelas"],
+    tipo: "nostalgia",
+    aplicavel_para: ["cliente_final"],
+    peso: 3,
     criterios: [
-      { campo: "tipo_acao", valores: ["Não invasivo"], elimina: false }
+      { campo: "indicacoes", palavras_chave: ["anti-aging", "rejuvenescimento"], pontuacao: 5 }
     ]
   }
 ];
 
-// Frases mágicas do Akinator
-const FRASES_PENSANDO = [
-  "Hmm... sua energia está me revelando segredos... 🔮",
-  "Estou vendo algo interessante em sua aura... ✨", 
-  "As estrelas estão se alinhando para mim... ⭐",
-  "Posso sentir suas intenções mais profundas... 💫",
-  "Sua essência está sussurrando respostas... 🌟",
-  "Algo está ficando cristalino... 💎",
-  "Seu desejo verdadeiro está emergindo... 🌙",
-  "Os ventos cósmicos trazem clareza... 🌌"
-];
+// Frases mágicas renovadas por perfil
+const FRASES_PENSANDO = {
+  profissional: [
+    "Analisando seu perfil profissional... 💼",
+    "Detectando suas necessidades clínicas... 🔬",
+    "Interpretando sua experiência no mercado... 📊",
+    "Lendo sua visão de negócio... 💡"
+  ],
+  cliente_final: [
+    "Sentindo suas verdadeiras necessidades... ✨",
+    "Decifrando seus desejos mais profundos... 🔮",
+    "Captando sua energia estética... 🌟",
+    "Descobrindo seus sonhos de beleza... 💫"
+  ]
+};
 
 const FRASES_CONFIANCA = {
-  baixa: ["Ainda estou decifrando seus mistérios...", "Preciso de mais pistas da sua alma...", "Algo ainda me escapa..."],
-  media: ["Estou chegando perto da verdade...", "Sua essência está se revelando...", "Quase posso tocar sua escolha..."],
-  alta: ["Já vejo claramente quem você é!", "Descobri o segredo do seu coração!", "Sua escolha está nua diante de mim!"]
+  profissional: {
+    baixa: ["Ainda estou mapeando seu perfil clínico...", "Preciso entender melhor seu foco..."],
+    media: ["Começando a ver seu padrão de atendimento...", "Sua especialidade está ficando clara..."],
+    alta: ["Identifiquei exatamente seu equipamento ideal!", "Descobri o que vai revolucionar sua clínica!"]
+  },
+  cliente_final: {
+    baixa: ["Ainda estou decifrando seus segredos...", "Sua essência está se revelando..."],
+    media: ["Posso sentir suas necessidades emergindo...", "Seu desejo verdadeiro está se cristalizando..."],
+    alta: ["Vejo claramente o que sua alma busca!", "Descobri o segredo da sua transformação!"]
+  }
 };
 
 export function useAkinatorMagico(equipamentos: Equipment[]) {
   const [estado, setEstado] = useState<EstadoAkinator>({
-    equipamentosAtivos: equipamentos.filter(eq => eq.akinator_enabled && eq.ativo),
-    perguntasFeitas: [],
+    perfil_usuario: null,
+    equipamentos_ativos: equipamentos.filter(eq => eq.akinator_enabled && eq.ativo),
+    equipamentos_pontuacao: {},
+    perguntas_feitas: [],
     respostas: {},
-    confianca: 0,
-    fase: "questionando",
+    fase: "perfil",
     tentativas: 0,
     pensando: false,
-    explicacaoEscolha: ""
+    explicacao_escolha: "",
+    confianca_real: 0
   });
 
-  // Algoritmo para calcular entropia e escolher melhor pergunta
-  const calcularEntropia = useCallback((equipamentosRestantes: Equipment[], pergunta: PerguntaAkinator) => {
-    if (equipamentosRestantes.length <= 1) return 0;
+  // Algoritmo inteligente de correspondência semântica
+  const calcularPontuacao = useCallback((equipamento: Equipment, respostas: Record<string, string>): number => {
+    let pontuacao = 0;
     
-    let entropia = 0;
-    const total = equipamentosRestantes.length;
-    
-    pergunta.opcoes.forEach(opcao => {
-      let equipamentosFiltrados = equipamentosRestantes.filter(eq => {
-        return pergunta.criterios.some(criterio => {
-          const valor = eq[criterio.campo as keyof Equipment];
-          
-          if (Array.isArray(valor)) {
-            return criterio.valores.some(cv => 
-              valor.some(v => String(v).toLowerCase().includes(cv.toLowerCase()))
-            );
-          }
-          
-          return criterio.valores.some(cv => 
-            String(valor).toLowerCase().includes(cv.toLowerCase())
-          );
-        });
+    Object.entries(respostas).forEach(([perguntaId, resposta]) => {
+      const pergunta = PERGUNTAS_ESTRATEGICAS.find(p => p.id === perguntaId);
+      if (!pergunta) return;
+
+      pergunta.criterios.forEach(criterio => {
+        const textoEquipamento = String(equipamento[criterio.campo] || '').toLowerCase();
+        const palavrasEncontradas = criterio.palavras_chave.filter(palavra => 
+          textoEquipamento.includes(palavra.toLowerCase())
+        );
+        
+        if (palavrasEncontradas.length > 0) {
+          pontuacao += criterio.pontuacao * pergunta.peso * (palavrasEncontradas.length / criterio.palavras_chave.length);
+        }
       });
-      
-      const proporcao = equipamentosFiltrados.length / total;
-      if (proporcao > 0 && proporcao < 1) {
-        entropia -= proporcao * Math.log2(proporcao) + (1 - proporcao) * Math.log2(1 - proporcao);
-      }
     });
-    
-    return entropia * pergunta.peso;
+
+    return pontuacao;
   }, []);
 
-  // Escolher próxima pergunta baseada em entropia
+  // Seleção inteligente da próxima pergunta
   const proximaPergunta = useMemo(() => {
-    if (estado.fase !== "questionando") return null;
-    
-    const perguntasDisponiveis = PERGUNTAS_AKINATOR.filter(
-      p => !estado.perguntasFeitas.includes(p.id)
-    );
-    
-    if (perguntasDisponiveis.length === 0) return null;
-    
-    // Se temos poucos equipamentos, priorizar perguntas técnicas
-    if (estado.equipamentosAtivos.length <= 5) {
-      const perguntasTecnicas = perguntasDisponiveis.filter(p => p.tipo === "tecnica");
-      if (perguntasTecnicas.length > 0) {
-        return perguntasTecnicas.sort((a, b) => b.peso - a.peso)[0];
-      }
-    }
-    
-    // Calcular melhor pergunta por entropia
-    let melhorPergunta = perguntasDisponiveis[0];
-    let melhorEntropia = calcularEntropia(estado.equipamentosAtivos, melhorPergunta);
-    
-    perguntasDisponiveis.forEach(pergunta => {
-      const entropia = calcularEntropia(estado.equipamentosAtivos, pergunta);
-      if (entropia > melhorEntropia) {
-        melhorEntropia = entropia;
-        melhorPergunta = pergunta;
-      }
+    const perguntasDisponiveis = PERGUNTAS_ESTRATEGICAS.filter(p => {
+      // Se ainda não definiu perfil, só pergunta de perfil
+      if (estado.perfil_usuario === null) return p.tipo === "perfil";
+      
+      // Verifica se já foi feita
+      if (estado.perguntas_feitas.includes(p.id)) return false;
+      
+      // Verifica se é aplicável ao perfil
+      return p.aplicavel_para.includes(estado.perfil_usuario);
     });
-    
-    return melhorPergunta;
-  }, [estado.perguntasFeitas, estado.equipamentosAtivos, estado.fase, calcularEntropia]);
 
-  // Calcular confiança baseada na eliminação
+    if (perguntasDisponiveis.length === 0) return null;
+
+    // Prioriza perguntas de eliminação quando há muitos equipamentos
+    if (estado.equipamentos_ativos.length > 3) {
+      const eliminacao = perguntasDisponiveis.filter(p => p.tipo === "eliminacao");
+      if (eliminacao.length > 0) return eliminacao.sort((a, b) => b.peso - a.peso)[0];
+    }
+
+    // Depois prioriza por peso
+    return perguntasDisponiveis.sort((a, b) => b.peso - a.peso)[0];
+  }, [estado.perguntas_feitas, estado.equipamentos_ativos.length, estado.perfil_usuario]);
+
+  // Cálculo realístico de confiança
   const confiancaCalculada = useMemo(() => {
     const total = equipamentos.filter(eq => eq.akinator_enabled && eq.ativo).length;
-    const restantes = estado.equipamentosAtivos.length;
+    const restantes = estado.equipamentos_ativos.length;
+    const perguntasFeitas = estado.perguntas_feitas.length;
     
     if (restantes <= 1) return 95;
     if (restantes <= 2) return 85;
-    if (restantes <= 3) return 75;
-    if (restantes <= 5) return 65;
-    if (restantes <= 8) return 50;
+    if (restantes <= 3 && perguntasFeitas >= 4) return 75;
+    if (restantes <= 5 && perguntasFeitas >= 6) return 65;
+    if (perguntasFeitas >= 8) return 60;
     
-    return Math.max(15, Math.round((total - restantes) / total * 100));
-  }, [estado.equipamentosAtivos.length, equipamentos]);
+    return Math.max(5, Math.round(((total - restantes) / total) * 60 + (perguntasFeitas * 3)));
+  }, [estado.equipamentos_ativos.length, estado.perguntas_feitas.length, equipamentos]);
 
-  // Gerar explicação da escolha
-  const gerarExplicacao = useCallback((equipamento: Equipment, respostas: Record<string, string>) => {
-    const pontos = [];
-    
-    // Analisar respostas para criar explicação personalizada
-    if (respostas.area_principal?.includes("rosto") && equipamento.area_aplicacao?.includes("facial")) {
-      pontos.push("você mencionou foco no rosto");
-    }
-    if (respostas.area_principal?.includes("corpo") && equipamento.area_aplicacao?.includes("corporal")) {
-      pontos.push("você indicou interesse no corpo");
-    }
-    if (respostas.flacidez_concern?.includes("Sim") && equipamento.indicacoes?.includes("flacidez")) {
-      pontos.push("sua preocupação com flacidez");
-    }
-    if (respostas.gordura_localizada?.includes("Sim") && equipamento.indicacoes?.includes("gordura")) {
-      pontos.push("seu interesse em redução de gordura");
-    }
-    if (respostas.manchas_pigmentacao?.includes("Sim") && equipamento.indicacoes?.includes("mancha")) {
-      pontos.push("suas questões com pigmentação");
-    }
-    
-    if (pontos.length === 0) {
-      return "Através da análise mágica das suas respostas, pude detectar que este equipamento ressoa perfeitamente com sua energia!";
-    }
-    
-    return `Detectei através de ${pontos.join(", ")} que este é exatamente o equipamento que sua alma busca!`;
-  }, []);
-
-  // Responder pergunta com eliminação progressiva
+  // Responder com eliminação inteligente
   const responder = useCallback(async (resposta: string) => {
     if (!proximaPergunta) return;
     
     setEstado(prev => ({ ...prev, pensando: true }));
     
-    // Simular "pensamento" do Akinator
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 2500)); // Suspense realístico
     
     const novasRespostas = { ...estado.respostas, [proximaPergunta.id]: resposta };
     
-    // Filtrar equipamentos baseado na resposta
-    let equipamentosFiltrados = estado.equipamentosAtivos.filter(eq => {
-      return proximaPergunta.criterios.some(criterio => {
-        const valor = eq[criterio.campo as keyof Equipment];
-        const valorStr = Array.isArray(valor) ? valor.join(" ") : String(valor);
-        
-        const match = criterio.valores.some(cv => 
-          valorStr.toLowerCase().includes(cv.toLowerCase())
-        );
-        
-        // Se a resposta corresponde ao critério, manter equipamento
-        const respostaMatch = criterio.valores.some(cv => 
-          resposta.toLowerCase().includes(cv.toLowerCase())
-        );
-        
-        return respostaMatch ? match : !match;
-      });
-    });
-    
-    // Se filtrou demais, usar algoritmo de backup
-    if (equipamentosFiltrados.length === 0) {
-      equipamentosFiltrados = estado.equipamentosAtivos.slice(0, Math.max(1, Math.floor(estado.equipamentosAtivos.length / 2)));
+    // Definir perfil na primeira pergunta
+    let novoPerfil = estado.perfil_usuario;
+    if (proximaPergunta.tipo === "perfil") {
+      novoPerfil = resposta.includes("profissional") || resposta.includes("Médico") ? "profissional" : "cliente_final";
     }
-    
+
+    // Recalcular pontuações para todos os equipamentos
+    const novasPontuacoes: Record<string, number> = {};
+    estado.equipamentos_ativos.forEach(eq => {
+      novasPontuacoes[eq.id] = calcularPontuacao(eq, novasRespostas);
+    });
+
+    // Filtrar por equipamentos que fazem sentido (pontuação > 0)
+    const equipamentosFiltrados = estado.equipamentos_ativos
+      .filter(eq => novasPontuacoes[eq.id] > 0 || Object.keys(novasRespostas).length <= 2)
+      .sort((a, b) => novasPontuacoes[b.id] - novasPontuacoes[a.id]);
+
+    // Se filtrou demais, manter os top 3
+    const equipamentosFinais = equipamentosFiltrados.length > 0 
+      ? equipamentosFiltrados 
+      : estado.equipamentos_ativos.slice(0, 3);
+
     const novaConfianca = confiancaCalculada;
-    const novasFeitasIds = [...estado.perguntasFeitas, proximaPergunta.id];
+    const novasFeitasIds = [...estado.perguntas_feitas, proximaPergunta.id];
     
-    // Determinar próxima fase
-    let novaFase: "questionando" | "tentativa" | "revelacao" = "questionando";
-    if (novaConfianca >= 75 || equipamentosFiltrados.length <= 1 || novasFeitasIds.length >= 10) {
+    // Determinar fase: só tentativa se confiança alta E poucas opções
+    let novaFase: FaseAkinator = "questionando";
+    if ((novaConfianca >= 75 && equipamentosFinais.length <= 2) || novasFeitasIds.length >= 8) {
       novaFase = "tentativa";
     }
     
     setEstado(prev => ({
       ...prev,
-      equipamentosAtivos: equipamentosFiltrados,
+      perfil_usuario: novoPerfil,
+      equipamentos_ativos: equipamentosFinais,
+      equipamentos_pontuacao: novasPontuacoes,
       respostas: novasRespostas,
-      perguntasFeitas: novasFeitasIds,
-      confianca: novaConfianca,
+      perguntas_feitas: novasFeitasIds,
+      confianca_real: novaConfianca,
       pensando: false,
       fase: novaFase
     }));
-  }, [proximaPergunta, estado, confiancaCalculada]);
+  }, [proximaPergunta, estado, confiancaCalculada, calcularPontuacao]);
 
-  // Fazer tentativa de adivinhação
+  // Gerar explicação baseada em dados reais
+  const gerarExplicacao = useCallback((equipamento: Equipment, respostas: Record<string, string>, perfil: PerfilUsuario): string => {
+    const pontos = [];
+    
+    // Análise específica por perfil
+    if (perfil === "profissional") {
+      pontos.push("sua experiência profissional na área");
+      if (respostas.foco_profissional) {
+        pontos.push(`seu foco em ${respostas.foco_profissional.toLowerCase()}`);
+      }
+    } else {
+      pontos.push("suas necessidades pessoais únicas");
+      if (respostas.motivacao_pessoal) {
+        pontos.push(`sua motivação: ${respostas.motivacao_pessoal.toLowerCase()}`);
+      }
+    }
+
+    // Análise técnica baseada em dados reais
+    if (respostas.tecnologia_preferencia && equipamento.tecnologia) {
+      const tecPreferida = respostas.tecnologia_preferencia.toLowerCase();
+      const tecEquipamento = equipamento.tecnologia.toLowerCase();
+      if (tecEquipamento.includes(tecPreferida.split(' ')[0])) {
+        pontos.push(`sua preferência por tecnologia ${tecPreferida}`);
+      }
+    }
+
+    if (respostas.problema_principal && equipamento.indicacoes) {
+      const problema = respostas.problema_principal.toLowerCase();
+      const indicacoes = String(equipamento.indicacoes).toLowerCase();
+      if (indicacoes.includes(problema.split(' ')[0])) {
+        pontos.push(`seu foco no problema: ${problema}`);
+      }
+    }
+
+    const explicacaoBase = pontos.length > 0 
+      ? `Através da análise de ${pontos.join(", ")}, pude detectar que` 
+      : "Analisando cuidadosamente suas respostas, descobri que";
+      
+    return `${explicacaoBase} o ${equipamento.nome} é exatamente o que ${perfil === "profissional" ? "sua clínica" : "você"} precisa!`;
+  }, []);
+
+  // Fazer tentativa com equipamento melhor pontuado
   const fazerTentativa = useCallback(() => {
-    const equipamentoEscolhido = estado.equipamentosAtivos[0];
-    const explicacao = gerarExplicacao(equipamentoEscolhido, estado.respostas);
+    const equipamentoEscolhido = estado.equipamentos_ativos[0]; // Já ordenado por pontuação
+    const explicacao = gerarExplicacao(equipamentoEscolhido, estado.respostas, estado.perfil_usuario);
     
     setEstado(prev => ({
       ...prev,
       fase: "revelacao",
       tentativas: prev.tentativas + 1,
-      explicacaoEscolha: explicacao
+      explicacao_escolha: explicacao
     }));
-  }, [estado.equipamentosAtivos, estado.respostas, gerarExplicacao]);
+  }, [estado, gerarExplicacao]);
 
-  // Reset do jogo
+  // Reset inteligente
   const reset = useCallback(() => {
     setEstado({
-      equipamentosAtivos: equipamentos.filter(eq => eq.akinator_enabled && eq.ativo),
-      perguntasFeitas: [],
+      perfil_usuario: null,
+      equipamentos_ativos: equipamentos.filter(eq => eq.akinator_enabled && eq.ativo),
+      equipamentos_pontuacao: {},
+      perguntas_feitas: [],
       respostas: {},
-      confianca: 0,
-      fase: "questionando",
+      fase: "perfil",
       tentativas: 0,
       pensando: false,
-      explicacaoEscolha: ""
+      explicacao_escolha: "",
+      confianca_real: 0
     });
   }, [equipamentos]);
 
-  // Pegar frase mágica baseada na confiança
+  // Frases contextuais baseadas no perfil
   const fraseMagica = useMemo(() => {
-    if (estado.confianca >= 75) {
-      return FRASES_CONFIANCA.alta[Math.floor(Math.random() * FRASES_CONFIANCA.alta.length)];
-    } else if (estado.confianca >= 50) {
-      return FRASES_CONFIANCA.media[Math.floor(Math.random() * FRASES_CONFIANCA.media.length)];
-    } else {
-      return FRASES_CONFIANCA.baixa[Math.floor(Math.random() * FRASES_CONFIANCA.baixa.length)];
-    }
-  }, [estado.confianca]);
+    if (!estado.perfil_usuario) return "Preparando a análise...";
+    
+    const frasesConf = FRASES_CONFIANCA[estado.perfil_usuario];
+    if (estado.confianca_real >= 75) return frasesConf.alta[0];
+    if (estado.confianca_real >= 50) return frasesConf.media[0];
+    return frasesConf.baixa[0];
+  }, [estado.confianca_real, estado.perfil_usuario]);
 
   const frasePensando = useMemo(() => {
-    return FRASES_PENSANDO[Math.floor(Math.random() * FRASES_PENSANDO.length)];
-  }, [estado.perguntasFeitas.length]);
+    if (!estado.perfil_usuario) return "Inicializando sistema...";
+    const frases = FRASES_PENSANDO[estado.perfil_usuario];
+    return frases[Math.floor(Math.random() * frases.length)];
+  }, [estado.perguntas_feitas.length, estado.perfil_usuario]);
 
   return {
     perguntaAtual: proximaPergunta,
-    equipamentosRestantes: estado.equipamentosAtivos,
+    equipamentosRestantes: estado.equipamentos_ativos,
     confianca: confiancaCalculada,
     fase: estado.fase,
+    perfil: estado.perfil_usuario,
     tentativas: estado.tentativas,
     pensando: estado.pensando,
-    explicacaoEscolha: estado.explicacaoEscolha,
-    historico: estado.perguntasFeitas.map(id => ({
-      pergunta: PERGUNTAS_AKINATOR.find(p => p.id === id)?.texto || "",
+    explicacaoEscolha: estado.explicacao_escolha,
+    historico: estado.perguntas_feitas.map(id => ({
+      pergunta: PERGUNTAS_ESTRATEGICAS.find(p => p.id === id)?.texto || "",
       resposta: estado.respostas[id] || ""
     })),
     fraseMagica,
@@ -465,7 +433,9 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     responder,
     fazerTentativa,
     reset,
-    progressoPerguntas: estado.perguntasFeitas.length,
-    totalPerguntas: PERGUNTAS_AKINATOR.length
+    progressoPerguntas: estado.perguntas_feitas.length,
+    totalPerguntas: PERGUNTAS_ESTRATEGICAS.filter(p => 
+      estado.perfil_usuario ? p.aplicavel_para.includes(estado.perfil_usuario) : true
+    ).length
   };
 }
