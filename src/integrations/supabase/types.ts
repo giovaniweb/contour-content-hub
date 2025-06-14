@@ -1912,45 +1912,6 @@ export type Database = {
           },
         ]
       }
-      user_vimeo_tokens: {
-        Row: {
-          access_token: string
-          account_name: string | null
-          account_uri: string | null
-          created_at: string
-          expires_at: string
-          id: string
-          refresh_token: string
-          scope: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          account_name?: string | null
-          account_uri?: string | null
-          created_at?: string
-          expires_at: string
-          id?: string
-          refresh_token: string
-          scope?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          account_name?: string | null
-          account_uri?: string | null
-          created_at?: string
-          expires_at?: string
-          id?: string
-          refresh_token?: string
-          scope?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       validated_articles: {
         Row: {
           article_link: string | null
