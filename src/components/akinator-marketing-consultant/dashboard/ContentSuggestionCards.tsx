@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -19,8 +19,29 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
   diagnostic
 }) => {
   const { addItem } = useContentPlanner();
+  const [suggestions, setSuggestions] = useState<ContentSuggestion[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const suggestions = generateContentSuggestions(state);
+  useEffect(() => {
+    const getSuggestions = async () => {
+      setLoading(true);
+      try {
+        const realSuggestions = await generateContentSuggestions({
+          clinicType: state.clinicType,
+          medicalSpecialty: state.medicalSpecialty,
+          aestheticFocus: state.aestheticFocus,
+          currentRevenue: state.currentRevenue
+        });
+        setSuggestions(realSuggestions || []);
+      } catch (e) {
+        console.error('Erro ao gerar sugestões reais:', e);
+        setSuggestions([]);
+        toast.error('Erro ao gerar sugestões reais de conteúdo');
+      }
+      setLoading(false);
+    };
+    getSuggestions();
+  }, [state.clinicType, state.medicalSpecialty, state.aestheticFocus, state.currentRevenue]);
 
   const handleAddToPlanner = async (suggestion: ContentSuggestion) => {
     try {
@@ -55,6 +76,16 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-white">
+        <Sparkles className="h-6 w-6 mx-auto animate-pulse mb-2 text-aurora-electric-purple" />
+        <span className="block text-lg font-semibold mt-2">Gerando sugestões com dados reais...</span>
+        <span className="block text-sm mt-2 opacity-70">Buscando os melhores equipamentos e oportunidades para sua clínica.</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,11 +95,11 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
             Sugestões Inteligentes de Conteúdo
           </h3>
           <p className="text-sm aurora-body opacity-70 mt-1 text-slate-400">
-            Baseadas no seu diagnóstico personalizado
+            Baseadas no seu diagnóstico personalizado e equipamentos reais da sua clínica
           </p>
         </div>
         <Badge variant="outline" className="border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10">
-          {suggestions.length} ideias prontas
+          {suggestions.length} ideias reais
         </Badge>
       </div>
 
@@ -85,7 +116,7 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
 
       <div className="text-center pt-4">
         <p className="text-xs aurora-body opacity-60 text-slate-400">
-          💡 Dica: Essas sugestões foram criadas com base no seu diagnóstico. Adicione ao planejador e personalize conforme sua audiência!
+          💡 Essas sugestões foram criadas a partir de dados reais informados e ativos do banco de equipamentos.
         </p>
       </div>
     </div>
@@ -93,3 +124,4 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
 };
 
 export default ContentSuggestionCards;
+

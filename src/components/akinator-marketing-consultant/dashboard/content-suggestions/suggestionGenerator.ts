@@ -1,73 +1,92 @@
 
-import { MarketingConsultantState } from '../../types';
 import { ContentSuggestion } from './types';
+import { Equipment } from '@/types/equipment';
 
-export const generateContentSuggestions = (state: MarketingConsultantState): ContentSuggestion[] => {
+// Novo helper para buscar equipamentos reais
+export const fetchRealEquipments = async (): Promise<Equipment[]> => {
+  // Usando Supabase SDK, ajustando import conforme o caminho do seu projeto
+  const { supabase } = await import('@/integrations/supabase/client');
+  const { data, error } = await supabase
+    .from('equipamentos')
+    .select('id, nome, categoria, beneficios, tecnologia, diferenciais, indicacoes, ativo, akinator_enabled')
+    .eq('ativo', true)
+    .eq('akinator_enabled', true)
+    .order('categoria', { ascending: true })
+    .order('nome', { ascending: true })
+    .limit(10);
+
+  if (error) {
+    console.error('Erro ao buscar equipamentos reais:', error);
+    return [];
+  }
+  // @ts-ignore
+  return data as Equipment[];
+};
+
+// Nova função principal: gera sugestões realmente baseadas nos dados do banco e inputs do usuário
+export const generateContentSuggestions = async (
+  { clinicType, medicalSpecialty, aestheticFocus, currentRevenue }: {
+    clinicType: string;
+    medicalSpecialty?: string;
+    aestheticFocus?: string;
+    currentRevenue?: string;
+  }
+): Promise<ContentSuggestion[]> => {
   const suggestions: ContentSuggestion[] = [];
 
-  // Sugestões baseadas no tipo de clínica e equipamentos
-  const isClinicaMedica = state.clinicType === 'clinica_medica';
-  const equipamentos = isClinicaMedica ? state.medicalEquipments : state.aestheticEquipments;
-  const especialidade = isClinicaMedica ? state.medicalSpecialty : state.aestheticFocus;
+  // Busca equipamentos reais, filtrando pelo tipo de clínica do usuário
+  const equipments = await fetchRealEquipments();
+  const isClinicaMedica = clinicType === 'clinica_medica';
+  const perfilEquipamentos = isClinicaMedica
+    ? equipments.filter(eq => eq.categoria === 'medico')
+    : equipments.filter(eq => eq.categoria === 'estetico');
 
-  // Sugestões padrão baseadas no perfil
-  const baseSuggestions: ContentSuggestion[] = [
-    {
-      id: 'before-after',
-      title: `Antes e Depois: ${especialidade}`,
-      description: `Showcase transformador de resultados reais com ${especialidade}`,
-      format: 'carrossel',
-      objective: '🔴 Fazer Comprar',
-      estimatedTime: '15-30min',
-      difficulty: 'Fácil'
-    },
-    {
-      id: 'education-reels',
-      title: `Mitos vs Verdades: ${especialidade}`,
-      description: 'Reel educativo desmistificando dúvidas comuns',
-      format: 'reels',
-      objective: '🟡 Atrair Atenção',
-      estimatedTime: '20-40min',
-      difficulty: 'Médio'
-    },
-    {
-      id: 'process-video',
-      title: `Como funciona: Processo Completo`,
-      description: 'Vídeo explicativo do atendimento da consulta ao resultado',
-      format: 'vídeo',
-      objective: '🟢 Criar Conexão',
-      estimatedTime: '45-60min',
-      difficulty: 'Avançado'
-    }
-  ];
+  const especialidade = isClinicaMedica ? (medicalSpecialty || 'sua especialidade') : (aestheticFocus || 'seu foco');
 
-  suggestions.push(...baseSuggestions);
-
-  // Adicionar sugestões específicas por equipamento
-  if (equipamentos) {
-    const equipList = equipamentos.split(',').map(eq => eq.trim());
-    equipList.forEach((equip, index) => {
-      if (equip && index < 2) { // Máximo 2 equipamentos para não poluir
-        suggestions.push({
-          id: `equipment-${index}`,
-          title: `Destaque: ${equip}`,
-          description: `Conteúdo focado nos diferenciais e benefícios do ${equip}`,
-          format: index % 2 === 0 ? 'vídeo' : 'carrossel',
-          objective: '🔴 Fazer Comprar',
-          equipment: equip,
-          estimatedTime: '25-45min',
-          difficulty: 'Médio'
-        });
+  // Sugestões baseadas em especialidade real do usuário
+  if (especialidade) {
+    suggestions.push(
+      {
+        id: 'before-after',
+        title: `Antes e Depois: ${especialidade}`,
+        description: `Destaque transformação real em pacientes de ${especialidade}; peça autorização.`,
+        format: 'carrossel',
+        objective: '🔴 Fazer Comprar',
+        estimatedTime: '15-30min',
+        difficulty: 'Fácil'
+      },
+      {
+        id: 'education-reels',
+        title: `Mitos vs Verdades: ${especialidade}`,
+        description: `Reel educativo desmistificando dúvidas sobre ${especialidade}`,
+        format: 'reels',
+        objective: '🟡 Atrair Atenção',
+        estimatedTime: '20-40min',
+        difficulty: 'Médio'
       }
-    });
+    );
   }
 
-  // Sugestões baseadas no objetivo
-  if (state.currentRevenue === 'ate_15k') {
+  // Sugestões dinâmicas dos equipamentos reais do banco (máx. 3)
+  perfilEquipamentos.slice(0,3).forEach((eq, index) => {
+    suggestions.push({
+      id: `equipment-${eq.id}`,
+      title: `Explique o diferencial do equipamento ${eq.nome}`,
+      description: eq.diferenciais || `Mostre por que o equipamento ${eq.nome} é único na sua clínica.`,
+      format: index % 2 === 0 ? 'vídeo' : 'carrossel',
+      objective: '🔴 Fazer Comprar',
+      equipment: eq.nome,
+      estimatedTime: '20-45min',
+      difficulty: 'Médio'
+    });
+  });
+
+  // Sugestão baseada em receita real informada pelo usuário
+  if (currentRevenue === 'ate_15k') {
     suggestions.push({
       id: 'credibility',
       title: 'Construindo Credibilidade',
-      description: 'Stories mostrando certificações, cursos e experiência',
+      description: 'Stories com certificações, bastidores e depoimentos reais dos seus pacientes.',
       format: 'story',
       objective: '🟢 Criar Conexão',
       estimatedTime: '10-20min',
@@ -75,5 +94,7 @@ export const generateContentSuggestions = (state: MarketingConsultantState): Con
     });
   }
 
-  return suggestions.slice(0, 6); // Máximo 6 sugestões
+  // Limitar a 6 sugestões para não poluir
+  return suggestions.slice(0, 6);
 };
+
