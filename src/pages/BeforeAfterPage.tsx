@@ -7,7 +7,7 @@ import {
   Camera, 
   Image as ImageIcon, 
   Upload,
-  Gallery,
+  Images,
   TrendingUp,
   Star,
   Award
@@ -68,7 +68,7 @@ const BeforeAfterPage: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-full bg-blue-500/20">
-                <Gallery className="h-5 w-5 text-blue-400" />
+                <Images className="h-5 w-5 text-blue-400" />
               </div>
               <div>
                 <p className="text-sm text-gray-400">Públicas</p>
@@ -97,7 +97,7 @@ const BeforeAfterPage: React.FC = () => {
       <Tabs defaultValue="gallery" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
           <TabsTrigger value="gallery" className="flex items-center gap-2">
-            <Gallery className="h-4 w-4" />
+            <Images className="h-4 w-4" />
             Galeria
           </TabsTrigger>
           <TabsTrigger value="upload" className="flex items-center gap-2">
@@ -110,7 +110,7 @@ const BeforeAfterPage: React.FC = () => {
           <Card className="aurora-glass border-aurora-electric-purple/30">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Gallery className="h-5 w-5" />
+                <Images className="h-5 w-5" />
                 Suas Transformações
               </CardTitle>
             </CardHeader>
