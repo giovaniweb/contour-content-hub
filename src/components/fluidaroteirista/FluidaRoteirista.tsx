@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, HelpCircle, Sparkles, Target, Rocket } from "lucide-react";
+import { Wand2, HelpCircle, Sparkles, Target, Rocket, BookOpen, TrendingUp } from "lucide-react";
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import AkinatorScriptMode from './modes/AkinatorScriptMode';
 import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
@@ -17,6 +19,7 @@ interface FluidaRoteiristaProps {
 }
 
 const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }) => {
+  const navigate = useNavigate();
   const [currentMode, setCurrentMode] = useState<FluidaMode>('selection');
   const { 
     results, 
@@ -78,6 +81,10 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     toast.info('🎧 Geração de áudio', {
       description: 'Função de áudio será implementada em breve!'
     });
+  };
+
+  const handleNavigateToApprovedScripts = () => {
+    navigate('/approved-scripts');
   };
 
   console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
@@ -150,6 +157,49 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
           </div>
         </motion.div>
       </div>
+
+      {/* Quick Access Menu */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="max-w-4xl mx-auto mb-8"
+      >
+        <Card className="aurora-glass border-aurora-electric-purple/30">
+          <CardHeader>
+            <CardTitle className="text-white text-center flex items-center justify-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Menu Rápido
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button
+                onClick={handleNavigateToApprovedScripts}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white h-16 flex items-center gap-3"
+              >
+                <TrendingUp className="h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">📚 Roteiros Aprovados</div>
+                  <div className="text-sm opacity-90">Gerencie e avalie performance</div>
+                </div>
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3"
+                disabled
+              >
+                <Target className="h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">📊 Análises (Em breve)</div>
+                  <div className="text-sm opacity-70">Métricas e insights</div>
+                </div>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Mode Selection */}
       <div className="max-w-4xl mx-auto">

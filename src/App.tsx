@@ -29,6 +29,7 @@ import ScriptGeneratorPage from './pages/ScriptGeneratorPage';
 import AppLayout from './components/layout/AppLayout';
 import { ROUTES } from './routes';
 import FluidaRoteiristPage from '@/pages/FluidaRoteiristsPage';
+import ApprovedScriptsPage from '@/pages/ApprovedScriptsPage';
 
 function App() {
   return (
@@ -111,6 +112,16 @@ function App() {
             element={
               <AppLayout>
                 <FluidaRoteiristPage />
+              </AppLayout>
+            } 
+          />
+          
+          {/* Nova rota para Roteiros Aprovados */}
+          <Route 
+            path="/approved-scripts" 
+            element={
+              <AppLayout>
+                <ApprovedScriptsPage />
               </AppLayout>
             } 
           />
