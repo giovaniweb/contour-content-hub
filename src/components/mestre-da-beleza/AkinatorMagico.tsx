@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -19,17 +20,17 @@ import './akinator-animations.css';
 
 const AkinatorMagico: React.FC = () => {
   const {
-    currentQuestion,
-    confidence,
-    userProfile,
-    behavioralProfile,
-    currentPhrase,
-    currentRecommendation,
-    gameState,
-    isThinking,
-    answerQuestion,
-    resetGame,
-    startNewSession
+    perguntaAtual: currentQuestion,
+    confianca: confidence,
+    perfil: userProfile,
+    perfilComportamental: behavioralProfile,
+    fraseAtual: currentPhrase,
+    recomendacao: currentRecommendation,
+    fase: gameState,
+    pensando: isThinking,
+    responderPergunta: answerQuestion,
+    reiniciarJogo: resetGame,
+    iniciarNovaSessao: startNewSession
   } = useAkinatorMagico();
 
   const renderWelcomeScreen = () => (
@@ -311,3 +312,4 @@ const AkinatorMagico: React.FC = () => {
 };
 
 export default AkinatorMagico;
+
