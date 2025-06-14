@@ -6,6 +6,7 @@ import { useMestreProfile } from './useMestreProfile';
 import { isValidEquipment, calculateEquipmentScore } from './useEquipmentScoring';
 import { createMockEquipment } from './recommendationUtils';
 import { estimateAge } from './sessionUtils';
+import { useMestreDaBelezaLogs } from "./useMestreDaBelezaLogs";
 
 interface UserProfile {
   perfil?: 'medico' | 'profissional_estetica' | 'cliente_final';
@@ -95,6 +96,9 @@ export const useMestreDaBeleza = () => {
     console.log('🆕 [MestreDaBeleza] Nova sessão criada:', initialProfile);
     return initialProfile;
   });
+
+  // Novo: Inicializar hook de log
+  const { logEvent: logBeautyEvent } = useMestreDaBelezaLogs(userProfile.session_id);
 
   // Salvar sessão automaticamente
   useEffect(() => {
@@ -487,19 +491,41 @@ export const useMestreDaBeleza = () => {
       current_question_index: nextQuestionIndex,
       step: nextStep
     });
-
+    // -------- LOG DE AÇÃO --------------
+    logBeautyEvent({
+      event: "answer",
+      question_id: currentQuestion.id,
+      answer: response,
+    });
+    // -----------------------------------
     const score = currentQuestion.scoring?.[response] || 0;
     return { score, problema: problema_identificado };
-  }, [userProfile, getCurrentQuestion, estimateAge, updateProfile]);
+  }, [userProfile, getCurrentQuestion, estimateAge, updateProfile, logBeautyEvent]);
 
+  // --- LOG DE EVENTO DE INICIO ---
+  useEffect(() => {
+    if (userProfile.current_question_index === 0 && userProfile.step === "profile") {
+      logBeautyEvent({ event: "start" });
+    }
+  }, [userProfile.session_id, userProfile.current_question_index, userProfile.step, logBeautyEvent]);
+
+  // --- LOG DE RECOMENDAÇÃO GERADA ---
   const getRecommendation = useCallback(() => {
     const recommendation = generateRecommendation(userProfile);
+    if (recommendation && recommendation.equipamento?.id) {
+      logBeautyEvent({
+        event: "recommendation",
+        recommendation_id: recommendation.equipamento.id,
+      });
+    }
     console.log('🔍 [MestreDaBeleza] Obtendo recomendação:', recommendation?.equipamento?.nome || 'null');
     return recommendation;
-  }, [userProfile, generateRecommendation]);
+  }, [userProfile, generateRecommendation, logBeautyEvent]);
 
+  // --- LOG DE RESET -------
   const resetChat = useCallback(() => {
-    console.log('🔄 [MestreDaBeleza] Resetando chat');
+    logBeautyEvent({ event: "reset" });
+    // ... keep code as is ...
     localStorage.removeItem(SESSION_KEY);
     setUserProfile({
       primeira_interacao: true,
@@ -510,7 +536,7 @@ export const useMestreDaBeleza = () => {
       current_question_index: 0,
       session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     });
-  }, []);
+  }, [logBeautyEvent]);
 
   const isCompleted = useCallback(() => {
     const completed = userProfile.step === 'recommendation' || userProfile.step === 'completed';
