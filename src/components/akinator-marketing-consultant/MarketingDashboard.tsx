@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +14,8 @@ import StructuredDiagnosticSection from './dashboard/StructuredDiagnosticSection
 import ActionButtons from './dashboard/ActionButtons';
 import ContentSuggestionCards from './dashboard/ContentSuggestionCards';
 import QuickActionCards from './dashboard/QuickActionCards';
+import RealMentorSection from "./dashboard/RealMentorSection";
+import { useRealMentors } from "./hooks/useRealMentors";
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -75,6 +76,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     safeMentor,
     safeAiSections
   });
+
+  // Integra o sistema de mentores reais
+  const { inferBestMentor, generateMentorEnigma, loading: mentorsLoading } = useRealMentors();
+  const mentorMapping = inferBestMentor(safeState);
+  const mentorEnigma = generateMentorEnigma(mentorMapping);
 
   const handleDiagnosticUpdate = (newDiagnostic: string) => {
     const updatedState = {
@@ -250,6 +256,16 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       >
         {activeTab === 'overview' && (
           <>
+            {/* SISTEMA DE MENTOR REAL */}
+            {!mentorsLoading && mentorMapping && (
+              <RealMentorSection
+                mentor={mentorMapping.mentor}
+                marketingProfile={mentorMapping.marketingProfile}
+                confidence={mentorMapping.confidence}
+                enigma={mentorEnigma}
+              />
+            )}
+
             <DiagnosticCards 
               state={safeState} 
               aiSections={safeAiSections} 
