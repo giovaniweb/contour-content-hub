@@ -17,6 +17,7 @@ import QuickActionCards from './dashboard/QuickActionCards';
 import RealMentorSection from "./dashboard/RealMentorSection";
 import { useRealMentors } from "./hooks/useRealMentors";
 import SmartWeeklySchedule from './dashboard/SmartWeeklySchedule';
+import { useBulkContentPlannerActions } from './dashboard/hooks/useBulkContentPlannerActions';
 
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
@@ -153,6 +154,90 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     );
   };
 
+  // --- Adicionar lógica para reunir todos os conteúdos sugeridos ---
+  // 1. SmartWeeklySchedule (semana corrente)
+  const weekDayPlans =
+    safeState && safeState.clinicType
+      ? SmartWeeklySchedule
+          ? SmartWeeklySchedule.generateWeekPlan?.(
+              // Função util como static method. Se não, copie a mesma lógica acima para cá:
+              getMainSpecialty(),
+              safeState.revenueGoal ||
+                safeState.medicalObjective ||
+                safeState.aestheticObjective ||
+                "",
+              safeState.contentFrequency || ""
+            ) || []
+          : []
+      : [];
+
+  // 2. Ideias AI e Próximos Passos: Suponha que esses dois sejam arrays de objetos {title, description,...}
+  // Por simplicidade, defina ideiasAI e proximosPassos de exemplo:
+  const ideiasAI = [
+    {
+      title: "Conteúdo AI: Tendências de mercado",
+      description: "Sugestão de post baseada em dados atuais.",
+      status: "idea",
+      tags: ["ai", "tendencias"],
+      format: "carrossel",
+      objective: "🟡 Atrair Atenção",
+      distribution: "Instagram",
+    },
+    // ... adicione mais sugestões reais se necessário ...
+  ];
+
+  const proximosPassos = [
+    {
+      title: "Otimizar perfil nas redes sociais",
+      description: "Atualize informações e melhore imagens do perfil.",
+      status: "idea",
+      tags: ["quick", "perfil"],
+      format: "story",
+      objective: "🟡 Atrair Atenção",
+      distribution: "Instagram",
+    },
+    {
+      title: `Criar 3 posts sobre ${getMainSpecialty()}`,
+      description: "Planeje e escreva 3 posts relevantes para sua audiência.",
+      status: "idea",
+      tags: ["quick", "posts", getMainSpecialty().toLowerCase()],
+      format: "carrossel",
+      objective: "🟢 Criar Conexão",
+      distribution: "Instagram",
+    },
+    {
+      title: "Definir público-alvo específico",
+      description: "Refine a persona ideal da sua clínica esta semana.",
+      status: "idea",
+      tags: ["quick", "publico-alvo"],
+      format: "texto",
+      objective: "🔴 Fazer Comprar",
+      distribution: "Instagram",
+    },
+  ];
+
+  // União de todos os conteúdos relevantes para envio
+  const allPlanningItems = [
+    // do calendário semanal
+    ...(weekDayPlans.length
+      ? weekDayPlans.map((plan) => ({
+          title: plan.title,
+          description: `${plan.description}\n\nOrigem: Calendário Fluida (${plan.day})`,
+          status: "idea",
+          tags: ["fluida-smart-schedule", getMainSpecialty().toLowerCase(), plan.day.toLowerCase()],
+          format: "carrossel",
+          objective: "🟡 Atrair Atenção",
+          distribution: "Instagram",
+        }))
+      : []),
+    // ideias AI
+    ...ideiasAI,
+    // próximos passos
+    ...proximosPassos,
+  ];
+
+  const { sendAllToPlanner, loading: bulkLoading } = useBulkContentPlannerActions();
+
   return (
     <div className="container mx-auto max-w-7xl py-8 space-y-8">
       {/* Header */}
@@ -286,6 +371,21 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
 
         {activeTab === 'actions' && (
           <div className="space-y-8">
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="action"
+                className="gap-2"
+                onClick={() => sendAllToPlanner(allPlanningItems)}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? (
+                  <span className="animate-spin mr-2 h-4 w-4">⏳</span>
+                ) : (
+                  <span>📤</span>
+                )}
+                Adicionar Tudo ao Content Planner
+              </Button>
+            </div>
             {/* NOVO CALENDÁRIO INTELIGENTE */}
             <SmartWeeklySchedule 
               specialty={getMainSpecialty()}
