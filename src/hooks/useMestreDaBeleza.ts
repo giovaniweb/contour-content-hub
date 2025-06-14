@@ -2,6 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Equipment } from '@/types/equipment';
 import { questionBank, Question } from '@/components/mestre-da-beleza/questionBank';
+import { useMestreProfile } from './useMestreProfile';
+import { isValidEquipment, calculateEquipmentScore } from './useEquipmentScoring';
+import { createMockEquipment } from './recommendationUtils';
+import { estimateAge } from './sessionUtils';
 
 interface UserProfile {
   perfil?: 'medico' | 'profissional_estetica' | 'cliente_final';

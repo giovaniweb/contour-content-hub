@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
 import { MarketingObjectiveType } from '@/types/script';
+import VideoFormFields from './VideoFormFields';
+import VideoFormActions from './VideoFormActions';
 
 // Add a prop interface for VideoForm
 interface VideoFormProps {
@@ -202,161 +204,40 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
         <TabsContent value="form">
           <form onSubmit={handleSubmit}>
             <Card className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Título do Vídeo</Label>
-                  <Input 
-                    id="title" 
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Tratamento de flacidez facial com Ultraformer"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="videoType">Tipo de Vídeo</Label>
-                  <RadioGroup 
-                    id="videoType"
-                    value={videoType} 
-                    onValueChange={setVideoType}
-                    className="flex gap-6"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="video_pronto" id="video-pronto" />
-                      <Label htmlFor="video-pronto">Vídeo Pronto</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="take" id="take" />
-                      <Label htmlFor="take">Take (Bruto)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="imagem" id="imagem" />
-                      <Label htmlFor="imagem">Imagem</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="videoUrl">URL do Vídeo</Label>
-                  <Input 
-                    id="videoUrl"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://vimeo.com/123456789"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="thumbUrl">URL da Imagem de Capa</Label>
-                  <Input 
-                    id="thumbUrl"
-                    value={thumbUrl}
-                    onChange={(e) => setThumbUrl(e.target.value)}
-                    placeholder="https://exemplo.com/imagem.jpg"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="shortDescription">Descrição Curta</Label>
-                  <Input 
-                    id="shortDescription"
-                    value={shortDescription}
-                    onChange={(e) => setShortDescription(e.target.value)}
-                    placeholder="Breve descrição (max. 150 caracteres)"
-                    maxLength={150}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="equipment">Equipamento</Label>
-                  <Select value={equipment || ""} onValueChange={setEquipment}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um equipamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum equipamento</SelectItem>
-                      {equipmentsList.map(eq => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="bodyArea">Área do Corpo</Label>
-                  <Select value={bodyArea || ""} onValueChange={setBodyArea}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma área do corpo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nenhuma">Selecione</SelectItem>
-                      {bodyAreasList.map(area => (
-                        <SelectItem key={area.id} value={area.id}>{area.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Objetivo de Marketing</Label>
-                  <VideoObjectiveSelector
-                    value={marketingObjective}
-                    onValueChange={setMarketingObjective}
-                  />
-                </div>
-                
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="detailedDescription">Descrição Detalhada</Label>
-                  <Textarea 
-                    id="detailedDescription"
-                    value={detailedDescription}
-                    onChange={(e) => setDetailedDescription(e.target.value)}
-                    placeholder="Descrição detalhada do vídeo"
-                    className="min-h-[120px]"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <Input 
-                    id="tags"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    placeholder="Palavras-chave separadas por vírgulas"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="instagramCaption">Legenda para Instagram</Label>
-                  <Textarea
-                    id="instagramCaption"
-                    value={instagramCaption}
-                    onChange={(e) => setInstagramCaption(e.target.value)}
-                    placeholder="Legenda para postagens no Instagram"
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : videoData?.id ? (
-                    'Atualizar Vídeo'
-                  ) : (
-                    'Cadastrar Vídeo'
-                  )}
-                </Button>
-              </div>
+              <VideoFormFields
+                title={title}
+                setTitle={setTitle}
+                shortDescription={shortDescription}
+                setShortDescription={setShortDescription}
+                detailedDescription={detailedDescription}
+                setDetailedDescription={setDetailedDescription}
+                videoType={videoType}
+                setVideoType={setVideoType}
+                videoUrl={videoUrl}
+                setVideoUrl={setVideoUrl}
+                thumbUrl={thumbUrl}
+                setThumbUrl={setThumbUrl}
+                equipment={equipment}
+                setEquipment={setEquipment}
+                bodyArea={bodyArea}
+                setBodyArea={setBodyArea}
+                tags={tags}
+                setTags={setTags}
+                instagramCaption={instagramCaption}
+                setInstagramCaption={setInstagramCaption}
+                marketingObjective={marketingObjective}
+                setMarketingObjective={setMarketingObjective}
+                equipmentsList={equipmentsList}
+                bodyAreasList={bodyAreasList}
+                purposes={purposes}
+              />
+
+              <VideoFormActions 
+                onCancel={onCancel}
+                isLoading={isLoading}
+                isEditing={!!videoData?.id}
+              />
+
             </Card>
           </form>
         </TabsContent>
