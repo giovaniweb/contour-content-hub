@@ -1,30 +1,17 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './components/theme-provider';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import './index.css';
 
-console.log('Application starting...');
+// Importa QueryClient centralizado
+import { queryClient } from './config/queryClient';
 
-// Create a client with correct configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-    mutations: {
-      // Error handling for mutations
-      onError: (error) => {
-        console.error("Mutation error:", error);
-      }
-    }
-  },
-});
+console.log('Application starting...');
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -34,8 +21,7 @@ if (!rootElement) {
 
 console.log('Mounting React application');
 
-// Root error boundary that wraps the whole application
-// All providers are inside the error boundary
+// Aplica o QueryClientProvider já configurado
 createRoot(rootElement).render(
   <React.StrictMode>
     <ErrorBoundary>
