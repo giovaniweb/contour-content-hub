@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -108,7 +109,7 @@ const AkinatorMagico: React.FC = () => {
         <p className="text-purple-300 italic text-sm thought-bubble">
           "{currentPhrase}"
         </p>
-      </div>
+      </motion.div>
 
       {/* Question card */}
       <Card className="aurora-glass magical-glow">
