@@ -45,7 +45,6 @@ const AkinatorMagico: React.FC = () => {
   const { logEvent } = useMestreDaBelezaAnalytics();
   
   const [isThinking, setIsThinking] = useState(false);
-  const [mysticalPhrase, setMysticalPhrase] = useState('Preparando a consulta mágica...');
 
   const currentQuestion = getCurrentQuestion();
   const currentRecommendation = getRecommendation();
