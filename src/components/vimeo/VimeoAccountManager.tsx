@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader, CheckCircle, LogOut, AlertCircle, RefreshCw, WifiOff } from "lucide-react";
-import VimeoConnectButton from './VimeoConnectButton';
 
 interface VimeoToken {
   id: string;
@@ -156,7 +154,6 @@ export default function VimeoAccountManager() {
     );
   }
 
-  // Shows error state when API is unavailable
   if (isApiAvailable === false) {
     return (
       <Card>
@@ -200,7 +197,6 @@ export default function VimeoAccountManager() {
     );
   }
 
-  // Shows error state when server is not configured
   if (isServerConfigured === false) {
     return (
       <Card>
@@ -244,7 +240,6 @@ export default function VimeoAccountManager() {
     );
   }
 
-  // Shows generic error state
   if (loadError) {
     return (
       <Card>
@@ -269,22 +264,10 @@ export default function VimeoAccountManager() {
             </AlertDescription>
           </Alert>
         </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={loadVimeoAccount} 
-            variant="outline"
-            className="mr-2"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Tentar novamente
-          </Button>
-          <VimeoConnectButton onSuccess={loadVimeoAccount} />
-        </CardFooter>
       </Card>
     );
   }
 
-  // Shows "no account connected" state
   if (!vimeoAccount) {
     return (
       <Card>
@@ -299,18 +282,14 @@ export default function VimeoAccountManager() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Nenhuma conta conectada</AlertTitle>
             <AlertDescription>
-              Você ainda não conectou uma conta Vimeo. Clique no botão abaixo para conectar.
+              Você ainda não conectou uma conta Vimeo e essa funcionalidade foi desabilitada.
             </AlertDescription>
           </Alert>
         </CardContent>
-        <CardFooter>
-          <VimeoConnectButton onSuccess={loadVimeoAccount} />
-        </CardFooter>
       </Card>
     );
   }
 
-  // Check if token is expired
   const isExpired = new Date(vimeoAccount.expires_at) < new Date();
   const expiresAt = new Date(vimeoAccount.expires_at).toLocaleDateString('pt-BR', { 
     day: '2-digit',
@@ -320,7 +299,6 @@ export default function VimeoAccountManager() {
     minute: '2-digit'
   });
 
-  // Shows connected account state
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -384,13 +362,6 @@ export default function VimeoAccountManager() {
           )}
         </Button>
         
-        {isExpired && (
-          <VimeoConnectButton 
-            onSuccess={loadVimeoAccount} 
-            variant="outline"
-          />
-        )}
-
         {!isExpired && (
           <Button
             variant="outline"

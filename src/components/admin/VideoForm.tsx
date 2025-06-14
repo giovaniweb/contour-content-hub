@@ -11,7 +11,6 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
-import VimeoImporter from './VimeoImporter';
 import { MarketingObjectiveType } from '@/types/script';
 
 // Add a prop interface for VideoForm
@@ -39,7 +38,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
   
   // UI state
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('upload');
+  const [activeTab, setActiveTab] = useState('form');
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [bodyAreasList, setBodyAreasList] = useState([]);
   
@@ -141,42 +140,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
     }
   }, [equipment, videoData]);
   
-  const handleVimeoImport = (importedData) => {
-    if (!importedData) return;
-    
-    // Set form values from imported Vimeo data
-    setTitle(importedData.titulo_otimizado || importedData.title || '');
-    setVideoUrl(importedData.videoUrl || '');
-    setThumbUrl(importedData.thumbnailUrl || '');
-    
-    // If we have AI-enhanced metadata, use it
-    if (importedData.descricao_curta) {
-      setShortDescription(importedData.descricao_curta);
-      setDetailedDescription(importedData.descricao_longa || '');
-      setVideoType(importedData.tipo_video || 'video_pronto');
-      
-      if (importedData.finalidade?.length > 0) {
-        setPurposes(importedData.finalidade);
-      }
-      
-      if (importedData.area_tratada?.length > 0) {
-        setBodyArea(importedData.area_tratada[0]);
-      }
-      
-      if (importedData.tags?.length > 0) {
-        setTags(importedData.tags.join(', '));
-      }
-      
-      if (importedData.legenda_instagram) {
-        setInstagramCaption(importedData.legenda_instagram);
-      }
-    }
-    
-    // Switch to form tab
-    setActiveTab('form');
-    toast.info('Dados importados com sucesso! Revise e complete o formulário.');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -232,37 +195,10 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
 
   return (
     <div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value="form" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="upload">Importar Vídeo</TabsTrigger>
           <TabsTrigger value="form">Formulário Manual</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="upload">
-          <VimeoImporter 
-            onCompleteImport={handleVimeoImport} 
-            selectedEquipmentId={equipment}
-          />
-          
-          <div className="mt-4">
-            <Label htmlFor="equipment" className="mb-1 block">Equipamento</Label>
-            <Select value={equipment || ""} onValueChange={setEquipment}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um equipamento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum equipamento</SelectItem>
-                {equipmentsList.map(eq => (
-                  <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              Selecione um equipamento para melhorar a geração de conteúdo
-            </p>
-          </div>
-        </TabsContent>
-        
         <TabsContent value="form">
           <form onSubmit={handleSubmit}>
             <Card className="p-6 space-y-6">
