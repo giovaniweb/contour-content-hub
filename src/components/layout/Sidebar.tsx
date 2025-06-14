@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -35,7 +34,8 @@ import {
   Film,
   Brain,
   LinkIcon,
-  TestTube
+  TestTube,
+  ArrowLeftRight
 } from 'lucide-react';
 import { ROUTES } from '@/routes';
 import { useAuth } from '@/context/AuthContext';
@@ -57,6 +57,7 @@ const Sidebar: React.FC = () => {
     { icon: Wand2, label: 'FLUIDAROTEIRISTA', path: ROUTES.CONTENT.FLUIDAROTEIRISTA },
     { icon: Video, label: 'Video', path: ROUTES.VIDEOS.ROOT },
     { icon: Image, label: 'Imagem', path: '/photos' },
+    { icon: ArrowLeftRight, label: 'Antes & Depois', path: '/before-after' },
     { icon: Palette, label: 'Artes', path: '/arts' },
     { icon: Calendar, label: 'Planejador', path: ROUTES.CONTENT.PLANNER },
     { icon: Wrench, label: 'Equipamentos', path: ROUTES.EQUIPMENTS.LIST },
