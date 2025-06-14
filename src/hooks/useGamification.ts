@@ -90,7 +90,7 @@ export const useGamification = () => {
           });
         }
       } else if (progress) {
-        const gamificationData = progress as UserGamificationRow;
+        const gamificationData = progress as unknown as UserGamificationRow;
         setUserProgress({
           xp_total: gamificationData.xp_total,
           nivel: calculateLevel(gamificationData.xp_total),
