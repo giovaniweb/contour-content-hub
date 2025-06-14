@@ -12,7 +12,9 @@ import {
   RotateCcw,
   Clock,
   Target,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,46 +35,49 @@ const AkinatorMagico: React.FC = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments
+    equipments,
+    loading: equipmentsLoading,
+    error: equipmentsError
   } = useMestreDaBeleza();
   
   const { logEvent } = useMestreDaBelezaAnalytics();
   
   const [isThinking, setIsThinking] = useState(false);
   const [mysticalPhrase, setMysticalPhrase] = useState('Preparando a consulta mágica...');
-  const [isLoading, setIsLoading] = useState(true);
 
   const currentQuestion = getCurrentQuestion();
   const currentRecommendation = getRecommendation();
   const progress = getProgress();
   const confidence = Math.min(95, Math.max(40, progress));
 
-  // Verificar se há equipamentos disponíveis
+  // Debug logs
   useEffect(() => {
-    console.log('AkinatorMagico - Estado atual:', {
-      userProfile,
+    console.log('🔮 [AkinatorMagico] Estado atual:', {
+      userProfile: {
+        step: userProfile.step,
+        primeira_interacao: userProfile.primeira_interacao,
+        current_question_index: userProfile.current_question_index,
+        session_id: userProfile.session_id
+      },
       currentQuestion: currentQuestion?.id,
       isCompleted: isCompleted(),
       equipmentsCount: equipments?.length || 0,
-      progress
+      equipmentsLoading,
+      equipmentsError: equipmentsError?.message,
+      progress,
+      confidence
     });
-
-    if (equipments !== undefined) {
-      setIsLoading(false);
-      if (equipments.length === 0) {
-        console.warn('Nenhum equipamento encontrado para recomendação');
-      }
-    }
-  }, [equipments, userProfile, currentQuestion, isCompleted, progress]);
+  }, [userProfile, currentQuestion, isCompleted, equipments, equipmentsLoading, equipmentsError, progress, confidence]);
 
   // Log de início de sessão
   useEffect(() => {
-    if (!isLoading && userProfile.primeira_interacao) {
+    if (!equipmentsLoading && userProfile.primeira_interacao && equipments) {
       logEvent(ANALYTICS_EVENTS.SESSION_STARTED, { 
-        equipments_available: equipments?.length || 0 
+        equipments_available: equipments.length 
       }, userProfile);
+      console.log('📊 [AkinatorMagico] Sessão iniciada logada');
     }
-  }, [isLoading, userProfile.primeira_interacao, equipments, logEvent, userProfile]);
+  }, [equipmentsLoading, userProfile.primeira_interacao, equipments, logEvent, userProfile]);
 
   // Frases místicas baseadas no progresso
   useEffect(() => {
@@ -101,22 +106,25 @@ const AkinatorMagico: React.FC = () => {
       question_index: userProfile.current_question_index
     }, userProfile);
     
+    console.log('💬 [AkinatorMagico] Resposta selecionada:', { answer, question: currentQuestion.id });
+    
     // Simular tempo de "pensamento" do Akinator
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     const result = processUserResponse(answer, currentQuestion.context);
-    console.log('Resposta processada:', result);
+    console.log('✅ [AkinatorMagico] Resposta processada:', result);
     
     setIsThinking(false);
   };
 
   const handleResetGame = () => {
+    console.log('🔄 [AkinatorMagico] Resetando jogo');
     logEvent(ANALYTICS_EVENTS.SESSION_RESET, {}, userProfile);
     resetChat();
   };
 
   const handleStartNewSession = () => {
-    console.log('Starting new session...');
+    console.log('🚀 [AkinatorMagico] Iniciando nova sessão');
     updateProfile({ 
       step: 'intention',
       primeira_interacao: false 
@@ -124,11 +132,11 @@ const AkinatorMagico: React.FC = () => {
   };
 
   const handleContinueFromRecommendation = () => {
-    console.log('Continuing from recommendation...');
+    console.log('➡️ [AkinatorMagico] Continuando da recomendação');
   };
 
   // Loading state
-  if (isLoading) {
+  if (equipmentsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -141,26 +149,58 @@ const AkinatorMagico: React.FC = () => {
           </motion.div>
           <h2 className="text-xl font-semibold text-white">Carregando Mestre da Beleza...</h2>
           <p className="text-purple-300">Preparando a experiência mágica</p>
+          <div className="text-xs text-purple-400">
+            Aguardando equipamentos: {equipments?.length || 0} carregados
+          </div>
         </div>
       </div>
     );
   }
 
-  // Error state - quando não há equipamentos
-  if (equipments?.length === 0) {
+  // Error state - quando há erro ao carregar equipamentos
+  if (equipmentsError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-white">Equipamentos Não Encontrados</h2>
-          <p className="text-purple-300 max-w-md">
-            Não foi possível carregar os equipamentos necessários para a consulta mágica.
+        <div className="text-center space-y-4 max-w-md">
+          <AlertCircle className="h-16 w-16 text-red-400 mx-auto" />
+          <h2 className="text-2xl font-bold text-white">Erro ao Carregar Equipamentos</h2>
+          <p className="text-purple-300">
+            Houve um problema ao carregar os equipamentos necessários para a consulta mágica.
           </p>
+          <div className="text-sm text-red-300 bg-red-900/20 p-3 rounded">
+            {equipmentsError.message}
+          </div>
           <Button
             onClick={() => window.location.reload()}
             className="bg-purple-600 hover:bg-purple-700"
           >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Tentar Novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - quando não há equipamentos disponíveis
+  if (!equipmentsLoading && equipments?.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white">Equipamentos Não Encontrados</h2>
+          <p className="text-purple-300">
+            Não foram encontrados equipamentos ativos e habilitados para o Mestre da Beleza.
+          </p>
+          <div className="text-sm text-yellow-300 bg-yellow-900/20 p-3 rounded">
+            Verifique se há equipamentos cadastrados com `ativo=true` e `akinator_enabled=true`
+          </div>
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Recarregar
           </Button>
         </div>
       </div>
@@ -193,6 +233,10 @@ const AkinatorMagico: React.FC = () => {
         <p className="text-xl text-gray-300 max-w-md mx-auto leading-relaxed">
           Vou descobrir o equipamento perfeito para você através de perguntas inteligentes...
         </p>
+        
+        <div className="text-sm text-purple-300 mt-4">
+          {equipments?.length || 0} equipamentos disponíveis para análise
+        </div>
       </motion.div>
 
       <motion.div
@@ -361,12 +405,13 @@ const AkinatorMagico: React.FC = () => {
   const isQuestioningPhase = !isWelcomePhase && !isCompleted() && currentQuestion;
   const isCompletedPhase = isCompleted() && currentRecommendation;
 
-  console.log('Estado de renderização:', {
+  console.log('🎭 [AkinatorMagico] Fase de renderização:', {
     step: userProfile.step,
     isWelcome: isWelcomePhase,
     isQuestioning: isQuestioningPhase,
     isCompleted: isCompletedPhase,
     currentQuestion: currentQuestion?.id,
+    currentRecommendation: currentRecommendation?.equipamento?.nome,
     progress
   });
 

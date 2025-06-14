@@ -30,19 +30,18 @@ interface RecommendationResult {
 const SESSION_KEY = 'mestre_da_beleza_session';
 
 export const useMestreDaBeleza = () => {
-  const { equipments, loading: equipmentsLoading } = useEquipments();
+  const { equipments, loading: equipmentsLoading, error: equipmentsError } = useEquipments();
   
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    // Tentar carregar sessão salva
-    const savedSession = localStorage.getItem(SESSION_KEY);
-    if (savedSession) {
-      try {
+    try {
+      const savedSession = localStorage.getItem(SESSION_KEY);
+      if (savedSession) {
         const parsed = JSON.parse(savedSession);
-        console.log('Sessão carregada do localStorage:', parsed);
+        console.log('📱 [MestreDaBeleza] Sessão carregada:', parsed);
         return parsed;
-      } catch (error) {
-        console.warn('Erro ao carregar sessão salva:', error);
       }
+    } catch (error) {
+      console.warn('⚠️ [MestreDaBeleza] Erro ao carregar sessão salva:', error);
     }
     
     const initialProfile = {
@@ -55,18 +54,22 @@ export const useMestreDaBeleza = () => {
       session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
     
-    console.log('Criando nova sessão:', initialProfile);
+    console.log('🆕 [MestreDaBeleza] Nova sessão criada:', initialProfile);
     return initialProfile;
   });
 
   // Salvar sessão automaticamente
   useEffect(() => {
-    console.log('Salvando sessão:', userProfile);
-    localStorage.setItem(SESSION_KEY, JSON.stringify(userProfile));
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(userProfile));
+      console.log('💾 [MestreDaBeleza] Sessão salva:', userProfile.session_id);
+    } catch (error) {
+      console.warn('⚠️ [MestreDaBeleza] Erro ao salvar sessão:', error);
+    }
   }, [userProfile]);
 
   const updateProfile = useCallback((updates: Partial<UserProfile>) => {
-    console.log('Atualizando perfil:', updates);
+    console.log('🔄 [MestreDaBeleza] Atualizando perfil:', updates);
     setUserProfile(prev => ({
       ...prev,
       ...updates,
@@ -89,6 +92,8 @@ export const useMestreDaBeleza = () => {
     let score = 0;
     const scoreBreakdown: Record<string, number> = {};
 
+    console.log('🎯 [MestreDaBeleza] Calculando score para:', equipment.nome);
+
     // Análise por área de aplicação
     if (responses.area_problema === 'Rosto' && equipment.area_aplicacao?.includes('Facial')) {
       score += 20;
@@ -99,10 +104,10 @@ export const useMestreDaBeleza = () => {
       scoreBreakdown['area_corporal'] = 20;
     }
 
-    // Análise por problemas específicos - Fix para string ou array
+    // Análise por problemas específicos - Tratamento seguro para string ou array
     const indicacoes = Array.isArray(equipment.indicacoes) 
       ? equipment.indicacoes.join(' ').toLowerCase()
-      : (equipment.indicacoes || '').toLowerCase();
+      : String(equipment.indicacoes || '').toLowerCase();
     
     if (responses.flacidez_facial === 'Sim' && indicacoes.includes('flacidez')) {
       score += 25;
@@ -138,13 +143,14 @@ export const useMestreDaBeleza = () => {
     // Bonus por tecnologia avançada
     const tecnologia = Array.isArray(equipment.tecnologia) 
       ? equipment.tecnologia.join(' ').toLowerCase()
-      : (equipment.tecnologia || '').toLowerCase();
+      : String(equipment.tecnologia || '').toLowerCase();
       
     if (tecnologia.includes('laser') || tecnologia.includes('ultrassom')) {
       score += 10;
       scoreBreakdown['tecnologia_avancada'] = 10;
     }
 
+    console.log('📊 [MestreDaBeleza] Score calculado:', { equipment: equipment.nome, score, scoreBreakdown });
     return { score, scoreBreakdown };
   }, [estimateAge]);
 
@@ -152,11 +158,24 @@ export const useMestreDaBeleza = () => {
   const generateRecommendation = useCallback((profile: UserProfile): RecommendationResult | null => {
     const { responses } = profile;
     
-    console.log('Gerando recomendação para:', { profile, equipments: equipments?.length });
+    console.log('🔮 [MestreDaBeleza] Gerando recomendação para:', { 
+      sessionId: profile.session_id,
+      step: profile.step,
+      responses: Object.keys(responses).length,
+      equipmentsCount: equipments?.length || 0,
+      equipmentsLoading,
+      equipmentsError: equipmentsError?.message
+    });
+    
+    // Verificar se há erro nos equipamentos
+    if (equipmentsError) {
+      console.error('❌ [MestreDaBeleza] Erro ao carregar equipamentos:', equipmentsError);
+      return null;
+    }
     
     // Aguardar carregamento dos equipamentos
     if (equipmentsLoading || !equipments) {
-      console.log('Aguardando carregamento dos equipamentos...');
+      console.log('⏳ [MestreDaBeleza] Aguardando carregamento dos equipamentos...');
       return null;
     }
     
@@ -165,10 +184,10 @@ export const useMestreDaBeleza = () => {
       eq.ativo && eq.akinator_enabled
     );
 
-    console.log('Equipamentos disponíveis:', availableEquipments.length);
+    console.log('✅ [MestreDaBeleza] Equipamentos disponíveis:', availableEquipments.length);
 
     if (availableEquipments.length === 0) {
-      console.warn('Nenhum equipamento disponível para recomendação');
+      console.warn('⚠️ [MestreDaBeleza] Nenhum equipamento disponível para recomendação');
       return null;
     }
 
@@ -189,13 +208,16 @@ export const useMestreDaBeleza = () => {
     
     if (bestMatch.score === 0) {
       // Fallback para equipamento genérico
-      return {
+      const recommendation = {
         equipamento: bestMatch.equipment,
         confianca: 50,
         motivo: 'Baseado no seu perfil e necessidades gerais de estética',
         cta: `Conheça mais sobre o ${bestMatch.equipment.nome}`,
         score_breakdown: bestMatch.scoreBreakdown
       };
+      
+      console.log('🎲 [MestreDaBeleza] Recomendação genérica:', recommendation);
+      return recommendation;
     }
 
     // Calcular confiança baseada no score
@@ -221,18 +243,18 @@ export const useMestreDaBeleza = () => {
       score_breakdown: bestMatch.scoreBreakdown
     };
 
-    console.log('Recomendação gerada:', recommendation);
+    console.log('🎯 [MestreDaBeleza] Recomendação gerada:', recommendation);
     return recommendation;
-  }, [equipments, equipmentsLoading, calculateEquipmentScore]);
+  }, [equipments, equipmentsLoading, equipmentsError, calculateEquipmentScore]);
 
   // Obter pergunta atual
   const getCurrentQuestion = useCallback((): Question | null => {
     if (userProfile.current_question_index >= questionBank.length) {
-      console.log('Todas as perguntas foram respondidas');
+      console.log('✅ [MestreDaBeleza] Todas as perguntas foram respondidas');
       return null;
     }
     const question = questionBank[userProfile.current_question_index];
-    console.log('Pergunta atual:', question);
+    console.log('❓ [MestreDaBeleza] Pergunta atual:', question.id);
     return question;
   }, [userProfile.current_question_index]);
 
@@ -240,11 +262,11 @@ export const useMestreDaBeleza = () => {
   const processUserResponse = useCallback((response: string, context?: string) => {
     const currentQuestion = getCurrentQuestion();
     if (!currentQuestion) {
-      console.log('Nenhuma pergunta atual disponível');
+      console.log('⚠️ [MestreDaBeleza] Nenhuma pergunta atual disponível');
       return { score: 0, problema: null };
     }
 
-    console.log('Processando resposta:', { response, context, currentQuestion });
+    console.log('💬 [MestreDaBeleza] Processando resposta:', { response, context, question: currentQuestion.id });
 
     const questionContext = context || currentQuestion.context;
     const newResponses = { ...userProfile.responses, [questionContext]: response };
@@ -276,7 +298,7 @@ export const useMestreDaBeleza = () => {
     
     if (nextQuestionIndex >= questionBank.length) {
       nextStep = 'recommendation';
-      console.log('Finalizando questionário, indo para recomendação');
+      console.log('🏁 [MestreDaBeleza] Finalizando questionário, indo para recomendação');
     } else if (userProfile.step === 'profile') {
       nextStep = 'intention';
     } else if (userProfile.step === 'intention') {
@@ -298,12 +320,12 @@ export const useMestreDaBeleza = () => {
 
   const getRecommendation = useCallback(() => {
     const recommendation = generateRecommendation(userProfile);
-    console.log('Obtendo recomendação:', recommendation);
+    console.log('🔍 [MestreDaBeleza] Obtendo recomendação:', recommendation?.equipamento?.nome || 'null');
     return recommendation;
   }, [userProfile, generateRecommendation]);
 
   const resetChat = useCallback(() => {
-    console.log('Resetando chat');
+    console.log('🔄 [MestreDaBeleza] Resetando chat');
     localStorage.removeItem(SESSION_KEY);
     setUserProfile({
       primeira_interacao: true,
@@ -318,13 +340,13 @@ export const useMestreDaBeleza = () => {
 
   const isCompleted = useCallback(() => {
     const completed = userProfile.step === 'recommendation' || userProfile.step === 'completed';
-    console.log('isCompleted:', completed, 'step:', userProfile.step);
+    console.log('✓ [MestreDaBeleza] isCompleted:', completed, 'step:', userProfile.step);
     return completed;
   }, [userProfile.step]);
 
   const getProgress = useCallback(() => {
     const progress = Math.round((userProfile.current_question_index / questionBank.length) * 100);
-    console.log('Progress:', progress, 'index:', userProfile.current_question_index, 'total:', questionBank.length);
+    console.log('📈 [MestreDaBeleza] Progress:', progress, 'index:', userProfile.current_question_index, 'total:', questionBank.length);
     return progress;
   }, [userProfile.current_question_index]);
 
@@ -337,6 +359,8 @@ export const useMestreDaBeleza = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments: equipments?.filter(eq => eq.ativo) || []
+    equipments: equipments?.filter(eq => eq.ativo) || [],
+    loading: equipmentsLoading,
+    error: equipmentsError
   };
 };
