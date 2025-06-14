@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Equipment } from '@/types/equipment';
@@ -29,36 +30,43 @@ interface RecommendationResult {
 const SESSION_KEY = 'mestre_da_beleza_session';
 
 export const useMestreDaBeleza = () => {
-  const { equipments } = useEquipments();
+  const { equipments, loading: equipmentsLoading } = useEquipments();
   
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     // Tentar carregar sessão salva
     const savedSession = localStorage.getItem(SESSION_KEY);
     if (savedSession) {
       try {
-        return JSON.parse(savedSession);
+        const parsed = JSON.parse(savedSession);
+        console.log('Sessão carregada do localStorage:', parsed);
+        return parsed;
       } catch (error) {
         console.warn('Erro ao carregar sessão salva:', error);
       }
     }
     
-    return {
+    const initialProfile = {
       primeira_interacao: true,
       cadastrado: false,
       equipamento_informado: false,
-      step: 'profile',
+      step: 'profile' as const,
       responses: {},
       current_question_index: 0,
       session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
+    
+    console.log('Criando nova sessão:', initialProfile);
+    return initialProfile;
   });
 
   // Salvar sessão automaticamente
   useEffect(() => {
+    console.log('Salvando sessão:', userProfile);
     localStorage.setItem(SESSION_KEY, JSON.stringify(userProfile));
   }, [userProfile]);
 
   const updateProfile = useCallback((updates: Partial<UserProfile>) => {
+    console.log('Atualizando perfil:', updates);
     setUserProfile(prev => ({
       ...prev,
       ...updates,
@@ -144,12 +152,23 @@ export const useMestreDaBeleza = () => {
   const generateRecommendation = useCallback((profile: UserProfile): RecommendationResult | null => {
     const { responses } = profile;
     
+    console.log('Gerando recomendação para:', { profile, equipments: equipments?.length });
+    
+    // Aguardar carregamento dos equipamentos
+    if (equipmentsLoading || !equipments) {
+      console.log('Aguardando carregamento dos equipamentos...');
+      return null;
+    }
+    
     // Filtrar equipamentos ativos e habilitados para Akinator
     const availableEquipments = equipments.filter(eq => 
       eq.ativo && eq.akinator_enabled
     );
 
+    console.log('Equipamentos disponíveis:', availableEquipments.length);
+
     if (availableEquipments.length === 0) {
+      console.warn('Nenhum equipamento disponível para recomendação');
       return null;
     }
 
@@ -194,27 +213,38 @@ export const useMestreDaBeleza = () => {
       ? `Recomendado porque é ${motivos.join(', ')}`
       : 'Equipamento adequado para suas necessidades estéticas';
 
-    return {
+    const recommendation = {
       equipamento: bestMatch.equipment,
       confianca: Math.round(confianca),
       motivo,
       cta: `Descubra como o ${bestMatch.equipment.nome} pode transformar seus resultados`,
       score_breakdown: bestMatch.scoreBreakdown
     };
-  }, [equipments, calculateEquipmentScore]);
+
+    console.log('Recomendação gerada:', recommendation);
+    return recommendation;
+  }, [equipments, equipmentsLoading, calculateEquipmentScore]);
 
   // Obter pergunta atual
   const getCurrentQuestion = useCallback((): Question | null => {
     if (userProfile.current_question_index >= questionBank.length) {
+      console.log('Todas as perguntas foram respondidas');
       return null;
     }
-    return questionBank[userProfile.current_question_index];
+    const question = questionBank[userProfile.current_question_index];
+    console.log('Pergunta atual:', question);
+    return question;
   }, [userProfile.current_question_index]);
 
   // Processar resposta do usuário
   const processUserResponse = useCallback((response: string, context?: string) => {
     const currentQuestion = getCurrentQuestion();
-    if (!currentQuestion) return { score: 0, problema: null };
+    if (!currentQuestion) {
+      console.log('Nenhuma pergunta atual disponível');
+      return { score: 0, problema: null };
+    }
+
+    console.log('Processando resposta:', { response, context, currentQuestion });
 
     const questionContext = context || currentQuestion.context;
     const newResponses = { ...userProfile.responses, [questionContext]: response };
@@ -246,6 +276,7 @@ export const useMestreDaBeleza = () => {
     
     if (nextQuestionIndex >= questionBank.length) {
       nextStep = 'recommendation';
+      console.log('Finalizando questionário, indo para recomendação');
     } else if (userProfile.step === 'profile') {
       nextStep = 'intention';
     } else if (userProfile.step === 'intention') {
@@ -266,10 +297,13 @@ export const useMestreDaBeleza = () => {
   }, [userProfile, getCurrentQuestion, estimateAge, updateProfile]);
 
   const getRecommendation = useCallback(() => {
-    return generateRecommendation(userProfile);
+    const recommendation = generateRecommendation(userProfile);
+    console.log('Obtendo recomendação:', recommendation);
+    return recommendation;
   }, [userProfile, generateRecommendation]);
 
   const resetChat = useCallback(() => {
+    console.log('Resetando chat');
     localStorage.removeItem(SESSION_KEY);
     setUserProfile({
       primeira_interacao: true,
@@ -283,11 +317,15 @@ export const useMestreDaBeleza = () => {
   }, []);
 
   const isCompleted = useCallback(() => {
-    return userProfile.step === 'recommendation' || userProfile.step === 'completed';
+    const completed = userProfile.step === 'recommendation' || userProfile.step === 'completed';
+    console.log('isCompleted:', completed, 'step:', userProfile.step);
+    return completed;
   }, [userProfile.step]);
 
   const getProgress = useCallback(() => {
-    return Math.round((userProfile.current_question_index / questionBank.length) * 100);
+    const progress = Math.round((userProfile.current_question_index / questionBank.length) * 100);
+    console.log('Progress:', progress, 'index:', userProfile.current_question_index, 'total:', questionBank.length);
+    return progress;
   }, [userProfile.current_question_index]);
 
   return {
@@ -299,6 +337,6 @@ export const useMestreDaBeleza = () => {
     getCurrentQuestion,
     isCompleted,
     getProgress,
-    equipments: equipments.filter(eq => eq.ativo)
+    equipments: equipments?.filter(eq => eq.ativo) || []
   };
 };

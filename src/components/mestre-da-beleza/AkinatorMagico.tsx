@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
+import { useMestreDaBelezaAnalytics, ANALYTICS_EVENTS } from '@/hooks/useMestreDaBelezaAnalytics';
 import RecommendationDisplay from './RecommendationDisplay';
 import './akinator-animations.css';
 
@@ -31,16 +32,47 @@ const AkinatorMagico: React.FC = () => {
     processUserResponse,
     getCurrentQuestion,
     isCompleted,
-    getProgress
+    getProgress,
+    equipments
   } = useMestreDaBeleza();
+  
+  const { logEvent } = useMestreDaBelezaAnalytics();
   
   const [isThinking, setIsThinking] = useState(false);
   const [mysticalPhrase, setMysticalPhrase] = useState('Preparando a consulta mágica...');
+  const [isLoading, setIsLoading] = useState(true);
 
   const currentQuestion = getCurrentQuestion();
   const currentRecommendation = getRecommendation();
   const progress = getProgress();
   const confidence = Math.min(95, Math.max(40, progress));
+
+  // Verificar se há equipamentos disponíveis
+  useEffect(() => {
+    console.log('AkinatorMagico - Estado atual:', {
+      userProfile,
+      currentQuestion: currentQuestion?.id,
+      isCompleted: isCompleted(),
+      equipmentsCount: equipments?.length || 0,
+      progress
+    });
+
+    if (equipments !== undefined) {
+      setIsLoading(false);
+      if (equipments.length === 0) {
+        console.warn('Nenhum equipamento encontrado para recomendação');
+      }
+    }
+  }, [equipments, userProfile, currentQuestion, isCompleted, progress]);
+
+  // Log de início de sessão
+  useEffect(() => {
+    if (!isLoading && userProfile.primeira_interacao) {
+      logEvent(ANALYTICS_EVENTS.SESSION_STARTED, { 
+        equipments_available: equipments?.length || 0 
+      }, userProfile);
+    }
+  }, [isLoading, userProfile.primeira_interacao, equipments, logEvent, userProfile]);
 
   // Frases místicas baseadas no progresso
   useEffect(() => {
@@ -62,6 +94,13 @@ const AkinatorMagico: React.FC = () => {
 
     setIsThinking(true);
     
+    // Log da resposta
+    logEvent(ANALYTICS_EVENTS.QUESTION_ANSWERED, {
+      question_id: currentQuestion.id,
+      answer,
+      question_index: userProfile.current_question_index
+    }, userProfile);
+    
     // Simular tempo de "pensamento" do Akinator
     await new Promise(resolve => setTimeout(resolve, 1500));
     
@@ -72,6 +111,7 @@ const AkinatorMagico: React.FC = () => {
   };
 
   const handleResetGame = () => {
+    logEvent(ANALYTICS_EVENTS.SESSION_RESET, {}, userProfile);
     resetChat();
   };
 
@@ -84,9 +124,48 @@ const AkinatorMagico: React.FC = () => {
   };
 
   const handleContinueFromRecommendation = () => {
-    // Aqui pode implementar navegação para outras páginas
     console.log('Continuing from recommendation...');
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center"
+          >
+            <Brain className="h-8 w-8 text-white" />
+          </motion.div>
+          <h2 className="text-xl font-semibold text-white">Carregando Mestre da Beleza...</h2>
+          <p className="text-purple-300">Preparando a experiência mágica</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - quando não há equipamentos
+  if (equipments?.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white">Equipamentos Não Encontrados</h2>
+          <p className="text-purple-300 max-w-md">
+            Não foi possível carregar os equipamentos necessários para a consulta mágica.
+          </p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            Tentar Novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const renderWelcomeScreen = () => (
     <div className="text-center space-y-8">
@@ -108,7 +187,7 @@ const AkinatorMagico: React.FC = () => {
           </div>
         </div>
         
-        <h1 className="text-4xl font-bold text-magical mb-4">
+        <h1 className="text-4xl font-bold text-white mb-4">
           🔮 Mestre da Beleza Mágico
         </h1>
         <p className="text-xl text-gray-300 max-w-md mx-auto leading-relaxed">
@@ -131,7 +210,7 @@ const AkinatorMagico: React.FC = () => {
         <Button
           onClick={handleStartNewSession}
           size="lg"
-          className="magical-glow bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold text-lg"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold text-lg"
         >
           <Zap className="mr-2 h-5 w-5" />
           Iniciar Consulta Mágica
@@ -171,13 +250,13 @@ const AkinatorMagico: React.FC = () => {
         animate={{ opacity: 1 }}
         className="text-center"
       >
-        <p className="text-purple-300 italic text-sm thought-bubble">
+        <p className="text-purple-300 italic text-sm">
           "{mysticalPhrase}"
         </p>
       </motion.div>
 
       {/* Card da pergunta */}
-      <Card className="aurora-glass magical-glow">
+      <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 backdrop-blur-sm border-2 border-purple-400/50">
         <CardContent className="p-8">
           <AnimatePresence mode="wait">
             {isThinking ? (
@@ -282,7 +361,7 @@ const AkinatorMagico: React.FC = () => {
   const isQuestioningPhase = !isWelcomePhase && !isCompleted() && currentQuestion;
   const isCompletedPhase = isCompleted() && currentRecommendation;
 
-  console.log('Estado atual:', {
+  console.log('Estado de renderização:', {
     step: userProfile.step,
     isWelcome: isWelcomePhase,
     isQuestioning: isQuestioningPhase,
