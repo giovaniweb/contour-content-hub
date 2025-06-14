@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAkinatorMagico } from "@/hooks/useAkinatorMagico";
@@ -143,7 +144,8 @@ const RevelacaoEpica: React.FC<{
   equipamentos: any[];
   tentativas: number;
   onReset: () => void;
-}> = ({ equipamentos, tentativas, onReset }) => {
+  explicacao: string;
+}> = ({ equipamentos, tentativas, onReset, explicacao }) => {
   const equipamentoEscolhido = equipamentos[0];
 
   return (
@@ -225,9 +227,9 @@ const RevelacaoEpica: React.FC<{
           )}
 
           <div className="space-y-2">
-            <p className="text-purple-200 font-medium">Por que escolhi este?</p>
+            <p className="text-purple-200 font-medium">Como eu descobri?</p>
             <p className="text-sm text-purple-300">
-              {equipamentoEscolhido?.indicacoes || "Baseado nas suas respostas únicas"}
+              {explicacao}
             </p>
           </div>
         </div>
@@ -265,6 +267,17 @@ const RevelacaoEpica: React.FC<{
 export const AkinatorMagico: React.FC = () => {
   const { equipments } = useEquipments();
   const akinator = useAkinatorMagico(equipments);
+
+  if (!equipments || equipments.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 flex items-center justify-center p-4">
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Carregando equipamentos...</h2>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 flex items-center justify-center p-4">
@@ -352,6 +365,7 @@ export const AkinatorMagico: React.FC = () => {
                 equipamentos={akinator.equipamentosRestantes}
                 tentativas={akinator.tentativas}
                 onReset={akinator.reset}
+                explicacao={akinator.explicacaoEscolha}
               />
             )}
           </AnimatePresence>

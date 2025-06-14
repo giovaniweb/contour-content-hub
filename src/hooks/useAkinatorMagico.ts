@@ -25,15 +25,16 @@ interface EstadoAkinator {
   fase: "questionando" | "tentativa" | "revelacao" | "finalizado";
   tentativas: number;
   pensando: boolean;
+  explicacaoEscolha: string;
 }
 
-// Banco de perguntas estratégicas (50+ perguntas)
+// Banco de perguntas estratégicas otimizado
 const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
-  // === PERGUNTAS DE ELIMINAÇÃO TÉCNICA ===
+  // === PERGUNTAS DE ELIMINAÇÃO BÁSICA ===
   {
-    id: "area_rosto_corpo",
-    texto: "O que você imagina sendo tratado principalmente?",
-    opcoes: ["Meu rosto", "Meu corpo", "Ambos igualmente", "Não sei ainda"],
+    id: "area_principal",
+    texto: "Onde você imagina usando este equipamento principalmente?",
+    opcoes: ["No rosto", "No corpo", "Ambos", "Não tenho certeza"],
     tipo: "eliminacao",
     peso: 10,
     criterios: [
@@ -42,9 +43,9 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "invasividade",
-    texto: "Como você se sente em relação a procedimentos?",
-    opcoes: ["Prefiro nada invasivo", "Aceito algo minimamente invasivo", "Não me importo com invasividade", "Tenho medo de dor"],
+    id: "invasividade_comfort",
+    texto: "Como você se sente sobre procedimentos invasivos?",
+    opcoes: ["Prefiro nada invasivo", "Um pouco invasivo é ok", "Não me importo", "Depende do resultado"],
     tipo: "eliminacao",
     peso: 9,
     criterios: [
@@ -53,95 +54,9 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "tempo_resultado",
-    texto: "Qual sua expectativa sobre resultados?",
-    opcoes: ["Quero ver resultados imediatos", "Posso esperar algumas semanas", "Resultados graduais são ok", "Não tenho pressa"],
-    tipo: "psicologica",
-    peso: 7,
-    criterios: [
-      { campo: "meta", valores: ["rapido", "imediato"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS PSICOLÓGICAS E COMPORTAMENTAIS ===
-  {
-    id: "espelho_manha",
-    texto: "Quando você se olha no espelho de manhã...",
-    opcoes: ["Sinto que algo precisa melhorar", "Geralmente me sinto bem", "Evito me olhar muito", "Analiso cada detalhe"],
-    tipo: "psicologica",
-    peso: 8,
-    criterios: [
-      { campo: "meta", valores: ["autoestima", "melhoria"], elimina: false }
-    ]
-  },
-  {
-    id: "roupas_esconder",
-    texto: "Você já escolheu roupas para esconder alguma parte do corpo?",
-    opcoes: ["Sim, sempre faço isso", "Às vezes", "Raramente", "Nunca pensei nisso"],
-    tipo: "comportamental",
-    peso: 8,
-    criterios: [
-      { campo: "meta", valores: ["contorno", "modelagem"], elimina: false }
-    ]
-  },
-  {
-    id: "fotos_selfies",
-    texto: "Como você se sente ao tirar selfies?",
-    opcoes: ["Sempre procuro o melhor ângulo", "Natural, sem muito drama", "Prefiro evitar", "Amo tirar fotos"],
-    tipo: "psicologica",
-    peso: 6,
-    criterios: [
-      { campo: "meta", valores: ["facial", "rosto"], elimina: false }
-    ]
-  },
-  {
-    id: "exercicio_frequencia",
-    texto: "Qual sua relação com exercícios físicos?",
-    opcoes: ["Pratico regularmente", "Pratico às vezes", "Evito exercícios", "Gostaria de complementar os resultados"],
-    tipo: "comportamental",
-    peso: 7,
-    criterios: [
-      { campo: "meta", valores: ["corporal", "tonificacao"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS NOSTÁLGICAS ===
-  {
-    id: "novela_dancinha",
-    texto: "Você se lembra da época das 'dancinhas' de novela?",
-    opcoes: ["Sim, dancei muito!", "Lembro vagamente", "Não me lembro", "Que dancinhas?"],
-    tipo: "nostalgia",
-    peso: 5,
-    criterios: [
-      { campo: "meta", valores: ["idade_35_45"], elimina: false }
-    ]
-  },
-  {
-    id: "orkut_fotolog",
-    texto: "Você teve Orkut ou Fotolog?",
-    opcoes: ["Tive os dois!", "Só Orkut", "Só Fotolog", "Não tive nenhum"],
-    tipo: "nostalgia",
-    peso: 5,
-    criterios: [
-      { campo: "meta", valores: ["idade_25_35"], elimina: false }
-    ]
-  },
-  {
-    id: "tv_colosso",
-    texto: "Assistiu TV Colosso quando criança?",
-    opcoes: ["Assistia todo dia!", "Às vezes", "Não lembro", "Nunca ouvi falar"],
-    tipo: "nostalgia",
-    peso: 5,
-    criterios: [
-      { campo: "meta", valores: ["idade_30_40"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS ESPECÍFICAS DE SINTOMAS ===
-  {
-    id: "pele_firmeza",
-    texto: "Como você avalia a firmeza da sua pele?",
-    opcoes: ["Perdeu muita firmeza", "Um pouco flácida", "Razoavelmente firme", "Muito firme"],
+    id: "flacidez_concern",
+    texto: "A flacidez é uma preocupação para você?",
+    opcoes: ["Sim, muito", "Um pouco", "Não muito", "Não é problema"],
     tipo: "tecnica",
     peso: 9,
     criterios: [
@@ -149,9 +64,9 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "gordura_incomoda",
-    texto: "Existe alguma 'pochete' ou gordurinha que te incomoda?",
-    opcoes: ["Sim, me incomoda bastante", "Um pouco", "Não muito", "Não tenho isso"],
+    id: "gordura_localizada",
+    texto: "Tem alguma 'gordurinha' que te incomoda?",
+    opcoes: ["Sim, bastante", "Um pouco", "Quase nada", "Não tenho"],
     tipo: "tecnica",
     peso: 9,
     criterios: [
@@ -159,9 +74,9 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "manchas_sol",
-    texto: "Você tem manchas na pele ou melasma?",
-    opcoes: ["Sim, várias manchas", "Algumas manchas", "Poucas manchas", "Não tenho"],
+    id: "manchas_pigmentacao",
+    texto: "Manchas ou descoloração na pele te incomodam?",
+    opcoes: ["Sim, muito", "Algumas manchas", "Poucas", "Não tenho"],
     tipo: "tecnica",
     peso: 9,
     criterios: [
@@ -169,53 +84,9 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "musculo_tonus",
-    texto: "Como está seu tônus muscular?",
-    opcoes: ["Muito flácido", "Pouco tônus", "Razoável", "Bem tonificado"],
-    tipo: "tecnica",
-    peso: 8,
-    criterios: [
-      { campo: "indicacoes", valores: ["tonificação", "músculo", "fortalecimento"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS DE ESTILO DE VIDA ===
-  {
-    id: "tempo_cuidados",
-    texto: "Quanto tempo você dedica aos cuidados pessoais?",
-    opcoes: ["Muito tempo, sou detalhista", "Tempo moderado", "Pouco tempo", "Quase nenhum tempo"],
-    tipo: "comportamental",
-    peso: 6,
-    criterios: [
-      { campo: "meta", valores: ["cuidado", "rotina"], elimina: false }
-    ]
-  },
-  {
-    id: "investimento_beleza",
-    texto: "Como você vê investimento em beleza/estética?",
-    opcoes: ["Prioridade máxima", "Importante, mas com limites", "Gasto ocasional", "Evito gastos"],
-    tipo: "psicologica",
-    peso: 7,
-    criterios: [
-      { campo: "nivel_investimento", valores: ["Alto", "Médio", "Baixo"], elimina: false }
-    ]
-  },
-  {
-    id: "profissao_exposicao",
-    texto: "Sua profissão exige boa aparência?",
-    opcoes: ["Sim, é fundamental", "Um pouco", "Não muito", "Não interfere"],
-    tipo: "comportamental",
-    peso: 6,
-    criterios: [
-      { campo: "meta", valores: ["profissional", "aparência"], elimina: false }
-    ]
-  },
-
-  // === PERGUNTAS AVANÇADAS DE ELIMINAÇÃO ===
-  {
     id: "tecnologia_preferencia",
-    texto: "Que tipo de tecnologia te atrai mais?",
-    opcoes: ["Laser e luz", "Radiofrequência", "Ultrassom", "Não tenho preferência"],
+    texto: "Que tipo de tecnologia mais te atrai?",
+    opcoes: ["Laser e luz", "Radiofrequência", "Ultrassom", "Qualquer uma"],
     tipo: "tecnica",
     peso: 8,
     criterios: [
@@ -224,32 +95,22 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
       { campo: "tecnologia", valores: ["ultrassom", "HIFU"], elimina: false }
     ]
   },
-  {
-    id: "sessoes_frequencia",
-    texto: "Qual frequência de sessões você prefere?",
-    opcoes: ["Poucas sessões intensas", "Muitas sessões suaves", "Depende do resultado", "Uma sessão só"],
-    tipo: "comportamental",
-    peso: 6,
-    criterios: [
-      { campo: "meta", valores: ["intensivo", "suave"], elimina: false }
-    ]
-  },
 
-  // === MAIS PERGUNTAS ESTRATÉGICAS ===
+  // === PERGUNTAS PSICOLÓGICAS ===
   {
-    id: "relacionamento_status",
-    texto: "Atualmente você está...",
-    opcoes: ["Solteiro(a) e ativo(a)", "Em relacionamento", "Casado(a)", "Focado(a) em mim"],
+    id: "espelho_manha",
+    texto: "Quando se olha no espelho de manhã...",
+    opcoes: ["Sinto que preciso melhorar algo", "Me sinto bem", "Evito me olhar muito", "Analiso cada detalhe"],
     tipo: "psicologica",
-    peso: 5,
+    peso: 7,
     criterios: [
-      { campo: "meta", valores: ["autoestima", "confiança"], elimina: false }
+      { campo: "meta", valores: ["autoestima", "melhoria"], elimina: false }
     ]
   },
   {
     id: "idade_aparencia",
-    texto: "Como você se sente em relação à sua idade?",
-    opcoes: ["Quero parecer mais jovem", "Estou bem com minha idade", "Idade não me preocupa", "Quero envelhecer bem"],
+    texto: "Como se sente em relação à sua idade atual?",
+    opcoes: ["Quero parecer mais jovem", "Estou ok com minha idade", "Idade não importa", "Quero envelhecer bem"],
     tipo: "psicologica",
     peso: 7,
     criterios: [
@@ -257,13 +118,87 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     ]
   },
   {
-    id: "eventos_especiais",
-    texto: "Você tem algum evento especial se aproximando?",
-    opcoes: ["Sim, em breve", "Talvez no futuro", "Nada específico", "Sempre me preparo"],
+    id: "exercicio_relacao",
+    texto: "Qual sua relação com exercícios físicos?",
+    opcoes: ["Pratico regularmente", "Às vezes", "Evito", "Quero complementar resultados"],
     tipo: "comportamental",
     peso: 6,
     criterios: [
-      { campo: "meta", valores: ["evento", "preparação"], elimina: false }
+      { campo: "meta", valores: ["corporal", "tonificacao"], elimina: false }
+    ]
+  },
+
+  // === PERGUNTAS NOSTÁLGICAS ===
+  {
+    id: "novela_dancinha",
+    texto: "Lembra das 'dancinhas' de novela dos anos 90?",
+    opcoes: ["Sim, dancei muito!", "Lembro vagamente", "Não lembro", "Que dancinhas?"],
+    tipo: "nostalgia",
+    peso: 5,
+    criterios: [
+      { campo: "meta", valores: ["idade_35_45"], elimina: false }
+    ]
+  },
+  {
+    id: "orkut_memories",
+    texto: "Teve Orkut ou Fotolog?",
+    opcoes: ["Tive os dois!", "Só Orkut", "Só Fotolog", "Não tive"],
+    tipo: "nostalgia",
+    peso: 5,
+    criterios: [
+      { campo: "meta", valores: ["idade_25_35"], elimina: false }
+    ]
+  },
+
+  // === PERGUNTAS ESPECÍFICAS TÉCNICAS ===
+  {
+    id: "musculo_tonus",
+    texto: "Como avalia o tônus muscular do seu corpo?",
+    opcoes: ["Muito flácido", "Pouco tônus", "Razoável", "Bem tonificado"],
+    tipo: "tecnica",
+    peso: 8,
+    criterios: [
+      { campo: "indicacoes", valores: ["tonificação", "músculo", "fortalecimento"], elimina: false }
+    ]
+  },
+  {
+    id: "tempo_resultado",
+    texto: "Qual sua expectativa sobre resultados?",
+    opcoes: ["Quero resultados rápidos", "Posso esperar", "Resultados graduais ok", "Não tenho pressa"],
+    tipo: "comportamental",
+    peso: 6,
+    criterios: [
+      { campo: "meta", valores: ["rapido", "imediato"], elimina: false }
+    ]
+  },
+  {
+    id: "investimento_disposicao",
+    texto: "Como vê investimento em estética?",
+    opcoes: ["Prioridade máxima", "Importante mas com limites", "Gasto ocasional", "Evito gastos"],
+    tipo: "comportamental",
+    peso: 6,
+    criterios: [
+      { campo: "nivel_investimento", valores: ["Alto", "Médio", "Baixo"], elimina: false }
+    ]
+  },
+  {
+    id: "profissao_aparencia",
+    texto: "Sua profissão exige boa aparência?",
+    opcoes: ["Sim, é fundamental", "Um pouco", "Não muito", "Não interfere"],
+    tipo: "comportamental",
+    peso: 5,
+    criterios: [
+      { campo: "meta", valores: ["profissional", "aparência"], elimina: false }
+    ]
+  },
+  {
+    id: "sessoes_preferencia",
+    texto: "Qual frequência de sessões prefere?",
+    opcoes: ["Poucas sessões intensas", "Muitas sessões suaves", "Depende do resultado", "Uma sessão só"],
+    tipo: "comportamental",
+    peso: 6,
+    criterios: [
+      { campo: "meta", valores: ["intensivo", "suave"], elimina: false }
     ]
   },
   {
@@ -271,39 +206,29 @@ const PERGUNTAS_AKINATOR: PerguntaAkinator[] = [
     texto: "Como é sua tolerância à dor/desconforto?",
     opcoes: ["Muito baixa", "Baixa", "Média", "Alta"],
     tipo: "tecnica",
-    peso: 8,
-    criterios: [
-      { campo: "tipo_acao", valores: ["Não invasivo"], elimina: false }
-    ]
-  },
-  {
-    id: "resultados_anteriores",
-    texto: "Já fez algum tratamento estético antes?",
-    opcoes: ["Sim, vários", "Alguns", "Poucos", "Nunca fiz"],
-    tipo: "comportamental",
     peso: 7,
     criterios: [
-      { campo: "meta", valores: ["experiência"], elimina: false }
+      { campo: "tipo_acao", valores: ["Não invasivo"], elimina: false }
     ]
   }
 ];
 
 // Frases mágicas do Akinator
 const FRASES_PENSANDO = [
-  "Hmm... interessante escolha... 🤔",
-  "Estou vendo algo em você... ✨",
-  "Sua aura está me revelando segredos... 🔮",
-  "As estrelas estão se alinhando... ⭐",
-  "Posso sentir sua energia... 💫",
-  "Estou lendo sua essência... 🌟",
-  "Algo está ficando claro... 💡",
-  "Seu desejo está se manifestando... 🌙"
+  "Hmm... sua energia está me revelando segredos... 🔮",
+  "Estou vendo algo interessante em sua aura... ✨", 
+  "As estrelas estão se alinhando para mim... ⭐",
+  "Posso sentir suas intenções mais profundas... 💫",
+  "Sua essência está sussurrando respostas... 🌟",
+  "Algo está ficando cristalino... 💎",
+  "Seu desejo verdadeiro está emergindo... 🌙",
+  "Os ventos cósmicos trazem clareza... 🌌"
 ];
 
 const FRASES_CONFIANCA = {
-  baixa: ["Ainda estou investigando...", "Preciso de mais pistas...", "Algo me escapa ainda..."],
-  media: ["Estou chegando lá...", "A verdade está emergindo...", "Quase posso ver..."],
-  alta: ["Já sei quem você é!", "Descobri seu segredo!", "Sua escolha está clara!"]
+  baixa: ["Ainda estou decifrando seus mistérios...", "Preciso de mais pistas da sua alma...", "Algo ainda me escapa..."],
+  media: ["Estou chegando perto da verdade...", "Sua essência está se revelando...", "Quase posso tocar sua escolha..."],
+  alta: ["Já vejo claramente quem você é!", "Descobri o segredo do seu coração!", "Sua escolha está nua diante de mim!"]
 };
 
 export function useAkinatorMagico(equipamentos: Equipment[]) {
@@ -314,31 +239,41 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     confianca: 0,
     fase: "questionando",
     tentativas: 0,
-    pensando: false
+    pensando: false,
+    explicacaoEscolha: ""
   });
 
   // Algoritmo para calcular entropia e escolher melhor pergunta
   const calcularEntropia = useCallback((equipamentosRestantes: Equipment[], pergunta: PerguntaAkinator) => {
+    if (equipamentosRestantes.length <= 1) return 0;
+    
     let entropia = 0;
+    const total = equipamentosRestantes.length;
     
     pergunta.opcoes.forEach(opcao => {
-      const equipamentosFiltrados = equipamentosRestantes.filter(eq => {
+      let equipamentosFiltrados = equipamentosRestantes.filter(eq => {
         return pergunta.criterios.some(criterio => {
-          const valor = eq[criterio.campo];
+          const valor = eq[criterio.campo as keyof Equipment];
+          
           if (Array.isArray(valor)) {
-            return criterio.valores.some(cv => valor.some(v => v.toLowerCase().includes(cv.toLowerCase())));
+            return criterio.valores.some(cv => 
+              valor.some(v => String(v).toLowerCase().includes(cv.toLowerCase()))
+            );
           }
-          return criterio.valores.some(cv => String(valor).toLowerCase().includes(cv.toLowerCase()));
+          
+          return criterio.valores.some(cv => 
+            String(valor).toLowerCase().includes(cv.toLowerCase())
+          );
         });
       });
       
-      const proporcao = equipamentosFiltrados.length / equipamentosRestantes.length;
-      if (proporcao > 0) {
-        entropia -= proporcao * Math.log2(proporcao);
+      const proporcao = equipamentosFiltrados.length / total;
+      if (proporcao > 0 && proporcao < 1) {
+        entropia -= proporcao * Math.log2(proporcao) + (1 - proporcao) * Math.log2(1 - proporcao);
       }
     });
     
-    return entropia;
+    return entropia * pergunta.peso;
   }, []);
 
   // Escolher próxima pergunta baseada em entropia
@@ -350,6 +285,14 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     );
     
     if (perguntasDisponiveis.length === 0) return null;
+    
+    // Se temos poucos equipamentos, priorizar perguntas técnicas
+    if (estado.equipamentosAtivos.length <= 5) {
+      const perguntasTecnicas = perguntasDisponiveis.filter(p => p.tipo === "tecnica");
+      if (perguntasTecnicas.length > 0) {
+        return perguntasTecnicas.sort((a, b) => b.peso - a.peso)[0];
+      }
+    }
     
     // Calcular melhor pergunta por entropia
     let melhorPergunta = perguntasDisponiveis[0];
@@ -372,12 +315,41 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     const restantes = estado.equipamentosAtivos.length;
     
     if (restantes <= 1) return 95;
-    if (restantes <= 3) return 85;
-    if (restantes <= 5) return 70;
-    if (restantes <= 10) return 50;
+    if (restantes <= 2) return 85;
+    if (restantes <= 3) return 75;
+    if (restantes <= 5) return 65;
+    if (restantes <= 8) return 50;
     
-    return Math.max(10, Math.round((total - restantes) / total * 100));
+    return Math.max(15, Math.round((total - restantes) / total * 100));
   }, [estado.equipamentosAtivos.length, equipamentos]);
+
+  // Gerar explicação da escolha
+  const gerarExplicacao = useCallback((equipamento: Equipment, respostas: Record<string, string>) => {
+    const pontos = [];
+    
+    // Analisar respostas para criar explicação personalizada
+    if (respostas.area_principal?.includes("rosto") && equipamento.area_aplicacao?.includes("facial")) {
+      pontos.push("você mencionou foco no rosto");
+    }
+    if (respostas.area_principal?.includes("corpo") && equipamento.area_aplicacao?.includes("corporal")) {
+      pontos.push("você indicou interesse no corpo");
+    }
+    if (respostas.flacidez_concern?.includes("Sim") && equipamento.indicacoes?.includes("flacidez")) {
+      pontos.push("sua preocupação com flacidez");
+    }
+    if (respostas.gordura_localizada?.includes("Sim") && equipamento.indicacoes?.includes("gordura")) {
+      pontos.push("seu interesse em redução de gordura");
+    }
+    if (respostas.manchas_pigmentacao?.includes("Sim") && equipamento.indicacoes?.includes("mancha")) {
+      pontos.push("suas questões com pigmentação");
+    }
+    
+    if (pontos.length === 0) {
+      return "Através da análise mágica das suas respostas, pude detectar que este equipamento ressoa perfeitamente com sua energia!";
+    }
+    
+    return `Detectei através de ${pontos.join(", ")} que este é exatamente o equipamento que sua alma busca!`;
+  }, []);
 
   // Responder pergunta com eliminação progressiva
   const responder = useCallback(async (resposta: string) => {
@@ -386,20 +358,19 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     setEstado(prev => ({ ...prev, pensando: true }));
     
     // Simular "pensamento" do Akinator
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     const novasRespostas = { ...estado.respostas, [proximaPergunta.id]: resposta };
     
     // Filtrar equipamentos baseado na resposta
     let equipamentosFiltrados = estado.equipamentosAtivos.filter(eq => {
       return proximaPergunta.criterios.some(criterio => {
-        const valor = eq[criterio.campo];
-        const match = criterio.valores.some(cv => {
-          if (Array.isArray(valor)) {
-            return valor.some(v => v.toLowerCase().includes(cv.toLowerCase()));
-          }
-          return String(valor).toLowerCase().includes(cv.toLowerCase());
-        });
+        const valor = eq[criterio.campo as keyof Equipment];
+        const valorStr = Array.isArray(valor) ? valor.join(" ") : String(valor);
+        
+        const match = criterio.valores.some(cv => 
+          valorStr.toLowerCase().includes(cv.toLowerCase())
+        );
         
         // Se a resposta corresponde ao critério, manter equipamento
         const respostaMatch = criterio.valores.some(cv => 
@@ -410,13 +381,19 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
       });
     });
     
-    // Se filtrou demais, manter alguns equipamentos
+    // Se filtrou demais, usar algoritmo de backup
     if (equipamentosFiltrados.length === 0) {
       equipamentosFiltrados = estado.equipamentosAtivos.slice(0, Math.max(1, Math.floor(estado.equipamentosAtivos.length / 2)));
     }
     
     const novaConfianca = confiancaCalculada;
     const novasFeitasIds = [...estado.perguntasFeitas, proximaPergunta.id];
+    
+    // Determinar próxima fase
+    let novaFase: "questionando" | "tentativa" | "revelacao" = "questionando";
+    if (novaConfianca >= 75 || equipamentosFiltrados.length <= 1 || novasFeitasIds.length >= 10) {
+      novaFase = "tentativa";
+    }
     
     setEstado(prev => ({
       ...prev,
@@ -425,18 +402,22 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
       perguntasFeitas: novasFeitasIds,
       confianca: novaConfianca,
       pensando: false,
-      fase: novaConfianca >= 85 || equipamentosFiltrados.length <= 1 ? "tentativa" : "questionando"
+      fase: novaFase
     }));
   }, [proximaPergunta, estado, confiancaCalculada]);
 
   // Fazer tentativa de adivinhação
   const fazerTentativa = useCallback(() => {
+    const equipamentoEscolhido = estado.equipamentosAtivos[0];
+    const explicacao = gerarExplicacao(equipamentoEscolhido, estado.respostas);
+    
     setEstado(prev => ({
       ...prev,
       fase: "revelacao",
-      tentativas: prev.tentativas + 1
+      tentativas: prev.tentativas + 1,
+      explicacaoEscolha: explicacao
     }));
-  }, []);
+  }, [estado.equipamentosAtivos, estado.respostas, gerarExplicacao]);
 
   // Reset do jogo
   const reset = useCallback(() => {
@@ -447,13 +428,14 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
       confianca: 0,
       fase: "questionando",
       tentativas: 0,
-      pensando: false
+      pensando: false,
+      explicacaoEscolha: ""
     });
   }, [equipamentos]);
 
   // Pegar frase mágica baseada na confiança
   const fraseMagica = useMemo(() => {
-    if (estado.confianca >= 80) {
+    if (estado.confianca >= 75) {
       return FRASES_CONFIANCA.alta[Math.floor(Math.random() * FRASES_CONFIANCA.alta.length)];
     } else if (estado.confianca >= 50) {
       return FRASES_CONFIANCA.media[Math.floor(Math.random() * FRASES_CONFIANCA.media.length)];
@@ -473,6 +455,7 @@ export function useAkinatorMagico(equipamentos: Equipment[]) {
     fase: estado.fase,
     tentativas: estado.tentativas,
     pensando: estado.pensando,
+    explicacaoEscolha: estado.explicacaoEscolha,
     historico: estado.perguntasFeitas.map(id => ({
       pergunta: PERGUNTAS_AKINATOR.find(p => p.id === id)?.texto || "",
       resposta: estado.respostas[id] || ""
