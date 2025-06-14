@@ -7,7 +7,12 @@ export const approvedScriptsService = {
   async createApprovedScript(scriptData: Partial<ApprovedScript>): Promise<ApprovedScript | null> {
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return null;
+      if (!userData.user) {
+        console.log('❌ Usuário não autenticado');
+        return null;
+      }
+
+      console.log('📝 Criando roteiro aprovado:', scriptData.title);
 
       const { data, error } = await supabase
         .from('approved_scripts')
@@ -24,10 +29,15 @@ export const approvedScriptsService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao criar roteiro:', error);
+        throw error;
+      }
+      
+      console.log('✅ Roteiro aprovado criado:', data.id);
       return data as ApprovedScript;
     } catch (error) {
-      console.error('Erro ao criar roteiro aprovado:', error);
+      console.error('❌ Erro ao criar roteiro aprovado:', error);
       return null;
     }
   },
@@ -35,17 +45,31 @@ export const approvedScriptsService = {
   // Buscar roteiros aprovados do usuário
   async getApprovedScripts(): Promise<ApprovedScriptWithPerformance[]> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        console.log('❌ Usuário não autenticado');
+        return [];
+      }
+
+      console.log('🔍 Buscando roteiros aprovados para usuário:', userData.user.id);
+
       const { data, error } = await supabase
         .from('approved_scripts')
         .select(`
           *,
           script_performance (*)
         `)
+        .eq('user_id', userData.user.id)
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro na query:', error);
+        throw error;
+      }
       
+      console.log('📊 Roteiros encontrados:', data?.length || 0);
+
       return data?.map(script => ({
         ...script,
         format: script.format as 'carrossel' | 'stories' | 'imagem' | 'reels',
@@ -57,7 +81,7 @@ export const approvedScriptsService = {
         } : undefined
       })) || [];
     } catch (error) {
-      console.error('Erro ao buscar roteiros aprovados:', error);
+      console.error('❌ Erro ao buscar roteiros aprovados:', error);
       return [];
     }
   },
@@ -73,6 +97,8 @@ export const approvedScriptsService = {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return null;
 
+      console.log('⭐ Adicionando performance:', rating, 'para script:', scriptId);
+
       const { data, error } = await supabase
         .from('script_performance')
         .insert({
@@ -85,14 +111,19 @@ export const approvedScriptsService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao adicionar performance:', error);
+        throw error;
+      }
+      
+      console.log('✅ Performance adicionada:', data.id);
       return {
         ...data,
         performance_rating: data.performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending',
         metrics: (data.metrics as any) || {}
       } as ScriptPerformance;
     } catch (error) {
-      console.error('Erro ao adicionar performance:', error);
+      console.error('❌ Erro ao adicionar performance:', error);
       return null;
     }
   },
@@ -100,12 +131,16 @@ export const approvedScriptsService = {
   // Buscar roteiros com melhor performance para IA
   async getBestPerformingScripts(): Promise<ApprovedScriptWithPerformance[]> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return [];
+
       const { data, error } = await supabase
         .from('approved_scripts')
         .select(`
           *,
           script_performance!inner (*)
         `)
+        .eq('user_id', userData.user.id)
         .eq('script_performance.performance_rating', 'bombou')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -123,7 +158,7 @@ export const approvedScriptsService = {
         } : undefined
       })) || [];
     } catch (error) {
-      console.error('Erro ao buscar roteiros de alta performance:', error);
+      console.error('❌ Erro ao buscar roteiros de alta performance:', error);
       return [];
     }
   },
@@ -133,6 +168,8 @@ export const approvedScriptsService = {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return false;
+
+      console.log('📅 Enviando para content planner:', scriptId);
 
       const { error } = await supabase
         .from('content_planner_items')
@@ -144,10 +181,15 @@ export const approvedScriptsService = {
           status: 'approved'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao enviar para planner:', error);
+        throw error;
+      }
+      
+      console.log('✅ Enviado para content planner');
       return true;
     } catch (error) {
-      console.error('Erro ao enviar para content planner:', error);
+      console.error('❌ Erro ao enviar para content planner:', error);
       return false;
     }
   }

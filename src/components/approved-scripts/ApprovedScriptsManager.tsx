@@ -19,7 +19,8 @@ import {
   Sparkles,
   Eye,
   ThumbsUp,
-  MessageCircle
+  MessageCircle,
+  RefreshCw
 } from 'lucide-react';
 import { ApprovedScriptWithPerformance } from '@/types/approved-scripts';
 import { approvedScriptsService } from '@/services/approvedScriptsService';
@@ -47,9 +48,13 @@ const ApprovedScriptsManager: React.FC = () => {
 
   const loadScripts = async () => {
     try {
+      console.log('🔄 Carregando roteiros aprovados...');
+      setLoading(true);
       const data = await approvedScriptsService.getApprovedScripts();
+      console.log('📊 Roteiros carregados:', data.length);
       setScripts(data);
     } catch (error) {
+      console.error('❌ Erro ao carregar roteiros:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os roteiros",
@@ -118,18 +123,18 @@ const ApprovedScriptsManager: React.FC = () => {
 
   const getPerformanceBadge = (performance?: any) => {
     if (!performance) {
-      return <Badge variant="outline">Sem avaliação</Badge>;
+      return <Badge variant="outline" className="text-xs">Sem avaliação</Badge>;
     }
 
     switch (performance.performance_rating) {
       case 'bombou':
-        return <Badge className="bg-green-500 text-white">🚀 BOMBOU</Badge>;
+        return <Badge className="bg-green-500 text-white text-xs">🚀 BOMBOU</Badge>;
       case 'flopou':
-        return <Badge className="bg-red-500 text-white">📉 FLOPOU</Badge>;
+        return <Badge className="bg-red-500 text-white text-xs">📉 FLOPOU</Badge>;
       case 'neutro':
-        return <Badge className="bg-yellow-500 text-white">😐 NEUTRO</Badge>;
+        return <Badge className="bg-yellow-500 text-white text-xs">😐 NEUTRO</Badge>;
       default:
-        return <Badge variant="outline">Pendente</Badge>;
+        return <Badge variant="outline" className="text-xs">Pendente</Badge>;
     }
   };
 
@@ -149,7 +154,7 @@ const ApprovedScriptsManager: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mx-auto" />
           <p className="mt-2 text-gray-600">Carregando roteiros...</p>
         </div>
       </div>
@@ -157,51 +162,51 @@ const ApprovedScriptsManager: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header com estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total</div>
+    <div className="max-w-full space-y-4 md:space-y-6">
+      {/* Header com estatísticas - Layout responsivo */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+        <Card className="p-2 md:p-4">
+          <CardContent className="p-2 md:p-4 text-center">
+            <div className="text-lg md:text-2xl font-bold">{stats.total}</div>
+            <div className="text-xs md:text-sm text-gray-600">Total</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-500">{stats.bombaram}</div>
-            <div className="text-sm text-gray-600">Bombaram</div>
+        <Card className="p-2 md:p-4">
+          <CardContent className="p-2 md:p-4 text-center">
+            <div className="text-lg md:text-2xl font-bold text-green-500">{stats.bombaram}</div>
+            <div className="text-xs md:text-sm text-gray-600">Bombaram</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-500">{stats.floparam}</div>
-            <div className="text-sm text-gray-600">Floparam</div>
+        <Card className="p-2 md:p-4">
+          <CardContent className="p-2 md:p-4 text-center">
+            <div className="text-lg md:text-2xl font-bold text-red-500">{stats.floparam}</div>
+            <div className="text-xs md:text-sm text-gray-600">Floparam</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-500">{stats.neutros}</div>
-            <div className="text-sm text-gray-600">Neutros</div>
+        <Card className="p-2 md:p-4">
+          <CardContent className="p-2 md:p-4 text-center">
+            <div className="text-lg md:text-2xl font-bold text-yellow-500">{stats.neutros}</div>
+            <div className="text-xs md:text-sm text-gray-600">Neutros</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-gray-500">{stats.semAvaliacao}</div>
-            <div className="text-sm text-gray-600">Sem Avaliação</div>
+        <Card className="p-2 md:p-4 col-span-2 md:col-span-1">
+          <CardContent className="p-2 md:p-4 text-center">
+            <div className="text-lg md:text-2xl font-bold text-gray-500">{stats.semAvaliacao}</div>
+            <div className="text-xs md:text-sm text-gray-600">Sem Avaliação</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros - Layout responsivo */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Filter className="h-4 w-4 md:h-5 md:w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
@@ -209,13 +214,13 @@ const ApprovedScriptsManager: React.FC = () => {
                   placeholder="Buscar roteiros..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
+                  className="pl-8 text-sm"
                 />
               </div>
             </div>
             
             <Select value={performanceFilter} onValueChange={setPerformanceFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Performance" />
               </SelectTrigger>
               <SelectContent>
@@ -227,7 +232,7 @@ const ApprovedScriptsManager: React.FC = () => {
             </Select>
 
             <Select value={formatFilter} onValueChange={setFormatFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Formato" />
               </SelectTrigger>
               <SelectContent>
@@ -238,22 +243,32 @@ const ApprovedScriptsManager: React.FC = () => {
                 <SelectItem value="imagem">Imagem</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button 
+              onClick={loadScripts} 
+              variant="outline" 
+              size="sm"
+              className="w-full md:w-auto"
+            >
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Atualizar
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Lista de roteiros */}
-      <div className="grid gap-4">
+      {/* Lista de roteiros - Layout responsivo */}
+      <div className="space-y-3 md:space-y-4">
         {filteredScripts.map((script) => (
           <Card key={script.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{script.title}</CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">{script.format}</Badge>
+            <CardHeader className="pb-2 md:pb-3">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base md:text-lg truncate">{script.title}</CardTitle>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge variant="outline" className="text-xs">{script.format}</Badge>
                     {script.equipment_used.length > 0 && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs">
                         {script.equipment_used.slice(0, 2).join(', ')}
                         {script.equipment_used.length > 2 && ' +mais'}
                       </Badge>
@@ -262,7 +277,7 @@ const ApprovedScriptsManager: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -270,33 +285,35 @@ const ApprovedScriptsManager: React.FC = () => {
                       setSelectedScriptId(script.id);
                       setFeedbackDialogOpen(true);
                     }}
+                    className="text-xs"
                   >
-                    <BarChart3 className="h-4 w-4 mr-1" />
+                    <BarChart3 className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                     Avaliar
                   </Button>
                   
                   <Button
                     size="sm"
                     onClick={() => sendToContentPlanner(script)}
+                    className="text-xs"
                   >
-                    <Calendar className="h-4 w-4 mr-1" />
+                    <Calendar className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                     Planejar
                   </Button>
                 </div>
               </div>
             </CardHeader>
             
-            <CardContent>
+            <CardContent className="pt-0">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2">
-                  <p className="text-sm text-gray-600 line-clamp-3">
+                  <p className="text-xs md:text-sm text-gray-600 line-clamp-3">
                     {script.script_content.substring(0, 300)}...
                   </p>
                 </div>
                 
                 {script.performance && (
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Métricas:</h4>
+                    <h4 className="text-xs md:text-sm font-medium">Métricas:</h4>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {script.performance.metrics.views && (
                         <div className="flex items-center gap-1">
@@ -330,19 +347,31 @@ const ApprovedScriptsManager: React.FC = () => {
         ))}
       </div>
 
-      {filteredScripts.length === 0 && (
+      {/* Empty State */}
+      {filteredScripts.length === 0 && !loading && (
         <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenh roteiro encontrado
+          <CardContent className="text-center py-8 md:py-12">
+            <FileText className="h-8 w-8 md:h-12 md:w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">
+              {scripts.length === 0 ? 'Nenhum roteiro aprovado' : 'Nenhum roteiro encontrado'}
             </h3>
-            <p className="text-gray-600">
-              {searchQuery || performanceFilter !== 'all' || formatFilter !== 'all'
-                ? 'Tente ajustar os filtros para ver mais resultados.'
-                : 'Comece aprovando alguns roteiros para vê-los aqui.'
+            <p className="text-sm md:text-base text-gray-600">
+              {scripts.length === 0 
+                ? 'Comece criando roteiros no FLUIDAROTEIRISTA e aprovando-os aqui.'
+                : searchQuery || performanceFilter !== 'all' || formatFilter !== 'all'
+                  ? 'Tente ajustar os filtros para ver mais resultados.'
+                  : 'Não há roteiros disponíveis no momento.'
               }
             </p>
+            {scripts.length === 0 && (
+              <Button 
+                onClick={() => window.location.href = '/fluidaroteirista'} 
+                className="mt-4"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Criar Primeiro Roteiro
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
