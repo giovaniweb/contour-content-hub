@@ -1,3 +1,4 @@
+
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
 
@@ -158,7 +159,6 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Mencione equipamentos pelos nomes REAIS no roteiro
     `,
     
-    
     post_estatico: `
     🖼️ POST ESTÁTICO - INSTRUÇÕES:
     - Uma imagem impactante
@@ -227,7 +227,7 @@ const getOutputInstructions = (formato: string): string => {
     
     Retorne JSON:
     {
-      "roteiro": "Story 1: [Gancho provocativo - 10s]\n[Conteúdo do Story 1 com dispositivo incluído]\n\nStory 2: [Erro comum + identificação - 10s]\n[Conteúdo do Story 2 com tom humorístico]\n\nStory 3: [Virada + dispositivo de engajamento - 10s]\n[Conteúdo do Story 3 com OBRIGATÓRIO dispositivo 🔥/📊/❓ + equipamentos se selecionados]\n\nStory 4: [CTA suave + antecipação - 10s]\n[Conteúdo do Story 4 com compartilhamento/reciprocidade]",
+      "roteiro": "Story 1: [Gancho provocativo - 10s]\\n[Conteúdo do Story 1 com dispositivo incluído]\\n\\nStory 2: [Erro comum + identificação - 10s]\\n[Conteúdo do Story 2 com tom humorístico]\\n\\nStory 3: [Virada + dispositivo de engajamento - 10s]\\n[Conteúdo do Story 3 com OBRIGATÓRIO dispositivo 🔥/📊/❓ + equipamentos se selecionados]\\n\\nStory 4: [CTA suave + antecipação - 10s]\\n[Conteúdo do Story 4 com compartilhamento/reciprocidade]",
       "formato": "stories",
       "metodologia": "leandro_ladeira",
       "stories_total": 4,
@@ -255,7 +255,7 @@ const getOutputInstructions = (formato: string): string => {
     🚨 IMPORTANTE: EXATAMENTE 5 SLIDES COM ESTRUTURA LIMPA (SEM HÍFENS)
     Retorne JSON:
     {
-      "roteiro": "Slide: Introdução\nTexto: [Gancho impactante em até 25 palavras]\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante, equipamento específico em destaque, iluminação suave, composição profissional, cores predominantes]\n\nSlide: O Problema\nTexto: [Desenvolvimento do problema]\nImagem: [Descrição visual específica mostrando o desafio, com detalhes de ambiente, expressão, situação]\n\nSlide: Nossa Solução\nTexto: [Solução apresentada com nome REAL do equipamento]\nImagem: [Descrição visual com equipamento REAL em ação, resultados visíveis, ambiente específico]\n\nSlide: Benefícios\nTexto: [Benefícios e diferenciais específicos]\nImagem: [Descrição visual do resultado final, satisfação do cliente, ambiente de resultado]\n\nSlide: Call to Action\nTexto: [CTA forte e direto com convite à ação]\nImagem: [Descrição visual de chamada para ação, profissional acolhedor, contato da clínica, ambiente convidativo]",
+      "roteiro": "Slide: Introdução\\nTexto: [Gancho impactante em até 25 palavras]\\nImagem: [Descrição visual detalhada: ambiente clínico moderno, pessoa confiante, equipamento específico em destaque, iluminação suave, composição profissional, cores predominantes]\\n\\nSlide: O Problema\\nTexto: [Desenvolvimento do problema]\\nImagem: [Descrição visual específica mostrando o desafio, com detalhes de ambiente, expressão, situação]\\n\\nSlide: Nossa Solução\\nTexto: [Solução apresentada com nome REAL do equipamento]\\nImagem: [Descrição visual com equipamento REAL em ação, resultados visíveis, ambiente específico]\\n\\nSlide: Benefícios\\nTexto: [Benefícios e diferenciais específicos]\\nImagem: [Descrição visual do resultado final, satisfação do cliente, ambiente de resultado]\\n\\nSlide: Call to Action\\nTexto: [CTA forte e direto com convite à ação]\\nImagem: [Descrição visual de chamada para ação, profissional acolhedor, contato da clínica, ambiente convidativo]",
       "formato": "carrossel", 
       "slides_total": 5,
       "sugestao_visual": "Cada slide tem descrição visual específica integrada com estrutura limpa"
@@ -266,7 +266,6 @@ const getOutputInstructions = (formato: string): string => {
     - Confirme estrutura: DEVE ter "Slide:", "Texto:", "Imagem:" SEM hífens
     - Se equipamentos selecionados: DEVEM aparecer com nomes REAIS no roteiro
     `,
-    
     
     post_estatico: `
     Retorne JSON:
@@ -282,7 +281,7 @@ const getOutputInstructions = (formato: string): string => {
     reels: `
     Retorne JSON:
     {
-      "roteiro": "[0-5s] Gancho\n[5-20s] Desenvolvimento\n[20-50s] Solução\n[50-60s] CTA",
+      "roteiro": "[0-5s] Gancho\\n[5-20s] Desenvolvimento\\n[20-50s] Solução\\n[50-60s] CTA",
       "formato": "reels",
       "tempo_total": "60s",
       "sugestoes_edicao": "Cortes, transições, efeitos"
@@ -292,7 +291,7 @@ const getOutputInstructions = (formato: string): string => {
     short: `
     Retorne JSON:
     {
-      "roteiro": "[0-3s] Hook\n[3-45s] Conteúdo\n[45-50s] CTA",
+      "roteiro": "[0-3s] Hook\\n[3-45s] Conteúdo\\n[45-50s] CTA",
       "formato": "short",
       "tempo_total": "50s", 
       "sugestoes_edicao": "Cortes rápidos, texto na tela"
@@ -302,7 +301,7 @@ const getOutputInstructions = (formato: string): string => {
     video: `
     Retorne JSON:
     {
-      "roteiro": "Introdução (0-30s)\nDesenvolvimento (30s-2m30s)\nConclusão (2m30s-3m)",
+      "roteiro": "Introdução (0-30s)\\nDesenvolvimento (30s-2m30s)\\nConclusão (2m30s-3m)",
       "formato": "video",
       "tempo_total": "3min",
       "momentos_chave": "Lista de momentos importantes",
@@ -324,7 +323,7 @@ const getOutputInstructions = (formato: string): string => {
     reels_ads: `
     Retorne JSON:
     {
-      "roteiro": "[0-3s] Hook\n[3-20s] Problema\n[20-25s] Solução\n[25-30s] CTA",
+      "roteiro": "[0-3s] Hook\\n[3-20s] Problema\\n[20-25s] Solução\\n[25-30s] CTA",
       "formato": "reels_ads",
       "tempo_total": "30s",
       "foco_conversao": "Elementos para maximizar conversão"
@@ -372,285 +371,4 @@ export const buildDisneyPrompt = (originalScript: string, formato: string): stri
       "disney_applied": true
     }
   `;
-};
-```
-
-```typescript
-export interface Stories10xSlide {
-  number: number;
-  titulo: string;
-  conteudo: string;
-  dispositivo?: string;
-  tempo: string;
-  tipo: 'gancho' | 'erro' | 'virada' | 'cta';
-}
-
-// Função para limpar o conteúdo do texto
-const cleanContent = (content: string): string => {
-  return content
-    .replace(/\n\n+/g, ' ')
-    .replace(/\n/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
-export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
-  console.log('🔍 [Stories10xParser] Iniciando parse CRÍTICO do roteiro:', roteiro);
-  
-  // CRÍTICO: Padrões rigorosos para garantir detecção de 4 stories
-  const strictStoryPatterns = [
-    /Story\s*1[:\s-]+(.*?)(?=Story\s*2|$)/gis,
-    /Story\s*2[:\s-]+(.*?)(?=Story\s*3|$)/gis,
-    /Story\s*3[:\s-]+(.*?)(?=Story\s*4|$)/gis,
-    /Story\s*4[:\s-]+(.*?)$/gis
-  ];
-
-  const slides: Stories10xSlide[] = [];
-  const storyTypes: Array<'gancho' | 'erro' | 'virada' | 'cta'> = ['gancho', 'erro', 'virada', 'cta'];
-  const storyTitles = [
-    'Gancho Provocativo',
-    'Erro Comum',
-    'Virada + Dispositivo',
-    'CTA + Antecipação'
-  ];
-
-  console.log('🚨 [Stories10xParser] VALIDAÇÃO CRÍTICA: Procurando por exatamente 4 stories...');
-
-  // PRIMEIRO: Tentar padrões rigorosos
-  strictStoryPatterns.forEach((pattern, index) => {
-    const match = pattern.exec(roteiro);
-    if (match && match[1]) {
-      const rawContent = match[1].trim();
-      const cleanedContent = cleanContent(rawContent);
-      
-      // Detectar dispositivos no conteúdo
-      const dispositivos = detectarDispositivos(cleanedContent);
-      
-      slides.push({
-        number: index + 1,
-        titulo: storyTitles[index],
-        conteudo: cleanedContent,
-        dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
-        tempo: '10s',
-        tipo: storyTypes[index]
-      });
-      
-      console.log(`✅ [Stories10xParser] Story ${index + 1} detectado:`, {
-        titulo: storyTitles[index],
-        conteudo: cleanedContent.substring(0, 50) + '...',
-        dispositivos
-      });
-    } else {
-      console.warn(`⚠️ [Stories10xParser] Story ${index + 1} NÃO ENCONTRADO no padrão rigoroso`);
-    }
-  });
-
-  // CRÍTICO: Se não encontrou exatamente 4, tentar padrões alternativos
-  if (slides.length !== 4) {
-    console.error(`❌ [Stories10xParser] PROBLEMA CRÍTICO: Encontrados ${slides.length} stories, esperados 4`);
-    console.log('🔄 [Stories10xParser] Tentando padrões alternativos...');
-    
-    // Limpar slides anteriores e tentar novamente
-    slides.length = 0;
-    
-    // Padrão alternativo mais flexível
-    const alternativePatterns = [
-      /(?:Story\s*1|Gancho)[:\s-]+(.*?)(?=(?:Story\s*2|Erro)|$)/gis,
-      /(?:Story\s*2|Erro)[:\s-]+(.*?)(?=(?:Story\s*3|Virada)|$)/gis,
-      /(?:Story\s*3|Virada)[:\s-]+(.*?)(?=(?:Story\s*4|CTA)|$)/gis,
-      /(?:Story\s*4|CTA)[:\s-]+(.*?)$/gis
-    ];
-
-    alternativePatterns.forEach((pattern, index) => {
-      const match = pattern.exec(roteiro);
-      if (match && match[1]) {
-        const rawContent = match[1].trim();
-        const cleanedContent = cleanContent(rawContent);
-        const dispositivos = detectarDispositivos(cleanedContent);
-        
-        slides.push({
-          number: index + 1,
-          titulo: storyTitles[index],
-          conteudo: cleanedContent,
-          dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
-          tempo: '10s',
-          tipo: storyTypes[index]
-        });
-        
-        console.log(`🔄 [Stories10xParser] Story ${index + 1} recuperado com padrão alternativo`);
-      }
-    });
-  }
-
-  // FALLBACK FINAL: Se ainda não tem 4, forçar criação
-  if (slides.length !== 4) {
-    console.error(`❌ [Stories10xParser] FALLBACK CRÍTICO: Ainda temos ${slides.length} stories, forçando 4`);
-    return forceCreate4Stories(roteiro);
-  }
-
-  console.log(`✅ [Stories10xParser] SUCESSO: Parse concluído com exatamente ${slides.length} stories`);
-  return slides;
-};
-
-const forceCreate4Stories = (roteiro: string): Stories10xSlide[] => {
-  console.log('🚨 [Stories10xParser] FORÇANDO CRIAÇÃO DE 4 STORIES...');
-  
-  const cleanedRoteiro = cleanContent(roteiro);
-  const words = cleanedRoteiro.split(' ').filter(word => word.trim() !== '');
-  const slides: Stories10xSlide[] = [];
-  
-  // Dividir em 4 partes iguais
-  const wordsPerStory = Math.ceil(words.length / 4);
-  const storyTypes: Array<'gancho' | 'erro' | 'virada' | 'cta'> = ['gancho', 'erro', 'virada', 'cta'];
-  const storyTitles = [
-    'Gancho Provocativo',
-    'Erro Comum', 
-    'Virada + Dispositivo',
-    'CTA + Antecipação'
-  ];
-
-  for (let i = 0; i < 4; i++) {
-    const startIndex = i * wordsPerStory;
-    const endIndex = Math.min(startIndex + wordsPerStory, words.length);
-    const storyWords = words.slice(startIndex, endIndex);
-    let content = storyWords.join(' ').trim();
-    
-    // Se conteúdo muito curto, usar fallback
-    if (content.length < 20) {
-      const fallbackContent = [
-        'Você já se perguntou por que alguns resultados não aparecem? Vou te contar um segredo...',
-        'O erro que 90% das pessoas cometem: acham que basta fazer o procedimento uma vez.',
-        'Aqui está a virada: nossos equipamentos garantem resultados duradouros e naturais.',
-        'Quer transformar sua vida? Agende sua consulta agora! 📲'
-      ];
-      content = fallbackContent[i];
-    }
-    
-    const dispositivos = detectarDispositivos(content);
-    
-    slides.push({
-      number: i + 1,
-      titulo: storyTitles[i],
-      conteudo: content,
-      dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
-      tempo: '10s',
-      tipo: storyTypes[i]
-    });
-    
-    console.log(`🔧 [Stories10xParser] Story ${i + 1} FORÇADO criado:`, content.substring(0, 50) + '...');
-  }
-
-  console.log('✅ [Stories10xParser] FORÇAMENTO CONCLUÍDO: 4 stories garantidos');
-  return slides;
-};
-
-const detectarDispositivos = (content: string): string[] => {
-  const dispositivos: string[] = [];
-  const contentLower = content.toLowerCase();
-
-  // Detectar diferentes tipos de dispositivos
-  if (contentLower.includes('foguinho') || contentLower.includes('🔥')) {
-    dispositivos.push('Emoji Foguinho 🔥');
-  }
-  
-  if (contentLower.includes('enquete') || contentLower.includes('pergunta:')) {
-    dispositivos.push('Enquete 📊');
-  }
-  
-  if (contentLower.includes('manda') && (contentLower.includes('comentário') || contentLower.includes('dm'))) {
-    dispositivos.push('Reciprocidade 🔄');
-  }
-  
-  if (contentLower.includes('compartilha') || contentLower.includes('marca um amigo')) {
-    dispositivos.push('Compartilhamento 📲');
-  }
-  
-  if (contentLower.includes('qual') && contentLower.includes('?')) {
-    dispositivos.push('Pergunta Direta ❓');
-  }
-
-  return dispositivos;
-};
-
-// Utilitário para validar se o roteiro segue a metodologia Stories 10x
-export const validateStories10x = (slides: Stories10xSlide[]): {
-  isValid: boolean;
-  issues: string[];
-  score: number;
-} => {
-  const issues: string[] = [];
-  let score = 0;
-
-  // CRÍTICO: Validar número exato de stories
-  if (slides.length !== 4) {
-    issues.push(`CRÍTICO: Devem ser exatamente 4 stories (encontrados: ${slides.length})`);
-    console.error(`❌ [validateStories10x] FALHA CRÍTICA: ${slides.length} stories encontrados, esperados 4`);
-  } else {
-    score += 40; // Peso maior para ter exatamente 4
-    console.log('✅ [validateStories10x] 4 stories confirmados');
-  }
-
-  // Validar se cada story tem conteúdo substancial
-  slides.forEach((slide, index) => {
-    if (!slide.conteudo || slide.conteudo.trim() === '') {
-      issues.push(`Story ${index + 1} está vazio`);
-    } else if (slide.conteudo.length < 20) {
-      issues.push(`Story ${index + 1} muito curto (menos de 20 caracteres)`);
-    } else {
-      score += 10; // 10 pontos por story com conteúdo adequado
-    }
-  });
-
-  // Validar presença de dispositivos (crítico no Story 3)
-  const story3 = slides.find(s => s.number === 3);
-  if (story3 && !story3.dispositivo) {
-    issues.push('Story 3 DEVE conter dispositivo de engajamento');
-  } else if (story3?.dispositivo) {
-    score += 20;
-  }
-
-  // Validar características específicas
-  const story1 = slides.find(s => s.number === 1);
-  if (story1 && !isProvocativeHook(story1.conteudo)) {
-    issues.push('Story 1 deve ter gancho provocativo');
-  } else if (story1) {
-    score += 15;
-  }
-
-  const story4 = slides.find(s => s.number === 4);
-  if (story4 && !hasCTA(story4.conteudo)) {
-    issues.push('Story 4 deve conter call-to-action');
-  } else if (story4) {
-    score += 10;
-  }
-
-  return {
-    isValid: issues.length === 0,
-    issues,
-    score: Math.min(score, 100)
-  };
-};
-
-const isProvocativeHook = (content: string): boolean => {
-  const provocativeWords = [
-    'você', 'vocês', 'será que', 'imagine', 'já pensou',
-    'por que', 'como', 'quando', 'onde', 'quem',
-    'nunca', 'sempre', 'todo mundo', 'ninguém'
-  ];
-  
-  const contentLower = content.toLowerCase();
-  return provocativeWords.some(word => contentLower.includes(word)) ||
-         content.includes('?') ||
-         contentLower.includes('para');
-};
-
-const hasCTA = (content: string): boolean => {
-  const ctaWords = [
-    'compartilha', 'marca', 'manda', 'clica', 'acesse',
-    'vem', 'vamos', 'bora', 'chama', 'liga',
-    'agenda', 'agende', 'entre em contato'
-  ];
-  
-  const contentLower = content.toLowerCase();
-  return ctaWords.some(word => contentLower.includes(word));
 };
