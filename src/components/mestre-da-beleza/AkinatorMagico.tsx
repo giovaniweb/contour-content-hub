@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -19,18 +18,19 @@ import { useAkinatorMagico } from '@/hooks/useAkinatorMagico';
 import './akinator-animations.css';
 
 const AkinatorMagico: React.FC = () => {
-  const {
-    perguntaAtual: currentQuestion,
-    confianca: confidence,
-    perfil: userProfile,
-    insightsComportamentais,
-    recomendacaoAtual: currentRecommendation,
-    fase: gameState,
-    pensando: isThinking,
-    responderPergunta: answerQuestion,
-    reiniciarJogo: resetGame,
-    iniciarSessao: startNewSession
-  } = useAkinatorMagico();
+  const hookData = useAkinatorMagico();
+  
+  // Extract data from hook with proper property names
+  const currentQuestion = hookData.perguntaAtual;
+  const confidence = hookData.confianca;
+  const userProfile = hookData.perfil;
+  const insightsComportamentais = hookData.insightsComportamentais;
+  const currentRecommendation = hookData.recomendacao || hookData.resultado;
+  const gameState = hookData.fase;
+  const isThinking = hookData.pensando;
+  const answerQuestion = hookData.responder || hookData.responderPergunta;
+  const resetGame = hookData.reiniciar || hookData.reiniciarJogo;
+  const startNewSession = hookData.iniciar || hookData.iniciarSessao;
 
   // Create derived values for display
   const behavioralProfile = insightsComportamentais?.[0] || 'Analisando...';
@@ -77,7 +77,7 @@ const AkinatorMagico: React.FC = () => {
         </div>
         
         <Button
-          onClick={startNewSession}
+          onClick={() => startNewSession && startNewSession()}
           size="lg"
           className="magical-glow bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold text-lg"
         >
@@ -140,7 +140,7 @@ const AkinatorMagico: React.FC = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Button
-                    onClick={() => answerQuestion(option)}
+                    onClick={() => answerQuestion && answerQuestion(option)}
                     variant="outline"
                     className="w-full p-6 text-left h-auto hover:bg-purple-500/20 hover:border-purple-400 transition-all duration-300"
                     disabled={isThinking}
@@ -160,7 +160,7 @@ const AkinatorMagico: React.FC = () => {
       {/* Reset option */}
       <div className="text-center">
         <Button
-          onClick={resetGame}
+          onClick={() => resetGame && resetGame()}
           variant="ghost"
           size="sm"
           className="text-gray-400 hover:text-white"
@@ -247,7 +247,7 @@ const AkinatorMagico: React.FC = () => {
 
       <div className="text-center space-y-4">
         <Button
-          onClick={resetGame}
+          onClick={() => resetGame && resetGame()}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         >
           <Sparkles className="mr-2 h-4 w-4" />
@@ -257,11 +257,17 @@ const AkinatorMagico: React.FC = () => {
     </div>
   );
 
+  // Check the actual phase values from the enum
+  const isWelcomePhase = gameState === 'inicio' || gameState === 'INICIO' || !gameState;
+  const isQuestioningPhase = gameState === 'perguntando' || gameState === 'PERGUNTANDO';
+  const isThinkingPhase = gameState === 'pensando' || gameState === 'PENSANDO';
+  const isCompletePhase = gameState === 'finalizado' || gameState === 'FINALIZADO';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <AnimatePresence mode="wait">
-          {gameState === 'inicio' && (
+          {isWelcomePhase && (
             <motion.div
               key="welcome"
               initial={{ opacity: 0 }}
@@ -273,7 +279,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'perguntando' && (
+          {isQuestioningPhase && (
             <motion.div
               key="questioning"
               initial={{ opacity: 0, y: 20 }}
@@ -285,7 +291,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'pensando' && (
+          {isThinkingPhase && (
             <motion.div
               key="thinking"
               initial={{ opacity: 0 }}
@@ -297,7 +303,7 @@ const AkinatorMagico: React.FC = () => {
             </motion.div>
           )}
 
-          {gameState === 'finalizado' && (
+          {isCompletePhase && (
             <motion.div
               key="complete"
               initial={{ opacity: 0, y: 20 }}
@@ -315,4 +321,3 @@ const AkinatorMagico: React.FC = () => {
 };
 
 export default AkinatorMagico;
-
