@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Equipment } from '@/types/equipment';
@@ -92,8 +91,10 @@ export const useMestreDaBeleza = () => {
       scoreBreakdown['area_corporal'] = 20;
     }
 
-    // Análise por problemas específicos
-    const indicacoes = equipment.indicacoes?.toLowerCase() || '';
+    // Análise por problemas específicos - Fix para string ou array
+    const indicacoes = Array.isArray(equipment.indicacoes) 
+      ? equipment.indicacoes.join(' ').toLowerCase()
+      : (equipment.indicacoes || '').toLowerCase();
     
     if (responses.flacidez_facial === 'Sim' && indicacoes.includes('flacidez')) {
       score += 25;
@@ -127,8 +128,11 @@ export const useMestreDaBeleza = () => {
     }
 
     // Bonus por tecnologia avançada
-    if (equipment.tecnologia?.toLowerCase().includes('laser') || 
-        equipment.tecnologia?.toLowerCase().includes('ultrassom')) {
+    const tecnologia = Array.isArray(equipment.tecnologia) 
+      ? equipment.tecnologia.join(' ').toLowerCase()
+      : (equipment.tecnologia || '').toLowerCase();
+      
+    if (tecnologia.includes('laser') || tecnologia.includes('ultrassom')) {
       score += 10;
       scoreBreakdown['tecnologia_avancada'] = 10;
     }
