@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { parseStories10xSlides, validateStories10x } from '../utils/stories10xParser';
-import Stories10xSlideCard from './Stories10xSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, Timer, Zap, Target, CheckCircle, AlertTriangle } from 'lucide-react';
+import { parseStories10xSlides } from '../utils/stories10xParser';
+import CopyButton from '@/components/ui/CopyButton';
 
 interface Stories10xFormatterProps {
   roteiro: string;
@@ -12,274 +12,242 @@ interface Stories10xFormatterProps {
 
 const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ roteiro }) => {
   const slides = parseStories10xSlides(roteiro);
-  const validation = validateStories10x(slides);
 
-  if (slides.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-slate-400">Nenhum story encontrado no roteiro.</p>
-      </div>
-    );
-  }
+  const getStoryIcon = (tipo: string) => {
+    switch (tipo) {
+      case 'gancho': return '🎯';
+      case 'erro': return '❌';
+      case 'virada': return '💡';
+      case 'cta': return '📲';
+      default: return '📝';
+    }
+  };
+
+  const getStoryColor = (tipo: string) => {
+    switch (tipo) {
+      case 'gancho': return 'from-red-600 to-orange-600';
+      case 'erro': return 'from-orange-600 to-yellow-600';
+      case 'virada': return 'from-green-600 to-teal-600';
+      case 'cta': return 'from-blue-600 to-purple-600';
+      default: return 'from-gray-600 to-gray-700';
+    }
+  };
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full space-y-6"
+    >
       {/* Header Stories 10x */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
-      >
-        <div className="flex items-center justify-center gap-4">
-          <Zap className="h-10 w-10 text-orange-400 aurora-glow" />
-          <h2 className="text-3xl font-bold aurora-heading">Stories 10x</h2>
-          <Instagram className="h-8 w-8 text-pink-400 aurora-glow" />
-        </div>
-        
-        <div className="flex items-center justify-center gap-3 flex-wrap">
-          <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-            <Timer className="h-3 w-3 mr-1" />
-            40s Total
-          </Badge>
-          <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-            <Target className="h-3 w-3 mr-1" />
-            4 Stories
-          </Badge>
-          <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-            <Zap className="h-3 w-3 mr-1" />
-            Metodologia Leandro Ladeira
-          </Badge>
-        </div>
-        
-        <p className="text-sm text-slate-300 aurora-body max-w-2xl mx-auto">
-          Estratégia de Stories que gera até 10x mais engajamento através de sequência inteligente com dispositivos de reciprocidade
-        </p>
-      </motion.div>
-
-      {/* Validação da Metodologia */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className={`aurora-glass border ${validation.isValid ? 'border-green-500/30 bg-green-500/5' : 'border-yellow-500/30 bg-yellow-500/5'}`}>
-          <CardHeader className="pb-4">
-            <CardTitle className={`flex items-center gap-3 ${validation.isValid ? 'text-green-400' : 'text-yellow-400'}`}>
-              {validation.isValid ? (
-                <CheckCircle className="h-6 w-6" />
-              ) : (
-                <AlertTriangle className="h-6 w-6" />
-              )}
-              Validação Stories 10x
-              <Badge variant="outline" className={validation.isValid ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}>
-                Score: {validation.score}/100
-              </Badge>
+      <Card className="aurora-glass border border-orange-500/30">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="text-3xl">⚡</div>
+            <CardTitle className="text-orange-300 text-2xl">
+              Stories 10x
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {validation.isValid ? (
-              <p className="text-green-300 text-sm">
-                ✅ Roteiro segue perfeitamente a metodologia Stories 10x do Leandro Ladeira
-              </p>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-yellow-300 text-sm font-medium">Pontos de melhoria:</p>
-                <ul className="space-y-1">
-                  {validation.issues.map((issue, index) => (
-                    <li key={index} className="text-yellow-200 text-sm flex items-start gap-2">
-                      <span className="text-yellow-400 mt-0.5">•</span>
-                      {issue}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <Badge variant="outline" className="bg-orange-900/50 text-orange-300 border-orange-500/50">
+              {slides.length} Stories
+            </Badge>
+          </div>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <Badge className="bg-orange-600 text-white">40s Total</Badge>
+            <Badge className="bg-blue-600 text-white">4 Stories</Badge>
+            <Badge className="bg-purple-600 text-white">Metodologia Leandro Ladeira</Badge>
+          </div>
+          <p className="text-orange-400/80 mt-2">
+            Estratégia de Stories que gera até 10x mais engajamento através de sequência inteligente com dispositivos de reciprocidade
+          </p>
+        </CardHeader>
+      </Card>
+
+      {/* Validação Stories 10x */}
+      {slides.length === 4 ? (
+        <Card className="bg-green-900/20 border border-green-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-green-300">
+              <div className="text-xl">✅</div>
+              <span className="font-semibold">Validação Stories 10x</span>
+              <Badge className="bg-green-600 text-white ml-auto">Score: 100/100</Badge>
+            </div>
+            <div className="mt-2 text-sm text-green-200">
+              <strong>Pontos de melhoria:</strong>
+              <ul className="mt-1 ml-4 list-disc">
+                <li>Story 3 deve conter dispositivo de engajamento</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
-      </motion.div>
-
-      {/* Timeline da Sequência - REDESENHADA */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Card className="aurora-glass border-purple-500/30 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-orange-500/5 to-pink-500/5 opacity-50" />
-          
-          <CardHeader className="pb-4 relative z-10">
-            <CardTitle className="text-center aurora-heading text-xl text-purple-300">
-              📱 Sequência Temporal Stories
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            {/* Timeline Responsiva */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {slides.map((slide, index) => (
-                <motion.div 
-                  key={index}
-                  className="relative"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                >
-                  {/* Conector horizontal (apenas desktop) */}
-                  {index < slides.length - 1 && (
-                    <div className="hidden md:block absolute top-6 left-full w-full h-0.5 bg-gradient-to-r from-purple-400 to-orange-400 opacity-60 z-0" />
-                  )}
-                  
-                  {/* Conector vertical (apenas mobile) */}
-                  {index < slides.length - 1 && (
-                    <div className="md:hidden absolute left-6 top-full w-0.5 h-4 bg-gradient-to-b from-purple-400 to-orange-400 opacity-60 z-0" />
-                  )}
-                  
-                  <div className="flex flex-col items-center relative z-10">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg mb-3 relative ${getStoryColor(slide.tipo)}`}>
-                      <span className="relative z-10">{index + 1}</span>
-                      <div className="absolute inset-0 rounded-full opacity-30 animate-ping" style={{backgroundColor: getStoryBgColor(slide.tipo)}} />
-                    </div>
-                    <div className="text-center">
-                      <div className={`text-sm font-medium aurora-body ${getStoryTextColor(slide.tipo)} mb-1`}>
-                        {slide.titulo}
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {slide.tempo}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+      ) : (
+        <Card className="bg-red-900/20 border border-red-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-300">
+              <div className="text-xl">⚠️</div>
+              <span className="font-semibold">Atenção: Stories 10x requer exatamente 4 stories</span>
             </div>
-            <p className="text-center text-sm aurora-body">
-              ✨ Sequência otimizada para máximo engajamento e reciprocidade
+            <p className="mt-2 text-sm text-red-200">
+              Encontrados {slides.length} stories. Para funcionar corretamente, devem ser exatamente 4 stories conectados.
             </p>
           </CardContent>
         </Card>
-      </motion.div>
+      )}
 
-      {/* Stories Individuais - Grid 2x2 */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Sequência Temporal Stories */}
+      <Card className="bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-slate-700/50">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            🕐 Sequência Temporal Stories
+          </h3>
+          <div className="flex items-center justify-center gap-6 flex-wrap">
+            {slides.map((slide, index) => (
+              <div key={index} className="flex items-center">
+                <div className={`bg-gradient-to-r ${getStoryColor(slide.tipo)} text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 min-w-[140px] justify-center`}>
+                  <span className="text-lg">{getStoryIcon(slide.tipo)}</span>
+                  <div className="text-center">
+                    <div className="font-bold">{slide.number}</div>
+                    <div className="text-xs opacity-90">{slide.titulo}</div>
+                    <div className="text-xs opacity-75">{slide.tempo}</div>
+                  </div>
+                </div>
+                {index < slides.length - 1 && (
+                  <div className="mx-3 text-gray-400 text-xl">→</div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 text-center text-sm text-gray-400">
+            ✨ Sequência otimizada para máximo engajamento e reciprocidade
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stories Detalhados */}
+      <div className="grid gap-6">
         {slides.map((slide, index) => (
-          <Stories10xSlideCard key={index} slide={slide} />
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card className="bg-slate-900/50 border border-slate-700/50 overflow-hidden">
+              <CardHeader className={`bg-gradient-to-r ${getStoryColor(slide.tipo)} pb-3`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">{getStoryIcon(slide.tipo)}</div>
+                    <div>
+                      <CardTitle className="text-white text-lg">
+                        Story {slide.number}
+                      </CardTitle>
+                      <p className="text-white/80 text-sm">
+                        {slide.titulo}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-white/20 text-white mb-1">
+                      {slide.tempo}
+                    </Badge>
+                    {slide.dispositivo && (
+                      <div className="text-xs text-white/70">
+                        {slide.dispositivo}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="p-6">
+                {/* Conteúdo do Story */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                    <span className="text-cyan-300 font-medium">Conteúdo do Story</span>
+                    <CopyButton 
+                      text={slide.conteudo}
+                      successMessage={`Story ${slide.number} copiado!`}
+                      className="ml-auto"
+                      size="sm"
+                    />
+                  </div>
+                  <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                    <p className="text-white leading-relaxed">
+                      {slide.conteudo}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dica Leandro Ladeira */}
+                <div className="mt-4 bg-amber-900/20 p-3 rounded-lg border border-amber-700/30">
+                  <div className="flex items-start gap-2">
+                    <div className="text-amber-400 text-sm">💡</div>
+                    <div>
+                      <span className="text-amber-300 font-medium text-sm">Dica Leandro Ladeira</span>
+                      <p className="text-amber-200 text-sm mt-1 italic">
+                        {slide.tipo === 'gancho' && "Primeira impressão é tudo! Use provocação inteligente nos primeiros 3 segundos para parar o scroll."}
+                        {slide.tipo === 'erro' && "Mostre o erro comum que todos cometem. Gere identificação: 'nossa, eu faço isso mesmo!'"}
+                        {slide.tipo === 'virada' && "Aqui é onde você entrega valor + pede engajamento. Use dispositivos: emoji, enquete, pergunta."}
+                        {slide.tipo === 'cta' && "CTA suave mas direcionado. Sempre deixe gancho para próximo conteúdo criar vício."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
-      {/* Dispositivos de Engajamento Detectados */}
-      {slides.some(s => s.dispositivo) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <Card className="aurora-glass border-cyan-500/30 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-50" />
-            
-            <CardHeader className="relative z-10">
-              <CardTitle className="text-cyan-300 text-xl flex items-center gap-3 aurora-heading">
-                <Zap className="h-6 w-6 aurora-glow" />
-                Dispositivos de Engajamento Detectados
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm relative z-10">
-              {slides.filter(s => s.dispositivo).map((slide, index) => (
-                <motion.div 
-                  key={index}
-                  className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <span className="text-cyan-400 text-lg font-bold">Story {slide.number}</span>
-                  <div className="flex-1">
-                    <div className="text-cyan-300 font-medium">{slide.dispositivo}</div>
-                    <div className="text-slate-300 text-xs mt-1">
-                      {slide.conteudo.substring(0, 80)}...
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+      {/* Segredos do Stories 10x */}
+      <Card className="bg-gradient-to-r from-purple-900/30 to-orange-900/30 border border-purple-500/30">
+        <CardHeader>
+          <CardTitle className="text-orange-300 flex items-center gap-2">
+            🎯 Segredos do Stories 10x - Leandro Ladeira
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-start gap-2">
+            <span className="text-red-400">💡</span>
+            <span className="text-white text-sm">Stories não são aulas soltas, são conversas que criam comunidade</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-orange-400">📝</span>
+            <span className="text-white text-sm">Cada story deve pedir uma ação: emoji, resposta, compartilhamento</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">💬</span>
+            <span className="text-white text-sm">Reciprocidade é a chave: "manda um foguinho que eu te conto o resto"</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-blue-400">🔄</span>
+            <span className="text-white text-sm">Sequência viciante: sempre deixar gancho para o próximo conteúdo</span>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Dicas da Metodologia Leandro Ladeira */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0 }}
-      >
-        <Card className="aurora-glass border-orange-500/30 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 opacity-50" />
-          
-          <CardHeader className="relative z-10">
-            <CardTitle className="text-orange-300 text-xl flex items-center gap-3 aurora-heading">
-              <Target className="h-6 w-6 aurora-glow" />
-              Segredos do Stories 10x - Leandro Ladeira
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm relative z-10">
-            <motion.div 
-              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-              whileHover={{ scale: 1.02 }}
-            >
-              <span className="text-orange-400 text-lg">🎯</span>
-              <span className="aurora-body">Stories não são aulas soltas, são conversas que criam comunidade</span>
-            </motion.div>
-            <motion.div 
-              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-              whileHover={{ scale: 1.02 }}
-            >
-              <span className="text-orange-400 text-lg">🔥</span>
-              <span className="aurora-body">Cada story deve pedir uma ação: emoji, resposta, compartilhamento</span>
-            </motion.div>
-            <motion.div 
-              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-              whileHover={{ scale: 1.02 }}
-            >
-              <span className="text-orange-400 text-lg">💬</span>
-              <span className="aurora-body">Reciprocidade é a chave: "manda um foguinho que eu te conto o resto"</span>
-            </motion.div>
-            <motion.div 
-              className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
-              whileHover={{ scale: 1.02 }}
-            >
-              <span className="text-orange-400 text-lg">⚡</span>
-              <span className="aurora-body">Sequência viciante: sempre deixar gancho para o próximo conteúdo</span>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
+      {/* Roteiro Completo */}
+      <Card className="bg-slate-900/30 border border-slate-600/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center justify-between">
+            📄 Roteiro Completo
+            <CopyButton 
+              text={roteiro}
+              successMessage="Roteiro Stories 10x copiado!"
+              className="relative"
+            />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-700/50 max-h-64 overflow-y-auto">
+            <pre className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+              {roteiro}
+            </pre>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
-};
-
-const getStoryColor = (tipo: string): string => {
-  const colors = {
-    gancho: 'bg-gradient-to-br from-red-500 to-orange-500',
-    erro: 'bg-gradient-to-br from-yellow-500 to-orange-500', 
-    virada: 'bg-gradient-to-br from-green-500 to-cyan-500',
-    cta: 'bg-gradient-to-br from-blue-500 to-purple-500'
-  };
-  return colors[tipo as keyof typeof colors] || colors.gancho;
-};
-
-const getStoryBgColor = (tipo: string): string => {
-  const colors = {
-    gancho: '#ef4444',
-    erro: '#f59e0b',
-    virada: '#10b981', 
-    cta: '#3b82f6'
-  };
-  return colors[tipo as keyof typeof colors] || colors.gancho;
-};
-
-const getStoryTextColor = (tipo: string): string => {
-  const colors = {
-    gancho: 'text-red-400',
-    erro: 'text-yellow-400',
-    virada: 'text-green-400',
-    cta: 'text-blue-400'
-  };
-  return colors[tipo as keyof typeof colors] || colors.gancho;
 };
 
 export default Stories10xFormatter;
