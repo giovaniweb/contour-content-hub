@@ -6,22 +6,26 @@ export const approvedScriptsService = {
   // Criar roteiro aprovado
   async createApprovedScript(scriptData: Partial<ApprovedScript>): Promise<ApprovedScript | null> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+
       const { data, error } = await supabase
         .from('approved_scripts')
-        .insert([{
-          script_content: scriptData.script_content,
-          title: scriptData.title,
+        .insert({
+          user_id: userData.user.id,
+          script_content: scriptData.script_content!,
+          title: scriptData.title!,
           format: scriptData.format || 'carrossel',
           equipment_used: scriptData.equipment_used || [],
           approval_status: 'approved',
           approved_at: new Date().toISOString(),
-          approved_by: (await supabase.auth.getUser()).data.user?.id
-        }])
+          approved_by: userData.user.id
+        })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as ApprovedScript;
     } catch (error) {
       console.error('Erro ao criar roteiro aprovado:', error);
       return null;
@@ -44,7 +48,12 @@ export const approvedScriptsService = {
       
       return data?.map(script => ({
         ...script,
-        performance: script.script_performance?.[0]
+        format: script.format as 'carrossel' | 'stories' | 'imagem' | 'reels',
+        approval_status: script.approval_status as 'pending' | 'approved' | 'rejected',
+        performance: script.script_performance?.[0] ? {
+          ...script.script_performance[0],
+          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+        } : undefined
       })) || [];
     } catch (error) {
       console.error('Erro ao buscar roteiros aprovados:', error);
@@ -60,20 +69,26 @@ export const approvedScriptsService = {
     notes?: string
   ): Promise<ScriptPerformance | null> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+
       const { data, error } = await supabase
         .from('script_performance')
-        .insert([{
+        .insert({
           approved_script_id: scriptId,
           performance_rating: rating,
           metrics,
           feedback_notes: notes,
-          evaluated_by: (await supabase.auth.getUser()).data.user?.id
-        }])
+          evaluated_by: userData.user.id
+        })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        performance_rating: data.performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+      } as ScriptPerformance;
     } catch (error) {
       console.error('Erro ao adicionar performance:', error);
       return null;
@@ -97,7 +112,12 @@ export const approvedScriptsService = {
       
       return data?.map(script => ({
         ...script,
-        performance: script.script_performance?.[0]
+        format: script.format as 'carrossel' | 'stories' | 'imagem' | 'reels',
+        approval_status: script.approval_status as 'pending' | 'approved' | 'rejected',
+        performance: script.script_performance?.[0] ? {
+          ...script.script_performance[0],
+          performance_rating: script.script_performance[0].performance_rating as 'bombou' | 'flopou' | 'neutro' | 'pending'
+        } : undefined
       })) || [];
     } catch (error) {
       console.error('Erro ao buscar roteiros de alta performance:', error);
@@ -108,14 +128,18 @@ export const approvedScriptsService = {
   // Enviar roteiro para content planner
   async sendToContentPlanner(scriptId: string, plannerData: any): Promise<boolean> {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return false;
+
       const { error } = await supabase
         .from('content_planner_items')
-        .insert([{
+        .insert({
           ...plannerData,
+          user_id: userData.user.id,
           approved_script_id: scriptId,
           ai_generated: false,
           status: 'approved'
-        }]);
+        });
 
       if (error) throw error;
       return true;

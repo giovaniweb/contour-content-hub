@@ -11,6 +11,7 @@ import DisneyMagicIndicator from './DisneyMagicIndicator';
 import EquipmentDetails from './EquipmentDetails';
 import TimeWarning from './TimeWarning';
 import CopyButton from '@/components/ui/CopyButton';
+import { parseStories10xSlides } from '../utils/stories10xParser';
 
 interface ScriptFormatterProps {
   script: {
@@ -50,7 +51,8 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     }
 
     if (script.formato.toLowerCase() === 'stories_10x') {
-      return <Stories10xFormatter roteiro={script.roteiro} />;
+      const slides = parseStories10xSlides(script.roteiro);
+      return <Stories10xFormatter slides={slides} />;
     }
 
     if (script.formato.toLowerCase() === 'post_estatico') {
