@@ -116,7 +116,7 @@ export const useQuestionNavigation = ({
     console.log('⬅️ Voltando para step:', previousStep);
     setCurrentStep(previousStep);
     
-    toast.info("Voltando à pergunta anterior", {
+    toast.success("Voltando à pergunta anterior", {
       description: "Você pode revisar sua resposta."
     });
   };
