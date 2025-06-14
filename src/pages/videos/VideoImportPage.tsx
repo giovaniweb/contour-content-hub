@@ -1,44 +1,35 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import VideoUploader from '@/components/video-storage/VideoUploader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import VimeoImporter from '@/components/admin/VimeoImporter';
 
 const VideoImportPage: React.FC = () => {
-  const handleImportComplete = (importedData: any) => {
-    console.log('Import completed:', importedData);
-  };
+  
 
   return (
     <Layout>
       <div className="container mx-auto py-6 space-y-6">
         <h1 className="text-3xl font-bold">Importação de Vídeos</h1>
         <p className="text-muted-foreground">
-          Envie novos vídeos para o sistema ou importe diretamente do Vimeo.
+          Envie novos vídeos para o sistema.
         </p>
         
         <Card>
           <CardHeader>
             <CardTitle>Métodos de Importação</CardTitle>
             <CardDescription>
-              Escolha a forma de importação que melhor se adapta às suas necessidades
+              Faça upload direto do seu computador.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="upload" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="upload">Upload Direto</TabsTrigger>
-                <TabsTrigger value="vimeo">Importar do Vimeo</TabsTrigger>
               </TabsList>
               
               <TabsContent value="upload" className="pt-4">
                 <VideoUploader />
-              </TabsContent>
-              
-              <TabsContent value="vimeo" className="pt-4">
-                <VimeoImporter onCompleteImport={handleImportComplete} />
               </TabsContent>
             </Tabs>
           </CardContent>
