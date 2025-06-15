@@ -114,27 +114,16 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         </div>
       </motion.div>
 
-      {/* Botões de Gerar Imagem e Gerar Áudio aparecem APENAS após aprovar */}
-      <div className="flex flex-wrap justify-center gap-5 mt-7">
-        <button
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
-          onClick={handleGenerateImage}
-          disabled={!isApproved || isGeneratingImg}
-        >
-          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
-          {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
-        </button>
-        <button
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-neon-blue text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-neon-blue/50 text-lg disabled:opacity-60"
-          onClick={handleGenerateAudio}
-          disabled={!isApproved || isGeneratingAudio}
-        >
-          {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-6 w-6" />}
-          {isGeneratingAudio ? "Gerando Áudio..." : "Gerar Áudio"}
-        </button>
-      </div>
+      {/* Equipamentos Integrados */}
+      {/* Renderize o bloco de equipamentos se houver, substitua `equipment_used` pela fonte de dados correta se preciso */}
+      {equipment_used.length > 0 && (
+        <div>
+          {/* Supondo que EquipmentDetails mostre o bloco de equipamentos integrados */}
+          {/* <EquipmentDetails equipments={equipment_used} roteiro={roteiro} /> */}
+        </div>
+      )}
 
-      {/* Bloco de botões PRINCIPAIS movido para o final */}
+      {/* BLOCOS DE BOTÕES PRINCIPAIS – AGORA LOGO APÓS EQUIPAMENTOS */}
       <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
         <button
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
@@ -158,6 +147,26 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
           disabled={isSaving || isImproving}
         >
           Novo Roteiro
+        </button>
+      </div>
+
+      {/* Botões de Gerar Imagem e Gerar Áudio aparecem APENAS após aprovar */}
+      <div className="flex flex-wrap justify-center gap-5 mt-7">
+        <button
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
+          onClick={handleGenerateImage}
+          disabled={!isApproved || isGeneratingImg}
+        >
+          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
+          {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
+        </button>
+        <button
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-neon-blue text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-neon-blue/50 text-lg disabled:opacity-60"
+          onClick={handleGenerateAudio}
+          disabled={!isApproved || isGeneratingAudio}
+        >
+          {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-6 w-6" />}
+          {isGeneratingAudio ? "Gerando Áudio..." : "Gerar Áudio"}
         </button>
       </div>
 
