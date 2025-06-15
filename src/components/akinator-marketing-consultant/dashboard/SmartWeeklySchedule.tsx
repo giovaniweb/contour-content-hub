@@ -156,18 +156,18 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
   };
 
   return (
-    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden max-w-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-1 gap-2 flex-wrap">
-        <div className="flex gap-2 items-center min-w-0">
-          <CalendarCheck2 className="h-5 w-5 text-aurora-sage" />
-          <CardTitle className="aurora-heading text-lg font-semibold truncate">
+    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden w-full max-w-5xl mx-auto">
+      <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-1 gap-2 md:gap-2 flex-wrap">
+        <div className="flex gap-2 items-center min-w-0 w-full md:w-auto">
+          <CalendarCheck2 className="h-5 w-5 text-aurora-sage flex-shrink-0" />
+          <CardTitle className="aurora-heading text-base md:text-lg font-semibold truncate">
             Calendário Semanal Inteligente
           </CardTitle>
-          <Badge variant="outline" className="border-aurora-sage text-aurora-sage font-normal ml-2">
+          <Badge variant="outline" className="border-aurora-sage text-aurora-sage font-normal ml-2 whitespace-nowrap">
             Execução Fluida
           </Badge>
         </div>
-        <div className="flex items-center gap-1 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-start md:justify-end mt-2 md:mt-0">
           <Button
             variant="outline"
             onClick={handleExportPdf}
@@ -202,21 +202,19 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-1 px-2 md:px-4">
-        {/* Novo grid responsivo: igual ao PublishingSchedule - mais compacto! */}
+      <CardContent className="pt-1 px-1 sm:px-2 md:px-4">
         <div
           id={SCHEDULE_ELEMENT_ID}
           className={`
-            grid gap-3 md:gap-2
+            grid gap-3 sm:gap-2
             grid-cols-1
             sm:grid-cols-2
             md:grid-cols-3
-            xl:grid-cols-7
+            xl:grid-cols-4
             w-full
             transition-all
             mb-2
             overflow-visible
-            max-w-full
           `}
           style={{
             minWidth: 0,
@@ -229,14 +227,17 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
                 flex flex-col gap-1 flex-1
                 bg-muted rounded-md border
                 ${plan.highlight ? "border-aurora-sage bg-aurora-sage/10 shadow-lg" : "border-border"}
-                p-2 md:p-2 min-w-0 
-                max-w-full
+                p-2 sm:p-2 md:p-3 min-w-0
               `}
-              style={{ wordBreak: "break-word" }}
+              style={{ wordBreak: "break-word", minHeight: 96 }}
             >
               <div className="text-xs font-medium text-aurora-sage truncate mb-0">{plan.day}</div>
-              <div className="font-medium text-foreground/90 text-xs leading-snug truncate">{plan.title}</div>
-              <div className="text-xs text-muted-foreground leading-tight">{plan.description}</div>
+              <div className="font-semibold text-foreground/90 text-xs md:text-sm leading-snug truncate">
+                {plan.title}
+              </div>
+              <div className="text-xs md:text-xs text-muted-foreground leading-tight line-clamp-2">
+                {plan.description}
+              </div>
             </div>
           ))}
         </div>
