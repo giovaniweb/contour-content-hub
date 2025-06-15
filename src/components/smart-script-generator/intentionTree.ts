@@ -1,4 +1,3 @@
-
 // Árvore de Intenção Oculta (estilo Akinator)
 export interface IntentionNode {
   question: string;
@@ -60,43 +59,31 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
   estilo: {
     question: "Qual estilo de comunicação?",
     options: [
-      { value: 'emocional', label: 'Emocional/Inspirador', leads_to: 'equipamento' },
-      { value: 'direto', label: 'Direto/Objetivo', leads_to: 'equipamento' },
-      { value: 'poetico', label: 'Poético/Artístico', leads_to: 'equipamento' },
-      { value: 'didatico', label: 'Didático/Educativo', leads_to: 'equipamento' },
-      { value: 'humoristico', label: 'Humorístico/Viral', leads_to: 'equipamento' },
-      { value: 'criativo', label: 'Criativo/Publicitário', leads_to: 'equipamento' }
+      { value: 'estrategico', label: 'Planejamento/Organização', leads_to: 'equipamento' },
+      { value: 'direto', label: 'Copy Direta/Vendas', leads_to: 'equipamento' },
+      { value: 'humoristico', label: 'Viral/Humor', leads_to: 'equipamento' },
+      { value: 'criativo', label: 'Criativo/Visual', leads_to: 'equipamento' }
     ],
     inference_rules: [
       {
-        condition: (answers) => answers.objetivo === 'vendas' && answers.estilo_comunicacao === 'direto',
+        condition: (answers) => answers.estilo_comunicacao === 'estrategico' || answers.tipo_conteudo === 'bigIdea' || answers.objetivo === 'ensinar',
+        mentor: 'pedro_sobral',
+        confidence: 0.95
+      },
+      {
+        condition: (answers) => answers.estilo_comunicacao === 'direto' || answers.objetivo === 'vendas',
         mentor: 'leandro_ladeira',
-        confidence: 0.9
+        confidence: 0.92
       },
       {
-        condition: (answers) => answers.estilo_comunicacao === 'emocional',
-        mentor: 'icaro_carvalho',
-        confidence: 0.8
-      },
-      {
-        condition: (answers) => answers.tipo_conteudo === 'video' && answers.estilo_comunicacao === 'criativo',
-        mentor: 'paulo_cuenca',
-        confidence: 0.8
-      },
-      {
-        condition: (answers) => answers.estilo_comunicacao === 'didatico',
-        mentor: 'camila_porto',
-        confidence: 0.8
-      },
-      {
-        condition: (answers) => answers.estilo_comunicacao === 'humoristico',
+        condition: (answers) => answers.estilo_comunicacao === 'humoristico' || answers.canal === 'tiktok' || answers.objetivo === 'engajamento',
         mentor: 'hyeser_souza',
-        confidence: 0.9
+        confidence: 0.93
       },
       {
-        condition: (answers) => answers.objetivo === 'autoridade',
-        mentor: 'washington_olivetto',
-        confidence: 0.7
+        condition: (answers) => answers.estilo_comunicacao === 'criativo' || answers.canal === 'instagram_reels' || answers.tipo_conteudo === 'video',
+        mentor: 'paulo_cuenca',
+        confidence: 0.91
       }
     ]
   },
@@ -123,50 +110,32 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
 };
 
 export const MENTOR_ENIGMAS: Record<string, string> = {
-  'leandro_ladeira': "Quem domina gatilhos, vende mais que imagina.",
-  'icaro_carvalho': "Histórias que tocam, convertem sem forçar.",
-  'paulo_cuenca': "Criatividade visual que marca para sempre.",
-  'camila_porto': "Simplicidade que todos entendem e seguem.",
-  'hyeser_souza': "Humor que viraliza e vende sorrindo.",
-  'washington_olivetto': "Big ideas que mudam mercados inteiros.",
-  'pedro_sobral': "Lógica clara que antecipa objeções."
+  'pedro_sobral': "Quem domina o planejamento, nunca improvisa o sucesso.",
+  'leandro_ladeira': "Copy na veia: só quem entende faz vender tanto.",
+  'hyeser_souza': "A viralização não é sorte - é técnica e energia.",
+  'paulo_cuenca': "Se a imagem fala mais que mil palavras, ele é poliglota."
 };
 
 export const MENTOR_PROFILES: Record<string, { name: string; focus: string; style: string }> = {
-  'leandro_ladeira': { 
-    name: 'Leandro Ladeira', 
-    focus: 'Gatilhos mentais e CTAs fortes',
-    style: 'Direto, persuasivo, focado em conversão'
+  'pedro_sobral': {
+    name: 'Pedro Sobral',
+    focus: 'Planejamento estratégico e organização de campanhas',
+    style: 'Estratégico, organizado, detalhista'
   },
-  'icaro_carvalho': { 
-    name: 'Ícaro de Carvalho', 
-    focus: 'Storytelling emocional',
-    style: 'Narrativo, emocional, conectivo'
+  'leandro_ladeira': {
+    name: 'Leandro Ladeira',
+    focus: 'Copywriting e vendas com urgência',
+    style: 'Direto, persuasivo, acelerado'
   },
-  'paulo_cuenca': { 
-    name: 'Paulo Cuenca', 
-    focus: 'Criatividade audiovisual',
-    style: 'Visual, criativo, impactante'
+  'hyeser_souza': {
+    name: 'Hyeser Souza',
+    focus: 'Viralização e engajamento orgânico',
+    style: 'Divertido, espontâneo, popular'
   },
-  'camila_porto': { 
-    name: 'Camila Porto', 
-    focus: 'Linguagem acessível',
-    style: 'Simples, didático, inclusivo'
-  },
-  'hyeser_souza': { 
-    name: 'Hyeser Souza', 
-    focus: 'Humor viral',
-    style: 'Engraçado, viral, descontraído'
-  },
-  'washington_olivetto': { 
-    name: 'Washington Olivetto', 
-    focus: 'Big ideas publicitárias',
-    style: 'Conceitual, publicitário, memorável'
-  },
-  'pedro_sobral': { 
-    name: 'Pedro Sobral', 
-    focus: 'Clareza lógica e antecipação',
-    style: 'Lógico, estruturado, antecipativo'
+  'paulo_cuenca': {
+    name: 'Paulo Cuenca',
+    focus: 'Direção criativa e storytelling visual',
+    style: 'Criativo, visual, marcante'
   }
 };
 

@@ -1,16 +1,11 @@
 
+// Padronização dos 4 mentores principais do sistema
+
 export const MENTOR_NICKNAMES = {
-  'Paulo Cuenca': 'Dr. Criatividade ✨',
-  'Leandro Ladeira': 'Mestre das Vendas 💰',
-  'Ícaro de Carvalho': 'Guru da Conexão 🤝',
-  'Camila Porto': 'Professora Elegante 🎓',
-  'Hyeser Souza': 'Rei do Humor 😄',
-  'Washington Olivetto': 'Publicitário Genial 🎯',
-  'Pedro Sobral': 'Estrategista Digital 📊',
-  'Akinator': 'Adivinho dos Negócios 🔮',
-  'Criativo': 'Artista da Palavra 🎨',
-  'Fluida Encantadora': 'Fada Madrinha Disney ✨🏰',
-  'FLUIDAROTEIRISTA Disney': 'Contador de Histórias Mágicas 🌟'
+  'Pedro Sobral': 'Arquiteto do Planejamento 🔷',
+  'Leandro Ladeira': 'Mestre do Copy 💰',
+  'Hyeser Souza': 'Rei do Viral 😄',
+  'Paulo Cuenca': 'Diretor Visual 🎬'
 };
 
 export const getMentorNickname = (mentorName: string): string => {
