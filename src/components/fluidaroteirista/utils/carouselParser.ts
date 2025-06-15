@@ -1,4 +1,3 @@
-
 export const parseCarouselSlides = (roteiro: string) => {
   // Regex robusto para dividir blocos iniciando em "Slide X:"
   const slideRegex = /Slide\s*:? ?(\d+)?\s*:?\s*([^\n]*)\n?([^]*?)(?=(?:\n+)?Slide\s*:? ?\d+\s*:|\s*$)/gi;
@@ -74,4 +73,43 @@ export const parseCarouselSlides = (roteiro: string) => {
   }
 
   return slides.slice(0, 5);
+}
+
+// --- NEW: Export parseAndLimitCarousel, as used in other files ---
+// It should use parseCarouselSlides, join slides formatted string
+export const parseAndLimitCarousel = (roteiro: string): string => {
+  // Parse and format as a text block, max 5 slides
+  const slides = parseCarouselSlides(roteiro);
+  return slides
+    .slice(0, 5)
+    .map(
+      (slide, idx) =>
+        `Slide ${slide.number}: ${slide.title}\nTexto: ${slide.texto}\nImagem: ${slide.imagem}\n`
+    )
+    .join('\n');
+};
+
+// --- NEW: Export validateCarouselSlides as used in other files ---
+export const validateCarouselSlides = (roteiro: string) => {
+  const slides = parseCarouselSlides(roteiro);
+  const errors: string[] = [];
+
+  // At least one slide and <= 5
+  if (slides.length === 0) errors.push("Nenhum slide encontrado");
+  if (slides.length > 5) errors.push("Mais de 5 slides detectados");
+  // All slides should have texto and imagem
+  slides.forEach((slide, idx) => {
+    if (!slide.texto || slide.texto.trim() === "" || slide.texto === "Conteúdo do slide") {
+      errors.push(`Slide ${idx + 1} sem texto`);
+    }
+    if (!slide.imagem || slide.imagem.trim() === "" || slide.imagem === "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave") {
+      errors.push(`Slide ${idx + 1} sem descrição de imagem`);
+    }
+  });
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    slideCount: slides.length
+  };
 }
