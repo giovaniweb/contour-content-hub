@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "./button";
@@ -31,6 +30,7 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
 
+  // Novo fluxo: extrai HTML como string!
   const handleExportPdf = async () => {
     setLoading(true);
     try {
@@ -43,8 +43,8 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
         return;
       }
 
-      const canvas = await html2canvas(reportElement, { scale: 2, backgroundColor: "#0a071b" });
-      const imgData = canvas.toDataURL("image/png");
+      // Extrai o HTML da div como string
+      const htmlString = reportElement.outerHTML;
 
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -54,7 +54,7 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
           body: {
             sessionId,
             title,
-            imgBase64: imgData,
+            htmlString,
             type
           },
         }
@@ -62,20 +62,16 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
       if (error) {
         let detailedMsg = error.message || "Erro desconhecido ao gerar PDF";
         try {
-          // Quando edge function retorna erro do tipo Response (fetch), tentamos extrair o corpo
           if (error?.context) {
             detailedMsg += ` (${error.context})`;
           }
-          // Novo: também tentar extrair texto/json se error.body ou error.response presente
           if (error.body) {
             const errorJson = JSON.parse(error.body);
             if (errorJson.error) detailedMsg = errorJson.error + (errorJson.details ? `: ${errorJson.details}` : "");
           } else if (error.response && typeof error.response.text === "function") {
-            // Para Response: pegar texto do corpo (pode ser json ou string)
             const bodyText = await error.response.text();
             if (bodyText) {
               try {
-                // Se vier JSON, pegar a mensagem
                 const json = JSON.parse(bodyText);
                 if (json.error) {
                   detailedMsg = json.error + (json.details ? `: ${json.details}` : "");
@@ -87,9 +83,7 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
               }
             }
           }
-        } catch (e) {
-          // Se der problema ao extrair, ainda mostra erro simples
-        }
+        } catch (e) {}
         toast.error("Erro ao gerar PDF", { description: detailedMsg });
         setLoading(false);
         return;
@@ -128,4 +122,3 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 };
 
 export default GenerateAuroraPdfButton;
-
