@@ -18,13 +18,13 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Edge function de geração de PDF iniciada");
-    
+    console.log("Edge function de geração de PDF iniciada (IMAGEM)");
+
     // Parse request
     let requestData;
     try {
       requestData = await req.json();
-      console.log("Dados recebidos:", JSON.stringify(requestData).substring(0, 200) + "...");
+      console.log("Dados recebidos (imagem):", JSON.stringify(requestData).substring(0, 200) + "...");
     } catch (parseError) {
       console.error("Erro ao processar JSON da requisição:", parseError);
       return new Response(
@@ -32,86 +32,72 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
     const {
-      scriptId,
-      diagnosticSection,
-      actionsSection,
-      contentSection,
+      sessionId,
       title,
+      imgBase64,
       type
     } = requestData;
 
-    if (!scriptId || !diagnosticSection || !actionsSection || !contentSection || !title) {
+    if (!sessionId || !imgBase64 || !title) {
       return new Response(
-        JSON.stringify({ error: 'Dados incompletos' }),
+        JSON.stringify({ error: 'Dados incompletos para PDF (falta imagem, título ou id)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Gerar PDF: cada seção em uma página, estilizada em Aurora
-    console.log("Gerando PDF estilizado Aurora Boreal...");
+    // Gerar PDF usando imagem (base64 PNG)
+    console.log("Gerando PDF Aurora a partir de IMAGEM...");
     const pdfDoc = await PDFDocument.create();
 
-    // Fontes e cores customizadas
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const auroraGradients = [
-      { color: rgb(0.42, 0.27, 0.76), label: "Aurora Deep Purple" },
-      { color: rgb(0.06, 0.72, 0.83), label: "Aurora Neon Blue" },
-      { color: rgb(0.07, 0.72, 0.62), label: "Aurora Sage" }
-    ];
+    // Padrão A4: 595 x 842. Ajustar à imagem depois de carregar.
+    const page = pdfDoc.addPage([595, 842]);
 
-    // Helpers para adicionar páginas
-    function addAuroraPage(titleText: string, sectionContent: string, gradientColor: any) {
-      const page = pdfDoc.addPage([595, 842]); // A4
-      page.drawRectangle({
-        x: 0, y: 0, width: 595, height: 842, 
-        color: gradientColor,
-        opacity: 0.30
-      });
-      page.drawText(titleText, {
-        x: 50,
-        y: 790,
-        size: 24,
-        font,
-        color: rgb(0.33, 0.10, 0.95)
-      });
-      page.drawText(sectionContent.substring(0, 2500), { // Limite de texto
-        x: 40,
-        y: 770,
-        size: 12,
-        font,
-        color: rgb(1, 1, 1),
-        maxWidth: 500,
-        lineHeight: 18
-      });
+    // Pega apenas a base64, sem prefixo "data:image/png;base64,"
+    const base64Data = imgBase64.split(",")[1];
+    const pngImage = await pdfDoc.embedPng(base64.decode(base64Data));
+
+    // Ajusta imagem para ocupar toda a página A4 (mantém proporção)
+    const { width, height } = pngImage.size();
+    const aspectRatio = width / height;
+    let targetWidth = 595;
+    let targetHeight = 842;
+
+    if (width / 595 > height / 842) {
+      targetHeight = 595 / aspectRatio;
+    } else {
+      targetWidth = 842 * aspectRatio;
     }
 
-    addAuroraPage("Diagnóstico Estratégico", diagnosticSection, auroraGradients[0].color);
-    addAuroraPage("Ações - Plano Semanal", actionsSection, auroraGradients[1].color);
-    addAuroraPage("Sugestões de Conteúdo", contentSection, auroraGradients[2].color);
+    const x = (595 - targetWidth) / 2;
+    const y = (842 - targetHeight) / 2;
 
-    // Rodapé "Gerado por Fluida - Aurora Boreal"
-    const pageCount = pdfDoc.getPageCount();
-    for (let i = 0; i < pageCount; i++) {
-      const page = pdfDoc.getPages()[i];
-      page.drawText(`Gerado por Fluida - Aurora Boreal • ${new Date().toLocaleDateString('pt-BR')}`, {
-        x: 180,
-        y: 30,
-        size: 10,
-        font,
-        color: rgb(0.7, 0.7, 0.9),
-      });
-    }
+    page.drawImage(pngImage, {
+      x: x,
+      y: y,
+      width: targetWidth,
+      height: targetHeight,
+    });
+
+    // Rodapé opcional
+    page.drawText(`Gerado por Fluida - Aurora Boreal • ${new Date().toLocaleDateString('pt-BR')}`, {
+      x: 160,
+      y: 20,
+      size: 10,
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica),
+      color: rgb(0.7, 0.7, 0.9),
+    });
 
     const pdfBytes = await pdfDoc.save();
 
     // Upload para Supabase Storage!
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const fileName = `${scriptId}.pdf`;
+    const storageBucket = "fluida-pdfs";
+    const fileName = `${sessionId}.pdf`;
     const pdfPath = fileName;
 
-    // Usar API de storage direto
     const uploadResponse = await fetch(`${supabaseUrl}/storage/v1/object/${storageBucket}/${pdfPath}`, {
       method: "PUT",
       headers: {
@@ -129,9 +115,8 @@ serve(async (req) => {
       );
     }
 
-    // URL pública
     const pdfUrl = `${supabaseUrl}/storage/v1/object/public/${storageBucket}/${pdfPath}`;
-    console.log("PDF Aurora Boreal gerado com sucesso!", pdfUrl);
+    console.log("PDF Aurora Boreal IMAGEM gerado com sucesso!", pdfUrl);
 
     return new Response(
       JSON.stringify({ success: true, pdfUrl }),
