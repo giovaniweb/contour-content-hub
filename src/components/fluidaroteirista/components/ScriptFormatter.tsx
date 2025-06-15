@@ -17,6 +17,7 @@ import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
 import ParagraphBoxFormatter from './ParagraphBoxFormatter';
 import { parseTemporalScript } from "../utils/parseTemporalScript";
 import TemporalScriptBlock from "./TemporalScriptBlock";
+import ReelsTipsCard from "./ReelsTipsCard";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -202,6 +203,11 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           isWithinTimeLimit={isWithinTimeLimit}
           estimatedTime={estimatedTime}
         />
+      )}
+      
+      {/* Dicas Aurora para REELS (inspirado no carrossel/stories) */}
+      {(script.formato || "").toLowerCase() === "reels" && (
+        <ReelsTipsCard />
       )}
     </div>
   );
