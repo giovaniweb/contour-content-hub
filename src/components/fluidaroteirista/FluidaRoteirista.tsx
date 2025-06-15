@@ -189,17 +189,6 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
               </Button>
               
               <Button
-                onClick={handleNavigateToBeforeAfter}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white h-16 flex items-center gap-3"
-              >
-                <Camera className="h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">📸 Antes & Depois</div>
-                  <div className="text-sm opacity-90">Documente resultados</div>
-                </div>
-              </Button>
-              
-              <Button
                 variant="outline"
                 className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3"
                 disabled
