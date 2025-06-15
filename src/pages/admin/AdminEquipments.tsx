@@ -1,44 +1,33 @@
 
 import React from "react";
-import AdminLayout from "@/components/layout/AdminLayout";
+import { Wrench, Plus } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import EquipmentManager from '@/components/admin/EquipmentManager';
-
-// Audit: garantir que só existem imports necessários, pois páginas ContentStrategy/Ideas etc foram removidas
 
 const AdminEquipments: React.FC = () => {
   return (
-    <AdminLayout>
-      <div className="aurora-dark-bg min-h-screen">
-        <div className="aurora-particles">
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={i}
-              className="aurora-particle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDuration: `${10 + Math.random() * 20}s`,
-                animationDelay: `${Math.random() * 10}s`
-              }}
-            />
-          ))}
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Cabeçalho */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Wrench className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-50">Administração de Equipamentos</h1>
+            <p className="text-slate-400">Gerencie todos os equipamentos do sistema</p>
+          </div>
         </div>
-        
-        <div className="container mx-auto py-8 px-4 relative z-10">
-          <div className="mb-8">
-            <h1 className="aurora-text-gradient text-4xl font-light mb-4">
-              Gerenciar Equipamentos
-            </h1>
-            <p className="aurora-body text-white/70 text-lg">
-              Administre os equipamentos do sistema de forma intuitiva e eficiente.
-            </p>
-          </div>
-          
-          <div className="aurora-glass rounded-3xl p-8 backdrop-blur-2xl border border-aurora-electric-purple/20">
-            <EquipmentManager />
-          </div>
+        <div>
+          <Button className="flex items-center gap-2" onClick={() => window.location.href='/admin/equipments/create'}>
+            <Plus className="h-4 w-4" />
+            Novo Equipamento
+          </Button>
         </div>
       </div>
-    </AdminLayout>
+
+      {/* Conteúdo principal */}
+      <EquipmentManager />
+    </div>
   );
 };
 
