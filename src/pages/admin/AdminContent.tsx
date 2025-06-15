@@ -1,7 +1,8 @@
 
 import React from "react";
-import { FileText, BookOpen, Video } from "lucide-react";
+import { FileText, BookOpen, Video, Images, LayoutDashboard } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import MaterialContentManager from "@/components/admin/MaterialContentManager";
 import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
 import VideoContentManager from "@/components/admin/VideoContentManager";
@@ -10,36 +11,62 @@ const AdminContent: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto py-6 space-y-8">
-        {/* Header no mesmo estilo do /admin/videos */}
-        <div className="flex items-center gap-3 mb-8">
-          <FileText className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold text-slate-50">Administração de Conteúdos</h1>
-            <p className="text-slate-400">
-              Gerencie materiais, vídeos e artigos científicos do sistema
-            </p>
+        {/* Header estilo aurora */}
+        <div className="flex items-center justify-between mb-10 bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-100 p-3 rounded-full">
+              <LayoutDashboard className="h-8 w-8 text-blue-500" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                Gerenciar Conteúdo
+              </h1>
+              <p className="text-muted-foreground text-lg mt-1">
+                Administre materiais, vídeos e artigos científicos do sistema
+              </p>
+            </div>
           </div>
         </div>
-        {/* Três managers empilhados como seções verticais, igual abordagem do /admin/videos */}
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-3">
-              <FileText className="h-5 w-5" /> Materiais
-            </h2>
-            <MaterialContentManager />
-          </section>
-          <section>
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-3">
-              <Video className="h-5 w-5" /> Vídeos
-            </h2>
-            <VideoContentManager />
-          </section>
-          <section>
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-3">
-              <BookOpen className="h-5 w-5" /> Artigos Científicos
-            </h2>
-            <ScientificArticleManager />
-          </section>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Materiais */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Materiais
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MaterialContentManager />
+            </CardContent>
+          </Card>
+          
+          {/* Vídeos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Vídeos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <VideoContentManager />
+            </CardContent>
+          </Card>
+
+          {/* Artigos Científicos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Artigos Científicos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScientificArticleManager />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AdminLayout>
@@ -47,3 +74,4 @@ const AdminContent: React.FC = () => {
 };
 
 export default AdminContent;
+
