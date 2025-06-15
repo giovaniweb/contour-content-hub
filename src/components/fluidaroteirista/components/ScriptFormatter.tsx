@@ -15,6 +15,7 @@ import { MessageSquare, Clock, AudioWaveform } from "lucide-react";
 import LightCopyFormatter from './LightCopyFormatter';
 import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
 
+// Utilize apenas os utilitários importados, sem duplicidade local
 import {
   isLightCopy,
   cleanText,
@@ -22,19 +23,8 @@ import {
   splitScriptBlocks,
 } from "./utils/scriptUtils";
 
-interface ScriptFormatterProps {
-  script: {
-    roteiro: string;
-    formato: string;
-    emocao_central: string;
-    intencao: string;
-    objetivo: string;
-    mentor: string;
-    equipamentos_utilizados?: any[];
-    disney_applied?: boolean;
-  };
-}
-
+// As listas de dados são apenas exportadas por questão de exibição/descritiva
+// Se precisar delas no componente, mantenha apenas assim:
 const TITLES = [
   "Gancho", 
   "Erro", 
@@ -44,16 +34,12 @@ const TITLES = [
   "Chamada para Ação",
   "Introdução"
 ];
-
-// Lista nova de títulos para identificar blocos (ajustado para seu padrão!)
 const SCRIPT_BLOCK_TITLES = [
   "Ganho",
   "Desenvolvimento",
   "Solução",
   "CTA"
 ];
-
-// Novos títulos e descrições do framework Light Copy de Ladeira
 const LIGHT_COPY_STEPS = [
   {
     key: "gancho",
@@ -99,154 +85,7 @@ const LIGHT_COPY_STEPS = [
   }
 ];
 
-// Função para separar o texto em blocos usando os títulos conhecidos
-function splitByTitles(text: string) {
-  // Regex: encontra títulos no início de linha (inclusive com pontuação).
-  const regex = new RegExp(`^(${TITLES.join('|')})[:：-]?\\s*`, 'im');
-
-  // 1. Encontra todos títulos para divisão
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-  const sections: { titulo: string | null, conteudo: string }[] = [];
-  let currentTitle: string | null = null;
-  let buffer = [];
-
-  for (let line of lines) {
-    const match = line.match(/^([A-Za-zÀ-ÿ\s]+)[:：-]\\s*/);
-    const rawTitle = match && TITLES.includes(match[1].trim());
-    if (rawTitle) {
-      // Salva o bloco anterior
-      if (buffer.length > 0) {
-        sections.push({
-          titulo: currentTitle,
-          conteudo: buffer.join('\n').trim()
-        });
-        buffer = [];
-      }
-      currentTitle = match![1].trim();
-      line = line.replace(/^([A-Za-zÀ-ÿ\s]+)[:：-]\\s*/, '');
-    }
-    buffer.push(line);
-  }
-
-  // Último bloco
-  if (buffer.length) {
-    sections.push({
-      titulo: currentTitle,
-      conteudo: buffer.join('\n').trim()
-    });
-  }
-
-  // Se nada foi identificado, retorna tudo junto sem título
-  if (sections.length === 1 && !sections[0].titulo) {
-    return [
-      { titulo: null, conteudo: text }
-    ];
-  }
-  return sections;
-}
-
-// Função para separar blocos conforme títulos customizados
-function splitScriptBlocks(text: string) {
-  // Regex pega títulos no início de linha seguidos de ":" com ou sem espaços extras
-  const regex = /^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/;
-  const lines = text.split(/\r?\n/);
-
-  const blocks: { titulo: string, conteudo: string }[] = [];
-  let currentTitle: string | null = null;
-  let buffer: string[] = [];
-
-  for (let line of lines) {
-    const match = line.match(regex);
-    const title = match && SCRIPT_BLOCK_TITLES.includes(match[1].trim()) ? match[1].trim() : null;
-
-    if (title) {
-      // Salva o bloco anterior
-      if (currentTitle && buffer.length > 0) {
-        blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
-        buffer = [];
-      }
-      currentTitle = title;
-      // Remove o título + ":" da linha antes de adicionar ao buffer
-      line = line.replace(regex, "");
-    }
-    // Só adiciona ao buffer se estamos dentro de um bloco reconhecido
-    if (currentTitle) {
-      buffer.push(line);
-    }
-  }
-
-  // Adiciona último bloco
-  if (currentTitle && buffer.length > 0) {
-    blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
-  }
-
-  return blocks.length > 0
-    ? blocks
-    : [{ titulo: "", conteudo: text }];
-}
-
-// Função para detectar Light Copy
-function isLightCopy(roteiro: string, script: any) {
-  const mentor = ("" + (script.mentor || "")).toLowerCase();
-  const formato = ("" + (script.formato || "")).toLowerCase();
-  return formato.includes("light") || mentor.includes("ladeira");
-}
-
-// Novo parser para Light Copy
-function splitLightCopyBlocks(text: string) {
-  // Usar regex para identificar blocos pelos possíveis títulos
-  const sections: { titulo: string, conteudo: string, descricao: string, emoji: string }[] = [];
-  let remaining = text;
-  const possibleTitles = [
-    "Gancho", "Storytelling", "Prova", "Comando", "Gatilho", "Analogia", "Bordão"
-  ];
-
-  for (const step of LIGHT_COPY_STEPS) {
-    const regex = new RegExp(`${step.titulo}|${step.titulo.split(" ")[0]}`, "i");
-    const match = remaining.match(regex);
-    if (match) {
-      // Separar bloco atual
-      const [before, ...rest] = remaining.split(match[0]);
-      if (before.trim() && sections.length === 0) {
-        // Pega intro se o texto antes do primeiro bloco for relevante
-        sections.push({
-          titulo: "Introdução",
-          conteudo: before.trim(),
-          emoji: "📝",
-          descricao: "Introdução ao texto"
-        });
-      }
-      const nextParts = rest.join(match[0]);
-      // Conteúdo do bloco vai até próxima palavra-chave ou fim do texto
-      let nextMatchIdx = nextParts.length;
-      for (const next of possibleTitles) {
-        const nextIdx = nextParts.search(new RegExp(next, "i"));
-        if (nextIdx > -1 && nextIdx < nextMatchIdx) nextMatchIdx = nextIdx;
-      }
-      const conteudo = nextParts.substring(0, nextMatchIdx).trim();
-      sections.push({
-        titulo: step.titulo,
-        conteudo,
-        emoji: step.emoji,
-        descricao: step.descricao
-      });
-      remaining = nextParts.slice(nextMatchIdx);
-    }
-  }
-  // Se sobrou texto, adiciona como encerramento
-  if (remaining && remaining.trim().length > 5) {
-    sections.push({
-      titulo: "Finalização",
-      conteudo: remaining.trim(),
-      emoji: "🏁",
-      descricao: "Fechamento do roteiro"
-    });
-  }
-
-  // Se o parser não conseguiu, retorna bloco único
-  return sections.length > 0 ? sections : [{ titulo: "Roteiro", conteudo: text, emoji: "🎬", descricao: "" }];
-}
-
+// Remova todas as implementações locais das funções utilitárias (mantendo somente imports!)
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
