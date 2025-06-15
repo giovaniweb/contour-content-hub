@@ -46,7 +46,23 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({
   // Parse script content into slides based on format
   const parseScriptSlides = (content: string): ScriptSlide[] => {
     if (script.formato === 'carrossel') {
-      return parseCarouselSlides(content);
+      // -- PATCH: guarantee the output conforms to ScriptSlide type
+      // (number, title, texto, imagem, content, [type])
+      const parsed = parseCarouselSlides(content);
+      return parsed.map((slide, idx) => ({
+        number: slide.number,
+        title: slide.title,
+        texto: slide.texto,
+        imagem: slide.imagem,
+        // Set content as texto, fallback to imagem if texto missing
+        content: slide.texto ? slide.texto : slide.imagem || "",
+        // Optional: set type for coloring
+        type:
+          slide.number === 1 ? 'hook'
+          : slide.number === 2 ? 'problem'
+          : slide.number === 5 ? 'cta'
+          : 'solution'
+      }));
     }
     
     // Para outros formatos, manter lógica anterior
