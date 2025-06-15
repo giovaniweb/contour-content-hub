@@ -1,9 +1,11 @@
+
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Crown,
   BrainCircuit,
+  PenTool,
   Video,
   Image,
   Palette,
@@ -15,6 +17,8 @@ const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Crown, label: "Mestre da\nBeleza", path: "/mestre-da-beleza" },
   { icon: BrainCircuit, label: "Consultor\nMKT", path: "/marketing-consultant" },
+  // Inserir FluidaRoteirista logo após Consultor MKT
+  { icon: PenTool, label: "Fluida\nRoteirista", path: "/fluidaroteirista" },
   { icon: Video, label: "Vídeos", path: "/videos" },
   { icon: Image, label: "Fotos", path: "/photos" },
   { icon: Palette, label: "Artes", path: "/arts" },
