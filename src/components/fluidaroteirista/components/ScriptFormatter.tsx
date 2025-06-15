@@ -36,6 +36,14 @@ const TITLES = [
   "Introdução"
 ];
 
+// Lista nova de títulos para identificar blocos (ajustado para seu padrão!)
+const SCRIPT_BLOCK_TITLES = [
+  "Ganho",
+  "Desenvolvimento",
+  "Solução",
+  "CTA"
+];
+
 // Função para separar o texto em blocos usando os títulos conhecidos
 function splitByTitles(text: string) {
   // Regex: encontra títulos no início de linha (inclusive com pontuação).
@@ -82,6 +90,43 @@ function splitByTitles(text: string) {
   return sections;
 }
 
+// Função para separar blocos conforme títulos customizados
+function splitScriptBlocks(text: string) {
+  // Regex pega títulos no início de linha seguidos de dois pontos
+  const regex = new RegExp(`^(${SCRIPT_BLOCK_TITLES.join('|')})\\s*:\\s*`, 'im');
+  const lines = text.split(/\r?\n/);
+  const blocks: { titulo: string, conteudo: string }[] = [];
+  let currentTitle: string | null = null;
+  let buffer: string[] = [];
+
+  for (let line of lines) {
+    const match = line.match(/^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/);
+    const title = match && SCRIPT_BLOCK_TITLES.includes(match[1].trim()) ? match[1].trim() : null;
+
+    if (title) {
+      // Salva bloco anterior
+      if (currentTitle && buffer.length > 0) {
+        blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
+        buffer = [];
+      }
+      currentTitle = title;
+      line = line.replace(/^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/, ''); // Remove o título da linha
+    }
+
+    // Se dentro de um bloco válido, adiciona linhas
+    if (currentTitle) {
+      buffer.push(line);
+    }
+  }
+
+  // Adiciona último bloco
+  if (currentTitle && buffer.length > 0) {
+    blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
+  }
+
+  return blocks.length > 0 ? blocks : [{ titulo: '', conteudo: text }];
+}
+
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
@@ -100,7 +145,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
 
-  // Renderização condicional baseada no formato
+  // --- Adaptação do render para usar splitScriptBlocks e destacar os blocos do roteiro ---
   const renderScriptContent = () => {
     if (script.formato.toLowerCase() === 'carrossel') {
       return <CarouselFormatter roteiro={script.roteiro} />;
@@ -115,7 +160,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return <PostEstaticoFormatter roteiro={script.roteiro} />;
     }
 
-    // Renderização padrão para outros formatos — reformulado!
+    // Renderização padrão: exibe blocos bem destacados
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -147,7 +192,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           </CardHeader>
           <CardContent className="p-0 px-5 pb-7 relative z-10">
             <div className="relative w-full flex flex-col items-center text-center gap-6">
-              {/* Título da seção */}
               <div className="w-full flex flex-col items-center gap-2">
                 <h3 className="text-aurora-electric-purple text-lg font-bold tracking-wide aurora-heading mb-1">
                   🎬 Fala do Roteiro
@@ -172,42 +216,40 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                   />
                 </div>
               </div>
-              {/* Linha divisória */}
               <div className="w-full border-t border-aurora-electric-purple/20 my-2" />
-              {/* Bloco do texto do roteiro */}
+              {/* Bloco do texto do roteiro — NOVO LAYOUT */}
               <div className="relative bg-slate-900/80 px-6 py-6 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 min-h-[180px] w-full max-w-2xl mx-auto flex flex-col items-center">
                 {/* Aspas decorativas */}
                 <span className="absolute left-2 top-3 text-3xl text-aurora-electric-purple opacity-70 select-none">“</span>
                 <span className="absolute right-2 bottom-3 text-3xl text-aurora-electric-purple opacity-70 select-none">”</span>
-                <div className="flex flex-col gap-8 w-full">
-                  {splitByTitles(script.roteiro).map((block, i) => (
-                    <div key={i} className="text-left w-full max-w-2xl mx-auto">
+                <div className="flex flex-col w-full gap-8">
+                  {splitScriptBlocks(script.roteiro).map((block, i) => (
+                    <div
+                      key={i}
+                      className="mb-6 last:mb-0 bg-slate-800/50 rounded-xl px-4 py-4 shadow-md w-full"
+                    >
                       {block.titulo && (
                         <>
-                          <h4 className="text-aurora-electric-purple text-lg font-bold mb-2 mt-2 aurora-heading tracking-wide flex items-center gap-2">
-                            <span>
-                              {/* Ícone por título */}
-                              {block.titulo === "Gancho" && <span className="text-blue-300">🎯</span>}
-                              {block.titulo === "Erro" && <span className="text-yellow-400">⚡</span>}
-                              {block.titulo === "Virada" && <span className="text-pink-300">🔄</span>}
-                              {block.titulo === "CTA" && <span className="text-green-300">🚀</span>}
-                              {block.titulo === "Dispositivo" && <span className="text-cyan-400">📲</span>}
-                              {block.titulo === "Chamada para Ação" && <span className="text-green-400">👉</span>}
-                              {block.titulo === "Introdução" && <span className="text-purple-300">✨</span>}
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold aurora-heading text-base md:text-lg text-aurora-electric-purple">
+                              {block.titulo === "Ganho" ? "🎯" : ""}
+                              {block.titulo === "Desenvolvimento" ? "💡" : ""}
+                              {block.titulo === "Solução" ? "🔬" : ""}
+                              {block.titulo === "CTA" ? "🚀" : ""}
+                              {" "}{block.titulo}
                             </span>
-                            {block.titulo}
-                          </h4>
-                          <hr className="border-aurora-electric-purple/20 mb-3" />
+                            <div className="flex-1 border-t border-aurora-neon-blue/10 ml-2" />
+                          </div>
                         </>
                       )}
-                      <div className="text-slate-100 text-lg leading-relaxed font-medium whitespace-pre-line aurora-body px-2">
+                      <div className="text-left text-slate-100 text-base md:text-lg leading-normal aurora-body font-medium whitespace-pre-line pr-2">
                         {block.conteudo}
                       </div>
                     </div>
                   ))}
                 </div>
-                {/* /FIM DO BLOCO DE TEXTO */}
               </div>
+              {/* /FIM DO NOVO BLOCO DE TEXTO */}
             </div>
             <div className="w-full flex justify-center pt-4 gap-2">
               <button
