@@ -21,7 +21,7 @@ const MarketingConsultantHome: React.FC = () => {
 
   if (currentView === 'new-diagnostic') {
     return (
-      <div className="container mx-auto py-6 space-y-8">
+      <div className="w-full max-w-3xl mx-auto py-6 space-y-8 px-2 sm:px-4 md:px-0">
         <div className="flex items-center gap-3 mb-6 bg-transparent">
           <Button variant="outline" onClick={() => {
             setCurrentView('home');
@@ -41,7 +41,7 @@ const MarketingConsultantHome: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
+    <div className="w-full max-w-3xl mx-auto py-6 space-y-8 px-2 sm:px-4 md:px-0">
       {/* Header */}
       <ConsultantHeader />
 
