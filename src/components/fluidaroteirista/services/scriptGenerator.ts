@@ -12,102 +12,60 @@ export const generateFluidaScript = async (
   console.log('📋 [scriptGenerator] Dados recebidos:', data);
   console.log('🔧 [scriptGenerator] Equipamentos detalhados:', equipmentDetails);
   
-  // VALIDAÇÃO CRÍTICA: garantir que apenas equipamentos selecionados sejam usados
   if (data.equipamentos && data.equipamentos.length > 0 && equipmentDetails.length === 0) {
     console.error('❌ [scriptGenerator] ERRO CRÍTICO: Equipamentos selecionados mas detalhes vazios');
     console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
-  // --- NOVA LÓGICA DE SELEÇÃO DE MENTOR & MÉTODO ---
-  // Definir mentor e prompt/metodologia baseados no formato
+  // Lógica de seleção de mentor & metodologia baseada em formato
   let mentor = data.mentor;
   let metodo = '';
   let systemPrompt = '';
   let userPrompt = '';
-  let metodoPorFormato = {
-    reels:  'COCA', // alternativo: pode aceitar escolha futura 'Light Copy'
-    stories_10x: 'VTS10x',
-    carrossel: 'Cuenca',
-    post_estatico: 'Cuenca',
-    tiktok: 'COCA',
-    criativo_ads: 'LightCopy',
-    youtube: 'COCA'
-  };
-
-  // Identificação do método segundo formato (default para reels: COCA)
   const formato = (data.formato || '').toLowerCase();
-  metodo = metodoPorFormato[formato] || (data.metodo || '');
 
+  // Mapeamento do formato para métodos e mentores específicos
   switch (formato) {
     case 'reels':
       mentor = 'Hyeser Souza';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'coca', // método
-        mentor,
-        { ...data, metodologia: 'COCA', formato }
-      );
+      metodo = 'COCA'; // Se você quiser permitir alternância COCA/Light Copy, adicione lógica
       break;
     case 'stories_10x':
       mentor = 'Leandro Ladeira';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'vts10x',
-        mentor,
-        { ...data, metodologia: 'VTS10x', formato }
-      );
+      metodo = 'VTS10x';
       break;
     case 'carrossel':
     case 'post_estatico':
       mentor = 'Paulo Cuenca';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'cuenca',
-        mentor,
-        { ...data, metodologia: 'Cuenca', formato }
-      );
+      metodo = 'Cuenca';
       break;
     case 'tiktok':
       mentor = 'Hyeser Souza';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'coca',
-        mentor,
-        { ...data, metodologia: 'COCA', formato }
-      );
+      metodo = 'COCA';
       break;
     case 'criativo_ads':
       mentor = 'Leandro Ladeira';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'lightcopy',
-        mentor,
-        { ...data, metodologia: 'Light Copy', formato }
-      );
+      metodo = 'Light Copy';
       break;
     case 'youtube':
       mentor = 'Hyeser Souza';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        'coca',
-        mentor,
-        { ...data, metodologia: 'COCA', formato }
-      );
+      metodo = 'COCA';
       break;
     default:
-      // fallback antigo, para não quebrar legado/testes
       mentor = data.mentor || 'Criativo';
-      systemPrompt = buildSystemPrompt(
-        equipmentDetails,
-        data.modo || 'rocket',
-        mentor,
-        { ...data, formato }
-      );
+      metodo = data.modo || '';
       break;
   }
-  // Garantir também o nome do mentor no resultado final
+
+  systemPrompt = buildSystemPrompt(
+    equipmentDetails,
+    metodo.toLowerCase(),
+    mentor,
+    { ...data, metodologia: metodo, formato }
+  );
+  
   data.mentor = mentor;
-  // userPrompt idem
+
   userPrompt = `
 TEMA PRINCIPAL: ${data.tema}
 OBJETIVO: ${data.objetivo || 'Atrair novos clientes'}

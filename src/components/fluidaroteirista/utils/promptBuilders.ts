@@ -8,7 +8,7 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
   let extraInstructions = '';
   
   // Lógica extra: método/metodologia
-  if(metodologia === 'COCA') {
+  if (metodologia === 'COCA') {
     extraInstructions = `
 MÉTODO COCA (Conexão, Objeção, Crescimento, Autoridade):
 1. Defina público-alvo (faixa etária, interesse, estilo de comunicação)
@@ -27,7 +27,7 @@ Regras:
 - Linguagem acessível/persuasiva.
 `;
     mentorReference = "Hyeser Souza — especialista em roteiro COCA";
-  } else if(metodologia === 'Light Copy') {
+  } else if (metodologia === 'Light Copy') {
     extraInstructions = `
 MÉTODO LIGHT COPY (Leandro Ladeira):
 - Gancho impactante
@@ -42,13 +42,13 @@ Estrutura e tom: sempre direto, vendedor e emocional, com CTA forte.
 Proibido: linguagem técnica/fria ou genérica.
 `;
     mentorReference = "Leandro Ladeira — mestre em Light Copy para conversão";
-  } else if(metodologia === 'VTS10x') {
+  } else if (metodologia === 'VTS10x') {
     extraInstructions = `
 MÉTODO STORIES 10X (VTS10x - Leandro Ladeira):
 Siga a estrutura de 4 Stories (gancho, erro/identificação, virada/dispositivo de engajamento, CTA suave). Veja detalhes em mentorPrompts.ts (Stories10x).
 `;
     mentorReference = "Leandro Ladeira — VTS10x";
-  } else if(metodologia === 'Cuenca') {
+  } else if (metodologia === 'Cuenca') {
     extraInstructions = `
 MÉTODO CUENCA (Narrativa Visual Premium):
 Foque 100% em direção de arte, estética e storytelling visual poderoso para posicionamento premium. Estrutura e exemplos no mentorPrompts.ts.
@@ -62,8 +62,7 @@ Foque 100% em direção de arte, estética e storytelling visual poderoso para p
   const palavrasMax = formatConfig.palavras_max;
   const estrutura = formatConfig.estrutura;
 
-  // Usar nome fictício para o mentor
-  const mentorReference = getMentorReference(mentor);
+  // NÃO redeclare mentorReference aqui! Ele já foi setado corretamente no código acima.
 
   const equipmentContext = equipmentDetails.length > 0 
     ? equipmentDetails.map(eq => `
