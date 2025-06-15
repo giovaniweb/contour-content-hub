@@ -2066,7 +2066,6 @@ export type Database = {
           tipo_video: string | null
           titulo: string | null
           url_video: string | null
-          vimeo_id: string | null
         }
         Insert: {
           area_corpo?: string | null
@@ -2087,7 +2086,6 @@ export type Database = {
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
-          vimeo_id?: string | null
         }
         Update: {
           area_corpo?: string | null
@@ -2108,7 +2106,6 @@ export type Database = {
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
-          vimeo_id?: string | null
         }
         Relationships: []
       }

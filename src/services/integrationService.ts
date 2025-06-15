@@ -3,123 +3,25 @@ import { GptConfig, VimeoConfig, DropboxConfig } from "@/types/database";
 import { SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 
 // Salvar configuração do Vimeo (apenas pasta padrão agora)
-export const saveVimeoConfig = async (config: VimeoConfig): Promise<void> => {
-  const timestamp = new Date().toISOString();
-  
-  try {
-    // Verificar se já existe configuração para Vimeo
-    const { data: existingConfig } = await supabase
-      .from('integracao_configs')
-      .select('id')
-      .eq('tipo', 'vimeo')
-      .maybeSingle();
-    
-    if (existingConfig) {
-      // Se já existe, atualizar
-      await supabase
-        .from('integracao_configs')
-        .update({
-          config: config as any,
-          atualizado_em: timestamp
-        })
-        .eq('id', existingConfig.id);
-    } else {
-      // Se não existe, criar
-      await supabase
-        .from('integracao_configs')
-        .insert({
-          tipo: 'vimeo',
-          config: config as any,
-          criado_em: timestamp,
-          atualizado_em: timestamp
-        });
-    }
-  } catch (error) {
-    console.error('Erro ao salvar configuração do Vimeo:', error);
-    throw error;
-  }
+export const saveVimeoConfig = async (config: any): Promise<void> => {
+  // Função mantida apenas por legado; não faz nada, pois integração foi removida
+  return;
 };
 
 // Obter configuração do Vimeo (apenas pasta padrão agora)
-export const getVimeoConfig = async (): Promise<VimeoConfig | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('integracao_configs')
-      .select('config')
-      .eq('tipo', 'vimeo')
-      .maybeSingle();
-    
-    if (error || !data) {
-      return null;
-    }
-    
-    return data.config as unknown as VimeoConfig;
-  } catch (error) {
-    console.error('Erro ao buscar configuração do Vimeo:', error);
-    throw error;
-  }
+export const getVimeoConfig = async (): Promise<null> => {
+  // Função mantida apenas por legado; sempre retorna null
+  return null;
 };
 
-// Testar conexão com Vimeo
-export const testVimeoConnection = async (folderId: string): Promise<{
-  success: boolean;
-  message?: string;
-  error?: string;
-  help?: string;
-  instructions?: string;
-  details?: any;
-  user?: any;
-  missing_scopes?: string[];
-  required_scopes?: string[];
-}> => {
-  try {
-    console.log(`Testando conexão com folder_id: ${folderId}`);
-    
-    // Usar supabase.functions.invoke para chamar a Edge Function diretamente
-    const { data, error } = await supabase.functions.invoke('vimeo-test-connection', {
-      method: 'POST',
-      body: { folder_id: folderId }
-    });
-    
-    if (error) {
-      console.error('Erro ao chamar Edge Function:', error);
-      return {
-        success: false,
-        error: `Erro na chamada da função: ${error.message || error}`
-      };
-    }
-    
-    console.log("Resultado do teste de conexão:", data);
-    
-    // A resposta agora deve sempre ter sucesso ou falha determinado pelo campo 'success'
-    return data;
-  } catch (error: any) {
-    console.error('Erro ao testar conexão com Vimeo:', error);
-    return {
-      success: false,
-      error: error.message || 'Falha na comunicação com o serviço'
-    };
-  }
+// Testar conexão com Vimeo (removida)
+export const testVimeoConnection = async (_folderId: string): Promise<{success: boolean, message?: string}> => {
+  return { success: false, message: "Integração com Vimeo foi descontinuada." };
 };
 
-// Importar videos do Vimeo
-export const importVimeoVideos = async (folderPath?: string, page = 1, limit = 20) => {
-  try {
-    // Usar supabase.functions.invoke para chamar a Edge Function diretamente
-    const { data, error } = await supabase.functions.invoke('vimeo-batch-import', {
-      method: 'POST',
-      body: { folderPath, page, limit }
-    });
-    
-    if (error) {
-      throw error;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Erro ao importar vídeos do Vimeo:', error);
-    throw error;
-  }
+// Importar videos do Vimeo (removida)
+export const importVimeoVideos = async () => {
+  throw new Error("Integração com Vimeo foi removida.");
 };
 
 // Obter configuração do Dropbox

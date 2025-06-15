@@ -24,9 +24,9 @@ const AdminIntegrations: React.FC = () => {
   const integrations = [
     {
       name: "Vimeo",
-      status: "Connected",
-      description: "Integração para armazenamento de vídeos e streaming de conteúdo.",
-      link: "/admin/vimeo-settings",
+      status: "Not Available",
+      description: "Importação de vídeos via Vimeo foi descontinuada por segurança e integração direta.",
+      link: "#",
       icon: "https://cdn.icon-icons.com/icons2/2429/PNG/512/vimeo_logo_icon_147212.png"
     },
     {

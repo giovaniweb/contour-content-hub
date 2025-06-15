@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/routes';
-import { ArrowRight, FileUp, FileCog, FileVideo } from 'lucide-react';
+import { ArrowRight, FileUp, FileCog } from 'lucide-react';
 
 const VideoBatchImport: React.FC = () => {
   const navigate = useNavigate();
@@ -52,26 +52,6 @@ const VideoBatchImport: React.FC = () => {
             <CardFooter>
               <Button variant="outline" className="w-full" onClick={() => navigate(ROUTES.VIDEOS.STORAGE)}>
                 Acessar Gerenciamento <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <FileVideo className="h-10 w-10 text-orange-500 mb-2" />
-              <CardTitle>Importar do Vimeo</CardTitle>
-              <CardDescription>
-                Importe vídeos diretamente da sua conta do Vimeo.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Conecte sua conta do Vimeo e importe vídeos existentes para o sistema.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full" onClick={() => navigate(ROUTES.VIDEOS.IMPORT)}>
-                Importar do Vimeo <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
