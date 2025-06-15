@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowRight, RotateCcw, Sparkles } from "lucide-react";
 import { useAkinatorIntentionTree } from "./hooks/useAkinatorIntentionTree";
 import { IntentionNode } from "./intentionTree";
 import { INTENTION_TREE } from "./intentionTree";
