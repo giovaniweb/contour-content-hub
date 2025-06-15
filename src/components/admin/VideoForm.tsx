@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
   const [activeTab, setActiveTab] = useState('form');
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [bodyAreasList, setBodyAreasList] = useState([]);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   
   // Load initial data
   useEffect(() => {
@@ -110,6 +112,13 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
     fetchReferenceData();
   }, [videoData]);
   
+  // Set equipment from props
+  useEffect(() => {
+    if (equipmentId && !videoData) {
+      setEquipment(equipmentId);
+    }
+  }, [equipmentId, videoData]);
+  
   // After equipment is selected, prefill based on it
   useEffect(() => {
     if (equipment && !videoData) {
@@ -141,6 +150,73 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
       fetchEquipmentDetails();
     }
   }, [equipment, videoData]);
+
+  // Generate thumbnail from video
+  const generateThumbnailFromVideo = async (videoUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.preload = 'metadata';
+      
+      video.addEventListener('loadedmetadata', () => {
+        // Set video time to 1 second or 10% of duration, whichever is smaller
+        const seekTime = Math.min(1, video.duration * 0.1);
+        video.currentTime = seekTime;
+      });
+      
+      video.addEventListener('seeked', () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Set canvas dimensions to video dimensions
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          // Draw the video frame to canvas
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert canvas to blob
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            } else {
+              reject(new Error('Failed to create thumbnail'));
+            }
+          }, 'image/jpeg', 0.8);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      
+      video.addEventListener('error', reject);
+      video.src = videoUrl;
+    });
+  };
+
+  // Handle video URL change and generate thumbnail
+  useEffect(() => {
+    if (videoUrl && !thumbUrl && !isGeneratingThumbnail) {
+      const generateThumbnail = async () => {
+        try {
+          setIsGeneratingThumbnail(true);
+          const thumbnail = await generateThumbnailFromVideo(videoUrl);
+          setThumbUrl(thumbnail);
+          toast.success('Thumbnail gerada automaticamente!');
+        } catch (error) {
+          console.error('Error generating thumbnail:', error);
+          toast.error('Não foi possível gerar thumbnail automaticamente');
+        } finally {
+          setIsGeneratingThumbnail(false);
+        }
+      };
+      
+      generateThumbnail();
+    }
+  }, [videoUrl, thumbUrl, isGeneratingThumbnail]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -230,6 +306,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
                 equipmentsList={equipmentsList}
                 bodyAreasList={bodyAreasList}
                 purposes={purposes}
+                isGeneratingThumbnail={isGeneratingThumbnail}
               />
 
               <VideoFormActions 
@@ -247,5 +324,3 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
 };
 
 export default VideoForm;
-
-// Reminder: this file is still quite large (>250 lines). Consider refactoring if you plan more changes.

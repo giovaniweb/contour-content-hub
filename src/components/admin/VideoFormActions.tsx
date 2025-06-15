@@ -1,22 +1,52 @@
 
-import React from "react";
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save, X } from "lucide-react";
 
-export default function VideoFormActions({ onCancel, isLoading, isEditing }) {
+interface VideoFormActionsProps {
+  onCancel?: () => void;
+  isLoading: boolean;
+  isEditing: boolean;
+}
+
+const VideoFormActions: React.FC<VideoFormActionsProps> = ({
+  onCancel,
+  isLoading,
+  isEditing
+}) => {
   return (
-    <div className="flex justify-end space-x-2 pt-4">
-      <Button type="button" variant="outline" onClick={onCancel}>
-        Cancelar
-      </Button>
-      <Button type="submit" disabled={isLoading}>
+    <div className="flex justify-end space-x-4 pt-4 border-t">
+      {onCancel && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
+          <X className="w-4 h-4 mr-2" />
+          Cancelar
+        </Button>
+      )}
+      
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="bg-gradient-to-r from-blue-600 to-purple-600"
+      >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Salvando...
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            {isEditing ? 'Atualizando...' : 'Salvando...'}
           </>
-        ) : isEditing ? 'Atualizar Vídeo' : 'Cadastrar Vídeo'}
+        ) : (
+          <>
+            <Save className="w-4 h-4 mr-2" />
+            {isEditing ? 'Atualizar Vídeo' : 'Salvar Vídeo'}
+          </>
+        )}
       </Button>
     </div>
   );
-}
+};
+
+export default VideoFormActions;
