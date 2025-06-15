@@ -1,12 +1,12 @@
 
 import React from 'react';
-import AdminLayout from '@/components/layout/AdminLayout';
+import AppLayout from '@/components/layout/AppLayout';
 import AdminVideoManager from '@/components/admin/AdminVideoManager';
 import { Video } from 'lucide-react';
 
 const AdminVideos: React.FC = () => {
   return (
-    <AdminLayout>
+    <AppLayout requireAdmin={true}>
       <div className="container mx-auto py-6 space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -20,7 +20,7 @@ const AdminVideos: React.FC = () => {
         {/* Admin Video Manager */}
         <AdminVideoManager />
       </div>
-    </AdminLayout>
+    </AppLayout>
   );
 };
 
