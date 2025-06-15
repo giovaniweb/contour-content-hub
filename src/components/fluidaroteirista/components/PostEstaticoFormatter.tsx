@@ -1,11 +1,12 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parsePostEstatico, validatePostEstatico } from '../utils/postEstaticoParser';
 import PostEstaticoCard from './PostEstaticoCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Image, Instagram, Type, MessageSquare, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Image, Instagram, Type, MessageSquare, CheckCircle, AlertTriangle, Sparkles, Loader2, Wand2 } from 'lucide-react';
+import { toast } from "sonner";
+import { useState } from 'react';
 
 interface PostEstaticoFormatterProps {
   roteiro: string;
@@ -14,6 +15,39 @@ interface PostEstaticoFormatterProps {
 const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }) => {
   const data = parsePostEstatico(roteiro);
   const validation = data ? validatePostEstatico(data) : { isValid: false, issues: ['Erro ao processar roteiro'], score: 0 };
+
+  // Estados para botões de ação
+  const [isApproved, setIsApproved] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+  const [isGeneratingImg, setIsGeneratingImg] = useState(false);
+
+  // Aprovar roteiro
+  const handleApprove = () => {
+    setIsApproved(true);
+    toast.success("Roteiro aprovado com sucesso! 🎉 Agora é possível gerar imagem.");
+  };
+  // Simular melhorar roteiro
+  const handleImprove = async () => {
+    setIsImproving(true);
+    toast("Chamando IA para melhorar roteiro (simulado)");
+    setTimeout(() => {
+      toast.success("Roteiro melhorado! (exemplo 👩‍🎤)");
+      setIsImproving(false);
+    }, 2000);
+  };
+  // Novo roteiro
+  const handleNew = () => {
+    window.location.reload();
+  };
+  // Simular gerar imagem
+  const handleGenerateImage = async () => {
+    setIsGeneratingImg(true);
+    toast("Gerando imagem (simulado)...");
+    setTimeout(() => {
+      toast.success("Imagem gerada!");
+      setIsGeneratingImg(false);
+    }, 2000);
+  };
 
   if (!data) {
     return (
@@ -98,6 +132,41 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* BLOCO DE BOTÕES PRINCIPAIS para Post Estático */}
+      <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
+        <button
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
+          onClick={handleApprove}
+          disabled={isApproved}
+        >
+          <Sparkles className="h-5 w-5" />
+          {isApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
+        </button>
+        <button
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-neon-blue text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-neon-blue/40 text-base disabled:opacity-60"
+          onClick={handleImprove}
+          disabled={isImproving || isApproved}
+        >
+          {isImproving ? <Loader2 className="animate-spin h-4 w-4" /> : <Wand2 className="h-4 w-4" />}
+          Melhorar Roteiro
+        </button>
+        <button
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-slate-800/80 text-slate-100 font-semibold shadow border border-slate-600/40 hover:bg-slate-900 transition-all text-base"
+          onClick={handleNew}
+          disabled={isImproving}
+        >
+          Novo Roteiro
+        </button>
+        <button
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
+          onClick={handleGenerateImage}
+          disabled={!isApproved || isGeneratingImg}
+        >
+          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
+          {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
+        </button>
+      </div>
 
       {/* Estrutura do Post Aurora */}
       <motion.div
