@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { FluidaScriptResult } from "./types";
-
 interface FluidaScriptResultsProps {
   results: FluidaScriptResult[];
   onNewScript: () => void;
@@ -16,7 +15,6 @@ interface FluidaScriptResultsProps {
   isProcessing: boolean;
   onApproveScript?: () => void;
 }
-
 const FluidaScriptResults = ({
   results,
   onNewScript,
@@ -40,10 +38,13 @@ const FluidaScriptResults = ({
     setImprovedScript(null);
     try {
       // Chama a edge function /improve-script
-      const { data, error } = await supabase.functions.invoke("improve-script", {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("improve-script", {
         body: {
-          content: roteiroBase,
-        },
+          content: roteiroBase
+        }
       });
       if (error || !data?.improved) {
         toast.error("Falha ao melhorar roteiro. Tente novamente.");
@@ -64,7 +65,11 @@ const FluidaScriptResults = ({
     const parts = roteiro.split(regex).filter(Boolean);
 
     // Junta os títulos com o conteúdo seguinte
-    let stories: { number: number; title: string; content: string }[] = [];
+    let stories: {
+      number: number;
+      title: string;
+      content: string;
+    }[] = [];
     for (let i = 0; i < parts.length; i++) {
       if (parts[i].match(/^Story\s*\d+:/)) {
         const title = parts[i].trim();
@@ -76,26 +81,22 @@ const FluidaScriptResults = ({
         stories.push({
           number: match ? Number(match[1]) : i + 1,
           title,
-          content,
+          content
         });
       }
     }
     return stories;
   }
-
-  const roteiroParaExibir =
-    improvedScript !== null
-      ? { ...results[0], roteiro: improvedScript }
-      : results[0];
-
-  return (
-    <div className="space-y-6 flex flex-col">
+  const roteiroParaExibir = improvedScript !== null ? {
+    ...results[0],
+    roteiro: improvedScript
+  } : results[0];
+  return <div className="space-y-6 flex flex-col">
       {/* Exibição do roteiro (aprimorado ou original) */}
       <div>
         {/* We remove onApproveScript from ScriptFormatter, as its props don't accept it */}
         <ScriptFormatter script={roteiroParaExibir} />
-        {improvedScript && (
-          <Card className="mt-6 aurora-glass border-aurora-emerald/40 shadow-lg animate-fade-in">
+        {improvedScript && <Card className="mt-6 aurora-glass border-aurora-emerald/40 shadow-lg animate-fade-in">
             <CardContent>
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-lg">🕑</span>
@@ -104,12 +105,7 @@ const FluidaScriptResults = ({
                 </span>
               </div>
               <div className="space-y-4">
-                {parseStoriesFromRoteiro(results[0].roteiro).length > 0 ? (
-                  parseStoriesFromRoteiro(results[0].roteiro).map(story => (
-                    <div
-                      key={story.number}
-                      className="border border-emerald-500/20 rounded-xl p-4 bg-gradient-to-br from-black/70 via-emerald-900/30 to-slate-800/60 shadow-md flex gap-3"
-                    >
+                {parseStoriesFromRoteiro(results[0].roteiro).length > 0 ? parseStoriesFromRoteiro(results[0].roteiro).map(story => <div key={story.number} className="border border-emerald-500/20 rounded-xl p-4 bg-gradient-to-br from-black/70 via-emerald-900/30 to-slate-800/60 shadow-md flex gap-3">
                       <div className="flex-shrink-0 flex flex-col items-center pt-1 pr-3">
                         <span className="bg-emerald-700/40 text-emerald-300 font-bold rounded-full w-8 h-8 flex items-center justify-center text-lg shadow">
                           {story.number}
@@ -119,38 +115,34 @@ const FluidaScriptResults = ({
                         <div className="font-semibold text-emerald-300 mb-1 text-base">
                           {story.title}
                         </div>
-                        <pre
-                          className="text-slate-100 whitespace-pre-line font-mono text-[15px] leading-relaxed"
-                          style={{ background: "none", padding: 0, margin: 0 }}
-                        >
+                        <pre className="text-slate-100 whitespace-pre-line font-mono text-[15px] leading-relaxed" style={{
+                  background: "none",
+                  padding: 0,
+                  margin: 0
+                }}>
                           {story.content}
                         </pre>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="bg-gradient-to-br from-slate-900/80 via-emerald-900/40 to-slate-800/80 rounded-xl p-4 border border-emerald-400/10">
-                    <pre className="text-slate-100 whitespace-pre-line font-mono text-base leading-relaxed break-words" style={{ background: 'none', padding: 0, margin: 0 }}>
+                    </div>) : <div className="bg-gradient-to-br from-slate-900/80 via-emerald-900/40 to-slate-800/80 rounded-xl p-4 border border-emerald-400/10">
+                    <pre className="text-slate-100 whitespace-pre-line font-mono text-base leading-relaxed break-words" style={{
+                background: 'none',
+                padding: 0,
+                margin: 0
+              }}>
                       {results[0].roteiro}
                     </pre>
-                  </div>
-                )}
+                  </div>}
               </div>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
       </div>
 
       {/* Botões de ações movidos para o final e mais visíveis */}
       <div className="flex flex-wrap gap-2 items-center justify-end mt-6 sticky bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/50 to-transparent p-4 rounded-xl z-20 shadow-2xl aurora-glass border border-aurora-emerald/20">
         <Button variant="secondary" onClick={onNewScript}>Novo roteiro</Button>
-        <Button
-          variant={improvedScript ? "outline" : "default"}
-          disabled={isImproving}
-          onClick={async () => {
-            await handleImproveScript();
-          }}
-        >
+        <Button variant={improvedScript ? "outline" : "default"} disabled={isImproving} onClick={async () => {
+        await handleImproveScript();
+      }} className="text-slate-50">
           {isImproving ? "✨ Melhorando..." : "✨ Melhorar Roteiro"}
         </Button>
         <Button variant="default" onClick={() => onGenerateImage(roteiroParaExibir)}>
@@ -160,8 +152,6 @@ const FluidaScriptResults = ({
           Gerar Áudio
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default FluidaScriptResults;
