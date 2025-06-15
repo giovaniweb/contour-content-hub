@@ -9,6 +9,9 @@ import AuroraLoadingScreen from './AuroraLoadingScreen';
 import ScriptGeneratorForm from './ScriptGeneratorForm';
 import EnhancedScriptResults from './EnhancedScriptResults';
 
+// Adicione o tipo FormatType compatível
+type FormatType = 'carrossel' | 'imagem' | 'reels';
+
 interface FluidaScriptGeneratorProps {
   onScriptGenerated?: (script: any) => void;
 }
@@ -18,7 +21,8 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
 }) => {
   const [tema, setTema] = useState('');
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
-  const [formato, setFormato] = useState<'carrossel' | 'imagem' | 'stories' | 'reels'>('carrossel');
+  // Corrija o tipo para remover 'stories'.
+  const [formato, setFormato] = useState<FormatType>('carrossel');
   const [objetivo, setObjetivo] = useState('🟡 Atrair Atenção');
   const [mentor, setMentor] = useState('Criativo');
 
