@@ -190,14 +190,40 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
               
               <Button
                 variant="outline"
-                className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3"
+                className={`
+                  border-4
+                  border-transparent
+                  bg-gradient-to-r from-aurora-electric-purple/70 to-aurora-neon-blue/60
+                  relative overflow-hidden
+                  text-white 
+                  h-20 md:h-20
+                  flex items-center gap-3
+                  shadow-lg
+                  font-bold
+                  transition-all
+                  duration-200
+                  hover:scale-105 
+                  cursor-not-allowed
+                `}
                 disabled
+                style={{
+                  borderImage: 'linear-gradient(90deg, #8b5cf6 15%, #3b82f6 85%) 1',
+                  boxShadow: '0 0 24px 4px rgba(107,70,193,0.21), 0 4px 24px #6b46c155',
+                  filter: 'brightness(1.2)',
+                  WebkitTextStroke: '0.3px #fff2'
+                }}
               >
-                <Target className="h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">📊 Análises (Em breve)</div>
-                  <div className="text-sm opacity-70">Métricas e insights</div>
+                <Target className="h-8 w-8 text-aurora-electric-purple drop-shadow-lg animate-pulse" />
+                <div className="text-left flex flex-col">
+                  <span className="font-extrabold text-lg drop-shadow-[0_2px_6px_rgba(107,70,193,0.59)]">
+                    📊 Análises <span className="uppercase">Em breve</span>
+                  </span>
+                  <span className="text-sm opacity-80 font-semibold">Métricas e insights</span>
                 </div>
+                {/* Brilho animado "em breve" */}
+                <span className="absolute right-2 top-2 animate-pulse text-xs text-aurora-neon-blue font-bold bg-aurora-deep-purple px-2 py-1 rounded-full shadow-md border border-aurora-electric-purple">
+                  🔥
+                </span>
               </Button>
             </div>
           </CardContent>
