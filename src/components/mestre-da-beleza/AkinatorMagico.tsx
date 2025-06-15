@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,8 @@ function AuroraParticles() {
     </div>
   );
 }
+
+import AuroraParticles from "./components/AuroraParticles";
 
 const genieNames = ["Jasmin", "Akinario", "Mirabella", "O Gênio Fluido", "Aura"];
 function getRandom(arr: string[]) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -117,36 +118,42 @@ const AkinatorMagico: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen aurora-gradient-bg">
-      {/* partículas mágicas de fundo */}
+    <div className="relative min-h-screen flex items-center justify-center aurora-gradient-bg px-2 py-8">
+      {/* Aurora Partículas mágicas de fundo */}
       <AuroraParticles />
-      <div className="relative z-10 max-w-2xl mx-auto flex flex-col gap-10 py-8 px-4 sm:px-6">
-        {/* Cabeçalho mais destacado */}
+
+      <div className="relative z-10 mx-auto w-full max-w-2xl flex flex-col gap-10 py-9 px-2 sm:px-4">
+        {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: -32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, type: "spring", stiffness: 68 }}
         >
           <div className="flex flex-col items-center gap-2 mb-6">
-            <span className="animate-pulse shadow-lg crystal-pulse rounded-full p-4 bg-gradient-to-br from-yellow-300 via-pink-400 to-purple-600 border-4 border-yellow-400/40">
-              <Sparkles className="text-white drop-shadow filter" size={52} />
+            <span className="animate-pulse shadow-xl crystal-pulse rounded-full p-4 bg-gradient-to-br from-yellow-300 via-pink-400 to-purple-600 border-4 border-yellow-400/30">
+              <Sparkles className="text-white drop-shadow" size={52} />
             </span>
             <GenioMestreHeader step={genieStep} phrase={geniePhrase} />
           </div>
         </motion.div>
+
         <AnimatePresence mode="wait">
           {completed ? (
             <motion.div
               key="final"
-              initial={{ opacity: 0, scale: 0.90, rotate: -6 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.96, rotate: 12 }}
+              initial={{ opacity: 0, scale: 0.90, y: 80 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 64 }}
               className="space-y-6"
             >
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-2xl gradient-magical shadow-pink-400/20">
+              <Card className="aurora-card border-2 border-purple-400/50 shadow-2xl backdrop-blur-lg">
                 <CardContent className="p-8 flex flex-col items-center justify-center">
                   {getFinalDiagnosis()}
-                  <Button onClick={reset} variant="outline" className="mt-6 rounded-full font-bold bg-gradient-to-r from-purple-700 to-pink-500 text-white shadow-lg hover:from-purple-800 hover:to-pink-600 transition">
+                  <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="mt-6 rounded-full font-bold bg-gradient-to-r from-purple-700 to-pink-500 text-white shadow-lg hover:from-purple-800 hover:to-pink-600 transition"
+                  >
                     <RotateCcw className="mr-2 h-4 w-4" />
                     Invocar o Gênio Novamente
                   </Button>
@@ -161,14 +168,13 @@ const AkinatorMagico: React.FC = () => {
               exit={{ opacity: 0, x: -16, scale: 0.96 }}
               className="space-y-10"
             >
-              {/* Barra mágica de energia */}
               <div className="flex flex-col gap-2 items-center">
-                <span className="text-2xl text-purple-200 animate-bounce">💫 Energia mística: <span className="font-bold text-yellow-200">{progress}%</span></span>
+                <span className="text-xl md:text-2xl text-purple-200 animate-bounce">💫 Energia mística: <span className="font-bold text-yellow-200">{progress}%</span></span>
                 <div className="w-full max-w-md">
                   <Progress value={progress} className="h-3 bg-purple-900/40 magical-glow rounded-lg" />
                 </div>
               </div>
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-xl magical-glow gradient-magical backdrop-blur-lg">
+              <Card className="aurora-card border-2 border-purple-400/50 shadow-xl magical-glow backdrop-blur-lg">
                 <CardContent className="p-8">
                   <div className="text-2xl font-bold text-magical text-center mb-4 font-playfair drop-shadow">
                     {getRandom([
@@ -196,7 +202,7 @@ const AkinatorMagico: React.FC = () => {
                           key={idx}
                           onClick={() => handleGenioAnswer(option)}
                           variant="outline"
-                          className="w-full p-6 text-left h-auto rounded-xl hover:bg-purple-500/30 hover:border-yellow-300 transition-all duration-300 text-white backdrop-blur shadow-lg font-medium"
+                          className="w-full p-6 text-left h-auto rounded-xl hover:bg-purple-500/30 hover:border-yellow-300 transition-all duration-300 text-white backdrop-blur shadow-lg font-medium bg-purple-800/30"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span className="text-lg">{option}</span>
@@ -214,7 +220,7 @@ const AkinatorMagico: React.FC = () => {
                   onClick={reset}
                   variant="ghost"
                   size="sm"
-                  className="text-gray-400 hover:text-white"
+                  className="text-gray-300 hover:text-white"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Recomeçar consulta
@@ -229,4 +235,3 @@ const AkinatorMagico: React.FC = () => {
 };
 
 export default AkinatorMagico;
-
