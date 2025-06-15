@@ -38,7 +38,8 @@ const VideosPage = React.lazy(() => import('@/pages/VideosPage'));
 const VideoPlayer = React.lazy(() => import('@/pages/VideoPlayer'));
 
 // Equipment pages
-const EquipmentsPage = React.lazy(() => import('@/pages/EquipmentsPage'));
+// Import the new page
+import EquipmentList from "@/components/admin/EquipmentList";
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
@@ -81,7 +82,9 @@ function App() {
                       <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
                       <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
                       <Route path="/content-planner" element={<AppLayout><ContentPlanner /></AppLayout>} />
-                      <Route path="/equipments" element={<AppLayout><EquipmentsPage /></AppLayout>} />
+                      {/* TROCA AQUI - Equipamentos */}
+                      <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
+                      {/* FIM DA TROCA */}
                       
                       {/* Content Routes */}
                       <Route path="/content-ideas" element={<AppLayout><ContentIdeas /></AppLayout>} />
