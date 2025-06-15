@@ -1,8 +1,27 @@
-
 import { PopularItem } from "../types/popularContent";
+import { approvedScriptsService } from "@/services/approvedScriptsService";
 
-export const getPopularContent = (): PopularItem[] => {
-  // Exemplo de conteúdo popular - em uma implementação real, estes viriam de uma API
+export const getPopularContent = async (): Promise<PopularItem[]> => {
+  try {
+    const aprovados = await approvedScriptsService.getApprovedScripts();
+    if (aprovados.length > 0) {
+      return aprovados.slice(0, 6).map((ap, idx) => ({
+        id: ap.id,
+        title: ap.title,
+        type: ap.format,
+        imageUrl: "https://source.unsplash.com/featured/?skin,care," + (idx + 1), // Usa imagem fixa/demo
+        views: 1200 + idx * 110,
+        likes: 75 + idx * 11,
+        comments: 9 + idx,
+        rating: 4.2 + (Math.random() * 0.5),
+        date: ap.created_at.split("T")[0],
+        equipment: ap.equipment_used || [],
+        purpose: [],
+      }));
+    }
+  } catch (err) {
+    console.warn("Falha ao buscar roteiros aprovados, usando fallback mock.", err);
+  }
   return [
     {
       id: "1",
