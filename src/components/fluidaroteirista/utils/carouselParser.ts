@@ -1,68 +1,80 @@
+
 export const parseCarouselSlides = (roteiro: string) => {
-  // Regex robusto para dividir blocos iniciando em "Slide X:"
-  const slideRegex = /Slide\s*:? ?(\d+)?\s*:?\s*([^\n]*)\n?([^]*?)(?=(?:\n+)?Slide\s*:? ?\d+\s*:|\s*$)/gi;
+  // Split slides either by "Slide X:" ou por bloco de linhas em branco dupla
+  // O parser cobre:
+  // - Slide 1: Título\nTexto:\nImagem:
+  // - Título\nTexto:\nImagem:
+  // - Slide 1:\nTexto:\nImagem:
+
+  const blocos = roteiro
+    .split(/\n{2,}|(?=^Slide\s*\d*:)/gmi)
+    .map(b => b.trim())
+    .filter(Boolean)
+    .slice(0, 5); // máx 5 slides
+
   const slides: { number: number; title: string; texto: string; imagem: string }[] = [];
+  const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
 
-  let match;
-  let slideIndex = 0;
+  blocos.forEach((bloco, idx) => {
+    // Padrão: Slide X: Título (opcional) + resto
+    let numero = idx + 1;
+    let rawTitle = "";
+    let corpo = bloco;
 
-  while ((match = slideRegex.exec(roteiro)) !== null && slides.length < 5) {
-    slideIndex++;
-    const number = match[1] ? Number(match[1]) : slideIndex;
-    let rawTitle = (match[2] || "").trim();
+    // Detecta se começa com Slide X:
+    const slideMatch = bloco.match(/^Slide\s*:?\s*(\d+)?\s*:?\s*([^\n]*)/i);
 
-    // Captura o bloco inteiro do slide (linhas após título)
-    const bloco = match[3] || "";
-
-    // Extrair Texto: e Imagem: corretamente (mesmo que multi-linha)
-    // Apanha a primeira linha do bloco como título se o 'rawTitle' estiver vazio
-    let title = rawTitle;
-    if (!title) {
-      // Primeira linha útil do bloco (antes de Texto: ou Imagem:)
-      const firstLine = bloco.split('\n').map(l => l.trim()).filter(Boolean)[0] || "";
-      if (
-        firstLine &&
-        !firstLine.toLowerCase().startsWith("texto:") &&
-        !firstLine.toLowerCase().startsWith("imagem:")
-      ) {
-        title = firstLine;
-      } else {
-        // Fallbacks por ordem
-        const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
-        title = defaultTitles[slides.length] || `Slide ${slideIndex}`;
-      }
+    if (slideMatch) {
+      numero = slideMatch[1] ? Number(slideMatch[1]) : numero;
+      rawTitle = (slideMatch[2] || "").trim();
+      corpo = bloco.replace(slideMatch[0], "").trim();
     }
 
-    // Regex para capturar multi linhas após Texto:
+    // Agora tenta extrair o título se ainda não tem (caso arquivo tenha apenas "Título\nTexto:")
+    let title = rawTitle;
+    if (!title) {
+      // Primeira linha útil ANTES de Texto: ou Imagem:
+      const firstLine = corpo.split("\n").map(l => l.trim()).find(l =>
+        l && !l.toLowerCase().startsWith("texto:") && !l.toLowerCase().startsWith("imagem:")
+      );
+      title = firstLine || defaultTitles[idx] || `Slide ${numero}`;
+    }
+
+    // Extrair Texto: e Imagem: (pode ter linha solta antes)
     let texto = "";
     let imagem = "";
 
-    // Extrair Texto: (pega todas as linhas até próximo campo ou final do bloco)
-    const textoMatch = bloco.match(/Texto:\s*([\s\S]*?)(?=\n(?:Imagem:|Texto:|$))/i);
+    const textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=\nImagem:|\nTexto:|$)/i);
     if (textoMatch && textoMatch[1]) {
       texto = textoMatch[1].trim();
     }
 
-    // Extrair Imagem:
-    const imagemMatch = bloco.match(/Imagem:\s*([\s\S]*?)(?=\n(?:Texto:|Imagem:|$))/i);
+    const imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\nTexto:|$)/i);
     if (imagemMatch && imagemMatch[1]) {
       imagem = imagemMatch[1].trim();
     }
 
-    // Fallbacks
+    // Se título acidentalmente igual ao texto/imagem, limpa para título default
+    if (
+      (texto && title === texto) ||
+      (imagem && title === imagem)
+    ) {
+      title = defaultTitles[idx] || `Slide ${numero}`;
+    }
+
+    // Fallbacks só se não tiver nada extraído real
     if (!texto) texto = "Conteúdo do slide";
     if (!imagem) imagem = "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave";
 
     slides.push({
-      number,
+      number: numero,
       title,
       texto,
       imagem
     });
-  }
+  });
 
-  // Sempre retorna 5 slides: preenche faltantes
-  const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
+  // Garante sempre 5
   while (slides.length < 5) {
     slides.push({
       number: slides.length + 1,
@@ -75,10 +87,8 @@ export const parseCarouselSlides = (roteiro: string) => {
   return slides.slice(0, 5);
 }
 
-// --- NEW: Export parseAndLimitCarousel, as used in other files ---
-// It should use parseCarouselSlides, join slides formatted string
+// --- Export parseAndLimitCarousel (mantém igual) ---
 export const parseAndLimitCarousel = (roteiro: string): string => {
-  // Parse and format as a text block, max 5 slides
   const slides = parseCarouselSlides(roteiro);
   return slides
     .slice(0, 5)
@@ -89,15 +99,13 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
     .join('\n');
 };
 
-// --- NEW: Export validateCarouselSlides as used in other files ---
+// --- Export validateCarouselSlides (mantém igual) ---
 export const validateCarouselSlides = (roteiro: string) => {
   const slides = parseCarouselSlides(roteiro);
   const errors: string[] = [];
 
-  // At least one slide and <= 5
   if (slides.length === 0) errors.push("Nenhum slide encontrado");
   if (slides.length > 5) errors.push("Mais de 5 slides detectados");
-  // All slides should have texto and imagem
   slides.forEach((slide, idx) => {
     if (!slide.texto || slide.texto.trim() === "" || slide.texto === "Conteúdo do slide") {
       errors.push(`Slide ${idx + 1} sem texto`);
@@ -113,3 +121,4 @@ export const validateCarouselSlides = (roteiro: string) => {
     slideCount: slides.length
   };
 }
+
