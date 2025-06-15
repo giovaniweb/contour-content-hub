@@ -14,15 +14,15 @@ import { cn } from "@/lib/utils";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Crown, label: "Mestre", path: "/mestre-da-beleza" },
-  { icon: BrainCircuit, label: "MKT", path: "/marketing-consultant" },
+  { icon: Crown, label: "Mestre da\nBeleza", path: "/mestre-da-beleza" },
+  { icon: BrainCircuit, label: "Consultor\nMKT", path: "/marketing-consultant" },
   { icon: Video, label: "Vídeos", path: "/videos" },
   { icon: Image, label: "Fotos", path: "/photos" },
   { icon: Palette, label: "Artes", path: "/arts" },
-  { icon: Wrench, label: "Equip.", path: "/equipments" },
+  { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 
-const SIDEBAR_WIDTH = 72; // px (w-18, mais compacto que w-20/w-24)
+const SIDEBAR_WIDTH = 104; // px (w-26 ~ 104px, enough for two lines)
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -36,7 +36,6 @@ const Sidebar: React.FC = () => {
       )}
       style={{ width: SIDEBAR_WIDTH }}
     >
-      {/* Logo / Brand at the top */}
       <div className="flex flex-col items-center mb-8 mt-2 cursor-pointer select-none" onClick={() => navigate("/dashboard")}>
         <span className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500">
           {/* Ícone estilizado do app */}
@@ -50,32 +49,38 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 flex flex-col gap-3 w-full">
         {sidebarItems.map((item) => {
           const active = location.pathname === item.path;
+          const labelLines = item.label.split('\n');
           return (
             <button
               key={item.path}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150 mx-auto w-12 py-2 group",
+                "flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150 mx-auto w-[88px] py-3 group",
                 active && "bg-white/15 text-white shadow-lg"
               )}
               onClick={() => navigate(item.path)}
               tabIndex={0}
               style={{ outline: "none" }}
             >
-              <item.icon className="w-6 h-6 mb-0.5" />
+              <item.icon className="w-7 h-7 mb-1" />
               <span className={cn(
-                "text-[0.7rem] font-medium truncate max-w-[52px] leading-tight",
+                "text-[0.78rem] font-medium truncate leading-tight text-center break-words",
                 active && "text-white"
               )}>
-                {item.label}
+                {labelLines.map((line, idx) => (
+                  <span key={idx} className="block">
+                    {line}
+                  </span>
+                ))}
               </span>
             </button>
           );
         })}
       </nav>
-      {/* Rodapé minimalista, caso queira adicionar info ou botão */}
+      {/* Rodapé minimalista */}
       {/* <div className="mt-auto mb-2 text-xs text-white/50">v1.0</div> */}
     </aside>
   );
 };
 
 export default Sidebar;
+

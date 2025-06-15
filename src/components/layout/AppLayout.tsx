@@ -1,11 +1,10 @@
-
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "./Sidebar";
 import Navbar from "../navbar/Navbar";
 
-const SIDEBAR_WIDTH = 72; // igual ao Sidebar.tsx (px: w-18)
+const SIDEBAR_WIDTH = 104; // igual ao Sidebar.tsx (px: w-26)
 
 interface AppLayoutProps {
   children: React.ReactNode;
