@@ -1,17 +1,17 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   User,
   Settings,
   LogOut,
-  Dashboard,
+  LayoutDashboard,
   FileText,
   Award,
   Image,
   Book,
   Users,
   Instagram,
+  Video,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -112,7 +112,7 @@ export function ProfileMenu() {
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/profile-dashboard">
-              <Dashboard className="mr-2 h-4 w-4" />
+              <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Minha Dashboard</span>
             </Link>
           </DropdownMenuItem>
