@@ -176,7 +176,7 @@ const AkinatorMagico: React.FC = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="flex flex-col gap-4 mt-4">
                       {currentNode.options.map((option, idx) => (
                         <Button
                           key={idx}
