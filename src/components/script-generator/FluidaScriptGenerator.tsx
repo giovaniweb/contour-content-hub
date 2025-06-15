@@ -18,7 +18,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
 }) => {
   const [tema, setTema] = useState('');
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
-  const [formato, setFormato] = useState<'carrossel' | 'imagem' | 'reels'>('carrossel');
+  const [formato, setFormato] = useState<'carrossel' | 'imagem' | 'stories' | 'reels'>('carrossel');
   const [objetivo, setObjetivo] = useState('🟡 Atrair Atenção');
   const [mentor, setMentor] = useState('Criativo');
 
