@@ -106,7 +106,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   if (currentMode === 'results') {
     if (results.length === 0) {
       return (
-        <div className="w-full flex flex-col items-center justify-center h-96 text-center gap-4">
+        <div className="w-full flex flex-col items-center justify-center h-96 text-center gap-6 px-6">
           <div className="text-xl text-rose-400 font-bold">😢 Nenhum roteiro gerado</div>
           <div className="text-md text-slate-400 max-w-xl">
             Não foi possível criar um roteiro neste momento. Isso pode ter ocorrido por instabilidade do serviço ou dados insuficientes.
@@ -120,59 +120,71 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
     if (IS_DEV) console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
-      <FluidaScriptResults
-        results={results}
-        onNewScript={handleNewScript}
-        onGenerateImage={handleGenerateImage}
-        onGenerateAudio={handleGenerateAudio}
-        onApplyDisney={applyDisneyMagic}
-        isProcessing={isGenerating}
-      />
+      <div className="p-4 sm:p-8 w-full max-w-3xl mx-auto space-y-6">
+        <FluidaScriptResults
+          results={results}
+          onNewScript={handleNewScript}
+          onGenerateImage={handleGenerateImage}
+          onGenerateAudio={handleGenerateAudio}
+          onApplyDisney={applyDisneyMagic}
+          isProcessing={isGenerating}
+        />
+      </div>
     );
   }
 
   if (currentMode === 'elementos') {
     if (IS_DEV) console.log('🎯 [FluidaRoteirista] Renderizando modo Rocket');
     return (
-      <ElementosUniversaisMode
-        onScriptGenerated={handleScriptGenerated}
-        onGoBack={handleGoBack}
-        generateScript={generateScript}
-        isGenerating={isGenerating}
-      />
+      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
+        <ElementosUniversaisMode
+          onScriptGenerated={handleScriptGenerated}
+          onGoBack={handleGoBack}
+          generateScript={generateScript}
+          isGenerating={isGenerating}
+        />
+      </div>
     );
   }
 
   if (currentMode === 'akinator') {
     if (IS_DEV) console.log('❓ [FluidaRoteirista] Renderizando modo Fluida');
     return (
-      <AkinatorScriptMode
-        onScriptGenerated={handleScriptGenerated}
-        onGoBack={handleGoBack}
-        generateScript={generateScript}
-        forceGenerate={forceGenerate}
-        isGenerating={isGenerating}
-        validationResult={validationResult}
-        showValidation={showValidation}
-        dismissValidation={dismissValidation}
-      />
+      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
+        <AkinatorScriptMode
+          onScriptGenerated={handleScriptGenerated}
+          onGoBack={handleGoBack}
+          generateScript={generateScript}
+          forceGenerate={forceGenerate}
+          isGenerating={isGenerating}
+          validationResult={validationResult}
+          showValidation={showValidation}
+          dismissValidation={dismissValidation}
+        />
+      </div>
     );
   }
 
   if (IS_DEV) console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
   return (
-    <div className="container mx-auto py-6 space-y-8">
+    <div className="container mx-auto py-10 sm:py-14 space-y-14 sm:space-y-16 px-4">
       {/* Header */}
       <AuroraHeaderSection />
 
       {/* Quick Access Menu */}
-      <QuickAccessMenu onNavigateToApprovedScripts={handleNavigateToApprovedScripts} />
+      <div className="py-2">
+        <QuickAccessMenu onNavigateToApprovedScripts={handleNavigateToApprovedScripts} />
+      </div>
 
       {/* Mode Selection */}
-      <ModeSelection onSelect={handleModeSelect} />
+      <div>
+        <ModeSelection onSelect={handleModeSelect} />
+      </div>
 
       {/* Features Banner */}
-      <FeaturesBanner />
+      <div className="mt-2">
+        <FeaturesBanner />
+      </div>
     </div>
   );
 };
