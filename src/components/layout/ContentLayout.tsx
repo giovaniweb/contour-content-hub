@@ -1,6 +1,6 @@
 
 import React, { ReactNode } from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import GlassContainer from '@/components/ui/GlassContainer';
 
 interface ContentLayoutProps {
@@ -21,7 +21,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
   noContainer = false
 }) => {
   return (
-    <Layout title="" fullWidth={fullWidth}>
+    <AppLayout>
       <div className="bg-gradient-to-br from-white to-zinc-50 min-h-[calc(100vh-4rem)]">
         {title && (
           <div className="container mx-auto px-4 pt-6 pb-4">
@@ -40,7 +40,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
             </div>
           </div>
         )}
-
         {noContainer ? (
           <div className="px-4">{children}</div>
         ) : (
@@ -51,7 +50,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
           </div>
         )}
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

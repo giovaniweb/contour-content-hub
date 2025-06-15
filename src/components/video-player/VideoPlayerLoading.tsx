@@ -1,10 +1,11 @@
 
+// Substituir Layout legado por AppLayout
 import React from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 
 export const VideoPlayerLoading: React.FC = () => {
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Player de Vídeo</h1>
@@ -13,6 +14,6 @@ export const VideoPlayerLoading: React.FC = () => {
           <div className="animate-pulse">Carregando...</div>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };

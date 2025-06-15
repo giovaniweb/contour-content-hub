@@ -1,6 +1,7 @@
 
+// Substituir Layout legado por AppLayout
 import React, { useState } from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import VideoSwipeViewer from '@/components/video-storage/VideoSwipeViewer';
 import { StoredVideo } from '@/types/video-storage';
@@ -39,7 +40,7 @@ export const VideoPlayerSwipe: React.FC<VideoPlayerSwipeProps> = ({
   };
   
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Descobrir vídeos</h1>
@@ -62,7 +63,7 @@ export const VideoPlayerSwipe: React.FC<VideoPlayerSwipeProps> = ({
           />
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

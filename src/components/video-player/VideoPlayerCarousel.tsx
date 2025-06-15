@@ -1,6 +1,7 @@
 
+// Substituir Layout legado por AppLayout
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp } from 'lucide-react';
 import { StoredVideo } from '@/types/video-storage';
@@ -28,15 +29,12 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
 }) => {
   const [api, setApi] = React.useState<CarouselApi>();
   
-  // When the carousel API is available, set up a listener for changes
   React.useEffect(() => {
     if (!api) return;
-    
     const handleSelect = () => {
       const selectedIndex = api.selectedScrollSnap();
       onSelect(selectedIndex);
     };
-    
     api.on("select", handleSelect);
     return () => {
       api.off("select", handleSelect);
@@ -44,7 +42,7 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
   }, [api, onSelect]);
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">{videos[currentVideoIndex]?.title || "Player de Vídeo"}</h1>
@@ -52,15 +50,8 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
             Voltar
           </Button>
         </div>
-        
         <div className="h-[70vh] w-full max-w-4xl mx-auto overflow-hidden">
-          <Carousel
-            className="w-full"
-            setApi={setApi}
-            opts={{ 
-              startIndex: currentVideoIndex 
-            }}
-          >
+          <Carousel className="w-full" setApi={setApi} opts={{ startIndex: currentVideoIndex }}>
             <CarouselContent>
               {videos.map((video, index) => (
                 <CarouselItem key={video.id}>
@@ -95,6 +86,6 @@ export const VideoPlayerCarousel: React.FC<VideoPlayerCarouselProps> = ({
           </Carousel>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };

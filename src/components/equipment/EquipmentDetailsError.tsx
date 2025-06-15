@@ -1,7 +1,8 @@
 
+// Substituir Layout legado por AppLayout
 import React from "react";
 import { Link } from "react-router-dom";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 
 interface EquipmentDetailsErrorProps {
@@ -14,7 +15,7 @@ export const EquipmentDetailsError: React.FC<EquipmentDetailsErrorProps> = ({
   message 
 }) => {
   return (
-    <Layout title={title}>
+    <AppLayout>
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <h2 className="text-2xl font-semibold text-destructive">{title}</h2>
         <p className="text-muted-foreground">{message}</p>
@@ -22,6 +23,6 @@ export const EquipmentDetailsError: React.FC<EquipmentDetailsErrorProps> = ({
           <Link to="/admin/equipments">Voltar para Gerenciamento de Equipamentos</Link>
         </Button>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };

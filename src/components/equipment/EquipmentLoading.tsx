@@ -1,13 +1,14 @@
 
+// Substituir Layout legado por AppLayout
 import React from "react";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 
 export const EquipmentLoading: React.FC = () => {
   return (
-    <Layout title="Carregando...">
+    <AppLayout>
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
