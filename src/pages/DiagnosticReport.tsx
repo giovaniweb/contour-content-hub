@@ -10,6 +10,7 @@ import ActionsTab from '@/components/diagnostic-report/ActionsTab';
 import ContentTab from '@/components/diagnostic-report/ContentTab';
 import MetricsTab from '@/components/diagnostic-report/MetricsTab';
 import ReportPdfButton from "@/components/ui/ReportPdfButton";
+import GenerateAuroraPdfButton from "@/components/ui/GenerateAuroraPdfButton";
 
 // Função para gerar ID determinístico (mesma lógica do hook)
 const generateDeterministicId = (data: any): string => {
@@ -158,15 +159,47 @@ const DiagnosticReport: React.FC = () => {
       ? session.state.generatedDiagnostic
       : undefined;
 
-  console.log('✅ DiagnosticReport - Renderizando relatório para sessão:', session.id);
+  // Adicionar checagem se há diagnóstico exportável
+  const diagnosticString = typeof session.state.generatedDiagnostic === "string"
+    ? session.state.generatedDiagnostic
+    : "";
+
+  // Separar as seções para exportar (caso diagnóstico em texto esteja disponível)
+  let diagnosticSections = { estrategico: '', planoAcao: '', conteudo: '' };
+  try {
+    if (diagnosticString.length > 10) {
+      const { extractDiagnosticSections } = require("@/components/diagnostic-report/diagnostic-sections/diagnosticSectionUtils");
+      diagnosticSections = extractDiagnosticSections(diagnosticString);
+    }
+  } catch (e) {
+    // fallback se não conseguir importar
+  }
 
   return (
     <div className="min-h-screen bg-aurora-background">
       <div className="container mx-auto py-6 max-w-6xl">
+
         {/* Header do relatório */}
         <ReportHeader session={session} onBack={handleBack} />
 
-        {/* Botão PDF Aurora, se já existir PDF disponível */}
+        {/* Opção de Exportar PDF sempre visível se diagnóstico disponível */}
+        {diagnosticString && diagnosticString.length > 10 && (
+          <div className="my-4 flex items-center gap-3">
+            <GenerateAuroraPdfButton
+              sessionId={session.id}
+              diagnosticSection={diagnosticSections.estrategico}
+              actionsSection={diagnosticSections.planoAcao}
+              contentSection={diagnosticSections.conteudo}
+              title={session.clinicTypeLabel || "Relatório Fluida"}
+              type="marketingDiagnostic"
+            />
+            <span className="ml-3 text-xs text-foreground/40">
+              Exporte em PDF igual ao relatório visualizado.
+            </span>
+          </div>
+        )}
+
+        {/* Botão PDF Aurora (URL já existente) */}
         {pdfUrl && (
           <div className="my-4">
             <ReportPdfButton
@@ -185,39 +218,42 @@ const DiagnosticReport: React.FC = () => {
           <QuickMetrics state={session.state} />
         </div>
 
-        {/* Tabs de conteúdo */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 aurora-glass">
-            <TabsTrigger value="diagnostic" className="text-sm">
-              🎯 Diagnóstico
-            </TabsTrigger>
-            <TabsTrigger value="actions" className="text-sm">
-              ⚡ Ações
-            </TabsTrigger>
-            <TabsTrigger value="content" className="text-sm">
-              📝 Conteúdo
-            </TabsTrigger>
-            <TabsTrigger value="metrics" className="text-sm">
-              📊 Métricas
-            </TabsTrigger>
-          </TabsList>
+        {/* Conteúdo chave do relatório - ENCAPSULADO NA DIV PARA EXPORTAÇÃO */}
+        <div id="diagnostic-report-html-capture">
+          {/* Tabs de conteúdo */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 aurora-glass">
+              <TabsTrigger value="diagnostic" className="text-sm">
+                🎯 Diagnóstico
+              </TabsTrigger>
+              <TabsTrigger value="actions" className="text-sm">
+                ⚡ Ações
+              </TabsTrigger>
+              <TabsTrigger value="content" className="text-sm">
+                📝 Conteúdo
+              </TabsTrigger>
+              <TabsTrigger value="metrics" className="text-sm">
+                📊 Métricas
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="diagnostic">
-            <DiagnosticTab session={session} />
-          </TabsContent>
+            <TabsContent value="diagnostic">
+              <DiagnosticTab session={session} />
+            </TabsContent>
 
-          <TabsContent value="actions">
-            <ActionsTab session={session} />
-          </TabsContent>
+            <TabsContent value="actions">
+              <ActionsTab session={session} />
+            </TabsContent>
 
-          <TabsContent value="content">
-            <ContentTab session={session} />
-          </TabsContent>
+            <TabsContent value="content">
+              <ContentTab session={session} />
+            </TabsContent>
 
-          <TabsContent value="metrics">
-            <MetricsTab session={session} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="metrics">
+              <MetricsTab session={session} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
