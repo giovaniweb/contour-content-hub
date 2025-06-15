@@ -148,7 +148,7 @@ const FluidaScriptResults = ({
         <Button variant="default" onClick={() => onGenerateImage(roteiroParaExibir)}>
           Gerar Imagem
         </Button>
-        <Button variant="outline" onClick={() => onGenerateAudio(roteiroParaExibir)}>
+        <Button variant="outline" onClick={() => onGenerateAudio(roteiroParaExibir)} className="text-slate-50">
           Gerar Áudio
         </Button>
       </div>
