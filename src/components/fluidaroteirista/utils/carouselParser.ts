@@ -1,11 +1,6 @@
 
 export const parseCarouselSlides = (roteiro: string) => {
-  // Split slides either by "Slide X:" ou por bloco de linhas em branco dupla
-  // O parser cobre:
-  // - Slide 1: Título\nTexto:\nImagem:
-  // - Título\nTexto:\nImagem:
-  // - Slide 1:\nTexto:\nImagem:
-
+  // Split slides by "Slide X:" OR double line breaks with lookahead for possible Slide X:
   const blocos = roteiro
     .split(/\n{2,}|(?=^Slide\s*\d*:)/gmi)
     .map(b => b.trim())
@@ -16,12 +11,11 @@ export const parseCarouselSlides = (roteiro: string) => {
   const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
 
   blocos.forEach((bloco, idx) => {
-    // Padrão: Slide X: Título (opcional) + resto
+    // Detecta se começa com Slide X: Título (opcional) + resto
     let numero = idx + 1;
     let rawTitle = "";
     let corpo = bloco;
 
-    // Detecta se começa com Slide X:
     const slideMatch = bloco.match(/^Slide\s*:?\s*(\d+)?\s*:?\s*([^\n]*)/i);
 
     if (slideMatch) {
@@ -30,20 +24,31 @@ export const parseCarouselSlides = (roteiro: string) => {
       corpo = bloco.replace(slideMatch[0], "").trim();
     }
 
-    // Agora tenta extrair o título se ainda não tem (caso arquivo tenha apenas "Título\nTexto:")
+    // --- NOVA LÓGICA PARA SEPARAÇÃO DE TÍTULO, TEXTO E IMAGEM ---
     let title = rawTitle;
-    if (!title) {
-      // Primeira linha útil ANTES de Texto: ou Imagem:
-      const firstLine = corpo.split("\n").map(l => l.trim()).find(l =>
-        l && !l.toLowerCase().startsWith("texto:") && !l.toLowerCase().startsWith("imagem:")
-      );
-      title = firstLine || defaultTitles[idx] || `Slide ${numero}`;
-    }
-
-    // Extrair Texto: e Imagem: (pode ter linha solta antes)
     let texto = "";
     let imagem = "";
 
+    // Se não há título explícito (rawTitle), processar linhas para extrair corretamente
+    if (!title) {
+      // Divide em linhas e remove as em branco
+      const linhas = corpo.split(/\n/).map(l => l.trim()).filter(Boolean);
+      // Se a primeira linha contém "Texto:" ou "Imagem:", NÃO é título; use defaultTitle.
+      if (
+        linhas[0] &&
+        (linhas[0].toLowerCase().startsWith("texto:") || linhas[0].toLowerCase().startsWith("imagem:"))
+      ) {
+        title = defaultTitles[idx] || `Slide ${numero}`;
+      } else if (linhas.length > 0) {
+        title = linhas[0];
+        // O corpo a ser analisado como texto/imagem é TUDO exceto a primeira linha
+        corpo = linhas.slice(1).join("\n");
+      } else {
+        title = defaultTitles[idx] || `Slide ${numero}`;
+      }
+    }
+
+    // Extrair Texto: e Imagem: de QUALQUER parte do corpo pendente
     const textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=\nImagem:|\nTexto:|$)/i);
     if (textoMatch && textoMatch[1]) {
       texto = textoMatch[1].trim();
@@ -54,6 +59,10 @@ export const parseCarouselSlides = (roteiro: string) => {
       imagem = imagemMatch[1].trim();
     }
 
+    // Fallbacks só se não tiver nada extraído real
+    if (!texto) texto = "Conteúdo do slide";
+    if (!imagem) imagem = "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave";
+
     // Se título acidentalmente igual ao texto/imagem, limpa para título default
     if (
       (texto && title === texto) ||
@@ -61,10 +70,6 @@ export const parseCarouselSlides = (roteiro: string) => {
     ) {
       title = defaultTitles[idx] || `Slide ${numero}`;
     }
-
-    // Fallbacks só se não tiver nada extraído real
-    if (!texto) texto = "Conteúdo do slide";
-    if (!imagem) imagem = "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave";
 
     slides.push({
       number: numero,
