@@ -31,11 +31,9 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
 
-  // Melhor tratamento de erro: exibe detalhe do Edge Function
   const handleExportPdf = async () => {
     setLoading(true);
     try {
-      // Captura a div do relatório
       const reportElement = document.getElementById("diagnostic-report-html-capture");
       if (!reportElement) {
         toast.error("Seção do relatório não encontrada para exportação", {
@@ -45,11 +43,9 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
         return;
       }
 
-      // Usa html2canvas para renderizar para imagem PNG base64
       const canvas = await html2canvas(reportElement, { scale: 2, backgroundColor: "#0a071b" });
       const imgData = canvas.toDataURL("image/png");
 
-      // Usa Supabase client com valores hardcoded
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const { data, error } = await supabase.functions.invoke(
@@ -64,20 +60,35 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
         }
       );
       if (error) {
-        // Tenta exibir mensagem detalhada do erro da Edge Function se houver
         let detailedMsg = error.message || "Erro desconhecido ao gerar PDF";
         try {
-          // Se erro já veio em formato de JSON
+          // Quando edge function retorna erro do tipo Response (fetch), tentamos extrair o corpo
           if (error?.context) {
             detailedMsg += ` (${error.context})`;
           }
-          // Se edge function retornou body em error.body
+          // Novo: também tentar extrair texto/json se error.body ou error.response presente
           if (error.body) {
             const errorJson = JSON.parse(error.body);
             if (errorJson.error) detailedMsg = errorJson.error + (errorJson.details ? `: ${errorJson.details}` : "");
+          } else if (error.response && typeof error.response.text === "function") {
+            // Para Response: pegar texto do corpo (pode ser json ou string)
+            const bodyText = await error.response.text();
+            if (bodyText) {
+              try {
+                // Se vier JSON, pegar a mensagem
+                const json = JSON.parse(bodyText);
+                if (json.error) {
+                  detailedMsg = json.error + (json.details ? `: ${json.details}` : "");
+                } else {
+                  detailedMsg = JSON.stringify(json);
+                }
+              } catch {
+                detailedMsg = bodyText;
+              }
+            }
           }
         } catch (e) {
-          // Se não for JSON, ignora
+          // Se der problema ao extrair, ainda mostra erro simples
         }
         toast.error("Erro ao gerar PDF", { description: detailedMsg });
         setLoading(false);
