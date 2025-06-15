@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import Layout from "@/components/Layout";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -67,7 +66,7 @@ const AdminIntegrations: React.FC = () => {
   ];
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="container mx-auto py-8">
         <div className="mb-10 bg-gradient-to-r from-violet-50 to-indigo-50 p-6 rounded-xl">
           <div className="flex items-center gap-4 mb-4">
@@ -197,7 +196,7 @@ const AdminIntegrations: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </AdminLayout>
   );
 };
 

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
+// Substituindo Layout legado por AppLayout
+import AppLayout from '@/components/layout/AppLayout';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,9 @@ import { ArrowRight, FileUp, FileCog } from 'lucide-react';
 
 const VideoBatchImport: React.FC = () => {
   const navigate = useNavigate();
-  
+
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Importação em Lote</h1>
         
@@ -79,7 +80,7 @@ const VideoBatchImport: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 
