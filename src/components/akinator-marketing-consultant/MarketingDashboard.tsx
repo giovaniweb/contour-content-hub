@@ -16,7 +16,7 @@ import ContentSuggestionCards from './dashboard/ContentSuggestionCards';
 import QuickActionCards from './dashboard/QuickActionCards';
 import RealMentorSection from "./dashboard/RealMentorSection";
 import { useRealMentors } from "./hooks/useRealMentors";
-import SmartWeeklySchedule from './dashboard/SmartWeeklySchedule';
+import SmartWeeklySchedule, { generateWeekPlan } from './dashboard/SmartWeeklySchedule';
 import { useBulkContentPlannerActions } from './dashboard/hooks/useBulkContentPlannerActions';
 
 interface MarketingDashboardProps {
@@ -158,17 +158,14 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   // 1. SmartWeeklySchedule (semana corrente)
   const weekDayPlans =
     safeState && safeState.clinicType
-      ? SmartWeeklySchedule
-          ? SmartWeeklySchedule.generateWeekPlan?.(
-              // Função util como static method. Se não, copie a mesma lógica acima para cá:
-              getMainSpecialty(),
-              safeState.revenueGoal ||
-                safeState.medicalObjective ||
-                safeState.aestheticObjective ||
-                "",
-              safeState.contentFrequency || ""
-            ) || []
-          : []
+      ? generateWeekPlan(
+            getMainSpecialty(),
+            safeState.revenueGoal ||
+              safeState.medicalObjective ||
+              safeState.aestheticObjective ||
+              "",
+            safeState.contentFrequency || ""
+          ) || []
       : [];
 
   // 2. Ideias AI e Próximos Passos: Suponha que esses dois sejam arrays de objetos {title, description,...}

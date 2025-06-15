@@ -2,12 +2,13 @@
 import { useContentPlanner } from "@/hooks/useContentPlanner";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ContentPlannerStatus } from "@/types/content-planner";
 
 // Tipos parciais comuns conforme outras sugestões
 type BasicItem = {
   title: string;
   description: string;
-  status?: string;
+  status?: ContentPlannerStatus; // Corrigir explicitamente o tipo
   tags?: string[];
   format?: string;
   objective?: string;
@@ -30,7 +31,12 @@ export function useBulkContentPlannerActions(): UseBulkPlannerActionsReturn {
     setLoading(true);
     let successCount = 0;
     for (const item of items) {
-      const created = await addItem({ ...item, aiGenerated: true });
+      // Garanta que status seja válido, se não definido default para "idea"
+      const created = await addItem({
+        ...item,
+        status: 'idea' as ContentPlannerStatus,
+        aiGenerated: true
+      });
       if (created) successCount++;
     }
     setLoading(false);

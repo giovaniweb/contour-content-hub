@@ -9,14 +9,14 @@ import SendToPlannerModal from "./SendToPlannerModal";
 import { useContentPlanner } from "@/hooks/useContentPlanner";
 import { ContentPlannerStatus, ContentFormat } from "@/types/content-planner";
 
-type DayPlan = {
+export type DayPlan = {
   day: string;
   title: string;
   description: string;
   highlight?: boolean;
 };
 
-interface SmartWeeklyScheduleProps {
+export interface SmartWeeklyScheduleProps {
   specialty: string;
   mainObjective: string;
   contentFrequency: string;
@@ -26,12 +26,11 @@ const WEEK_DAYS = [
   "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"
 ];
 
-const generateWeekPlan = (
+export const generateWeekPlan = (
   specialty: string,
   mainObjective: string,
   contentFrequency: string
 ): DayPlan[] => {
-  // Sugestão básica para exemplo, poderá usar diagnósticos personalizados
   const baseActions = [
     {
       title: `Post educativo sobre ${specialty}`,
@@ -63,11 +62,10 @@ const generateWeekPlan = (
     }
   ];
 
-  // Frequência pode ajustar highlights ou simplificar futuro ajuste
   return WEEK_DAYS.map((day, idx) => ({
     day,
     ...baseActions[idx % baseActions.length],
-    highlight: idx === 0, // Marca segunda-feira como destaque
+    highlight: idx === 0,
   }));
 };
 
