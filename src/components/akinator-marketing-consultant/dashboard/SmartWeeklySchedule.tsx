@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CalendarCheck2, FileDown, Send } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -211,7 +210,6 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             grid-cols-1
             sm:grid-cols-2
             md:grid-cols-3
-            lg:grid-cols-4
             xl:grid-cols-7
             w-full
             transition-all
@@ -219,7 +217,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             overflow-x-auto
           `}
           style={{
-            minWidth: 0, // permite o uso do container responsivo do parent
+            minWidth: 0,
           }}
         >
           {weekPlan.map((plan, idx) => (
