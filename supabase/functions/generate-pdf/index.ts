@@ -77,15 +77,23 @@ serve(async (req) => {
     const max = 2000;
     if (plainText.length > max) plainText = plainText.substring(0, max) + "\n...";
 
+    // NOVO: Remover emojis e caracteres não suportados (fica só ASCII padrão)
+    // Isso evita o erro "WinAnsi cannot encode ..."
+    const removeUnsupportedChars = (text: string) =>
+      text.replace(/[^\x00-\x7F\s\n\r.,;:!?@#\$%\^&\*\(\)_\-\+=\/\\\|\[\]\{\}<>`'"~©®°ªº]/g, "");
+
+    const cleanTitle = removeUnsupportedChars(title);
+    const cleanText = removeUnsupportedChars(plainText);
+
     // Adiciona título do relatório (header)
-    page.drawText(title, {
+    page.drawText(cleanTitle, {
       x: 40, y: 800,
       size: 18,
       font: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
       color: rgb(0.4, 0.25, 0.7),
     });
     // Adiciona bloco de texto extraído
-    page.drawText(plainText, {
+    page.drawText(cleanText, {
       x: 40, y: 780,
       size: 12,
       font: await pdfDoc.embedFont(StandardFonts.Helvetica),
