@@ -8,6 +8,7 @@ import { FileText, Trash2, Download, Shield, AlertTriangle, Eraser } from "lucid
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
 import ReportPdfButton from '@/components/ui/ReportPdfButton';
+import GenerateAuroraPdfButton from "@/components/ui/GenerateAuroraPdfButton";
 
 interface SavedDiagnosticsSectionProps {
   savedDiagnostics: DiagnosticSession[];
@@ -116,7 +117,6 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
 
                   <ReportPdfButton
                     pdfUrl={
-                      // Verifica se generatedDiagnostic existe e se parece uma URL de PDF
                       typeof session.state.generatedDiagnostic === "string" &&
                       session.state.generatedDiagnostic.startsWith("http")
                         ? session.state.generatedDiagnostic
@@ -124,6 +124,16 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     }
                     diagnosticTitle={session.clinicTypeLabel}
                   />
+
+                  {/* NOVO: botão exportar PDF Aurora */}
+                  {(typeof session.state.generatedDiagnostic === "string" && session.state.generatedDiagnostic.length > 0) && (
+                    <GenerateAuroraPdfButton
+                      sessionId={session.id}
+                      diagnosticText={session.state.generatedDiagnostic}
+                      title={session.clinicTypeLabel || "Relatório Fluida"}
+                      type="marketingDiagnostic"
+                    />
+                  )}
 
                   <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
                     <Download className="h-3 w-3" />
