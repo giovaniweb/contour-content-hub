@@ -50,7 +50,7 @@ const PostEstaticoCard: React.FC<PostEstaticoCardProps> = ({ data }) => {
                 <div className="text-white text-2xl font-bold mb-2 aurora-heading">
                   {data.texto_imagem || 'Texto da Imagem'}
                 </div>
-                <div className="text-aurora-electric-purple text-sm opacity-75">
+                <div className="text-white text-sm opacity-75">
                   📸 {data.sugestao_visual || 'Imagem sugerida'}
                 </div>
               </div>
