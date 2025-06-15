@@ -52,6 +52,8 @@ const WorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettin
 
 import { queryClient } from './config/queryClient';
 
+const DiagnosticHistory = React.lazy(() => import('@/pages/DiagnosticHistory'));
+
 function App() {
   return (
     <SlideNotificationProvider>
@@ -84,6 +86,9 @@ function App() {
                       {/* TROCA AQUI - Equipamentos */}
                       <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
                       {/* FIM DA TROCA */}
+                      
+                      {/* Histórico de Diagnósticos */}
+                      <Route path="/diagnostic-history" element={<AppLayout><DiagnosticHistory /></AppLayout>} />
                       
                       {/* Content Routes */}
                       <Route path="/scientific-articles" element={<AppLayout><ScientificArticles /></AppLayout>} />
