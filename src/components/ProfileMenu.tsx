@@ -105,7 +105,7 @@ export function ProfileMenu() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/diagnostics-history">
+            <Link to="/diagnostic-history">
               <Book className="mr-2 h-4 w-4" />
               <span>Meus Diagnósticos</span>
             </Link>
