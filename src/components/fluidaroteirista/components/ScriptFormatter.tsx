@@ -12,7 +12,6 @@ import TimeWarning from './TimeWarning';
 import CopyButton from '@/components/ui/CopyButton';
 import { parseStories10xSlides } from '../utils/stories10xParser';
 import { MessageSquare, Clock, AudioWaveform } from "lucide-react";
-
 import LightCopyFormatter from './LightCopyFormatter';
 import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
 
