@@ -3,6 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 
+const FULL_WEEK_DAYS = [
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado",
+  "Domingo"
+];
+
 export const PublishingSchedule: React.FC = () => {
   return (
     <Card className="aurora-card border-aurora-deep-purple/30">
@@ -14,7 +24,7 @@ export const PublishingSchedule: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-7 gap-2 text-center">
-          {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day, index) => (
+          {FULL_WEEK_DAYS.map((day, index) => (
             <div key={day} className="p-2">
               <div className="text-xs font-medium text-foreground/60 mb-2">{day}</div>
               <div className="space-y-1">
