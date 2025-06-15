@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "./button";
@@ -15,6 +16,9 @@ interface GenerateAuroraPdfButtonProps {
   title: string;
   type?: string;
 }
+
+const SUPABASE_URL = "https://mksvzhgqnsjfolvskibq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q";
 
 const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
   sessionId,
@@ -39,11 +43,8 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
     }
     setLoading(true);
     try {
-      // Use invoke para adicionar token automaticamente
-      // Buscamos URL/token do supabase do ambiente global:
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+      // Use Supabase client com valores hardcoded
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const { data, error } = await supabase.functions.invoke(
         "generate-pdf",
@@ -96,3 +97,4 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 };
 
 export default GenerateAuroraPdfButton;
+
