@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, RefreshCw, CheckCircle, AlertCircle, Trash2 } from "lucide-react";
+import { Instagram, RefreshCw, CheckCircle, AlertCircle, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { InstagramOAuthButton } from "@/components/diagnostic-report/metrics-tab/InstagramOAuthButton";
 import {
@@ -54,7 +54,7 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
         onConnectionChange?.(false);
       }
     } catch (error) {
-      toast.error("Erro ao carregar configuração do Instagram");
+      toast.error("Erro ao carregar integração do Instagram");
     }
   };
 
@@ -83,7 +83,6 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
     setIsLoading(true);
     try {
       await fetchInstagramAnalytics();
-      // Refresh view
       await loadConfig();
       toast.success("Dados do Instagram atualizados!");
     } catch (error) {
@@ -150,7 +149,7 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
               </div>
             </div>
             <p className="text-sm text-foreground/60">
-              ✅ Dados reais do Instagram serão utilizados nas métricas
+              ✅ Dados reais do Instagram já estão integrados à sua conta Fluida.
             </p>
             {showAnalyticsCard && analytics && (
               <div className="p-4 bg-slate-900/60 rounded-md border border-slate-800 mt-2">
@@ -182,18 +181,22 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
               <Instagram className="h-12 w-12 mx-auto text-pink-500" />
               <div>
                 <h3 className="font-medium text-foreground mb-1">
-                  Conecte seu Instagram
+                  Conecte seu Instagram em apenas um clique!
                 </h3>
                 <p className="text-sm text-foreground/60">
-                  Obtenha métricas reais de engajamento da sua conta em segundos
+                  Basta clicar no botão abaixo, fazer login com sua conta Instagram e pronto. Sem complicações técnicas!
                 </p>
               </div>
             </div>
             <InstagramOAuthButton onSuccess={handleOAuthSuccess} />
-            <div className="text-center">
-              <p className="text-xs text-foreground/50">
-                🔒 Conexão segura • Apenas dados públicos
-              </p>
+            <div className="text-center mt-2 text-xs text-foreground/50 flex flex-col items-center gap-1">
+              <span className="inline-flex items-center gap-1">
+                <ShieldCheck className="h-4 w-4 text-green-400" />
+                Conexão oficial, rápida e segura pelo Instagram.
+              </span>
+              <span>
+                Nenhuma configuração adicional é necessária.
+              </span>
             </div>
           </div>
         )}
