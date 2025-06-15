@@ -23,7 +23,7 @@ const NotFound = React.lazy(() => import('@/pages/NotFound'));
 
 // Content pages
 const FluidaRoteiristPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
-const ContentPlanner = React.lazy(() => import('@/pages/ContentPlanner'));
+const ContentPlannerPage = React.lazy(() => import('@/pages/ContentPlannerPage'));
 const ContentIdeas = React.lazy(() => import('@/pages/ContentIdeas'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const PhotosPage = React.lazy(() => import('@/pages/PhotosPage'));
@@ -81,7 +81,7 @@ function App() {
                       <Route path="/video-player" element={<AppLayout><VideoPlayer /></AppLayout>} />
                       <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
                       <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
-                      <Route path="/content-planner" element={<AppLayout><ContentPlanner /></AppLayout>} />
+                      <Route path="/content-planner" element={<AppLayout><ContentPlannerPage /></AppLayout>} />
                       {/* TROCA AQUI - Equipamentos */}
                       <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
                       {/* FIM DA TROCA */}
