@@ -115,24 +115,24 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     onClick={() => handleViewReport(session)}
                   />
 
-                  <ReportPdfButton
-                    pdfUrl={
-                      typeof session.state.generatedDiagnostic === "string" &&
-                      session.state.generatedDiagnostic.startsWith("http")
-                        ? session.state.generatedDiagnostic
-                        : undefined
-                    }
-                    diagnosticTitle={session.clinicTypeLabel}
-                  />
-
-                  {/* NOVO: botão exportar PDF Aurora */}
-                  {(typeof session.state.generatedDiagnostic === "string" && session.state.generatedDiagnostic.length > 0) && (
-                    <GenerateAuroraPdfButton
-                      sessionId={session.id}
-                      diagnosticText={session.state.generatedDiagnostic}
-                      title={session.clinicTypeLabel || "Relatório Fluida"}
-                      type="marketingDiagnostic"
+                  {/* Botão PDF: aparece só se já houver um PDF pronto (URL válida) */}
+                  {typeof session.state.generatedDiagnostic === "string" &&
+                    session.state.generatedDiagnostic.startsWith("http") ? (
+                    <ReportPdfButton
+                      pdfUrl={session.state.generatedDiagnostic}
+                      diagnosticTitle={session.clinicTypeLabel}
                     />
+                  ) : (
+                    // Botão de exportar PDF Aurora: só se existe conteúdo para exportar e ainda não existe o PDF
+                    typeof session.state.generatedDiagnostic === "string" &&
+                    session.state.generatedDiagnostic.length > 10 && (
+                      <GenerateAuroraPdfButton
+                        sessionId={session.id}
+                        diagnosticText={session.state.generatedDiagnostic}
+                        title={session.clinicTypeLabel || "Relatório Fluida"}
+                        type="marketingDiagnostic"
+                      />
+                    )
                   )}
 
                   <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
