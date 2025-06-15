@@ -48,6 +48,10 @@ export const ROUTES = {
     PANEL: '/consultant-panel'
   },
 
+  DOWNLOADS: {
+    BATCH: '/downloads/batch'
+  },
+
   ADMIN: {
     ROOT: '/admin',
     EQUIPMENTS: {
