@@ -42,13 +42,13 @@ import EquipmentList from "@/pages/EquipmentList";
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
-const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
+const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments')); // Corrigido para admin/AdminEquipments
 const AdminContent = React.lazy(() => import('@/pages/admin/AdminContent'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const AdminAI = React.lazy(() => import('@/pages/admin/AdminAI'));
 const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSystemIntelligence'));
 const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
-const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
+const WorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettings'));
 
 import { queryClient } from './config/queryClient';
 
