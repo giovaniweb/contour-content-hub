@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
@@ -10,6 +9,7 @@ import DiagnosticTab from '@/components/diagnostic-report/DiagnosticTab';
 import ActionsTab from '@/components/diagnostic-report/ActionsTab';
 import ContentTab from '@/components/diagnostic-report/ContentTab';
 import MetricsTab from '@/components/diagnostic-report/MetricsTab';
+import ReportPdfButton from "@/components/ui/ReportPdfButton";
 
 // Função para gerar ID determinístico (mesma lógica do hook)
 const generateDeterministicId = (data: any): string => {
@@ -152,6 +152,12 @@ const DiagnosticReport: React.FC = () => {
     navigate('/diagnostic-history');
   };
 
+  // Novo: checar se temos URL PDF válida
+  const pdfUrl = typeof session.state.generatedDiagnostic === "string"
+    && session.state.generatedDiagnostic.startsWith("http")
+      ? session.state.generatedDiagnostic
+      : undefined;
+
   console.log('✅ DiagnosticReport - Renderizando relatório para sessão:', session.id);
 
   return (
@@ -159,6 +165,19 @@ const DiagnosticReport: React.FC = () => {
       <div className="container mx-auto py-6 max-w-6xl">
         {/* Header do relatório */}
         <ReportHeader session={session} onBack={handleBack} />
+
+        {/* Botão PDF Aurora, se já existir PDF disponível */}
+        {pdfUrl && (
+          <div className="my-4">
+            <ReportPdfButton
+              pdfUrl={pdfUrl}
+              diagnosticTitle={session.clinicTypeLabel}
+            />
+            <span className="ml-3 text-xs text-foreground/40">
+              Baixe ou visualize o PDF Aurora Boreal do diagnóstico.
+            </span>
+          </div>
+        )}
 
         {/* Métricas rápidas */}
         <div className="mb-8">
