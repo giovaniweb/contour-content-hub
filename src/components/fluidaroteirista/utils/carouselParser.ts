@@ -11,7 +11,6 @@ export const parseCarouselSlides = (roteiro: string) => {
   const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
 
   blocos.forEach((bloco, idx) => {
-    // Detecta se começa com Slide X: Título (opcional) + resto
     let numero = idx + 1;
     let rawTitle = "";
     let corpo = bloco;
@@ -24,46 +23,47 @@ export const parseCarouselSlides = (roteiro: string) => {
       corpo = bloco.replace(slideMatch[0], "").trim();
     }
 
-    // --- NOVA LÓGICA PARA SEPARAÇÃO DE TÍTULO, TEXTO E IMAGEM ---
+    // PARA PEGAR SEMPRE O TÍTULO LIMPO, MESMO SE ESTIVER NA PRIMEIRA LINHA, JUNTO DE "Texto:":
+    // Se não houver rawTitle explícito, pega a primeira linha antes de qualquer "Texto:" ou "Imagem:"
     let title = rawTitle;
     let texto = "";
     let imagem = "";
 
-    // Se não há título explícito (rawTitle), processar linhas para extrair corretamente
     if (!title) {
-      // Divide em linhas e remove as em branco
-      const linhas = corpo.split(/\n/).map(l => l.trim()).filter(Boolean);
-      // Se a primeira linha contém "Texto:" ou "Imagem:", NÃO é título; use defaultTitle.
-      if (
-        linhas[0] &&
-        (linhas[0].toLowerCase().startsWith("texto:") || linhas[0].toLowerCase().startsWith("imagem:"))
-      ) {
-        title = defaultTitles[idx] || `Slide ${numero}`;
-      } else if (linhas.length > 0) {
-        title = linhas[0];
-        // O corpo a ser analisado como texto/imagem é TUDO exceto a primeira linha
-        corpo = linhas.slice(1).join("\n");
+      // Tenta encontrar a linha antes de "Texto:" ou "Imagem:"
+      const primeiraLinha = corpo.split("\n")[0] || "";
+      const titleLimpo = primeiraLinha.split(/Texto:|Imagem:/i)[0].trim();
+      if (titleLimpo !== "") {
+        title = titleLimpo;
+        corpo = corpo.replace(primeiraLinha, "").trim();
       } else {
         title = defaultTitles[idx] || `Slide ${numero}`;
       }
     }
 
-    // Extrair Texto: e Imagem: de QUALQUER parte do corpo pendente
-    const textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=\nImagem:|\nTexto:|$)/i);
+    // Agora extrai "Texto:" e "Imagem:" do restante do bloco (prioridade: respeitar ambos mesmo grudados sem quebras)
+    // Garante separação mesmo em casos como: "xxx\nTexto: blabla\nImagem: foo"
+    let textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=\nImagem:|$)/i);
+    let imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=$)/i);
+
+    // Se "Imagem:" vier antes de "Texto:" no bloco, também cobre esse cenário:
+    if (!textoMatch && /Imagem:/i.test(corpo)) {
+      imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\nTexto:|$)/i);
+      textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=$)/i);
+    }
+
     if (textoMatch && textoMatch[1]) {
       texto = textoMatch[1].trim();
     }
-
-    const imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\nTexto:|$)/i);
     if (imagemMatch && imagemMatch[1]) {
       imagem = imagemMatch[1].trim();
     }
 
-    // Fallbacks só se não tiver nada extraído real
+    // Fallbacks se não houver valores extraídos
     if (!texto) texto = "Conteúdo do slide";
     if (!imagem) imagem = "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave";
 
-    // Se título acidentalmente igual ao texto/imagem, limpa para título default
+    // Corrigir se campo ficou igual ao título
     if (
       (texto && title === texto) ||
       (imagem && title === imagem)
@@ -79,7 +79,7 @@ export const parseCarouselSlides = (roteiro: string) => {
     });
   });
 
-  // Garante sempre 5
+  // Garante sempre 5 slides preenchidos
   while (slides.length < 5) {
     slides.push({
       number: slides.length + 1,
@@ -92,7 +92,7 @@ export const parseCarouselSlides = (roteiro: string) => {
   return slides.slice(0, 5);
 }
 
-// --- Export parseAndLimitCarousel (mantém igual) ---
+// --- Export parseAndLimitCarousel (sem alterações) ---
 export const parseAndLimitCarousel = (roteiro: string): string => {
   const slides = parseCarouselSlides(roteiro);
   return slides
@@ -104,7 +104,7 @@ export const parseAndLimitCarousel = (roteiro: string): string => {
     .join('\n');
 };
 
-// --- Export validateCarouselSlides (mantém igual) ---
+// --- Export validateCarouselSlides (sem alterações) ---
 export const validateCarouselSlides = (roteiro: string) => {
   const slides = parseCarouselSlides(roteiro);
   const errors: string[] = [];
@@ -126,4 +126,3 @@ export const validateCarouselSlides = (roteiro: string) => {
     slideCount: slides.length
   };
 }
-
