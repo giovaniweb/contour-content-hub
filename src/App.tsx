@@ -47,7 +47,6 @@ const AdminContent = React.lazy(() => import('@/pages/admin/AdminContent'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const AdminAI = React.lazy(() => import('@/pages/admin/AdminAI'));
 const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSystemIntelligence'));
-const AdminVimeoSettings = React.lazy(() => import('@/pages/admin/AdminVimeoSettings'));
 const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
 
@@ -105,7 +104,6 @@ function App() {
                       <Route path="/admin/videos" element={<AdminLayout><AdminVideos /></AdminLayout>} />
                       <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
                       <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
-                      <Route path="/admin/vimeo-settings" element={<AdminLayout><AdminVimeoSettings /></AdminLayout>} />
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                       
