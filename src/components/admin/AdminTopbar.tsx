@@ -51,7 +51,7 @@ const AdminTopbar: React.FC = () => {
     {
       label: "Downloads em Massa",
       icon: Upload,
-      action: () => navigate("/downloads/batch"),
+      action: () => navigate(ROUTES.DOWNLOADS.BATCH),
       color: "text-orange-400 hover:text-orange-300"
     }
   ];
