@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import ScriptFormatter from "./components/ScriptFormatter";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,9 @@ interface FluidaScriptResultsProps {
   onNewScript: () => void;
   onGenerateImage: (script: any) => Promise<void>;
   onGenerateAudio: (script: any) => Promise<void>;
-  onApplyDisney: () => void;
+  onApplyDisney: (script: FluidaScriptResult) => Promise<void>;
   isProcessing: boolean;
-  onApproveScript?: () => void; // <-- Make optional now
+  onApproveScript?: () => void;
 }
 
 const FluidaScriptResults = ({
@@ -86,7 +85,7 @@ const FluidaScriptResults = ({
       {/* Botões de ações movidos para o final e mais visíveis */}
       <div className="flex flex-wrap gap-2 items-center justify-end mt-6 sticky bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/50 to-transparent p-4 rounded-xl z-20 shadow-2xl aurora-glass border border-aurora-emerald/20">
         <Button variant="secondary" onClick={onNewScript}>Novo roteiro</Button>
-        <Button variant="ghost" onClick={onApplyDisney}>
+        <Button variant="ghost" onClick={() => onApplyDisney(roteiroParaExibir)}>
           <Wand2 className="h-4 w-4 mr-1" />
           Aplicar Disney Magic
         </Button>
