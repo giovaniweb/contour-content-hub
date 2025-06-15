@@ -17,6 +17,8 @@ interface FluidaRoteiristaProps {
   onScriptGenerated?: (script: any) => void;
 }
 
+const IS_DEV = import.meta.env?.MODE === 'development';
+
 const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }) => {
   const navigate = useNavigate();
   const [currentMode, setCurrentMode] = useState<FluidaMode>('selection');
@@ -38,20 +40,22 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
   // Monitorar mudanças nos resultados para mudar automaticamente para 'results'
   useEffect(() => {
-    console.log('📊 [FluidaRoteirista] Results changed:', results.length, 'current mode:', currentMode);
+    if (IS_DEV) {
+      console.log('📊 [FluidaRoteirista] Results changed:', results.length, 'current mode:', currentMode);
+    }
     if (results.length > 0 && currentMode !== 'results') {
-      console.log('🔄 [FluidaRoteirista] Mudando para modo results');
+      if (IS_DEV) console.log('🔄 [FluidaRoteirista] Mudando para modo results');
       setCurrentMode('results');
     }
   }, [results.length, currentMode]);
 
   const handleModeSelect = (mode: 'akinator' | 'elementos') => {
-    console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
+    if (IS_DEV) console.log('🎯 [FluidaRoteirista] Modo selecionado:', mode);
     setCurrentMode(mode);
   };
 
   const handleScriptGenerated = (script: any) => {
-    console.log('✅ [FluidaRoteirista] Script gerado recebido:', script);
+    if (IS_DEV) console.log('✅ [FluidaRoteirista] Script gerado recebido:', script);
     // Chamar callback opcional se fornecido
     if (onScriptGenerated) {
       onScriptGenerated(script);
@@ -60,23 +64,23 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   };
 
   const handleNewScript = () => {
-    console.log('🆕 [FluidaRoteirista] Novo script solicitado');
+    if (IS_DEV) console.log('🆕 [FluidaRoteirista] Novo script solicitado');
     clearResults();
     setCurrentMode('selection');
   };
 
   const handleGoBack = () => {
-    console.log('⬅️ [FluidaRoteirista] Voltando para seleção');
+    if (IS_DEV) console.log('⬅️ [FluidaRoteirista] Voltando para seleção');
     setCurrentMode('selection');
   };
 
   const handleGenerateImage = async (script: any) => {
-    console.log('🖼️ [FluidaRoteirista] Função delegada para FluidaScriptResults');
+    if (IS_DEV) console.log('🖼️ [FluidaRoteirista] Função delegada para FluidaScriptResults');
     // Esta função agora é apenas um placeholder - a lógica real está no FluidaScriptResults
   };
 
   const handleGenerateAudio = async (script: any) => {
-    console.log('🎧 [FluidaRoteirista] Gerando áudio para script:', script.formato);
+    if (IS_DEV) console.log('🎧 [FluidaRoteirista] Gerando áudio para script:', script.formato);
     toast.info('🎧 Geração de áudio', {
       description: 'Função de áudio será implementada em breve!'
     });
@@ -90,10 +94,13 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     navigate('/before-after');
   };
 
-  console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
+  // Remover logs de render, só mostrar em dev
+  if (IS_DEV) {
+    console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
+  }
 
   if (currentMode === 'results' && results.length > 0) {
-    console.log('📱 [FluidaRoteirista] Renderizando resultados');
+    if (IS_DEV) console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
       <FluidaScriptResults
         results={results}
@@ -107,7 +114,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   }
 
   if (currentMode === 'elementos') {
-    console.log('🎯 [FluidaRoteirista] Renderizando modo Rocket');
+    if (IS_DEV) console.log('🎯 [FluidaRoteirista] Renderizando modo Rocket');
     return (
       <ElementosUniversaisMode
         onScriptGenerated={handleScriptGenerated}
@@ -119,7 +126,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   }
 
   if (currentMode === 'akinator') {
-    console.log('❓ [FluidaRoteirista] Renderizando modo Fluida');
+    if (IS_DEV) console.log('❓ [FluidaRoteirista] Renderizando modo Fluida');
     return (
       <AkinatorScriptMode
         onScriptGenerated={handleScriptGenerated}
@@ -134,7 +141,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     );
   }
 
-  console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
+  if (IS_DEV) console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
@@ -188,17 +195,24 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
                 </div>
               </Button>
               
-              <Button
-                variant="outline"
-                className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3 w-full"
-                disabled
-              >
-                <Target className="h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">📊 Análises (Em breve)</div>
-                  <div className="text-sm opacity-70">Métricas e insights</div>
-                </div>
-              </Button>
+              {/* Botão "Análises (Em breve)" com Tooltip para explicar */}
+              <div className="relative group">
+                <Button
+                  variant="outline"
+                  className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3 w-full"
+                  disabled
+                  aria-label="Análises (Em breve)"
+                >
+                  <Target className="h-6 w-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">📊 Análises (Em breve)</div>
+                    <div className="text-sm opacity-70">Métricas e insights</div>
+                  </div>
+                </Button>
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded bg-black text-xs text-white opacity-0 group-hover:opacity-100 transition opacity pointer-events-none z-50 whitespace-nowrap">
+                  Este recurso estará disponível em breve!
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
