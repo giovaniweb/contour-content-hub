@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parseCarouselSlides } from '../utils/carouselParser';
@@ -58,18 +59,8 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
           <Instagram className="h-8 w-8 text-aurora-soft-pink aurora-glow" />
         </div>
 
-        {/* Botão de salvar */}
         <div className="flex items-center justify-center gap-3 mt-2">
           <CarouselSequencePreview slides={slides.map(sl => ({ title: sl.title }))} />
-          <button
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow-md hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/50 ml-3 text-base disabled:opacity-60"
-            onClick={handleSave}
-            disabled={isSaving}
-            title="Salvar roteiro"
-          >
-            <Save className="h-5 w-5" />
-            {isSaving ? "Salvando..." : "Salvar Roteiro"}
-          </button>
         </div>
         <div className="flex items-center justify-center gap-2 mt-2">
           <Badge variant="outline" className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">{slides.length} Slides</Badge>
@@ -106,6 +97,19 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Botão de salvar - FINAL DA PÁGINA */}
+      <div className="flex justify-center mt-8">
+        <button
+          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-emerald text-white font-semibold shadow-lg hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/50 text-lg disabled:opacity-60"
+          onClick={handleSave}
+          disabled={isSaving}
+          title="Salvar roteiro"
+        >
+          <Save className="h-6 w-6" />
+          {isSaving ? "Salvando..." : "Salvar Roteiro"}
+        </button>
+      </div>
     </div>
   );
 };
