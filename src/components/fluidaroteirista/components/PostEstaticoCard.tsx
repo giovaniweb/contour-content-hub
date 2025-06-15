@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +43,9 @@ const PostEstaticoCard: React.FC<PostEstaticoCardProps> = ({ data }) => {
             
             {/* Área da Imagem com Texto Sobreposto */}
             <div className="relative bg-gradient-to-br from-aurora-neon-blue/20 to-aurora-electric-purple/20 rounded-lg p-8 mb-4 min-h-[200px] flex items-center justify-center border border-aurora-electric-purple/20">
+              <div className="text-left text-white text-sm font-bold aurora-heading">
+                📸
+              </div>
               <div className="text-center">
                 <div className="text-white text-2xl font-bold mb-2 aurora-heading">
                   {data.texto_imagem || 'Texto da Imagem'}
