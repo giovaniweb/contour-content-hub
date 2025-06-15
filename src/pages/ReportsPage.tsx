@@ -1,4 +1,3 @@
-
 import React from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,7 +91,7 @@ const ReportsPage: React.FC = () => {
               <CardContent className="h-96 flex items-center justify-center bg-muted/20">
                 <p className="text-muted-foreground">
                   Análise detalhada de conteúdo será exibida aqui
-                </CardContent>
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
