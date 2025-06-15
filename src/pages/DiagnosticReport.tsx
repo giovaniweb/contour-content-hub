@@ -182,23 +182,6 @@ const DiagnosticReport: React.FC = () => {
         {/* Header do relatório */}
         <ReportHeader session={session} onBack={handleBack} />
 
-        {/* Opção de Exportar PDF sempre visível se diagnóstico disponível */}
-        {diagnosticString && diagnosticString.length > 10 && (
-          <div className="my-4 flex items-center gap-3">
-            <GenerateAuroraPdfButton
-              sessionId={session.id}
-              diagnosticSection={diagnosticSections.estrategico}
-              actionsSection={diagnosticSections.planoAcao}
-              contentSection={diagnosticSections.conteudo}
-              title={session.clinicTypeLabel || "Relatório Fluida"}
-              type="marketingDiagnostic"
-            />
-            <span className="ml-3 text-xs text-foreground/40">
-              Exporte em PDF igual ao relatório visualizado.
-            </span>
-          </div>
-        )}
-
         {/* Botão PDF Aurora (URL já existente) */}
         {pdfUrl && (
           <div className="my-4">
