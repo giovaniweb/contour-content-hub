@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { FileText, Image, Video, Zap } from 'lucide-react';
@@ -13,10 +12,32 @@ interface Format {
 }
 
 const FORMATOS: Format[] = [
-  // Removido o formato 'stories'
-  { id: 'carrossel', label: 'Carrossel', icon: FileText, description: 'Múltiplos slides' },
-  { id: 'imagem', label: 'Post Estático', icon: Image, description: 'Uma imagem' },
-  { id: 'reels', label: 'Reels', icon: Zap, description: 'Vídeo curto' }
+  // Stories removido — mantém apenas os outros formatos
+  {
+    id: 'carrossel',
+    label: 'Carrossel',
+    icon: FileText,
+    description: 'Múltiplos slides'
+  },
+  {
+    id: 'imagem',
+    label: 'Post Estático',
+    icon: Image,
+    description: 'Uma imagem'
+  },
+  {
+    id: 'reels',
+    label: 'Reels',
+    icon: Zap,
+    description: 'Vídeo curto'
+  },
+  // Stories 10x pode ser adicionado, se quiser mostrar também
+  // {
+  //   id: 'stories_10x',
+  //   label: 'Stories 10x',
+  //   icon: Video,
+  //   description: 'Metodologia Leandro Ladeira - Sequência de engajamento'
+  // }
 ];
 
 interface FormatsSelectorProps {
