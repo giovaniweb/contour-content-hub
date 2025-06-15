@@ -1,56 +1,45 @@
 
 export const parseCarouselSlides = (roteiro: string) => {
-  // Split slides by "Slide X:" OR double line breaks with lookahead for possible Slide X:
   const blocos = roteiro
     .split(/\n{2,}|(?=^Slide\s*\d*:)/gmi)
     .map(b => b.trim())
     .filter(Boolean)
-    .slice(0, 5); // máx 5 slides
+    .slice(0, 5);
 
   const slides: { number: number; title: string; texto: string; imagem: string }[] = [];
   const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
 
   blocos.forEach((bloco, idx) => {
     let numero = idx + 1;
-    let rawTitle = "";
-    let corpo = bloco;
+    let title = '';
+    let texto = '';
+    let imagem = '';
 
+    // Detectar Slide X (caso seja usado)
     const slideMatch = bloco.match(/^Slide\s*:?\s*(\d+)?\s*:?\s*([^\n]*)/i);
-
+    let corpo = bloco;
     if (slideMatch) {
       numero = slideMatch[1] ? Number(slideMatch[1]) : numero;
-      rawTitle = (slideMatch[2] || "").trim();
-      corpo = bloco.replace(slideMatch[0], "").trim();
+      title = (slideMatch[2] || '').trim();
+      corpo = bloco.replace(slideMatch[0], '').trim();
     }
 
-    // PARA PEGAR SEMPRE O TÍTULO LIMPO, MESMO SE ESTIVER NA PRIMEIRA LINHA, JUNTO DE "Texto:":
-    // Se não houver rawTitle explícito, pega a primeira linha antes de qualquer "Texto:" ou "Imagem:"
-    let title = rawTitle;
-    let texto = "";
-    let imagem = "";
-
+    // Título será sempre a PRIMEIRA linha (antes de Texto:/Imagem:)
     if (!title) {
-      // Tenta encontrar a linha antes de "Texto:" ou "Imagem:"
-      const primeiraLinha = corpo.split("\n")[0] || "";
-      const titleLimpo = primeiraLinha.split(/Texto:|Imagem:/i)[0].trim();
-      if (titleLimpo !== "") {
-        title = titleLimpo;
-        corpo = corpo.replace(primeiraLinha, "").trim();
+      const linhas = corpo.split('\n').map(l => l.trim()).filter(Boolean);
+      // Sempre pega a primeira linha (independente de conteúdo)
+      if (linhas.length > 0) {
+        title = linhas[0];
+        corpo = corpo.slice(linhas[0].length).trimStart();
       } else {
         title = defaultTitles[idx] || `Slide ${numero}`;
       }
     }
 
-    // Agora extrai "Texto:" e "Imagem:" do restante do bloco (prioridade: respeitar ambos mesmo grudados sem quebras)
-    // Garante separação mesmo em casos como: "xxx\nTexto: blabla\nImagem: foo"
-    let textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=\nImagem:|$)/i);
-    let imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=$)/i);
-
-    // Se "Imagem:" vier antes de "Texto:" no bloco, também cobre esse cenário:
-    if (!textoMatch && /Imagem:/i.test(corpo)) {
-      imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\nTexto:|$)/i);
-      textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=$)/i);
-    }
+    // Extrai Texto: e Imagem: de qualquer lugar no restante
+    // (pode vir na mesma linha juntos ou separados)
+    const textoMatch = corpo.match(/Texto:\s*([\s\S]*?)(?=Imagem:|$)/i);
+    const imagemMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\n|$)/i);
 
     if (textoMatch && textoMatch[1]) {
       texto = textoMatch[1].trim();
@@ -59,11 +48,11 @@ export const parseCarouselSlides = (roteiro: string) => {
       imagem = imagemMatch[1].trim();
     }
 
-    // Fallbacks se não houver valores extraídos
+    // Se o texto ou imagem não vieram, usar fallback
     if (!texto) texto = "Conteúdo do slide";
     if (!imagem) imagem = "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave";
 
-    // Corrigir se campo ficou igual ao título
+    // Corrige caso título igual a texto/imagem (às vezes pode acontecer!)
     if (
       (texto && title === texto) ||
       (imagem && title === imagem)
@@ -79,7 +68,7 @@ export const parseCarouselSlides = (roteiro: string) => {
     });
   });
 
-  // Garante sempre 5 slides preenchidos
+  // Garante sempre 5 slides
   while (slides.length < 5) {
     slides.push({
       number: slides.length + 1,
