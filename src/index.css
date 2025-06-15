@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Montserrat:wght@100..900&family=Poppins:wght@100..900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -81,13 +82,13 @@
   * {
     @apply border-border;
   }
-  
+
   html, body {
     height: 100%;
     margin: 0;
     padding: 0;
   }
-  
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -95,7 +96,7 @@
     background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
     background-attachment: fixed;
   }
-  
+
   #root {
     height: 100%;
     width: 100%;
@@ -130,19 +131,35 @@ html.dark body {
   min-height: 100vh;
 }
 
-/* Sonner Toast Custom Styles */
+/* Sonner Toast Custom Styles corrigido para NÃO usar bg-aurora-background */
 .sonner-toast {
-  @apply bg-background border border-aurora-electric-purple/30 rounded-lg shadow-lg px-5 py-4 text-white text-base font-medium transition-all duration-200;
+  background: linear-gradient(135deg, #1a0b2e 85%, #6b46c1 100%);
+  border: 1px solid rgba(107, 70, 193, 0.30); /* electric purple */
+  border-radius: 0.5rem; /* rounded-lg */
   box-shadow: 0 4px 32px 0 rgba(50,30,105,0.12);
+  padding: 1.25rem 1.25rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
+
 .sonner-toast-success {
-  @apply bg-aurora-sage/80 text-aurora-deep-purple border-aurora-sage;
+  background: rgba(16,185,129,0.80); /* aurora-sage */
+  color: #1a0b2e; /* aurora-deep-purple */
+  border: 1px solid #10b981;
 }
+
 .sonner-toast-error {
-  @apply bg-aurora-electric-purple/90 text-white border-aurora-electric-purple;
+  background: rgba(107,70,193,0.90); /* aurora-electric-purple */
+  color: #fff;
+  border: 1px solid #6b46c1;
 }
+
 .sonner-toast-warning {
-  @apply bg-orange-500/90 text-white border-orange-400;
+  background: rgba(249,115,22,0.90); /* orange-500 */
+  color: #fff;
+  border: 1px solid #fb923c; /* orange-400 */
 }
 
 /* Ajuste para posicionar notifications em top-right de forma mais clean */
