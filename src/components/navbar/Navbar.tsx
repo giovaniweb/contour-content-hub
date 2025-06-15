@@ -1,4 +1,3 @@
-
 // TopBar minimal: Logo (left), Notifications/Alerts, ProfileMenu (right)
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import NotificationsMenu from "../notifications/NotificationsMenu";
 import { ProfileMenu } from "../ProfileMenu";
 import { cn } from "@/lib/utils";
+import FluidaLogo from "./FluidaLogo";
+import { NavLink } from "react-router-dom";
+
+// Mock institucional links
+const INSTITUCIONAL_LINKS = [
+  { label: "Sobre a Fluida", to: "/institucional/sobre" },
+  { label: "O que é?", to: "/institucional/o-que-e" },
+  { label: "Contato", to: "/institucional/contato" },
+  { label: "Suporte", to: "/institucional/suporte" },
+];
 
 export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -42,6 +51,9 @@ export const Navbar = () => {
     }
   };
 
+  // Para simular a logo customizável, pode vir de configuração backend futuramente:
+  const logoUrl = undefined; // Troque para URL real para testar! Ex: "/logo-demo.png"
+
   return (
     <header
       className={cn(
@@ -51,25 +63,29 @@ export const Navbar = () => {
           : "bg-background"
       )}
     >
-      <nav className="container mx-auto px-4 flex h-16 items-center justify-between" aria-label="Topbar principal">
-        {/* Logo */}
-        <div className="flex items-center">
-          <Link
-            to={isAuthenticated ? "/dashboard" : "/"}
-            className="flex items-center"
-            aria-label="Ir para página inicial Fluida"
-          >
-            <h1 className="text-lg font-semibold flex items-center">
-              <Film className="mr-2 h-6 w-6 text-contourline-mediumBlue" aria-hidden="true" />
-              <span className="hidden md:block">Fluida</span>
-            </h1>
-          </Link>
+      <nav className="container mx-auto px-2 flex h-16 items-center justify-between" aria-label="Topbar principal">
+        {/* LOGO */}
+        <div className="flex items-center gap-2 min-w-[40px]">
+          <NavLink to="/">
+            <FluidaLogo logoUrl={logoUrl} size={36} />
+          </NavLink>
         </div>
-
-        {/* Profile menu and notifications */}
+        {/* Menus institucionais - visíveis para todos */}
+        <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
+          {INSTITUCIONAL_LINKS.map((item) => (
+            <NavLink
+              to={item.to}
+              key={item.to}
+              className="text-slate-400 hover:text-white transition-colors font-medium text-base"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+        {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
-          {/* ProfileMenu já possui "Meus..." e menus pessoais dentro */}
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>

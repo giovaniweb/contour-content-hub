@@ -57,6 +57,11 @@ const DiagnosticReport = React.lazy(() => import('@/pages/DiagnosticReport'));
 const DiagnosticReportRoot = React.lazy(() => import('@/pages/DiagnosticReportRoot'));
 import ApprovedScriptsPage from '@/pages/ApprovedScriptsPage';
 
+import Sobre from "@/pages/Institucional/Sobre";
+import OQueE from "@/pages/Institucional/OQueE";
+import Contato from "@/pages/Institucional/Contato";
+import Suporte from "@/pages/Institucional/Suporte";
+
 function App() {
   return (
     <SlideNotificationProvider>
@@ -126,6 +131,12 @@ function App() {
                       
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
+                      
+                      {/* Institucional */}
+                      <Route path="/institucional/sobre" element={<AppLayout><Sobre /></AppLayout>} />
+                      <Route path="/institucional/o-que-e" element={<AppLayout><OQueE /></AppLayout>} />
+                      <Route path="/institucional/contato" element={<AppLayout><Contato /></AppLayout>} />
+                      <Route path="/institucional/suporte" element={<AppLayout><Suporte /></AppLayout>} />
                     </Routes>
                   </Suspense>
                   <Toaster />
