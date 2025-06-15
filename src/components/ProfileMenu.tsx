@@ -99,7 +99,7 @@ export function ProfileMenu() {
             Meus Dados
           </DropdownMenuLabel>
           <DropdownMenuItem asChild>
-            <Link to="/script-history">
+            <Link to="/approved-scripts">
               <FileText className="mr-2 h-4 w-4" />
               <span>Meus Roteiros</span>
             </Link>
