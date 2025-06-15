@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiagnosticOperations } from './diagnosticOperations';
@@ -10,34 +9,43 @@ export type { DiagnosticSession } from './types';
 
 // Função para validar se os dados são reais/válidos
 const isValidDiagnosticSession = (session: DiagnosticSession): boolean => {
-  // Verificar se a data não é muito antiga (anterior a 2024)
+  // Verificar se a data não é muito antiga (anterior a 2023)
   const sessionDate = new Date(session.timestamp);
-  const minimumValidDate = new Date('2024-01-01');
-  
-  if (sessionDate < minimumValidDate) {
-    console.log('🚫 Sessão rejeitada - data muito antiga:', session.timestamp);
+  const minimumValidDate = new Date('2023-01-01'); // menos restritivo
+  if (isNaN(sessionDate.getTime()) || sessionDate < minimumValidDate) {
+    console.log('🚫 Sessão rejeitada - data inválida:', session.timestamp);
     return false;
   }
-  
+
   // Verificar se tem dados básicos válidos
   if (!session.state || !session.state.clinicType) {
     console.log('🚫 Sessão rejeitada - dados incompletos');
     return false;
   }
-  
-  // Verificar se não é um ID determinístico falso baseado em conteúdo fixo
-  if (session.id.includes('unknown') || session.id.includes('clinic_1_1_geral')) {
-    console.log('🚫 Sessão rejeitada - ID determinístico falso:', session.id);
+
+  // Menos restritivo: aceitar session IDs que contenham 'diagnostic_' ou tenham tamanho razoável
+  if (
+    !session.id ||
+    session.id.length < 10 ||
+    session.id.startsWith("mock_")
+  ) {
+    console.log("🚫 Sessão rejeitada - id inválido:", session.id);
     return false;
   }
-  
+
+  // Não rejeitar por 'unknown' ou 'clinic_1_1_geral', apenas logs
+  if (session.id.includes('unknown') || session.id.includes('clinic_1_1_geral')) {
+    console.log('⚠️ Sessão com ID não ideal (permitida):', session.id);
+    // Permite para não perder históricos legítimos
+  }
+
   return true;
 };
 
 // Função para gerar ID único real baseado em timestamp
 const generateRealSessionId = (): string => {
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 15);
+  const random = Math.random().toString(36).substring(2, 10);
   return `diagnostic_${timestamp}_${random}`;
 };
 
@@ -97,6 +105,18 @@ export const useDiagnosticPersistence = () => {
       setIsInitializing(false);
     }
   }, [user, loadSavedDiagnostics, setCurrentSession]);
+
+  // Corrigir: atualiza estado local IMEDIATAMENTE após criar sessão válida
+  useEffect(() => {
+    if (currentSession && isValidDiagnosticSession(currentSession)) {
+      const found = savedDiagnostics.find(d => d.id === currentSession.id);
+      if (!found) {
+        // Diagnóstico recém criado não está no savedDiagnostics ainda
+        setSavedDiagnostics((prev) => [currentSession, ...prev]);
+        console.log('⚡️ Diagnóstico recente adicionado ao estado apenas localmente.', currentSession.id);
+      }
+    }
+  }, [currentSession, savedDiagnostics]);
 
   // Função para forçar exclusão (incluindo dados completos)
   const forceDeleteDiagnostic = async (sessionId: string): Promise<boolean> => {
@@ -184,23 +204,23 @@ export const useDiagnosticPersistence = () => {
     return result;
   };
 
-  // Função melhorada para buscar sessão por ID
+  // Função melhorada para buscar sessão por ID, com logs:
   const findSessionById = (sessionId: string): DiagnosticSession | null => {
     console.log('🔍 Buscando sessão por ID:', sessionId);
-    
+
     // 1. Buscar na sessão atual
     if (currentSession?.id === sessionId && isValidDiagnosticSession(currentSession)) {
       console.log('✅ Sessão encontrada na currentSession');
       return currentSession;
     }
-    
+
     // 2. Buscar nos diagnósticos salvos válidos
-    const foundInSaved = validSavedDiagnostics.find(d => d.id === sessionId);
+    const foundInSaved = savedDiagnostics.find(d => d.id === sessionId);
     if (foundInSaved) {
       console.log('✅ Sessão encontrada nos savedDiagnostics');
       return foundInSaved;
     }
-    
+
     console.log('❌ Sessão não encontrada ou inválida:', sessionId);
     return null;
   };
