@@ -85,6 +85,20 @@ const LIGHT_COPY_STEPS = [
   }
 ];
 
+// Adicionando explicitamente a interface que faltava
+interface ScriptFormatterProps {
+  script: {
+    roteiro: string;
+    formato: string;
+    emocao_central: string;
+    intencao: string;
+    objetivo: string;
+    mentor: string;
+    equipamentos_utilizados?: any[];
+    disney_applied?: boolean;
+  };
+}
+
 // Remova todas as implementações locais das funções utilitárias (mantendo somente imports!)
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const estimateReadingTime = (text: string): number => {
@@ -107,14 +121,15 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
 
   // --- Renderização do conteúdo principal do roteiro ---
   const renderScriptContent = () => {
-    if (script.formato.toLowerCase() === "carrossel") {
+    const formato = (script.formato || "").toLowerCase();
+    if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
-    if (script.formato.toLowerCase() === "stories_10x") {
+    if (formato === "stories_10x") {
       const slides = parseStories10xSlides(script.roteiro);
       return <Stories10xFormatter slides={slides} />;
     }
-    if (script.formato.toLowerCase() === "post_estatico") {
+    if (formato === "post_estatico") {
       return <PostEstaticoFormatter roteiro={script.roteiro} />;
     }
     if (isLightCopy(script.roteiro, script)) {
@@ -128,6 +143,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       );
     }
+    // Aqui qualquer outro formato ("reels", "video", etc) cairá nesse formatter menos feio!
     const blocks = splitScriptBlocks(script.roteiro);
     return (
       <StandardScriptBlocksFormatter
@@ -139,7 +155,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     );
   };
 
-  const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes(script.formato.toLowerCase());
+  const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes((script.formato || "").toLowerCase());
 
   return (
     <div className="space-y-6 w-full">
