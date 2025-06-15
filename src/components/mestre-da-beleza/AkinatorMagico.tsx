@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useAkinatorIntentionTree } from "./hooks/useAkinatorIntentionTree";
 import { IntentionNode } from "./intentionTree";
+import { INTENTION_TREE } from "./intentionTree";
 
 // Frase mística
 const mysticalPhrases = [
