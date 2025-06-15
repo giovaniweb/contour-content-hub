@@ -154,6 +154,15 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     );
   };
 
+  // --------------- NOVO: Gerar planos diários da semana -------------------
+  // Coloque isto ANTES da utilização de weekDayPlans em allPlanningItems
+  const weekDayPlans = generateWeekPlan(
+    safeState.medicalSpecialty || safeState.aestheticFocus || '',
+    safeState.revenueGoal || safeState.medicalObjective || safeState.aestheticObjective || '',
+    safeState.contentFrequency || ''
+  );
+  // ------------------------------------------------------------------------
+
   // --- Adicionar lógica para reunir todos os conteúdos sugeridos ---
   // 2. Ideias AI e Próximos Passos: Suponha que esses dois sejam arrays de objetos {title, description,...}
   // Por simplicidade, defina ideiasAI e proximosPassos de exemplo:
@@ -208,7 +217,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           title: plan.title,
           description: `${plan.description}\n\nOrigem: Calendário Fluida (${plan.day})`,
           status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
-          tags: ["fluida-smart-schedule", getMainSpecialty().toLowerCase(), plan.day.toLowerCase()],
+          tags: [
+            "fluida-smart-schedule",
+            (safeState.medicalSpecialty || safeState.aestheticFocus || '').toLowerCase(),
+            plan.day.toLowerCase(),
+          ],
           format: "carrossel" as import('@/types/content-planner').ContentFormat,
           objective: "🟡 Atrair Atenção",
           distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
