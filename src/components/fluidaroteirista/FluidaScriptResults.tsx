@@ -14,6 +14,7 @@ interface FluidaScriptResultsProps {
   onGenerateAudio: (script: any) => Promise<void>;
   onApplyDisney: () => void;
   isProcessing: boolean;
+  onApproveScript?: () => void;
 }
 
 const FluidaScriptResults = ({
@@ -22,7 +23,8 @@ const FluidaScriptResults = ({
   onGenerateImage,
   onGenerateAudio,
   onApplyDisney,
-  isProcessing
+  isProcessing,
+  onApproveScript
 }) => {
   const [isImproving, setIsImproving] = useState(false);
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
@@ -61,18 +63,33 @@ const FluidaScriptResults = ({
       : results[0];
 
   return (
-    <div className="space-y-6">
-      {/* Botões de ações */}
-      <div className="flex flex-wrap gap-2 items-center mb-4">
+    <div className="space-y-6 flex flex-col">
+      {/* Exibição do roteiro (aprimorado ou original) */}
+      <div>
+        <ScriptFormatter script={roteiroParaExibir} onApproveScript={onApproveScript} />
+        {improvedScript && (
+          <Card className="mt-6 aurora-glass border-green-500/40">
+            <CardContent>
+              <div className="text-green-400 font-bold">Roteiro Anterior:</div>
+              <pre className="text-slate-300 whitespace-pre-line mt-2">{results[0].roteiro}</pre>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Botões de ações movidos para o final e mais visíveis */}
+      <div className="flex flex-wrap gap-2 items-center justify-end mt-6 sticky bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/50 to-transparent p-4 rounded-xl z-20 shadow-2xl aurora-glass border border-aurora-emerald/20">
         <Button variant="secondary" onClick={onNewScript}>Novo roteiro</Button>
         <Button variant="ghost" onClick={onApplyDisney}>
           <Wand2 className="h-4 w-4 mr-1" />
           Aplicar Disney Magic
         </Button>
-        <Button 
+        <Button
           variant={improvedScript ? "outline" : "default"}
           disabled={isImproving}
-          onClick={handleImproveScript}
+          onClick={async () => {
+            await handleImproveScript();
+          }}
         >
           {isImproving ? "✨ Melhorando..." : "✨ Melhorar Roteiro"}
         </Button>
@@ -83,19 +100,6 @@ const FluidaScriptResults = ({
           Gerar Áudio
         </Button>
       </div>
-
-      {/* Exibição do roteiro (aprimorado ou original) */}
-      <ScriptFormatter script={roteiroParaExibir} />
-
-      {/* Apenas para demo: Exibir ambos se quiser comparar */}
-      {improvedScript && (
-        <Card className="mt-6 aurora-glass border-green-500/40">
-          <CardContent>
-            <div className="text-green-400 font-bold">Roteiro Anterior:</div>
-            <pre className="text-slate-300 whitespace-pre-line mt-2">{results[0].roteiro}</pre>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

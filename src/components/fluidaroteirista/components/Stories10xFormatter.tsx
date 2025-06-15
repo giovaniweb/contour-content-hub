@@ -8,6 +8,7 @@ import CopyButton from '@/components/ui/CopyButton';
 
 interface Stories10xFormatterProps {
   slides: Stories10xSlide[];
+  onApproveScript?: () => void;
 }
 
 const getSlideIcon = (tipo: string): string => {
@@ -21,30 +22,31 @@ const getSlideIcon = (tipo: string): string => {
 };
 
 const getSlideTheme = (tipo: string) => {
+  // NOVO: Usar tons de aurora boreal!
   const themes = {
-    gancho: { 
-      bg: "aurora-glass", 
-      border: "border-red-400/30", 
-      text: "text-red-300", 
-      badge: "bg-red-500/20 text-red-300 border-red-400/30"
+    gancho: {
+      bg: "aurora-glass",
+      border: "border-aurora-electric-purple/20",
+      text: "text-aurora-electric-purple",
+      badge: "bg-aurora-electric-purple/10 text-aurora-electric-purple border-aurora-electric-purple/20"
     },
-    erro: { 
-      bg: "aurora-glass", 
-      border: "border-orange-400/30", 
-      text: "text-orange-300", 
-      badge: "bg-orange-500/20 text-orange-300 border-orange-400/30"
+    erro: {
+      bg: "aurora-glass",
+      border: "border-aurora-pink/20",
+      text: "text-aurora-pink",
+      badge: "bg-aurora-pink/10 text-aurora-pink border-aurora-pink/20"
     },
-    virada: { 
-      bg: "aurora-glass", 
-      border: "border-green-400/30", 
-      text: "text-green-300", 
-      badge: "bg-green-500/20 text-green-300 border-green-400/30"
+    virada: {
+      bg: "aurora-glass",
+      border: "border-aurora-emerald/20",
+      text: "text-aurora-emerald",
+      badge: "bg-aurora-emerald/10 text-aurora-emerald border-aurora-emerald/20"
     },
-    cta: { 
-      bg: "aurora-glass", 
-      border: "border-blue-400/30", 
-      text: "text-blue-300", 
-      badge: "bg-blue-500/20 text-blue-300 border-blue-400/30"
+    cta: {
+      bg: "aurora-glass",
+      border: "border-aurora-neon-blue/20",
+      text: "text-aurora-neon-blue",
+      badge: "bg-aurora-neon-blue/10 text-aurora-neon-blue border-aurora-neon-blue/20"
     }
   };
   return themes[tipo as keyof typeof themes] || themes.gancho;
@@ -72,7 +74,7 @@ function removeStoryMetaLines(slides: Stories10xSlide[]): Stories10xSlide[] {
     );
 }
 
-const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => {
+const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApproveScript }) => {
   // Remove as linhas meta técnicas dos slides
   const filteredSlides = removeStoryMetaLines(slides);
 
@@ -93,15 +95,16 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
         className="text-center space-y-4"
       >
         <div className="flex items-center justify-center gap-4">
-          <Zap className="h-10 w-10 text-yellow-500" />
-          <h2 className="text-3xl font-bold">Stories 10x</h2>
-          <Eye className="h-8 w-8 text-purple-500" />
+          {/* Trocando amarelo para aurora */}
+          <span className="text-aurora-electric-purple text-3xl">⚡</span>
+          <h2 className="text-3xl font-bold text-aurora-electric-purple">Stories 10x</h2>
+          <span className="text-aurora-neon-blue text-2xl">👁️</span>
         </div>
         
         <div className="flex items-center justify-center gap-3">
-          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-400/30">
+          <span className="bg-aurora-electric-purple/10 text-aurora-electric-purple border border-aurora-electric-purple/20 rounded px-2 py-1 font-semibold text-xs">
             ⚡ Metodologia 10x
-          </Badge>
+          </span>
           <span className="text-sm text-slate-300">4 Stories • 10 segundos cada</span>
         </div>
       </motion.div>
@@ -112,9 +115,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="aurora-glass border-yellow-500/30">
+        <Card className="aurora-glass border-aurora-electric-purple/20">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl">
+            <CardTitle className="text-center text-xl text-aurora-electric-purple">
               📱 Sequência Stories 10x
             </CardTitle>
           </CardHeader>
@@ -128,20 +131,19 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white text-xl font-bold mb-2 relative">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-aurora-electric-purple via-aurora-neon-blue to-aurora-emerald flex items-center justify-center text-white text-xl font-bold mb-2 relative">
                       <span className="relative z-10">{slide.number}</span>
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 opacity-50 animate-ping" />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-aurora-electric-purple via-aurora-neon-blue to-aurora-emerald opacity-40 animate-ping" />
                     </div>
-                    <div className="text-xs text-yellow-400 font-medium text-center">
+                    <div className="text-xs text-aurora-electric-purple font-medium text-center">
                       {slide.titulo}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-xs text-gray-400">{slide.tempo}</span>
+                      <span className="text-xs text-aurora-emerald">{slide.tempo}</span>
                     </div>
                   </motion.div>
                   {index < filteredSlides.length - 1 && (
-                    <div className="text-yellow-400 text-2xl">→</div>
+                    <div className="text-aurora-electric-purple text-2xl">→</div>
                   )}
                 </React.Fragment>
               ))}
@@ -170,9 +172,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
                   <div className="flex items-center gap-3 mb-2">
                     <div className="text-3xl">{icon}</div>
                     <div className="flex-1">
-                      <Badge variant="outline" className={`${theme.badge} border mb-2`}>
+                      <span className={`${theme.badge} border mb-2 rounded px-2 py-0.5 text-xs font-semibold`}>
                         Story {slide.number} • {slide.tempo}
-                      </Badge>
+                      </span>
                       <h3 className={`font-bold ${theme.text} text-lg`}>
                         {slide.titulo}
                       </h3>
@@ -184,8 +186,8 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
                   {/* Conteúdo do Story */}
                   <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
                     <div className="flex items-center gap-2 mb-3">
-                      <Target className="h-4 w-4 text-yellow-400" />
-                      <span className="text-sm font-medium text-yellow-400">Conteúdo</span>
+                      <span className="text-aurora-neon-blue text-base">🎯</span>
+                      <span className="text-sm font-medium text-aurora-neon-blue">Conteúdo</span>
                     </div>
                     <p className="text-slate-200 leading-relaxed text-sm pr-12">
                       {slide.conteudo}
@@ -200,14 +202,12 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
                   {slide.dispositivo && (
                     <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
                       <div className="flex items-center gap-2 mb-3">
-                        <Zap className="h-4 w-4 text-purple-400" />
-                        <span className="text-sm font-medium text-purple-400">Dispositivo</span>
+                        <span className="text-aurora-pink">⚡</span>
+                        <span className="text-sm font-medium text-aurora-pink">Dispositivo</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {slide.dispositivo.split(', ').map((dispositivo, i) => (
-                          <Badge key={i} variant="outline" className="text-purple-300 border-purple-400/30">
-                            {dispositivo}
-                          </Badge>
+                          <span key={i} className="text-aurora-pink border-aurora-pink/30 border px-2 py-0.5 rounded text-xs">{dispositivo}</span>
                         ))}
                       </div>
                     </div>
@@ -219,27 +219,37 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
         })}
       </div>
 
-      {/* Dicas para Stories 10x */}
+      {/* Dicas & Aprovação */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
       >
-        <Card className="aurora-glass border-yellow-500/30">
-          <CardHeader>
-            <CardTitle className="text-yellow-400 text-xl flex items-center gap-3">
-              <Zap className="h-6 w-6" />
+        <Card className="aurora-glass border-aurora-electric-purple/20">
+          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <CardTitle className="text-aurora-electric-purple text-xl flex items-center gap-3">
+              <span className="text-2xl">⚡</span>
               Metodologia Stories 10x
             </CardTitle>
+            {/* BOTÃO DE APROVAR ROTEIRO */}
+            {onApproveScript && (
+              <button
+                onClick={onApproveScript}
+                className="bg-aurora-emerald text-white px-4 py-2 rounded-lg shadow hover:bg-aurora-neon-blue transition-all text-sm font-semibold mt-4 md:mt-0"
+                type="button"
+              >
+                ✅ Aprovar Roteiro
+              </button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <motion.div 
               className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
               whileHover={{ scale: 1.02 }}
             >
-              <span className="text-red-400 text-lg">🎯</span>
+              <span className="text-aurora-electric-purple text-lg">🎯</span>
               <div>
-                <span className="font-semibold text-red-300">Story 1 - Gancho:</span>
+                <span className="font-semibold text-aurora-electric-purple">Story 1 - Gancho:</span>
                 <span className="text-slate-300 ml-2">Captura atenção em 2 segundos</span>
               </div>
             </motion.div>
@@ -248,9 +258,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
               className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
               whileHover={{ scale: 1.02 }}
             >
-              <span className="text-orange-400 text-lg">⚠️</span>
+              <span className="text-aurora-pink text-lg">⚠️</span>
               <div>
-                <span className="font-semibold text-orange-300">Story 2 - Erro:</span>
+                <span className="font-semibold text-aurora-pink">Story 2 - Erro:</span>
                 <span className="text-slate-300 ml-2">Mostra o que não fazer</span>
               </div>
             </motion.div>
@@ -259,9 +269,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
               className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
               whileHover={{ scale: 1.02 }}
             >
-              <span className="text-green-400 text-lg">💡</span>
+              <span className="text-aurora-emerald text-lg">💡</span>
               <div>
-                <span className="font-semibold text-green-300">Story 3 - Virada:</span>
+                <span className="font-semibold text-aurora-emerald">Story 3 - Virada:</span>
                 <span className="text-slate-300 ml-2">Apresenta a solução + dispositivo</span>
               </div>
             </motion.div>
@@ -270,9 +280,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
               className="flex items-start gap-3 p-3 aurora-glass rounded-lg border border-white/10"
               whileHover={{ scale: 1.02 }}
             >
-              <span className="text-blue-400 text-lg">🚀</span>
+              <span className="text-aurora-neon-blue text-lg">🚀</span>
               <div>
-                <span className="font-semibold text-blue-300">Story 4 - CTA:</span>
+                <span className="font-semibold text-aurora-neon-blue">Story 4 - CTA:</span>
                 <span className="text-slate-300 ml-2">Call-to-action + antecipação</span>
               </div>
             </motion.div>
