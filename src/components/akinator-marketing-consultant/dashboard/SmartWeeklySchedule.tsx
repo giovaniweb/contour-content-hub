@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { CalendarCheck2, FileDown, Send } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -127,8 +128,6 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
     setSending(true);
     let successCount = 0;
     for (const day of weekPlan) {
-      // Convertemos para formato do ContentPlannerItem (simples)
-      // Aqui você pode customizar para mentor, tipo, etc. — fluxo inicial:
       const item = {
         title: day.title,
         description: `${day.description}\n\n🔗 Origem: Calendário Fluida (${day.day})`,
@@ -207,19 +206,34 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
       <CardContent className="pt-1">
         <div
           id={SCHEDULE_ELEMENT_ID}
-          className="flex flex-col md:flex-row gap-3 md:gap-2 justify-between bg-white/90 md:bg-transparent rounded-lg p-2"
+          className={`
+            grid gap-3 md:gap-2
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            lg:grid-cols-4
+            xl:grid-cols-7
+            w-full
+            transition-all
+            mb-2
+            overflow-x-auto
+          `}
+          style={{
+            minWidth: 0, // permite o uso do container responsivo do parent
+          }}
         >
           {weekPlan.map((plan, idx) => (
             <div
               key={plan.day}
               className={`
-                flex-1 bg-muted rounded-md p-3 min-w-[130px] border
+                flex flex-col gap-1 flex-1
+                bg-muted rounded-md border
                 ${plan.highlight ? "border-aurora-sage bg-aurora-sage/10 shadow-lg" : "border-border"}
-                flex flex-col gap-1
+                p-2 md:p-3 min-w-0
               `}
             >
-              <strong className="text-md text-aurora-sage">{plan.day}</strong>
-              <span className="font-medium text-foreground/90 text-sm">{plan.title}</span>
+              <strong className="text-md text-aurora-sage truncate">{plan.day}</strong>
+              <span className="font-medium text-foreground/90 text-sm leading-snug truncate">{plan.title}</span>
               <span className="text-xs text-muted-foreground">{plan.description}</span>
             </div>
           ))}
