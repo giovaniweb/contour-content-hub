@@ -16,6 +16,13 @@ import { MessageSquare, Clock, AudioWaveform } from "lucide-react";
 import LightCopyFormatter from './LightCopyFormatter';
 import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
 
+import {
+  isLightCopy,
+  cleanText,
+  splitLightCopyBlocks,
+  splitScriptBlocks,
+} from "./utils/scriptUtils";
+
 interface ScriptFormatterProps {
   script: {
     roteiro: string;
@@ -252,39 +259,26 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const wordCount = script.roteiro.split(/\s+/).length;
   const hasEquipments = script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0;
 
-  // Verificar se equipamentos foram realmente utilizados no roteiro
-  const equipmentUsedInScript = hasEquipments ? 
-    script.equipamentos_utilizados.some(eq => {
-      const equipmentName = typeof eq === 'string' ? eq : (eq?.nome || '');
-      return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
-    }) : false;
+  const equipmentUsedInScript = hasEquipments
+    ? script.equipamentos_utilizados.some((eq) => {
+        const equipmentName =
+          typeof eq === "string" ? eq : eq?.nome || "";
+        return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
+      })
+    : false;
 
-  // Pequena função de sanitização do texto para evitar quebras e espaços repetidos
-  function cleanText(text: string) {
-    if (!text) return "";
-    // Remove espaços em branco antes/depois das linhas, elimina linhas em branco duplicadas
-    let cleaned = text.trim().replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
-    // Remove espaços extras no começo/fim do bloco
-    cleaned = cleaned.replace(/^[ \t]+|[ \t]+$/gm, '');
-    return cleaned;
-  }
-
-  // --- NOVO: Decide qual formatter renderizar ---
+  // --- Renderização do conteúdo principal do roteiro ---
   const renderScriptContent = () => {
     if (script.formato.toLowerCase() === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
-
     if (script.formato.toLowerCase() === "stories_10x") {
       const slides = parseStories10xSlides(script.roteiro);
       return <Stories10xFormatter slides={slides} />;
     }
-
     if (script.formato.toLowerCase() === "post_estatico") {
       return <PostEstaticoFormatter roteiro={script.roteiro} />;
     }
-
-    // Renderizar formulário LightCopy se apropriado
     if (isLightCopy(script.roteiro, script)) {
       const blocks = splitLightCopyBlocks(script.roteiro);
       return (
@@ -296,8 +290,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       );
     }
-
-    // Default render: standard blocks
     const blocks = splitScriptBlocks(script.roteiro);
     return (
       <StandardScriptBlocksFormatter
@@ -309,7 +301,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
     );
   };
 
-  // Stories 10x também não precisa de contagem de tempo (formato estático)
   const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes(script.formato.toLowerCase());
 
   return (
@@ -330,7 +321,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       {/* Disney Magic Badge */}
       <DisneyMagicIndicator disneyApplied={script.disney_applied || false} />
 
-      {/* Equipamentos Detalhados - Mostrar apenas se houver equipamentos utilizados */}
+      {/* Equipamentos Detalhados */}
       {hasEquipments && equipmentUsedInScript && (
         <EquipmentDetails
           equipments={script.equipamentos_utilizados || []}
@@ -338,7 +329,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       )}
 
-      {/* Aviso de Tempo - Apenas para formatos com tempo */}
+      {/* Aviso de Tempo */}
       {showTimeMetric && (
         <TimeWarning
           isWithinTimeLimit={isWithinTimeLimit}
