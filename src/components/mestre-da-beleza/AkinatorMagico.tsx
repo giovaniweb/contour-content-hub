@@ -1,212 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, 
-  Star, 
-  Zap, 
-  Eye, 
-  Brain, 
-  Gem,
-  ArrowRight,
-  RotateCcw,
-  Clock,
-  Target,
-  CheckCircle2,
-  AlertCircle,
-  RefreshCw
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useMestreDaBeleza } from '@/hooks/useMestreDaBeleza';
-import { useMestreDaBelezaAnalytics, ANALYTICS_EVENTS } from '@/hooks/useMestreDaBelezaAnalytics';
-import RecommendationDisplay from './RecommendationDisplay';
-import './akinator-animations.css';
-import AkinatorWelcomeScreen from "./components/AkinatorWelcomeScreen";
-import AkinatorQuestionCard from "./components/AkinatorQuestionCard";
-import { useAkinatorMystic } from "./hooks/useAkinatorMystic";
 
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ArrowRight, RotateCcw } from "lucide-react";
+import { useAkinatorIntentionTree } from "./hooks/useAkinatorIntentionTree";
+import { IntentionNode } from "./intentionTree";
+
+// Mantém visual moderno e responsivo
 const AkinatorMagico: React.FC = () => {
-  const {
-    userProfile,
-    updateProfile,
-    getRecommendation,
-    resetChat,
-    processUserResponse,
-    getCurrentQuestion,
-    isCompleted,
-    getProgress,
-    equipments,
-    loading: equipmentsLoading,
-    error: equipmentsError
-  } = useMestreDaBeleza();
-  
-  const { logEvent } = useMestreDaBelezaAnalytics();
-  
-  const [isThinking, setIsThinking] = useState(false);
+  const { currentNode, history, completed, answer, reset } = useAkinatorIntentionTree();
 
-  const currentQuestion = getCurrentQuestion();
-  const currentRecommendation = getRecommendation();
-  const progress = getProgress();
-  const confidence = Math.min(95, Math.max(40, progress));
+  // Progresso artificial só para UX visual (100% no final)
+  const progress = currentNode
+    ? Math.round((history.length / 9) * 100)
+    : 100;
 
-  // Debug logs
-  useEffect(() => {
-    console.log('🔮 [AkinatorMagico] Estado atual:', {
-      userProfile: {
-        step: userProfile.step,
-        primeira_interacao: userProfile.primeira_interacao,
-        current_question_index: userProfile.current_question_index,
-        session_id: userProfile.session_id
-      },
-      currentQuestion: currentQuestion?.id,
-      isCompleted: isCompleted(),
-      equipmentsCount: equipments?.length || 0,
-      equipmentsLoading,
-      equipmentsError: equipmentsError?.message,
-      progress,
-      confidence
-    });
-  }, [userProfile, currentQuestion, isCompleted, equipments, equipmentsLoading, equipmentsError, progress, confidence]);
-
-  // Log de início de sessão
-  useEffect(() => {
-    if (!equipmentsLoading && userProfile.primeira_interacao && equipments) {
-      logEvent(ANALYTICS_EVENTS.SESSION_STARTED, { 
-        equipments_available: equipments.length 
-      }, userProfile);
-      console.log('📊 [AkinatorMagico] Sessão iniciada logada');
-    }
-  }, [equipmentsLoading, userProfile.primeira_interacao, equipments, logEvent, userProfile]);
-
-  // Frases místicas baseadas no progresso
-  const mysticalPhrase = useAkinatorMystic(progress);
-
-  const handleAnswerQuestion = async (answer: string) => {
-    if (!currentQuestion || isThinking) return;
-
-    setIsThinking(true);
-    
-    // Log da resposta
-    logEvent(ANALYTICS_EVENTS.QUESTION_ANSWERED, {
-      question_id: currentQuestion.id,
-      answer,
-      question_index: userProfile.current_question_index
-    }, userProfile);
-    
-    console.log('💬 [AkinatorMagico] Resposta selecionada:', { answer, question: currentQuestion.id });
-    
-    // Simular tempo de "pensamento" do Akinator
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const result = processUserResponse(answer, currentQuestion.context);
-    console.log('✅ [AkinatorMagico] Resposta processada:', result);
-    
-    setIsThinking(false);
-  };
-
-  const handleResetGame = () => {
-    console.log('🔄 [AkinatorMagico] Resetando jogo');
-    logEvent(ANALYTICS_EVENTS.SESSION_RESET, {}, userProfile);
-    resetChat();
-  };
-
-  const handleStartNewSession = () => {
-    console.log('🚀 [AkinatorMagico] Iniciando nova sessão');
-    updateProfile({ 
-      step: 'intention',
-      primeira_interacao: false 
-    });
-  };
-
-  const handleContinueFromRecommendation = () => {
-    console.log('➡️ [AkinatorMagico] Continuando da recomendação');
-  };
-
-  // Loading state
-  
-
-  // Error state - quando há erro ao carregar equipamentos
-  
-
-  // Error state - quando não há equipamentos disponíveis
-  
-
-  
-
-  
-
-  // Determinar fase atual
-  const isWelcomePhase = userProfile.step === 'profile' && userProfile.primeira_interacao;
-  const isQuestioningPhase = !isWelcomePhase && !isCompleted() && currentQuestion;
-  const isCompletedPhase = isCompleted() && currentRecommendation;
-
-  console.log('🎭 [AkinatorMagico] Fase de renderização:', {
-    step: userProfile.step,
-    isWelcome: isWelcomePhase,
-    isQuestioning: isQuestioningPhase,
-    isCompleted: isCompletedPhase,
-    currentQuestion: currentQuestion?.id,
-    currentRecommendation: currentRecommendation?.equipamento?.nome,
-    progress
-  });
+  // UX: frase divertida para o topo (simples demonstrativo)
+  const mysticalPhrases = [
+    "O universo da beleza conspira a seu favor...",
+    "A lâmpada mágica sente sua energia!",
+    "Cada desejo conta, não economize sonhos.",
+    "Seu futuro estético está sendo revelado...",
+    "Pense bem: gênios também têm limite de pedidos!",
+    "A verdadeira beleza começa na intenção."
+  ];
+  const mysticalPhrase = mysticalPhrases[(history.length || 0) % mysticalPhrases.length];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-2xl mx-auto flex flex-col gap-10 py-8">
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-4xl">{currentNode?.emoji || "✨"}</span>
+          <h2 className="text-white text-2xl font-bold text-center">Diagnóstico Estético Descontraído</h2>
+        </div>
         <AnimatePresence mode="wait">
-          {isWelcomePhase && (
+          {completed ? (
             <motion.div
-              key="welcome"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="min-h-screen flex items-center justify-center"
-            >
-              <AkinatorWelcomeScreen
-                equipmentsCount={equipments?.length || 0}
-                onStart={handleStartNewSession}
-              />
-            </motion.div>
-          )}
-
-          {isQuestioningPhase && (
-            <motion.div
-              key="questioning"
+              key="final"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="py-12"
+              className="space-y-6"
             >
-              <AkinatorQuestionCard
-                isThinking={isThinking}
-                currentQuestion={currentQuestion}
-                handleAnswer={handleAnswerQuestion}
-                handleReset={handleResetGame}
-                progress={progress}
-                confidence={confidence}
-                mysticalPhrase={mysticalPhrase}
-                currentIndex={userProfile.current_question_index}
-              />
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50">
+                <CardContent className="p-8 text-center">
+                  <div className="text-3xl mb-2">🎉</div>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Consulta Finalizada!
+                  </h3>
+                  <div className="text-purple-300 mb-4">
+                    Parabéns por compartilhar seus desejos e inspirações. <br />
+                    Agora é hora de buscar o tratamento mais alinhado ao seu sonho!
+                  </div>
+                  <div className="mb-4">
+                    <span className="font-medium text-white">Suas respostas:</span>
+                    <ul className="mt-2 space-y-1">
+                      {history.map((h, i) => (
+                        <li key={i} className="text-sm text-purple-300">
+                          <span className="font-semibold text-purple-200">{i + 1}.</span> {h.answer}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Button onClick={reset} variant="outline" className="mt-4">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Fazer novamente
+                  </Button>
+                </CardContent>
+              </Card>
             </motion.div>
-          )}
-
-          {isCompletedPhase && (
+          ) : currentNode ? (
             <motion.div
-              key="complete"
+              key={currentNode.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="py-12"
+              className="space-y-10"
             >
-              <RecommendationDisplay
-                recommendation={currentRecommendation}
-                onContinue={handleContinueFromRecommendation}
-                onNewChat={handleResetGame}
-              />
+              <div className="flex justify-between items-center">
+                <Badge variant="outline" className="border-purple-400 text-purple-400">
+                  Pergunta {history.length + 1}
+                </Badge>
+                <span className="text-purple-300 italic text-sm">{mysticalPhrase}</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-purple-300">
+                  <span>Progresso</span>
+                  <span>{progress}%</span>
+                </div>
+                <Progress value={progress} className="h-3 bg-purple-900/50" />
+              </div>
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50">
+                <CardContent className="p-8">
+                  <div className="text-2xl font-bold text-white text-center mb-4">{currentNode.text}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentNode.options.map((option, idx) => (
+                      <Button
+                        key={idx}
+                        onClick={() => answer(option)}
+                        variant="outline"
+                        className="w-full p-6 text-left h-auto hover:bg-purple-500/20 hover:border-purple-400 transition-all duration-300 text-white"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span>{option}</span>
+                          <ArrowRight className="h-4 w-4 text-purple-400 flex-shrink-0 ml-2" />
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="text-center">
+                <Button
+                  onClick={reset}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Recomeçar consulta
+                </Button>
+              </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
     </div>
