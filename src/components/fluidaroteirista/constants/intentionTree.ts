@@ -1,4 +1,6 @@
-import { ScriptIntention } from '../types';
+
+// Removido import inválido de ScriptIntention
+// import { ScriptIntention } from '../types';
 
 export const AKINATOR_TREE: Record<string, any> = {
   canal: {
