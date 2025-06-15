@@ -1,6 +1,9 @@
+
 import React from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import EquipmentManager from '@/components/admin/EquipmentManager';
+
+// Audit: garantir que só existem imports necessários, pois páginas ContentStrategy/Ideas etc foram removidas
 
 const AdminEquipments: React.FC = () => {
   return (
