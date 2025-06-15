@@ -163,7 +163,7 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
           onClick={handleGenerateImage}
           disabled={!isApproved || isGeneratingImg}
         >
-          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
+          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Image className="h-6 w-6" />}
           {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
         </button>
       </div>
