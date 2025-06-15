@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { loadVideosData } from '@/hooks/video-batch/videoBatchOperations';
 import { StoredVideo } from '@/types/video-storage';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoSwipeViewer from '@/components/video-storage/VideoSwipeViewer';
-import VideoPlayerModal from '@/components/video-player/VideoPlayerModal';
 import { ROUTES } from '@/routes';
 
 const VideosPage: React.FC = () => {
@@ -69,7 +68,7 @@ const VideosPage: React.FC = () => {
   };
   
   return (
-    <Layout title="Vídeos">
+    <AppLayout>
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
@@ -125,7 +124,7 @@ const VideosPage: React.FC = () => {
           </Link>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

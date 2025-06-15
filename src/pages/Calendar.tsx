@@ -1,13 +1,13 @@
 
 import React from "react";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Calendar: React.FC = () => {
   console.log("Calendar - Rendering agenda page");
   
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
@@ -18,7 +18,7 @@ const Calendar: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

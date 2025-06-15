@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -9,7 +9,7 @@ const Profile: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <Layout title="Perfil do Usuário">
+    <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <User className="h-8 w-8 text-primary" />
@@ -57,7 +57,7 @@ const Profile: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

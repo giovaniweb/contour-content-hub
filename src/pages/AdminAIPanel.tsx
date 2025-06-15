@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import Layout from "@/components/Layout";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +18,7 @@ const AdminAIPanel: React.FC = () => {
   }
 
   return (
-    <Layout title="AI Panel">
+    <AdminLayout>
       <div className="container mx-auto py-8">
         <div className="mb-10 bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
           <div className="flex items-center gap-4">
@@ -81,7 +81,7 @@ const AdminAIPanel: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

@@ -1,6 +1,5 @@
-
-import React, { useState } from "react";
-import Layout from "@/components/Layout";
+import React from 'react';
+import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate } from "react-router-dom";
@@ -20,8 +19,8 @@ const AdminSystemIntelligence: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto py-8">
+    <AdminLayout>
+      <div className="container mx-auto py-6 space-y-8">
         <div className="mb-10 bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
           <div className="flex items-center gap-4">
             <div className="bg-violet-100 p-3 rounded-full">
@@ -311,7 +310,7 @@ const AdminSystemIntelligence: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

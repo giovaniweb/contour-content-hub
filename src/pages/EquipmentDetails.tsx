@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { useEquipmentDetailsState } from '@/hooks/useEquipmentDetailsState';
@@ -44,7 +44,7 @@ const EquipmentDetails: React.FC = () => {
   }
 
   return (
-    <Layout title={equipment.nome}>
+    <AppLayout>
       <div className="space-y-6">
         <EquipmentDetailsHeader equipment={equipment} />
 
@@ -72,7 +72,7 @@ const EquipmentDetails: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

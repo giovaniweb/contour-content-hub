@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import Layout from '@/components/Layout';
+import AdminLayout from '@/components/layout/AdminLayout';
 import EquipmentManager from '@/components/admin/EquipmentManager';
 import { Button } from '@/components/ui/button';
 import { getEquipments, importEquipments } from '@/api/equipment';
@@ -66,19 +65,19 @@ const AdminEquipments: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout title="Administração de Equipamentos">
+      <AdminLayout>
         <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
           <div className="aurora-glass rounded-3xl p-8 flex items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-aurora-electric-purple" />
             <span className="aurora-body text-white">Carregando equipamentos...</span>
           </div>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="aurora-dark-bg min-h-screen">
         <div className="aurora-particles">
           {[...Array(15)].map((_, i) => (
@@ -128,7 +127,7 @@ const AdminEquipments: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

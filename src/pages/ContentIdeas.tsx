@@ -1,12 +1,12 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lightbulb } from 'lucide-react';
 
 const ContentIdeas: React.FC = () => {
   return (
-    <Layout title="Validador de Ideias">
+    <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Lightbulb className="h-8 w-8 text-primary" />
@@ -30,7 +30,7 @@ const ContentIdeas: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

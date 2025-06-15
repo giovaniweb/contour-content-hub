@@ -1,13 +1,13 @@
 
 import React from "react";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const TechnicalDocuments: React.FC = () => {
   console.log("TechnicalDocuments - Rendering artigos page");
   
   return (
-    <Layout title="Documentos Técnicos">
+    <AppLayout>
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
@@ -18,7 +18,7 @@ const TechnicalDocuments: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

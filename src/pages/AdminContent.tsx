@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate, useLocation } from "react-router-dom";
@@ -51,7 +52,7 @@ const AdminContent: React.FC = () => {
   }
 
   return (
-    <Layout title="Gerenciamento de Conteúdo">
+    <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
@@ -105,7 +106,7 @@ const AdminContent: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

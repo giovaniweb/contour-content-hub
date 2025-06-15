@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Layout from "@/components/Layout";
+import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -115,8 +115,8 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <Layout title="Admin Dashboard">
-      <div className="container mx-auto py-6">
+    <AdminLayout>
+      <div className="min-h-screen bg-background p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">
@@ -551,7 +551,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

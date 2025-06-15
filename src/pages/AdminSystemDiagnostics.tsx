@@ -1,6 +1,5 @@
-
-import React, { useState } from "react";
-import Layout from "@/components/Layout";
+import React from 'react';
+import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -25,8 +24,8 @@ const AdminSystemDiagnostics: React.FC = () => {
   };
 
   return (
-    <Layout title="Diagnóstico do Sistema">
-      <div className="container mx-auto py-6">
+    <AdminLayout>
+      <div className="container mx-auto py-6 space-y-8">
         <div className="flex justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">Diagnóstico do Sistema</h1>
@@ -310,7 +309,7 @@ const AdminSystemDiagnostics: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 
