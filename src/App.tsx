@@ -105,6 +105,7 @@ function App() {
                       <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
                       <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
+                      {/* Arrumado - workspace-settings */}
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                       
                       {/* 404 Route */}
