@@ -13,6 +13,7 @@ interface Format {
 }
 
 const FORMATOS: Format[] = [
+  // Removido o formato 'stories'
   { id: 'carrossel', label: 'Carrossel', icon: FileText, description: 'Múltiplos slides' },
   { id: 'imagem', label: 'Post Estático', icon: Image, description: 'Uma imagem' },
   { id: 'reels', label: 'Reels', icon: Zap, description: 'Vídeo curto' }
