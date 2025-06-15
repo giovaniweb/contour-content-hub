@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "./button";
@@ -30,7 +31,7 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
 
-  // Novo: função para capturar a div do relatório, gerar PNG base64, e exportar PDF
+  // Melhor tratamento de erro: exibe detalhe do Edge Function
   const handleExportPdf = async () => {
     setLoading(true);
     try {
@@ -48,7 +49,7 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
       const canvas = await html2canvas(reportElement, { scale: 2, backgroundColor: "#0a071b" });
       const imgData = canvas.toDataURL("image/png");
 
-      // Usa Supabase client com valores hardcoded (como antes)
+      // Usa Supabase client com valores hardcoded
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const { data, error } = await supabase.functions.invoke(
@@ -63,7 +64,22 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
         }
       );
       if (error) {
-        toast.error("Erro ao gerar PDF", { description: error.message });
+        // Tenta exibir mensagem detalhada do erro da Edge Function se houver
+        let detailedMsg = error.message || "Erro desconhecido ao gerar PDF";
+        try {
+          // Se erro já veio em formato de JSON
+          if (error?.context) {
+            detailedMsg += ` (${error.context})`;
+          }
+          // Se edge function retornou body em error.body
+          if (error.body) {
+            const errorJson = JSON.parse(error.body);
+            if (errorJson.error) detailedMsg = errorJson.error + (errorJson.details ? `: ${errorJson.details}` : "");
+          }
+        } catch (e) {
+          // Se não for JSON, ignora
+        }
+        toast.error("Erro ao gerar PDF", { description: detailedMsg });
         setLoading(false);
         return;
       }
@@ -101,3 +117,4 @@ const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
 };
 
 export default GenerateAuroraPdfButton;
+
