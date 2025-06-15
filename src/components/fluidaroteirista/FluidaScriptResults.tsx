@@ -72,8 +72,12 @@ const FluidaScriptResults = ({
         {improvedScript && (
           <Card className="mt-6 aurora-glass border-green-500/40">
             <CardContent>
-              <div className="text-green-400 font-bold">Roteiro Anterior:</div>
-              <pre className="text-slate-300 whitespace-pre-line mt-2">{results[0].roteiro}</pre>
+              <div className="text-green-400 font-bold mb-2 text-lg">Roteiro Anterior:</div>
+              <div className="bg-slate-900/60 p-4 rounded-lg border border-green-500/20">
+                <pre className="text-slate-200 whitespace-pre-line font-mono text-[15px] leading-relaxed" style={{ wordBreak: 'break-word', background: 'none', padding: 0, margin: 0 }}>
+                  {results[0].roteiro}
+                </pre>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -107,4 +111,3 @@ const FluidaScriptResults = ({
 };
 
 export default FluidaScriptResults;
-
