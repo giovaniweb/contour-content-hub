@@ -155,30 +155,17 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   };
 
   // --- Adicionar lógica para reunir todos os conteúdos sugeridos ---
-  // 1. SmartWeeklySchedule (semana corrente)
-  const weekDayPlans =
-    safeState && safeState.clinicType
-      ? generateWeekPlan(
-            getMainSpecialty(),
-            safeState.revenueGoal ||
-              safeState.medicalObjective ||
-              safeState.aestheticObjective ||
-              "",
-            safeState.contentFrequency || ""
-          ) || []
-      : [];
-
   // 2. Ideias AI e Próximos Passos: Suponha que esses dois sejam arrays de objetos {title, description,...}
   // Por simplicidade, defina ideiasAI e proximosPassos de exemplo:
   const ideiasAI = [
     {
       title: "Conteúdo AI: Tendências de mercado",
       description: "Sugestão de post baseada em dados atuais.",
-      status: "idea",
+      status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
       tags: ["ai", "tendencias"],
-      format: "carrossel",
+      format: "carrossel" as import('@/types/content-planner').ContentFormat,
       objective: "🟡 Atrair Atenção",
-      distribution: "Instagram",
+      distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
     },
     // ... adicione mais sugestões reais se necessário ...
   ];
@@ -187,29 +174,29 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
     {
       title: "Otimizar perfil nas redes sociais",
       description: "Atualize informações e melhore imagens do perfil.",
-      status: "idea",
+      status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
       tags: ["quick", "perfil"],
-      format: "story",
+      format: "story" as import('@/types/content-planner').ContentFormat,
       objective: "🟡 Atrair Atenção",
-      distribution: "Instagram",
+      distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
     },
     {
       title: `Criar 3 posts sobre ${getMainSpecialty()}`,
       description: "Planeje e escreva 3 posts relevantes para sua audiência.",
-      status: "idea",
+      status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
       tags: ["quick", "posts", getMainSpecialty().toLowerCase()],
-      format: "carrossel",
+      format: "carrossel" as import('@/types/content-planner').ContentFormat,
       objective: "🟢 Criar Conexão",
-      distribution: "Instagram",
+      distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
     },
     {
       title: "Definir público-alvo específico",
       description: "Refine a persona ideal da sua clínica esta semana.",
-      status: "idea",
+      status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
       tags: ["quick", "publico-alvo"],
-      format: "texto",
+      format: "texto" as import('@/types/content-planner').ContentFormat,
       objective: "🔴 Fazer Comprar",
-      distribution: "Instagram",
+      distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
     },
   ];
 
@@ -220,11 +207,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
       ? weekDayPlans.map((plan) => ({
           title: plan.title,
           description: `${plan.description}\n\nOrigem: Calendário Fluida (${plan.day})`,
-          status: "idea",
+          status: "idea" as import('@/types/content-planner').ContentPlannerStatus,
           tags: ["fluida-smart-schedule", getMainSpecialty().toLowerCase(), plan.day.toLowerCase()],
-          format: "carrossel",
+          format: "carrossel" as import('@/types/content-planner').ContentFormat,
           objective: "🟡 Atrair Atenção",
-          distribution: "Instagram",
+          distribution: "Instagram" as import('@/types/content-planner').ContentDistribution,
         }))
       : []),
     // ideias AI
@@ -247,6 +234,7 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
           <div className="p-3 bg-aurora-gradient-primary rounded-full shadow-lg aurora-glow">
             <BrainCircuit className="h-8 w-8 text-white" />
           </div>
+        
         </div>
         
         <h1 className="text-3xl font-bold aurora-heading text-slate-50">

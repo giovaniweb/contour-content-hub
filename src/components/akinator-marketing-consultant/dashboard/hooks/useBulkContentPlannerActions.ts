@@ -8,11 +8,11 @@ import { ContentPlannerStatus } from "@/types/content-planner";
 type BasicItem = {
   title: string;
   description: string;
-  status?: ContentPlannerStatus; // Corrigir explicitamente o tipo
+  status?: import('@/types/content-planner').ContentPlannerStatus;
   tags?: string[];
-  format?: string;
+  format?: import('@/types/content-planner').ContentFormat;
   objective?: string;
-  distribution?: string;
+  distribution?: import('@/types/content-planner').ContentDistribution;
   aiGenerated?: boolean;
 };
 
@@ -31,11 +31,12 @@ export function useBulkContentPlannerActions(): UseBulkPlannerActionsReturn {
     setLoading(true);
     let successCount = 0;
     for (const item of items) {
-      // Garanta que status seja válido, se não definido default para "idea"
       const created = await addItem({
         ...item,
-        status: 'idea' as ContentPlannerStatus,
-        aiGenerated: true
+        status: (item.status ?? 'idea') as import('@/types/content-planner').ContentPlannerStatus,
+        format: (item.format ?? 'carrossel') as import('@/types/content-planner').ContentFormat,
+        distribution: (item.distribution ?? 'Instagram') as import('@/types/content-planner').ContentDistribution,
+        aiGenerated: true,
       });
       if (created) successCount++;
     }
