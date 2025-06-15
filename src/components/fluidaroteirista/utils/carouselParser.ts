@@ -107,43 +107,60 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
 };
 
 export const parseCarouselSlides = (roteiro: string) => {
-  // Corrigir parser para casos reais diversos e padronizar títulos/tipos
-  const slidePattern = /Slide\s*:? ?(\d+)?\s*:?\s*([^\n]*)\n+([^]*?)(?=\n*Slide\s*:? ?\d*\s*:|\s*$)/gi;
-  const slides = [];
+  // Novo parser: robusto e fácil de manter
+  // Divide sempre em blocos iniciando em "Slide X:"
+  const slideRegex = /Slide\s*:? ?(\d+)?\s*:?\s*([^\n]*)\n?([^]*?)(?=(?:\n+)?Slide\s*:? ?\d+\s*:|\s*$)/gi;
+  const slides: { number: number; title: string; texto: string; imagem: string }[] = [];
+
   let match;
   let slideIndex = 0;
 
-  // Extrair cada slide reconhecendo bloco entre Slide e o próximo Slide
-  while ((match = slidePattern.exec(roteiro)) !== null) {
+  while ((match = slideRegex.exec(roteiro)) !== null && slides.length < 5) {
     slideIndex++;
     const number = match[1] ? Number(match[1]) : slideIndex;
-    const title = match[2]?.trim() || `Slide ${slideIndex}`;
-    let texto = '';
-    let imagem = '';
+    const title = (match[2] || "").trim() || `Slide ${slideIndex}`;
 
-    // Extrair Texto: ... e Imagem: ... do bloco
-    const bloco = match[3] || '';
-    const textoMatch = bloco.match(/Texto:\s*([^\n]+)/i);
-    const imagemMatch = bloco.match(/Imagem:\s*([^\n]+)/i);
-    texto = textoMatch?.[1]?.trim() || '';
-    imagem = imagemMatch?.[1]?.trim() || '';
+    // Captura o bloco inteiro do slide (linhas após título)
+    const bloco = match[3] || "";
 
-    // Fallback se não encontrar campos
-    if (!texto && bloco.trim()) {
-      texto = bloco.split('\n')[0]?.trim() || '';
+    // Novo: capturar texto e imagem em múltiplas linhas, se existir
+    let texto = "";
+    let imagem = "";
+
+    // Regex para capturar após Texto: até próxima quebra ou Imagem:
+    const textoMatch = bloco.match(/Texto:\s*([\s\S]*?)(?:\nImagem:|\n*$)/i);
+    if (textoMatch && textoMatch[1]) {
+      texto = textoMatch[1].trim();
     }
-    if (!imagem) {
-      imagem = 'Ambiente clínico moderno, profissional especializado, iluminação suave';
+
+    // Regex para capturar após Imagem: até próximo campo ou fim do bloco
+    const imagemMatch = bloco.match(/Imagem:\s*([\s\S]*?)(?:\n|$)/i);
+    if (imagemMatch && imagemMatch[1]) {
+      imagem = imagemMatch[1].trim();
     }
+
+    // Fallbacks se campos faltam
+    if (!texto) texto = "Sem texto";
+    if (!imagem) imagem = "Sem imagem";
+
     slides.push({
-      number,
-      title: title || `Slide ${number}`,
+      number: number,
+      title,
       texto,
       imagem
     });
   }
 
-  // Remover slides fantasma e garantir sempre até cinco
-  const validSlides = slides.filter(s => !!s.texto && !!s.imagem).slice(0, 5);
-  return validSlides;
+  // Sempre retorna 5 slides: preenche faltantes
+  const defaultTitles = ["Gancho", "Problema", "Solução", "Benefícios", "Call to Action"];
+  while (slides.length < 5) {
+    slides.push({
+      number: slides.length + 1,
+      title: defaultTitles[slides.length] || `Slide ${slides.length + 1}`,
+      texto: "Conteúdo não informado",
+      imagem: "Ambiente profissional, visual clean"
+    });
+  }
+
+  return slides.slice(0, 5);
 };
