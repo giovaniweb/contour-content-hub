@@ -156,37 +156,37 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
   };
 
   return (
-    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between pb-1 gap-2">
-        <div className="flex gap-2 items-center">
+    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden max-w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-1 gap-2 flex-wrap">
+        <div className="flex gap-2 items-center min-w-0">
           <CalendarCheck2 className="h-5 w-5 text-aurora-sage" />
-          <CardTitle className="aurora-heading text-lg font-semibold">
+          <CardTitle className="aurora-heading text-lg font-semibold truncate">
             Calendário Semanal Inteligente
           </CardTitle>
           <Badge variant="outline" className="border-aurora-sage text-aurora-sage font-normal ml-2">
             Execução Fluida
           </Badge>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-wrap justify-end">
           <Button
             variant="outline"
             onClick={handleExportPdf}
             size="sm"
-            className="gap-2 text-xs border-aurora-sage"
+            className="gap-1 text-xs border-aurora-sage px-2"
             disabled={exporting}
           >
             <FileDown className="h-4 w-4" />
-            Exportar PDF
+            PDF
           </Button>
           <Button
             variant="outline"
             onClick={handleExportImagem}
             size="sm"
-            className="gap-2 text-xs border-aurora-sage"
+            className="gap-1 text-xs border-aurora-sage px-2"
             disabled={exporting}
           >
             <FileDown className="h-4 w-4" />
-            Exportar Imagem
+            PNG
           </Button>
           <Button
             variant="action"
@@ -195,14 +195,15 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
               setModalOpen(true);
             }}
             size="sm"
-            className="gap-2 text-xs"
+            className="gap-1 text-xs px-2"
           >
             <Send className="h-4 w-4" />
-            Enviar Semana ao Planner
+            Enviar ao Planner
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-1">
+      <CardContent className="pt-1 px-2 md:px-4">
+        {/* Novo grid responsivo: igual ao PublishingSchedule - mais compacto! */}
         <div
           id={SCHEDULE_ELEMENT_ID}
           className={`
@@ -214,7 +215,8 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             w-full
             transition-all
             mb-2
-            overflow-x-auto
+            overflow-visible
+            max-w-full
           `}
           style={{
             minWidth: 0,
@@ -227,12 +229,14 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
                 flex flex-col gap-1 flex-1
                 bg-muted rounded-md border
                 ${plan.highlight ? "border-aurora-sage bg-aurora-sage/10 shadow-lg" : "border-border"}
-                p-2 md:p-3 min-w-0
+                p-2 md:p-2 min-w-0 
+                max-w-full
               `}
+              style={{ wordBreak: "break-word" }}
             >
-              <strong className="text-md text-aurora-sage truncate">{plan.day}</strong>
-              <span className="font-medium text-foreground/90 text-sm leading-snug truncate">{plan.title}</span>
-              <span className="text-xs text-muted-foreground">{plan.description}</span>
+              <div className="text-xs font-medium text-aurora-sage truncate mb-0">{plan.day}</div>
+              <div className="font-medium text-foreground/90 text-xs leading-snug truncate">{plan.title}</div>
+              <div className="text-xs text-muted-foreground leading-tight">{plan.description}</div>
             </div>
           ))}
         </div>
