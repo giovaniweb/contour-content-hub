@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { DiagnosticSession } from './types';
 import { saveCurrentSessionToStorage, clearCurrentSessionFromStorage } from './sessionStorage';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
+import { generateUniqueSessionId } from "./sessionUtils";
 
 // Helper function to create empty MarketingConsultantState with defaults
 const createEmptyMarketingState = (): MarketingConsultantState => ({
@@ -100,7 +101,7 @@ export const useDiagnosticOperations = () => {
     }
   }, [user?.id]);
 
-  // Salvar sessão atual - ajustado para receber parâmetros corretos
+  // Salvar sessão atual - agora usando session_id determinístico e sincronia rápida
   const saveCurrentSession = useCallback(async (state: MarketingConsultantState, isCompleted: boolean = false) => {
     if (!user?.id) {
       console.log('❌ Usuário não autenticado para salvar sessão');
@@ -109,24 +110,22 @@ export const useDiagnosticOperations = () => {
 
     try {
       console.log('💾 Salvando sessão no banco para user_id:', user.id);
-      
-      // Gerar ID determinístico baseado no estado
-      const generateSessionId = () => {
-        const content = `${state.clinicType || 'unknown'}_${state.clinicName || 'clinic'}_${Date.now()}`;
-        return `diagnostic_${Buffer.from(content).toString('base64').substring(0, 16)}`;
-      };
 
-      const sessionId = generateSessionId();
-      
+      // Geração determinística: session_id não muda a cada save!
+      const specialty = state.clinicType === 'clinica_medica'
+        ? state.medicalSpecialty || ''
+        : state.aestheticFocus || '';
+      const sessionId = generateUniqueSessionId(user.id, state.clinicType, specialty);
+
       const { error } = await supabase
         .from('marketing_diagnostics')
         .upsert({
           session_id: sessionId,
-          user_id: user.id, // GARANTIR QUE USA O USER_ID CORRETO
-          state_data: state as any, // Cast para any para resolver problema de tipo Json
+          user_id: user.id,
+          state_data: state as any,
           is_completed: isCompleted,
           clinic_type: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-          specialty: state.medicalSpecialty || state.aestheticFocus || 'Geral',
+          specialty: specialty || 'Geral',
           updated_at: new Date().toISOString()
         });
 
@@ -135,24 +134,33 @@ export const useDiagnosticOperations = () => {
         return false;
       }
 
-      // Criar sessão para salvar no localStorage
+      // Sessão para localStorage e estado local
       const session: DiagnosticSession = {
         id: sessionId,
         timestamp: new Date().toISOString(),
         state,
         isCompleted,
         clinicTypeLabel: state.clinicType === 'clinica_medica' ? 'Clínica Médica' : 'Clínica Estética',
-        specialty: state.medicalSpecialty || state.aestheticFocus || 'Geral',
+        specialty: specialty || 'Geral',
         isPaidData: isCompleted
       };
 
       // Salvar também no localStorage para acesso rápido
       saveCurrentSessionToStorage(session);
+
+      // Atualiza estado local para feedback instantâneo
       setCurrentSession(session);
-      
-      // Recarregar lista de diagnósticos
+
+      // Garantir que Histórico seja atualizado imediatamente
+      setSavedDiagnostics((prev) => {
+        // remove duplicadas
+        const filtered = prev.filter(d => d.id !== sessionId);
+        return [{ ...session }, ...filtered];
+      });
+
+      // Recarregar lista do banco (dup-protection no backend)
       await loadSavedDiagnostics();
-      
+
       console.log('✅ Sessão salva com sucesso');
       return true;
     } catch (error) {

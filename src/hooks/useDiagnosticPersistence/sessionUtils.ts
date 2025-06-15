@@ -1,4 +1,3 @@
-
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { DiagnosticSession } from './types';
 
@@ -10,6 +9,14 @@ const generateCacheKey = (userId: string, clinicType: string, specialty: string)
   return `${userId}_${clinicType}_${specialty}`;
 };
 
+// Gera hash simples e consistente só baseado no user e especialidade
+const createStableSessionId = (userId: string, clinicType: string, specialty: string) => {
+  // Hash concatenado: nada de timestamp/random
+  const input = `${userId}::${clinicType}::${specialty}`;
+  // Pequeno hash base64 para evitar ids longos
+  return "diagnostic_" + btoa(unescape(encodeURIComponent(input))).replace(/=/g, "");
+};
+
 // Gerar ou reutilizar session_id baseado no contexto do usuário
 export const generateUniqueSessionId = (
   userId?: string, 
@@ -17,23 +24,10 @@ export const generateUniqueSessionId = (
   specialty?: string
 ): string => {
   if (userId && clinicType && specialty) {
-    const cacheKey = generateCacheKey(userId, clinicType, specialty);
-    
-    // Verificar se já existe um session_id para este contexto
-    if (sessionIdCache.has(cacheKey)) {
-      console.log('🔄 Reutilizando session_id existente para:', cacheKey);
-      return sessionIdCache.get(cacheKey)!;
-    }
-    
-    // Criar novo session_id e armazenar no cache
-    const newSessionId = `session_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    sessionIdCache.set(cacheKey, newSessionId);
-    console.log('✨ Novo session_id gerado para:', cacheKey, newSessionId);
-    return newSessionId;
+    return createStableSessionId(userId, clinicType, specialty);
   }
-  
-  // Fallback para quando não temos informações suficientes
-  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // fallback para sessão sem contexto
+  return `diagnostic_unknown`;
 };
 
 // Limpar cache de session_id quando necessário

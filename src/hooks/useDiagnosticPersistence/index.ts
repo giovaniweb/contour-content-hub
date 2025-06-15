@@ -7,38 +7,13 @@ import { DiagnosticSession } from './types';
 
 export type { DiagnosticSession } from './types';
 
-// Função para validar se os dados são reais/válidos
+// Função para validar se os dados são reais/válidos - agora MENOS RESTRITIVO
 const isValidDiagnosticSession = (session: DiagnosticSession): boolean => {
-  // Verificar se a data não é muito antiga (anterior a 2023)
-  const sessionDate = new Date(session.timestamp);
-  const minimumValidDate = new Date('2023-01-01'); // menos restritivo
-  if (isNaN(sessionDate.getTime()) || sessionDate < minimumValidDate) {
-    console.log('🚫 Sessão rejeitada - data inválida:', session.timestamp);
-    return false;
-  }
-
-  // Verificar se tem dados básicos válidos
-  if (!session.state || !session.state.clinicType) {
+  // Aceita session válida se tiver id e especialidade básica
+  if (!session.id || !session.specialty || !session.state || !session.state.clinicType) {
     console.log('🚫 Sessão rejeitada - dados incompletos');
     return false;
   }
-
-  // Menos restritivo: aceitar session IDs que contenham 'diagnostic_' ou tenham tamanho razoável
-  if (
-    !session.id ||
-    session.id.length < 10 ||
-    session.id.startsWith("mock_")
-  ) {
-    console.log("🚫 Sessão rejeitada - id inválido:", session.id);
-    return false;
-  }
-
-  // Não rejeitar por 'unknown' ou 'clinic_1_1_geral', apenas logs
-  if (session.id.includes('unknown') || session.id.includes('clinic_1_1_geral')) {
-    console.log('⚠️ Sessão com ID não ideal (permitida):', session.id);
-    // Permite para não perder históricos legítimos
-  }
-
   return true;
 };
 
