@@ -3,10 +3,11 @@ import AppLayout from "@/components/layout/AppLayout";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
-import { FileText, CheckCircle2, Presentation, MessageSquare, Database } from "lucide-react";
+import { FileText, CheckCircle2, Presentation, MessageSquare, Database, BrainCircuit } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 interface AiSystemProps {
   title: string;

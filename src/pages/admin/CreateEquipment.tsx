@@ -1,3 +1,4 @@
+
 import React from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import EquipmentForm from '@/components/admin/EquipmentForm';
@@ -6,6 +7,7 @@ import { createEquipment } from '@/api/equipment';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from "react-router-dom";
 
 const CreateEquipment: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const CreateEquipment: React.FC = () => {
       navigate('/admin/equipments');
     } catch (error) {
       console.error('Error creating equipment:', error);
-      throw error; // Re-throw so EquipmentForm can handle it
+      throw error;
     }
   };
 
@@ -45,7 +47,6 @@ const CreateEquipment: React.FC = () => {
             />
           ))}
         </div>
-        
         <div className="container mx-auto py-8 px-4 relative z-10">
           <div className="mb-6">
             <Button
@@ -57,7 +58,6 @@ const CreateEquipment: React.FC = () => {
               Voltar para Lista
             </Button>
           </div>
-
           <div className="aurora-glass rounded-3xl p-8 backdrop-blur-2xl border border-aurora-electric-purple/20">
             <div className="mb-8">
               <h1 className="aurora-text-gradient text-3xl font-light mb-2">
@@ -67,7 +67,6 @@ const CreateEquipment: React.FC = () => {
                 Preencha os campos abaixo para adicionar um novo equipamento ao sistema.
               </p>
             </div>
-
             <EquipmentForm
               onSave={handleSave}
               onCancel={handleCancel}
@@ -80,3 +79,4 @@ const CreateEquipment: React.FC = () => {
 };
 
 export default CreateEquipment;
+

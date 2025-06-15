@@ -1,9 +1,10 @@
+
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
 
 const VideoPlayer: React.FC = () => {
   return (
-    <AppLayout title="Player de Vídeo">
+    <AppLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Player de Vídeo</h1>
         {/* Video player content will be implemented here */}
@@ -14,3 +15,4 @@ const VideoPlayer: React.FC = () => {
 };
 
 export default VideoPlayer;
+
