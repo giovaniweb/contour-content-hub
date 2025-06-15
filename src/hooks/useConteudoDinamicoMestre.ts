@@ -32,7 +32,7 @@ type Equipamento = {
   diferenciais?: string;
   area_aplicacao?: string[];
   categoria?: string;
-}
+};
 
 type MdbConteudo = {
   artigos: ArtigoCientifico[];
@@ -42,9 +42,6 @@ type MdbConteudo = {
   error: string | null;
 };
 
-/**
- * Busca dinâmica de conteúdos Mestre da Beleza por palavra-chave
- */
 export function useConteudoDinamicoMestre(keyword: string) {
   const [conteudo, setConteudo] = useState<MdbConteudo>({
     artigos: [],
@@ -57,19 +54,29 @@ export function useConteudoDinamicoMestre(keyword: string) {
   const fetchConteudo = useCallback(async () => {
     setConteudo((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      // --- Buscar artigos científicos (documentos_tecnicos) ---
+      // Buscar artigos científicos
       const { data: artigosData, error: artigosErr } = await supabase
         .from("documentos_tecnicos")
         .select("id, titulo, conteudo_extraido, descricao")
         .ilike("titulo", `%${keyword}%`);
 
-      // --- Buscar roteiros aprovados (approved_scripts) ---
+      // Buscar roteiros aprovados (coluna correta é 'title', não 'titulo')
       const { data: roteirosData, error: roteirosErr } = await supabase
         .from("approved_scripts")
-        .select("id, titulo, script_content, approved_at, approval_status")
+        .select("id, title, script_content, approved_at, approval_status")
         .ilike("script_content", `%${keyword}%`);
 
-      // --- Buscar equipamentos que tenham a palavra-chave em nome, tecnologia ou indicações ---
+      // Mapear roteiros para o formato esperado com 'titulo'
+      const roteiros: RoteiroAprovado[] =
+        roteirosData?.map((r: any) => ({
+          id: r.id,
+          titulo: r.title ?? null,
+          script_content: r.script_content,
+          approved_at: r.approved_at,
+          approval_status: r.approval_status
+        })) ?? [];
+
+      // Buscar equipamentos
       const { data: equipamentosData, error: equipamentosErr } = await supabase
         .from("equipamentos")
         .select("id, nome, tecnologia, indicacoes, beneficios, diferenciais, area_aplicacao, categoria")
@@ -81,7 +88,7 @@ export function useConteudoDinamicoMestre(keyword: string) {
 
       setConteudo({
         artigos: artigosData || [],
-        roteiros: roteirosData || [],
+        roteiros,
         equipamentos: equipamentosData || [],
         loading: false,
         error: artigosErr?.message || roteirosErr?.message || equipamentosErr?.message || null,
