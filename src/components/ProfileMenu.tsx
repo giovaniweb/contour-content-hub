@@ -1,12 +1,21 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom"; 
-import { User, Settings, LogOut, UserPlus, Users } from "lucide-react";
-
+import { Link } from "react-router-dom";
+import {
+  User,
+  Settings,
+  LogOut,
+  Dashboard,
+  FileText,
+  Award,
+  Image,
+  Book,
+  Users,
+  Instagram,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-permissions";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,14 +41,14 @@ export function ProfileMenu() {
       await logout();
       toast({
         title: "Logout realizado",
-        description: "Você foi desconectado com sucesso."
+        description: "Você foi desconectado com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast({
         title: "Erro ao fazer logout",
         description: "Não foi possível desconectar. Tente novamente.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoggingOut(false);
@@ -67,7 +76,7 @@ export function ProfileMenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-64" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.nome}</p>
@@ -81,15 +90,104 @@ export function ProfileMenu() {
             )}
           </div>
         </DropdownMenuLabel>
+
         <DropdownMenuSeparator />
+
+        {/* Seção Meus Dados - scripts, diagnósticos, dashboard */}
         <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-semibold text-xs uppercase text-muted-foreground">
+            Meus Dados
+          </DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link to="/script-history">
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Meus Roteiros</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/diagnostics-history">
+              <Book className="mr-2 h-4 w-4" />
+              <span>Meus Diagnósticos</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/profile-dashboard">
+              <Dashboard className="mr-2 h-4 w-4" />
+              <span>Minha Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        {/* Seção Biblioteca do usuário */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-semibold text-xs uppercase text-muted-foreground">
+            Minha Biblioteca
+          </DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link to="/before-after">
+              <Image className="mr-2 h-4 w-4" />
+              <span>Fotos Antes/Depois</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/video-storage">
+              <Video className="mr-2 h-4 w-4" />
+              <span>Meus Vídeos</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/my-documents">
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Meus Documentos</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        {/* Seção Integrações */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-semibold text-xs uppercase text-muted-foreground">
+            Integrações
+          </DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link to="/integrations/instagram">
+              <Instagram className="mr-2 h-4 w-4" />
+              <span>Instagram</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        {/* Seção Progresso */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-semibold text-xs uppercase text-muted-foreground">
+            Meu Progresso
+          </DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link to="/gamification">
+              <Award className="mr-2 h-4 w-4" />
+              <span>Gamificação</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        {/* Seção de Configurações e Logout */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-semibold text-xs uppercase text-muted-foreground">
+            Configurações
+          </DropdownMenuLabel>
           <DropdownMenuItem asChild>
             <Link to="/profile">
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </Link>
           </DropdownMenuItem>
-          
           {canManageWorkspace() && (
             <DropdownMenuItem asChild>
               <Link to="/workspace-settings">
@@ -98,16 +196,6 @@ export function ProfileMenu() {
               </Link>
             </DropdownMenuItem>
           )}
-          
-          {canViewConsultantPanel() && (
-            <DropdownMenuItem asChild>
-              <Link to="/consultant">
-                <UserPlus className="mr-2 h-4 w-4" />
-                <span>Painel de Consultoria</span>
-              </Link>
-            </DropdownMenuItem>
-          )}
-          
           {isAdmin() && (
             <DropdownMenuItem asChild>
               <Link to="/admin">
@@ -117,11 +205,10 @@ export function ProfileMenu() {
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={handleLogout} 
-          disabled={isLoggingOut}
-        >
+
+        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>{isLoggingOut ? "Saindo..." : "Sair"}</span>
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
