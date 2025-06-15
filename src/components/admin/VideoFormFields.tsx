@@ -231,7 +231,7 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
         <Label>Objetivo de Marketing</Label>
         <VideoObjectiveSelector
           value={marketingObjective}
-          onChange={setMarketingObjective}
+          onValueChange={setMarketingObjective}
         />
       </div>
     </>
