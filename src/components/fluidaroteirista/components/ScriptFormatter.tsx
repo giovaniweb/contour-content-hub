@@ -92,28 +92,29 @@ function splitByTitles(text: string) {
 
 // Função para separar blocos conforme títulos customizados
 function splitScriptBlocks(text: string) {
-  // Regex pega títulos no início de linha seguidos de dois pontos
-  const regex = new RegExp(`^(${SCRIPT_BLOCK_TITLES.join('|')})\\s*:\\s*`, 'im');
+  // Regex pega títulos no início de linha seguidos de ":" com ou sem espaços extras
+  const regex = /^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/;
   const lines = text.split(/\r?\n/);
+
   const blocks: { titulo: string, conteudo: string }[] = [];
   let currentTitle: string | null = null;
   let buffer: string[] = [];
 
   for (let line of lines) {
-    const match = line.match(/^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/);
+    const match = line.match(regex);
     const title = match && SCRIPT_BLOCK_TITLES.includes(match[1].trim()) ? match[1].trim() : null;
 
     if (title) {
-      // Salva bloco anterior
+      // Salva o bloco anterior
       if (currentTitle && buffer.length > 0) {
         blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
         buffer = [];
       }
       currentTitle = title;
-      line = line.replace(/^([A-Za-zÀ-ÿçÇ\s]+)\s*:\s*/, ''); // Remove o título da linha
+      // Remove o título + ":" da linha antes de adicionar ao buffer
+      line = line.replace(regex, "");
     }
-
-    // Se dentro de um bloco válido, adiciona linhas
+    // Só adiciona ao buffer se estamos dentro de um bloco reconhecido
     if (currentTitle) {
       buffer.push(line);
     }
@@ -124,7 +125,9 @@ function splitScriptBlocks(text: string) {
     blocks.push({ titulo: currentTitle, conteudo: buffer.join('\n').trim() });
   }
 
-  return blocks.length > 0 ? blocks : [{ titulo: '', conteudo: text }];
+  return blocks.length > 0
+    ? blocks
+    : [{ titulo: "", conteudo: text }];
 }
 
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
@@ -145,7 +148,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
 
-  // --- Adaptação do render para usar splitScriptBlocks e destacar os blocos do roteiro ---
+  // --- RENDER PADRÃO DOS BLOCOS ---
   const renderScriptContent = () => {
     if (script.formato.toLowerCase() === 'carrossel') {
       return <CarouselFormatter roteiro={script.roteiro} />;
@@ -160,7 +163,9 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return <PostEstaticoFormatter roteiro={script.roteiro} />;
     }
 
-    // Renderização padrão: exibe blocos bem destacados
+    // Render padrão separado em blocos com destaque visual
+    const blocks = splitScriptBlocks(script.roteiro);
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -217,38 +222,31 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                 </div>
               </div>
               <div className="w-full border-t border-aurora-electric-purple/20 my-2" />
-              {/* Bloco do texto do roteiro — NOVO LAYOUT */}
-              <div className="relative bg-slate-900/80 px-6 py-6 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 min-h-[180px] w-full max-w-2xl mx-auto flex flex-col items-center">
-                {/* Aspas decorativas */}
-                <span className="absolute left-2 top-3 text-3xl text-aurora-electric-purple opacity-70 select-none">“</span>
-                <span className="absolute right-2 bottom-3 text-3xl text-aurora-electric-purple opacity-70 select-none">”</span>
-                <div className="flex flex-col w-full gap-8">
-                  {splitScriptBlocks(script.roteiro).map((block, i) => (
-                    <div
-                      key={i}
-                      className="mb-8 last:mb-0 p-6 rounded-xl bg-slate-800/70 border-l-4 shadow border-aurora-electric-purple/60"
-                    >
-                      {/* Títulos destacados com emoji */}
-                      {block.titulo && (
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="font-bold text-lg aurora-heading text-aurora-electric-purple">
-                            {block.titulo === "Ganho" && "🎯"}
-                            {block.titulo === "Desenvolvimento" && "💡"}
-                            {block.titulo === "Solução" && "🔬"}
-                            {block.titulo === "CTA" && "🚀"}
-                            {" "}{block.titulo}
-                          </span>
-                          <div className="flex-1 border-t border-aurora-neon-blue/20 ml-2" />
-                        </div>
-                      )}
-                      <div className="text-left text-slate-100 text-base md:text-lg leading-normal aurora-body font-medium whitespace-pre-line pr-2">
-                        {block.conteudo}
+              {/* Bloco central com cada seção separada */}
+              <div className="relative bg-slate-900/80 px-6 py-6 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 min-h-[180px] w-full max-w-2xl mx-auto flex flex-col gap-8">
+                {blocks.map((block, i) => (
+                  <div
+                    key={i}
+                    className="mb-6 last:mb-0 p-5 rounded-xl bg-slate-800/70 border-l-4 shadow border-aurora-electric-purple/60 transition-shadow"
+                  >
+                    {block.titulo && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-bold text-lg aurora-heading text-aurora-electric-purple">
+                          {block.titulo === "Ganho" && "🎯"}
+                          {block.titulo === "Desenvolvimento" && "💡"}
+                          {block.titulo === "Solução" && "🔬"}
+                          {block.titulo === "CTA" && "🚀"}
+                          {" "}{block.titulo}
+                        </span>
+                        <div className="flex-1 border-t border-aurora-neon-blue/20 ml-2" />
                       </div>
+                    )}
+                    <div className="text-left text-slate-100 text-base md:text-lg leading-normal aurora-body font-medium whitespace-pre-line pr-2">
+                      {block.conteudo}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-              {/* /FIM DO NOVO BLOCO DE TEXTO */}
             </div>
             <div className="w-full flex justify-center pt-4 gap-2">
               <button
