@@ -33,18 +33,18 @@ serve(async (req) => {
       })
     }
 
+    const { action, code } = await req.json(); // CORRIGIDO: apenas um await
+
     const { data: { user } } = await supabaseClient.auth.getUser()
-    if (!user) {
+    if (action !== "get_auth_url" && !user) {
       throw new Error('User not authenticated')
     }
-
-    const { action } = await req.json()
 
     switch (action) {
       case 'get_auth_url':
         return await getInstagramAuthUrl()
       case 'exchange_code':
-        const { code } = await req.json()
+        if (!code) throw new Error('Missing code for exchange_code')
         return await exchangeCodeForToken(supabaseClient, user.id, code)
       default:
         throw new Error('Invalid action')

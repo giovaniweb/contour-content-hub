@@ -66,6 +66,7 @@ const ProfileDashboard = React.lazy(() => import('@/pages/ProfileDashboard'));
 
 // Integração Instagram - NOVA
 const InstagramIntegrationPage = React.lazy(() => import('@/pages/integrations/InstagramIntegrationPage'));
+import InstagramCallback from "@/pages/auth/InstagramCallback";
 
 function App() {
   return (
@@ -146,6 +147,8 @@ function App() {
                       
                       {/* Integração Instagram - NOVA */}
                       <Route path="/integrations/instagram" element={<AppLayout><InstagramIntegrationPage /></AppLayout>} />
+                      {/* Adiciona rota de callback (caso não esteja presente) */}
+                      <Route path="/auth/instagram-callback" element={<InstagramCallback />} />
                     </Routes>
                   </Suspense>
                   <Toaster />
