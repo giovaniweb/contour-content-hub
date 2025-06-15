@@ -1,12 +1,13 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parsePostEstatico, validatePostEstatico } from '../utils/postEstaticoParser';
 import PostEstaticoCard from './PostEstaticoCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Image, Instagram, Type, MessageSquare, CheckCircle, AlertTriangle, Sparkles, Loader2, Wand2 } from 'lucide-react';
+import { Image, Instagram, Type, MessageSquare, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
 import { toast } from "sonner";
-import { useState } from 'react';
+// Removido useState pois não é mais necessário
 
 interface PostEstaticoFormatterProps {
   roteiro: string;
@@ -16,38 +17,7 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
   const data = parsePostEstatico(roteiro);
   const validation = data ? validatePostEstatico(data) : { isValid: false, issues: ['Erro ao processar roteiro'], score: 0 };
 
-  // Estados para botões de ação
-  const [isApproved, setIsApproved] = useState(false);
-  const [isImproving, setIsImproving] = useState(false);
-  const [isGeneratingImg, setIsGeneratingImg] = useState(false);
-
-  // Aprovar roteiro
-  const handleApprove = () => {
-    setIsApproved(true);
-    toast.success("Roteiro aprovado com sucesso! 🎉 Agora é possível gerar imagem.");
-  };
-  // Simular melhorar roteiro
-  const handleImprove = async () => {
-    setIsImproving(true);
-    toast("Chamando IA para melhorar roteiro (simulado)");
-    setTimeout(() => {
-      toast.success("Roteiro melhorado! (exemplo 👩‍🎤)");
-      setIsImproving(false);
-    }, 2000);
-  };
-  // Novo roteiro
-  const handleNew = () => {
-    window.location.reload();
-  };
-  // Simular gerar imagem
-  const handleGenerateImage = async () => {
-    setIsGeneratingImg(true);
-    toast("Gerando imagem (simulado)...");
-    setTimeout(() => {
-      toast.success("Imagem gerada!");
-      setIsGeneratingImg(false);
-    }, 2000);
-  };
+  // Removidos estados e handlers relacionados aos botões
 
   if (!data) {
     return (
@@ -70,7 +40,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
           <h2 className="text-3xl font-bold aurora-heading">Post Estático Instagram</h2>
           <Instagram className="h-8 w-8 text-aurora-soft-pink aurora-glow" />
         </div>
-        
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <Badge variant="outline" className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">
             <Type className="h-3 w-3 mr-1" />
@@ -85,7 +54,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
             Visual Sugerido
           </Badge>
         </div>
-        
         <p className="text-sm text-slate-300 aurora-body max-w-2xl mx-auto">
           ✨ Post estático otimizado para engajamento com texto impactante e legenda persuasiva
         </p>
@@ -141,7 +109,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
       >
         <Card className="aurora-glass border-aurora-neon-blue/30 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-aurora-neon-blue/5 via-aurora-electric-purple/5 to-aurora-soft-pink/5 opacity-50" />
-          
           <CardHeader className="pb-4 relative z-10">
             <CardTitle className="text-center aurora-heading text-xl text-aurora-neon-blue">
               📱 Estrutura do Post
@@ -167,7 +134,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
                   Overlay impactante
                 </div>
               </motion.div>
-
               {/* Legenda */}
               <motion.div 
                 className="text-center"
@@ -186,7 +152,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
                   Call-to-action
                 </div>
               </motion.div>
-
               {/* Sugestão Visual */}
               <motion.div 
                 className="text-center"
@@ -224,7 +189,6 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
       >
         <Card className="aurora-glass border-aurora-emerald/30 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-aurora-emerald/5 to-aurora-lime/5 opacity-50" />
-          
           <CardHeader className="relative z-10">
             <CardTitle className="text-aurora-emerald text-xl flex items-center gap-3 aurora-heading">
               <Sparkles className="h-6 w-6 aurora-glow-emerald" />
@@ -264,40 +228,7 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
         </Card>
       </motion.div>
 
-      {/* ====== BLOCO DE BOTÕES FINAIS ====== */}
-      <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
-        <button
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
-          onClick={handleApprove}
-          disabled={isApproved}
-        >
-          <Sparkles className="h-5 w-5" />
-          {isApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
-        </button>
-        <button
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-neon-blue text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-neon-blue/40 text-base disabled:opacity-60"
-          onClick={handleImprove}
-          disabled={isImproving || isApproved}
-        >
-          {isImproving ? <Loader2 className="animate-spin h-4 w-4" /> : <Wand2 className="h-4 w-4" />}
-          Melhorar Roteiro
-        </button>
-        <button
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-slate-800/80 text-slate-100 font-semibold shadow border border-slate-600/40 hover:bg-slate-900 transition-all text-base"
-          onClick={handleNew}
-          disabled={isImproving}
-        >
-          Novo Roteiro
-        </button>
-        <button
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
-          onClick={handleGenerateImage}
-          disabled={!isApproved || isGeneratingImg}
-        >
-          {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Image className="h-6 w-6" />}
-          {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
-        </button>
-      </div>
+      {/* ====== BLOCO DE BOTÕES FINAIS REMOVIDO ====== */}
     </div>
   );
 };
