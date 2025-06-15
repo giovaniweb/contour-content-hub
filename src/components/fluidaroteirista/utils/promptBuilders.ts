@@ -1,10 +1,61 @@
-
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
 
 export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
-  const { canal, formato, objetivo, estilo } = dados;
+  const { canal, formato, objetivo, estilo, metodologia } = dados;
+  // Adiciona regras rígidas conforme mentor/metodologia
+  let mentorReference = getMentorReference(mentor);
+  let extraInstructions = '';
   
+  // Lógica extra: método/metodologia
+  if(metodologia === 'COCA') {
+    extraInstructions = `
+MÉTODO COCA (Conexão, Objeção, Crescimento, Autoridade):
+1. Defina público-alvo (faixa etária, interesse, estilo de comunicação)
+2. Temas principais/linhas editoriais, limites do que abordar
+3. Objetivo: Conexão / Objeção / Crescimento / Autoridade
+4. Formato: Carrossel, Reels, Post, Stories, TikTok
+5. Tom de voz: educativo, provocativo, divertido, sério, etc.
+
+ESTRUTURA:
+- Gancho inicial forte (primeiros 3 segundos)
+- Desenvolvimento (pontos principais alinhados ao objetivo)
+- CTA clara para gerar interação/engajamento/conversão
+
+Regras:
+- Roteiro criativo, objetivo e pronto para ser gravado, máximo 40s.
+- Linguagem acessível/persuasiva.
+`;
+    mentorReference = "Hyeser Souza — especialista em roteiro COCA";
+  } else if(metodologia === 'Light Copy') {
+    extraInstructions = `
+MÉTODO LIGHT COPY (Leandro Ladeira):
+- Gancho impactante
+- Storytelling real e emocional
+- Prova concreta (resultado/print)
+- Comando claro (CTA ação prática)
+- Gatilho de expectativa
+- Analogias inusitadas
+- Bordão/frase de efeito
+
+Estrutura e tom: sempre direto, vendedor e emocional, com CTA forte.
+Proibido: linguagem técnica/fria ou genérica.
+`;
+    mentorReference = "Leandro Ladeira — mestre em Light Copy para conversão";
+  } else if(metodologia === 'VTS10x') {
+    extraInstructions = `
+MÉTODO STORIES 10X (VTS10x - Leandro Ladeira):
+Siga a estrutura de 4 Stories (gancho, erro/identificação, virada/dispositivo de engajamento, CTA suave). Veja detalhes em mentorPrompts.ts (Stories10x).
+`;
+    mentorReference = "Leandro Ladeira — VTS10x";
+  } else if(metodologia === 'Cuenca') {
+    extraInstructions = `
+MÉTODO CUENCA (Narrativa Visual Premium):
+Foque 100% em direção de arte, estética e storytelling visual poderoso para posicionamento premium. Estrutura e exemplos no mentorPrompts.ts.
+`;
+    mentorReference = "Paulo Cuenca — mestre da narrativa visual e estética";
+  }
+
   // Obter configurações do formato
   const formatConfig = FORMATO_CONFIGS[formato] || {};
   const tempoLimite = formatConfig.tempo_limite_segundos;
@@ -43,8 +94,10 @@ export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor:
   const formatInstructions = getFormatInstructions(formato, canal, tempoLimite, palavrasMax);
 
   return `
-    Você é o FLUIDAROTEIRISTA — roteirista especializado em ${canal.toUpperCase()}.
+    Você é o FLUIDAROTEIRISTA — roteirista especializado em ${canal?.toUpperCase() || 'INSTAGRAM'}.
     Sua persona criativa é: ${mentorReference}
+
+    ${extraInstructions}
     
     🎯 ESPECIFICAÇÕES DO FORMATO:
     - Canal: ${canal}

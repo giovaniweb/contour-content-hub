@@ -18,38 +18,114 @@ export const generateFluidaScript = async (
     console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
-  // Construir prompt do sistema com ênfase nos equipamentos
-  const systemPrompt = buildSystemPrompt(equipmentDetails, data.modo || 'rocket', data.mentor || 'Criativo',
-    {
-      canal: data.canal || 'instagram',
-      formato: data.formato || 'carrossel',
-      objetivo: data.objetivo || 'atrair',
-      estilo: data.estilo || 'criativo'
-    });
-  
-  // CORREÇÃO: Construir prompt mais enfático para equipamentos
-  const equipmentEmphasis = equipmentDetails.length > 0 
-    ? `🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):
-${equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
-   - Benefícios: ${eq.beneficios}
-   - Diferenciais: ${eq.diferenciais}`).join('\n')}
+  // --- NOVA LÓGICA DE SELEÇÃO DE MENTOR & MÉTODO ---
+  // Definir mentor e prompt/metodologia baseados no formato
+  let mentor = data.mentor;
+  let metodo = '';
+  let systemPrompt = '';
+  let userPrompt = '';
+  let metodoPorFormato = {
+    reels:  'COCA', // alternativo: pode aceitar escolha futura 'Light Copy'
+    stories_10x: 'VTS10x',
+    carrossel: 'Cuenca',
+    post_estatico: 'Cuenca',
+    tiktok: 'COCA',
+    criativo_ads: 'LightCopy',
+    youtube: 'COCA'
+  };
 
-🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.
-⚠️ Se você não mencionar os equipamentos listados, o roteiro será rejeitado.`
-    : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.';
+  // Identificação do método segundo formato (default para reels: COCA)
+  const formato = (data.formato || '').toLowerCase();
+  metodo = metodoPorFormato[formato] || (data.metodo || '');
 
-  const userPrompt = `
+  switch (formato) {
+    case 'reels':
+      mentor = 'Hyeser Souza';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'coca', // método
+        mentor,
+        { ...data, metodologia: 'COCA', formato }
+      );
+      break;
+    case 'stories_10x':
+      mentor = 'Leandro Ladeira';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'vts10x',
+        mentor,
+        { ...data, metodologia: 'VTS10x', formato }
+      );
+      break;
+    case 'carrossel':
+    case 'post_estatico':
+      mentor = 'Paulo Cuenca';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'cuenca',
+        mentor,
+        { ...data, metodologia: 'Cuenca', formato }
+      );
+      break;
+    case 'tiktok':
+      mentor = 'Hyeser Souza';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'coca',
+        mentor,
+        { ...data, metodologia: 'COCA', formato }
+      );
+      break;
+    case 'criativo_ads':
+      mentor = 'Leandro Ladeira';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'lightcopy',
+        mentor,
+        { ...data, metodologia: 'Light Copy', formato }
+      );
+      break;
+    case 'youtube':
+      mentor = 'Hyeser Souza';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        'coca',
+        mentor,
+        { ...data, metodologia: 'COCA', formato }
+      );
+      break;
+    default:
+      // fallback antigo, para não quebrar legado/testes
+      mentor = data.mentor || 'Criativo';
+      systemPrompt = buildSystemPrompt(
+        equipmentDetails,
+        data.modo || 'rocket',
+        mentor,
+        { ...data, formato }
+      );
+      break;
+  }
+  // Garantir também o nome do mentor no resultado final
+  data.mentor = mentor;
+  // userPrompt idem
+  userPrompt = `
 TEMA PRINCIPAL: ${data.tema}
 OBJETIVO: ${data.objetivo || 'Atrair novos clientes'}
 FORMATO: ${data.formato || 'carrossel'}
 
-${equipmentEmphasis}
+${equipmentDetails.length > 0 
+  ? `🚨 EQUIPAMENTOS OBRIGATÓRIOS (MENCIONE TODOS):\n${
+      equipmentDetails.map((eq, index) => `${index + 1}. ${eq.nome}: ${eq.tecnologia}
+   - Benefícios: ${eq.beneficios}
+   - Diferenciais: ${eq.diferenciais}`).join('\n')}
+🔥 REGRA CRÍTICA: O roteiro DEVE mencionar ESPECIFICAMENTE cada um destes equipamentos pelo nome.` 
+  : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.'}
 
 INSTRUÇÕES ESPECÍFICAS:
-- Crie um roteiro de MÁXIMO 60 segundos
-- Use a estrutura: Gancho → Conflito → Virada → CTA
+- Crie um roteiro de MÁXIMO 60 segundos (se for reels/ou como limite do formato)
+- Use a estrutura do método ${metodo || 'com base no mentor escolhido'}
 - OBRIGATÓRIO: Se equipamentos foram especificados acima, MENCIONE-OS TODOS no roteiro
-- Mantenha tom ${data.mentor || 'criativo'} e emoção envolvente
+- Mantenha tom do mentor ${mentor} e emoção envolvente
 - Formato para ${data.formato || 'carrossel'}
 
 🎯 MISSÃO: Integrar TODOS os equipamentos listados de forma natural no roteiro.
