@@ -156,7 +156,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
   };
 
   return (
-    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden w-full max-w-5xl mx-auto">
+    <Card className="aurora-card border border-aurora-sage/30 overflow-hidden w-full max-w-full">
       <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-1 gap-2 md:gap-2 flex-wrap">
         <div className="flex gap-2 items-center min-w-0 w-full md:w-auto">
           <CalendarCheck2 className="h-5 w-5 text-aurora-sage flex-shrink-0" />
@@ -206,7 +206,7 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
         <div
           id={SCHEDULE_ELEMENT_ID}
           className={`
-            grid gap-3 sm:gap-2
+            grid gap-2 sm:gap-2
             grid-cols-1
             sm:grid-cols-2
             md:grid-cols-3
@@ -214,7 +214,8 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
             w-full
             transition-all
             mb-2
-            overflow-visible
+            overflow-x-auto
+            max-w-full
           `}
           style={{
             minWidth: 0,
@@ -229,7 +230,12 @@ const SmartWeeklySchedule: React.FC<SmartWeeklyScheduleProps> = ({
                 ${plan.highlight ? "border-aurora-sage bg-aurora-sage/10 shadow-lg" : "border-border"}
                 p-2 sm:p-2 md:p-3 min-w-0
               `}
-              style={{ wordBreak: "break-word", minHeight: 96 }}
+              style={{
+                wordBreak: "break-word",
+                minHeight: 96,
+                minWidth: 0, // crítico: impede que cada coluna force largura
+                maxWidth: "100%",
+              }}
             >
               <div className="text-xs font-medium text-aurora-sage truncate mb-0">{plan.day}</div>
               <div className="font-semibold text-foreground/90 text-xs md:text-sm leading-snug truncate">
