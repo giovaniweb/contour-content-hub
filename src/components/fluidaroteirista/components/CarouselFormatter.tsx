@@ -123,7 +123,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         </div>
       )}
 
-      {/* BLOCOS DE BOTÕES PRINCIPAIS – AGORA LOGO APÓS EQUIPAMENTOS */}
+      {/* Botões principais AGORA AO FINAL */}
       <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
         <button
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
