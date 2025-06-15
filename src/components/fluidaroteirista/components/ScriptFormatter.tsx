@@ -148,6 +148,16 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       return script.roteiro.toLowerCase().includes(equipmentName.toLowerCase());
     }) : false;
 
+  // Pequena função de sanitização do texto para evitar quebras e espaços repetidos
+  function cleanText(text: string) {
+    if (!text) return "";
+    // Remove espaços em branco antes/depois das linhas, elimina linhas em branco duplicadas
+    let cleaned = text.trim().replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+    // Remove espaços extras no começo/fim do bloco
+    cleaned = cleaned.replace(/^[ \t]+|[ \t]+$/gm, '');
+    return cleaned;
+  }
+
   // --- RENDER PADRÃO DOS BLOCOS ---
   const renderScriptContent = () => {
     if (script.formato.toLowerCase() === 'carrossel') {
@@ -223,14 +233,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
               </div>
               <div className="w-full border-t border-aurora-electric-purple/20 my-2" />
               {/* Bloco central com cada seção separada */}
-              <div className="relative bg-slate-900/80 px-6 py-6 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 min-h-[180px] w-full max-w-2xl mx-auto flex flex-col gap-8">
+              <div className="relative bg-slate-900/80 px-0 py-6 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 min-h-[180px] w-full max-w-2xl mx-auto flex flex-col gap-8">
                 {blocks.map((block, i) => (
                   <div
                     key={i}
-                    className="mb-6 last:mb-0 p-5 rounded-xl bg-slate-800/70 border-l-4 shadow border-aurora-electric-purple/60 transition-shadow"
+                    className="mb-6 last:mb-0 p-0 sm:p-5 rounded-xl"
                   >
                     {block.titulo && (
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-4">
                         <span className="font-bold text-lg aurora-heading text-aurora-electric-purple">
                           {block.titulo === "Ganho" && "🎯"}
                           {block.titulo === "Desenvolvimento" && "💡"}
@@ -241,8 +251,34 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                         <div className="flex-1 border-t border-aurora-neon-blue/20 ml-2" />
                       </div>
                     )}
-                    <div className="text-left text-slate-100 text-base md:text-lg leading-normal aurora-body font-medium whitespace-pre-line pr-2">
-                      {block.conteudo}
+                    {/* MELHORIA DO BLOCO DE TEXTO */}
+                    <div
+                      className="
+                        text-left
+                        text-slate-100
+                        text-base md:text-lg
+                        leading-relaxed
+                        aurora-body
+                        font-medium
+                        whitespace-pre-line
+                        rounded-lg
+                        bg-slate-800/30
+                        border border-aurora-neon-blue/10
+                        shadow
+                        px-5 py-4
+                        transition
+                        duration-200
+                        hover:bg-aurora-neon-blue/10
+                        "
+                      style={{
+                        marginBottom: 0,
+                      }}
+                    >
+                      {cleanText(block.conteudo)
+                        .split(/\n{2,}/)
+                        .map((paragraph, idx) => (
+                          <p key={idx} className="mb-4 last:mb-0">{paragraph}</p>
+                        ))}
                     </div>
                   </div>
                 ))}
