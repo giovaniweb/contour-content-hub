@@ -122,6 +122,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   // --- Renderização do conteúdo principal do roteiro ---
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
+
     if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
@@ -143,15 +144,36 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       );
     }
-    // Aqui qualquer outro formato ("reels", "video", etc) cairá nesse formatter menos feio!
+
+    // Para formatos livres/exóticos: separar em blocos de parágrafo legíveis e visual moderninho
     const blocks = splitScriptBlocks(script.roteiro);
+    const isSingleBlock = blocks.length === 1 && !blocks[0].titulo;
+
+    if (!isSingleBlock) {
+      return (
+        <StandardScriptBlocksFormatter
+          blocks={blocks}
+          estimatedTime={estimatedTime}
+          wordCount={wordCount}
+          fullText={script.roteiro}
+        />
+      );
+    }
+
+    // Texto puro, mostrar estilizado centralizado, grandes margens, fonte confortável
     return (
-      <StandardScriptBlocksFormatter
-        blocks={blocks}
-        estimatedTime={estimatedTime}
-        wordCount={wordCount}
-        fullText={script.roteiro}
-      />
+      <div className="w-full max-w-3xl mx-auto rounded-2xl p-8 bg-gradient-to-br from-aurora-neon-blue/10 via-aurora-electric-purple/10 to-slate-900/40 border border-aurora-neon-blue/20 shadow-lg mb-6 mt-4 flex flex-col items-center text-center">
+        <h2 className="text-xl md:text-2xl font-bold mb-6 text-aurora-electric-purple drop-shadow aurora-heading">
+          Roteiro Gerado
+        </h2>
+        <div className="text-lg md:text-xl text-slate-100 leading-relaxed font-medium whitespace-pre-line aurora-body">
+          {blocks[0].conteudo
+            .split(/\n{2,}/)
+            .map((paragraph, idx) => (
+              <p key={idx} className="mb-4 last:mb-0">{paragraph}</p>
+            ))}
+        </div>
+      </div>
     );
   };
 
