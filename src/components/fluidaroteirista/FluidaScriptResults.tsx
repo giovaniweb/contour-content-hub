@@ -136,22 +136,6 @@ const FluidaScriptResults = ({
             </CardContent>
           </Card>}
       </div>
-
-      {/* Botões de ações movidos para o final e mais visíveis */}
-      <div className="flex flex-wrap gap-2 items-center justify-end mt-6 sticky bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/50 to-transparent p-4 rounded-xl z-20 shadow-2xl aurora-glass border border-aurora-emerald/20">
-        <Button variant="secondary" onClick={onNewScript}>Novo roteiro</Button>
-        <Button variant={improvedScript ? "outline" : "default"} disabled={isImproving} onClick={async () => {
-        await handleImproveScript();
-      }} className="text-slate-50">
-          {isImproving ? "✨ Melhorando..." : "✨ Melhorar Roteiro"}
-        </Button>
-        <Button variant="default" onClick={() => onGenerateImage(roteiroParaExibir)}>
-          Gerar Imagem
-        </Button>
-        <Button variant="outline" onClick={() => onGenerateAudio(roteiroParaExibir)} className="text-slate-50">
-          Gerar Áudio
-        </Button>
-      </div>
     </div>;
 };
 export default FluidaScriptResults;
