@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import AuroraActionFooter from "./AuroraActionFooter";
 import { useScriptFooterActions } from "../hooks/useScriptFooterActions";
 import { useState } from "react";
+import ImageGenerationStatusModal from "./ImageGenerationStatusModal";
 
 interface PostEstaticoFormatterProps {
   roteiro: string;
@@ -21,16 +22,14 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
   const data = parsePostEstatico(scriptContent);
   const validation = data ? validatePostEstatico(data) : { isValid: false, issues: ['Erro ao processar roteiro'], score: 0 };
 
-  // Hook com as ações do rodapé
+  // Hook centralizando as ações do rodapé
   const actions = useScriptFooterActions({
     script: {
       content: scriptContent,
       title: "Instagram - Post Estático", // Você pode melhorar esse título se quiser!
       format: "post_estatico",
     },
-    onNewScript: () => {
-      setScriptContent(""); // Reseta para criar novo roteiro; se desejar, pode disparar um evento externo
-    },
+    onNewScript: () => setScriptContent(""), // Reseta para criar novo roteiro; se desejar, pode disparar um evento externo
     // onScriptApproved: (data) => { ... } // Pode implementar lógica pós-aprovação se quiser
   });
 
@@ -250,7 +249,11 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
         onNewScript={actions.handleNewScript}
         onGenerateImage={actions.handleGenerateImage}
         isGeneratingImage={actions.isGeneratingImage}
-        // Caso queira habilitar áudio, acrescente aqui: onGenerateAudio/isGeneratingAudio
+      />
+      <ImageGenerationStatusModal
+        open={Boolean(actions.imageStatus)}
+        status={actions.imageStatus}
+        onClose={actions.closeImageStatus}
       />
     </div>
   );

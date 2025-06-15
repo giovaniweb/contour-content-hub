@@ -25,27 +25,30 @@ export function useScriptFooterActions({
   const [isApproving, setIsApproving] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageStatus, setImageStatus] = useState<null | { step: string; imageUrl?: string; error?: string }> (null);
 
   // Salvar roteiro aprovado
   const { saveScript } = useSaveScript();
 
   async function handleApproveScript() {
     setIsApproving(true);
-    const res = await saveScript({
-      content: script.content,
-      title: script.title,
-      format: script.format,
-      equipment_used: script.equipment_used || [],
-    });
-
-    setIsApproving(false);
-
-    if (res) {
-      toast.success("Roteiro aprovado e salvo na biblioteca!");
-      if (onScriptApproved) onScriptApproved(res);
-    } else {
-      toast.error("Falha ao aprovar roteiro.");
+    try {
+      const res = await saveScript({
+        content: script.content,
+        title: script.title,
+        format: script.format,
+        equipment_used: script.equipment_used || [],
+      });
+      if (res) {
+        toast.success("Roteiro aprovado e salvo na biblioteca!");
+        if (onScriptApproved) onScriptApproved(res);
+      } else {
+        toast.error("Falha ao aprovar roteiro.");
+      }
+    } catch {
+      toast.error("Erro inesperado ao aprovar roteiro.");
     }
+    setIsApproving(false);
   }
 
   // Melhorar roteiro usando edge function Supabase
@@ -60,12 +63,11 @@ export function useScriptFooterActions({
 
       if (error || !data?.improved) {
         toast.error("Falha ao melhorar roteiro.");
-        setIsImproving(false);
-        return;
+      } else {
+        setScriptContent(data.improved);
+        toast.success("Roteiro melhorado com sucesso!");
       }
-      setScriptContent(data.improved);
-      toast.success("Roteiro melhorado com sucesso!");
-    } catch (e) {
+    } catch {
       toast.error("Erro inesperado ao melhorar roteiro.");
     }
     setIsImproving(false);
@@ -75,10 +77,12 @@ export function useScriptFooterActions({
     onNewScript();
   }
 
-  // Gerar imagem
+  // Gerar imagem com modal de status
   async function handleGenerateImage() {
     setIsGeneratingImage(true);
+    setImageStatus({ step: "pending" });
     try {
+      setImageStatus({ step: "pending" });
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: {
           prompt: script.content,
@@ -86,16 +90,21 @@ export function useScriptFooterActions({
       });
 
       if (error || !data?.image) {
+        setImageStatus({ step: "fail", error: "Falha ao gerar imagem." });
         toast.error("Falha ao gerar imagem.");
       } else {
+        setImageStatus({ step: "success", imageUrl: data.image });
         toast.success("Imagem gerada com sucesso!");
-        // Sugestão: Poderia abrir um modal com a imagem se desejado!
-        window.open(data.image, "_blank");
       }
-    } catch (e) {
+    } catch {
+      setImageStatus({ step: "fail", error: "Erro inesperado ao gerar imagem." });
       toast.error("Erro inesperado ao gerar imagem.");
     }
     setIsGeneratingImage(false);
+  }
+
+  function closeImageStatus() {
+    setImageStatus(null);
   }
 
   return {
@@ -106,5 +115,7 @@ export function useScriptFooterActions({
     handleImproveScript,
     handleNewScript,
     handleGenerateImage,
+    imageStatus,
+    closeImageStatus,
   };
 }
