@@ -19,6 +19,7 @@ import { parseTemporalScript } from "../utils/parseTemporalScript";
 import TemporalScriptBlock from "./TemporalScriptBlock";
 import ReelsTipsCard from "./ReelsTipsCard";
 import ReelsActionFooter from "./ReelsActionFooter";
+import AuroraActionFooter from "./AuroraActionFooter";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -102,10 +103,26 @@ interface ScriptFormatterProps {
     equipamentos_utilizados?: any[];
     disney_applied?: boolean;
   };
+  onApproveScript?: () => void;
+  onImproveScript?: () => void;
+  onNewScript?: () => void;
+  onGenerateImage?: () => void;
+  onGenerateAudio?: () => void;
+  isGeneratingAudio?: boolean;
+  isGeneratingImage?: boolean;
 }
 
 // Remova todas as implementações locais das funções utilitárias (mantendo somente imports!)
-const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
+const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
+  script,
+  onApproveScript,
+  onImproveScript,
+  onNewScript,
+  onGenerateImage,
+  onGenerateAudio,
+  isGeneratingAudio = false,
+  isGeneratingImage = false
+}) => {
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
     return Math.round((words / 150) * 60); // 150 palavras/minuto
@@ -231,16 +248,16 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         <ReelsTipsCard />
       )}
 
-      {/* Rodapé de ações (BOTÕES) para REELS */}
-      {isReels && (
-        <ReelsActionFooter
-          onApproveScript={handleApproveScript}
-          onImproveScript={handleImproveScript}
-          onNewScript={handleNewScript}
-          onGenerateAudio={handleGenerateAudio}
-          isGeneratingAudio={false}
-        />
-      )}
+      {/* Rodapé de ações Aurora — agora mostrado SEMPRE */}
+      <AuroraActionFooter
+        onApproveScript={onApproveScript}
+        onImproveScript={onImproveScript}
+        onNewScript={onNewScript}
+        onGenerateImage={onGenerateImage}
+        onGenerateAudio={onGenerateAudio}
+        isGeneratingAudio={isGeneratingAudio}
+        isGeneratingImage={isGeneratingImage}
+      />
     </div>
   );
 };

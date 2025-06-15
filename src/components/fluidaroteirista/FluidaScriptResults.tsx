@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ScriptFormatter from "./components/ScriptFormatter";
+import AuroraActionFooter from "./components/AuroraActionFooter";
 import { Button } from "@/components/ui/button";
 import { Wand2 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +27,8 @@ const FluidaScriptResults = ({
 }: FluidaScriptResultsProps) => {
   const [isImproving, setIsImproving] = useState(false);
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Função para chamar a edge function de melhoria do roteiro
   const handleImproveScript = async () => {
@@ -91,11 +94,43 @@ const FluidaScriptResults = ({
     ...results[0],
     roteiro: improvedScript
   } : results[0];
+
+  // Handlers para rodapé Aurora
+  const handleApprove = () => {
+    if (onApproveScript) onApproveScript();
+  };
+  const handleImprove = async () => {
+    await handleImproveScript();
+  };
+  const handleNew = () => {
+    onNewScript();
+  };
+  const handleImage = async () => {
+    if (!onGenerateImage) return;
+    setIsGeneratingImage(true);
+    await onGenerateImage(roteiroParaExibir);
+    setIsGeneratingImage(false);
+  };
+  const handleAudio = async () => {
+    if (!onGenerateAudio) return;
+    setIsGeneratingAudio(true);
+    await onGenerateAudio(roteiroParaExibir);
+    setIsGeneratingAudio(false);
+  };
+
   return <div className="space-y-6 flex flex-col">
       {/* Exibição do roteiro (aprimorado ou original) */}
       <div>
-        {/* We remove onApproveScript from ScriptFormatter, as its props don't accept it */}
-        <ScriptFormatter script={roteiroParaExibir} />
+        <ScriptFormatter
+          script={roteiroParaExibir}
+          onApproveScript={handleApprove}
+          onImproveScript={handleImprove}
+          onNewScript={handleNew}
+          onGenerateImage={handleImage}
+          onGenerateAudio={handleAudio}
+          isGeneratingAudio={isGeneratingAudio}
+          isGeneratingImage={isGeneratingImage}
+        />
         {improvedScript && <Card className="mt-6 aurora-glass border-aurora-emerald/40 shadow-lg animate-fade-in">
             <CardContent>
               <div className="flex items-center gap-3 mb-3">
