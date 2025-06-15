@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Wand2, Sparkles, Target, Users } from 'lucide-react';
