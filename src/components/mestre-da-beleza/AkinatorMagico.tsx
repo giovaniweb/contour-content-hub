@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,14 +13,25 @@ import GenioMestreHeader from "./components/GenioMestreHeader";
 import { mysticalIntroPhrases, mysticalThinkingPhrases, genioQuestionPhrases } from "./genioPhrases";
 import { useRef, useState } from "react";
 
-// Frase mística
-const mysticalPhrases = [
-  "O universo da beleza conspira por você.",
-  "Cada escolha revela um novo caminho.",
-  "O diagnóstico mágico está quase pronto!",
-  "Sua jornada estética é única.",
-  "Siga as pistas da sua transformação."
-];
+// Componente visual para aurora e partículas mágicas
+function AuroraParticles() {
+  return (
+    <div className="aurora-particles pointer-events-none fixed inset-0 z-0">
+      {[...Array(32)].map((_, idx) => (
+        <span
+          key={idx}
+          className={`aurora-particle absolute`}
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${3 + Math.random() * 8}s`,
+            animationDelay: `${Math.random() * 4}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const genieNames = ["Jasmin", "Akinario", "Mirabella", "O Gênio Fluido", "Aura"];
 function getRandom(arr: string[]) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -29,12 +41,11 @@ const AkinatorMagico: React.FC = () => {
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const timerRef = useRef<any>(null);
 
-  // Calcula progresso com base no histórico
+  // Progresso intuitivo
   const totalQuestionsEstimate = 5;
   const progress = Math.min(100, Math.round((history.length / totalQuestionsEstimate) * 100));
   const genieName = useRef(getRandom(genieNames)).current;
 
-  // Ao responder, fazer o gênio "pensar" antes de mostrar
   function handleGenioAnswer(option: string) {
     if (isThinking) return;
     setIsThinking(true);
@@ -42,10 +53,10 @@ const AkinatorMagico: React.FC = () => {
     timerRef.current = setTimeout(() => {
       answer(option);
       setIsThinking(false);
-    }, 1200 + Math.random() * 1000); // tempo dramático
+    }, 1200 + Math.random() * 1000);
   }
 
-  // Frase para este momento
+  // Frase mágica para cada passo
   let genieStep: "intro" | "question" | "thinking" | "final" = "intro";
   let geniePhrase = mysticalIntroPhrases[history.length % mysticalIntroPhrases.length];
   if (completed) {
@@ -59,33 +70,27 @@ const AkinatorMagico: React.FC = () => {
     geniePhrase = getRandom(genioQuestionPhrases);
   }
 
-  // Busca o texto final na node
   function getFinalDiagnosis() {
-    // Pega o último nó do histórico do usuário (deve ser final)
     let lastFinalNode: IntentionNode | undefined =
       currentNode && currentNode.type === "final"
         ? currentNode
         : INTENTION_TREE.find(n =>
             n.id === history[history.length - 1]?.questionId && n.type === "final"
           );
-    // fallback: busca pelo id caso type diferente
     if (!lastFinalNode && history.length > 0) {
       lastFinalNode = INTENTION_TREE.find(n => n.id === history[history.length - 1].questionId);
     }
-
     if (lastFinalNode && lastFinalNode.type === "final") {
       const emojiRe = /([^\w\s,.!?'"“”‘’]+)/;
       const parts = lastFinalNode.text.split(emojiRe);
       const emoji = parts.find(p => emojiRe.test(p));
       const text = lastFinalNode.text.replace(emoji || "", "").trim();
-
-      // Nova narrativa do gênio para o resultado
       return (
         <div className="flex flex-col items-center">
           {emoji && (
             <span className="text-4xl mb-2 animate-bounce">{emoji}</span>
           )}
-          <h3 className="text-xl font-extrabold mb-2 text-pink-300 text-center drop-shadow">
+          <h3 className="text-xl font-extrabold mb-2 text-pink-300 text-center drop-shadow font-playfair">
             {genieName} teve uma visão!
           </h3>
           <div className="font-bold mb-2 text-white text-lg text-center">
@@ -104,8 +109,6 @@ const AkinatorMagico: React.FC = () => {
         </div>
       );
     }
-
-    // Se não houve final node clara
     return (
       <div className="text-purple-300">
         O gênio ainda não decifrou este destino.<br /> Tente novamente!
@@ -114,9 +117,23 @@ const AkinatorMagico: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-fuchsia-900/70 p-6">
-      <div className="max-w-2xl mx-auto flex flex-col gap-10 py-8">
-        <GenioMestreHeader step={genieStep} phrase={geniePhrase} />
+    <div className="relative min-h-screen aurora-gradient-bg">
+      {/* partículas mágicas de fundo */}
+      <AuroraParticles />
+      <div className="relative z-10 max-w-2xl mx-auto flex flex-col gap-10 py-8 px-4 sm:px-6">
+        {/* Cabeçalho mais destacado */}
+        <motion.div
+          initial={{ opacity: 0, y: -32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, type: "spring", stiffness: 68 }}
+        >
+          <div className="flex flex-col items-center gap-2 mb-6">
+            <span className="animate-pulse shadow-lg crystal-pulse rounded-full p-4 bg-gradient-to-br from-yellow-300 via-pink-400 to-purple-600 border-4 border-yellow-400/40">
+              <Sparkles className="text-white drop-shadow filter" size={52} />
+            </span>
+            <GenioMestreHeader step={genieStep} phrase={geniePhrase} />
+          </div>
+        </motion.div>
         <AnimatePresence mode="wait">
           {completed ? (
             <motion.div
@@ -126,10 +143,10 @@ const AkinatorMagico: React.FC = () => {
               exit={{ opacity: 0, scale: 0.96, rotate: 12 }}
               className="space-y-6"
             >
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-xl gradient-magical">
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-2xl gradient-magical shadow-pink-400/20">
                 <CardContent className="p-8 flex flex-col items-center justify-center">
                   {getFinalDiagnosis()}
-                  <Button onClick={reset} variant="outline" className="mt-6">
+                  <Button onClick={reset} variant="outline" className="mt-6 rounded-full font-bold bg-gradient-to-r from-purple-700 to-pink-500 text-white shadow-lg hover:from-purple-800 hover:to-pink-600 transition">
                     <RotateCcw className="mr-2 h-4 w-4" />
                     Invocar o Gênio Novamente
                   </Button>
@@ -144,16 +161,16 @@ const AkinatorMagico: React.FC = () => {
               exit={{ opacity: 0, x: -16, scale: 0.96 }}
               className="space-y-10"
             >
-              {/* Frase mágica e energia mística */}
+              {/* Barra mágica de energia */}
               <div className="flex flex-col gap-2 items-center">
-                <span className="text-2xl text-purple-300 animate-bounce">💫 Energia mística: {progress}%</span>
+                <span className="text-2xl text-purple-200 animate-bounce">💫 Energia mística: <span className="font-bold text-yellow-200">{progress}%</span></span>
                 <div className="w-full max-w-md">
-                  <Progress value={progress} className="h-3 bg-purple-900/50 magical-glow" />
+                  <Progress value={progress} className="h-3 bg-purple-900/40 magical-glow rounded-lg" />
                 </div>
               </div>
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-lg magical-glow gradient-magical">
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-xl magical-glow gradient-magical backdrop-blur-lg">
                 <CardContent className="p-8">
-                  <div className="text-2xl font-bold text-magical text-center mb-4 drop-shadow">
+                  <div className="text-2xl font-bold text-magical text-center mb-4 font-playfair drop-shadow">
                     {getRandom([
                       "O gênio indaga:",
                       "A aura revela:",
@@ -179,7 +196,7 @@ const AkinatorMagico: React.FC = () => {
                           key={idx}
                           onClick={() => handleGenioAnswer(option)}
                           variant="outline"
-                          className="w-full p-6 text-left h-auto hover:bg-purple-500/30 hover:border-yellow-300 transition-all duration-300 text-white backdrop-blur shadow-lg"
+                          className="w-full p-6 text-left h-auto rounded-xl hover:bg-purple-500/30 hover:border-yellow-300 transition-all duration-300 text-white backdrop-blur shadow-lg font-medium"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span className="text-lg">{option}</span>
@@ -207,15 +224,9 @@ const AkinatorMagico: React.FC = () => {
           ) : null}
         </AnimatePresence>
       </div>
-      {/* Estilos mágicos adicionais */}
-      <style>{`
-        .magical-glow { animation: magical-glow 3s ease-in-out infinite; }
-        .gradient-magical { background: linear-gradient(135deg,rgba(250,204,21,0.2) 0%,rgba(236,72,153,0.23) 50%,rgba(147,51,234,0.21) 100%);}
-        .crystal-pulse { animation: crystal-pulse 2s ease-in-out infinite; }
-        .sparkle-animation { animation: sparkle 4s ease-in-out infinite; }
-      `}</style>
     </div>
   );
 };
 
 export default AkinatorMagico;
+
