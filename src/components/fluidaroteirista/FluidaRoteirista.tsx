@@ -10,6 +10,8 @@ import ElementosUniversaisMode from './modes/ElementosUniversaisMode';
 import FluidaScriptResults from './FluidaScriptResults';
 import { useFluidaScript } from './hooks/useFluidaScript';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
+import QuickAccessMenu from "./components/QuickAccessMenu";
+import ModeSelection from "./components/ModeSelection";
 
 type FluidaMode = 'selection' | 'akinator' | 'elementos' | 'results';
 
@@ -169,208 +171,55 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
       </div>
 
       {/* Quick Access Menu */}
+      <QuickAccessMenu onNavigateToApprovedScripts={handleNavigateToApprovedScripts} />
+
+      {/* Mode Selection */}
+      <ModeSelection onSelect={handleModeSelect} />
+
+      {/* Features Banner */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="max-w-4xl mx-auto mb-8"
+        transition={{ delay: 0.4 }}
+        className="mt-8 p-6 aurora-glass border-aurora-electric-purple/20 rounded-lg"
       >
-        <Card className="aurora-glass border-aurora-electric-purple/30">
-          <CardHeader>
-            <CardTitle className="text-white text-center flex items-center justify-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Menu Rápido
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button
-                onClick={handleNavigateToApprovedScripts}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white h-16 flex items-center gap-3 w-full"
-              >
-                <TrendingUp className="h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">📚 Roteiros Aprovados</div>
-                  <div className="text-sm opacity-90">Gerencie e avalie performance</div>
-                </div>
-              </Button>
-              
-              {/* Botão "Análises (Em breve)" com Tooltip para explicar */}
-              <div className="relative group">
-                <Button
-                  variant="outline"
-                  className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3 w-full"
-                  disabled
-                  aria-label="Análises (Em breve)"
-                >
-                  <Target className="h-6 w-6" />
-                  <div className="text-left">
-                    <div className="font-semibold">📊 Análises (Em breve)</div>
-                    <div className="text-sm opacity-70">Métricas e insights</div>
-                  </div>
-                </Button>
-                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded bg-black text-xs text-white opacity-0 group-hover:opacity-100 transition opacity pointer-events-none z-50 whitespace-nowrap">
-                  Este recurso estará disponível em breve!
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Mode Selection */}
-      <div className="max-w-4xl mx-auto">
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-xl font-semibold text-white text-center mb-6"
-        >
-          ✨ Escolha seu estilo de criação:
-        </motion.h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Modo Rocket (10 Elementos Universais) */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            whileHover={{ scale: 1.02 }}
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-aurora-electric-purple" />
+          <h3 className="text-lg font-semibold text-white">
+            Recursos Disponíveis
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-300">
+          <motion.div 
+            className="text-center"
+            whileHover={{ scale: 1.05 }}
           >
-            <Card className="aurora-glass border-aurora-electric-purple/50 hover:border-aurora-electric-purple/70 transition-all cursor-pointer h-full relative overflow-hidden"
-                  onClick={() => handleModeSelect('elementos')}>
-              <div className="absolute top-2 right-2">
-                <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full">
-                  NOVO ✨
-                </span>
-              </div>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <motion.div
-                    whileHover={{ 
-                      rotate: [0, -10, 10, -10, 0],
-                      scale: [1, 1.2, 1.2, 1.2, 1]
-                    }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <Rocket className="h-16 w-16 text-aurora-electric-purple" />
-                  </motion.div>
-                </div>
-                <CardTitle className="text-white text-xl">
-                  🚀 Roteiro Rocket
-                </CardTitle>
-                <p className="text-aurora-electric-purple font-medium">
-                  10 Elementos Universais
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-slate-300 text-center">
-                  Para quem quer conquistar o universo
-                </p>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <p>🎯 Storytelling + Público-alvo</p>
-                  <p>📈 Headlines + Gatilhos mentais</p>
-                  <p>🧠 Lógica + Educação + Empatia</p>
-                  <p>📊 Copy + Ferramentas + Dados</p>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white">
-                  Decolar com Rocket 🚀
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-aurora-electric-purple font-medium">✨ Disney Magic</div>
+            <div>Transformação encantadora</div>
           </motion.div>
-
-          {/* Modo Fluida (Akinator) */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            whileHover={{ scale: 1.02 }}
+          <motion.div 
+            className="text-center"
+            whileHover={{ scale: 1.05 }}
           >
-            <Card className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/50 transition-all cursor-pointer h-full"
-                  onClick={() => handleModeSelect('akinator')}>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <motion.div
-                    whileHover={{ 
-                      rotate: [0, -10, 10, -10, 0],
-                      scale: [1, 1.1, 1.1, 1.1, 1]
-                    }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <HelpCircle className="h-16 w-16 text-aurora-electric-purple" />
-                  </motion.div>
-                </div>
-                <CardTitle className="text-white text-xl">
-                  🎯 Roteiro Fluida
-                </CardTitle>
-                <p className="text-aurora-electric-purple font-medium">
-                  Estilo Akinator
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-slate-300 text-center">
-                  Para quem quer um roteiro rápido e prático
-                </p>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <p>✅ Ideal para usuários iniciantes</p>
-                  <p>✅ Interface com perguntas visuais</p>
-                  <p>✅ 6 passos estruturados</p>
-                  <p>✅ Árvore de intenção inteligente</p>
-                </div>
-                <Button className="w-full bg-aurora-gradient-primary hover:opacity-90 text-white">
-                  Começar com Fluida
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-aurora-electric-purple font-medium">🖼️ Geração de Imagem</div>
+            <div>Arte com IA real</div>
+          </motion.div>
+          <motion.div 
+            className="text-center"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="text-aurora-electric-purple font-medium">🎙️ Áudio Narrado</div>
+            <div>Voz encantadora</div>
+          </motion.div>
+          <motion.div 
+            className="text-center"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="text-aurora-electric-purple font-medium">📸 Antes & Depois</div>
+            <div>Documente resultados</div>
           </motion.div>
         </div>
-
-        {/* Features Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-8 p-6 aurora-glass border-aurora-electric-purple/20 rounded-lg"
-        >
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-aurora-electric-purple" />
-            <h3 className="text-lg font-semibold text-white">
-              Recursos Disponíveis
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-300">
-            <motion.div 
-              className="text-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="text-aurora-electric-purple font-medium">✨ Disney Magic</div>
-              <div>Transformação encantadora</div>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="text-aurora-electric-purple font-medium">🖼️ Geração de Imagem</div>
-              <div>Arte com IA real</div>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="text-aurora-electric-purple font-medium">🎙️ Áudio Narrado</div>
-              <div>Voz encantadora</div>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="text-aurora-electric-purple font-medium">📸 Antes & Depois</div>
-              <div>Documente resultados</div>
-            </motion.div>
-          </div>
-        </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
