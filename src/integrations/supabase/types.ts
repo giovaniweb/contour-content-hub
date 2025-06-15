@@ -986,6 +986,39 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_accounts: {
+        Row: {
+          access_token: string
+          connected_at: string
+          id: string
+          instagram_id: string
+          page_id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token: string
+          connected_at?: string
+          id?: string
+          instagram_id: string
+          page_id: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          connected_at?: string
+          id?: string
+          instagram_id?: string
+          page_id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       instagram_analytics: {
         Row: {
           analysis_result: string | null
