@@ -1,4 +1,5 @@
 import { cadastrarMentor, type Mentor } from '@/services/mentoresService';
+import type { ElementosUniversais } from '../../supabase/functions/generate-script/mentor-elements';
 
 // Estrutura universal dos 2 mentores permitidos juridicamente
 const mentores = [
