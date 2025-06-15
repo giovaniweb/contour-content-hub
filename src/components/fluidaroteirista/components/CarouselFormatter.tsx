@@ -122,7 +122,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         </div>
       )}
 
-      {/* Botões principais AGORA AO FINAL */}
+      {/* BLOCO DE BOTÕES PRINCIPAIS (posicionado após equipamentos integrados) */}
       <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
         <button
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
@@ -147,10 +147,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         >
           Novo Roteiro
         </button>
-      </div>
-
-      {/* Botões de Gerar Imagem e Gerar Áudio aparecem APENAS após aprovar */}
-      <div className="flex flex-wrap justify-center gap-5 mt-7">
         <button
           className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
           onClick={handleGenerateImage}
@@ -158,14 +154,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         >
           {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
           {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
-        </button>
-        <button
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-neon-blue text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-neon-blue/50 text-lg disabled:opacity-60"
-          onClick={handleGenerateAudio}
-          disabled={!isApproved || isGeneratingAudio}
-        >
-          {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-6 w-6" />}
-          {isGeneratingAudio ? "Gerando Áudio..." : "Gerar Áudio"}
         </button>
       </div>
 
