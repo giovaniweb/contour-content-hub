@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import AdminLayout from '@/components/layout/AdminLayout';
 import EquipmentForm from '@/components/admin/EquipmentForm';
 import { Equipment } from '@/types/equipment';
 import { getEquipmentById, updateEquipment } from '@/api/equipment';
@@ -66,20 +65,20 @@ const EditEquipment: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
           <div className="aurora-glass rounded-3xl p-8 flex items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-aurora-electric-purple" />
             <span className="aurora-body text-white">Carregando equipamento...</span>
           </div>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   if (error || !equipment) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
           <div className="aurora-glass rounded-3xl p-8 text-center">
             <h2 className="aurora-text-gradient text-2xl font-light mb-4">
@@ -96,12 +95,12 @@ const EditEquipment: React.FC = () => {
             </Button>
           </div>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="aurora-dark-bg min-h-screen">
         <div className="aurora-particles">
           {[...Array(20)].map((_, i) => (
@@ -147,7 +146,7 @@ const EditEquipment: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

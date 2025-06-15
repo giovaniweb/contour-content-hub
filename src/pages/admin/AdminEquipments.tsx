@@ -1,11 +1,10 @@
-
-import React from 'react';
-import Layout from '@/components/Layout';
+import React from "react";
+import AdminLayout from "@/components/layout/AdminLayout";
 import EquipmentManager from '@/components/admin/EquipmentManager';
 
 const AdminEquipments: React.FC = () => {
   return (
-    <Layout>
+    <AdminLayout>
       <div className="aurora-dark-bg min-h-screen">
         <div className="aurora-particles">
           {[...Array(15)].map((_, i) => (
@@ -36,7 +35,7 @@ const AdminEquipments: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

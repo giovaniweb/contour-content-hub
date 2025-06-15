@@ -1,6 +1,5 @@
-
-import React from 'react';
-import Layout from '@/components/Layout';
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { VideoIcon, ImageIcon, FileTextIcon } from 'lucide-react';
@@ -10,7 +9,7 @@ const Media: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout title="Media Hub">
+    <AppLayout title="Media Hub">
       <div className="container mx-auto py-6">
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl mb-6">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
@@ -77,7 +76,7 @@ const Media: React.FC = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

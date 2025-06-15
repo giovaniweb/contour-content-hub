@@ -1,6 +1,5 @@
-
 import React from "react";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,7 +89,7 @@ const MediaLibraryPage: React.FC = () => {
   };
 
   return (
-    <Layout title="Biblioteca de Mídia">
+    <AppLayout title="Biblioteca de Mídia">
       <div className="container mx-auto py-8">
         {/* Hero section */}
         <section className="rounded-2xl overflow-hidden bg-gradient-to-r from-fluida-blue to-fluida-pink relative mb-12">
@@ -289,7 +288,7 @@ const MediaLibraryPage: React.FC = () => {
           </div>
         </section>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

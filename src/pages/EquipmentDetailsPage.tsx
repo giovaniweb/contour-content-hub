@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +6,7 @@ import { EquipmentDetailsLoading } from '@/components/equipment-details/Equipmen
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsHeader } from '@/components/equipment-details/EquipmentDetailsHeader';
 import { EquipmentDetailsTabsList } from '@/components/equipment-details/EquipmentDetailsTabs';
-import Layout from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +30,7 @@ const EquipmentDetailsPage: React.FC = () => {
   }
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <EquipmentDetailsHeader equipment={equipment} />
@@ -158,7 +157,7 @@ const EquipmentDetailsPage: React.FC = () => {
           </Tabs>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

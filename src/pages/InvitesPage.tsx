@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -113,7 +112,7 @@ const InvitesPage: React.FC = () => {
   };
   
   return (
-    <Layout title="Seus Convites">
+    <AppLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Seus Convites</h1>
         
@@ -177,7 +176,7 @@ const InvitesPage: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

@@ -1,13 +1,12 @@
-
-import React from 'react';
-import Layout from '@/components/Layout';
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, LineChart, PieChart } from 'lucide-react';
 
 const ReportsPage: React.FC = () => {
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6 space-y-6">
         <h1 className="text-3xl font-bold">Relatórios e Analytics</h1>
         
@@ -111,7 +110,7 @@ const ReportsPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

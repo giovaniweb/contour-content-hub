@@ -1,6 +1,5 @@
-
 import React from "react";
-import Layout from "@/components/Layout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Layout title="Configurações">
+    <AppLayout title="Configurações">
       <div className="container py-8 max-w-4xl mx-auto animate-fade-in">
         <div className="flex items-center mb-6">
           <SettingsIcon className="h-6 w-6 mr-2 text-fluida-blue" />
@@ -267,7 +266,7 @@ const Settings: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

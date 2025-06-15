@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import Layout from '@/components/Layout';
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
@@ -142,17 +141,17 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
   
   if (loading) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="container py-12 flex justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
   
   if (error || !document) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="container py-8">
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>
@@ -163,12 +162,12 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
             <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Documentos
           </Button>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
   
   return (
-    <Layout>
+    <AppLayout>
       <Helmet>
         <title>{document.titulo} | Documentos Técnicos</title>
       </Helmet>
@@ -209,7 +208,7 @@ ${doc.researchers?.join(', ') || 'Nenhum autor disponível.'}
         onOpenChange={setPreviewModalOpen}
         document={document}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 

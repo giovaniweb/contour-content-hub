@@ -1,20 +1,5 @@
-
-import React, { useState } from "react";
-import Layout from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getMediaItems } from "@/utils/api";
-import MediaCard from "@/components/MediaCard";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import DownloadIdeasModal from "@/components/media-library/DownloadIdeasModal";
-import { Search, SlidersHorizontal } from "lucide-react";
-import FeatureBanner from "@/components/media-library/FeatureBanner";
-import MediaCreationSection from "@/components/media-library/MediaCreationSection";
-import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
-import { MediaItem } from "@/components/media-library/mockData";
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 
 const MediaLibrary: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -84,7 +69,7 @@ const MediaLibrary: React.FC = () => {
   const trendingFiles = mediaItems.filter(item => item.type === "take").slice(0, 4);
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6">
         {/* Hero Section */}
         <FeatureBanner />
@@ -213,7 +198,7 @@ const MediaLibrary: React.FC = () => {
         onClose={() => setShowIdeasModal(false)}
         item={selectedMedia}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 

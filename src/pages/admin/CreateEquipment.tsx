@@ -1,7 +1,5 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import React from "react";
+import AdminLayout from "@/components/layout/AdminLayout";
 import EquipmentForm from '@/components/admin/EquipmentForm';
 import { Equipment } from '@/types/equipment';
 import { createEquipment } from '@/api/equipment';
@@ -32,7 +30,7 @@ const CreateEquipment: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="aurora-dark-bg min-h-screen">
         <div className="aurora-particles">
           {[...Array(20)].map((_, i) => (
@@ -77,7 +75,7 @@ const CreateEquipment: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import Layout from '@/components/Layout';
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 import VideoUploader from '@/components/video-storage/VideoUploader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +8,7 @@ const VideoImportPage: React.FC = () => {
   
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6 space-y-6">
         <h1 className="text-3xl font-bold">Importação de Vídeos</h1>
         <p className="text-muted-foreground">
@@ -65,7 +65,7 @@ const VideoImportPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

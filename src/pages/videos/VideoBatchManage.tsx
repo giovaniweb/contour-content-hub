@@ -1,6 +1,5 @@
-
-import React from 'react';
-import Layout from '@/components/Layout';
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,7 @@ import { FileEdit, Trash2, Video, Filter, SortAsc } from 'lucide-react';
 
 const VideoBatchManage: React.FC = () => {
   return (
-    <Layout>
+    <AppLayout>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Gerenciar Vídeos em Lote</h1>
@@ -160,7 +159,7 @@ const VideoBatchManage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

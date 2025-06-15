@@ -1,14 +1,5 @@
-
-import React from 'react';
-import Layout from "@/components/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileText, BrainCircuit, MessageSquare, CheckCircle2, Presentation, Database } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { usePermissions } from "@/hooks/use-permissions";
-import { Navigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import React from "react";
+import AppLayout from "@/components/layout/AppLayout";
 
 interface AiSystemProps {
   title: string;
@@ -83,7 +74,7 @@ const SystemIntelligence: React.FC = () => {
   ];
 
   return (
-    <Layout title="Inteligência Artificial do Sistema">
+    <AppLayout title="Inteligência Artificial do Sistema">
       <div className="container mx-auto py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Inteligência do Sistema</h1>
@@ -452,7 +443,7 @@ const SystemIntelligence: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 
