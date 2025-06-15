@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -36,15 +35,6 @@ const Sidebar: React.FC = () => {
       )}
       style={{ width: SIDEBAR_WIDTH }}
     >
-      <div className="flex flex-col items-center mb-8 mt-2 cursor-pointer select-none" onClick={() => navigate("/dashboard")}>
-        <span className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500">
-          {/* Ícone estilizado do app */}
-          <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M6 17L17 6M7 7h10v10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </span>
-        <span className="mt-2 text-xs font-bold text-white tracking-tight">Fluida</span>
-      </div>
       {/* Menu */}
       <nav className="flex-1 flex flex-col gap-3 w-full">
         {sidebarItems.map((item) => {
@@ -83,4 +73,3 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
-
