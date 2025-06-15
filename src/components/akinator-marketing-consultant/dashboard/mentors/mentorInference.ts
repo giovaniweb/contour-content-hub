@@ -1,128 +1,113 @@
+
 import { Mentor } from '@/services/mentoresService';
 import { MarketingConsultantState } from '../../types';
 
+// Somente os 4 mentores oficiais
 export interface MentorMapping {
   mentor: Mentor;
   marketingProfile: string;
   confidence: number;
 }
 
+// Mapeamento: apenas 4 mentores
 export function getMentorMapping(): Record<string, string> {
   return {
-    'Leandro Ladeira': 'especialista_conversao',
-    'Ícaro de Carvalho': 'expert_storytelling',
-    'Paulo Cuenca': 'consultor_criativo', 
-    'Pedro Sobral': 'analista_performance',
-    'Camila Porto': 'estrategista_digital',
-    'Hyeser Souza': 'expert_engajamento',
-    'Washington Olivetto': 'consultor_grandes_ideias'
+    'Pedro Sobral': 'arquiteto_do_planejamento',
+    'Leandro Ladeira': 'mestre_do_copy',
+    'Hyeser Souza': 'rei_do_viral',
+    'Paulo Cuenca': 'diretor_visual',
   };
 }
 
+// Regras de inferência PARA APENAS os 4 mentores oficiais do sistema
 export function getInferenceRules(state: MarketingConsultantState) {
   return [
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_medica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_medica' &&
         state.medicalObjective === 'aumentar_autoridade',
-      marketingProfile: 'expert_storytelling',
-      confidence: 0.9
+      marketingProfile: 'arquiteto_do_planejamento',
+      confidence: 0.93,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_medica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_medica' &&
         state.medicalClinicStyle === 'premium',
-      marketingProfile: 'consultor_grandes_ideias',
-      confidence: 0.85
+      marketingProfile: 'diretor_visual',
+      confidence: 0.91,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_medica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_medica' &&
         state.medicalObjective === 'escalar_negocio',
-      marketingProfile: 'analista_performance',
-      confidence: 0.88
+      marketingProfile: 'arquiteto_do_planejamento',
+      confidence: 0.89,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_estetica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_estetica' &&
         state.aestheticObjective === 'atrair_leads',
-      marketingProfile: 'especialista_conversao',
-      confidence: 0.9
+      marketingProfile: 'mestre_do_copy',
+      confidence: 0.96,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_estetica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_estetica' &&
         (state.contentFrequency === 'raramente' || state.contentFrequency === 'nao_posto'),
-      marketingProfile: 'estrategista_digital',
-      confidence: 0.85
+      marketingProfile: 'rei_do_viral',
+      confidence: 0.93,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.clinicType === 'clinica_estetica' && 
+      condition: (state: MarketingConsultantState) =>
+        state.clinicType === 'clinica_estetica' &&
         state.aestheticClinicStyle === 'moderna',
-      marketingProfile: 'consultor_criativo',
-      confidence: 0.87
+      marketingProfile: 'diretor_visual',
+      confidence: 0.87,
     },
     {
-      condition: (state: MarketingConsultantState) => 
+      condition: (state: MarketingConsultantState) =>
         state.contentFrequency === 'diario' &&
         state.aestheticClinicStyle === 'humanizada',
-      marketingProfile: 'expert_engajamento',
-      confidence: 0.82
+      marketingProfile: 'rei_do_viral',
+      confidence: 0.85,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.currentRevenue === 'acima_60k' && 
+      condition: (state: MarketingConsultantState) =>
+        state.currentRevenue === 'acima_60k' &&
         state.revenueGoal === 'dobrar',
-      marketingProfile: 'expert_storytelling',
-      confidence: 0.8
+      marketingProfile: 'arquiteto_do_planejamento',
+      confidence: 0.84,
     },
     {
-      condition: (state: MarketingConsultantState) => 
-        state.currentRevenue === 'ate_15k' && 
-        (state.contentFrequency === 'raramente' || state.contentFrequency === 'nao_posto'),
-      marketingProfile: 'estrategista_digital',
-      confidence: 0.83
-    },
-    {
-      condition: (state: MarketingConsultantState) => 
-        state.communicationStyle === 'emocional_inspirador',
-      marketingProfile: 'expert_storytelling',
-      confidence: 0.75
-    },
-    {
-      condition: (state: MarketingConsultantState) => 
-        state.communicationStyle === 'tecnico_didatico',
-      marketingProfile: 'analista_performance',
-      confidence: 0.75
-    },
-    {
-      condition: (state: MarketingConsultantState) => 
+      condition: (state: MarketingConsultantState) =>
+        state.communicationStyle === 'emocional_inspirador' ||
         state.communicationStyle === 'humanizado_proximo',
-      marketingProfile: 'expert_engajamento',
-      confidence: 0.78
+      marketingProfile: 'arquiteto_do_planejamento',
+      confidence: 0.81,
     },
     {
-      condition: (state: MarketingConsultantState) => 
+      condition: (state: MarketingConsultantState) =>
+        state.communicationStyle === 'tecnico_didatico',
+      marketingProfile: 'mestre_do_copy',
+      confidence: 0.86,
+    },
+    {
+      condition: (state: MarketingConsultantState) =>
+        state.communicationStyle === 'divertido' ||
+        state.aestheticClinicStyle === 'moderna',
+      marketingProfile: 'rei_do_viral',
+      confidence: 0.83,
+    },
+    {
+      condition: (state: MarketingConsultantState) =>
         (state.medicalClinicStyle === 'premium' || state.aestheticClinicStyle === 'premium'),
-      marketingProfile: 'consultor_grandes_ideias',
-      confidence: 0.8
-    },
-    {
-      condition: (state: MarketingConsultantState) => 
-        (state.medicalClinicStyle === 'humanizada' || state.aestheticClinicStyle === 'humanizada'),
-      marketingProfile: 'expert_storytelling',
-      confidence: 0.75
-    },
-    {
-      condition: (state: MarketingConsultantState) => 
-        (state.medicalClinicStyle === 'moderna' || state.aestheticClinicStyle === 'moderna'),
-      marketingProfile: 'consultor_criativo',
-      confidence: 0.77
+      marketingProfile: 'diretor_visual',
+      confidence: 0.87,
     }
   ];
 }
 
+// Função principal para inferir mentor:
 export function inferBestMentor(mentors: Mentor[], state: MarketingConsultantState): MentorMapping | null {
   if (!mentors?.length) return null;
   const mapping = getMentorMapping();
@@ -138,57 +123,47 @@ export function inferBestMentor(mentors: Mentor[], state: MarketingConsultantSta
         bestMatch = {
           mentor: realMentor,
           marketingProfile: rule.marketingProfile,
-          confidence: rule.confidence
+          confidence: rule.confidence,
         };
         bestConfidence = rule.confidence;
       }
     }
   }
-  // fallback
+  // Fallback: sempre retorna Pedro Sobral se nenhum selecionado
   if (!bestMatch) {
-    const defaultMentor = mentors.find(m => mapping[m.nome] === 'analista_performance') || mentors[0];
+    const defaultMentor = mentors.find(m => mapping[m.nome] === 'arquiteto_do_planejamento') || mentors[0];
     bestMatch = {
       mentor: defaultMentor,
-      marketingProfile: 'analista_performance',
-      confidence: 0.3
+      marketingProfile: 'arquiteto_do_planejamento',
+      confidence: 0.3,
     };
   }
   return bestMatch;
 }
 
+// Novos enigmas, apenas para 4 mentores. Texto fictício e divertido.
 export function generateMentorEnigma(mentorMapping: MentorMapping | null): string {
-  if (!mentorMapping) return "Você tem muito potencial com a estratégia certa!";
+  if (!mentorMapping) return "Você tem muito potencial para uma estratégia lendária!";
   const { mentor, marketingProfile } = mentorMapping;
   const enigmaTemplates: Record<string, string[]> = {
-    'especialista_conversao': [
-      `${mentor.nome.split(' ')[0]} olharia esses dados e transformaria cada número em vendas reais.`,
-      "Alguém que vive de tráfego pago faria isso virar ouro rapidinho."
+    'arquiteto_do_planejamento': [
+      `${mentor.nome.split(' ')[0]} arquitetaria sua estratégia como quem monta um castelo sólido.`,
+      "O mestre dos bastidores garantiria que nada fosse deixado ao acaso.",
     ],
-    'expert_storytelling': [
-      `${mentor.nome.split(' ')[0]} contaria uma história com esses dados que ninguém esqueceria.`,
-      "Quem domina narrativas transformaria isso em algo memorável."
+    'mestre_do_copy': [
+      `${mentor.nome.split(' ')[0]} transformaria suas palavras em vendas com poucas linhas.`,
+      "Seu copy tem poder quase hipnótico e direto ao ponto.",
     ],
-    'consultor_criativo': [
-      `${mentor.nome.split(' ')[0]} criaria algo visual com isso que seria pura arte.`,
-      "Um olhar criativo transformaria esses dados em algo visualmente impactante."
+    'rei_do_viral': [
+      `${mentor.nome.split(' ')[0]} seria capaz de viralizar seu conteúdo até em Marte.`,
+      "Quem domina as trends nunca passa despercebido.",
     ],
-    'analista_performance': [
-      `${mentor.nome.split(' ')[0]} estruturaria esses números de um jeito que tudo faria sentido.`,
-      "Quem entende de métricas faria isso render muito mais."
+    'diretor_visual': [
+      `${mentor.nome.split(' ')[0]} faria tudo virar uma obra de arte marcante.",
+      "A estética garantiria que sua marca fosse lembrada para sempre.",
     ],
-    'estrategista_digital': [
-      `${mentor.nome.split(' ')[0]} organizaria isso de um jeito que qualquer um conseguiria seguir.`,
-      "Organização estratégica transformaria isso em resultados consistentes."
-    ],
-    'expert_engajamento': [
-      `${mentor.nome.split(' ')[0]} faria isso viralizar de um jeito natural.`,
-      "Quem entende de engajamento transformaria isso em algo que todos compartilham."
-    ],
-    'consultor_grandes_ideias': [
-      `${mentor.nome.split(' ')[0]} pensaria em algo grandioso com esse potencial.`,
-      "Uma mente brilhante transformaria isso em algo revolucionário."
-    ]
   };
-  const templates = enigmaTemplates[marketingProfile] || ["Você tem muito potencial!"];
+  const templates = enigmaTemplates[marketingProfile] || ["Você é o próximo mentor lendário!"];
   return templates[Math.floor(Math.random() * templates.length)];
 }
+
