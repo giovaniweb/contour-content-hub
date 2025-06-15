@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import ScriptFormatter from "./components/ScriptFormatter";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ interface FluidaScriptResultsProps {
   onGenerateAudio: (script: any) => Promise<void>;
   onApplyDisney: () => void;
   isProcessing: boolean;
-  onApproveScript?: () => void;
+  onApproveScript?: () => void; // <-- Make optional now
 }
 
 const FluidaScriptResults = ({
@@ -25,7 +26,7 @@ const FluidaScriptResults = ({
   onApplyDisney,
   isProcessing,
   onApproveScript
-}) => {
+}: FluidaScriptResultsProps) => {
   const [isImproving, setIsImproving] = useState(false);
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
 
@@ -66,7 +67,8 @@ const FluidaScriptResults = ({
     <div className="space-y-6 flex flex-col">
       {/* Exibição do roteiro (aprimorado ou original) */}
       <div>
-        <ScriptFormatter script={roteiroParaExibir} onApproveScript={onApproveScript} />
+        {/* We remove onApproveScript from ScriptFormatter, as its props don't accept it */}
+        <ScriptFormatter script={roteiroParaExibir} />
         {improvedScript && (
           <Card className="mt-6 aurora-glass border-green-500/40">
             <CardContent>
@@ -105,3 +107,4 @@ const FluidaScriptResults = ({
 };
 
 export default FluidaScriptResults;
+

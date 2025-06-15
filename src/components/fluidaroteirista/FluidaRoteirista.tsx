@@ -128,6 +128,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
           onGenerateAudio={handleGenerateAudio}
           onApplyDisney={applyDisneyMagic}
           isProcessing={isGenerating}
+          // No need to pass onApproveScript unless implemented
         />
       </div>
     );
