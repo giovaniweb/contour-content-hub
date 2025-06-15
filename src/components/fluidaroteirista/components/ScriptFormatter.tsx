@@ -18,6 +18,7 @@ import ParagraphBoxFormatter from './ParagraphBoxFormatter';
 import { parseTemporalScript } from "../utils/parseTemporalScript";
 import TemporalScriptBlock from "./TemporalScriptBlock";
 import ReelsTipsCard from "./ReelsTipsCard";
+import ReelsActionFooter from "./ReelsActionFooter";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -171,6 +172,26 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
 
   const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes((script.formato || "").toLowerCase());
 
+  const isReels = (script.formato || "").toLowerCase() === "reels";
+
+  // HANDLERS: Coloque aqui a lógica real dos handlers, conecte via props do FluidaScriptResults se desejar.
+  const handleApproveScript = () => {
+    // Placeholder: colocar lógica de aprovação real aqui
+    console.log("[ReelsActionFooter] Aprovar roteiro");
+  };
+  const handleImproveScript = () => {
+    // Placeholder: colocar lógica de melhoria real aqui
+    console.log("[ReelsActionFooter] Melhorar roteiro");
+  };
+  const handleNewScript = () => {
+    // Placeholder: colocar lógica de novo roteiro real aqui
+    console.log("[ReelsActionFooter] Novo roteiro");
+  };
+  const handleGenerateAudio = () => {
+    // Placeholder: colocar lógica de geração de áudio real aqui
+    console.log("[ReelsActionFooter] Gerar áudio");
+  };
+
   return (
     <div className="space-y-6 w-full">
       {/* Conteúdo Principal do Roteiro */}
@@ -205,9 +226,20 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       )}
       
-      {/* Dicas Aurora para REELS (inspirado no carrossel/stories) */}
-      {(script.formato || "").toLowerCase() === "reels" && (
+      {/* Dicas Aurora para REELS */}
+      {isReels && (
         <ReelsTipsCard />
+      )}
+
+      {/* Rodapé de ações (BOTÕES) para REELS */}
+      {isReels && (
+        <ReelsActionFooter
+          onApproveScript={handleApproveScript}
+          onImproveScript={handleImproveScript}
+          onNewScript={handleNewScript}
+          onGenerateAudio={handleGenerateAudio}
+          isGeneratingAudio={false}
+        />
       )}
     </div>
   );
