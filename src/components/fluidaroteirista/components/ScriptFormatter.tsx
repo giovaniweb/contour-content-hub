@@ -14,6 +14,7 @@ import { parseStories10xSlides } from '../utils/stories10xParser';
 import { MessageSquare, Clock, AudioWaveform } from "lucide-react";
 import LightCopyFormatter from './LightCopyFormatter';
 import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
+import ParagraphBoxFormatter from './ParagraphBoxFormatter';
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -145,36 +146,10 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
       );
     }
 
-    // Para formatos livres/exóticos: separar em blocos de parágrafo legíveis e visual moderninho
+    // Separa em blocos (p.ex., títulos ou parágrafos)
     const blocks = splitScriptBlocks(script.roteiro);
-    const isSingleBlock = blocks.length === 1 && !blocks[0].titulo;
-
-    if (!isSingleBlock) {
-      return (
-        <StandardScriptBlocksFormatter
-          blocks={blocks}
-          estimatedTime={estimatedTime}
-          wordCount={wordCount}
-          fullText={script.roteiro}
-        />
-      );
-    }
-
-    // Texto puro, mostrar estilizado centralizado, grandes margens, fonte confortável
-    return (
-      <div className="w-full max-w-3xl mx-auto rounded-2xl p-8 bg-gradient-to-br from-aurora-neon-blue/10 via-aurora-electric-purple/10 to-slate-900/40 border border-aurora-neon-blue/20 shadow-lg mb-6 mt-4 flex flex-col items-center text-center">
-        <h2 className="text-xl md:text-2xl font-bold mb-6 text-aurora-electric-purple drop-shadow aurora-heading">
-          Roteiro Gerado
-        </h2>
-        <div className="text-lg md:text-xl text-slate-100 leading-relaxed font-medium whitespace-pre-line aurora-body">
-          {blocks[0].conteudo
-            .split(/\n{2,}/)
-            .map((paragraph, idx) => (
-              <p key={idx} className="mb-4 last:mb-0">{paragraph}</p>
-            ))}
-        </div>
-      </div>
-    );
+    // Exibe cada bloco em um card separado (visual “caixa” moderno)
+    return <ParagraphBoxFormatter blocks={blocks} />;
   };
 
   const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes((script.formato || "").toLowerCase());
