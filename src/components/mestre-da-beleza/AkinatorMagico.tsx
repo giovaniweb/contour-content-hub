@@ -12,26 +12,6 @@ import GenioMestreHeader from "./components/GenioMestreHeader";
 import { mysticalIntroPhrases, mysticalThinkingPhrases, genioQuestionPhrases } from "./genioPhrases";
 import { useRef, useState } from "react";
 
-// Componente visual para aurora e partículas mágicas
-function AuroraParticles() {
-  return (
-    <div className="aurora-particles pointer-events-none fixed inset-0 z-0">
-      {[...Array(32)].map((_, idx) => (
-        <span
-          key={idx}
-          className={`aurora-particle absolute`}
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDuration: `${3 + Math.random() * 8}s`,
-            animationDelay: `${Math.random() * 4}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 import AuroraParticles from "./components/AuroraParticles";
 
 const genieNames = ["Jasmin", "Akinario", "Mirabella", "O Gênio Fluido", "Aura"];
