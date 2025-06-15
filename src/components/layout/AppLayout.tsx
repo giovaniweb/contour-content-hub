@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -5,6 +6,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "../navbar/Navbar";
 
 const SIDEBAR_WIDTH = 104; // igual ao Sidebar.tsx (px: w-26)
+const NAVBAR_HEIGHT = 64; // altura do navbar (h-16)
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -60,7 +62,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       >
         {/* Topbar fixa */}
         <Navbar />
-        <main className="flex-1 overflow-auto pt-2 md:pt-4 px-2 md:px-6">
+        <main 
+          className="flex-1 overflow-auto px-2 md:px-6"
+          style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
+        >
           {children}
         </main>
       </div>
