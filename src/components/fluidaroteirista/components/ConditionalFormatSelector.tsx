@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +35,9 @@ const ConditionalFormatSelector: React.FC<ConditionalFormatSelectorProps> = ({
     return names[canal as keyof typeof names] || canal;
   };
 
+  // Filtra para remover a opção "Stories"
+  const filteredOptions = formatOptions.filter(option => option.label !== 'Stories');
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -48,7 +50,7 @@ const ConditionalFormatSelector: React.FC<ConditionalFormatSelectorProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {formatOptions.map((option, index) => (
+        {filteredOptions.map((option, index) => (
           <motion.div
             key={option.value}
             initial={{ opacity: 0, y: 20 }}
