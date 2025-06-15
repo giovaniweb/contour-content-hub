@@ -91,21 +91,37 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
           </CardHeader>
           <CardContent className="p-0 px-5 pb-7 relative z-10">
             <div className="relative p-6 mt-2 rounded-xl bg-slate-900/70 aurora-glass border border-cyan-500/10 shadow-inner min-h-[200px]">
-              {/* Bloco de fala do roteiro, com aspas e layout comunicativo */}
-              <div className="flex gap-2 mb-2 items-center justify-between">
-                <span className="text-aurora-electric-purple text-3xl font-bold leading-none">“</span>
-                <CopyButton 
+            {/* Balão de fala estilizado para o texto do roteiro */}
+            <div className="flex justify-between items-baseline mb-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-7 w-7 text-aurora-electric-purple aurora-glow -mt-1" />
+                <span className="text-base font-semibold text-aurora-electric-purple">Fala do Roteiro</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-white/10">
+                  <Clock className="h-4 w-4 text-blue-400" />
+                  <span className="text-xs text-blue-200 font-semibold">{estimatedTime}s</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-white/10">
+                  <AudioWaveform className="h-4 w-4 text-pink-400" />
+                  <span className="text-xs text-pink-200 font-semibold">Áudio</span>
+                </div>
+                <CopyButton
                   text={script.roteiro}
                   successMessage="Roteiro copiado!"
-                  className="top-2 right-2"
+                  className="top-0 right-0"
                   position="absolute"
                 />
               </div>
-              <div className="text-slate-100 text-lg leading-relaxed font-medium whitespace-pre-line aurora-body">
+            </div>
+            <div className="relative w-full text-center">
+              <span className="absolute left-0 text-3xl text-aurora-electric-purple opacity-70 -top-4 select-none">“</span>
+              <span className="absolute right-0 text-3xl text-aurora-electric-purple opacity-70 -bottom-4 select-none">”</span>
+              <div className="text-slate-100 text-lg leading-relaxed font-medium whitespace-pre-line aurora-body px-2">
                 {script.roteiro}
               </div>
-              <span className="absolute bottom-2 right-4 text-aurora-electric-purple text-2xl font-bold leading-none opacity-60">”</span>
             </div>
+          </div>
             <div className="w-full flex justify-center pt-4 gap-2">
               <button
                 className="flex items-center gap-1 px-5 py-2 rounded-lg bg-aurora-electric-purple/90 hover:bg-aurora-emerald/80 text-white font-semibold shadow transition-all text-base disabled:opacity-60"
