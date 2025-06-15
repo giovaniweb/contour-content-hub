@@ -7,10 +7,9 @@ import { Instagram, RefreshCw, CheckCircle, AlertCircle, Trash2, ShieldCheck } f
 import { toast } from "sonner";
 import { InstagramOAuthButton } from "@/components/diagnostic-report/metrics-tab/InstagramOAuthButton";
 import {
-  getInstagramConfig,
-  deleteInstagramConfig,
+  getConnectedInstagramAccount,
+  disconnectInstagramAccount,
   fetchInstagramAnalytics,
-  getLatestInstagramAnalytics,
 } from "@/services/instagramService";
 
 // Props: children as extra content, onConnectionChange callback, showAnalyticsCard = boolean
@@ -25,84 +24,72 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
   showAnalyticsCard = false,
   className
 }) => {
-  const [config, setConfig] = useState<any | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [account, setAccount] = useState<null | {
+    username: string,
+    followers_count: number,
+    engagement_rate: number,
+    instagram_id: string,
+    page_id: string,
+    access_token: string,
+  }>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [analytics, setAnalytics] = useState<any | null>(null);
 
   useEffect(() => {
-    loadConfig();
+    loadAccount();
     // eslint-disable-next-line
   }, []);
 
-  const loadConfig = async () => {
-    try {
-      const savedConfig = await getInstagramConfig();
-      if (savedConfig) {
-        setConfig(savedConfig);
-        setIsConnected(true);
-        onConnectionChange?.(true);
-        if (showAnalyticsCard) {
-          // Fetch last analytics for display if requested
-          const latest = await getLatestInstagramAnalytics();
-          setAnalytics(latest);
-        }
-      } else {
-        setIsConnected(false);
-        setConfig(null);
-        setAnalytics(null);
-        onConnectionChange?.(false);
-      }
-    } catch (error) {
-      toast.error("Erro ao carregar integração do Instagram");
-    }
+  const loadAccount = async () => {
+    setIsLoading(true);
+    const acc = await getConnectedInstagramAccount();
+    setAccount(acc);
+    onConnectionChange?.(!!acc);
+    setIsLoading(false);
+  };
+
+  const handleOAuthSuccess = () => {
+    loadAccount();
+    toast.success("Instagram conectado com sucesso!");
   };
 
   const handleDisconnect = async () => {
     setIsLoading(true);
-    try {
-      const success = await deleteInstagramConfig();
-      if (success) {
-        setConfig(null);
-        setIsConnected(false);
-        setAnalytics(null);
-        onConnectionChange?.(false);
-      }
-    } catch (error) {
-      // handled
-    } finally {
-      setIsLoading(false);
+    const ok = await disconnectInstagramAccount();
+    if (ok) {
+      setAccount(null);
+      onConnectionChange?.(false);
+      toast.success("Instagram desconectado!");
+    } else {
+      toast.error("Erro ao desconectar Instagram.");
     }
+    setIsLoading(false);
   };
 
   const handleRefreshData = async () => {
-    if (!isConnected) {
+    if (!account) {
       toast.error("Instagram não está conectado");
       return;
     }
     setIsLoading(true);
     try {
       await fetchInstagramAnalytics();
-      await loadConfig();
+      await loadAccount();
       toast.success("Dados do Instagram atualizados!");
-    } catch (error) {
-      // handled
+    } catch {
+      toast.error("Erro ao atualizar métricas do Instagram");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOAuthSuccess = () => {
-    loadConfig();
-  };
-
+  // Layout
   return (
     <Card className={`aurora-glass border-aurora-turquoise/30 ${className ?? ""}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Instagram className="h-5 w-5 text-pink-500" />
           Conectar Instagram
-          {isConnected ? (
+          {account ? (
             <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
               <CheckCircle className="h-3 w-3 mr-1" />
               Conectado
@@ -116,16 +103,20 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isConnected ? (
+        {account ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg border border-green-500/20">
               <div>
-                <p className="font-medium text-green-400">@{config?.username}</p>
+                <p className="font-medium text-green-400">@{account.username}</p>
                 <p className="text-sm text-foreground/60">
-                  Conta conectada • {config?.account_type || 'personal'}
+                  Conta conectada
                 </p>
+                <div className="text-xs mt-2 flex flex-col gap-1">
+                  <span>👥 Seguidores: <b className="text-blue-400">{account.followers_count ?? "-"}</b></span>
+                  <span>📈 Engajamento: <b className="text-green-400">{account.engagement_rate ?? 0}%</b></span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -134,7 +125,7 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
                   className="border-green-500/30 text-green-400"
                 >
                   <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Atualizar
+                  Atualizar Métricas
                 </Button>
                 <Button
                   variant="outline"
@@ -149,31 +140,8 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
               </div>
             </div>
             <p className="text-sm text-foreground/60">
-              ✅ Dados reais do Instagram já estão integrados à sua conta Fluida.
+              ✅ Dados do Instagram estão integrados à sua conta Fluida.
             </p>
-            {showAnalyticsCard && analytics && (
-              <div className="p-4 bg-slate-900/60 rounded-md border border-slate-800 mt-2">
-                <div className="font-semibold text-lg mb-2">Últimas Métricas</div>
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                  <div>
-                    <div className="text-xs text-foreground/50">Seguidores</div>
-                    <div className="font-bold text-blue-400">{analytics.followers_count ?? "-"}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-foreground/50">Engajamento (%)</div>
-                    <div className="font-bold text-green-400">{analytics.engagement_rate ?? "-"}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-foreground/50">Alcance</div>
-                    <div className="font-bold text-purple-400">{analytics.reach ?? "-"}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-foreground/50">Impressões</div>
-                    <div className="font-bold text-orange-400">{analytics.impressions ?? "-"}</div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -184,7 +152,7 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
                   Conecte seu Instagram em apenas um clique!
                 </h3>
                 <p className="text-sm text-foreground/60">
-                  Basta clicar no botão abaixo, fazer login com sua conta Instagram e pronto. Sem complicações técnicas!
+                  Clique abaixo, faça login e pronto. Suas métricas serão importadas automaticamente.
                 </p>
               </div>
             </div>
@@ -192,7 +160,7 @@ export const InstagramIntegration: React.FC<InstagramIntegrationProps> = ({
             <div className="text-center mt-2 text-xs text-foreground/50 flex flex-col items-center gap-1">
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck className="h-4 w-4 text-green-400" />
-                Conexão oficial, rápida e segura pelo Instagram.
+                Conexão oficial e segura pelo Instagram.
               </span>
               <span>
                 Nenhuma configuração adicional é necessária.

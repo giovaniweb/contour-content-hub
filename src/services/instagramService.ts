@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -238,4 +237,83 @@ export const analyzeInstagramEngagement = async (): Promise<InstagramAnalysis | 
 export const isInstagramConnected = async (): Promise<boolean> => {
   const config = await getInstagramConfig();
   return config !== null;
+};
+
+/**
+ * NOVO FLUXO: Buscar conta Instagram conectada do usuário
+ */
+export const getConnectedInstagramAccount = async (): Promise<{
+  username: string,
+  followers_count: number,
+  engagement_rate: number,
+  instagram_id: string,
+  page_id: string,
+  access_token: string,
+} | null> => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return null;
+
+    // Busca registro real da tabela 'instagram_accounts'
+    const { data, error } = await supabase
+      .from('instagram_accounts')
+      .select('*')
+      .eq('user_id', user.user.id)
+      .single();
+
+    if (error || !data) return null;
+
+    // Busca últimas métricas reais do Instagram
+    const lastAnalytics = await getLatestInstagramAnalytics();
+    return {
+      username: data.username,
+      instagram_id: data.instagram_id,
+      page_id: data.page_id,
+      access_token: data.access_token,
+      followers_count: lastAnalytics?.followers_count || 0,
+      engagement_rate: lastAnalytics?.engagement_rate || 0,
+    };
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Desconectar conta Instagram (revoga o token na Meta e remove no Supabase!)
+ */
+export const disconnectInstagramAccount = async (): Promise<boolean> => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return false;
+
+    // Busca registro da conta
+    const { data: instacc } = await supabase
+      .from('instagram_accounts')
+      .select('*')
+      .eq('user_id', user.user.id)
+      .single();
+
+    if (!instacc) return true; // já está desconectado
+
+    // Revoga o token via Meta/Facebook se possível
+    if (instacc.access_token && instacc.page_id) {
+      try {
+        await fetch(`https://graph.facebook.com/v18.0/${instacc.page_id}/permissions?access_token=${instacc.access_token}`, {
+          method: 'DELETE',
+        });
+      } catch {
+        // Em caso de erro de revogação, siga assim mesmo!
+      }
+    }
+
+    // Remove do Supabase
+    await supabase
+      .from('instagram_accounts')
+      .delete()
+      .eq('user_id', user.user.id);
+
+    return true;
+  } catch (error) {
+    return false;
+  }
 };
