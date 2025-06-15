@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -6,7 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './components/theme-provider';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import './index.css';
+import './index.css'; // Certifique-se que este arquivo está importado!
 
 // Importa QueryClient centralizado
 import { queryClient } from './config/queryClient';

@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Montserrat:wght@100..900&family=Poppins:wght@100..900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -129,4 +128,29 @@ html.dark body {
   background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
   background-attachment: fixed;
   min-height: 100vh;
+}
+
+/* Sonner Toast Custom Styles */
+.sonner-toast {
+  @apply bg-aurora-background border border-aurora-electric-purple/30 rounded-lg shadow-lg px-5 py-4 text-white text-base font-medium transition-all duration-200;
+  box-shadow: 0 4px 32px 0 rgba(50,30,105,0.12);
+}
+.sonner-toast-success {
+  @apply bg-aurora-sage/80 text-aurora-deep-purple border-aurora-sage;
+}
+.sonner-toast-error {
+  @apply bg-aurora-electric-purple/90 text-white border-aurora-electric-purple;
+}
+.sonner-toast-warning {
+  @apply bg-orange-500/90 text-white border-orange-400;
+}
+
+/* Ajuste para posicionar notifications em top-right de forma mais clean */
+.sonner-toaster {
+  @apply fixed top-6 right-6 z-[100];
+}
+
+/* Opcional: Remove ícones grandes ou margens internas exageradas */
+.sonner-toast .sonner-icon {
+  @apply mr-2 w-5 h-5;
 }
