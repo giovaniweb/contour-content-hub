@@ -4,6 +4,36 @@ import { FluidaScriptResult, ScriptGenerationData } from '../types';
 import { buildSystemPrompt, buildDisneyPrompt } from '../utils/promptBuilders';
 import { validateScriptData, createFallbackScript } from '../utils/scriptValidation';
 
+// NOVO SISTEMA DE NOMES E TABELA DE RECOMENDAÇÃO
+const MENTORES_SEGUROS = {
+  storytelling: "Mentor do Storytelling",
+  viralizacao: "Mentor da Viralização"
+};
+const METODOLOGIAS_SEGURAS = {
+  light_copy: "Copy Up",
+  coca: "Copy Viral",
+  vts10x: "Stories Magnético"
+};
+const RECOMENDACAO_METODOLOGIA = (formato: string, canal?: string) => {
+  switch ((formato || '').toLowerCase()) {
+    case 'reels':
+      return { mentor: MENTORES_SEGUROS.viralizacao, metodologia: METODOLOGIAS_SEGURAS.coca };
+    case 'stories_10x':
+      return { mentor: MENTORES_SEGUROS.storytelling, metodologia: METODOLOGIAS_SEGURAS.vts10x };
+    case 'tiktok':
+      return { mentor: MENTORES_SEGUROS.viralizacao, metodologia: METODOLOGIAS_SEGURAS.coca };
+    case 'criativo_ads':
+      return { mentor: MENTORES_SEGUROS.storytelling, metodologia: METODOLOGIAS_SEGURAS.light_copy };
+    case 'youtube':
+      return { mentor: MENTORES_SEGUROS.viralizacao, metodologia: METODOLOGIAS_SEGURAS.coca };
+    case 'carrossel':
+      return { mentor: MENTORES_SEGUROS.storytelling, metodologia: METODOLOGIAS_SEGURAS.light_copy };
+    default:
+      // Padrão, formato desconhecido
+      return { mentor: MENTORES_SEGUROS.viralizacao, metodologia: METODOLOGIAS_SEGURAS.coca };
+  }
+};
+
 export const generateFluidaScript = async (
   data: ScriptGenerationData,
   equipmentDetails: any[]
@@ -17,41 +47,13 @@ export const generateFluidaScript = async (
     console.warn('⚠️ [scriptGenerator] Continuando sem equipamentos específicos');
   }
 
-  // Lógica de seleção de mentor & metodologia baseada em formato
-  let mentor = data.mentor;
-  let metodo = '';
+  // Usar recomendação genérica
+  const recomendacao = RECOMENDACAO_METODOLOGIA(data.formato, data.canal);
+  let mentor = recomendacao.mentor;
+  let metodo = recomendacao.metodologia;
   let systemPrompt = '';
   let userPrompt = '';
   const formato = (data.formato || '').toLowerCase();
-
-  // Mapeamento do formato para métodos e mentores específicos
-  switch (formato) {
-    case 'reels':
-      mentor = data.metodologia === 'Light Copy' ? 'Leandro Ladeira' : 'Hyeser Souza';
-      metodo = data.metodologia === 'Light Copy' ? 'Light Copy' : 'COCA';
-      break;
-    case 'stories_10x':
-      mentor = 'Leandro Ladeira';
-      metodo = 'VTS10x';
-      break;
-    case 'tiktok':
-      mentor = 'Hyeser Souza';
-      metodo = 'COCA';
-      break;
-    case 'criativo_ads':
-      mentor = 'Leandro Ladeira';
-      metodo = 'Light Copy';
-      break;
-    case 'youtube':
-      mentor = 'Hyeser Souza';
-      metodo = 'COCA';
-      break;
-    default:
-      // Padrão força Hyeser e COCA
-      mentor = 'Hyeser Souza';
-      metodo = 'COCA';
-      break;
-  }
 
   systemPrompt = buildSystemPrompt(
     equipmentDetails,
@@ -59,7 +61,6 @@ export const generateFluidaScript = async (
     mentor,
     { ...data, metodologia: metodo, formato }
   );
-  
   data.mentor = mentor;
 
   userPrompt = `
@@ -76,8 +77,8 @@ ${equipmentDetails.length > 0
   : 'Nenhum equipamento específico foi selecionado. Use termos genéricos.'}
 
 INSTRUÇÕES ESPECÍFICAS:
-- Crie um roteiro de MÁXIMO 60 segundos (se for reels/ou como limite do formato)
-- Use a estrutura do método ${metodo || 'com base no mentor escolhido'}
+- Crie um roteiro de MÁXIMO 60 segundos (ou limite do formato)
+- Use a estrutura do método ${metodo || 'mais adequado ao formato'}
 - OBRIGATÓRIO: Se equipamentos foram especificados acima, MENCIONE-OS TODOS no roteiro
 - Mantenha tom do mentor ${mentor} e emoção envolvente
 - Formato para ${data.formato || 'carrossel'}

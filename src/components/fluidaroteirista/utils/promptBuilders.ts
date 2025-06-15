@@ -8,53 +8,59 @@ export const buildSystemPrompt = (
   dados: any
 ): string => {
   const { canal, formato, objetivo, estilo, metodologia } = dados;
-  // Só dois mentores agora: Hyeser Souza (COCA) e Leandro Ladeira (Light Copy/VTS10x)
   let mentorReference = '';
   let extraInstructions = '';
 
-  if(metodologia === 'COCA') {
+  // usar nomes e métodos seguros
+  if(metodologia === "Copy Viral") {
     extraInstructions = `
-MÉTODO COCA (Conexão, Objeção, Crescimento, Autoridade):
-1. Defina público-alvo (faixa etária, interesse, estilo de comunicação)
-2. Temas principais/linhas editoriais, limites do que abordar
-3. Objetivo: Conexão / Objeção / Crescimento / Autoridade
-4. Formato: Carrossel, Reels, Post, Stories, TikTok
-5. Tom de voz: educativo, provocativo, divertido, sério, etc.
+MÉTODO Copy Viral (Estrutura rápida de viralização):
+1. Defina o público-alvo
+2. Temas principais, limites, objetivo
+3. Formato: Carrossel, Reels, Post, Stories, TikTok
+4. Tom de voz: educativo/direto...
 
 ESTRUTURA:
-- Gancho inicial forte (primeiros 3 segundos)
+- Gancho forte (até 3s)
 - Desenvolvimento (pontos principais alinhados ao objetivo)
-- CTA clara para gerar interação/engajamento/conversão
-
-Regras:
-- Roteiro criativo, objetivo e pronto para ser gravado, máximo 40s.
-- Linguagem acessível/persuasiva.
+- CTA clara (engajamento ou conversão)
+- Roteiro objetivo e pronto para gravar, aprox. 40s.
+- Linguagem acessível e persuasiva.
 `;
-    mentorReference = "Hyeser Souza — especialista em roteiro COCA";
-  } else if(metodologia === 'Light Copy') {
+    mentorReference = "Mentor da Viralização";
+  } else if(metodologia === "Copy Up") {
     extraInstructions = `
-MÉTODO LIGHT COPY (Leandro Ladeira):
+MÉTODO Copy Up (Storytelling direto para conversão):
+
 - Gancho impactante
-- Storytelling real e emocional
-- Prova concreta (resultado/print)
-- Comando claro (CTA ação prática)
+- História real e emocional
+- Prova concreta
+- Comando claro (CTA direto)
 - Gatilho de expectativa
-- Analogias inusitadas
+- Analogias criativas
 - Bordão/frase de efeito
 
-Estrutura e tom: sempre direto, vendedor e emocional, com CTA forte.
-Proibido: linguagem técnica/fria ou genérica.
+Tom: direto, vendedor e emocional, com CTA forte.
+Evite linguagem técnica/fria/genérica.
 `;
-    mentorReference = "Leandro Ladeira — mestre em Light Copy para conversão";
-  } else if(metodologia === 'VTS10x') {
+    mentorReference = "Mentor do Storytelling";
+  } else if(metodologia === "Stories Magnético") {
     extraInstructions = `
-MÉTODO STORIES 10X (VTS10x - Leandro Ladeira):
-Siga a estrutura de 4 Stories (gancho, erro/identificação, virada/dispositivo de engajamento, CTA suave). Veja detalhes em mentorPrompts.ts (Stories10x).
+MÉTODO Stories Magnético:
+- Exatamente 4 stories conectados
+- Máxima de 40 segundos total
+- Narrativa e engajamento alto
+- Tom: provocativo, emocional, inteligente
+
+ESTRUTURA:
+  1. Gancho provocativo
+  2. Erro comum + identificação
+  3. Virada (solução + engajamento)
+  4. CTA suave + antecipação
 `;
-    mentorReference = "Leandro Ladeira — VTS10x";
+    mentorReference = "Mentor do Storytelling";
   } else {
-    // Fallback: COCA
-    mentorReference = "Hyeser Souza — especialista em roteiro COCA";
+    mentorReference = "Mentor da Viralização";
   }
 
   // Obter configurações do formato
