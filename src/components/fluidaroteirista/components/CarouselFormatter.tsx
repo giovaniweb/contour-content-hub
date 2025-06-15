@@ -181,19 +181,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Botão de salvar - FINAL DA PÁGINA */}
-      <div className="flex justify-center mt-8">
-        <button
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-emerald text-white font-semibold shadow-lg hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/50 text-lg disabled:opacity-60"
-          onClick={handleSave}
-          disabled={isSaving}
-          title="Salvar roteiro"
-        >
-          <Save className="h-6 w-6" />
-          {isSaving ? "Salvando..." : "Salvar Roteiro"}
-        </button>
-      </div>
     </div>
   );
 };
