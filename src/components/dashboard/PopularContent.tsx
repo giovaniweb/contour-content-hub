@@ -5,6 +5,7 @@ import { usePopularContent } from "./hooks/usePopularContent";
 import { getPopularContent } from "./data/popularContentData";
 
 import { useEffect, useState } from "react";
+import { PopularItem } from "./types/popularContent";
 
 const PopularContent: React.FC = () => {
   const [popularContent, setPopularContent] = useState<PopularItem[]>([]);
