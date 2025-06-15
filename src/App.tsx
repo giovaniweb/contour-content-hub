@@ -24,7 +24,6 @@ const NotFound = React.lazy(() => import('@/pages/NotFound'));
 // Content pages
 const FluidaRoteiristPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
 const ContentPlannerPage = React.lazy(() => import('@/pages/ContentPlannerPage'));
-const ContentIdeas = React.lazy(() => import('@/pages/ContentIdeas'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const PhotosPage = React.lazy(() => import('@/pages/PhotosPage'));
 const ArtsPage = React.lazy(() => import('@/pages/ArtsPage'));
@@ -87,7 +86,6 @@ function App() {
                       {/* FIM DA TROCA */}
                       
                       {/* Content Routes */}
-                      <Route path="/content-ideas" element={<AppLayout><ContentIdeas /></AppLayout>} />
                       <Route path="/scientific-articles" element={<AppLayout><ScientificArticles /></AppLayout>} />
                       
                       {/* Marketing Routes */}
