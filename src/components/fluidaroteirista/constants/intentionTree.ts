@@ -1,3 +1,4 @@
+import { ScriptIntention } from '../types';
 
 export const AKINATOR_TREE: Record<string, any> = {
   canal: {
@@ -56,12 +57,13 @@ export const AKINATOR_TREE: Record<string, any> = {
         },
         {
           value: "stories_10x",
-          label: "Stories 10x",
+          label: "Stories Magnético",
           emoji: "🔥",
-          description: "Metodologia Leandro Ladeira - Sequência engajamento",
+          description: "Sequência de engajamento de alta performance",
           tempo_limite: "40s total (4 stories de 10s)",
           output_tipo: "sequencia_engajamento",
-          especialista: "leandro_ladeira"
+          especialista: "Mentor do Storytelling", // Era "leandro_ladeira", agora seguro
+          metodologia: "Stories Magnético"
         },
         {
           value: "carrossel",
@@ -354,3 +356,13 @@ export const MENTOR_PROFILES: Record<string, { name: string; focus: string; styl
     style: 'Lógico, estruturado, antecipativo'
   }
 };
+
+/**
+ * DOCUMENTAÇÃO:
+ * Regras automáticas de recomendação por formato (Canal + Formato):
+ * - stories, reels, tiktok: Mentor da Viralização + Copy Viral
+ * - stories_10x: Mentor do Storytelling + Stories Magnético
+ * - carrossel, post_estatico, criativo_ads: Mentor do Storytelling + Copy Up
+ * - youtube: Mentor da Viralização + Copy Viral
+ * -- Padrão: Mentor da Viralização + Copy Viral
+ */

@@ -67,22 +67,22 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
     inference_rules: [
       {
         condition: (answers) => answers.estilo_comunicacao === 'emocional' || answers.objetivo === 'ensinar',
-        mentor: 'pedro_sobral',
+        mentor: 'Mentor do Storytelling',
         confidence: 0.95
       },
       {
         condition: (answers) => answers.estilo_comunicacao === 'direto' || answers.objetivo === 'vendas',
-        mentor: 'leandro_ladeira',
+        mentor: 'Mentor do Storytelling',
         confidence: 0.92
       },
       {
         condition: (answers) => answers.estilo_comunicacao === 'humoristico' || answers.canal === 'tiktok' || answers.objetivo === 'engajamento',
-        mentor: 'hyeser_souza',
+        mentor: 'Mentor da Viralização',
         confidence: 0.93
       },
       {
         condition: (answers) => answers.estilo_comunicacao === 'criativo' || answers.canal === 'instagram_reels' || answers.tipo_conteudo === 'video',
-        mentor: 'paulo_cuenca',
+        mentor: 'Mentor da Viralização',
         confidence: 0.91
       }
     ]
@@ -109,33 +109,22 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
   }
 };
 
+// Enigmas e perfis dos mentores genéricos
 export const MENTOR_ENIGMAS: Record<string, string> = {
-  'pedro_sobral': "Quem domina o planejamento, nunca improvisa o sucesso.",
-  'leandro_ladeira': "Copy na veia: só quem entende faz vender tanto.",
-  'hyeser_souza': "A viralização não é sorte - é técnica e energia.",
-  'paulo_cuenca': "Se a imagem fala mais que mil palavras, ele é poliglota."
+  'Mentor do Storytelling': "Quem domina o poder das histórias, nunca improvisa o sucesso.",
+  'Mentor da Viralização': "A viralização não é sorte - é técnica de conexão e paixão pelo formato."
 };
 
 export const MENTOR_PROFILES: Record<string, { name: string; focus: string; style: string }> = {
-  'pedro_sobral': {
-    name: 'Pedro Sobral',
-    focus: 'Planejamento estratégico e organização de campanhas',
-    style: 'Estratégico, organizado, detalhista'
+  'Mentor do Storytelling': {
+    name: 'Mentor do Storytelling',
+    focus: 'Narrativas e técnicas de conexão',
+    style: 'Emocional, vendedor, utiliza storytelling, CTA forte'
   },
-  'leandro_ladeira': {
-    name: 'Leandro Ladeira',
-    focus: 'Copywriting e vendas com urgência',
-    style: 'Direto, persuasivo, acelerado'
-  },
-  'hyeser_souza': {
-    name: 'Hyeser Souza',
-    focus: 'Viralização e engajamento orgânico',
-    style: 'Divertido, espontâneo, popular'
-  },
-  'paulo_cuenca': {
-    name: 'Paulo Cuenca',
-    focus: 'Direção criativa e storytelling visual',
-    style: 'Criativo, visual, marcante'
+  'Mentor da Viralização': {
+    name: 'Mentor da Viralização',
+    focus: 'Formatos virais e engajamento rápido',
+    style: 'Direto, dinâmico, persuasivo'
   }
 };
 
