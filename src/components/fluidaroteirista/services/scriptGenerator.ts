@@ -27,17 +27,12 @@ export const generateFluidaScript = async (
   // Mapeamento do formato para métodos e mentores específicos
   switch (formato) {
     case 'reels':
-      mentor = 'Hyeser Souza';
-      metodo = 'COCA'; // Se você quiser permitir alternância COCA/Light Copy, adicione lógica
+      mentor = data.metodologia === 'Light Copy' ? 'Leandro Ladeira' : 'Hyeser Souza';
+      metodo = data.metodologia === 'Light Copy' ? 'Light Copy' : 'COCA';
       break;
     case 'stories_10x':
       mentor = 'Leandro Ladeira';
       metodo = 'VTS10x';
-      break;
-    case 'carrossel':
-    case 'post_estatico':
-      mentor = 'Paulo Cuenca';
-      metodo = 'Cuenca';
       break;
     case 'tiktok':
       mentor = 'Hyeser Souza';
@@ -52,8 +47,9 @@ export const generateFluidaScript = async (
       metodo = 'COCA';
       break;
     default:
-      mentor = data.mentor || 'Criativo';
-      metodo = data.modo || '';
+      // Padrão força Hyeser e COCA
+      mentor = 'Hyeser Souza';
+      metodo = 'COCA';
       break;
   }
 

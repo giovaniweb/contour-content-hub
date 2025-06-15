@@ -1,14 +1,18 @@
 import { FORMATO_CONFIGS } from '../constants/intentionTree';
 import { getMentorReference } from './mentorReferences';
 
-export const buildSystemPrompt = (equipmentDetails: any[], modo: string, mentor: string, dados: any): string => {
+export const buildSystemPrompt = (
+  equipmentDetails: any[],
+  modo: string,
+  mentor: string,
+  dados: any
+): string => {
   const { canal, formato, objetivo, estilo, metodologia } = dados;
-  // Adiciona regras rígidas conforme mentor/metodologia
-  let mentorReference = getMentorReference(mentor);
+  // Só dois mentores agora: Hyeser Souza (COCA) e Leandro Ladeira (Light Copy/VTS10x)
+  let mentorReference = '';
   let extraInstructions = '';
-  
-  // Lógica extra: método/metodologia
-  if (metodologia === 'COCA') {
+
+  if(metodologia === 'COCA') {
     extraInstructions = `
 MÉTODO COCA (Conexão, Objeção, Crescimento, Autoridade):
 1. Defina público-alvo (faixa etária, interesse, estilo de comunicação)
@@ -27,7 +31,7 @@ Regras:
 - Linguagem acessível/persuasiva.
 `;
     mentorReference = "Hyeser Souza — especialista em roteiro COCA";
-  } else if (metodologia === 'Light Copy') {
+  } else if(metodologia === 'Light Copy') {
     extraInstructions = `
 MÉTODO LIGHT COPY (Leandro Ladeira):
 - Gancho impactante
@@ -42,18 +46,15 @@ Estrutura e tom: sempre direto, vendedor e emocional, com CTA forte.
 Proibido: linguagem técnica/fria ou genérica.
 `;
     mentorReference = "Leandro Ladeira — mestre em Light Copy para conversão";
-  } else if (metodologia === 'VTS10x') {
+  } else if(metodologia === 'VTS10x') {
     extraInstructions = `
 MÉTODO STORIES 10X (VTS10x - Leandro Ladeira):
 Siga a estrutura de 4 Stories (gancho, erro/identificação, virada/dispositivo de engajamento, CTA suave). Veja detalhes em mentorPrompts.ts (Stories10x).
 `;
     mentorReference = "Leandro Ladeira — VTS10x";
-  } else if (metodologia === 'Cuenca') {
-    extraInstructions = `
-MÉTODO CUENCA (Narrativa Visual Premium):
-Foque 100% em direção de arte, estética e storytelling visual poderoso para posicionamento premium. Estrutura e exemplos no mentorPrompts.ts.
-`;
-    mentorReference = "Paulo Cuenca — mestre da narrativa visual e estética";
+  } else {
+    // Fallback: COCA
+    mentorReference = "Hyeser Souza — especialista em roteiro COCA";
   }
 
   // Obter configurações do formato
@@ -62,9 +63,7 @@ Foque 100% em direção de arte, estética e storytelling visual poderoso para p
   const palavrasMax = formatConfig.palavras_max;
   const estrutura = formatConfig.estrutura;
 
-  // NÃO redeclare mentorReference aqui! Ele já foi setado corretamente no código acima.
-
-  const equipmentContext = equipmentDetails.length > 0 
+  const equipmentContext = equipmentDetails.length > 0
     ? equipmentDetails.map(eq => `
       - ${eq.nome}: ${eq.tecnologia}
       - Indicações: ${eq.indicacoes}
@@ -73,7 +72,7 @@ Foque 100% em direção de arte, estética e storytelling visual poderoso para p
     `).join('\n')
     : '';
 
-  const equipmentInstructions = equipmentDetails.length > 0 
+  const equipmentInstructions = equipmentDetails.length > 0
     ? `
     🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
     - OBRIGATÓRIO: Mencione TODOS os equipamentos listados: ${equipmentDetails.map(eq => eq.nome).join(', ')}
