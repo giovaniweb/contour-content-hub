@@ -39,7 +39,7 @@ const VideoPlayer = React.lazy(() => import('@/pages/VideoPlayer'));
 
 // Equipment pages
 // Import the new page
-import EquipmentList from "@/components/admin/EquipmentList";
+import EquipmentList from "@/pages/EquipmentList";
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
