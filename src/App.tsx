@@ -53,6 +53,8 @@ const WorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettin
 import { queryClient } from './config/queryClient';
 
 const DiagnosticHistory = React.lazy(() => import('@/pages/DiagnosticHistory'));
+const DiagnosticReport = React.lazy(() => import('@/pages/DiagnosticReport'));
+const DiagnosticReportRoot = React.lazy(() => import('@/pages/DiagnosticReportRoot'));
 
 function App() {
   return (
@@ -86,6 +88,10 @@ function App() {
                       {/* TROCA AQUI - Equipamentos */}
                       <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
                       {/* FIM DA TROCA */}
+                      
+                      {/* Diagnóstico de Relatório */}
+                      <Route path="/diagnostic-report/:sessionId" element={<AppLayout><DiagnosticReport /></AppLayout>} />
+                      <Route path="/diagnostic-report" element={<AppLayout><DiagnosticReportRoot /></AppLayout>} />
                       
                       {/* Histórico de Diagnósticos */}
                       <Route path="/diagnostic-history" element={<AppLayout><DiagnosticHistory /></AppLayout>} />
