@@ -115,7 +115,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
       </motion.div>
 
       {/* Equipamentos Integrados */}
-      {/* Renderize o bloco de equipamentos se houver, substitua `equipment_used` pela fonte de dados correta se preciso */}
       {equipment_used.length > 0 && (
         <div>
           {/* Supondo que EquipmentDetails mostre o bloco de equipamentos integrados */}
