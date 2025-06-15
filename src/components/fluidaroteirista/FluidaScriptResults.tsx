@@ -69,11 +69,14 @@ const FluidaScriptResults = ({
         {/* We remove onApproveScript from ScriptFormatter, as its props don't accept it */}
         <ScriptFormatter script={roteiroParaExibir} />
         {improvedScript && (
-          <Card className="mt-6 aurora-glass border-green-500/40">
+          <Card className="mt-6 aurora-glass border-aurora-emerald/40 shadow-lg animate-fade-in">
             <CardContent>
-              <div className="text-green-400 font-bold mb-2 text-lg">Roteiro Anterior:</div>
-              <div className="bg-slate-900/60 p-4 rounded-lg border border-green-500/20">
-                <pre className="text-slate-200 whitespace-pre-line font-mono text-[15px] leading-relaxed" style={{ wordBreak: 'break-word', background: 'none', padding: 0, margin: 0 }}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-lg">🕑</span>
+                <span className="text-emerald-400 font-bold text-lg">Roteiro Anterior</span>
+              </div>
+              <div className="bg-gradient-to-br from-slate-900/80 via-emerald-900/40 to-slate-800/80 rounded-xl p-4 border border-emerald-400/10">
+                <pre className="text-slate-100 whitespace-pre-line font-mono text-base leading-relaxed break-words" style={{ background: 'none', padding: 0, margin: 0 }}>
                   {results[0].roteiro}
                 </pre>
               </div>
