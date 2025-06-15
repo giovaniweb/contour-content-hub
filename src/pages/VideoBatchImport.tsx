@@ -73,16 +73,8 @@ const VideoBatchImport: React.FC = () => {
 
   // Verificar se a integração com o Vimeo está configurada
   useEffect(() => {
-    const checkVimeoConfig = async () => {
-      try {
-        const config = await getVimeoConfig();
-        setIsConfigured(!!(config && config.folder_id));
-      } catch (error) {
-        console.error("Erro ao verificar configuração do Vimeo:", error);
-      }
-    };
-    
-    checkVimeoConfig();
+    // Vimeo integration is discontinued; always set as not configured
+    setIsConfigured(false);
   }, []);
 
   // Atualizar o equipamento selecionado
