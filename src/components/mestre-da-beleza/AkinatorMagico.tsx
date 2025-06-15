@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,79 +9,68 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 import { useAkinatorIntentionTree } from "./hooks/useAkinatorIntentionTree";
 import { IntentionNode } from "./intentionTree";
 
-// Mantém visual moderno e responsivo
+// Frase mística
+const mysticalPhrases = [
+  "O universo da beleza conspira por você.",
+  "Cada escolha revela um novo caminho.",
+  "O diagnóstico mágico está quase pronto!",
+  "Sua jornada estética é única.",
+  "Siga as pistas da sua transformação."
+];
+
 const AkinatorMagico: React.FC = () => {
   const { currentNode, history, completed, answer, reset, profile } = useAkinatorIntentionTree();
 
-  // Progresso atualizado: dividir por quantidade real de perguntas do fluxo do perfil
-  const totalQuestions =
-    profile === "profissional"
-      ? 4 // init + perfil_profissional + pro_motivacao + pro_dificuldade + pro_final (final conta numa view, não no progresso)
-      : profile === "cliente"
-      ? 4 // init + perfil_cliente + cli_area_desejo + cli_sentimento + cli_final
-      : 1; // só primeira
+  // Calcula progresso com base no histórico
+  const totalQuestionsEstimate = 5;
+  const progress = Math.min(100, Math.round((history.length / totalQuestionsEstimate) * 100));
+  const mysticalPhrase = mysticalPhrases[history.length % mysticalPhrases.length];
 
-  const answeredCount = history.length;
-  const progress = Math.min(100, Math.round((answeredCount / totalQuestions) * 100));
-
-  // UX: frase divertida para o topo (simples demonstrativo)
-  const mysticalPhrases = [
-    "O universo da beleza conspira a seu favor...",
-    "A lâmpada mágica sente sua energia!",
-    "Cada desejo conta, não economize sonhos.",
-    "Seu futuro estético está sendo revelado...",
-    "Pense bem: gênios também têm limite de pedidos!",
-    "A verdadeira beleza começa na intenção."
-  ];
-  const mysticalPhrase = mysticalPhrases[answeredCount % mysticalPhrases.length];
-
-  // Mensagem final com "adivinhação" de perfil
+  // Busca o texto final na node
   function getFinalDiagnosis() {
-    if (profile === "profissional") {
-      // pega respostas chaves
-      const experiencia = history.find(h => h.questionId === "perfil_profissional")?.answer;
-      const motivacao = history.find(h => h.questionId === "pro_motivacao")?.answer;
-      const desafio = history.find(h => h.questionId === "pro_dificuldade")?.answer;
+    // Pega o último nó do histórico do usuário (deve ser final)
+    let lastFinalNode: IntentionNode | undefined =
+      currentNode && currentNode.type === "final"
+        ? currentNode
+        : INTENTION_TREE.find(n =>
+            n.id === history[history.length - 1]?.questionId && n.type === "final"
+          );
+    // fallback: busca pelo id caso type diferente
+    if (!lastFinalNode && history.length > 0) {
+      lastFinalNode = INTENTION_TREE.find(n => n.id === history[history.length - 1].questionId);
+    }
+
+    if (lastFinalNode && lastFinalNode.type === "final") {
+      const emojiRe = /([^\w\s,.!?'"“”‘’]+)/;
+      const parts = lastFinalNode.text.split(emojiRe);
+      const emoji = parts.find(p => emojiRe.test(p));
+      const text = lastFinalNode.text.replace(emoji || "", "").trim();
+
       return (
-        <div>
-          <div className="text-2xl font-bold text-pink-300 mb-2">
-            💼 Você é um(a) PROFISSIONAL da estética!
+        <div className="flex flex-col items-center">
+          {emoji && (
+            <span className="text-4xl mb-2">{emoji}</span>
+          )}
+          <h3 className="text-xl font-extrabold mb-2 text-pink-300 text-center drop-shadow">
+            Consulta Finalizada!
+          </h3>
+          <div className="font-bold mb-2 text-white text-lg text-center">
+            {/* Palpite do Akinator/Diagnóstico personalizado */}
+            {text.split('\n').map((t, idx) => (
+              <span key={idx} className="block">{t}</span>
+            ))}
           </div>
-          <div className="text-purple-200 mb-4">
-            Nível: <b>{experiencia || "Indefinido"}</b><br />
-            Inspiração: <b>{motivacao || "Indefinida"}</b><br />
-            Desafio atual: <b>{desafio || "Indefinido"}</b>
-          </div>
-          <div className="mb-3 text-purple-400">
-            Diagnóstico: Seu sucesso vai acelerar juntando <b>novas tecnologias</b> e focando em <b>{desafio}</b>. <br />
-            Lembre-se: <span className="italic">A verdadeira inovação começa com autoconfiança!</span>
+          <div className="mt-3 italic text-purple-200 text-center text-sm">
+            Obrigado por confiar na Jornada Fluida!
           </div>
         </div>
       );
     }
-    if (profile === "cliente") {
-      const motivacao = history.find(h => h.questionId === "perfil_cliente")?.answer;
-      const sonho = history.find(h => h.questionId === "cli_area_desejo")?.answer;
-      const humor = history.find(h => h.questionId === "cli_sentimento")?.answer;
-      return (
-        <div>
-          <div className="text-2xl font-bold text-pink-300 mb-2">🪞 Você é CLIENTE da estética!</div>
-          <div className="text-purple-200 mb-4">
-            <span>Motivação: <b>{motivacao || "Indefinida"}</b></span><br />
-            <span>Maior desejo: <b>{sonho || "Indefinido"}</b></span><br />
-            <span>Humor do espelho: <b>{humor || "Indefinido"}</b></span>
-          </div>
-          <div className="mb-3 text-purple-400">
-            Diagnóstico: O melhor cuidado começa pelo autoconhecimento. <br />
-            <span className="italic">Continue buscando autoestima — ela é seu maior poder mágico!</span>
-          </div>
-        </div>
-      );
-    }
-    // fallback caso a pessoa não respondeu nem a primeira
+
+    // Se não houve final node clara
     return (
       <div className="text-purple-300">
-        Perfil não identificado. <br /> Tente novamente!
+        Perfil não identificado.<br /> Tente novamente!
       </div>
     );
   }
@@ -101,14 +91,10 @@ const AkinatorMagico: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50">
-                <CardContent className="p-8 text-center">
-                  <div className="text-3xl mb-2">🎉</div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Consulta Finalizada!
-                  </h3>
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-xl">
+                <CardContent className="p-8 flex flex-col items-center justify-center">
                   {getFinalDiagnosis()}
-                  <Button onClick={reset} variant="outline" className="mt-4">
+                  <Button onClick={reset} variant="outline" className="mt-6">
                     <RotateCcw className="mr-2 h-4 w-4" />
                     Fazer novamente
                   </Button>
@@ -125,7 +111,7 @@ const AkinatorMagico: React.FC = () => {
             >
               <div className="flex justify-between items-center">
                 <Badge variant="outline" className="border-purple-400 text-purple-400">
-                  Pergunta {answeredCount + 1}
+                  Pergunta {history.length + 1}
                 </Badge>
                 <span className="text-purple-300 italic text-sm">{mysticalPhrase}</span>
               </div>
@@ -136,7 +122,7 @@ const AkinatorMagico: React.FC = () => {
                 </div>
                 <Progress value={progress} className="h-3 bg-purple-900/50" />
               </div>
-              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50">
+              <Card className="bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-purple-400/50 shadow-lg">
                 <CardContent className="p-8">
                   <div className="text-2xl font-bold text-white text-center mb-4">{currentNode.text}</div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

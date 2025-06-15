@@ -8,8 +8,7 @@ export function useAkinatorIntentionTree() {
   const [history, setHistory] = useState<IntentionAnswer[]>([]);
   const [currentId, setCurrentId] = useState("init");
   const [completed, setCompleted] = useState(false);
-  // NOVO: guardar o perfil identificado
-  const [profile, setProfile] = useState<"profissional" | "cliente" | null>(null);
+  const [profile, setProfile] = useState<"profissional" | "cliente" | "explorador" | null>(null);
 
   const getCurrentNode = (): IntentionNode | undefined => INTENTION_TREE.find(n => n.id === currentId);
 
@@ -19,16 +18,18 @@ export function useAkinatorIntentionTree() {
 
     setHistory(hist => [...hist, { questionId: node.id, answer: option }]);
 
-    // Detecta e salva perfil
+    // Detecta perfil logico
     if (node.id === "init") {
-      if (option === "Eu atendo ou trabalho oferecendo procedimentos estéticos") {
+      if (option === "Atendo clientes na área da estética") {
         setProfile("profissional");
-      } else {
+      } else if (option === "Quero tratar algo na minha pele ou corpo") {
         setProfile("cliente");
+      } else {
+        setProfile("explorador");
       }
     }
 
-    // Proximo passo
+    // Ramifica caminhos ou termina
     if (typeof node.next === "string") {
       setCurrentId(node.next);
     } else if (typeof node.next === "object" && node.next !== null) {
@@ -42,8 +43,8 @@ export function useAkinatorIntentionTree() {
       setCompleted(true);
     }
 
-    // Chegou ao final?
-    if (!node.next || node.type === "final" || node.id.endsWith("final")) {
+    // Nodo final sempre encerra
+    if (node.type === "final" || !node.next) {
       setCompleted(true);
     }
   };
