@@ -1,69 +1,81 @@
-
 import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "./button";
 import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 
 /**
- * Props para o botão de geração de PDF Aurora
+ * Novo: Props incluem as três seções para PDF dividido
  */
 interface GenerateAuroraPdfButtonProps {
   sessionId: string;
-  diagnosticText: string;
+  diagnosticSection: string;
+  actionsSection: string;
+  contentSection: string;
   title: string;
   type?: string;
 }
 
 const GenerateAuroraPdfButton: React.FC<GenerateAuroraPdfButtonProps> = ({
   sessionId,
-  diagnosticText,
+  diagnosticSection,
+  actionsSection,
+  contentSection,
   title,
   type = "marketingDiagnostic",
 }) => {
   const [loading, setLoading] = useState(false);
 
   const handleExportPdf = async () => {
-    if (!diagnosticText || diagnosticText.trim().length < 10) {
-      toast.error("Conteúdo vazio", {
-        description: "Não há um diagnóstico para exportar.",
+    if (
+      !diagnosticSection?.trim() ||
+      !actionsSection?.trim() ||
+      !contentSection?.trim()
+    ) {
+      toast.error("Conteúdo incompleto", {
+        description: "Todas as seções do relatório devem estar preenchidas.",
       });
       return;
     }
     setLoading(true);
     try {
-      // Chama a Supabase Edge Function para gerar o PDF
-      const response = await fetch(
-        `https://mksvzhgqnsjfolvskibq.functions.supabase.co/generate-pdf`,
+      // Use invoke para adicionar token automaticamente
+      // Buscamos URL/token do supabase do ambiente global:
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+
+      const { data, error } = await supabase.functions.invoke(
+        "generate-pdf",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+          body: {
             scriptId: sessionId,
-            content: diagnosticText,
+            diagnosticSection,
+            actionsSection,
+            contentSection,
             title,
             type,
-          }),
+          },
         }
       );
-
-      const result = await response.json();
-
-      if (result && result.success && result.pdfUrl) {
-        window.open(result.pdfUrl, "_blank");
+      if (error) {
+        toast.error("Erro ao gerar PDF", { description: error.message });
+        return;
+      }
+      if (data && data.success && data.pdfUrl) {
+        window.open(data.pdfUrl, "_blank");
         toast.success("PDF exportado!", {
-          description: "O PDF em estilo Aurora foi gerado e está aberto em outra aba.",
+          description: "O PDF Aurora Boreal foi gerado e está aberto em outra aba.",
         });
-      } else if (result && result.error) {
-        toast.error("Erro ao gerar PDF", { description: result.error });
+      } else if (data && data.error) {
+        toast.error("Erro ao gerar PDF", { description: data.error });
       } else {
         toast.error("Falha ao gerar PDF", {
-          description: "Não foi possível gerar o PDF.",
+          description: "Resposta inesperada do servidor.",
         });
       }
-    } catch (e) {
-      toast.error("Erro ao conectar", { description: "Falha de comunicação com servidor PDF." });
+    } catch (e: any) {
+      toast.error("Erro ao conectar", { description: String(e) });
     } finally {
       setLoading(false);
     }

@@ -9,6 +9,7 @@ import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
 import ReportPdfButton from '@/components/ui/ReportPdfButton';
 import GenerateAuroraPdfButton from "@/components/ui/GenerateAuroraPdfButton";
+import { extractDiagnosticSections } from "@/components/diagnostic-report/diagnostic-sections/diagnosticSectionUtils";
 
 interface SavedDiagnosticsSectionProps {
   savedDiagnostics: DiagnosticSession[];
@@ -123,16 +124,22 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                       diagnosticTitle={session.clinicTypeLabel}
                     />
                   ) : (
-                    // Botão de exportar PDF Aurora: só se existe conteúdo para exportar e ainda não existe o PDF
+                    // Botão exportar PDF Aurora com as 3 seções!
                     typeof session.state.generatedDiagnostic === "string" &&
-                    session.state.generatedDiagnostic.length > 10 && (
-                      <GenerateAuroraPdfButton
-                        sessionId={session.id}
-                        diagnosticText={session.state.generatedDiagnostic}
-                        title={session.clinicTypeLabel || "Relatório Fluida"}
-                        type="marketingDiagnostic"
-                      />
-                    )
+                    session.state.generatedDiagnostic.length > 10 && (() => {
+                      // Separar as seções para exportação bonitinha em PDF
+                      const sections = extractDiagnosticSections(session.state.generatedDiagnostic || "");
+                      return (
+                        <GenerateAuroraPdfButton
+                          sessionId={session.id}
+                          diagnosticSection={sections.estrategico}
+                          actionsSection={sections.planoAcao}
+                          contentSection={sections.conteudo}
+                          title={session.clinicTypeLabel || "Relatório Fluida"}
+                          type="marketingDiagnostic"
+                        />
+                      );
+                    })()
                   )}
 
                   <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
