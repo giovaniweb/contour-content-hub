@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Trash2, Download, Shield, AlertTriangle, Eraser } from "lucide-react";
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
+import ReportPdfButton from '@/components/ui/ReportPdfButton';
 
 interface SavedDiagnosticsSectionProps {
   savedDiagnostics: DiagnosticSession[];
@@ -113,7 +113,17 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     session={session}
                     onClick={() => handleViewReport(session)}
                   />
-                  
+
+                  <ReportPdfButton
+                    pdfUrl={
+                      // Procura possivel PDF (Ex: session.pdfUrl, session.state.generatedDiagnosticPdfUrl, etc)
+                      session.pdfUrl ||
+                      (session.state && session.state.generatedDiagnosticPdfUrl) ||
+                      undefined
+                    }
+                    diagnosticTitle={session.clinicTypeLabel}
+                  />
+
                   <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
                     <Download className="h-3 w-3" />
                     Download
