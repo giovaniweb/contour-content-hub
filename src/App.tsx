@@ -64,6 +64,9 @@ import Suporte from "@/pages/Institucional/Suporte";
 
 const ProfileDashboard = React.lazy(() => import('@/pages/ProfileDashboard'));
 
+// Integração Instagram - NOVA
+const InstagramIntegrationPage = React.lazy(() => import('@/pages/integrations/InstagramIntegrationPage'));
+
 function App() {
   return (
     <SlideNotificationProvider>
@@ -140,6 +143,9 @@ function App() {
                       <Route path="/institucional/o-que-e" element={<AppLayout><OQueE /></AppLayout>} />
                       <Route path="/institucional/contato" element={<AppLayout><Contato /></AppLayout>} />
                       <Route path="/institucional/suporte" element={<AppLayout><Suporte /></AppLayout>} />
+                      
+                      {/* Integração Instagram - NOVA */}
+                      <Route path="/integrations/instagram" element={<AppLayout><InstagramIntegrationPage /></AppLayout>} />
                     </Routes>
                   </Suspense>
                   <Toaster />
