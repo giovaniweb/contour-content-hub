@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,8 +50,33 @@ const getSlideTheme = (tipo: string) => {
   return themes[tipo as keyof typeof themes] || themes.gancho;
 };
 
+// Função utilitária para limpar metadados técnicos dos stories que possam ter vindo no roteiro
+function removeStoryMetaLines(slides: Stories10xSlide[]): Stories10xSlide[] {
+  // Palavras-chave de metadados a serem ignoradas caso apareçam no texto do slide
+  const metaKeys = [
+    'formato', 'metodologia', 'stories_total', 'tempo_total',
+    'dispositivos_usados', 'tom_narrativo', 'engajamento_esperado'
+  ];
+  const metaRegex = new RegExp(`^\\s*("?(?:${metaKeys.join('|')})"?\\s*:|[“”]?(${metaKeys.join('|')})[””]?\\s*:)`, 'i');
+
+  return slides
+    .filter(slide =>
+      // Garante que o slide não é apenas uma linha do JSON de metadados
+      !metaKeys.some(key => {
+        // Checa no campo 'titulo' e no 'conteudo' (caso venha como "formato: stories_10x" em qualquer campo)
+        return (
+          (typeof slide.titulo === 'string' && metaRegex.test(slide.titulo)) ||
+          (typeof slide.conteudo === 'string' && metaRegex.test(slide.conteudo))
+        );
+      })
+    );
+}
+
 const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => {
-  if (slides.length === 0) {
+  // Remove as linhas meta técnicas dos slides
+  const filteredSlides = removeStoryMetaLines(slides);
+
+  if (filteredSlides.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-slate-400">Nenhum story encontrado no roteiro.</p>
@@ -96,7 +120,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
-              {slides.map((slide, index) => (
+              {filteredSlides.map((slide, index) => (
                 <React.Fragment key={index}>
                   <motion.div 
                     className="flex flex-col items-center"
@@ -116,7 +140,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
                       <span className="text-xs text-gray-400">{slide.tempo}</span>
                     </div>
                   </motion.div>
-                  {index < slides.length - 1 && (
+                  {index < filteredSlides.length - 1 && (
                     <div className="text-yellow-400 text-2xl">→</div>
                   )}
                 </React.Fragment>
@@ -128,7 +152,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides }) => 
 
       {/* Stories Individuais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {slides.map((slide, index) => {
+        {filteredSlides.map((slide, index) => {
           const icon = getSlideIcon(slide.tipo);
           const theme = getSlideTheme(slide.tipo);
           
