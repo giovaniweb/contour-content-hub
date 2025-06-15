@@ -1,44 +1,22 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import ScriptFormatter from "./components/ScriptFormatter";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Wand2, 
-  Download, 
-  Copy, 
-  RefreshCw, 
-  Sparkles, 
-  Image as ImageIcon,
-  Mic,
-  Castle,
-  Clock,
-  Zap,
-  CheckCircle,
-  ThumbsUp,
-  Loader2,
-  Camera
-} from "lucide-react";
-import { toast } from 'sonner';
-import { getMentorNickname } from './constants/mentorNames';
-import ScriptFormatter from './components/ScriptFormatter';
-import ElementosUniversaisDisplay from './components/ElementosUniversaisDisplay';
-import DisneyTransformation from './components/DisneyTransformation';
-import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
-import ImageGenerationModal from './components/ImageGenerationModal';
-import { usePhotographicImageGeneration } from '@/hooks/usePhotographicImageGeneration';
-import PhotographicImageModal from './components/PhotographicImageModal';
+import { Wand2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { FluidaScriptResult } from "../types";
 
 interface FluidaScriptResultsProps {
-  results: any[];
+  results: FluidaScriptResult[];
   onNewScript: () => void;
-  onGenerateImage: (script: any) => void;
-  onGenerateAudio: (script: any) => void;
-  onApplyDisney: (script: any) => void;
+  onGenerateImage: (script: any) => Promise<void>;
+  onGenerateAudio: (script: any) => Promise<void>;
+  onApplyDisney: () => void;
   isProcessing: boolean;
 }
 
-const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
+const FluidaScriptResults = ({
   results,
   onNewScript,
   onGenerateImage,
@@ -46,466 +24,80 @@ const FluidaScriptResults: React.FC<FluidaScriptResultsProps> = ({
   onApplyDisney,
   isProcessing
 }) => {
-  const [disneyAnimating, setDisneyAnimating] = useState(false);
-  const [isApproved, setIsApproved] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [showPhotographicModal, setShowPhotographicModal] = useState(false);
-  const script = results[0];
+  const [isImproving, setIsImproving] = useState(false);
+  const [improvedScript, setImprovedScript] = useState<string | null>(null);
 
-  // Hook original para geração múltipla de imagens
-  const { 
-    generateImages, 
-    retryFailedImages,
-    isGenerating: isGeneratingImages, 
-    generatedImages, 
-    progress,
-    errors,
-    downloadImage, 
-    downloadAllImages,
-    clearImages 
-  } = useMultipleImageGeneration();
-
-  // Hook novo para geração fotográfica
-  const { 
-    generatePhotographicImages, 
-    retryFailedImages: retryFailedPhotos,
-    isGenerating: isGeneratingPhotos, 
-    generatedImages: photographicImages, 
-    slidePrompts,
-    progress: photoProgress,
-    errors: photoErrors,
-    downloadImage: downloadPhoto, 
-    downloadAllImages: downloadAllPhotos,
-    clearImages: clearPhotos 
-  } = usePhotographicImageGeneration();
-
-  const handleCopyScript = () => {
-    const textToCopy = script.roteiro || script.content || '';
-    navigator.clipboard.writeText(textToCopy);
-    toast.success('✅ Roteiro copiado!', {
-      description: 'O texto foi copiado para sua área de transferência.'
-    });
+  // Função para chamar a edge function de melhoria do roteiro
+  const handleImproveScript = async () => {
+    const roteiroBase = results && results[0] ? results[0].roteiro : "";
+    if (!roteiroBase) {
+      toast.warning("Nenhum roteiro disponível para melhorar.");
+      return;
+    }
+    setIsImproving(true);
+    setImprovedScript(null);
+    try {
+      // Chama a edge function /improve-script
+      const { data, error } = await supabase.functions.invoke("improve-script", {
+        body: {
+          content: roteiroBase,
+        },
+      });
+      if (error || !data?.improved) {
+        toast.error("Falha ao melhorar roteiro. Tente novamente.");
+      } else {
+        setImprovedScript(data.improved);
+        toast.success("Roteiro melhorado com sucesso!");
+      }
+    } catch (err) {
+      toast.error("Erro inesperado ao melhorar roteiro.");
+    }
+    setIsImproving(false);
   };
 
-  const handleDownloadScript = () => {
-    const textToDownload = script.roteiro || script.content || '';
-    const blob = new Blob([textToDownload], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `roteiro-fluida-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('📥 Download iniciado!', {
-      description: 'Seu roteiro está sendo baixado.'
-    });
-  };
-
-  const handleApproveScript = () => {
-    setIsApproved(true);
-    toast.success('✅ Roteiro Aprovado!', {
-      description: 'Agora você pode gerar conteúdo adicional.'
-    });
-  };
-
-  const handleGenerateImages = async () => {
-    console.log('🖼️ [FluidaScriptResults] Iniciando geração de imagens padrão para:', script.formato);
-    clearImages();
-    setShowImageModal(true);
-    await generateImages(script);
-  };
-
-  const handleGeneratePhotographicImages = async () => {
-    console.log('📸 [FluidaScriptResults] Iniciando geração de imagens fotográficas para:', script.formato);
-    clearPhotos();
-    setShowPhotographicModal(true);
-    await generatePhotographicImages(script);
-  };
-
-  const handleRetryFailedImages = async (failedIndexes: number[]) => {
-    await retryFailedImages(script, failedIndexes);
-  };
-
-  const handleRetryFailedPhotos = async (failedIndexes: number[]) => {
-    await retryFailedPhotos(script, failedIndexes);
-  };
-
-  const handleApplyDisney = async () => {
-    setDisneyAnimating(true);
-    setTimeout(async () => {
-      await onApplyDisney(script);
-      setDisneyAnimating(false);
-    }, 3000);
-  };
-
-  // Verificar se o formato suporta áudio
-  const isVideoFormat = () => {
-    const audioFormats = ['reels', 'video', 'short'];
-    return audioFormats.includes(script.formato?.toLowerCase());
-  };
-
-  if (!script) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-slate-400">Nenhum roteiro encontrado.</p>
-        <Button onClick={onNewScript} className="mt-4">
-          Criar Novo Roteiro
-        </Button>
-      </div>
-    );
-  }
-
-  const isDisneyApplied = script.disney_applied || script.mentor?.includes('Disney') || script.mentor?.includes('Walt');
-  const mentorNickname = getMentorNickname(script.mentor || 'Criativo');
-  const estimatedTime = Math.round((script.roteiro.split(/\s+/).length / 150) * 60);
-  const isWithinTimeLimit = estimatedTime <= 60;
+  const roteiroParaExibir =
+    improvedScript !== null
+      ? { ...results[0], roteiro: improvedScript }
+      : results[0];
 
   return (
-    <>
-      <DisneyTransformation 
-        isActive={disneyAnimating} 
-        onComplete={() => setDisneyAnimating(false)} 
-      />
-      
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+    <div className="space-y-6">
+      {/* Botões de ações */}
+      <div className="flex flex-wrap gap-2 items-center mb-4">
+        <Button variant="secondary" onClick={onNewScript}>Novo roteiro</Button>
+        <Button variant="ghost" onClick={onApplyDisney}>
+          <Wand2 className="h-4 w-4 mr-1" />
+          Aplicar Disney Magic
+        </Button>
+        <Button 
+          variant={improvedScript ? "outline" : "default"}
+          loading={isImproving}
+          disabled={isImproving}
+          onClick={handleImproveScript}
         >
-          <div className="flex items-center justify-center gap-3">
-            <motion.div
-              whileHover={{ rotate: 360, scale: 1.1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
-            </motion.div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-50">
-                ✨ Seu Roteiro FLUIDA Está Pronto!
-              </h1>
-              <div className="flex items-center justify-center gap-4 mt-2">
-                <p className="text-slate-400">
-                  Criado por: <strong>{mentorNickname}</strong>
-                </p>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-                  isWithinTimeLimit 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  <Clock className="h-3 w-3" />
-                  {estimatedTime}s
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Roteiro Principal */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full"
-        >
-          <Card className="aurora-glass border-aurora-electric-purple/30">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  🎬 Roteiro Final
-                  {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      <Zap className="h-3 w-3 mr-1" />
-                      {script.equipamentos_utilizados.length} equipamento(s)
-                    </Badge>
-                  )}
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyScript}
-                    className="text-xs"
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Copiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadScript}
-                    className="text-xs"
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    Baixar
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScriptFormatter script={script} />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Cards de Status */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
-          {/* Status Disney */}
-          {isDisneyApplied && (
-            <Card className="aurora-glass border-yellow-500/30 bg-yellow-500/5">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-yellow-400">
-                  <Castle className="h-5 w-5" />
-                  <span className="font-semibold">Disney Magic Aplicada!</span>
-                </div>
-                <p className="text-xs text-yellow-300 mt-1">
-                  Transformado com a narrativa mágica de Walt Disney 1928
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Status de Tempo */}
-          <Card className={`aurora-glass ${
-            isWithinTimeLimit 
-              ? 'border-green-500/30 bg-green-500/5' 
-              : 'border-red-500/30 bg-red-500/5'
-          }`}>
-            <CardContent className="p-4">
-              <div className={`flex items-center gap-2 ${
-                isWithinTimeLimit ? 'text-green-400' : 'text-red-400'
-              }`}>
-                <Clock className="h-5 w-5" />
-                <span className="font-semibold">
-                  {isWithinTimeLimit ? 'Tempo Ideal ✅' : 'Atenção ao Tempo ⚠️'}
-                </span>
-              </div>
-              <p className={`text-xs mt-1 ${
-                isWithinTimeLimit ? 'text-green-300' : 'text-red-300'
-              }`}>
-                {estimatedTime}s de leitura | {isWithinTimeLimit ? 'Perfeito para redes sociais' : 'Considere encurtar'}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Status de Equipamentos */}
-          {script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0 && (
-            <Card className="aurora-glass border-indigo-500/30 bg-indigo-500/5">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-indigo-400">
-                  <Zap className="h-5 w-5" />
-                  <span className="font-semibold">Equipamentos Integrados</span>
-                </div>
-                <p className="text-xs text-indigo-300 mt-1">
-                  {script.equipamentos_utilizados.length} equipamento(s) mencionado(s) no roteiro
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </motion.div>
-
-        {/* Botão de Aprovação - NOVO */}
-        {!isApproved && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="w-full"
-          >
-            <Card className="aurora-glass border-green-500/30 bg-green-500/5">
-              <CardContent className="p-6 text-center">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-green-400 mb-2">
-                      🎯 Roteiro Finalizado!
-                    </h3>
-                    <p className="text-green-300 text-sm">
-                      Revise seu roteiro e aprove para liberar as opções de criação de conteúdo
-                    </p>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button
-                      onClick={handleApproveScript}
-                      disabled={isProcessing}
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-                    >
-                      <ThumbsUp className="h-5 w-5 mr-2" />
-                      ✅ Aprovar Roteiro
-                    </Button>
-
-                    {!isDisneyApplied && (
-                      <Button
-                        onClick={handleApplyDisney}
-                        disabled={isProcessing || disneyAnimating}
-                        variant="outline"
-                        className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 px-8 py-3"
-                      >
-                        <Castle className="h-5 w-5 mr-2" />
-                        {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Próximos Passos - Aparece apenas após aprovação */}
-        {isApproved && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="w-full"
-          >
-            <Card className="aurora-glass border-aurora-electric-purple/30">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  🚀 Próximos Passos
-                  <Badge variant="outline" className="text-xs bg-green-500/20 border-green-500 text-green-400">
-                    Aprovado ✅
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Seção de Geração de Imagens */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-white">📸 Imagens Fotográficas (Recomendado)</h4>
-                    <Button
-                      onClick={handleGeneratePhotographicImages}
-                      disabled={isProcessing || isGeneratingPhotos}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                    >
-                      {isGeneratingPhotos ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Camera className="h-4 w-4 mr-2" />
-                      )}
-                      {script.formato === 'carrossel' ? 'Gerar 5 Fotos Realistas' : 'Gerar Foto Realista'}
-                    </Button>
-                    <p className="text-xs text-green-400">
-                      ✨ Sistema anti-alucinação com equipamentos reais
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-white">🎨 Imagens Artísticas</h4>
-                    <Button
-                      onClick={handleGenerateImages}
-                      disabled={isProcessing || isGeneratingImages}
-                      variant="outline"
-                      className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
-                    >
-                      {isGeneratingImages ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                      )}
-                      {script.formato === 'carrossel' ? 'Gerar 5 Imagens Artísticas' : 'Gerar Imagem Artística'}
-                    </Button>
-                    <p className="text-xs text-purple-400">
-                      🎨 Estilo criativo e artístico
-                    </p>
-                  </div>
-                </div>
-
-                {/* Outras ações */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-aurora-electric-purple/20">
-                  {/* Mostrar áudio apenas para formatos de vídeo */}
-                  {isVideoFormat() && (
-                    <Button
-                      onClick={() => onGenerateAudio(script)}
-                      disabled={isProcessing}
-                      variant="outline"
-                    >
-                      <Mic className="h-4 w-4 mr-2" />
-                      Gerar Áudio
-                    </Button>
-                  )}
-
-                  {!isDisneyApplied && (
-                    <Button
-                      onClick={handleApplyDisney}
-                      disabled={isProcessing || disneyAnimating}
-                      variant="outline"
-                      className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
-                    >
-                      <Castle className="h-4 w-4 mr-2" />
-                      {disneyAnimating ? 'Aplicando...' : 'Disney Magic ✨'}
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={onNewScript}
-                    disabled={isProcessing}
-                    variant="outline"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Novo Roteiro
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Elementos Universais */}
-        {script.elementos_aplicados && isApproved && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="w-full"
-          >
-            <ElementosUniversaisDisplay
-              elementos={script.elementos_aplicados}
-              mentor={mentorNickname}
-              especialidades={script.especialidades_aplicadas}
-            />
-          </motion.div>
-        )}
+          ✨ Melhorar Roteiro
+        </Button>
+        <Button variant="default" onClick={() => onGenerateImage(roteiroParaExibir)}>
+          Gerar Imagem
+        </Button>
+        <Button variant="outline" onClick={() => onGenerateAudio(roteiroParaExibir)}>
+          Gerar Áudio
+        </Button>
       </div>
 
-      {/* Modal de Geração de Imagens Artísticas */}
-      <ImageGenerationModal
-        isOpen={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        isGenerating={isGeneratingImages}
-        progress={progress}
-        generatedImages={generatedImages}
-        errors={errors}
-        onDownloadImage={downloadImage}
-        onDownloadAll={downloadAllImages}
-        onRetryFailed={handleRetryFailedImages}
-        formato={script.formato}
-      />
+      {/* Exibição do roteiro (aprimorado ou original) */}
+      <ScriptFormatter script={roteiroParaExibir} />
 
-      {/* Modal de Geração de Imagens Fotográficas */}
-      <PhotographicImageModal
-        isOpen={showPhotographicModal}
-        onClose={() => setShowPhotographicModal(false)}
-        isGenerating={isGeneratingPhotos}
-        progress={photoProgress}
-        generatedImages={photographicImages}
-        slidePrompts={slidePrompts}
-        errors={photoErrors}
-        onDownloadImage={downloadPhoto}
-        onDownloadAll={downloadAllPhotos}
-        onRetryFailed={handleRetryFailedPhotos}
-        formato={script.formato}
-      />
-    </>
+      {/* Apenas para demo: Exibir ambos se quiser comparar */}
+      {improvedScript && (
+        <Card className="mt-6 aurora-glass border-green-500/40">
+          <CardContent>
+            <div className="text-green-400 font-bold">Roteiro Anterior:</div>
+            <pre className="text-slate-300 whitespace-pre-line mt-2">{results[0].roteiro}</pre>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
