@@ -1,4 +1,3 @@
-
 import { Mentor } from '@/services/mentoresService';
 import { MarketingConsultantState } from '../../types';
 
@@ -159,11 +158,10 @@ export function generateMentorEnigma(mentorMapping: MentorMapping | null): strin
       "Quem domina as trends nunca passa despercebido.",
     ],
     'diretor_visual': [
-      `${mentor.nome.split(' ')[0]} faria tudo virar uma obra de arte marcante.",
+      `${mentor.nome.split(' ')[0]} faria tudo virar uma obra de arte marcante.`,
       "A estética garantiria que sua marca fosse lembrada para sempre.",
     ],
   };
   const templates = enigmaTemplates[marketingProfile] || ["Você é o próximo mentor lendário!"];
   return templates[Math.floor(Math.random() * templates.length)];
 }
-
