@@ -103,7 +103,21 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
     console.log('🎬 [FluidaRoteirista] Render - Mode:', currentMode, 'Results:', results.length, 'Generating:', isGenerating);
   }
 
-  if (currentMode === 'results' && results.length > 0) {
+  if (currentMode === 'results') {
+    if (results.length === 0) {
+      return (
+        <div className="w-full flex flex-col items-center justify-center h-96 text-center gap-4">
+          <div className="text-xl text-rose-400 font-bold">😢 Nenhum roteiro gerado</div>
+          <div className="text-md text-slate-400 max-w-xl">
+            Não foi possível criar um roteiro neste momento. Isso pode ter ocorrido por instabilidade do serviço ou dados insuficientes.
+            <br />
+            <span className="text-aurora-electric-purple">Tente novamente ou ajuste as informações.</span>
+          </div>
+          <Button variant="secondary" onClick={handleNewScript}>Tentar Novamente</Button>
+        </div>
+      );
+    }
+
     if (IS_DEV) console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
       <FluidaScriptResults

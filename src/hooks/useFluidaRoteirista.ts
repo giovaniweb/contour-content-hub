@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateScript } from '@/services/supabaseService';
@@ -96,9 +95,8 @@ export const useFluidaRoteirista = () => {
 
   const generateFluidaScript = async (request: FluidaScriptRequest): Promise<FluidaScriptResult[]> => {
     console.log('🎬 FLUIDAROTEIRISTA - Iniciando geração', request);
-    
     setIsGenerating(true);
-    
+
     try {
       // CRÍTICO: Buscar detalhes dos equipamentos ANTES de gerar
       const equipmentDetails = await fetchEquipmentDetails(request.equipamentos);
@@ -273,12 +271,32 @@ export const useFluidaRoteirista = () => {
 
       // Tentar parsear como JSON
       let scriptResult: FluidaScriptResult;
+      if (!response?.content || response.content.trim() === "") {
+        toast({
+          title: "❌ Nenhum roteiro gerado",
+          description: "A IA não retornou nenhum roteiro. Tente novamente, revise suas respostas ou aguarde alguns minutos.",
+          variant: "destructive"
+        });
+        const fallbackScript: FluidaScriptResult = {
+          roteiro: `⚠️ Não foi possível gerar um roteiro agora. Tente novamente em instantes.`,
+          formato: request.formato || 'carrossel',
+          emocao_central: 'neutro',
+          intencao: 'educar',
+          objetivo: request.objetivo || 'Engajar audiência',
+          mentor: request.mentor || 'Básico',
+          equipamentos_utilizados: equipmentDetails,
+          canal: request.canal || 'instagram'
+        };
+        setResults([fallbackScript]);
+        setIsGenerating(false);
+        return [fallbackScript];
+      }
+
       try {
         scriptResult = JSON.parse(response.content);
         scriptResult.equipamentos_utilizados = equipmentDetails;
         scriptResult.canal = request.canal || 'instagram';
       } catch {
-        // Fallback se não for JSON válido
         scriptResult = {
           roteiro: response.content,
           formato: request.formato || 'carrossel',
@@ -312,9 +330,9 @@ export const useFluidaRoteirista = () => {
         Sugestão básica: Fale sobre ${request.tema} e destaque os benefícios únicos dos seus tratamentos${request.equipamentos.length > 0 ? ` com ${request.equipamentos.join(' e ')}` : ''}.`,
         formato: request.formato || 'carrossel',
         emocao_central: 'confiança',
-        intencao: 'educar',
-        objetivo: 'Manter engajamento',
-        mentor: 'Básico',
+        intencao: 'atrair',
+        objetivo: request.objetivo || 'Atrair novos clientes',
+        mentor: request.mentor || 'Criativo',
         equipamentos_utilizados: [],
         canal: request.canal || 'instagram'
       };
