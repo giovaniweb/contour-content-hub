@@ -61,13 +61,13 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-all duration-200",
+        "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-200",
         scrolled
           ? "bg-background/95 backdrop-blur-sm shadow-sm"
           : "bg-background"
       )}
     >
-      <nav className="container mx-auto px-2 flex h-16 items-center justify-between" aria-label="Topbar principal">
+      <nav className="w-full px-4 flex h-16 items-center justify-between" aria-label="Topbar principal">
         {/* LOGO */}
         <div className="flex items-center gap-2 min-w-[40px]">
           <NavLink to="/">
