@@ -26,6 +26,62 @@ interface ScriptFormatterProps {
   };
 }
 
+const TITLES = [
+  "Gancho", 
+  "Erro", 
+  "Virada", 
+  "CTA", 
+  "Dispositivo", 
+  "Chamada para Ação",
+  "Introdução"
+];
+
+// Função para separar o texto em blocos usando os títulos conhecidos
+function splitByTitles(text: string) {
+  // Regex: encontra títulos no início de linha (inclusive com pontuação).
+  const regex = new RegExp(`^(${TITLES.join('|')})[:：-]?\\s*`, 'im');
+
+  // 1. Encontra todos títulos para divisão
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  const sections: { titulo: string | null, conteudo: string }[] = [];
+  let currentTitle: string | null = null;
+  let buffer = [];
+
+  for (let line of lines) {
+    const match = line.match(/^([A-Za-zÀ-ÿ\s]+)[:：-]\s*/);
+    const rawTitle = match && TITLES.includes(match[1].trim());
+    if (rawTitle) {
+      // Salva o bloco anterior
+      if (buffer.length > 0) {
+        sections.push({
+          titulo: currentTitle,
+          conteudo: buffer.join('\n').trim()
+        });
+        buffer = [];
+      }
+      currentTitle = match![1].trim();
+      line = line.replace(/^([A-Za-zÀ-ÿ\s]+)[:：-]\s*/, '');
+    }
+    buffer.push(line);
+  }
+
+  // Último bloco
+  if (buffer.length) {
+    sections.push({
+      titulo: currentTitle,
+      conteudo: buffer.join('\n').trim()
+    });
+  }
+
+  // Se nada foi identificado, retorna tudo junto sem título
+  if (sections.length === 1 && !sections[0].titulo) {
+    return [
+      { titulo: null, conteudo: text }
+    ];
+  }
+  return sections;
+}
+
 const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const estimateReadingTime = (text: string): number => {
     const words = text.split(/\s+/).length;
@@ -123,9 +179,34 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                 {/* Aspas decorativas */}
                 <span className="absolute left-2 top-3 text-3xl text-aurora-electric-purple opacity-70 select-none">“</span>
                 <span className="absolute right-2 bottom-3 text-3xl text-aurora-electric-purple opacity-70 select-none">”</span>
-                <p className="text-slate-100 text-lg leading-relaxed font-medium whitespace-pre-line aurora-body px-2">
-                  {script.roteiro}
-                </p>
+                <div className="flex flex-col gap-8 w-full">
+                  {splitByTitles(script.roteiro).map((block, i) => (
+                    <div key={i} className="text-left w-full max-w-2xl mx-auto">
+                      {block.titulo && (
+                        <>
+                          <h4 className="text-aurora-electric-purple text-lg font-bold mb-2 mt-2 aurora-heading tracking-wide flex items-center gap-2">
+                            <span>
+                              {/* Ícone por título */}
+                              {block.titulo === "Gancho" && <span className="text-blue-300">🎯</span>}
+                              {block.titulo === "Erro" && <span className="text-yellow-400">⚡</span>}
+                              {block.titulo === "Virada" && <span className="text-pink-300">🔄</span>}
+                              {block.titulo === "CTA" && <span className="text-green-300">🚀</span>}
+                              {block.titulo === "Dispositivo" && <span className="text-cyan-400">📲</span>}
+                              {block.titulo === "Chamada para Ação" && <span className="text-green-400">👉</span>}
+                              {block.titulo === "Introdução" && <span className="text-purple-300">✨</span>}
+                            </span>
+                            {block.titulo}
+                          </h4>
+                          <hr className="border-aurora-electric-purple/20 mb-3" />
+                        </>
+                      )}
+                      <div className="text-slate-100 text-lg leading-relaxed font-medium whitespace-pre-line aurora-body px-2">
+                        {block.conteudo}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* /FIM DO BLOCO DE TEXTO */}
               </div>
             </div>
             <div className="w-full flex justify-center pt-4 gap-2">
