@@ -4,8 +4,9 @@ import { Label } from '@/components/ui/label';
 import { FileText, Image, Video, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Removido 'stories' do tipo e do array:
 interface Format {
-  id: 'carrossel' | 'imagem' | 'stories' | 'reels';
+  id: 'carrossel' | 'imagem' | 'reels';
   label: string;
   icon: React.ComponentType<any>;
   description: string;
@@ -14,13 +15,12 @@ interface Format {
 const FORMATOS: Format[] = [
   { id: 'carrossel', label: 'Carrossel', icon: FileText, description: 'Múltiplos slides' },
   { id: 'imagem', label: 'Post Estático', icon: Image, description: 'Uma imagem' },
-  { id: 'stories', label: 'Stories 10x', icon: Video, description: 'Metodologia avançada' },
   { id: 'reels', label: 'Reels', icon: Zap, description: 'Vídeo curto' }
 ];
 
 interface FormatsSelectorProps {
-  selectedFormat: 'carrossel' | 'imagem' | 'stories' | 'reels';
-  onFormatChange: (format: 'carrossel' | 'imagem' | 'stories' | 'reels') => void;
+  selectedFormat: 'carrossel' | 'imagem' | 'reels';
+  onFormatChange: (format: 'carrossel' | 'imagem' | 'reels') => void;
 }
 
 const FormatsSelector: React.FC<FormatsSelectorProps> = ({
@@ -32,7 +32,7 @@ const FormatsSelector: React.FC<FormatsSelectorProps> = ({
       <Label className="aurora-accent font-semibold text-base">
         Formato do Conteúdo
       </Label>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {FORMATOS.map((fmt) => (
           <motion.button
             key={fmt.id}
