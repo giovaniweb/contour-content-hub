@@ -14,11 +14,13 @@ interface Equipment {
   nome: string;
 }
 
+type FormatType = 'carrossel' | 'imagem' | 'reels';
+
 interface ScriptGeneratorFormProps {
   tema: string;
   onTemaChange: (tema: string) => void;
-  formato: 'carrossel' | 'imagem' | 'stories' | 'reels';
-  onFormatoChange: (formato: 'carrossel' | 'imagem' | 'stories' | 'reels') => void;
+  formato: FormatType;
+  onFormatoChange: (formato: FormatType) => void;
   objetivo: string;
   onObjetivoChange: (objetivo: string) => void;
   selectedEquipments: string[];
