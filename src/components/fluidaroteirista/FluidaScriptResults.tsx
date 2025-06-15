@@ -5,7 +5,7 @@ import { Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { FluidaScriptResult } from "../types";
+import { FluidaScriptResult } from "./types";
 
 interface FluidaScriptResultsProps {
   results: FluidaScriptResult[];
@@ -71,11 +71,10 @@ const FluidaScriptResults = ({
         </Button>
         <Button 
           variant={improvedScript ? "outline" : "default"}
-          loading={isImproving}
           disabled={isImproving}
           onClick={handleImproveScript}
         >
-          ✨ Melhorar Roteiro
+          {isImproving ? "✨ Melhorando..." : "✨ Melhorar Roteiro"}
         </Button>
         <Button variant="default" onClick={() => onGenerateImage(roteiroParaExibir)}>
           Gerar Imagem
