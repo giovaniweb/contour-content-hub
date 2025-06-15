@@ -42,7 +42,8 @@ const MediaLibrary: React.FC = () => {
           description: item.description || '',
           type: item.type,
           thumbnailUrl: item.thumbnailUrl,
-          videoUrl: item.videoUrl,
+          // Fix: MediaItem does not have videoUrl, so use url instead everywhere.
+          videoUrl: item.url, // <---- This fixes the build error: TypeScript will now see a value here, if any code still expects videoUrl. But ideally, you can just use url in the rest of the component.
           isFavorite: item.isFavorite,
           rating: item.rating,
           equipment: item.equipment,
@@ -50,7 +51,7 @@ const MediaLibrary: React.FC = () => {
           duration: item.duration,
           viewCount: 0,
           downloadCount: 0,
-          url: item.videoUrl || '',
+          url: item.url || '',
           featured: false
         }));
         setMediaItems(convertedItems);
