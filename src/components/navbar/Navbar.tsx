@@ -1,15 +1,18 @@
+
 // TopBar minimal: Logo (left), Notifications/Alerts, ProfileMenu (right)
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Film, Menu } from "lucide-react";
+import { Film, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationsMenu from "../notifications/NotificationsMenu";
 import { ProfileMenu } from "../ProfileMenu";
 import { cn } from "@/lib/utils";
 import FluidaLogo from "./FluidaLogo";
 import { NavLink } from "react-router-dom";
+import AdminDropdownMenu from "./AdminDropdownMenu";
+import { usePermissions } from "@/hooks/use-permissions";
 
 // Mock institucional links
 const INSTITUCIONAL_LINKS = [
@@ -21,6 +24,7 @@ const INSTITUCIONAL_LINKS = [
 
 export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -86,6 +90,7 @@ export const Navbar = () => {
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
+          {isAuthenticated && isAdmin() && <AdminDropdownMenu />}
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>

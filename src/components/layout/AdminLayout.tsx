@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import AdminTopbar from '@/components/admin/AdminTopbar';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -41,7 +40,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-aurora-background">
-      <AdminTopbar />
       <main className="flex-1 overflow-auto pt-2 md:pt-4 px-2 md:px-6">
         {children}
       </main>
