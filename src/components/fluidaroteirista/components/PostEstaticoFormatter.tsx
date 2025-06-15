@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parsePostEstatico, validatePostEstatico } from '../utils/postEstaticoParser';
@@ -7,17 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Image, Instagram, Type, MessageSquare, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
 import { toast } from "sonner";
-// Removido useState pois não é mais necessário
+import AuroraActionFooter from "./AuroraActionFooter";
+import { useScriptFooterActions } from "../hooks/useScriptFooterActions";
+import { useState } from "react";
 
 interface PostEstaticoFormatterProps {
   roteiro: string;
 }
 
 const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }) => {
-  const data = parsePostEstatico(roteiro);
+  // ==== NOVO: State para roteiro gerado (pode ser melhorado) ====
+  const [scriptContent, setScriptContent] = useState(roteiro);
+
+  const data = parsePostEstatico(scriptContent);
   const validation = data ? validatePostEstatico(data) : { isValid: false, issues: ['Erro ao processar roteiro'], score: 0 };
 
-  // Removidos estados e handlers relacionados aos botões
+  // Hook com as ações do rodapé
+  const actions = useScriptFooterActions({
+    script: {
+      content: scriptContent,
+      title: "Instagram - Post Estático", // Você pode melhorar esse título se quiser!
+      format: "post_estatico",
+    },
+    onNewScript: () => {
+      setScriptContent(""); // Reseta para criar novo roteiro; se desejar, pode disparar um evento externo
+    },
+    // onScriptApproved: (data) => { ... } // Pode implementar lógica pós-aprovação se quiser
+  });
 
   if (!data) {
     return (
@@ -228,7 +243,15 @@ const PostEstaticoFormatter: React.FC<PostEstaticoFormatterProps> = ({ roteiro }
         </Card>
       </motion.div>
 
-      {/* ====== BLOCO DE BOTÕES FINAIS REMOVIDO ====== */}
+      {/* ==== NOVO: Rodapé de ações reais ==== */}
+      <AuroraActionFooter
+        onApproveScript={actions.handleApproveScript}
+        onImproveScript={() => actions.handleImproveScript(setScriptContent)}
+        onNewScript={actions.handleNewScript}
+        onGenerateImage={actions.handleGenerateImage}
+        isGeneratingImage={actions.isGeneratingImage}
+        // Caso queira habilitar áudio, acrescente aqui: onGenerateAudio/isGeneratingAudio
+      />
     </div>
   );
 };
