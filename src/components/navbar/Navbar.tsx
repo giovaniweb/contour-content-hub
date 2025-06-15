@@ -22,6 +22,8 @@ const INSTITUCIONAL_LINKS = [
   { label: "Suporte", to: "/institucional/suporte" },
 ];
 
+const SIDEBAR_WIDTH = 104; // mesma largura do Sidebar
+
 export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { isAdmin } = usePermissions();
@@ -61,11 +63,16 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-200",
+        "fixed top-0 z-40 w-full border-b transition-all duration-200",
         scrolled
           ? "bg-background/95 backdrop-blur-sm shadow-sm"
           : "bg-background"
       )}
+      style={{ 
+        left: isAuthenticated ? SIDEBAR_WIDTH : 0,
+        right: 0,
+        width: isAuthenticated ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%'
+      }}
     >
       <nav className="w-full px-4 flex h-16 items-center justify-between" aria-label="Topbar principal">
         {/* LOGO */}
