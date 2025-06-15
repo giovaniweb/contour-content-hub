@@ -116,10 +116,11 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
 
                   <ReportPdfButton
                     pdfUrl={
-                      // Procura possivel PDF (Ex: session.pdfUrl, session.state.generatedDiagnosticPdfUrl, etc)
-                      session.pdfUrl ||
-                      (session.state && session.state.generatedDiagnosticPdfUrl) ||
-                      undefined
+                      // Verifica se generatedDiagnostic existe e se parece uma URL de PDF
+                      typeof session.state.generatedDiagnostic === "string" &&
+                      session.state.generatedDiagnostic.startsWith("http")
+                        ? session.state.generatedDiagnostic
+                        : undefined
                     }
                     diagnosticTitle={session.clinicTypeLabel}
                   />
