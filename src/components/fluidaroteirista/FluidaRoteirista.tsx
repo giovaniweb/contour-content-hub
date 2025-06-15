@@ -176,10 +176,10 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Button
                 onClick={handleNavigateToApprovedScripts}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white h-16 flex items-center gap-3"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white h-16 flex items-center gap-3 w-full"
               >
                 <TrendingUp className="h-6 w-6" />
                 <div className="text-left">
@@ -190,7 +190,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
               
               <Button
                 variant="outline"
-                className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3"
+                className="border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 h-16 flex items-center gap-3 w-full"
                 disabled
               >
                 <Target className="h-6 w-6" />
