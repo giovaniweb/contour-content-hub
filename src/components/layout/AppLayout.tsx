@@ -1,19 +1,21 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { SidebarProvider } from '@/components/ui/sidebar/sidebar-context';
-import Sidebar from './Sidebar';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import Navbar from '../navbar/Navbar';
+import React, { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import Sidebar from "./Sidebar";
+import Navbar from "../navbar/Navbar";
+
+const SIDEBAR_WIDTH = 72; // igual ao Sidebar.tsx (px: w-18)
 
 interface AppLayoutProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false }) => {
+const AppLayout: React.FC<AppLayoutProps> = ({
+  children,
+  requireAdmin = false,
+}) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,11 +23,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false })
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated || !user) {
-      navigate('/login', { replace: true, state: { from: location.pathname } });
+      navigate("/login", {
+        replace: true,
+        state: { from: location.pathname },
+      });
       return;
     }
-    if (requireAdmin && user.role !== 'admin') {
-      navigate('/dashboard', { replace: true });
+    if (requireAdmin && user.role !== "admin") {
+      navigate("/dashboard", { replace: true });
       return;
     }
   }, [isAuthenticated, user, isLoading, navigate, location.pathname, requireAdmin]);
@@ -46,27 +51,21 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, requireAdmin = false })
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex flex-col min-h-screen w-full bg-aurora-background">
-        {/* TOPBAR FIXA */}
+    <div>
+      {/* Sidebar sempre fixo à esquerda */}
+      <Sidebar />
+      {/* Conteúdo principal, com left padding igual ao sidebar */}
+      <div
+        className="min-h-screen flex flex-col bg-aurora-background"
+        style={{ marginLeft: SIDEBAR_WIDTH }}
+      >
+        {/* Topbar fixa */}
         <Navbar />
-
-        <div className="flex flex-1 w-full">
-          {/* SIDEBAR FIXA */}
-          <Sidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-              {/* Removido SidebarTrigger, pois o trigger está incluso no Navbar se desejado */}
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1 text-slate-50" />
-                <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
-              </div>
-            </header>
-            <main className="flex-1 overflow-auto pt-2 md:pt-4">{children}</main>
-          </SidebarInset>
-        </div>
+        <main className="flex-1 overflow-auto pt-2 md:pt-4 px-2 md:px-6">
+          {children}
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
