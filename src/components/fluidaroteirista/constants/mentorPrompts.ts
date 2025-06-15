@@ -1,4 +1,3 @@
-
 /**
  * Prompts exclusivos dos principais mentores do marketing brasileiro,
  * focados em frameworks, execução e criatividade. 
@@ -94,6 +93,56 @@ export const HYESER_DESBLOQUEIO: MentorPrompt = {
   ],
   context: "Ideal para desbloqueio, mostrar vulnerabilidade e humanizar o perfil.",
   tip: "Use apenas frases curtas, máximo 3 linhas por trecho."
+};
+
+// NOVO PROMPT COCA DO HYESER
+export const HYESER_COCA: MentorPrompt = {
+  title: "Roteiro Estratégico COCA (by Hyeser Souza)",
+  mentor: "Hyeser Souza",
+  description: `Você é um gerador de roteiros estratégicos para Instagram, especializado no método "COCA" (Conexão, Objeção, Crescimento, Autoridade).
+
+Siga estas etapas para criar o roteiro perfeito:
+
+1. Definição do público-alvo  
+   - Qual o público específico desse perfil?  
+   - Faixa etária, estilo de comunicação (formal/informal), interesses principais?
+2. Linha editorial  
+   - Quais são os temas principais abordados pelo perfil?  
+   - Existe algum limite de conteúdo (o que não deve ser falado)?
+3. Objetivo do conteúdo (escolha um)  
+   - Conexão (gerar engajamento e relacionamento)
+   - Objeção (quebrar dúvidas e gerar vendas)
+   - Crescimento (atrair novos seguidores)
+   - Autoridade (mostrar conhecimento e credibilidade)
+4. Formato do conteúdo  
+   - Carrossel (educativo, passo a passo, detalhado)
+   - Vídeo/Reels (dinâmico, curto, envolvente)
+   - Stories (interativo, pessoal, espontâneo)
+   - Post estático (simples, direto, informativo)
+5. Tom de voz desejado  
+   - Educativo, sério, divertido, provocativo, pessoal ou profissional?
+
+Com base nessas informações, crie o roteiro seguindo esta estrutura:
+
+- Gancho inicial (atrair atenção)
+- Desenvolvimento (pontos principais claros, alinhados ao objetivo)
+- Chamada para ação (interação, engajamento ou conversão)
+
+Entrega:
+- Roteiro objetivo, criativo e pronto para gravar (até 40s)
+- Linguagem acessível, persuasiva e envolvente.`,
+  structure: [
+    "Gancho inicial (atração máxima nos primeiros 3 segundos)",
+    "Desenvolvimento dos pontos (clareza e alinhamento ao objetivo COCA)",
+    "Chamada para ação clara (CTA para engajamento, interação ou conversão)"
+  ],
+  examples: [
+    "Exemplo Gancho: 'Você sente que ninguém engaja nos seus posts? Dá só 3 segundos e veja o segredo!'",
+    "Desenvolvimento: 'Separe seu público por faixa etária e comunique direto no interesse dele.'",
+    "CTA: 'Curtiu? Salva esse post e compartilha com alguém que precisa crescer o Instagram!'"
+  ],
+  context: "Ideal para carrossel, vídeo curto ou stories. Estrutura obrigatória COCA.",
+  tip: "Seja objetivo, criativo e entregue valor em até 40s. Use linguagem acessível e persuasiva."
 };
 
 // Paulo Cuenca
@@ -194,6 +243,6 @@ export const MENTOR_PROMPTS: Record<string, MentorPrompt> = {
   CUENCA_NARRATIVA_VISUAL,
   CUENCA_IDENTIDADE,
   LADEIRA_LIGHT_COPY,
-  LADEIRA_STORIES_10X
+  LADEIRA_STORIES_10X,
+  HYESER_COCA
 };
-

@@ -1,4 +1,3 @@
-
 import { cadastrarMentor, type Mentor } from '@/services/mentoresService';
 
 // Estrutura universal dos 10 elementos base
@@ -123,24 +122,36 @@ const mentores = [
   },
   {
     "nome": "Hyeser Souza",
-    "descricao": "Influencer com foco em humor popular, virais de rua e linguagem de gíria. Mestre do gancho popular.",
-    "estilo": "Engraçado, espontâneo, com linguagem de rua e ganchos virais.",
-    "uso_ideal": "Reels virais, trends populares, engajamento orgânico.",
-    "tom": "humor",
-    "exemplos": ["Cê não tá preparado pra isso!", "Parece mentira, mas é real!", "Mostrei e ele ficou CHOCADO!"],
+    // NOVO: Metodologia COCA
+    "descricao": "Especialista em viralização e roteiros dinâmicos para Instagram, agora focado no método COCA (Conexão, Objeção, Crescimento, Autoridade). Entregas rápidas e altamente engajadoras, utilizando estrutura estratégica de impacto em até 40 segundos.",
+    // Novo estilo baseado no prompt enviado
+    "estilo": "Assertivo, dinâmico, criativo e persuasivo, com linguagem acessível e aplicação do método COCA (Conexão, Objeção, Crescimento, Autoridade).",
+    "uso_ideal": "Conteúdos para Instagram focados em aumentar conexão, quebrar objeções, crescer audiência ou reforçar autoridade.",
+    "tom": "criativo",
+    "exemplos": [
+      "Gancho: Você sente que ninguém engaja nos seus posts? Dá só 3 segundos e eu te mostro o segredo!",
+      "Desenvolvimento: Separe seu público por idade e foque no que realmente interessa para eles.",
+      "CTA: Se fez sentido pra você, salva esse post ou manda pra um amigo seguir o perfil!"
+    ],
     "elementos_universais": {
       storytelling: 8,
-      copywriting: 7,
-      conhecimento_publico: 9,
-      analises_dados: 5,
-      gatilhos_mentais: 9,
-      logica_argumentativa: 6,
-      premissas_educativas: 5,
-      mapas_empatia: 9,
-      headlines: 10,
-      ferramentas_especificas: 7
+      copywriting: 9,
+      conhecimento_publico: 10,
+      analises_dados: 8,
+      gatilhos_mentais: 10,
+      logica_argumentativa: 9,
+      premissas_educativas: 8,
+      mapas_empatia: 10,
+      headlines: 9,
+      ferramentas_especificas: 9
     },
-    "especialidades": ["humor viral", "linguagem de rua", "ganchos populares", "trends", "espontaneidade"]
+    "especialidades": [
+      "roteiros COCA",
+      "conexão e engajamento",
+      "quebra de objeções",
+      "crescimento orgânico",
+      "autoridade para Instagram"
+    ]
   },
   {
     "nome": "Washington Olivetto",
