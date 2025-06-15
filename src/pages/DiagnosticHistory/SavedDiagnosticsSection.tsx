@@ -124,22 +124,9 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                       diagnosticTitle={session.clinicTypeLabel}
                     />
                   ) : (
-                    // Botão exportar PDF Aurora com as 3 seções!
-                    typeof session.state.generatedDiagnostic === "string" &&
-                    session.state.generatedDiagnostic.length > 10 && (() => {
-                      // Separar as seções para exportação bonitinha em PDF
-                      const sections = extractDiagnosticSections(session.state.generatedDiagnostic || "");
-                      return (
-                        <GenerateAuroraPdfButton
-                          sessionId={session.id}
-                          diagnosticSection={sections.estrategico}
-                          actionsSection={sections.planoAcao}
-                          contentSection={sections.conteudo}
-                          title={session.clinicTypeLabel || "Relatório Fluida"}
-                          type="marketingDiagnostic"
-                        />
-                      );
-                    })()
+                    // <GenerateAuroraPdfButton ... /> REMOVIDO AQUI
+                    // Antigamente havia um botão PDF customizado aqui, mas agora ele foi removido.
+                    null
                   )}
 
                   <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
@@ -147,7 +134,6 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     Download
                   </Button>
                   
-                  {/* Botão de deletar normal (apenas para rascunhos) */}
                   {!session.isPaidData && !session.isCompleted && (
                     <Button 
                       onClick={() => onDeleteDiagnostic(session)} 
@@ -160,7 +146,6 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     </Button>
                   )}
                   
-                  {/* Botão de forçar exclusão (para dados completos) */}
                   {(session.isPaidData || session.isCompleted) && onForceDeleteDiagnostic && (
                     <Button 
                       onClick={() => onForceDeleteDiagnostic(session)} 
@@ -173,7 +158,6 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     </Button>
                   )}
                   
-                  {/* Indicador se dados estão protegidos mas sem opção de forçar exclusão */}
                   {(session.isPaidData || session.isCompleted) && !onForceDeleteDiagnostic && (
                     <Button 
                       disabled
