@@ -59,14 +59,14 @@ export const INTENTION_TREE: Record<string, IntentionNode> = {
   estilo: {
     question: "Qual estilo de comunicação?",
     options: [
-      { value: 'estrategico', label: 'Planejamento/Organização', leads_to: 'equipamento' },
       { value: 'direto', label: 'Copy Direta/Vendas', leads_to: 'equipamento' },
       { value: 'humoristico', label: 'Viral/Humor', leads_to: 'equipamento' },
-      { value: 'criativo', label: 'Criativo/Visual', leads_to: 'equipamento' }
+      { value: 'criativo', label: 'Criativo/Visual', leads_to: 'equipamento' },
+      { value: 'emocional', label: 'Conexão/Emocional', leads_to: 'equipamento' }
     ],
     inference_rules: [
       {
-        condition: (answers) => answers.estilo_comunicacao === 'estrategico' || answers.tipo_conteudo === 'bigIdea' || answers.objetivo === 'ensinar',
+        condition: (answers) => answers.estilo_comunicacao === 'emocional' || answers.objetivo === 'ensinar',
         mentor: 'pedro_sobral',
         confidence: 0.95
       },
