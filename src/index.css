@@ -132,7 +132,7 @@ html.dark body {
 
 /* Sonner Toast Custom Styles */
 .sonner-toast {
-  @apply bg-aurora-background border border-aurora-electric-purple/30 rounded-lg shadow-lg px-5 py-4 text-white text-base font-medium transition-all duration-200;
+  @apply bg-background border border-aurora-electric-purple/30 rounded-lg shadow-lg px-5 py-4 text-white text-base font-medium transition-all duration-200;
   box-shadow: 0 4px 32px 0 rgba(50,30,105,0.12);
 }
 .sonner-toast-success {
