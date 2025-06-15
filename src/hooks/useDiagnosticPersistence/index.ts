@@ -98,25 +98,24 @@ export const useDiagnosticPersistence = () => {
           setIsInitializing(false);
         }
       };
-
       initializeData();
     } else {
-      console.log('👤 Usuário não autenticado');
       setIsInitializing(false);
     }
   }, [user, loadSavedDiagnostics, setCurrentSession]);
 
-  // Corrigir: atualiza estado local IMEDIATAMENTE após criar sessão válida
+  // Corrigir: sempre chamar este useEffect, mas rodar apenas quando user presente.
   useEffect(() => {
-    if (currentSession && isValidDiagnosticSession(currentSession)) {
+    // Garantir que só tenta rodar lógica SE usuário autenticado E currentSession válido
+    if (user && currentSession && isValidDiagnosticSession(currentSession)) {
       const found = savedDiagnostics.find(d => d.id === currentSession.id);
       if (!found) {
-        // Diagnóstico recém criado não está no savedDiagnostics ainda
         setSavedDiagnostics((prev) => [currentSession, ...prev]);
         console.log('⚡️ Diagnóstico recente adicionado ao estado apenas localmente.', currentSession.id);
       }
     }
-  }, [currentSession, savedDiagnostics]);
+    // Se não autenticado, não faz nada (mas hook sempre é chamado)
+  }, [user, currentSession, savedDiagnostics, setSavedDiagnostics]);
 
   // Função para forçar exclusão (incluindo dados completos)
   const forceDeleteDiagnostic = async (sessionId: string): Promise<boolean> => {
