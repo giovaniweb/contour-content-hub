@@ -1,4 +1,3 @@
-
 export const parseAndLimitCarousel = (roteiro: string): string => {
   console.log('🎠 [parseAndLimitCarousel] Processando roteiro do carrossel...');
   
@@ -108,42 +107,43 @@ export const validateCarouselSlides = (roteiro: string): { isValid: boolean; sli
 };
 
 export const parseCarouselSlides = (roteiro: string) => {
-  console.log('🎠 [parseCarouselSlides] Analisando roteiro:', roteiro.substring(0, 200));
-  
-  // Parser para estrutura limpa: Slide:, Texto:, Imagem:
-  const slidePattern = /Slide\s*(\d+)\s*:\s*([^\n]+)/gi;
-  const parts = roteiro.split(slidePattern).filter(part => part.trim());
+  // Corrigir parser para casos reais diversos e padronizar títulos/tipos
+  const slidePattern = /Slide\s*:? ?(\d+)?\s*:?\s*([^\n]*)\n+([^]*?)(?=\n*Slide\s*:? ?\d*\s*:|\s*$)/gi;
   const slides = [];
-  
-  for (let i = 0; i < parts.length; i += 3) {
-    if (i + 2 < parts.length) {
-      const slideNumber = parts[i].trim();
-      const slideTitle = parts[i + 1].trim();
-      const slideContent = parts[i + 2].trim();
-      
-      console.log(`📋 Processando slide ${slideNumber}: "${slideTitle}"`);
-      console.log(`📝 Conteúdo: ${slideContent.substring(0, 100)}...`);
-      
-      // Extrair texto e imagem da estrutura limpa (sem hífens)
-      const textoMatch = slideContent.match(/Texto:\s*([^\n]+)/i);
-      const imagemMatch = slideContent.match(/Imagem:\s*([^\n]+)/i);
-      
-      const texto = textoMatch ? textoMatch[1].trim() : slideContent.split('\n')[0] || 'Texto do slide';
-      const imagem = imagemMatch ? imagemMatch[1].trim() : 'Ambiente clínico moderno, profissional especializado, iluminação suave';
-      
-      console.log(`✅ Texto extraído: ${texto.substring(0, 50)}...`);
-      console.log(`🖼️ Imagem extraída: ${imagem.substring(0, 50)}...`);
-      
-      slides.push({
-        number: parseInt(slideNumber) || slides.length + 1,
-        title: slideTitle,
-        texto: texto,
-        imagem: imagem,
-        content: slideContent
-      });
+  let match;
+  let slideIndex = 0;
+
+  // Extrair cada slide reconhecendo bloco entre Slide e o próximo Slide
+  while ((match = slidePattern.exec(roteiro)) !== null) {
+    slideIndex++;
+    const number = match[1] ? Number(match[1]) : slideIndex;
+    const title = match[2]?.trim() || `Slide ${slideIndex}`;
+    let texto = '';
+    let imagem = '';
+
+    // Extrair Texto: ... e Imagem: ... do bloco
+    const bloco = match[3] || '';
+    const textoMatch = bloco.match(/Texto:\s*([^\n]+)/i);
+    const imagemMatch = bloco.match(/Imagem:\s*([^\n]+)/i);
+    texto = textoMatch?.[1]?.trim() || '';
+    imagem = imagemMatch?.[1]?.trim() || '';
+
+    // Fallback se não encontrar campos
+    if (!texto && bloco.trim()) {
+      texto = bloco.split('\n')[0]?.trim() || '';
     }
+    if (!imagem) {
+      imagem = 'Ambiente clínico moderno, profissional especializado, iluminação suave';
+    }
+    slides.push({
+      number,
+      title: title || `Slide ${number}`,
+      texto,
+      imagem
+    });
   }
-  
-  console.log(`🎯 Total de slides processados: ${slides.length}`);
-  return slides;
+
+  // Remover slides fantasma e garantir sempre até cinco
+  const validSlides = slides.filter(s => !!s.texto && !!s.imagem).slice(0, 5);
+  return validSlides;
 };

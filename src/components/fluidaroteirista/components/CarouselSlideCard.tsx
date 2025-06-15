@@ -78,56 +78,28 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: slide.number * 0.1 }}
-      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ duration: 0.45, delay: slide.number * 0.06 }}
+      whileHover={{ y: -2, scale: 1.025 }}
       className="h-full"
     >
-      <Card className={`${theme.bg} ${theme.border} ${theme.glow} border-2 hover:shadow-lg transition-all duration-300 h-full relative overflow-hidden`}>
-        {/* Background gradient overlay */}
-        <div className={`absolute inset-0 ${theme.gradient} opacity-50`} />
-        
+      <Card className={`${theme.bg} ${theme.border} ${theme.glow} border-2 shadow-lg aurora-glass transition-all duration-200 h-full flex flex-col justify-between`}>
         <CardContent className="p-6 relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="text-3xl aurora-float">{icon}</div>
-            <div className="flex-1">
-              <Badge variant="outline" className={`${theme.badge} border mb-2 aurora-shimmer`}>
-                Slide {slide.number}
-              </Badge>
-              <h3 className={`font-bold ${theme.text} text-lg aurora-heading filter drop-shadow-sm`}>
-                {slide.title}
-              </h3>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="text-2xl aurora-float">{icon}</div>
+            <h3 className={`font-bold ${theme.text} text-base sm:text-lg aurora-heading filter drop-shadow`}>{slide.title}</h3>
           </div>
-
-          <div className="space-y-4">
-            {/* Seção Texto */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-aurora-emerald rounded-full aurora-pulse"></div>
-                <span className="text-sm font-medium text-aurora-emerald">Texto do Slide</span>
-              </div>
-              <p className="text-slate-200 leading-relaxed text-sm aurora-body pr-12">
-                {slide.texto}
-              </p>
-              <CopyButton 
-                text={slide.texto}
-                successMessage={`Texto do slide ${slide.number} copiado!`}
-              />
+          <div className="space-y-3">
+            {/* Texto */}
+            <div className="bg-slate-900/60 rounded-lg p-3 border border-white/10 backdrop-blur-sm">
+              <div className="flex items-center gap-1 mb-2 text-aurora-emerald text-xs font-semibold uppercase tracking-wide">Texto</div>
+              <p className="text-slate-100 leading-relaxed text-[15px] font-medium">{slide.texto}</p>
+              <CopyButton text={slide.texto} successMessage={`Texto do slide ${slide.number} copiado!`} />
             </div>
-
-            {/* Seção Imagem */}
-            <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-aurora-neon-blue rounded-full aurora-pulse"></div>
-                <span className="text-sm font-medium text-aurora-neon-blue">Descrição da Imagem</span>
-              </div>
-              <p className="text-slate-300 leading-relaxed text-sm italic aurora-body pr-12">
-                {slide.imagem}
-              </p>
-              <CopyButton 
-                text={slide.imagem}
-                successMessage={`Descrição da imagem do slide ${slide.number} copiada!`}
-              />
+            {/* Imagem */}
+            <div className="bg-slate-900/60 rounded-lg p-3 border border-white/10 backdrop-blur-sm">
+              <div className="flex items-center gap-1 mb-2 text-aurora-neon-blue text-xs font-semibold uppercase tracking-wide">Imagem</div>
+              <p className="text-slate-300 leading-relaxed text-[15px] italic font-normal">{slide.imagem}</p>
+              <CopyButton text={slide.imagem} successMessage={`Descrição da imagem do slide ${slide.number} copiada!`} />
             </div>
           </div>
         </CardContent>
