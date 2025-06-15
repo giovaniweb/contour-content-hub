@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parseCarouselSlides } from '../utils/carouselParser';
 import CarouselSlideCard from './CarouselSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Images, Instagram, Sparkles } from 'lucide-react';
+import { Images, Instagram, Sparkles, Save } from 'lucide-react';
 import CarouselSequencePreview from './CarouselSequencePreview';
+import { useSaveScript } from "../hooks/useSaveScript";
 
 interface CarouselFormatterProps {
   roteiro: string;
@@ -14,6 +14,25 @@ interface CarouselFormatterProps {
 
 const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
   const slides = parseCarouselSlides(roteiro);
+
+  // Nova lógica de salvamento
+  const { saveScript, isSaving } = useSaveScript();
+
+  // Infere o título do carrossel (primeira linha ou título padrão)
+  const carouselTitle = slides[0]?.title || "Carrossel Aurora";
+
+  // Infere equipamentos se disponíveis (exemplo: via regex ou metadados - aqui fica vazio)
+  const equipment_used: string[] = [];
+
+  // Função para salvar
+  const handleSave = async () => {
+    await saveScript({
+      content: roteiro,
+      title: carouselTitle,
+      format: "carrossel",
+      equipment_used: equipment_used
+    });
+  };
 
   if (slides.length === 0) {
     return (
@@ -38,7 +57,20 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
           </h2>
           <Instagram className="h-8 w-8 text-aurora-soft-pink aurora-glow" />
         </div>
-        <CarouselSequencePreview slides={slides.map(sl => ({ title: sl.title }))} />
+
+        {/* Botão de salvar */}
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <CarouselSequencePreview slides={slides.map(sl => ({ title: sl.title }))} />
+          <button
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow-md hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/50 ml-3 text-base disabled:opacity-60"
+            onClick={handleSave}
+            disabled={isSaving}
+            title="Salvar roteiro"
+          >
+            <Save className="h-5 w-5" />
+            {isSaving ? "Salvando..." : "Salvar Roteiro"}
+          </button>
+        </div>
         <div className="flex items-center justify-center gap-2 mt-2">
           <Badge variant="outline" className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">{slides.length} Slides</Badge>
           <span className="text-xs text-aurora-neon-blue">Arraste ou deslize →</span>
