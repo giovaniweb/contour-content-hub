@@ -801,6 +801,57 @@ export type Database = {
           },
         ]
       }
+      downloads_storage: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          file_type: string
+          file_url: string
+          id: string
+          metadata: Json | null
+          owner_id: string
+          size: number | null
+          status: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_type: string
+          file_url: string
+          id?: string
+          metadata?: Json | null
+          owner_id: string
+          size?: number | null
+          status?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          metadata?: Json | null
+          owner_id?: string
+          size?: number | null
+          status?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       equipamentos: {
         Row: {
           akinator_enabled: boolean | null
