@@ -62,6 +62,8 @@ import OQueE from "@/pages/Institucional/OQueE";
 import Contato from "@/pages/Institucional/Contato";
 import Suporte from "@/pages/Institucional/Suporte";
 
+const ProfileDashboard = React.lazy(() => import('@/pages/ProfileDashboard'));
+
 function App() {
   return (
     <SlideNotificationProvider>
@@ -114,6 +116,7 @@ function App() {
                       
                       {/* Profile */}
                       <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
+                      <Route path="/profile-dashboard" element={<AppLayout><ProfileDashboard /></AppLayout>} />
                       
                       {/* Admin Routes */}
                       <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
