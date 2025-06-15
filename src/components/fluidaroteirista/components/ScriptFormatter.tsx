@@ -56,7 +56,7 @@ function splitByTitles(text: string) {
   let buffer = [];
 
   for (let line of lines) {
-    const match = line.match(/^([A-Za-zÀ-ÿ\s]+)[:：-]\s*/);
+    const match = line.match(/^([A-Za-zÀ-ÿ\s]+)[:：-]\\s*/);
     const rawTitle = match && TITLES.includes(match[1].trim());
     if (rawTitle) {
       // Salva o bloco anterior
@@ -68,7 +68,7 @@ function splitByTitles(text: string) {
         buffer = [];
       }
       currentTitle = match![1].trim();
-      line = line.replace(/^([A-Za-zÀ-ÿ\s]+)[:：-]\s*/, '');
+      line = line.replace(/^([A-Za-zÀ-ÿ\s]+)[:：-]\\s*/, '');
     }
     buffer.push(line);
   }
@@ -226,21 +226,20 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
                   {splitScriptBlocks(script.roteiro).map((block, i) => (
                     <div
                       key={i}
-                      className="mb-6 last:mb-0 bg-slate-800/50 rounded-xl px-4 py-4 shadow-md w-full"
+                      className="mb-8 last:mb-0 p-6 rounded-xl bg-slate-800/70 border-l-4 shadow border-aurora-electric-purple/60"
                     >
+                      {/* Títulos destacados com emoji */}
                       {block.titulo && (
-                        <>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold aurora-heading text-base md:text-lg text-aurora-electric-purple">
-                              {block.titulo === "Ganho" ? "🎯" : ""}
-                              {block.titulo === "Desenvolvimento" ? "💡" : ""}
-                              {block.titulo === "Solução" ? "🔬" : ""}
-                              {block.titulo === "CTA" ? "🚀" : ""}
-                              {" "}{block.titulo}
-                            </span>
-                            <div className="flex-1 border-t border-aurora-neon-blue/10 ml-2" />
-                          </div>
-                        </>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="font-bold text-lg aurora-heading text-aurora-electric-purple">
+                            {block.titulo === "Ganho" && "🎯"}
+                            {block.titulo === "Desenvolvimento" && "💡"}
+                            {block.titulo === "Solução" && "🔬"}
+                            {block.titulo === "CTA" && "🚀"}
+                            {" "}{block.titulo}
+                          </span>
+                          <div className="flex-1 border-t border-aurora-neon-blue/20 ml-2" />
+                        </div>
                       )}
                       <div className="text-left text-slate-100 text-base md:text-lg leading-normal aurora-body font-medium whitespace-pre-line pr-2">
                         {block.conteudo}
