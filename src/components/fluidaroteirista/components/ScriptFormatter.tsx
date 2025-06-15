@@ -15,6 +15,8 @@ import { MessageSquare, Clock, AudioWaveform } from "lucide-react";
 import LightCopyFormatter from './LightCopyFormatter';
 import StandardScriptBlocksFormatter from './StandardScriptBlocksFormatter';
 import ParagraphBoxFormatter from './ParagraphBoxFormatter';
+import { parseTemporalScript } from "../utils/parseTemporalScript";
+import TemporalScriptBlock from "./TemporalScriptBlock";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -124,6 +126,23 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
 
+    // MELHORIA: Visualização especial para Reels (roteiro temporal)
+    if (formato === "reels") {
+      const blocks = parseTemporalScript(script.roteiro);
+      return (
+        <div className="space-y-1">
+          {blocks.map((block, i) => (
+            <TemporalScriptBlock
+              key={i}
+              time={block.time}
+              label={block.label}
+              content={block.content}
+              index={i}
+            />
+          ))}
+        </div>
+      );
+    }
     if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
@@ -145,10 +164,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({ script }) => {
         />
       );
     }
-
-    // Separa em blocos (p.ex., títulos ou parágrafos)
     const blocks = splitScriptBlocks(script.roteiro);
-    // Exibe cada bloco em um card separado (visual “caixa” moderno)
     return <ParagraphBoxFormatter blocks={blocks} />;
   };
 
