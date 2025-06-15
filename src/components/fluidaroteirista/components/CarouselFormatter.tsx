@@ -4,11 +4,10 @@ import { parseCarouselSlides } from '../utils/carouselParser';
 import CarouselSlideCard from './CarouselSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Images, Instagram, Sparkles, Save } from 'lucide-react';
+import { Images, Instagram, Sparkles, Save, Loader2, Wand2 } from 'lucide-react';
 import CarouselSequencePreview from './CarouselSequencePreview';
 import { useSaveScript } from "../hooks/useSaveScript";
 import { toast } from "sonner";
-import { Loader2, Wand2 } from "lucide-react";
 import { useState } from "react";
 
 interface CarouselFormatterProps {
@@ -18,21 +17,15 @@ interface CarouselFormatterProps {
 const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
   const slides = parseCarouselSlides(roteiro);
 
-  // Nova lógica de salvamento
   const { saveScript, isSaving } = useSaveScript();
-
-  // Infere o título do carrossel (primeira linha ou título padrão)
   const carouselTitle = slides[0]?.title || "Carrossel Aurora";
-
-  // Infere equipamentos se disponíveis (exemplo: via regex ou metadados - aqui fica vazio)
   const equipment_used: string[] = [];
 
-  // Novo: loading states para melhorar, imagem e audio
   const [isImproving, setIsImproving] = useState(false);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
 
-  // Função para salvar
   const handleSave = async () => {
     await saveScript({
       content: roteiro,
@@ -42,8 +35,10 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
     });
   };
 
+  // Aprovar roteiro: após isso liberar gerar imagem/áudio
   const handleApprove = () => {
-    toast.success("Roteiro aprovado com sucesso! 🎉");
+    setIsApproved(true);
+    toast.success("Roteiro aprovado com sucesso! 🎉 Agora é possível gerar imagem e áudio.");
   };
 
   const handleImprove = async () => {
@@ -110,20 +105,20 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         </div>
       </motion.div>
 
-      {/* Grupo de botões principais (aprovar, melhorar, novo) */}
+      {/* Botões principais: Aprovar, Melhorar, Novo (reorganizados) */}
       <div className="flex flex-wrap justify-center gap-3 mt-6 mb-2">
         <button
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-emerald text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-emerald/40 text-base disabled:opacity-60"
           onClick={handleApprove}
-          disabled={isSaving || isImproving}
+          disabled={isSaving || isImproving || isApproved}
         >
           <Sparkles className="h-5 w-5" />
-          Aprovar Roteiro
+          {isApproved ? "Roteiro Aprovado" : "Aprovar Roteiro"}
         </button>
         <button
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-aurora-neon-blue text-white font-semibold shadow hover:bg-aurora-electric-purple transition-all border border-aurora-neon-blue/40 text-base disabled:opacity-60"
           onClick={handleImprove}
-          disabled={isSaving || isImproving}
+          disabled={isSaving || isImproving || isApproved}
         >
           {isImproving ? <Loader2 className="animate-spin h-4 w-4" /> : <Wand2 className="h-4 w-4" />}
           Melhorar Roteiro
@@ -146,12 +141,12 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         </div>
       </motion.div>
 
-      {/* Botões de Gerar Imagem e Gerar Áudio, agora após tudo */}
+      {/* Botões de Gerar Imagem e Gerar Áudio aparecem APENAS após aprovar */}
       <div className="flex flex-wrap justify-center gap-5 mt-7">
         <button
           className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-electric-purple text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-electric-purple/50 text-lg disabled:opacity-60"
           onClick={handleGenerateImage}
-          disabled={isGeneratingImg}
+          disabled={!isApproved || isGeneratingImg}
         >
           {isGeneratingImg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Images className="h-6 w-6" />}
           {isGeneratingImg ? "Gerando Imagem..." : "Gerar Imagem"}
@@ -159,7 +154,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({ roteiro }) => {
         <button
           className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-aurora-neon-blue text-white font-semibold shadow-lg hover:bg-aurora-emerald transition-all border border-aurora-neon-blue/50 text-lg disabled:opacity-60"
           onClick={handleGenerateAudio}
-          disabled={isGeneratingAudio}
+          disabled={!isApproved || isGeneratingAudio}
         >
           {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-6 w-6" />}
           {isGeneratingAudio ? "Gerando Áudio..." : "Gerar Áudio"}
