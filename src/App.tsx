@@ -55,6 +55,7 @@ import { queryClient } from './config/queryClient';
 const DiagnosticHistory = React.lazy(() => import('@/pages/DiagnosticHistory'));
 const DiagnosticReport = React.lazy(() => import('@/pages/DiagnosticReport'));
 const DiagnosticReportRoot = React.lazy(() => import('@/pages/DiagnosticReportRoot'));
+import ApprovedScriptsPage from '@/pages/ApprovedScriptsPage';
 
 function App() {
   return (
@@ -119,6 +120,9 @@ function App() {
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
                       {/* Arrumado - workspace-settings */}
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
+                      
+                      {/* Roteiros aprovados */}
+                      <Route path="/approved-scripts" element={<AppLayout><ApprovedScriptsPage /></AppLayout>} />
                       
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
