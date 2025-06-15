@@ -23,6 +23,7 @@ export interface ScriptGenerationData {
   mentor?: string;
   formato?: string;
   modo?: string;
+  metodologia?: string; // Adicionado para permitir uso correto no generator
   // Akinator specific fields
   tipo_conteudo?: string;
   canal?: string;
