@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import useAuth from "@/hooks/useAuth";
 
 interface FileMetadataFormProps {
   uploadedFiles: { file: File; url: string | null }[];
@@ -30,6 +31,7 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
   );
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleChange = (idx: number, field: string, value: string) => {
     setFormData((prev) =>
@@ -38,6 +40,14 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
   };
 
   const handleSaveAll = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para salvar os arquivos.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSaving(true);
     try {
       const inserts = formData.map((item) => ({
@@ -52,6 +62,7 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
         thumbnail_url: item.file_type === "image" ? item.url : null,
         size: null,
         metadata: {},
+        owner_id: user.id,
       }));
 
       const { error } = await supabase
