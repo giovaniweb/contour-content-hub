@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +16,8 @@ interface Equipment {
 interface ScriptGeneratorFormProps {
   tema: string;
   onTemaChange: (tema: string) => void;
-  formato: 'carrossel' | 'imagem' | 'stories' | 'reels';
-  onFormatoChange: (formato: 'carrossel' | 'imagem' | 'stories' | 'reels') => void;
+  formato: 'carrossel' | 'imagem' | 'reels';
+  onFormatoChange: (formato: 'carrossel' | 'imagem' | 'reels') => void;
   objetivo: string;
   onObjetivoChange: (objetivo: string) => void;
   selectedEquipments: string[];
