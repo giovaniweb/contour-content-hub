@@ -89,7 +89,7 @@ const MediaLibraryPage: React.FC = () => {
   };
 
   return (
-    <AppLayout title="Biblioteca de Mídia">
+    <AppLayout>
       <div className="container mx-auto py-8">
         {/* Hero section */}
         <section className="rounded-2xl overflow-hidden bg-gradient-to-r from-fluida-blue to-fluida-pink relative mb-12">

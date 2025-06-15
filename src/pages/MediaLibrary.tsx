@@ -1,5 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AppLayout from "@/components/layout/AppLayout";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, SlidersHorizontal } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { getMediaItems } from "@/lib/media";
+import { MediaItem } from "@/components/media-library/mockData";
+import FeatureBanner from "@/components/media-library/FeatureBanner";
+import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
+import MediaCreationSection from "@/components/media-library/MediaCreationSection";
+import MediaCard from "@/components/media-library/MediaCard";
+import DownloadIdeasModal from "@/components/media-library/DownloadIdeasModal";
 
 const MediaLibrary: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");

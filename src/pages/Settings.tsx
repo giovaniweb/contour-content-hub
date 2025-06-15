@@ -29,7 +29,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <AppLayout title="Configurações">
+    <AppLayout>
       <div className="container py-8 max-w-4xl mx-auto animate-fade-in">
         <div className="flex items-center mb-6">
           <SettingsIcon className="h-6 w-6 mr-2 text-fluida-blue" />

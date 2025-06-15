@@ -1,5 +1,12 @@
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useToast } from "@/hooks/use-toast";
+import { Navigate } from "react-router-dom";
+import { FileText, CheckCircle2, Presentation, MessageSquare, Database } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface AiSystemProps {
   title: string;
@@ -74,7 +81,7 @@ const SystemIntelligence: React.FC = () => {
   ];
 
   return (
-    <AppLayout title="Inteligência Artificial do Sistema">
+    <AppLayout>
       <div className="container mx-auto py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Inteligência do Sistema</h1>
