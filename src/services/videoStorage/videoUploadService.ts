@@ -55,23 +55,42 @@ export async function uploadVideo(
     
     console.log('📤 Fazendo upload para:', filePath);
     
-    // Upload file to storage with progress tracking
+    // Simulate progress updates since Supabase doesn't support onUploadProgress
+    let progressInterval: NodeJS.Timeout | undefined;
+    if (onProgress) {
+      let currentProgress = 0;
+      progressInterval = setInterval(() => {
+        currentProgress += Math.random() * 10;
+        if (currentProgress > 90) currentProgress = 90;
+        onProgress({
+          loaded: currentProgress,
+          total: 100,
+          percentage: Math.round(currentProgress)
+        });
+      }, 200);
+    }
+    
+    // Upload file to storage
     const { error: uploadError } = await supabase.storage
       .from('videos')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false,
-        onUploadProgress: (progress) => {
-          if (onProgress) {
-            const percentage = Math.round((progress.loaded / progress.total) * 100);
-            onProgress({
-              loaded: progress.loaded,
-              total: progress.total,
-              percentage
-            });
-          }
-        }
+        upsert: false
       });
+    
+    // Clear progress interval
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
+    
+    // Complete progress
+    if (onProgress) {
+      onProgress({
+        loaded: 100,
+        total: 100,
+        percentage: 100
+      });
+    }
     
     if (uploadError) {
       console.error('❌ Erro no upload:', uploadError);

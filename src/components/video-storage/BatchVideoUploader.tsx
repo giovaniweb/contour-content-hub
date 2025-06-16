@@ -27,6 +27,12 @@ interface BatchVideoUploaderProps {
   onCancel?: () => void;
 }
 
+interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+}
+
 const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplete, onCancel }) => {
   const { toast } = useToast();
   const { isAdmin } = usePermissions();
@@ -149,16 +155,12 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
     try {
       await batchUploadVideos(
         uploadQueue,
-        (index, progress) => {
+        (index, progress: UploadProgress) => {
           setCurrentUploadIndex(index);
-          setUploadProgress(progress);
+          setUploadProgress(progress.percentage);
           updateQueueItem(index, { 
             status: 'uploading',
-            progress: {
-              loaded: 0,
-              total: 100,
-              percentage: progress
-            }
+            progress
           });
         },
         (index, success, videoId, error) => {

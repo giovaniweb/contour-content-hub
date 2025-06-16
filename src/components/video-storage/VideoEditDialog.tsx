@@ -61,13 +61,41 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
   // Initialize form data
   useEffect(() => {
     if (video && open) {
+      // Helper function to get description from either Video or StoredVideo
+      const getDescription = () => {
+        if ('descricao_curta' in video) {
+          return video.descricao_curta || '';
+        }
+        if ('description' in video) {
+          return video.description || '';
+        }
+        return '';
+      };
+
+      const getDetailedDescription = () => {
+        if ('descricao_detalhada' in video) {
+          return video.descricao_detalhada || '';
+        }
+        if ('description' in video) {
+          return video.description || '';
+        }
+        return '';
+      };
+
+      const getCategory = () => {
+        if ('categoria' in video) {
+          return video.categoria || '';
+        }
+        return '';
+      };
+
       setFormData({
         titulo: ('titulo' in video ? video.titulo : video.title) || '',
-        descricao_curta: ('descricao_curta' in video ? video.descricao_curta : video.description) || '',
-        descricao_detalhada: ('descricao_detalhada' in video ? video.descricao_detalhada : video.description) || '',
+        descricao_curta: getDescription(),
+        descricao_detalhada: getDetailedDescription(),
         tags: ('tags' in video ? video.tags : []) || [],
         equipamentos: ('equipamentos' in video ? video.equipamentos : []) || [],
-        categoria: ('categoria' in video ? video.categoria : '') || ''
+        categoria: getCategory()
       });
     }
   }, [video, open]);
@@ -140,7 +168,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
     try {
       setUploading(true);
 
-      let thumbnailUrl = ('thumbnail_url' in video ? video.thumbnail_url : video.thumbnail_url) || null;
+      let thumbnailUrl = ('thumbnail_url' in video ? video.thumbnail_url : undefined) || null;
 
       // Upload new thumbnail if provided
       if (thumbnailFile) {

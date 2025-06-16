@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import VideoList from '@/components/video-storage/VideoList';
 import VideoFilterDialog from '@/components/video-storage/VideoFilterDialog';
 import { VideoStatus } from '@/types/video-storage';
-import { getVideos } from '@/services/videoStorage';
+import { getVideos } from '@/services/videoStorage/videoManagementService';
 
 const VideoStorageManager: React.FC = () => {
   const { toast } = useToast();

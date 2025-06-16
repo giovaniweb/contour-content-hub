@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Video } from './videoService';
 
@@ -12,7 +11,7 @@ export interface VideoStatistics {
   duration?: string;
 }
 
-export async function deleteVideoCompletely(videoId: string): Promise<{
+export async function deleteVideo(videoId: string): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -64,6 +63,105 @@ export async function deleteVideoCompletely(videoId: string): Promise<{
     return {
       success: false,
       error: error.message || 'Erro ao deletar vídeo'
+    };
+  }
+}
+
+export async function deleteVideoCompletely(videoId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  return deleteVideo(videoId);
+}
+
+export async function getVideos(
+  filters: any = {},
+  sortOptions: any = { field: 'created_at', direction: 'desc' },
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  success: boolean;
+  videos: Video[];
+  total: number;
+  error?: string;
+}> {
+  try {
+    let query = supabase.from('videos').select('*', { count: 'exact' });
+    
+    // Apply filters
+    if (filters.search) {
+      query = query.ilike('titulo', `%${filters.search}%`);
+    }
+    
+    // Apply sorting
+    query = query.order(sortOptions.field, { ascending: sortOptions.direction === 'asc' });
+    
+    // Apply pagination
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+    
+    const { data: videos, error, count } = await query;
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    return {
+      success: true,
+      videos: videos || [],
+      total: count || 0
+    };
+  } catch (error) {
+    console.error('Erro ao buscar vídeos:', error);
+    return {
+      success: false,
+      videos: [],
+      total: 0,
+      error: error.message || 'Erro ao buscar vídeos'
+    };
+  }
+}
+
+export async function getMyVideos(
+  userId: string,
+  filters: any = {},
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  success: boolean;
+  videos: Video[];
+  total: number;
+  error?: string;
+}> {
+  return getVideos({ ...filters, user_id: userId }, { field: 'created_at', direction: 'desc' }, page, pageSize);
+}
+
+export async function getVideoById(videoId: string): Promise<{
+  success: boolean;
+  video?: Video;
+  error?: string;
+}> {
+  try {
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .single();
+    
+    if (error || !video) {
+      throw new Error('Vídeo não encontrado');
+    }
+    
+    return {
+      success: true,
+      video
+    };
+  } catch (error) {
+    console.error('Erro ao buscar vídeo:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao buscar vídeo'
     };
   }
 }
