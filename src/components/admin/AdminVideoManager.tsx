@@ -11,8 +11,11 @@ import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
 import { useVideoManager } from '@/hooks/useVideoManager';
 import { Video } from '@/services/videoStorage/videoService';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminVideoManager: React.FC = () => {
+  const { toast } = useToast();
   const {
     videos,
     selectedVideos,
@@ -61,9 +64,29 @@ const AdminVideoManager: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleDownload = (video: Video) => {
+  const handleDownload = async (video: Video) => {
     if (video.url_video) {
+      // Incrementar contador de downloads
+      try {
+        await supabase.rpc('increment_video_downloads', { video_id: video.id });
+        loadVideos(); // Recarregar para atualizar o contador
+      } catch (error) {
+        console.error('Erro ao incrementar downloads:', error);
+      }
+      
+      // Abrir URL para download
       window.open(video.url_video, '_blank');
+      
+      toast({
+        title: 'Download iniciado',
+        description: 'O download do vídeo foi iniciado.'
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'URL do vídeo não disponível para download.'
+      });
     }
   };
 

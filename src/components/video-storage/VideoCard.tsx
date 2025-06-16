@@ -1,175 +1,121 @@
 
-import React, { useState } from 'react';
-import { 
-  Play, 
-  Download, 
-  Edit, 
-  Trash2, 
-  RefreshCw, 
-  Loader, 
-  AlertTriangle
-} from 'lucide-react';
-import { StoredVideo } from '@/types/video-storage';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import VideoStatusBadge from '@/components/video-storage/VideoStatusBadge';
-import VideoPlayer from '@/components/video-storage/VideoPlayer';
-import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
-import { formatFileSize } from '@/utils/format';
+import React from 'react';
+import { Play, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Video } from '@/services/videoStorage/videoService';
+import VideoActionMenu from './VideoActionMenu';
 
 interface VideoCardProps {
-  video: StoredVideo;
-  onRefresh: () => void;
-  onDownload?: () => void;
-  processingTimeout?: boolean;
-  timeSinceUpload?: string;
-  onReprocess?: () => void;
-  isReprocessing?: boolean;
+  video: Video;
+  viewMode: 'grid' | 'list';
+  onPlay: (video: Video) => void;
+  onEdit: (video: Video) => void;
+  onDelete: (video: Video) => void;
+  onDownload: (video: Video) => void;
+  onStatistics: (video: Video) => void;
+  onCopyLink: (video: Video) => void;
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({
   video,
-  onRefresh,
+  viewMode,
+  onPlay,
+  onEdit,
+  onDelete,
   onDownload,
-  processingTimeout = false,
-  timeSinceUpload,
-  onReprocess,
-  isReprocessing = false
+  onStatistics,
+  onCopyLink
 }) => {
-  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
-  // Format duration if available
-  const formattedDuration = video.duration || "Unknown";
-  
-  // Format file size
-  const formattedSize = video.size ? formatFileSize(video.size) : "Unknown";
-  
-  // Default thumbnail if none exists
-  const thumbnailUrl = video.thumbnail_url || 'https://placehold.co/640x360/333/FFF?text=No+Thumbnail';
-  
-  // Handle callbacks
-  const handleEditSave = () => {
-    setIsEditDialogOpen(false);
-    onRefresh();
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
+  const truncateTitle = (title: string, maxLength: number = 30) => {
+    return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
+  };
+
+  if (viewMode === 'list') {
+    return (
+      <Card className="hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            {/* Thumbnail */}
+            <div className="relative w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                <Play className="h-6 w-6 text-muted-foreground" />
+              </div>
+              {/* Download count */}
+              <div className="absolute top-1 left-1">
+                <Badge variant="secondary" className="text-xs px-1 py-0">
+                  {video.downloads_count || 0}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm mb-1 truncate">{video.titulo}</h3>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                <span>{formatDate(video.data_upload)}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1">
+              <VideoActionMenu
+                video={video}
+                onEdit={() => onEdit(video)}
+                onDelete={() => onDelete(video)}
+                onDownload={() => onDownload(video)}
+                onStatistics={() => onStatistics(video)}
+                onCopyLink={() => onCopyLink(video)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
-      {/* Video thumbnail */}
+    <Card className="hover:shadow-md transition-shadow">
+      {/* Thumbnail */}
       <div className="relative aspect-video bg-muted overflow-hidden">
-        <img 
-          src={thumbnailUrl} 
-          alt={video.title} 
-          className="w-full h-full object-cover"
-        />
-        
-        {/* Overlay with play button */}
-        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-          <Button 
-            variant="glass"
-            size="icon"
-            className="rounded-full"
-            onClick={() => setIsPlayerOpen(true)}
-          >
-            <Play className="h-6 w-6" />
-          </Button>
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 cursor-pointer" onClick={() => onPlay(video)}>
+          <Play className="h-8 w-8 text-muted-foreground" />
         </div>
         
-        {/* Status badge */}
-        <div className="absolute top-2 right-2">
-          <VideoStatusBadge status={video.status} timeout={processingTimeout} />
+        {/* Download count */}
+        <div className="absolute top-2 left-2">
+          <Badge variant="secondary" className="text-xs px-2 py-1">
+            {video.downloads_count || 0}
+          </Badge>
         </div>
       </div>
-      
-      <CardContent className="p-4">
-        <h3 className="font-medium text-lg mb-1 line-clamp-1">
-          {video.title || 'Untitled Video'}
-        </h3>
-        
-        <div className="text-sm text-muted-foreground space-y-1">
-          {video.description && (
-            <p className="line-clamp-2">{video.description}</p>
-          )}
-          
-          <div className="flex items-center gap-x-4 pt-1">
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
-              {formattedDuration}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
-              {formattedSize}
-            </span>
+
+      <CardContent className="p-3">
+        {/* Título */}
+        <h3 className="font-medium text-sm mb-2 line-clamp-2">{video.titulo}</h3>
+
+        {/* Data e Ações */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            <span>{formatDate(video.data_upload)}</span>
           </div>
           
-          {timeSinceUpload && (
-            <p className="text-xs mt-1">
-              Uploaded {timeSinceUpload}
-            </p>
-          )}
+          <VideoActionMenu
+            video={video}
+            onEdit={() => onEdit(video)}
+            onDelete={() => onDelete(video)}
+            onDownload={() => onDownload(video)}
+            onStatistics={() => onStatistics(video)}
+            onCopyLink={() => onCopyLink(video)}
+          />
         </div>
       </CardContent>
-      
-      <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="flex-1"
-          onClick={() => setIsEditDialogOpen(true)}
-        >
-          <Edit className="h-4 w-4 mr-1" /> Edit
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          disabled={!onDownload}
-          onClick={onDownload}
-        >
-          <Download className="h-4 w-4 mr-1" /> Download
-        </Button>
-        
-        {onReprocess && (
-          <Button
-            variant={processingTimeout ? "destructive" : "outline"}
-            size="sm"
-            className="flex-1"
-            onClick={onReprocess}
-            disabled={isReprocessing}
-          >
-            {isReprocessing ? (
-              <Loader className="h-4 w-4 mr-1 animate-spin" /> 
-            ) : processingTimeout ? (
-              <AlertTriangle className="h-4 w-4 mr-1" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-1" />
-            )}
-            {processingTimeout ? "Retry" : "Process"}
-          </Button>
-        )}
-      </CardFooter>
-      
-      {/* Video Player Dialog */}
-      {isPlayerOpen && (
-        <VideoPlayer
-          open={isPlayerOpen}
-          onOpenChange={setIsPlayerOpen}
-          video={video}
-        />
-      )}
-      
-      {/* Edit Dialog */}
-      {isEditDialogOpen && (
-        <VideoEditDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          video={video}
-          onClose={() => setIsEditDialogOpen(false)}
-          onUpdate={handleEditSave}
-        />
-      )}
     </Card>
   );
 };

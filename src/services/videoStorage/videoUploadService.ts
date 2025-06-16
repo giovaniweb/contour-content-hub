@@ -37,8 +37,8 @@ export async function uploadVideo(
     const sanitizedFileName = generateUniqueFileName(file.name);
     console.log('📝 Nome do arquivo sanitizado:', sanitizedFileName);
     
-    // Upload file to storage with sanitized name
-    const filePath = `videos/${sanitizedFileName}`;
+    // Upload file to storage with user folder structure
+    const filePath = `${userData.user.id}/${sanitizedFileName}`;
     
     console.log('📤 Fazendo upload para:', filePath);
     
@@ -63,6 +63,9 @@ export async function uploadVideo(
     
     console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
     
+    // Generate placeholder thumbnail URL
+    const thumbnailUrl = `https://via.placeholder.com/640x360/333333/FFFFFF?text=${encodeURIComponent(metadata.title || file.name)}`;
+    
     // Create video record in the videos table
     const videoData = {
       titulo: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
@@ -71,7 +74,9 @@ export async function uploadVideo(
       equipamentos: metadata.equipmentId ? [metadata.equipmentId] : [],
       tags: metadata.tags || [],
       url_video: publicUrlData.publicUrl,
-      preview_url: publicUrlData.publicUrl, // Temporary, will be replaced with actual thumbnail
+      preview_url: publicUrlData.publicUrl,
+      thumbnail_url: thumbnailUrl,
+      downloads_count: 0,
       data_upload: new Date().toISOString()
     };
     
