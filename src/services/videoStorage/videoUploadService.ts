@@ -37,31 +37,6 @@ export async function uploadVideo(
     const sanitizedFileName = generateUniqueFileName(file.name);
     console.log('📝 Nome do arquivo sanitizado:', sanitizedFileName);
     
-    // Create video record first in the videos table (not videos_storage)
-    const videoData = {
-      titulo: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
-      descricao_curta: metadata.description || '',
-      tipo_video: 'video_pronto',
-      equipment_id: metadata.equipmentId || null,
-      tags: metadata.tags || [],
-      url_video: '', // Will be updated after upload
-      preview_url: '', // Will be generated later
-      data_upload: new Date().toISOString()
-    };
-    
-    const { data: createdVideo, error: videoError } = await supabase
-      .from('videos')
-      .insert(videoData)
-      .select()
-      .single();
-    
-    if (videoError || !createdVideo) {
-      console.error('❌ Erro ao criar registro do vídeo:', videoError);
-      throw new Error(videoError?.message || 'Falha ao criar registro do vídeo');
-    }
-    
-    console.log('✅ Registro do vídeo criado:', createdVideo.id);
-    
     // Upload file to storage with sanitized name
     const filePath = `videos/${sanitizedFileName}`;
     
@@ -76,13 +51,6 @@ export async function uploadVideo(
     
     if (uploadError) {
       console.error('❌ Erro no upload:', uploadError);
-      
-      // Delete the video record if upload failed
-      await supabase
-        .from('videos')
-        .delete()
-        .eq('id', createdVideo.id);
-      
       throw new Error(`Erro no upload: ${uploadError.message}`);
     }
     
@@ -95,41 +63,36 @@ export async function uploadVideo(
     
     console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
     
-    // Update video record with file URL
-    const { error: updateError } = await supabase
+    // Create video record in the videos table
+    const videoData = {
+      titulo: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
+      descricao_curta: metadata.description || '',
+      tipo_video: 'video_pronto',
+      equipamentos: metadata.equipmentId ? [metadata.equipmentId] : [],
+      tags: metadata.tags || [],
+      url_video: publicUrlData.publicUrl,
+      preview_url: publicUrlData.publicUrl, // Temporary, will be replaced with actual thumbnail
+      data_upload: new Date().toISOString()
+    };
+    
+    const { data: createdVideo, error: videoError } = await supabase
       .from('videos')
-      .update({
-        url_video: publicUrlData.publicUrl,
-        preview_url: publicUrlData.publicUrl // Temporary, will be replaced with actual thumbnail
-      })
-      .eq('id', createdVideo.id);
+      .insert(videoData)
+      .select()
+      .single();
     
-    if (updateError) {
-      console.error('⚠️ Erro ao atualizar URL do vídeo:', updateError);
-      // Don't throw error here, upload was successful
+    if (videoError || !createdVideo) {
+      console.error('❌ Erro ao criar registro do vídeo:', videoError);
+      
+      // Delete uploaded file if video record creation failed
+      await supabase.storage
+        .from('videos')
+        .remove([filePath]);
+      
+      throw new Error(videoError?.message || 'Falha ao criar registro do vídeo');
     }
     
-    // Call process-video edge function to generate thumbnail and process
-    try {
-      console.log('🔄 Iniciando processamento do vídeo...');
-      
-      const { error: processError } = await supabase.functions.invoke('process-video', {
-        body: { 
-          videoId: createdVideo.id, 
-          fileName: sanitizedFileName 
-        }
-      });
-      
-      if (processError) {
-        console.error('⚠️ Erro no processamento (não crítico):', processError);
-        // Don't throw error, upload was successful even if processing failed
-      } else {
-        console.log('✅ Processamento iniciado com sucesso');
-      }
-    } catch (processError) {
-      console.error('⚠️ Erro ao iniciar processamento:', processError);
-      // Don't throw error, upload was successful
-    }
+    console.log('✅ Registro do vídeo criado:', createdVideo.id);
     
     return { success: true, videoId: createdVideo.id };
   } catch (error) {
