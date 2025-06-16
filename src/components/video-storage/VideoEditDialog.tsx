@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -62,7 +61,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
   useEffect(() => {
     if (video && open) {
       // Helper function to get description from either Video or StoredVideo
-      const getDescription = () => {
+      const getDescription = (): string => {
         if ('descricao_curta' in video) {
           return video.descricao_curta || '';
         }
@@ -72,7 +71,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
         return '';
       };
 
-      const getDetailedDescription = () => {
+      const getDetailedDescription = (): string => {
         if ('descricao_detalhada' in video) {
           return video.descricao_detalhada || '';
         }
@@ -82,9 +81,9 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
         return '';
       };
 
-      const getCategory = () => {
+      const getCategory = (): string => {
         if ('categoria' in video) {
-          return video.categoria || '';
+          return typeof video.categoria === 'string' ? video.categoria : '';
         }
         return '';
       };
