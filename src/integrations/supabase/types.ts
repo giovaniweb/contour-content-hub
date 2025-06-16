@@ -2140,6 +2140,7 @@ export type Database = {
           descricao: string | null
           descricao_curta: string | null
           descricao_detalhada: string | null
+          downloads_count: number | null
           duracao: string | null
           equipamentos: string[] | null
           favoritos_count: number | null
@@ -2160,6 +2161,7 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           descricao_detalhada?: string | null
+          downloads_count?: number | null
           duracao?: string | null
           equipamentos?: string[] | null
           favoritos_count?: number | null
@@ -2180,6 +2182,7 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           descricao_detalhada?: string | null
+          downloads_count?: number | null
           duracao?: string | null
           equipamentos?: string[] | null
           favoritos_count?: number | null

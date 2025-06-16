@@ -75,11 +75,16 @@ const AdminVideoManager: React.FC = () => {
     if (video.url_video) {
       // Incrementar contador de downloads diretamente
       try {
-        await supabase
+        const { error } = await supabase
           .from('videos')
           .update({ downloads_count: (video.downloads_count || 0) + 1 })
           .eq('id', video.id);
-        loadVideos(); // Recarregar para atualizar o contador
+        
+        if (error) {
+          console.error('Erro ao incrementar downloads:', error);
+        } else {
+          loadVideos(); // Recarregar para atualizar o contador
+        }
       } catch (error) {
         console.error('Erro ao incrementar downloads:', error);
       }
