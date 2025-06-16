@@ -7,7 +7,8 @@ import {
   deleteVideos, 
   updateVideos, 
   Video, 
-  VideoFilters 
+  VideoFilters,
+  removeMockupVideos 
 } from '@/services/videoStorage/videoService';
 import { useEquipments } from '@/hooks/useEquipments';
 
@@ -193,6 +194,30 @@ export const useVideoManager = () => {
     }
   };
 
+  // Remover vídeos mockup
+  const handleRemoveMockupVideos = async () => {
+    try {
+      const { success, error } = await removeMockupVideos();
+      
+      if (!success || error) {
+        throw new Error(error);
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Vídeos mockup removidos com sucesso'
+      });
+
+      loadVideos();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível remover vídeos mockup'
+      });
+    }
+  };
+
   // Aplicar filtros
   const handleFilterChange = (newFilters: VideoFilters) => {
     setFilters(newFilters);
@@ -203,6 +228,11 @@ export const useVideoManager = () => {
   useEffect(() => {
     loadVideos();
   }, [filters, page]);
+
+  // Remover vídeos mockup ao carregar o hook
+  useEffect(() => {
+    handleRemoveMockupVideos();
+  }, []);
 
   return {
     videos,

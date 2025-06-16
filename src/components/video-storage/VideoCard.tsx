@@ -11,6 +11,7 @@ interface Video {
   data_upload: string;
   downloads_count?: number;
   url_video?: string;
+  thumbnail_url?: string;
 }
 
 interface VideoCardProps {
@@ -45,9 +46,17 @@ const VideoCard: React.FC<VideoCardProps> = ({
           <div className="flex items-center gap-4">
             {/* Thumbnail */}
             <div className="relative w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                <Play className="h-6 w-6 text-muted-foreground" />
-              </div>
+              {video.thumbnail_url ? (
+                <img 
+                  src={video.thumbnail_url} 
+                  alt={video.titulo}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                  <Play className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
               {/* Download count */}
               <div className="absolute top-1 left-1">
                 <Badge variant="secondary" className="text-xs px-1 py-0">
@@ -86,9 +95,18 @@ const VideoCard: React.FC<VideoCardProps> = ({
     <Card className="hover:shadow-md transition-shadow">
       {/* Thumbnail */}
       <div className="relative aspect-video bg-muted overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 cursor-pointer" onClick={() => onPlay(video)}>
-          <Play className="h-8 w-8 text-muted-foreground" />
-        </div>
+        {video.thumbnail_url ? (
+          <img 
+            src={video.thumbnail_url} 
+            alt={video.titulo}
+            className="w-full h-full object-cover cursor-pointer"
+            onClick={() => onPlay(video)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50 cursor-pointer" onClick={() => onPlay(video)}>
+            <Play className="h-8 w-8 text-muted-foreground" />
+          </div>
+        )}
         
         {/* Download count */}
         <div className="absolute top-2 left-2">

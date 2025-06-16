@@ -8,6 +8,7 @@ export interface Video {
   descricao_detalhada?: string;
   url_video?: string;
   preview_url?: string;
+  thumbnail_url?: string;
   tipo_video: string;
   equipamentos?: string[];
   tags?: string[];
@@ -135,6 +136,27 @@ export async function updateVideo(id: string, updates: Partial<Video>): Promise<
  */
 export async function deleteVideo(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // Primeiro buscar o vídeo para obter a URL e excluir o arquivo do storage
+    const { data: video } = await supabase
+      .from('videos')
+      .select('url_video')
+      .eq('id', id)
+      .single();
+
+    if (video?.url_video) {
+      // Extrair o caminho do arquivo da URL
+      const url = new URL(video.url_video);
+      const filePath = url.pathname.split('/storage/v1/object/public/videos/')[1];
+      
+      if (filePath) {
+        console.log('🗑️ Excluindo arquivo do storage:', filePath);
+        await supabase.storage
+          .from('videos')
+          .remove([filePath]);
+      }
+    }
+
+    // Excluir registro da tabela
     const { error } = await supabase
       .from('videos')
       .delete()
@@ -159,6 +181,30 @@ export async function deleteVideo(id: string): Promise<{ success: boolean; error
  */
 export async function deleteVideos(ids: string[]): Promise<{ success: boolean; error?: string }> {
   try {
+    // Buscar URLs dos vídeos para excluir arquivos do storage
+    const { data: videos } = await supabase
+      .from('videos')
+      .select('url_video')
+      .in('id', ids);
+
+    if (videos && videos.length > 0) {
+      const filePaths = videos
+        .filter(video => video.url_video)
+        .map(video => {
+          const url = new URL(video.url_video);
+          return url.pathname.split('/storage/v1/object/public/videos/')[1];
+        })
+        .filter(Boolean);
+
+      if (filePaths.length > 0) {
+        console.log('🗑️ Excluindo arquivos do storage:', filePaths);
+        await supabase.storage
+          .from('videos')
+          .remove(filePaths);
+      }
+    }
+
+    // Excluir registros da tabela
     const { error } = await supabase
       .from('videos')
       .delete()
@@ -198,6 +244,40 @@ export async function updateVideos(ids: string[], updates: Partial<Video>): Prom
     return {
       success: false,
       error: 'Erro ao atualizar vídeos'
+    };
+  }
+}
+
+/**
+ * Remover vídeos de mockup
+ */
+export async function removeMockupVideos(): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Buscar vídeos que parecem ser mockup (baseado em títulos ou URLs)
+    const { data: mockupVideos, error: fetchError } = await supabase
+      .from('videos')
+      .select('id, titulo, url_video')
+      .or('titulo.ilike.%mockup%,titulo.ilike.%test%,titulo.ilike.%exemplo%');
+
+    if (fetchError) throw fetchError;
+
+    if (mockupVideos && mockupVideos.length > 0) {
+      const mockupIds = mockupVideos.map(v => v.id);
+      const result = await deleteVideos(mockupIds);
+      
+      if (result.success) {
+        console.log(`🧹 Removidos ${mockupVideos.length} vídeos de mockup`);
+      }
+      
+      return result;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao remover vídeos mockup:', error);
+    return {
+      success: false,
+      error: 'Erro ao remover vídeos mockup'
     };
   }
 }

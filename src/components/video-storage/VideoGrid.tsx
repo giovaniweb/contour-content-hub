@@ -21,6 +21,7 @@ interface Video {
   data_upload: string;
   downloads_count?: number;
   url_video?: string;
+  thumbnail_url?: string;
 }
 
 interface VideoGridProps {
@@ -80,8 +81,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, index) => (
             <div key={index} className="animate-pulse">
               <div className="aspect-video bg-muted rounded-t-lg"></div>
               <div className="p-4">
@@ -122,9 +123,9 @@ const VideoGrid: React.FC<VideoGridProps> = ({
         </ToggleGroup>
       </div>
 
-      {/* Grid/List de vídeos */}
+      {/* Grid/List de vídeos - CORRIGIDO para 5 colunas */}
       <div className={viewMode === 'grid' 
-        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'
         : 'space-y-2'
       }>
         {videos.map((video) => (

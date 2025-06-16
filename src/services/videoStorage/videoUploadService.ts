@@ -44,7 +44,7 @@ export async function uploadVideo(
     const sanitizedFileName = generateUniqueFileName(file.name);
     console.log('📝 Nome do arquivo sanitizado:', sanitizedFileName);
     
-    // Upload file to storage with user folder structure
+    // Upload file to storage with user folder structure (FIX: sem duplicar "videos")
     const filePath = `${userData.user.id}/${sanitizedFileName}`;
     
     console.log('📤 Fazendo upload para:', filePath);
@@ -70,7 +70,7 @@ export async function uploadVideo(
     
     console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
     
-    // Generate placeholder thumbnail URL
+    // Generate placeholder thumbnail URL (TODO: implementar geração real de thumbnail)
     const thumbnailUrl = `https://via.placeholder.com/640x360/333333/FFFFFF?text=${encodeURIComponent(metadata.title || file.name)}`;
     
     // Create video record in the videos table
@@ -136,21 +136,13 @@ export async function batchUploadVideos(
       // Report start
       onProgress(i, 0);
       
-      // Simulate progress updates during upload
-      const progressInterval = setInterval(() => {
-        const currentProgress = Math.min(90, Math.random() * 90);
-        onProgress(i, currentProgress);
-      }, 500);
-      
-      // Upload file
+      // Upload file - SEM simulação maluca de progresso
       const { success, videoId, error } = await uploadVideo(item.file, {
         title: item.title,
         description: item.description,
         equipmentId: item.equipmentId,
         tags: item.tags
       });
-      
-      clearInterval(progressInterval);
       
       // Update status
       if (success && videoId) {
