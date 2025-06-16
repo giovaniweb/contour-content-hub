@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,14 @@ import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import { StoredVideo, VideoFilterOptions } from '@/types/video-storage';
 import { getVideos, processVideo } from '@/services/videoStorageService';
 import { timeAgo } from '@/utils/time';
+
+interface Video {
+  id: string;
+  titulo: string;
+  data_upload: string;
+  downloads_count?: number;
+  url_video?: string;
+}
 
 interface VideoListProps {
   filters: VideoFilterOptions;
@@ -132,6 +141,17 @@ const VideoList: React.FC<VideoListProps> = ({
     }
   };
 
+  // Convert StoredVideo to Video for compatibility
+  const convertToVideo = (storedVideo: StoredVideo): Video => {
+    return {
+      id: storedVideo.id,
+      titulo: storedVideo.title || 'Sem título',
+      data_upload: storedVideo.created_at || new Date().toISOString(),
+      downloads_count: 0, // Default since StoredVideo doesn't have this
+      url_video: storedVideo.url
+    };
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -167,17 +187,19 @@ const VideoList: React.FC<VideoListProps> = ({
           const isReprocessing = reprocessingVideos[video.id] || false;
           const isProcessing = processingVideos[video.id] || false;
           const uploadTime = timeAgo(video.created_at || new Date());
+          const convertedVideo = convertToVideo(video);
           
           return (
             <VideoCard
               key={video.id}
-              video={video}
-              onRefresh={loadVideos}
+              video={convertedVideo}
+              viewMode={viewMode}
+              onPlay={() => handlePreviewVideo(video)}
+              onEdit={() => {}} // Empty for now
+              onDelete={() => {}} // Empty for now
               onDownload={() => handleDownloadVideo(video)}
-              processingTimeout={processingTimeout}
-              timeSinceUpload={uploadTime}
-              onReprocess={() => handleReprocess(video)}
-              isReprocessing={isReprocessing || isProcessing}
+              onStatistics={() => {}} // Empty for now
+              onCopyLink={() => {}} // Empty for now
             />
           );
         })}

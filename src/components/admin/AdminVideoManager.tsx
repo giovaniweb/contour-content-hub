@@ -10,9 +10,16 @@ import BatchVideoUploader from '@/components/video-storage/BatchVideoUploader';
 import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
 import { useVideoManager } from '@/hooks/useVideoManager';
-import { Video } from '@/services/videoStorage/videoService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+
+interface Video {
+  id: string;
+  titulo: string;
+  data_upload: string;
+  downloads_count?: number;
+  url_video?: string;
+}
 
 const AdminVideoManager: React.FC = () => {
   const { toast } = useToast();
@@ -66,9 +73,12 @@ const AdminVideoManager: React.FC = () => {
 
   const handleDownload = async (video: Video) => {
     if (video.url_video) {
-      // Incrementar contador de downloads
+      // Incrementar contador de downloads diretamente
       try {
-        await supabase.rpc('increment_video_downloads', { video_id: video.id });
+        await supabase
+          .from('videos')
+          .update({ downloads_count: (video.downloads_count || 0) + 1 })
+          .eq('id', video.id);
         loadVideos(); // Recarregar para atualizar o contador
       } catch (error) {
         console.error('Erro ao incrementar downloads:', error);
