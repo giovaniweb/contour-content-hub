@@ -82,8 +82,8 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
       };
 
       const getCategory = (): string => {
-        if ('categoria' in video) {
-          return typeof video.categoria === 'string' ? video.categoria : '';
+        if ('categoria' in video && video.categoria) {
+          return typeof video.categoria === 'string' ? video.categoria : String(video.categoria);
         }
         return '';
       };
