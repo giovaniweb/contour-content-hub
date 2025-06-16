@@ -8,6 +8,13 @@ interface VideoQueueItem {
   description?: string;
   equipmentId?: string;
   tags?: string[];
+  thumbnailFile?: File;
+}
+
+interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
 }
 
 export async function uploadVideo(
@@ -17,7 +24,9 @@ export async function uploadVideo(
     description?: string;
     equipmentId?: string;
     tags?: string[];
-  } = {}
+    thumbnailFile?: File;
+  } = {},
+  onProgress?: (progress: UploadProgress) => void
 ): Promise<{
   success: boolean;
   videoId?: string;
@@ -42,18 +51,26 @@ export async function uploadVideo(
     
     // Generate sanitized unique filename
     const sanitizedFileName = generateUniqueFileName(file.name);
-    console.log('📝 Nome do arquivo sanitizado:', sanitizedFileName);
-    
-    // Upload file to storage with user folder structure (FIX: sem duplicar "videos")
     const filePath = `${userData.user.id}/${sanitizedFileName}`;
     
     console.log('📤 Fazendo upload para:', filePath);
     
+    // Upload file to storage with progress tracking
     const { error: uploadError } = await supabase.storage
       .from('videos')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
+        onUploadProgress: (progress) => {
+          if (onProgress) {
+            const percentage = Math.round((progress.loaded / progress.total) * 100);
+            onProgress({
+              loaded: progress.loaded,
+              total: progress.total,
+              percentage
+            });
+          }
+        }
       });
     
     if (uploadError) {
@@ -70,13 +87,27 @@ export async function uploadVideo(
     
     console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
     
-    // Generate placeholder thumbnail URL (TODO: implementar geração real de thumbnail)
-    const thumbnailUrl = `https://via.placeholder.com/640x360/333333/FFFFFF?text=${encodeURIComponent(metadata.title || file.name)}`;
+    // Handle thumbnail upload if provided
+    let thumbnailUrl = null;
+    if (metadata.thumbnailFile) {
+      const thumbnailFileName = `${userData.user.id}/thumbnails/${Date.now()}_${metadata.thumbnailFile.name}`;
+      const { error: thumbError } = await supabase.storage
+        .from('videos')
+        .upload(thumbnailFileName, metadata.thumbnailFile);
+      
+      if (!thumbError) {
+        const { data: thumbUrlData } = supabase.storage
+          .from('videos')
+          .getPublicUrl(thumbnailFileName);
+        thumbnailUrl = thumbUrlData.publicUrl;
+      }
+    }
     
     // Create video record in the videos table
     const videoData = {
       titulo: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
       descricao_curta: metadata.description || '',
+      descricao_detalhada: metadata.description || '',
       tipo_video: 'video_pronto',
       equipamentos: metadata.equipmentId ? [metadata.equipmentId] : [],
       tags: metadata.tags || [],
@@ -115,7 +146,7 @@ export async function uploadVideo(
 
 export async function batchUploadVideos(
   queue: VideoQueueItem[],
-  onProgress: (index: number, progress: number) => void,
+  onProgress: (index: number, progress: UploadProgress) => void,
   onComplete: (index: number, success: boolean, videoId?: string, error?: string) => void
 ): Promise<{
   success: boolean;
@@ -133,34 +164,31 @@ export async function batchUploadVideos(
     console.log(`📤 Processando vídeo ${i + 1}/${queue.length}: ${item.file.name}`);
     
     try {
-      // Report start
-      onProgress(i, 0);
+      const { success, videoId, error } = await uploadVideo(
+        item.file, 
+        {
+          title: item.title,
+          description: item.description,
+          equipmentId: item.equipmentId,
+          tags: item.tags,
+          thumbnailFile: item.thumbnailFile
+        },
+        (progress) => onProgress(i, progress)
+      );
       
-      // Upload file - SEM simulação maluca de progresso
-      const { success, videoId, error } = await uploadVideo(item.file, {
-        title: item.title,
-        description: item.description,
-        equipmentId: item.equipmentId,
-        tags: item.tags
-      });
-      
-      // Update status
       if (success && videoId) {
         completed++;
         onComplete(i, true, videoId);
-        onProgress(i, 100);
         console.log(`✅ Vídeo ${i + 1} concluído com sucesso`);
       } else {
         failed++;
         onComplete(i, false, undefined, error);
-        onProgress(i, 0);
         console.log(`❌ Vídeo ${i + 1} falhou:`, error);
       }
       
     } catch (error) {
       failed++;
       onComplete(i, false, undefined, error.message);
-      onProgress(i, 0);
       console.log(`💥 Erro no vídeo ${i + 1}:`, error);
     }
     

@@ -8,7 +8,7 @@ import VideoDownloadDialog from '@/components/video-storage/VideoDownloadDialog'
 import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import { StoredVideo, VideoFilterOptions } from '@/types/video-storage';
 import { Video } from '@/services/videoStorage/videoService';
-import { getVideos, processVideo } from '@/services/videoStorageService';
+import { getVideos } from '@/services/videoStorageService';
 import { timeAgo } from '@/utils/time';
 
 interface VideoListProps {
@@ -33,11 +33,6 @@ const VideoList: React.FC<VideoListProps> = ({
   const [selectedVideo, setSelectedVideo] = useState<StoredVideo | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
-  const [processingVideos, setProcessingVideos] = useState<Record<string, boolean>>({});
-  const [reprocessingVideos, setReprocessingVideos] = useState<Record<string, boolean>>({});
-
-  // Processing timeout detection (videos stuck in processing)
-  const processingTimeoutMinutes = 30; // Consider a video stuck after 30 minutes
 
   // Load videos
   useEffect(() => {
@@ -72,17 +67,6 @@ const VideoList: React.FC<VideoListProps> = ({
     }
   };
 
-  // Check for processing timeouts
-  const checkProcessingTimeout = (video: StoredVideo) => {
-    if (video.status !== 'processing') return false;
-    
-    const uploadTime = new Date(video.created_at || Date.now()).getTime();
-    const currentTime = Date.now();
-    const minutesPassed = (currentTime - uploadTime) / (1000 * 60);
-    
-    return minutesPassed > processingTimeoutMinutes;
-  };
-
   // Handle video preview
   const handlePreviewVideo = (video: StoredVideo) => {
     setSelectedVideo(video);
@@ -93,45 +77,6 @@ const VideoList: React.FC<VideoListProps> = ({
   const handleDownloadVideo = (video: StoredVideo) => {
     setSelectedVideo(video);
     setIsDownloadOpen(true);
-  };
-
-  // Handle video reprocessing
-  const handleReprocess = async (video: StoredVideo) => {
-    setReprocessingVideos(prev => ({ ...prev, [video.id]: true }));
-    try {
-      let fileName = '';
-      
-      // Try to get the original filename from metadata
-      if (video.metadata && video.metadata.original_filename) {
-        fileName = video.metadata.original_filename;
-      } else {
-        // Use the video ID as fallback
-        fileName = `${video.id}.mp4`;
-      }
-      
-      const { success, error } = await processVideo(video.id, fileName);
-      
-      if (!success || error) {
-        throw new Error(error || 'Failed to reprocess video');
-      }
-      
-      toast({
-        title: "Processing started",
-        description: "Video processing has been initiated."
-      });
-      
-      // Refresh video list to show updated status
-      loadVideos();
-    } catch (error) {
-      console.error('Error reprocessing video:', error);
-      toast({
-        variant: "destructive",
-        title: "Processing failed",
-        description: error.message || "Failed to reprocess video"
-      });
-    } finally {
-      setReprocessingVideos(prev => ({ ...prev, [video.id]: false }));
-    }
   };
 
   // Convert StoredVideo to Video for compatibility with VideoCard
@@ -183,10 +128,6 @@ const VideoList: React.FC<VideoListProps> = ({
       {/* Videos grid */}
       <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1'}`}>
         {videos.map((video) => {
-          const processingTimeout = checkProcessingTimeout(video);
-          const isReprocessing = reprocessingVideos[video.id] || false;
-          const isProcessing = processingVideos[video.id] || false;
-          const uploadTime = timeAgo(video.created_at || new Date());
           const convertedVideo = convertToVideo(video);
           
           return (
@@ -195,11 +136,12 @@ const VideoList: React.FC<VideoListProps> = ({
               video={convertedVideo}
               viewMode={viewMode}
               onPlay={() => handlePreviewVideo(video)}
-              onEdit={() => {}} // Empty for now
-              onDelete={() => {}} // Empty for now
+              onEdit={() => {}} // Handled by VideoActionMenu
+              onDelete={() => {}} // Handled by VideoActionMenu
               onDownload={() => handleDownloadVideo(video)}
-              onStatistics={() => {}} // Empty for now
-              onCopyLink={() => {}} // Empty for now
+              onStatistics={() => {}} // Handled by VideoActionMenu
+              onCopyLink={() => {}} // Handled by VideoActionMenu
+              onRefresh={loadVideos}
             />
           );
         })}

@@ -23,6 +23,7 @@ interface VideoCardProps {
   onDownload: (video: Video) => void;
   onStatistics: (video: Video) => void;
   onCopyLink: (video: Video) => void;
+  onRefresh?: () => void;
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({
@@ -33,7 +34,8 @@ const VideoCard: React.FC<VideoCardProps> = ({
   onDelete,
   onDownload,
   onStatistics,
-  onCopyLink
+  onCopyLink,
+  onRefresh
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -78,11 +80,12 @@ const VideoCard: React.FC<VideoCardProps> = ({
             <div className="flex items-center gap-1">
               <VideoActionMenu
                 video={video}
-                onEdit={() => onEdit(video)}
-                onDelete={() => onDelete(video)}
-                onDownload={() => onDownload(video)}
-                onStatistics={() => onStatistics(video)}
-                onCopyLink={() => onCopyLink(video)}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onDownload={onDownload}
+                onStatistics={onStatistics}
+                onCopyLink={onCopyLink}
+                onRefresh={onRefresh}
               />
             </div>
           </div>
@@ -129,11 +132,12 @@ const VideoCard: React.FC<VideoCardProps> = ({
           
           <VideoActionMenu
             video={video}
-            onEdit={() => onEdit(video)}
-            onDelete={() => onDelete(video)}
-            onDownload={() => onDownload(video)}
-            onStatistics={() => onStatistics(video)}
-            onCopyLink={() => onCopyLink(video)}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDownload={onDownload}
+            onStatistics={onStatistics}
+            onCopyLink={onCopyLink}
+            onRefresh={onRefresh}
           />
         </div>
       </CardContent>

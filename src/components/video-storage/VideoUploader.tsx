@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, XCircle, Upload, X, Video, Plus, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Upload, X, Video, Plus, Loader2, Image } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Badge } from '@/components/ui/badge';
 import { useEquipments } from '@/hooks/useEquipments';
 import { uploadVideo } from '@/services/videoStorage/videoUploadService';
 import { validateVideoFile, formatFileSize } from '@/utils/fileUtils';
@@ -33,9 +34,12 @@ interface VideoUploadProgress {
 
 const VideoUploader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<VideoUploadProgress>({ loaded: 0, total: 0, percentage: 0 });
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [selectedEquipments, setSelectedEquipments] = useState<Equipment[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
   const { toast } = useToast();
   const { equipments } = useEquipments();
 
@@ -43,13 +47,12 @@ const VideoUploader: React.FC = () => {
     initialValues: {
       title: '',
       description: '',
-      tags: '',
-      equipmentId: '',
+      category: '',
     },
     validationSchema: Yup.object({
       title: Yup.string().required('O título é obrigatório'),
       description: Yup.string(),
-      tags: Yup.string(),
+      category: Yup.string(),
     }),
     onSubmit: async (values) => {
       if (!selectedFile) {
@@ -88,41 +91,54 @@ const VideoUploader: React.FC = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'video/*': ['.mp4', '.mov', '.avi', '.mkv']
+      'video/*': ['.mp4', '.mov', '.avi', '.mkv', '.webm']
     },
     multiple: false,
     maxSize: 500 * 1024 * 1024 // 500MB
   });
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file before setting
-      const validation = validateVideoFile(file);
-      if (!validation.valid) {
+      if (!file.type.startsWith('image/')) {
         toast({
           variant: 'destructive',
           title: 'Arquivo inválido',
-          description: validation.error,
+          description: 'Por favor, selecione uma imagem válida.',
         });
         return;
       }
-      
-      setSelectedFile(file);
-      const titleFromFile = file.name.replace(/\.[^/.]+$/, "");
-      formik.setFieldValue('title', titleFromFile);
+      setThumbnailFile(file);
+    }
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleEquipmentToggle = (equipment: Equipment) => {
+    const isSelected = selectedEquipments.find(eq => eq.id === equipment.id);
+    if (isSelected) {
+      setSelectedEquipments(selectedEquipments.filter(eq => eq.id !== equipment.id));
+    } else {
+      setSelectedEquipments([...selectedEquipments, equipment]);
     }
   };
 
   const handleRemoveSelectedFile = () => {
     setSelectedFile(null);
+    setThumbnailFile(null);
     setUploadProgress({ loaded: 0, total: 0, percentage: 0 });
     formik.resetForm();
-  };
-
-  const handleSelectEquipment = (equipment: Equipment) => {
-    setSelectedEquipment(equipment);
-    formik.setFieldValue('equipmentId', equipment.id);
+    setTags([]);
+    setSelectedEquipments([]);
   };
 
   const handleUpload = async (file: File) => {
@@ -137,37 +153,24 @@ const VideoUploader: React.FC = () => {
     });
 
     try {
-      // Prepare tags array
-      const tagsArray = formik.values.tags 
-        ? formik.values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
-        : [];
-
-      console.log('📝 Metadados do upload:', {
-        title: formik.values.title,
-        description: formik.values.description,
-        equipmentId: selectedEquipment?.id,
-        tags: tagsArray
-      });
-
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev.percentage >= 90) {
-            clearInterval(progressInterval);
-            return { ...prev, percentage: 90, status: 'processing', message: 'Processando vídeo...' };
-          }
-          return { ...prev, percentage: prev.percentage + 10 };
-        });
-      }, 200);
-
-      const result = await uploadVideo(file, {
-        title: formik.values.title,
-        description: formik.values.description,
-        equipmentId: selectedEquipment?.id,
-        tags: tagsArray
-      });
-
-      clearInterval(progressInterval);
+      const result = await uploadVideo(
+        file, 
+        {
+          title: formik.values.title,
+          description: formik.values.description,
+          equipmentId: selectedEquipments[0]?.id, // For now, just use first equipment
+          tags: tags,
+          thumbnailFile: thumbnailFile
+        },
+        (progress) => {
+          setUploadProgress({
+            ...progress,
+            status: 'uploading',
+            fileName: file.name,
+            message: `Enviando... ${progress.percentage}%`
+          });
+        }
+      );
 
       if (result.success) {
         setUploadProgress({ 
@@ -215,7 +218,7 @@ const VideoUploader: React.FC = () => {
 
   return (
     <div className="container mx-auto py-10">
-      <h2 className="text-2xl font-semibold mb-5">Envio de Vídeo</h2>
+      <h2 className="text-2xl font-semibold mb-5">Envio de Vídeo Individual</h2>
 
       <form onSubmit={formik.handleSubmit} className="space-y-6">
         {/* Dropzone or File Input */}
@@ -225,7 +228,7 @@ const VideoUploader: React.FC = () => {
             isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground hover:border-primary/50'
           }`}
         >
-          <input {...getInputProps()} onChange={handleFileInputChange} />
+          <input {...getInputProps()} />
           {selectedFile ? (
             <div className="flex flex-col items-center justify-center space-y-2">
               <Video className="h-10 w-10 text-primary mb-2" />
@@ -246,7 +249,7 @@ const VideoUploader: React.FC = () => {
                 }
               </p>
               <p className="text-xs text-muted-foreground">
-                MP4, MOV, AVI (máx. 500MB)
+                MP4, MOV, AVI, MKV, WebM (máx. 500MB)
               </p>
             </div>
           )}
@@ -276,38 +279,107 @@ const VideoUploader: React.FC = () => {
           />
         </div>
 
-        {/* Tags Input */}
+        {/* Category */}
         <div>
-          <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
-          <Input
-            type="text"
-            id="tags"
-            placeholder="Ex: tutorial, estética, facial"
-            {...formik.getFieldProps('tags')}
-          />
-        </div>
-
-        {/* Equipment Select */}
-        <div>
-          <Label htmlFor="equipment">Equipamento</Label>
-          <Select onValueChange={(value) => {
-            const selected = equipments.find(eq => eq.id === value);
-            if (selected) {
-              handleSelectEquipment(selected);
-            }
-          }}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um equipamento (opcional)" />
+          <Label htmlFor="category">Categoria</Label>
+          <Select
+            value={formik.values.category}
+            onValueChange={(value) => formik.setFieldValue('category', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhum equipamento</SelectItem>
-              {equipments.map((equipment) => (
-                <SelectItem key={equipment.id} value={equipment.id}>
-                  {equipment.nome}
-                </SelectItem>
-              ))}
+              <SelectItem value="facial">Facial</SelectItem>
+              <SelectItem value="corporal">Corporal</SelectItem>
+              <SelectItem value="capilar">Capilar</SelectItem>
+              <SelectItem value="estetica">Estética</SelectItem>
+              <SelectItem value="procedimento">Procedimento</SelectItem>
+              <SelectItem value="equipamento">Equipamento</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Equipment Selection */}
+        <div>
+          <Label>Equipamentos</Label>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {equipments.map((equipment) => (
+              <div
+                key={equipment.id}
+                className={`p-2 rounded border cursor-pointer transition-colors ${
+                  selectedEquipments.find(eq => eq.id === equipment.id)
+                    ? 'border-primary bg-primary/10'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => handleEquipmentToggle(equipment)}
+              >
+                <span className="text-sm">{equipment.nome}</span>
+              </div>
+            ))}
+          </div>
+          {selectedEquipments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedEquipments.map((equipment) => (
+                <Badge key={equipment.id} variant="secondary">
+                  {equipment.nome}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Tags Input */}
+        <div>
+          <Label>Tags</Label>
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Adicionar tag"
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleAddTag}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                {tag}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleRemoveTag(tag)}
+                />
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Thumbnail Upload */}
+        <div>
+          <Label htmlFor="thumbnail">Thumbnail Personalizada (opcional)</Label>
+          <div className="mt-2">
+            <Input
+              type="file"
+              id="thumbnail"
+              accept="image/*"
+              onChange={handleThumbnailChange}
+            />
+            {thumbnailFile && (
+              <div className="flex items-center gap-2 mt-2">
+                <Image className="h-4 w-4" />
+                <span className="text-sm text-muted-foreground">
+                  {thumbnailFile.name}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Upload Progress */}

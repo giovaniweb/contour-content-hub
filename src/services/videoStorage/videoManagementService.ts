@@ -1,213 +1,240 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  StoredVideo, 
-  VideoFilterOptions, 
-  VideoSortOptions 
-} from '@/types/video-storage';
-import { Json } from '@/types/supabase';
+import { Video } from './videoService';
 
-/**
- * Get videos with optional filtering and sorting
- */
-export async function getVideos(
-  filters?: VideoFilterOptions,
-  sort?: VideoSortOptions,
-  page: number = 1,
-  pageSize: number = 10
-): Promise<{ videos: StoredVideo[]; total: number; error?: string }> {
-  try {
-    let query = supabase
-      .from('videos_storage')
-      .select('*', { count: 'exact' });
-    
-    // Apply filters
-    if (filters) {
-      if (filters.search && filters.search.trim() !== '') {
-        query = query.ilike('title', `%${filters.search}%`);
-      }
-      
-      if (filters.tags && filters.tags.length > 0) {
-        query = query.contains('tags', filters.tags);
-      }
-      
-      if (filters.status && filters.status.length > 0) {
-        query = query.in('status', filters.status);
-      }
-      
-      if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate.toISOString());
-      }
-      
-      if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate.toISOString());
-      }
-      
-      if (filters.owner) {
-        query = query.eq('owner_id', filters.owner);
-      }
-    }
-    
-    // Apply sorting
-    if (sort) {
-      query = query.order(sort.field, { ascending: sort.direction === 'asc' });
-    } else {
-      query = query.order('created_at', { ascending: false });
-    }
-    
-    // Apply pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
-    
-    const { data, error, count } = await query;
-    
-    if (error) {
-      throw error;
-    }
-    
-    return {
-      videos: data as StoredVideo[],
-      total: count || 0
-    };
-  } catch (error) {
-    console.error('Error fetching videos:', error);
-    return {
-      videos: [],
-      total: 0,
-      error: 'Failed to fetch videos. Please try again.'
-    };
-  }
+export interface VideoStatistics {
+  totalViews: number;
+  totalDownloads: number;
+  totalShares: number;
+  averageRating: number;
+  uploadDate: string;
+  fileSize?: string;
+  duration?: string;
 }
 
-/**
- * Get a specific video by ID
- */
-export async function getVideoById(id: string): Promise<{ video: StoredVideo | null; error?: string }> {
+export async function deleteVideoCompletely(videoId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
   try {
-    const { data, error } = await supabase
-      .from('videos_storage')
-      .select('*')
-      .eq('id', id)
+    // First get the video to find the file path
+    const { data: video, error: fetchError } = await supabase
+      .from('videos')
+      .select('url_video')
+      .eq('id', videoId)
       .single();
     
-    if (error) {
-      throw error;
+    if (fetchError) {
+      throw new Error('Vídeo não encontrado');
     }
     
-    return {
-      video: data as StoredVideo
-    };
-  } catch (error) {
-    console.error(`Error fetching video with ID ${id}:`, error);
-    return {
-      video: null,
-      error: 'Failed to fetch video details. Please try again.'
-    };
-  }
-}
-
-/**
- * Get videos owned by the current user
- */
-export async function getMyVideos(
-  filters?: VideoFilterOptions,
-  sort?: VideoSortOptions,
-  page: number = 1,
-  pageSize: number = 10
-): Promise<{ videos: StoredVideo[]; total: number; error?: string }> {
-  try {
-    const { data: user, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      throw new Error('User not authenticated');
+    // Extract file path from URL
+    if (video.url_video) {
+      const url = new URL(video.url_video);
+      const pathParts = url.pathname.split('/');
+      const bucketIndex = pathParts.indexOf('videos');
+      
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        const filePath = pathParts.slice(bucketIndex + 1).join('/');
+        
+        // Delete file from storage
+        const { error: storageError } = await supabase.storage
+          .from('videos')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.warn('Erro ao deletar arquivo do storage:', storageError);
+        }
+      }
     }
     
-    // Add owner filter to get only user's videos
-    const userFilters: VideoFilterOptions = {
-      ...filters,
-      owner: user.user.id
-    };
-    
-    return getVideos(userFilters, sort, page, pageSize);
-  } catch (error) {
-    console.error('Error fetching user videos:', error);
-    return {
-      videos: [],
-      total: 0,
-      error: 'Failed to fetch your videos. Please try again.'
-    };
-  }
-}
-
-/**
- * Update video metadata
- */
-export async function updateVideo(id: string, updates: Partial<StoredVideo>): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Remove properties that don't match the database schema
-    const { file_urls, download_files, url, metadata, ...validUpdates } = updates;
-    
-    // Handle file_urls separately if it exists
-    let fileUrlsUpdate = {};
-    if (file_urls) {
-      fileUrlsUpdate = {
-        file_urls: file_urls as unknown as Json
-      };
-    }
-    
-    // Handle metadata separately if it exists
-    let metadataUpdate = {};
-    if (metadata) {
-      metadataUpdate = {
-        metadata: metadata as unknown as Json
-      };
-    }
-    
-    const { error } = await supabase
-      .from('videos_storage')
-      .update({
-        ...validUpdates,
-        ...fileUrlsUpdate,
-        ...metadataUpdate,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
-    
-    if (error) {
-      throw error;
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error(`Error updating video with ID ${id}:`, error);
-    return {
-      success: false,
-      error: 'Failed to update video. Please try again.'
-    };
-  }
-}
-
-/**
- * Delete a video
- */
-export async function deleteVideo(id: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase
-      .from('videos_storage')
+    // Delete record from database
+    const { error: dbError } = await supabase
+      .from('videos')
       .delete()
-      .eq('id', id);
+      .eq('id', videoId);
     
-    if (error) {
-      throw error;
+    if (dbError) {
+      throw new Error(`Erro ao deletar registro: ${dbError.message}`);
     }
     
     return { success: true };
   } catch (error) {
-    console.error(`Error deleting video with ID ${id}:`, error);
+    console.error('Erro ao deletar vídeo:', error);
     return {
       success: false,
-      error: 'Failed to delete video. Please try again.'
+      error: error.message || 'Erro ao deletar vídeo'
+    };
+  }
+}
+
+export async function getVideoStatistics(videoId: string): Promise<{
+  success: boolean;
+  statistics?: VideoStatistics;
+  error?: string;
+}> {
+  try {
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .single();
+    
+    if (error || !video) {
+      throw new Error('Vídeo não encontrado');
+    }
+    
+    // Get download count from video_downloads table
+    const { data: downloads, error: downloadError } = await supabase
+      .from('video_downloads')
+      .select('id')
+      .eq('video_id', videoId);
+    
+    const totalDownloads = downloads?.length || video.downloads_count || 0;
+    
+    const statistics: VideoStatistics = {
+      totalViews: 0, // Not implemented yet
+      totalDownloads,
+      totalShares: video.compartilhamentos || 0,
+      averageRating: 0, // Calculate from avaliacoes table if needed
+      uploadDate: video.data_upload,
+      duration: video.duracao
+    };
+    
+    return {
+      success: true,
+      statistics
+    };
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao buscar estatísticas'
+    };
+  }
+}
+
+export async function downloadVideo(
+  videoId: string,
+  quality: string = 'original'
+): Promise<{
+  success: boolean;
+  downloadUrl?: string;
+  error?: string;
+}> {
+  try {
+    // Get authenticated user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    // Get video details
+    const { data: video, error: videoError } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .single();
+    
+    if (videoError || !video) {
+      throw new Error('Vídeo não encontrado');
+    }
+    
+    // Log download
+    const { error: logError } = await supabase
+      .from('video_downloads')
+      .insert({
+        video_id: videoId,
+        user_id: userData.user.id,
+        quality,
+        downloaded_at: new Date().toISOString()
+      });
+    
+    if (logError) {
+      console.warn('Erro ao registrar download:', logError);
+    }
+    
+    // Update download count
+    const { error: updateError } = await supabase
+      .from('videos')
+      .update({
+        downloads_count: (video.downloads_count || 0) + 1
+      })
+      .eq('id', videoId);
+    
+    if (updateError) {
+      console.warn('Erro ao atualizar contador:', updateError);
+    }
+    
+    return {
+      success: true,
+      downloadUrl: video.url_video
+    };
+  } catch (error) {
+    console.error('Erro no download:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro no download'
+    };
+  }
+}
+
+export async function copyVideoLink(videoId: string): Promise<{
+  success: boolean;
+  link?: string;
+  error?: string;
+}> {
+  try {
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('url_video')
+      .eq('id', videoId)
+      .single();
+    
+    if (error || !video) {
+      throw new Error('Vídeo não encontrado');
+    }
+    
+    if (!video.url_video) {
+      throw new Error('URL do vídeo não disponível');
+    }
+    
+    return {
+      success: true,
+      link: video.url_video
+    };
+  } catch (error) {
+    console.error('Erro ao obter link:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao obter link'
+    };
+  }
+}
+
+export async function updateVideo(
+  videoId: string,
+  updates: Partial<Video>
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const { error } = await supabase
+      .from('videos')
+      .update(updates)
+      .eq('id', videoId);
+    
+    if (error) {
+      throw new Error(`Erro ao atualizar vídeo: ${error.message}`);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao atualizar vídeo:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao atualizar vídeo'
     };
   }
 }
