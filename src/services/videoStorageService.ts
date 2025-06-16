@@ -51,10 +51,15 @@ export async function processVideo(videoId: string, fileName: string): Promise<{
  */
 export async function playVideo(id: string): Promise<{ url: string | null; error?: string }> {
   try {
-    const { video, error } = await getVideoById(id);
+    // Get video from the videos table instead of videos_storage
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', id)
+      .single();
     
     if (error || !video) {
-      throw new Error(error || 'Video not found');
+      throw new Error(error?.message || 'Video not found');
     }
     
     // Get video URL - use url_video field from videos table
