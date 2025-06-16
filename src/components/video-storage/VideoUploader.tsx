@@ -1,9 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,42 +17,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { useQueue } from '@/hooks/useQueue';
-import { Equipment } from '@/types/equipment';
 import { useEquipments } from '@/hooks/useEquipments';
-import { VideoUploadProgress } from '@/types/video-storage';
+import { uploadVideo } from '@/services/videoStorage/videoUploadService';
+import { validateVideoFile, formatFileSize } from '@/utils/fileUtils';
+import { Equipment } from '@/types/equipment';
+
+interface VideoUploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+  status?: 'uploading' | 'processing' | 'complete' | 'error';
+  fileName?: string;
+  message?: string;
+}
 
 const VideoUploader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<VideoUploadProgress>({ loaded: 0, total: 0, percentage: 0 });
   const [isUploading, setIsUploading] = useState(false);
-  const [duration, setDuration] = useState<string>('');
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const { toast } = useToast();
   const { equipments } = useEquipments();
-  const { updateVideoQueue } = useQueue();
 
   const formik = useFormik({
     initialValues: {
       title: '',
       description: '',
-      tags: [],
+      tags: '',
       equipmentId: '',
-      equipmentName: ''
     },
     validationSchema: Yup.object({
       title: Yup.string().required('O título é obrigatório'),
       description: Yup.string(),
-      tags: Yup.array().of(Yup.string()),
+      tags: Yup.string(),
     }),
     onSubmit: async (values) => {
       if (!selectedFile) {
@@ -71,169 +67,150 @@ const VideoUploader: React.FC = () => {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
+    
+    // Validate file before setting
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      toast({
+        variant: 'destructive',
+        title: 'Arquivo inválido',
+        description: validation.error,
+      });
+      return;
+    }
+    
     setSelectedFile(file);
-    formik.setFieldValue('title', file.name.split('.')[0]);
-  }, [formik]);
+    // Auto-fill title from filename (remove extension)
+    const titleFromFile = file.name.replace(/\.[^/.]+$/, "");
+    formik.setFieldValue('title', titleFromFile);
+  }, [formik, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'video/*': []
-    }
+      'video/*': ['.mp4', '.mov', '.avi', '.mkv']
+    },
+    multiple: false,
+    maxSize: 500 * 1024 * 1024 // 500MB
   });
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file before setting
+      const validation = validateVideoFile(file);
+      if (!validation.valid) {
+        toast({
+          variant: 'destructive',
+          title: 'Arquivo inválido',
+          description: validation.error,
+        });
+        return;
+      }
+      
       setSelectedFile(file);
-      formik.setFieldValue('title', file.name.split('.')[0]);
+      const titleFromFile = file.name.replace(/\.[^/.]+$/, "");
+      formik.setFieldValue('title', titleFromFile);
     }
   };
 
   const handleRemoveSelectedFile = () => {
     setSelectedFile(null);
     setUploadProgress({ loaded: 0, total: 0, percentage: 0 });
+    formik.resetForm();
   };
 
   const handleSelectEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
     formik.setFieldValue('equipmentId', equipment.id);
-    formik.setFieldValue('equipmentName', equipment.nome);
   };
 
   const handleUpload = async (file: File) => {
+    console.log('🚀 Iniciando upload:', file.name);
     setIsUploading(true);
-    setUploadProgress({ loaded: 0, total: file.size, percentage: 0, status: 'queued', fileName: file.name });
-
-    const videoId = uuidv4();
-    updateVideoQueue(file.name, {
-      status: 'uploading',
-      progress: 0,
-      fileName: file.name,
-      loaded: 0,
-      total: file.size,
-      percentage: 0,
-      videoId
+    setUploadProgress({ 
+      loaded: 0, 
+      total: file.size, 
+      percentage: 0, 
+      status: 'uploading', 
+      fileName: file.name 
     });
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `videos/${fileName}`;
+      // Prepare tags array
+      const tagsArray = formik.values.tags 
+        ? formik.values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        : [];
 
-      const { data, error } = await supabase.storage
-        .from('videos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('videos')
-        .getPublicUrl(filePath);
-
-      updateVideoQueue(file.name, {
-        status: 'processing',
-        progress: 50,
-        fileName: file.name,
-        message: 'Processando vídeo...',
-        loaded: file.size,
-        total: file.size,
-        percentage: 50,
-        videoId
+      console.log('📝 Metadados do upload:', {
+        title: formik.values.title,
+        description: formik.values.description,
+        equipmentId: selectedEquipment?.id,
+        tags: tagsArray
       });
 
-      setUploadProgress({ loaded: file.size, total: file.size, percentage: 100, status: 'complete' });
-      await handleUploadComplete(file, videoId);
-    } catch (err: any) {
-      console.error('Error uploading video:', err);
-      updateVideoQueue(file.name, {
-        status: 'error',
-        progress: 0,
-        fileName: file.name,
-        message: 'Erro ao enviar vídeo.',
-        error: err.message,
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev.percentage >= 90) {
+            clearInterval(progressInterval);
+            return { ...prev, percentage: 90, status: 'processing', message: 'Processando vídeo...' };
+          }
+          return { ...prev, percentage: prev.percentage + 10 };
+        });
+      }, 200);
+
+      const result = await uploadVideo(file, {
+        title: formik.values.title,
+        description: formik.values.description,
+        equipmentId: selectedEquipment?.id,
+        tags: tagsArray
+      });
+
+      clearInterval(progressInterval);
+
+      if (result.success) {
+        setUploadProgress({ 
+          loaded: file.size, 
+          total: file.size, 
+          percentage: 100, 
+          status: 'complete',
+          message: 'Upload concluído com sucesso!'
+        });
+
+        toast({
+          title: 'Upload completo',
+          description: `O vídeo "${formik.values.title}" foi enviado com sucesso.`,
+        });
+
+        // Reset form after successful upload
+        setTimeout(() => {
+          handleRemoveSelectedFile();
+        }, 2000);
+
+      } else {
+        throw new Error(result.error || 'Erro desconhecido no upload');
+      }
+
+    } catch (error) {
+      console.error('💥 Erro no upload:', error);
+      
+      setUploadProgress({
         loaded: 0,
         total: file.size,
         percentage: 0,
-        videoId
+        status: 'error',
+        message: error.message || 'Erro no upload'
       });
 
       toast({
         variant: 'destructive',
         title: 'Erro no upload',
-        description: 'Não foi possível enviar o vídeo. Tente novamente.',
+        description: error.message || 'Não foi possível enviar o vídeo. Tente novamente.',
       });
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const handleUploadComplete = async (file: File, videoId: string) => {
-  try {
-    // Prepare metadata
-    const metadata = {
-      equipment_id: selectedEquipment?.id || '',
-      equipment_name: selectedEquipment?.nome || '',
-      processing_progress: 'completed',
-      duration: duration || '',
-      fileSize: file.size,
-      dimensions: {
-        width: 0,
-        height: 0
-      },
-      original_filename: file.name
-    };
-
-    // Update the video with metadata
-    const { error } = await supabase
-      .from('videos_storage')
-      .update({ 
-        metadata: metadata as any, // Type assertion to satisfy Json type
-        title: formik.values.title || file.name.split('.')[0],
-        description: formik.values.description,
-        tags: formik.values.tags
-      })
-      .eq('id', videoId);
-
-    if (error) throw error;
-
-    // Update the video queue state
-    updateVideoQueue(file.name, {
-      status: 'complete',
-      videoId,
-      progress: 100,
-      loaded: file.size,
-      total: file.size,
-      percentage: 100
-    });
-
-    toast({
-      title: 'Upload completo',
-      description: `O vídeo ${file.name} foi enviado com sucesso.`,
-    });
-
-    // Reset the form
-    formik.resetForm();
-    setSelectedFile(null);
-    setDuration('');
-    setSelectedEquipment(null);
-  } catch (error) {
-    console.error('Error completing upload:', error);
-    toast({
-      variant: 'destructive',
-      title: 'Erro ao completar upload',
-      description: 'Não foi possível completar o upload do vídeo. Tente novamente.',
-    });
-  }
-};
-
-  const handleDuration = (duration: string) => {
-    setDuration(duration);
   };
 
   return (
@@ -242,27 +219,42 @@ const VideoUploader: React.FC = () => {
 
       <form onSubmit={formik.handleSubmit} className="space-y-6">
         {/* Dropzone or File Input */}
-        <div {...getRootProps()} className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center ${isDragActive ? 'border-primary' : 'border-muted-foreground'}`}>
+        <div 
+          {...getRootProps()} 
+          className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center transition-colors ${
+            isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground hover:border-primary/50'
+          }`}
+        >
           <input {...getInputProps()} onChange={handleFileInputChange} />
           {selectedFile ? (
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center space-y-2">
               <Video className="h-10 w-10 text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">{selectedFile.name}</p>
+              <p className="text-sm font-medium">{selectedFile.name}</p>
+              <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
               <Button type="button" variant="ghost" size="sm" onClick={handleRemoveSelectedFile}>
+                <X className="h-4 w-4 mr-1" />
                 Remover
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center space-y-2">
               <Upload className="h-10 w-10 text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">Arraste e solte um vídeo aqui ou clique para selecionar</p>
+              <p className="text-sm text-muted-foreground text-center">
+                {isDragActive 
+                  ? "Solte o arquivo aqui..." 
+                  : "Arraste e solte um vídeo aqui ou clique para selecionar"
+                }
+              </p>
+              <p className="text-xs text-muted-foreground">
+                MP4, MOV, AVI (máx. 500MB)
+              </p>
             </div>
           )}
         </div>
 
         {/* Title Input */}
         <div>
-          <Label htmlFor="title">Título</Label>
+          <Label htmlFor="title">Título *</Label>
           <Input
             type="text"
             id="title"
@@ -270,7 +262,7 @@ const VideoUploader: React.FC = () => {
             {...formik.getFieldProps('title')}
           />
           {formik.touched.title && formik.errors.title ? (
-            <p className="text-red-500 text-sm">{formik.errors.title}</p>
+            <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
           ) : null}
         </div>
 
@@ -290,7 +282,7 @@ const VideoUploader: React.FC = () => {
           <Input
             type="text"
             id="tags"
-            placeholder="Tags"
+            placeholder="Ex: tutorial, estética, facial"
             {...formik.getFieldProps('tags')}
           />
         </div>
@@ -305,9 +297,10 @@ const VideoUploader: React.FC = () => {
             }
           }}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um equipamento" defaultValue={selectedEquipment?.nome} />
+              <SelectValue placeholder="Selecione um equipamento (opcional)" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="">Nenhum equipamento</SelectItem>
               {equipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
@@ -317,21 +310,43 @@ const VideoUploader: React.FC = () => {
           </Select>
         </div>
 
-        {/* Video Duration Input (Hidden) */}
-        <input type="hidden" id="duration" value={duration} />
-
         {/* Upload Progress */}
-        {isUploading && uploadProgress.status !== 'complete' && (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {uploadProgress.fileName} - {uploadProgress.status} ({uploadProgress.percentage}%)
-            </p>
+        {(isUploading || uploadProgress.status) && (
+          <div className="space-y-2 p-4 border rounded-lg bg-muted/30">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">
+                {uploadProgress.fileName || selectedFile?.name}
+              </p>
+              <div className="flex items-center space-x-2">
+                {uploadProgress.status === 'complete' && (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                )}
+                {uploadProgress.status === 'error' && (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                {(uploadProgress.status === 'uploading' || uploadProgress.status === 'processing') && (
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {uploadProgress.percentage}%
+                </span>
+              </div>
+            </div>
             <Progress value={uploadProgress.percentage} />
+            {uploadProgress.message && (
+              <p className="text-xs text-muted-foreground">
+                {uploadProgress.message}
+              </p>
+            )}
           </div>
         )}
 
         {/* Submit Button */}
-        <Button type="submit" disabled={isUploading || !selectedFile} className="w-full">
+        <Button 
+          type="submit" 
+          disabled={isUploading || !selectedFile} 
+          className="w-full"
+        >
           {isUploading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

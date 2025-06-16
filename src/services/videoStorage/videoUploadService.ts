@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { VideoQueueItem } from '@/types/video-storage';
+import { generateUniqueFileName, validateVideoFile } from '@/utils/fileUtils';
 
 export async function uploadVideo(
   file: File,
@@ -16,76 +17,124 @@ export async function uploadVideo(
   error?: string;
 }> {
   try {
+    console.log('🚀 Iniciando upload do vídeo:', file.name);
+    
+    // Validate file
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+    
     // Get authenticated user
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+      throw new Error('Usuário não autenticado');
     }
     
-    // Create the record in videos_storage first
-    const { data: videoData, error: videoError } = await supabase
-      .from('videos_storage')
-      .insert({
-        title: metadata.title || file.name,
-        description: metadata.description || '',
-        status: 'uploading',
-        owner_id: userData.user.id,
-        tags: metadata.tags || [],
-        metadata: {
-          equipment_id: metadata.equipmentId,
-          original_filename: file.name
-        },
-        size: file.size,
-      })
+    console.log('✅ Usuário autenticado:', userData.user.id);
+    
+    // Generate sanitized unique filename
+    const sanitizedFileName = generateUniqueFileName(file.name);
+    console.log('📝 Nome do arquivo sanitizado:', sanitizedFileName);
+    
+    // Create video record first in the videos table (not videos_storage)
+    const videoData = {
+      titulo: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
+      descricao_curta: metadata.description || '',
+      tipo_video: 'video_pronto',
+      equipment_id: metadata.equipmentId || null,
+      tags: metadata.tags || [],
+      url_video: '', // Will be updated after upload
+      preview_url: '', // Will be generated later
+      data_upload: new Date().toISOString()
+    };
+    
+    const { data: createdVideo, error: videoError } = await supabase
+      .from('videos')
+      .insert(videoData)
       .select()
       .single();
     
-    if (videoError || !videoData) {
-      throw new Error(videoError?.message || 'Failed to create video record');
+    if (videoError || !createdVideo) {
+      console.error('❌ Erro ao criar registro do vídeo:', videoError);
+      throw new Error(videoError?.message || 'Falha ao criar registro do vídeo');
     }
     
-    const videoId = videoData.id;
+    console.log('✅ Registro do vídeo criado:', createdVideo.id);
     
-    // Generate a unique filename for storage
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${videoId}.${fileExt}`;
-    const filePath = `videos/${videoId}/${fileName}`;
+    // Upload file to storage with sanitized name
+    const filePath = `videos/${sanitizedFileName}`;
     
-    // Upload the file to storage
+    console.log('📤 Fazendo upload para:', filePath);
+    
     const { error: uploadError } = await supabase.storage
-      .from('video-storage')
-      .upload(filePath, file);
+      .from('videos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
     
     if (uploadError) {
-      // If upload fails, update the status to error
-      await supabase
-        .from('videos_storage')
-        .update({ status: 'error' })
-        .eq('id', videoId);
+      console.error('❌ Erro no upload:', uploadError);
       
-      throw new Error(uploadError.message);
+      // Delete the video record if upload failed
+      await supabase
+        .from('videos')
+        .delete()
+        .eq('id', createdVideo.id);
+      
+      throw new Error(`Erro no upload: ${uploadError.message}`);
     }
+    
+    console.log('✅ Upload concluído com sucesso');
     
     // Get public URL
     const { data: publicUrlData } = supabase.storage
-      .from('video-storage')
+      .from('videos')
       .getPublicUrl(filePath);
     
-    // Update the record with the file URL
-    await supabase
-      .from('videos_storage')
+    console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
+    
+    // Update video record with file URL
+    const { error: updateError } = await supabase
+      .from('videos')
       .update({
-        file_urls: { original: publicUrlData.publicUrl },
-        status: 'processing' // Change to processing since the file is uploaded
+        url_video: publicUrlData.publicUrl,
+        preview_url: publicUrlData.publicUrl // Temporary, will be replaced with actual thumbnail
       })
-      .eq('id', videoId);
+      .eq('id', createdVideo.id);
     
-    // At this point, additional processing would typically be triggered via a webhook or edge function
+    if (updateError) {
+      console.error('⚠️ Erro ao atualizar URL do vídeo:', updateError);
+      // Don't throw error here, upload was successful
+    }
     
-    return { success: true, videoId };
+    // Call process-video edge function to generate thumbnail and process
+    try {
+      console.log('🔄 Iniciando processamento do vídeo...');
+      
+      const { error: processError } = await supabase.functions.invoke('process-video', {
+        body: { 
+          videoId: createdVideo.id, 
+          fileName: sanitizedFileName 
+        }
+      });
+      
+      if (processError) {
+        console.error('⚠️ Erro no processamento (não crítico):', processError);
+        // Don't throw error, upload was successful even if processing failed
+      } else {
+        console.log('✅ Processamento iniciado com sucesso');
+      }
+    } catch (processError) {
+      console.error('⚠️ Erro ao iniciar processamento:', processError);
+      // Don't throw error, upload was successful
+    }
+    
+    return { success: true, videoId: createdVideo.id };
   } catch (error) {
-    console.error('Video upload error:', error);
-    return { success: false, error: error.message || 'Unknown upload error' };
+    console.error('💥 Erro geral no upload:', error);
+    return { success: false, error: error.message || 'Erro desconhecido no upload' };
   }
 }
 
@@ -101,9 +150,13 @@ export async function batchUploadVideos(
   let completed = 0;
   let failed = 0;
   
+  console.log(`🚀 Iniciando upload em lote de ${queue.length} vídeos`);
+  
   // Process videos one by one
   for (let i = 0; i < queue.length; i++) {
     const item = queue[i];
+    console.log(`📤 Processando vídeo ${i + 1}/${queue.length}: ${item.file.name}`);
+    
     try {
       // Report start
       onProgress(i, 0);
@@ -120,9 +173,11 @@ export async function batchUploadVideos(
       if (success && videoId) {
         completed++;
         onComplete(i, true, videoId);
+        console.log(`✅ Vídeo ${i + 1} concluído com sucesso`);
       } else {
         failed++;
         onComplete(i, false, undefined, error);
+        console.log(`❌ Vídeo ${i + 1} falhou:`, error);
       }
       
       // Report completion
@@ -130,6 +185,7 @@ export async function batchUploadVideos(
     } catch (error) {
       failed++;
       onComplete(i, false, undefined, error.message);
+      console.log(`💥 Erro no vídeo ${i + 1}:`, error);
     }
     
     // Small delay between uploads to avoid API rate limits
@@ -137,6 +193,8 @@ export async function batchUploadVideos(
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
+  
+  console.log(`🏁 Upload em lote concluído: ${completed} sucessos, ${failed} falhas`);
   
   return {
     success: failed === 0,

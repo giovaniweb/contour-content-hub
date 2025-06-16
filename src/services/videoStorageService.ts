@@ -1,3 +1,4 @@
+
 // Export all relevant video storage services
 export {
   downloadVideo,
@@ -17,26 +18,31 @@ export {
   batchUploadVideos
 } from './videoStorage/videoUploadService';
 
+import { supabase } from '@/integrations/supabase/client';
+
 /**
  * Process or reprocess a video
  */
 export async function processVideo(videoId: string, fileName: string): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log('🔄 Iniciando processamento do vídeo:', videoId, fileName);
+    
     // Call the edge function to process the video
     const { error } = await supabase.functions.invoke('process-video', {
       body: { videoId, fileName }
     });
 
     if (error) {
-      console.error('Error processing video:', error);
+      console.error('❌ Erro na função process-video:', error);
       return { success: false, error: error.message };
     }
 
+    console.log('✅ Processamento iniciado com sucesso');
     return { success: true };
     
   } catch (error) {
-    console.error('Error processing video:', error);
-    return { success: false, error: 'Unknown error occurred' };
+    console.error('💥 Erro no processamento:', error);
+    return { success: false, error: 'Erro desconhecido no processamento' };
   }
 }
 
@@ -51,9 +57,8 @@ export async function playVideo(id: string): Promise<{ url: string | null; error
       throw new Error(error || 'Video not found');
     }
     
-    // Get video URL based on available formats
-    const fileUrls = video.file_urls || {};
-    const playUrl = fileUrls.web_optimized || fileUrls.sd || fileUrls.hd || '';
+    // Get video URL - use url_video field from videos table
+    const playUrl = video.url_video;
     
     if (!playUrl) {
       throw new Error('No playable URL found for this video');
@@ -68,8 +73,3 @@ export async function playVideo(id: string): Promise<{ url: string | null; error
     };
   }
 }
-
-// Import Supabase client for the functions above
-import { supabase } from '@/integrations/supabase/client';
-import { StoredVideo } from '@/types/video-storage';
-import { getVideoById } from './videoStorage/videoManagementService';
