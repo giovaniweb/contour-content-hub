@@ -134,9 +134,8 @@ const AdminVideoManager: React.FC = () => {
             </SelectContent>
           </Select>
 
-          <Button onClick={handleSearch} variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtrar
+          <Button onClick={handleSearch} variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
       </div>

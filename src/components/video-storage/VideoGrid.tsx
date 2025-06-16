@@ -6,6 +6,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Video {
   id: string;
@@ -43,6 +53,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
   isLoading = false
 }) => {
   const [hoveredVideo, setHoveredVideo] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState<Video | null>(null);
 
   const isAllSelected = videos.length > 0 && selectedVideos.length === videos.length;
   const isIndeterminate = selectedVideos.length > 0 && selectedVideos.length < videos.length;
@@ -51,13 +63,26 @@ const VideoGrid: React.FC<VideoGridProps> = ({
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const truncateTitle = (title: string, maxLength: number = 30) => {
+  const truncateTitle = (title: string, maxLength: number = 25) => {
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
   };
 
   const getVideoStatus = (video: Video) => {
     if (!video.url_video) return { label: 'Processando', variant: 'secondary' as const };
     return { label: 'Pronto', variant: 'success' as const };
+  };
+
+  const handleDeleteClick = (video: Video) => {
+    setVideoToDelete(video);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (videoToDelete) {
+      onDelete(videoToDelete.id);
+      setDeleteDialogOpen(false);
+      setVideoToDelete(null);
+    }
   };
 
   if (isLoading) {
@@ -94,8 +119,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
           </span>
         </div>
 
-        {/* Grid de vídeos - 4 colunas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {/* Grid de vídeos - 4 colunas fixas */}
+        <div className="grid grid-cols-4 gap-4">
           {videos.map((video) => {
             const isSelected = selectedVideos.includes(video.id);
             const status = getVideoStatus(video);
@@ -109,17 +134,10 @@ const VideoGrid: React.FC<VideoGridProps> = ({
               >
                 {/* Thumbnail com checkbox */}
                 <div className="relative aspect-video bg-muted rounded-t-lg overflow-hidden">
-                  {video.preview_url ? (
-                    <img 
-                      src={video.preview_url} 
-                      alt={video.titulo}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                      <Play className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
+                  {/* Placeholder para thumbnail */}
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                    <Play className="h-8 w-8 text-muted-foreground" />
+                  </div>
                   
                   {/* Checkbox no canto superior esquerdo */}
                   <div className="absolute top-2 left-2">
@@ -234,7 +252,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({
                             variant="ghost" 
                             size="icon" 
                             className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => onDelete(video.id)}
+                            onClick={() => handleDeleteClick(video)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -261,6 +279,28 @@ const VideoGrid: React.FC<VideoGridProps> = ({
             </p>
           </div>
         )}
+
+        {/* Dialog de confirmação de exclusão */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o vídeo "{videoToDelete?.titulo}"? 
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );
