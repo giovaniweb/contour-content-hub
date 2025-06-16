@@ -7,7 +7,6 @@ export {
 
 export {
   getVideos,
-  getMyVideos,
   getVideoById,
   updateVideo,
   deleteVideo

@@ -2148,6 +2148,7 @@ export type Database = {
           id: string
           preview_url: string | null
           tags: string[] | null
+          thumbnail_url: string | null
           tipo_video: string | null
           titulo: string | null
           url_video: string | null
@@ -2169,6 +2170,7 @@ export type Database = {
           id?: string
           preview_url?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null
@@ -2190,6 +2192,7 @@ export type Database = {
           id?: string
           preview_url?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           tipo_video?: string | null
           titulo?: string | null
           url_video?: string | null

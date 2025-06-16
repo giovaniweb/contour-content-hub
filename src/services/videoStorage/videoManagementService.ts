@@ -96,6 +96,9 @@ export async function deleteVideo(videoId: string): Promise<{
   }
 }
 
+// Add alias for VideoActionMenu compatibility
+export const deleteVideoCompletely = deleteVideo;
+
 export async function deleteVideos(videoIds: string[]): Promise<{
   success: boolean;
   error?: string;
@@ -198,9 +201,15 @@ export async function getVideos(
     
     console.log(`✅ ${videos?.length || 0} vídeos encontrados de ${count || 0} total`);
     
+    // Type assertion to handle tipo_video string to literal type conversion
+    const typedVideos: Video[] = (videos || []).map(video => ({
+      ...video,
+      tipo_video: (video.tipo_video === 'take' ? 'take' : 'video_pronto') as 'video_pronto' | 'take'
+    }));
+    
     return {
       success: true,
-      videos: videos || [],
+      videos: typedVideos,
       total: count || 0
     };
     
@@ -242,9 +251,15 @@ export async function getVideoById(videoId: string): Promise<{
     
     console.log('✅ Vídeo encontrado:', video.titulo);
     
+    // Type assertion to handle tipo_video string to literal type conversion
+    const typedVideo: Video = {
+      ...video,
+      tipo_video: (video.tipo_video === 'take' ? 'take' : 'video_pronto') as 'video_pronto' | 'take'
+    };
+    
     return {
       success: true,
-      video
+      video: typedVideo
     };
     
   } catch (error) {
