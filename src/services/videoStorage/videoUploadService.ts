@@ -136,6 +136,12 @@ export async function batchUploadVideos(
       // Report start
       onProgress(i, 0);
       
+      // Simulate progress updates during upload
+      const progressInterval = setInterval(() => {
+        const currentProgress = Math.min(90, Math.random() * 90);
+        onProgress(i, currentProgress);
+      }, 500);
+      
       // Upload file
       const { success, videoId, error } = await uploadVideo(item.file, {
         title: item.title,
@@ -144,28 +150,31 @@ export async function batchUploadVideos(
         tags: item.tags
       });
       
+      clearInterval(progressInterval);
+      
       // Update status
       if (success && videoId) {
         completed++;
         onComplete(i, true, videoId);
+        onProgress(i, 100);
         console.log(`✅ Vídeo ${i + 1} concluído com sucesso`);
       } else {
         failed++;
         onComplete(i, false, undefined, error);
+        onProgress(i, 0);
         console.log(`❌ Vídeo ${i + 1} falhou:`, error);
       }
       
-      // Report completion
-      onProgress(i, 100);
     } catch (error) {
       failed++;
       onComplete(i, false, undefined, error.message);
+      onProgress(i, 0);
       console.log(`💥 Erro no vídeo ${i + 1}:`, error);
     }
     
     // Small delay between uploads to avoid API rate limits
     if (i < queue.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
   

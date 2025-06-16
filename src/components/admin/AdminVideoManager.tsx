@@ -12,14 +12,7 @@ import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
 import { useVideoManager } from '@/hooks/useVideoManager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Video {
-  id: string;
-  titulo: string;
-  data_upload: string;
-  downloads_count?: number;
-  url_video?: string;
-}
+import { Video } from '@/services/videoStorage/videoService'; // Usar interface unificada
 
 const AdminVideoManager: React.FC = () => {
   const { toast } = useToast();

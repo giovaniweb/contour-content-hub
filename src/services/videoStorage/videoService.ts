@@ -12,6 +12,7 @@ export interface Video {
   equipamentos?: string[];
   tags?: string[];
   data_upload: string;
+  downloads_count?: number;
   equipment_id?: string;
 }
 
@@ -197,71 +198,6 @@ export async function updateVideos(ids: string[], updates: Partial<Video>): Prom
     return {
       success: false,
       error: 'Erro ao atualizar vídeos'
-    };
-  }
-}
-
-/**
- * Upload de vídeo
- */
-export async function uploadVideo(
-  file: File,
-  metadata: {
-    titulo: string;
-    descricao_curta?: string;
-    equipamentos?: string[];
-    tags?: string[];
-  }
-): Promise<{ success: boolean; videoId?: string; error?: string }> {
-  try {
-    console.log('🚀 Iniciando upload do vídeo:', file.name);
-    
-    // Gerar nome único para o arquivo
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 9);
-    const fileName = `video_${timestamp}_${random}.${file.name.split('.').pop()}`;
-    
-    // Upload do arquivo para o Storage
-    const { error: uploadError } = await supabase.storage
-      .from('videos')
-      .upload(fileName, file);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    // Obter URL pública
-    const { data: publicUrlData } = supabase.storage
-      .from('videos')
-      .getPublicUrl(fileName);
-
-    // Criar registro na tabela videos
-    const { data: video, error: insertError } = await supabase
-      .from('videos')
-      .insert({
-        titulo: metadata.titulo,
-        descricao_curta: metadata.descricao_curta,
-        url_video: publicUrlData.publicUrl,
-        preview_url: publicUrlData.publicUrl, // Por enquanto usa a mesma URL
-        tipo_video: 'video_pronto',
-        equipamentos: metadata.equipamentos || [],
-        tags: metadata.tags || [],
-        data_upload: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      throw insertError;
-    }
-
-    console.log('✅ Upload concluído com sucesso');
-    return { success: true, videoId: video.id };
-  } catch (error) {
-    console.error('💥 Erro no upload:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro desconhecido no upload'
     };
   }
 }

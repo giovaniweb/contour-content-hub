@@ -71,10 +71,8 @@ export const useVideoManager = () => {
     setSelectedVideos([]);
   };
 
-  // Excluir vídeo único
+  // Excluir vídeo único - REMOVIDO o confirm() duplo
   const handleDeleteVideo = async (videoId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este vídeo?')) return;
-
     try {
       const { success, error } = await deleteVideo(videoId);
       
