@@ -3,8 +3,15 @@ import React from 'react';
 import { Play, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Video } from '@/services/videoStorage/videoService';
 import VideoActionMenu from './VideoActionMenu';
+
+interface Video {
+  id: string;
+  titulo: string;
+  data_upload: string;
+  downloads_count?: number;
+  url_video?: string;
+}
 
 interface VideoCardProps {
   video: Video;
@@ -29,10 +36,6 @@ const VideoCard: React.FC<VideoCardProps> = ({
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const truncateTitle = (title: string, maxLength: number = 30) => {
-    return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
   };
 
   if (viewMode === 'list') {

@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
 import { Grid2x2, LayoutList } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
@@ -15,7 +14,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import VideoCard from './VideoCard';
-import { Video } from '@/services/videoStorage/videoService';
+
+interface Video {
+  id: string;
+  titulo: string;
+  data_upload: string;
+  downloads_count?: number;
+  url_video?: string;
+}
 
 interface VideoGridProps {
   videos: Video[];

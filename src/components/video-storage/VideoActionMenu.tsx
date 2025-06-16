@@ -8,7 +8,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Video } from '@/services/videoStorage/videoService';
+
+interface Video {
+  id: string;
+  titulo: string;
+  url_video?: string;
+}
 
 interface VideoActionMenuProps {
   video: Video;

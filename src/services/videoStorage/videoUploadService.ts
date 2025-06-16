@@ -1,7 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { VideoQueueItem } from '@/types/video-storage';
 import { generateUniqueFileName, validateVideoFile } from '@/utils/fileUtils';
+
+interface VideoQueueItem {
+  file: File;
+  title?: string;
+  description?: string;
+  equipmentId?: string;
+  tags?: string[];
+}
 
 export async function uploadVideo(
   file: File,
