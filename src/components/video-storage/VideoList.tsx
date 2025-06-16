@@ -7,16 +7,9 @@ import VideoCard from '@/components/video-storage/VideoCard';
 import VideoDownloadDialog from '@/components/video-storage/VideoDownloadDialog';
 import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import { StoredVideo, VideoFilterOptions } from '@/types/video-storage';
+import { Video } from '@/services/videoStorage/videoService';
 import { getVideos, processVideo } from '@/services/videoStorageService';
 import { timeAgo } from '@/utils/time';
-
-interface Video {
-  id: string;
-  titulo: string;
-  data_upload: string;
-  downloads_count?: number;
-  url_video?: string;
-}
 
 interface VideoListProps {
   filters: VideoFilterOptions;
@@ -141,14 +134,21 @@ const VideoList: React.FC<VideoListProps> = ({
     }
   };
 
-  // Convert StoredVideo to Video for compatibility
+  // Convert StoredVideo to Video for compatibility with VideoCard
   const convertToVideo = (storedVideo: StoredVideo): Video => {
     return {
       id: storedVideo.id,
       titulo: storedVideo.title || 'Sem título',
       data_upload: storedVideo.created_at || new Date().toISOString(),
-      downloads_count: 0, // Default since StoredVideo doesn't have this
-      url_video: storedVideo.url
+      downloads_count: 0,
+      url_video: storedVideo.url,
+      preview_url: storedVideo.url,
+      thumbnail_url: storedVideo.thumbnail_url,
+      descricao_curta: storedVideo.description,
+      descricao_detalhada: storedVideo.description,
+      tipo_video: 'video_pronto',
+      equipamentos: [],
+      tags: storedVideo.tags || []
     };
   };
 
@@ -181,7 +181,7 @@ const VideoList: React.FC<VideoListProps> = ({
   return (
     <div className="space-y-6">
       {/* Videos grid */}
-      <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+      <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1'}`}>
         {videos.map((video) => {
           const processingTimeout = checkProcessingTimeout(video);
           const isReprocessing = reprocessingVideos[video.id] || false;
@@ -220,7 +220,7 @@ const VideoList: React.FC<VideoListProps> = ({
         <VideoPlayer
           open={isPlayerOpen}
           onOpenChange={setIsPlayerOpen}
-          video={selectedVideo}
+          video={convertToVideo(selectedVideo)}
         />
       )}
       
