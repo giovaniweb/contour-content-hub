@@ -83,10 +83,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
         <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg">
           <Checkbox
             checked={isAllSelected}
-            ref={(el) => {
-              if (el) el.indeterminate = isIndeterminate;
-            }}
             onCheckedChange={onSelectAll}
+            className={isIndeterminate ? "data-[state=checked]:bg-primary/50" : ""}
           />
           <span className="text-sm font-medium">
             {selectedVideos.length > 0 
