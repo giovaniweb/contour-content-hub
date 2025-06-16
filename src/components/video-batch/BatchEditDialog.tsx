@@ -28,6 +28,11 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
   selectedCount,
   onApply
 }) => {
+  // Filtrar equipamentos válidos
+  const validEquipments = equipmentOptions.filter(equipment => 
+    equipment && equipment.id && equipment.id.trim() !== "" && equipment.nome
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -48,11 +53,9 @@ const BatchEditDialog: React.FC<BatchEditDialogProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Nenhum equipamento</SelectItem>
-              {equipmentOptions
-                .filter(eq => eq && eq.id && eq.id !== "")
-                .map(eq => (
-                  <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
-                ))}
+              {validEquipments.map(eq => (
+                <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

@@ -29,6 +29,11 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
 }) => {
   if (selectedCount === 0) return null;
 
+  // Filtrar equipamentos válidos
+  const validEquipments = equipments.filter(equipment => 
+    equipment && equipment.id && equipment.id.trim() !== "" && equipment.nome
+  );
+
   return (
     <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -55,7 +60,7 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Remover equipamento</SelectItem>
-              {equipments.map((equipment) => (
+              {validEquipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
                 </SelectItem>

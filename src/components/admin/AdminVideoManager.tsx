@@ -37,6 +37,11 @@ const AdminVideoManager: React.FC = () => {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Filtrar equipamentos válidos
+  const validEquipments = equipments.filter(equipment => 
+    equipment && equipment.id && equipment.id.trim() !== "" && equipment.nome
+  );
+
   // Aplicar filtros
   const handleSearch = () => {
     handleFilterChange({
@@ -120,8 +125,8 @@ const AdminVideoManager: React.FC = () => {
               <SelectValue placeholder="Filtrar por equipamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os equipamentos</SelectItem>
-              {equipments.map((equipment) => (
+              <SelectItem value="all">Todos os equipamentos</SelectItem>
+              {validEquipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
                 </SelectItem>
@@ -139,7 +144,7 @@ const AdminVideoManager: React.FC = () => {
       {/* Barra de ações em massa */}
       <BulkActionBar
         selectedCount={selectedVideos.length}
-        equipments={equipments}
+        equipments={validEquipments}
         onClearSelection={handleClearSelection}
         onBulkDelete={handleBulkDelete}
         onBulkUpdateEquipment={handleBulkUpdateEquipment}
