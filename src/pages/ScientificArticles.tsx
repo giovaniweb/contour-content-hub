@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useDocuments } from '@/hooks/use-documents';
+import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal';
 
 const ScientificArticles: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { documents, loading, fetchDocuments } = useDocuments();
 
   useEffect(() => {
@@ -42,6 +45,11 @@ const ScientificArticles: React.FC = () => {
   const isPopularArticle = (article: any) => {
     return (article.keywords && article.keywords.length > 0) || 
            (article.researchers && article.researchers.length > 0);
+  };
+
+  const handleViewArticle = (article: any) => {
+    setSelectedArticle(article);
+    setIsViewModalOpen(true);
   };
 
   return (
@@ -217,6 +225,7 @@ const ScientificArticles: React.FC = () => {
                   <CardFooter className="px-4 py-3 bg-slate-800/30 border-t border-cyan-500/20">
                     <Button 
                       size="sm" 
+                      onClick={() => handleViewArticle(article)}
                       className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
                     >
                       <FileText className="h-4 w-4 mr-1" />
@@ -229,6 +238,15 @@ const ScientificArticles: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Visualização */}
+      <ArticleViewModal
+        isOpen={isViewModalOpen}
+        onOpenChange={setIsViewModalOpen}
+        title={selectedArticle?.titulo || ''}
+        pdfUrl={selectedArticle?.link_dropbox}
+        documentId={selectedArticle?.id}
+      />
     </div>
   );
 };

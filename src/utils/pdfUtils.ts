@@ -1,88 +1,57 @@
 
-/**
- * Utilities for handling PDF files
- */
-
-/**
- * Checks if a PDF URL is valid
- * @param url URL to check
- * @returns boolean
- */
-export const isPdfUrlValid = (url: string | undefined): boolean => {
-  if (!url) return false;
+export const processPdfUrl = (url: string) => {
+  if (!url) return { processedUrl: null };
   
-  // Check if URL is not empty and ends with .pdf or has pdf in the path
-  return (
-    url.trim() !== '' && 
-    (url.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('/pdf'))
-  );
-};
-
-/**
- * Processes a PDF URL to ensure it can be properly displayed
- * @param url PDF URL
- * @returns Processed URL as string or object with processedUrl property
- */
-export const processPdfUrl = (url: string): { processedUrl: string } => {
-  if (!url) return { processedUrl: '' };
-  
-  // Return the URL as is, modifications can be added here if needed
-  return { processedUrl: url };
-};
-
-/**
- * Opens a PDF in a new tab
- * @param url PDF URL
- */
-export const openPdfInNewTab = (url: string): void => {
-  if (!url) return;
-  
-  window.open(url, '_blank');
-};
-
-/**
- * Downloads a PDF file from a URL
- * @param url PDF URL to download
- * @param filename Optional filename to use
- */
-export const downloadPdf = async (url: string, filename?: string): Promise<void> => {
-  if (!url) {
-    throw new Error('URL inválida para download');
+  // Se for um link do Dropbox, converter para visualização direta
+  if (url.includes('dropbox.com')) {
+    const directUrl = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
+    return { processedUrl: `${directUrl}#view=FitH` };
   }
+  
+  // Se for um link do Google Drive, tentar converter
+  if (url.includes('drive.google.com')) {
+    const fileId = url.match(/[-\w]{25,}/);
+    if (fileId) {
+      return { processedUrl: `https://drive.google.com/file/d/${fileId[0]}/preview` };
+    }
+  }
+  
+  // Para outras URLs, tentar adicionar parâmetros de visualização
+  return { processedUrl: `${url}#view=FitH` };
+};
 
+export const openPdfInNewTab = (url: string) => {
+  const { processedUrl } = processPdfUrl(url);
+  if (processedUrl) {
+    window.open(processedUrl, '_blank');
+  }
+};
+
+export const isPdfUrlValid = (url: string): boolean => {
   try {
-    // Create a temporary link element
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || url.substring(url.lastIndexOf('/') + 1) || 'document.pdf';
-    link.target = '_blank';
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const downloadPdf = async (url: string, filename: string = 'documento.pdf') => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
     
-    // Append to body, click, and remove
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    window.URL.revokeObjectURL(downloadUrl);
   } catch (error) {
-    console.error('Error downloading PDF:', error);
-    throw new Error('Erro ao baixar o PDF');
-  }
-};
-
-/**
- * Validates if a PDF URL is accessible
- * @param url PDF URL to validate
- * @returns Promise that resolves to boolean
- */
-export const validatePdfUrl = async (url: string): Promise<boolean> => {
-  if (!isPdfUrlValid(url)) {
-    return false;
-  }
-
-  try {
-    // Optionally, you could make a HEAD request to check if the URL is valid
-    // For now, we'll just return true if the URL is valid
-    return true;
-  } catch (error) {
-    console.error('Error validating PDF URL:', error);
-    return false;
+    console.error('Erro ao baixar PDF:', error);
+    throw new Error('Não foi possível baixar o arquivo');
   }
 };
