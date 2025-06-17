@@ -1,23 +1,35 @@
 
 export const processPdfUrl = (url: string) => {
   if (!url) return { processedUrl: null };
-  
+
   // Se for um link do Dropbox, converter para visualização direta
   if (url.includes('dropbox.com')) {
-    const directUrl = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
+    // Remove qualquer parâmetro query da URL original do Dropbox
+    const baseUrl = url.split('?')[0];
+    const directUrl = baseUrl.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
     return { processedUrl: `${directUrl}#view=FitH` };
   }
-  
+
   // Se for um link do Google Drive, tentar converter
   if (url.includes('drive.google.com')) {
-    const fileId = url.match(/[-\w]{25,}/);
-    if (fileId) {
-      return { processedUrl: `https://drive.google.com/file/d/${fileId[0]}/preview` };
+    // Tenta extrair o ID do arquivo de forma mais segura
+    const match = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([-\w]{25,})/);
+    if (match && match[1]) {
+      return { processedUrl: `https://drive.google.com/file/d/${match[1]}/preview` };
     }
   }
-  
-  // Para outras URLs, tentar adicionar parâmetros de visualização
-  return { processedUrl: `${url}#view=FitH` };
+
+  // Para outras URLs, apenas adiciona o parâmetro de visualização se não for quebrar a URL
+  // Verifica se a URL já possui um fragmento (#)
+  if (url.includes('#')) {
+    // Se já tem um fragmento, não adiciona outro para evitar quebrar a URL.
+    // Idealmente, poderíamos analisar e adicionar/modificar `view=FitH` de forma mais inteligente,
+    // mas por agora, vamos apenas retornar a URL como está para evitar quebras.
+    // Ou, se preferir garantir o FitH, precisaria de uma lógica mais complexa para manipular o fragmento existente.
+    return { processedUrl: url }; // Ou lógica mais complexa aqui
+  } else {
+    return { processedUrl: `${url}#view=FitH` };
+  }
 };
 
 export const openPdfInNewTab = (url: string) => {
@@ -28,6 +40,9 @@ export const openPdfInNewTab = (url: string) => {
 };
 
 export const isPdfUrlValid = (url: string): boolean => {
+  if (!url || url.trim() === '') {
+    return false;
+  }
   try {
     new URL(url);
     return true;
