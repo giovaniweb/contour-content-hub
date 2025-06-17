@@ -44,8 +44,10 @@ export const sidebarData = [
 export const adminItems = [
   { name: "Painel Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT, highlight: false },
   { name: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENTS.ROOT, highlight: false },
-  { name: "Conteúdo", icon: File, path: ROUTES.ADMIN.CONTENT, highlight: false },
-  { name: "Vídeos", icon: Film, path: ROUTES.ADMIN_VIDEOS, highlight: false },
+  { name: "Artigos Científicos", icon: BookOpen, path: ROUTES.ADMIN.SCIENTIFIC_ARTICLES, highlight: false },
+  { name: "Materiais/Arquivos", icon: File, path: ROUTES.ADMIN.MATERIALS, highlight: false },
+  { name: "Fotos", icon: Image, path: ROUTES.ADMIN.PHOTOS, highlight: false },
+  { name: "Vídeos", icon: Film, path: ROUTES.ADMIN.VIDEOS, highlight: false },
   { name: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI, highlight: false },
   { name: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE, highlight: false },
   { name: "Config. Vimeo", icon: Video, path: ROUTES.ADMIN.VIMEO.SETTINGS, highlight: false },

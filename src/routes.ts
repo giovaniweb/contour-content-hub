@@ -60,6 +60,10 @@ export const ROUTES = {
       EDIT: (id: string = ':id') => `/admin/equipments/edit/${id}`
     },
     CONTENT: '/admin/content',
+    SCIENTIFIC_ARTICLES: '/admin/scientific-articles',
+    MATERIALS: '/admin/materials',
+    PHOTOS: '/admin/photos',
+    VIDEOS: '/admin/videos',
     AI: '/admin/ai',
     SYSTEM: {
       DIAGNOSTICS: '/admin/system-diagnostics',
@@ -69,7 +73,5 @@ export const ROUTES = {
       SETTINGS: '/admin/vimeo-settings'
     },
     WORKSPACE: '/admin/workspace'
-  },
-
-  ADMIN_VIDEOS: '/admin/videos'
+  }
 } as const;

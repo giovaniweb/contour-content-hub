@@ -1,29 +1,29 @@
 
 import React from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
-import { Video } from "lucide-react";
-import VideoContentManager from "@/components/admin/VideoContentManager";
+import { BookOpen } from "lucide-react";
+import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
 
-const AdminVideos: React.FC = () => {
+const AdminScientificArticles: React.FC = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-              <Video className="h-8 w-8 text-blue-400" />
-              Vídeos
+              <BookOpen className="h-8 w-8 text-cyan-400" />
+              Artigos Científicos
             </h1>
             <p className="text-muted-foreground">
-              Gerencie a biblioteca de vídeos da plataforma
+              Gerencie a biblioteca de artigos científicos da plataforma
             </p>
           </div>
         </div>
         
-        <VideoContentManager />
+        <ScientificArticleManager />
       </div>
     </AdminLayout>
   );
 };
 
-export default AdminVideos;
+export default AdminScientificArticles;

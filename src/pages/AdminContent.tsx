@@ -1,110 +1,108 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePermissions } from "@/hooks/use-permissions";
-import { Navigate, useLocation } from "react-router-dom";
-import MaterialContentManager from "@/components/admin/MaterialContentManager";
-import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
-import VideoContentManager from "@/components/admin/VideoContentManager";
-import { useToast } from "@/hooks/use-toast";
-import { UserRole } from "@/types/auth";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   BookOpen, 
   FileText, 
   Video, 
-  Images 
+  Image,
+  ArrowRight,
+  LayoutDashboard
 } from "lucide-react";
+import { ROUTES } from "@/routes";
 
 const AdminContent: React.FC = () => {
-  const { hasPermission } = usePermissions();
-  const location = useLocation();
-  const { toast } = useToast();
-  
-  // Extrair o parâmetro tab da URL, se existir
-  const queryParams = new URLSearchParams(location.search);
-  const tabFromUrl = queryParams.get('tab');
-  
-  // Definir a aba ativa com base na URL ou usar o valor padrão
-  const [activeTab, setActiveTab] = useState<string>(
-    tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
-    tabFromUrl === 'images' || tabFromUrl === 'materials' 
-      ? tabFromUrl 
-      : 'materials'
-  );
-  
-  // Atualizar o state quando a URL mudar
-  useEffect(() => {
-    if (tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
-        tabFromUrl === 'images' || tabFromUrl === 'materials') {
-      setActiveTab(tabFromUrl);
+  const navigate = useNavigate();
+
+  const contentSections = [
+    {
+      title: "Artigos Científicos",
+      description: "Gerencie a biblioteca de artigos científicos e pesquisas",
+      icon: BookOpen,
+      path: ROUTES.ADMIN.SCIENTIFIC_ARTICLES,
+      color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20"
+    },
+    {
+      title: "Materiais e Arquivos",
+      description: "PDFs, PSDs, logomarcas e outros documentos",
+      icon: FileText,
+      path: ROUTES.ADMIN.MATERIALS,
+      color: "text-purple-400 bg-purple-500/10 border-purple-500/20"
+    },
+    {
+      title: "Fotos e Imagens",
+      description: "Before/after, galeria e outras imagens",
+      icon: Image,
+      path: ROUTES.ADMIN.PHOTOS,
+      color: "text-pink-400 bg-pink-500/10 border-pink-500/20"
+    },
+    {
+      title: "Vídeos",
+      description: "Biblioteca de vídeos da plataforma",
+      icon: Video,
+      path: ROUTES.ADMIN.VIDEOS,
+      color: "text-blue-400 bg-blue-500/10 border-blue-500/20"
     }
-  }, [location.search]);
-  
-  // Only users with admin or operator roles can access this page
-  if (!hasPermission('editAllContent' as UserRole)) {
-    toast({
-      variant: "destructive",
-      title: "Acesso Negado",
-      description: "Você não possui permissões para acessar esta página",
-    });
-    return <Navigate to="/dashboard" replace />;
-  }
+  ];
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Conteúdo ReelLine</h1>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <LayoutDashboard className="h-8 w-8 text-primary" />
+              Central de Conteúdo
+            </h1>
             <p className="text-muted-foreground">
-              Gerencie materiais, vídeos, artigos científicos e imagens
+              Gerencie todos os tipos de conteúdo da plataforma
             </p>
           </div>
         </div>
         
-        <Tabs defaultValue="materials" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full md:w-auto grid-cols-4">
-            <TabsTrigger value="materials" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Materiais</span>
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center gap-2">
-              <Video className="h-4 w-4" />
-              <span className="hidden sm:inline">Vídeos</span>
-            </TabsTrigger>
-            <TabsTrigger value="articles" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Artigos</span>
-            </TabsTrigger>
-            <TabsTrigger value="images" className="flex items-center gap-2">
-              <Images className="h-4 w-4" />
-              <span className="hidden sm:inline">Imagens</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="materials" className="space-y-4">
-            <MaterialContentManager />
-          </TabsContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {contentSections.map((section) => (
+            <Card key={section.path} className={`cursor-pointer transition-all hover:shadow-lg ${section.color}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${section.color}`}>
+                    <section.icon className="h-6 w-6" />
+                  </div>
+                  {section.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  {section.description}
+                </p>
+                <Button 
+                  onClick={() => navigate(section.path)}
+                  className="w-full justify-between"
+                  variant="outline"
+                >
+                  Gerenciar {section.title}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="videos" className="space-y-4">
-            <VideoContentManager />
-          </TabsContent>
-
-          <TabsContent value="articles" className="space-y-4">
-            <ScientificArticleManager />
-          </TabsContent>
-
-          <TabsContent value="images" className="space-y-4">
-            <div className="p-8 text-center border rounded-lg">
-              <Images className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Gerenciamento de Imagens</h3>
-              <p className="text-muted-foreground mb-4">
-                Este módulo está em desenvolvimento e estará disponível em breve.
+        <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 border-slate-600/30">
+          <CardContent className="p-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-slate-100">
+                Navegação Rápida
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Use o menu lateral esquerdo para acessar diretamente cada seção de conteúdo
               </p>
             </div>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
