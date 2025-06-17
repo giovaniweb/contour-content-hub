@@ -16,7 +16,6 @@ import WorkspaceSettings from './pages/WorkspaceSettings';
 import FluidaRoteiristsPage from './pages/FluidaRoteiristsPage';
 import ContentPlannerPage from './pages/ContentPlannerPage';
 import VideoPlayer from './pages/VideoPlayer';
-import VideoStorage from './pages/VideoStorage';
 import VideosPage from './pages/VideosPage';
 import PhotosPage from './pages/PhotosPage';
 
@@ -47,6 +46,9 @@ import AdminScientificArticles from '@/pages/admin/AdminScientificArticles';
 import AdminMaterials from '@/pages/admin/AdminMaterials';
 import AdminPhotos from '@/pages/admin/AdminPhotos';
 import AdminVideos from '@/pages/admin/AdminVideos';
+
+// Video management - using the batch import as the main video registration page
+import VideoBatchImport from './pages/videos/VideoBatchImport';
 
 // Layout components
 import AppLayout from './components/layout/AppLayout';
@@ -115,11 +117,6 @@ function App() {
             <Route path="/video-player" element={
               <AppLayout>
                 <VideoPlayer />
-              </AppLayout>
-            } />
-            <Route path="/videos/storage" element={
-              <AppLayout>
-                <VideoStorage />
               </AppLayout>
             } />
 
@@ -201,6 +198,14 @@ function App() {
                 <AdminVideos />
               </AppLayout>
             } />
+            
+            {/* Main video registration page - renamed from batch-import */}
+            <Route path="/admin/videos/cadastro" element={
+              <AppLayout requireAdmin={true}>
+                <VideoBatchImport />
+              </AppLayout>
+            } />
+            
             <Route path="/admin/equipments" element={
               <AppLayout requireAdmin={true}>
                 <AdminEquipments />
