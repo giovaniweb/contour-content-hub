@@ -29,6 +29,9 @@ import MarketingConsultant from './pages/MarketingConsultant';
 import Reports from './pages/Reports';
 import DiagnosticHistory from './pages/DiagnosticHistory';
 
+// Import MestreDaBelezaPage
+import MestreDaBelezaPage from './pages/MestreDaBelezaPage';
+
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminEquipments from './pages/admin/AdminEquipments';
@@ -80,6 +83,13 @@ function App() {
             <Route path="/workspace-settings" element={
               <AppLayout>
                 <WorkspaceSettings />
+              </AppLayout>
+            } />
+
+            {/* Mestre da Beleza Route */}
+            <Route path="/mestre-da-beleza" element={
+              <AppLayout>
+                <MestreDaBelezaPage />
               </AppLayout>
             } />
 
