@@ -44,6 +44,9 @@ import AdminMaterials from '@/pages/admin/AdminMaterials';
 import AdminPhotos from '@/pages/admin/AdminPhotos';
 import AdminVideos from '@/pages/admin/AdminVideos';
 
+// Layout components
+import AppLayout from './components/layout/AppLayout';
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -54,47 +57,162 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Public routes without layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
-            {/* Content Routes */}
-            <Route path="/fluidaroteirista" element={<FluidaRoteiristsPage />} />
-            <Route path="/content-planner" element={<ContentPlannerPage />} />
+            {/* Protected routes with AppLayout */}
+            <Route path="/" element={
+              <AppLayout>
+                <Home />
+              </AppLayout>
+            } />
+            <Route path="/dashboard" element={
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            } />
+            <Route path="/profile" element={
+              <AppLayout>
+                <Profile />
+              </AppLayout>
+            } />
+            <Route path="/workspace-settings" element={
+              <AppLayout>
+                <WorkspaceSettings />
+              </AppLayout>
+            } />
 
-            {/* Video Routes */}
-            <Route path="/videos" element={<VideosPage />} />
-            <Route path="/video-player" element={<VideoPlayer />} />
-            <Route path="/videos/storage" element={<VideoStorage />} />
+            {/* Content Routes with Layout */}
+            <Route path="/fluidaroteirista" element={
+              <AppLayout>
+                <FluidaRoteiristsPage />
+              </AppLayout>
+            } />
+            <Route path="/content-planner" element={
+              <AppLayout>
+                <ContentPlannerPage />
+              </AppLayout>
+            } />
 
-            {/* Equipments Routes */}
-            <Route path="/equipments" element={<EquipmentList />} />
-            <Route path="/equipments/:id" element={<EquipmentDetails />} />
+            {/* Video Routes with Layout */}
+            <Route path="/videos" element={
+              <AppLayout>
+                <VideosPage />
+              </AppLayout>
+            } />
+            <Route path="/video-player" element={
+              <AppLayout>
+                <VideoPlayer />
+              </AppLayout>
+            } />
+            <Route path="/videos/storage" element={
+              <AppLayout>
+                <VideoStorage />
+              </AppLayout>
+            } />
 
-            <Route path="/media" element={<Media />} />
-            <Route path="/scientific-articles" element={<ScientificArticles />} />
+            {/* Equipments Routes with Layout */}
+            <Route path="/equipments" element={
+              <AppLayout>
+                <EquipmentList />
+              </AppLayout>
+            } />
+            <Route path="/equipments/:id" element={
+              <AppLayout>
+                <EquipmentDetails />
+              </AppLayout>
+            } />
 
-            {/* Marketing Routes */}
-            <Route path="/marketing-consultant" element={<MarketingConsultant />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/diagnostic-history" element={<DiagnosticHistory />} />
+            <Route path="/media" element={
+              <AppLayout>
+                <Media />
+              </AppLayout>
+            } />
+            <Route path="/scientific-articles" element={
+              <AppLayout>
+                <ScientificArticles />
+              </AppLayout>
+            } />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/content" element={<AdminContent />} />
-            <Route path="/admin/scientific-articles" element={<AdminScientificArticles />} />
-            <Route path="/admin/materials" element={<AdminMaterials />} />
-            <Route path="/admin/photos" element={<AdminPhotos />} />
-            <Route path="/admin/videos" element={<AdminVideos />} />
-            <Route path="/admin/equipments" element={<AdminEquipments />} />
-            <Route path="/admin/equipments/create" element={<CreateEquipment />} />
-            <Route path="/admin/equipments/edit/:id" element={<EditEquipment />} />
-            <Route path="/admin/ai" element={<AdminAI />} />
-            <Route path="/admin/system-diagnostics" element={<AdminSystemDiagnostics />} />
-            <Route path="/admin/system-intelligence" element={<AdminSystemIntelligence />} />
+            {/* Marketing Routes with Layout */}
+            <Route path="/marketing-consultant" element={
+              <AppLayout>
+                <MarketingConsultant />
+              </AppLayout>
+            } />
+            <Route path="/reports" element={
+              <AppLayout>
+                <Reports />
+              </AppLayout>
+            } />
+            <Route path="/diagnostic-history" element={
+              <AppLayout>
+                <DiagnosticHistory />
+              </AppLayout>
+            } />
+
+            {/* Admin Routes with Layout and Admin Protection */}
+            <Route path="/admin" element={
+              <AppLayout requireAdmin={true}>
+                <AdminDashboard />
+              </AppLayout>
+            } />
+            <Route path="/admin/content" element={
+              <AppLayout requireAdmin={true}>
+                <AdminContent />
+              </AppLayout>
+            } />
+            <Route path="/admin/scientific-articles" element={
+              <AppLayout requireAdmin={true}>
+                <AdminScientificArticles />
+              </AppLayout>
+            } />
+            <Route path="/admin/materials" element={
+              <AppLayout requireAdmin={true}>
+                <AdminMaterials />
+              </AppLayout>
+            } />
+            <Route path="/admin/photos" element={
+              <AppLayout requireAdmin={true}>
+                <AdminPhotos />
+              </AppLayout>
+            } />
+            <Route path="/admin/videos" element={
+              <AppLayout requireAdmin={true}>
+                <AdminVideos />
+              </AppLayout>
+            } />
+            <Route path="/admin/equipments" element={
+              <AppLayout requireAdmin={true}>
+                <AdminEquipments />
+              </AppLayout>
+            } />
+            <Route path="/admin/equipments/create" element={
+              <AppLayout requireAdmin={true}>
+                <CreateEquipment />
+              </AppLayout>
+            } />
+            <Route path="/admin/equipments/edit/:id" element={
+              <AppLayout requireAdmin={true}>
+                <EditEquipment />
+              </AppLayout>
+            } />
+            <Route path="/admin/ai" element={
+              <AppLayout requireAdmin={true}>
+                <AdminAI />
+              </AppLayout>
+            } />
+            <Route path="/admin/system-diagnostics" element={
+              <AppLayout requireAdmin={true}>
+                <AdminSystemDiagnostics />
+              </AppLayout>
+            } />
+            <Route path="/admin/system-intelligence" element={
+              <AppLayout requireAdmin={true}>
+                <AdminSystemIntelligence />
+              </AppLayout>
+            } />
           </Routes>
         </BrowserRouter>
         <Toaster />

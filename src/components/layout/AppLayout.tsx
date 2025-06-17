@@ -23,14 +23,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   useEffect(() => {
     if (isLoading) return;
+    
     if (!isAuthenticated || !user) {
+      console.log('🔄 Usuário não autenticado, redirecionando para login');
       navigate("/login", {
         replace: true,
         state: { from: location.pathname },
       });
       return;
     }
+    
     if (requireAdmin && user.role !== "admin") {
+      console.log('🔒 Acesso negado para não-admin, redirecionando para dashboard');
       navigate("/dashboard", { replace: true });
       return;
     }
@@ -52,19 +56,22 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-aurora-background">
       {/* Sidebar sempre fixo à esquerda */}
       <Sidebar />
-      {/* Conteúdo principal, com left padding igual ao sidebar */}
+      
+      {/* Conteúdo principal, com left margin igual ao sidebar */}
       <div
-        className="min-h-screen flex flex-col bg-aurora-background"
+        className="min-h-screen flex flex-col"
         style={{ marginLeft: SIDEBAR_WIDTH }}
       >
         {/* Topbar fixa */}
         <Navbar />
+        
+        {/* Main content */}
         <main 
-          className="flex-1 overflow-auto px-2 md:px-6"
-          style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
+          className="flex-1 overflow-auto px-2 md:px-6 py-4"
+          style={{ marginTop: NAVBAR_HEIGHT }}
         >
           {children}
         </main>
