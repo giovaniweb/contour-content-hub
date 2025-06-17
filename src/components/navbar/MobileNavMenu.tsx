@@ -154,7 +154,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                   <span>Administração</span>
                 </Link>
                 <Link
-                  to={ROUTES.ADMIN_VIDEOS}
+                  to={ROUTES.ADMIN.VIDEOS}
                   className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >

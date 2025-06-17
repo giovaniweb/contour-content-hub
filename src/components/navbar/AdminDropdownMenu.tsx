@@ -32,7 +32,7 @@ const AdminDropdownMenu: React.FC = () => {
     {
       label: "Upload de Vídeo",
       icon: Video,
-      action: () => navigate(ROUTES.ADMIN_VIDEOS),
+      action: () => navigate(ROUTES.ADMIN.VIDEOS),
     },
     {
       label: "Upload de Imagem",
@@ -42,7 +42,7 @@ const AdminDropdownMenu: React.FC = () => {
     {
       label: "Artigo Científico",
       icon: BookOpen,
-      action: () => navigate(ROUTES.ADMIN.CONTENT + "?tab=articles"),
+      action: () => navigate(ROUTES.ADMIN.SCIENTIFIC_ARTICLES),
     },
     {
       label: "Downloads em Massa",

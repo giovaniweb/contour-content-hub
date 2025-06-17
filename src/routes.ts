@@ -75,3 +75,6 @@ export const ROUTES = {
     WORKSPACE: '/admin/workspace'
   }
 } as const;
+
+// Adicionar rota para compatibilidade com código existente
+export const ADMIN_VIDEOS = ROUTES.ADMIN.VIDEOS;
