@@ -18,6 +18,7 @@ import ContentPlannerPage from './pages/ContentPlannerPage';
 import VideoPlayer from './pages/VideoPlayer';
 import VideoStorage from './pages/VideoStorage';
 import VideosPage from './pages/VideosPage';
+import PhotosPage from './pages/PhotosPage';
 
 import EquipmentList from './pages/EquipmentList';
 import EquipmentDetails from './pages/EquipmentDetails';
@@ -119,6 +120,13 @@ function App() {
             <Route path="/videos/storage" element={
               <AppLayout>
                 <VideoStorage />
+              </AppLayout>
+            } />
+
+            {/* Photos Route with Layout */}
+            <Route path="/photos" element={
+              <AppLayout>
+                <PhotosPage />
               </AppLayout>
             } />
 
