@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, RotateCcw, Sparkles } from "lucide-react";
 import { useAkinatorIntentionTree } from "./hooks/useAkinatorIntentionTree";
-import { IntentionNode } from "./intentionTree";
-import { INTENTION_TREE } from "./intentionTree";
+import { DynamicIntentionNode, DynamicOption } from "./dynamicIntentionTree"; // Import DynamicIntentionNode and DynamicOption
 import GenioMestreHeader from "./components/GenioMestreHeader";
 import { mysticalIntroPhrases, mysticalThinkingPhrases, genioQuestionPhrases } from "./genioPhrases";
 import { useRef, useState } from "react";
@@ -22,17 +21,25 @@ const AkinatorMagico: React.FC = () => {
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const timerRef = useRef<any>(null);
 
+  // Helper function to get current answers for dynamic text/options
+  const getCurrentAnswers = () => {
+    return history.reduce((acc, curr) => {
+      acc[curr.questionId] = curr.answer;
+      return acc;
+    }, {} as Record<string, string | Record<string, any>>);
+  };
+
   // Progresso intuitivo
   const totalQuestionsEstimate = 5;
   const progress = Math.min(100, Math.round((history.length / totalQuestionsEstimate) * 100));
   const genieName = useRef(getRandom(genieNames)).current;
 
-  function handleGenioAnswer(option: string) {
+  function handleGenioAnswer(option: DynamicOption) { // Accept DynamicOption
     if (isThinking) return;
     setIsThinking(true);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      answer(option);
+      answer(option.value, option.label); // Pass option.value and option.label as rawAnswer
       setIsThinking(false);
     }, 1200 + Math.random() * 1000);
   }
@@ -52,20 +59,23 @@ const AkinatorMagico: React.FC = () => {
   }
 
   function getFinalDiagnosis() {
-    let lastFinalNode: IntentionNode | undefined =
-      currentNode && currentNode.type === "final"
-        ? currentNode
-        : INTENTION_TREE.find(n =>
-            n.id === history[history.length - 1]?.questionId && n.type === "final"
-          );
-    if (!lastFinalNode && history.length > 0) {
-      lastFinalNode = INTENTION_TREE.find(n => n.id === history[history.length - 1].questionId);
-    }
+    // Use currentNode if it's final, otherwise, try to find the last node from history that led to a final state.
+    // This part might need adjustment based on how DYNAMIC_INTENTION_TREE is structured for final nodes.
+    let lastFinalNode: DynamicIntentionNode | undefined = currentNode;
+
     if (lastFinalNode && lastFinalNode.type === "final") {
+      let finalText = "";
+      if (typeof lastFinalNode.text === "function") {
+        const answers = getCurrentAnswers();
+        finalText = lastFinalNode.text(answers);
+      } else {
+        finalText = lastFinalNode.text;
+      }
+
       const emojiRe = /([^\w\s,.!?'"“”‘’]+)/;
-      const parts = lastFinalNode.text.split(emojiRe);
+      const parts = finalText.split(emojiRe);
       const emoji = parts.find(p => emojiRe.test(p));
-      const text = lastFinalNode.text.replace(emoji || "", "").trim();
+      const text = finalText.replace(emoji || "", "").trim();
       return (
         <div className="flex flex-col items-center">
           {emoji && (
@@ -96,6 +106,10 @@ const AkinatorMagico: React.FC = () => {
       </div>
     );
   }
+
+  const questionText = currentNode && typeof currentNode.text === 'function'
+    ? currentNode.text(getCurrentAnswers())
+    : currentNode?.text;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center aurora-gradient-bg px-2 py-8">
@@ -164,7 +178,7 @@ const AkinatorMagico: React.FC = () => {
                       "A dúvida paira no ar:"
                     ])}
                     <br />
-                    <span className="block mt-2 text-white">{currentNode.text}</span>
+                    <span className="block mt-2 text-white">{questionText}</span>
                   </div>
                   {isThinking ? (
                     <div className="flex flex-col items-center gap-4 my-8">
@@ -177,15 +191,15 @@ const AkinatorMagico: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4 mt-4">
-                      {currentNode.options.map((option, idx) => (
+                      {currentNode.options?.map((option, idx) => ( // Iterate over currentNode.options
                         <Button
                           key={idx}
-                          onClick={() => handleGenioAnswer(option)}
+                          onClick={() => handleGenioAnswer(option)} // Pass the whole option object
                           variant="outline"
                           className="w-full p-6 text-left h-auto rounded-xl hover:bg-purple-500/30 hover:border-yellow-300 transition-all duration-300 text-white backdrop-blur shadow-lg font-medium bg-purple-800/30"
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className="text-lg">{option}</span>
+                            <span className="text-lg">{option.label}</span> {/* Display option.label */}
                             <ArrowRight className="h-4 w-4 text-yellow-300 flex-shrink-0 ml-2" />
                           </div>
                         </Button>

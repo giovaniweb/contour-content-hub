@@ -42,8 +42,36 @@ export const DYNAMIC_INTENTION_TREE: DynamicIntentionNode[] = [
     type: 'comportamental',
     text: "Qual describe melhor seu objetivo neste momento?",
     options: [
-      { label: 'Quero resolver algo específico', value: 'problema', next: 'cliente_area' },
+      { label: 'Quero resolver algo específico', value: 'problema', next: 'cliente_reflexo_espelho' }, // Changed next
       { label: 'Só quero saber opções de prevenção', value: 'prevenção', next: 'humor_prevencao' },
+    ],
+    onlyFor: 'cliente'
+  },
+
+  // NOVA PERGUNTA: cliente_reflexo_espelho
+  {
+    id: 'cliente_reflexo_espelho',
+    type: 'comportamental',
+    text: "Quando você se olha no espelho de manhã, o que sente?",
+    options: [
+      { label: "Gostaria de melhorar algo, mas não sei o quê", value: "melhorar_sem_saber", next: 'cliente_ciclo_novidades' },
+      { label: "Me sinto bem na maior parte do tempo", value: "bem_maioria", next: 'cliente_ciclo_novidades' },
+      { label: "Tem algo específico que me incomoda", value: "especifico_incomoda", next: 'cliente_ciclo_novidades' },
+      { label: "Só corro pro trabalho, sem pensar nisso", value: "sem_pensar", next: 'cliente_ciclo_novidades' }
+    ],
+    onlyFor: 'cliente'
+  },
+
+  // NOVA PERGUNTA: cliente_ciclo_novidades
+  {
+    id: 'cliente_ciclo_novidades',
+    type: 'comportamental',
+    text: "Sobre novidades de tratamentos de estética, você...",
+    options: [
+      { label: "Adora novidades, sempre testa o que sai", value: "adora_novidades", next: 'cliente_area' },
+      { label: "Prefere tratamentos consagrados", value: "consagrados", next: 'cliente_area' },
+      { label: "Só faz se tiver muita recomendação", value: "muita_recomendacao", next: 'cliente_area' },
+      { label: "Prefere evitar mudanças", value: "evitar_mudancas", next: 'cliente_area' }
     ],
     onlyFor: 'cliente'
   },
@@ -142,10 +170,32 @@ export const DYNAMIC_INTENTION_TREE: DynamicIntentionNode[] = [
     type: 'perfil',
     text: "Qual sua principal especialidade?",
     options: [
-      { label: 'Facial', value: 'facial', next: 'prof_caso_clinico_rosto' },
-      { label: 'Corporal', value: 'corporal', next: 'prof_caso_clinico_corpo' },
-      { label: 'Ambas', value: 'ambas', next: 'prof_caso_clinico_duplo' },
+      { label: 'Facial', value: 'facial', next: 'prof_ciclo_novidades', originalNext: 'prof_caso_clinico_rosto' },
+      { label: 'Corporal', value: 'corporal', next: 'prof_ciclo_novidades', originalNext: 'prof_caso_clinico_corpo_placeholder' },
+      { label: 'Ambas', value: 'ambas', next: 'prof_ciclo_novidades', originalNext: 'prof_caso_clinico_duplo_placeholder' },
     ],
+    onlyFor: 'profissional'
+  },
+
+  // NOVA PERGUNTA: prof_ciclo_novidades
+  {
+    id: 'prof_ciclo_novidades',
+    type: 'comportamental',
+    text: "Sobre novidades de tratamentos de estética, você...",
+    options: [
+      { label: "Adora novidades, sempre testa o que sai", value: "adora_novidades" },
+      { label: "Prefere tratamentos consagrados", value: "consagrados" },
+      { label: "Só faz se tiver muita recomendação", value: "muita_recomendacao" },
+      { label: "Prefere evitar mudanças", value: "evitar_mudancas" }
+    ],
+    next: (answers) => {
+      // Retrieve the original intended 'next' based on the answer to 'prof_area_atuacao'
+      const areaAtuacaoNode = DYNAMIC_INTENTION_TREE.find(node => node.id === 'prof_area_atuacao');
+      const areaAtuacaoAnswer = answers['prof_area_atuacao'];
+      const selectedOption = areaAtuacaoNode?.options?.find(opt => opt.value === areaAtuacaoAnswer);
+      // @ts-ignore // Accessing custom originalNext property
+      return selectedOption?.originalNext || 'final_curioso'; // Fallback
+    },
     onlyFor: 'profissional'
   },
 
@@ -234,9 +284,30 @@ export const DYNAMIC_INTENTION_TREE: DynamicIntentionNode[] = [
   {
     id: 'final_prof_caso_rosto',
     type: 'final',
-    text: (answers: Record<string, any>) =>
-      `Você sugeriu: ${answers['prof_caso_clinico_rosto']?.join(', ') || 'nenhum'}. Excelente combinação para flacidez facial!`
+    text: (answers: Record<string, any>) => {
+      const suggestions = answers['prof_caso_clinico_rosto'];
+      // Ensure suggestions is an array and join correctly, or provide a default message.
+      const suggestionText = Array.isArray(suggestions) && suggestions.length > 0
+        ? suggestions.join(', ')
+        : 'nenhuma sugestão fornecida';
+      return `Para o caso de flacidez facial, você sugeriu: ${suggestionText}. Excelente análise!`;
+    }
   },
+
+  // PLACEHOLDER NODES FOR MISSING PROFESSIONAL PATHS
+  {
+    id: 'prof_caso_clinico_corpo_placeholder',
+    type: 'final', // Using 'final' as a placeholder endpoint
+    text: "Estudo de caso para tratamentos corporais está em desenvolvimento. Obrigado pela sua especialidade!",
+    onlyFor: 'profissional'
+  },
+  {
+    id: 'prof_caso_clinico_duplo_placeholder',
+    type: 'final', // Using 'final' as a placeholder endpoint
+    text: "Estudo de caso para tratamentos faciais e corporais (ambos) está em desenvolvimento. Obrigado pela sua expertise combinada!",
+    onlyFor: 'profissional'
+  },
+  // END OF PLACEHOLDER NODES
 
   // FINAIS DE HUMOR
   {
@@ -252,8 +323,14 @@ export const DYNAMIC_INTENTION_TREE: DynamicIntentionNode[] = [
 ];
 
 // Observações:
-// - O campo 'next' pode ser string (para navegação simples) ou função (ramificação programática).
-// - 'onlyFor' permite filtrar perguntas só para cliente ou profissional.
-// - Campos 'emoji', 'special' e 'isOpenText' abrem espaço para personalização/funções extras.
-// - Pode expandir cases, finais, perguntas abertas, estudos de caso ou humor conforme desejar.
+// - O campo 'next' pode ser string (ID do próximo nó) ou uma função que recebe as respostas e retorna um ID.
+// - 'onlyFor' restringe a visibilidade do nó para 'cliente' ou 'profissional'.
+// - 'isOpenText' indica uma pergunta de texto aberto. A resposta será o texto digitado pelo usuário.
+// - 'options' define as escolhas para perguntas de múltipla escolha. Cada opção pode ter seu próprio 'next'.
+// - Nós do tipo 'final' encerram um fluxo. O texto pode ser uma string ou uma função para personalização.
+// - É crucial que todos os IDs referenciados em 'next' (seja string ou valor de retorno de função) existam na árvore.
+// - Para nós com options (múltipla escolha), a resposta do usuário (armazenada no histórico) geralmente será o 'value' da DynamicOption selecionada.
+//   No entanto, para perguntas de 'caso_clinico' com múltiplas seleções, a resposta armazenada para o ID da pergunta
+//   (ex: 'prof_caso_clinico_rosto') deve ser um array dos 'value's das opções selecionadas.
+//   O hook useAkinatorIntentionTree e o componente AkinatorMagico devem ser consistentes com essa estrutura de dados.
 
