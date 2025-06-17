@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Navigate, useLocation } from "react-router-dom";
 import MaterialContentManager from "@/components/admin/MaterialContentManager";
-import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
+import EnhancedScientificArticleManager from "@/components/admin/enhanced/EnhancedScientificArticleManager";
 import VideoContentManager from "@/components/admin/VideoContentManager";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/auth";
@@ -21,11 +21,9 @@ const AdminContent: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Extrair o parâmetro tab da URL, se existir
   const queryParams = new URLSearchParams(location.search);
   const tabFromUrl = queryParams.get('tab');
   
-  // Definir a aba ativa com base na URL ou usar o valor padrão
   const [activeTab, setActiveTab] = useState<string>(
     tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
     tabFromUrl === 'images' || tabFromUrl === 'materials' 
@@ -33,7 +31,6 @@ const AdminContent: React.FC = () => {
       : 'materials'
   );
   
-  // Atualizar o state quando a URL mudar
   useEffect(() => {
     if (tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
         tabFromUrl === 'images' || tabFromUrl === 'materials') {
@@ -41,7 +38,6 @@ const AdminContent: React.FC = () => {
     }
   }, [location.search]);
   
-  // Only users with admin or operator roles can access this page
   if (!hasPermission('editAllContent' as UserRole)) {
     toast({
       variant: "destructive",
@@ -92,7 +88,7 @@ const AdminContent: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="articles" className="space-y-4">
-            <ScientificArticleManager />
+            <EnhancedScientificArticleManager />
           </TabsContent>
 
           <TabsContent value="images" className="space-y-4">
