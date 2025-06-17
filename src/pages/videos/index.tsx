@@ -1,128 +1,134 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loadVideosData } from '@/hooks/video-batch/videoBatchOperations';
-import { StoredVideo } from '@/types/video-storage';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload } from 'lucide-react';
+import { Video, Upload, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import VideoSwipeViewer from '@/components/video-storage/VideoSwipeViewer';
 import { ROUTES } from '@/routes';
+import UserVideoGrid from '@/components/video-storage/UserVideoGrid';
+import UserVideoPlayer from '@/components/video-storage/UserVideoPlayer';
+import { useUserVideos } from '@/hooks/useUserVideos';
+
+interface Video {
+  id: string;
+  titulo: string;
+  descricao_curta?: string;
+  descricao_detalhada?: string;
+  thumbnail_url?: string;
+  url_video?: string;
+  categoria?: string;
+  tags?: string[];
+  downloads_count?: number;
+  data_upload: string;
+  duracao?: string;
+}
 
 const VideosPage: React.FC = () => {
-  const [videos, setVideos] = useState<StoredVideo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
+  const { videos, isLoading, error, loadVideos } = useUserVideos();
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   
-  useEffect(() => {
-    const fetchVideos = async () => {
-      setLoading(true);
-      setError(null);
-      
-      const result = await loadVideosData();
-      
-      if (result.success) {
-        setVideos(result.data as unknown as StoredVideo[]);
-      } else {
-        setError(result.error || 'Failed to load videos.');
-      }
-      
-      setLoading(false);
-    };
-    
-    fetchVideos();
-  }, []);
-  
-  const handleVideoClick = (index: number) => {
-    setSelectedVideoIndex(index);
+  const handleVideoPlay = (video: Video) => {
+    setSelectedVideo(video);
+    setIsPlayerOpen(true);
   };
   
-  const handleCloseViewer = () => {
-    setSelectedVideoIndex(null);
-  };
-  
-  const handleNextVideo = () => {
-    if (selectedVideoIndex !== null) {
-      setSelectedVideoIndex((prevIndex) => (prevIndex! + 1) % videos.length);
-    }
-  };
-  
-  const handlePreviousVideo = () => {
-    if (selectedVideoIndex !== null) {
-      setSelectedVideoIndex((prevIndex) => (prevIndex! - 1 + videos.length) % videos.length);
-    }
+  const handleClosePlayer = () => {
+    setSelectedVideo(null);
+    setIsPlayerOpen(false);
   };
 
-  const getVideoUrl = (video: StoredVideo) => {
-    if (!video.file_urls) return '';
-    
-    // Handle both string and object formats
-    if (typeof video.file_urls === 'object') {
-      const fileUrls = video.file_urls as Record<string, string>;
-      return fileUrls.web_optimized || '';
-    }
-    
-    return '';
-  };
-  
   return (
     <AppLayout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-6 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Video className="h-12 w-12 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold text-slate-50">Biblioteca de Vídeos</h1>
+              <p className="text-slate-400">Explore nossa coleção de vídeos educativos</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">
+                {isLoading ? '--' : videos.length}
+              </div>
+              <div className="text-sm text-muted-foreground">Vídeos Disponíveis</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">
+                {isLoading ? '--' : [...new Set(videos.map(v => v.categoria).filter(Boolean))].length}
+              </div>
+              <div className="text-sm text-muted-foreground">Categorias</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-1">
+                {isLoading ? '--' : videos.reduce((total, video) => total + (video.downloads_count || 0), 0)}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Downloads</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Error state */}
+        {error && (
+          <Card className="border-destructive">
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive mb-4">{error}</p>
+              <Button onClick={loadVideos} variant="outline">
+                <Loader2 className="h-4 w-4 mr-2" />
+                Tentar Novamente
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Main Content */}
         <Card>
           <CardHeader>
-            <CardTitle>Vídeos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {loading && <p>Carregando vídeos...</p>}
-              {error && <p className="text-red-500">Erro: {error}</p>}
-              {videos.map((video, index) => (
-                <div 
-                  key={video.id} 
-                  className="relative cursor-pointer"
-                  onClick={() => handleVideoClick(index)}
-                >
-                  <img 
-                    src={video.thumbnail_url || getVideoUrl(video)} 
-                    alt={video.title || 'Vídeo'} 
-                    className="w-full rounded-md aspect-video object-cover" 
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-2">
-                    <h4 className="font-semibold">{video.title}</h4>
-                    <p className="text-sm">{video.description}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Vídeos
+              </CardTitle>
+              
+              <Link to={ROUTES.VIDEOS.STORAGE}>
+                <Button variant="outline" size="sm">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Fazer Upload
+                </Button>
+              </Link>
             </div>
-            
-            {selectedVideoIndex !== null && (
-              <VideoSwipeViewer
-                videos={videos}
-                currentIndex={selectedVideoIndex}
-                onClose={handleCloseViewer}
-                onNext={handleNextVideo}
-                onPrevious={handlePreviousVideo}
-              />
-            )}
+          </CardHeader>
+          
+          <CardContent>
+            <UserVideoGrid
+              videos={videos}
+              onVideoPlay={handleVideoPlay}
+              isLoading={isLoading}
+            />
           </CardContent>
         </Card>
-        
-        <div className="mt-4 flex justify-end space-x-2">
-          <Link to={ROUTES.VIDEOS.STORAGE}>
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              Novo vídeo
-            </Button>
-          </Link>
-          <Link to={ROUTES.VIDEOS.BATCH}>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Gerenciar vídeos
-            </Button>
-          </Link>
-        </div>
+
+        {/* Video Player */}
+        <UserVideoPlayer
+          video={selectedVideo}
+          open={isPlayerOpen}
+          onOpenChange={setIsPlayerOpen}
+        />
       </div>
     </AppLayout>
   );
