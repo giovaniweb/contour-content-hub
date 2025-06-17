@@ -67,16 +67,17 @@ const VideoDownloadMenu: React.FC<VideoDownloadMenuProps> = ({ downloads, videoI
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1">
-          <Download size={16} />
-          <span>Download</span>
+        <Button variant="outline" size="sm" className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20">
+          <Download className="h-4 w-4 mr-1" />
+          Download
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-slate-800 border-cyan-500/30">
         {downloads.map((option, index) => (
           <DropdownMenuItem 
             key={index}
             onClick={() => handleDownload(option.link, option.quality)}
+            className="text-slate-200 hover:bg-cyan-500/20"
           >
             {option.quality}
           </DropdownMenuItem>

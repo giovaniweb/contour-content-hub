@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Video, Upload, Grid, Search, Play, Filter } from 'lucide-react';
+import { Video, Grid, Search, Filter, Flame, Sparkles } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useUserVideos } from '@/hooks/useUserVideos';
 import UserVideoGrid from '@/components/video-storage/UserVideoGrid';
 import UserVideoPlayer from '@/components/video-storage/UserVideoPlayer';
@@ -78,6 +79,18 @@ const VideosPage: React.FC = () => {
               <p className="text-slate-300">Explore sua coleção de vídeos</p>
             </div>
           </div>
+
+          {/* Status Tags */}
+          <div className="flex items-center justify-center gap-4">
+            <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30 rounded-xl">
+              <Flame className="h-4 w-4 mr-1" />
+              Baixando
+            </Badge>
+            <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30 rounded-xl">
+              <Sparkles className="h-4 w-4 mr-1" />
+              Novo
+            </Badge>
+          </div>
         </div>
 
         {/* Controls */}
@@ -99,16 +112,6 @@ const VideosPage: React.FC = () => {
               <Grid className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl">
-              <Play className="h-4 w-4" />
-              Reproduzir
-            </Button>
-            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl shadow-lg">
-              <Upload className="h-4 w-4" />
-              Enviar Vídeo
-            </Button>
-          </div>
         </div>
 
         {/* Video Grid */}
@@ -123,7 +126,6 @@ const VideosPage: React.FC = () => {
             title="Nenhum vídeo encontrado"
             description="Comece enviando seus primeiros vídeos"
             actionLabel="Enviar Primeiro Vídeo"
-            actionIcon={Upload}
             onAction={() => console.log('Upload video')}
           />
         ) : (

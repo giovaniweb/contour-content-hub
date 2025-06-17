@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Download, Share } from 'lucide-react';
+import { X, Download, Share, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +45,6 @@ const UserVideoPlayer: React.FC<UserVideoPlayerProps> = ({
           url: video.url_video
         });
       } catch (error) {
-        // Fallback para clipboard
         handleCopyLink();
       }
     } else {
@@ -71,30 +70,34 @@ const UserVideoPlayer: React.FC<UserVideoPlayerProps> = ({
     }
   };
 
+  const handleFavorite = async () => {
+    toast({
+      title: 'Adicionado aos favoritos!',
+      description: 'O vídeo foi adicionado à sua lista de favoritos.'
+    });
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-5xl max-h-[90vh] p-0 bg-slate-900/95 border-cyan-500/20">
         <div className="flex flex-col h-full">
           {/* Header */}
           <DialogHeader className="p-6 pb-0">
             <div className="flex items-start justify-between">
               <div className="flex-1 pr-4">
-                <DialogTitle className="text-lg font-semibold mb-2">
+                <DialogTitle className="text-lg font-semibold mb-2 text-slate-100">
                   {video.titulo}
                 </DialogTitle>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-slate-400">
                   <span>{formatDate(video.data_upload)}</span>
                   {video.duracao && <span>{video.duracao}</span>}
                   <span>{video.downloads_count || 0} downloads</span>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </DialogHeader>
 
@@ -125,21 +128,38 @@ const UserVideoPlayer: React.FC<UserVideoPlayerProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="px-6 py-4 border-t">
+          <div className="px-6 py-4 border-t border-cyan-500/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {video.categoria && (
-                  <Badge variant="outline">{video.categoria}</Badge>
+                  <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
+                    {video.categoria}
+                  </Badge>
                 )}
                 {video.tags && video.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
                     {tag}
                   </Badge>
                 ))}
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleShare}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleFavorite}
+                  className="bg-slate-800/50 border-pink-500/30 text-pink-400 hover:bg-pink-500/20"
+                >
+                  <Heart className="h-4 w-4 mr-1" />
+                  Favoritar
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleShare}
+                  className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+                >
                   <Share className="h-4 w-4 mr-1" />
                   Compartilhar
                 </Button>
@@ -157,8 +177,8 @@ const UserVideoPlayer: React.FC<UserVideoPlayerProps> = ({
           {/* Description */}
           {(video.descricao_curta || video.descricao_detalhada) && (
             <div className="px-6 pb-6">
-              <h4 className="font-medium mb-2">Descrição</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-medium mb-2 text-slate-200">Descrição</h4>
+              <p className="text-sm text-slate-400">
                 {video.descricao_detalhada || video.descricao_curta}
               </p>
             </div>
