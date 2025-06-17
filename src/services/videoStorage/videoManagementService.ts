@@ -57,13 +57,20 @@ export async function deleteVideo(videoId: string): Promise<{
     }
     
     // Delete files from storage
+    if (filesToDelete.length === 0) {
+      console.log('Nenhum arquivo associado encontrado no storage para deletar para o vídeo ID:', videoId);
+    } else {
+      console.log('Tentando deletar os seguintes arquivos do storage para o vídeo ID:', videoId, filesToDelete);
+    }
+
     if (filesToDelete.length > 0) {
       const { error: storageError } = await supabase.storage
         .from('videos')
         .remove(filesToDelete);
       
       if (storageError) {
-        console.warn('⚠️ Erro ao deletar arquivos do storage:', storageError);
+        // Tornar o erro do storage crítico
+        throw new Error(`Erro ao deletar arquivos do storage: ${storageError.message}`);
       } else {
         console.log('🗑️ Arquivos deletados do storage:', filesToDelete);
       }

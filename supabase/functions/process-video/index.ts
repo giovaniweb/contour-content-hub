@@ -138,67 +138,82 @@ Deno.serve(async (req) => {
     
     console.log('✅ Arquivo verificado no storage');
 
-    // Etapa de Geração de Thumbnail Real (Simulada)
-    console.log('💡 Iniciando tentativa de geração de thumbnail real...');
-    let thumbnailUrl: string;
+    let thumbnailUrlToUpdate = videoData.thumbnail_url; // Presume que vamos manter a existente
+    let skipThumbnailGeneration = false;
 
-    try {
-      console.log(`⬇️ Baixando vídeo ${fileName} do storage...`);
-      const { data: videoBlob, error: downloadError } = await supabaseAdmin.storage
-        .from('videos')
-        .download(fileName);
+    const knownPlaceholderPatterns = [
+      "https://via.placeholder.com/640x360/FF0000/", // Base para falhas (Generation Failed, Upload Failed, Process Error)
+      "https://via.placeholder.com/640x360/333333/FFFFFF?text=Video+Thumbnail" // Placeholder antigo original
+    ];
 
-      if (downloadError || !videoBlob) {
-        console.error('❌ Erro ao baixar vídeo do storage:', downloadError);
-        throw new Error(`Falha ao baixar vídeo: ${fileName}`);
-      }
-      console.log('✅ Vídeo baixado com sucesso.');
+    if (videoData.thumbnail_url &&
+        videoData.thumbnail_url.trim() !== '' &&
+        !knownPlaceholderPatterns.some(pattern => videoData.thumbnail_url.startsWith(pattern))) {
 
-      const generatedThumbnailUrl = await generateActualThumbnail(videoBlob, videoId);
+      console.log(`Thumbnail válida já existe para o vídeo ID ${videoId}: ${videoData.thumbnail_url}. Pulando geração de nova thumbnail.`);
+      skipThumbnailGeneration = true;
+    } else {
+      console.log(`Não foi encontrada thumbnail válida ou é um placeholder para o vídeo ID ${videoId} (URL atual: ${videoData.thumbnail_url}). Tentando gerar uma nova.`);
+      // thumbnailUrlToUpdate será definida pela lógica de geração abaixo
+    }
 
-      if (generatedThumbnailUrl) {
-        console.log('🖼️ Thumbnail (simulada) gerada/tentada:', generatedThumbnailUrl);
-        // Simular upload da thumbnail para o storage
-        const thumbnailFileName = `thumbnails/${videoId}-thumbnail.png`;
-        // Criar um blob simbólico para o upload
-        const simulatedThumbnailBlob = new Blob(["simulated thumbnail content"], { type: "image/png" });
+    if (!skipThumbnailGeneration) {
+      console.log('💡 Iniciando tentativa de geração de thumbnail real...');
+      try {
+        console.log(`⬇️ Baixando vídeo ${fileName} do storage...`);
+        const { data: videoBlob, error: downloadError } = await supabaseAdmin.storage
+          .from('videos')
+          .download(fileName);
 
-        console.log(`⬆️ Fazendo upload da thumbnail simulada para: ${thumbnailFileName}`);
-        const { error: uploadThumbError } = await supabaseAdmin.storage
-          .from('videos') // Usando o mesmo bucket 'videos' para thumbnails, mas com prefixo 'thumbnails/'
-          .upload(thumbnailFileName, simulatedThumbnailBlob, {
-            contentType: 'image/png',
-            upsert: true, // Sobrescrever se já existir
-          });
-
-        if (uploadThumbError) {
-          console.error('❌ Erro ao fazer upload da thumbnail simulada:', uploadThumbError);
-          // Se o upload falhar, usar um placeholder de falha
-          thumbnailUrl = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Upload+Failed`;
-        } else {
-          const { data: publicThumbUrlData } = supabaseAdmin.storage
-            .from('videos')
-            .getPublicUrl(thumbnailFileName);
-          thumbnailUrl = publicThumbUrlData.publicUrl;
-          console.log('✅ Thumbnail simulada enviada e URL pública obtida:', thumbnailUrl);
+        if (downloadError || !videoBlob) {
+          console.error('❌ Erro ao baixar vídeo do storage:', downloadError);
+          throw new Error(`Falha ao baixar vídeo: ${fileName}`);
         }
-      } else {
-        console.log('⚠️ Geração de thumbnail real retornou null (simulando falha).');
-        thumbnailUrl = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Generation+Failed`;
+        console.log('✅ Vídeo baixado com sucesso.');
+
+        const generatedThumbnailUrl = await generateActualThumbnail(videoBlob, videoId);
+
+        if (generatedThumbnailUrl) {
+          console.log('🖼️ Thumbnail (simulada) gerada/tentada:', generatedThumbnailUrl);
+          const thumbnailFileName = `thumbnails/${videoId}-thumbnail.png`;
+          const simulatedThumbnailBlob = new Blob(["simulated thumbnail content"], { type: "image/png" });
+
+          console.log(`⬆️ Fazendo upload da thumbnail simulada para: ${thumbnailFileName}`);
+          const { error: uploadThumbError } = await supabaseAdmin.storage
+            .from('videos')
+            .upload(thumbnailFileName, simulatedThumbnailBlob, {
+              contentType: 'image/png',
+              upsert: true,
+            });
+
+          if (uploadThumbError) {
+            console.error('❌ Erro ao fazer upload da thumbnail simulada:', uploadThumbError);
+            thumbnailUrlToUpdate = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Upload+Failed`;
+          } else {
+            const { data: publicThumbUrlData } = supabaseAdmin.storage
+              .from('videos')
+              .getPublicUrl(thumbnailFileName);
+            thumbnailUrlToUpdate = publicThumbUrlData.publicUrl;
+            console.log('✅ Thumbnail simulada enviada e URL pública obtida:', thumbnailUrlToUpdate);
+          }
+        } else {
+          console.log('⚠️ Geração de thumbnail real retornou null (simulando falha).');
+          thumbnailUrlToUpdate = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Generation+Failed`;
+        }
+      } catch (thumbError) {
+        console.error('💥 Erro durante o processo de geração de thumbnail:', thumbError);
+        thumbnailUrlToUpdate = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Process+Error`;
       }
-    } catch (thumbError) {
-      console.error('💥 Erro durante o processo de geração de thumbnail:', thumbError);
-      thumbnailUrl = `https://via.placeholder.com/640x360/FF0000/FFFFFF?text=Thumbnail+Process+Error`;
     }
     
-    // Obter URL público para o vídeo principal (já estava sendo feito, manter)
+    // Obter URL público para o vídeo principal
     const { data: publicUrlData } = supabaseAdmin.storage
       .from('videos')
       .getPublicUrl(fileName);
     const publicUrl = publicUrlData.publicUrl;
     console.log('🔗 URL público do vídeo obtido:', publicUrl);
     
-    // Fase de Processamento de qualidades (simulado - manter como estava)
+    // Fase de Processamento de qualidades (simulado)
     console.log('⚙️ Processando qualidades (simulado)...');
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -207,12 +222,13 @@ Deno.serve(async (req) => {
     const durationSeconds = Math.round(processingDuration / 1000);
     
     // Atualizar vídeo com URLs processados na tabela videos
-    console.log(`💾 Atualizando registro do vídeo ${videoId} com thumbnail: ${thumbnailUrl}`);
+    console.log(`💾 Atualizando registro do vídeo ${videoId} com thumbnail: ${thumbnailUrlToUpdate}`);
     const { error: updateError } = await supabaseAdmin
       .from('videos')
       .update({ 
         url_video: publicUrl, // URL do vídeo principal
-        preview_url: thumbnailUrl, // URL da thumbnail gerada/simulada ou de falha
+        preview_url: thumbnailUrlToUpdate, // URL da thumbnail existente ou nova/falha
+        thumbnail_url: thumbnailUrlToUpdate, // Garantir que thumbnail_url também seja atualizado
         // Adicionar metadados de processamento se necessário
       })
       .eq('id', videoId);
@@ -230,7 +246,7 @@ Deno.serve(async (req) => {
         message: 'Video processing completed',
         videoId: videoId,
         publicUrl: publicUrl,
-        thumbnailUrl: thumbnailUrl,
+        thumbnailUrl: thumbnailUrlToUpdate, // Retornar a URL da thumbnail que foi usada
         processingTime: `${durationSeconds} segundos`
       }),
       {
