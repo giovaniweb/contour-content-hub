@@ -80,18 +80,24 @@ export const useUploadHandler = ({
       
       // Validate file
       if (selectedFile.type !== 'application/pdf') {
-        toast.error("Formato inválido", {
-          description: "Por favor, selecione um arquivo em formato PDF."
-        });
-        setUploadError("Formato inválido. Por favor, selecione um arquivo em formato PDF.");
+        const errorMessage = "Tipo de arquivo inválido. Por favor, selecione um arquivo PDF.";
+        toast.error("Formato inválido", { description: "Por favor, selecione um arquivo em formato PDF." });
+        onError(errorMessage); // Use onError callback
+        // Clear the file input so the user can select the same file again if needed (though not for this error)
+        if (e.target) {
+          e.target.value = '';
+        }
+        // onReset() and resetUploadState() are already called, which should clear file/fileUrl states.
         return;
       }
       
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        toast.error("Arquivo muito grande", {
-          description: "O tamanho máximo permitido é 10MB."
-        });
-        setUploadError("Arquivo muito grande. O tamanho máximo permitido é 10MB.");
+      if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
+        const errorMessage = "Arquivo muito grande. O tamanho máximo permitido é 10MB.";
+        toast.error("Arquivo muito grande", { description: "O tamanho máximo permitido é 10MB." });
+        onError(errorMessage); // Use onError callback
+        if (e.target) {
+          e.target.value = '';
+        }
         return;
       }
       

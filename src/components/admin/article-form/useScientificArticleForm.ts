@@ -246,6 +246,8 @@ export function useScientificArticleForm({
       const finalFileUrl = values.link_dropbox || null;
       
       // Construct article payload
+      const userId = (await supabase.auth.getUser()).data.user?.id || null;
+
       const articlePayload = {
         titulo: values.titulo,
         descricao: values.descricao || null,
@@ -254,7 +256,10 @@ export function useScientificArticleForm({
         idioma_original: values.idioma_original,
         link_dropbox: finalFileUrl,
         status: 'ativo',
-        criado_por: (await supabase.auth.getUser()).data.user?.id || null
+        criado_por: userId,
+        // Add these lines:
+        keywords: extractedKeywords && extractedKeywords.length > 0 ? extractedKeywords : null,
+        researchers: extractedResearchers && extractedResearchers.length > 0 ? extractedResearchers : null,
       };
 
       console.log("Submitting article payload:", articlePayload);

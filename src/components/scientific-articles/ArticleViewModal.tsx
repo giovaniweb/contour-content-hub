@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { X, Download, ExternalLink, Maximize2, ZoomIn, ZoomOut, RotateCw, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Download, ExternalLink, Maximize2, ZoomIn, ZoomOut, RotateCw, MessageSquare, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,27 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
   const [zoom, setZoom] = useState(100);
   const [activeTab, setActiveTab] = useState('view');
   const { toast } = useToast();
+  const [isIframeLoading, setIsIframeLoading] = useState<boolean>(true);
+  const [iframeError, setIframeError] = useState<boolean>(false);
   
   const { processedUrl } = processPdfUrl(pdfUrl || '');
+
+  useEffect(() => {
+    if (isOpen && processedUrl) {
+      setIsIframeLoading(true);
+      setIframeError(false);
+    }
+  }, [processedUrl, isOpen]);
+
+  const handleIframeLoad = () => {
+    setIsIframeLoading(false);
+    setIframeError(false);
+  };
+
+  const handleIframeError = () => {
+    setIsIframeLoading(false);
+    setIframeError(true);
+  };
 
   const handleDownload = async () => {
     if (!pdfUrl) return;
@@ -166,12 +185,38 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
 
           <TabsContent value="view" className="flex-1 mt-4">
             {processedUrl ? (
-              <div className="w-full h-full rounded-xl overflow-hidden bg-slate-800/30 border border-cyan-500/20">
+              <div className="w-full h-full rounded-xl overflow-hidden bg-slate-800/30 border border-cyan-500/20 relative">
+                {isIframeLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/50">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
+                    <p className="text-slate-300">Carregando PDF...</p>
+                  </div>
+                )}
+                {iframeError && !isIframeLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-800/50">
+                    <XCircle className="h-12 w-12 text-red-400 mb-4" />
+                    <h3 className="text-lg font-medium text-slate-200 mb-2">
+                      Erro ao Carregar PDF
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                      Não foi possível exibir o documento. O arquivo pode não existir, não ser um PDF válido, ou o link pode estar incorreto.
+                    </p>
+                    <Button variant="outline" className="mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200" onClick={handleDownload}>
+                      Tentar baixar
+                    </Button>
+                  </div>
+                )}
                 <iframe
                   src={processedUrl}
                   className="w-full h-full"
-                  style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
+                  style={{
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: 'top left',
+                    display: isIframeLoading || iframeError ? 'none' : 'block'
+                  }}
                   title={title}
+                  onLoad={handleIframeLoad}
+                  onError={handleIframeError}
                 />
               </div>
             ) : (

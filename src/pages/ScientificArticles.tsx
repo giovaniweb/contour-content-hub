@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Filter, Upload, Plus, Flame, Sparkles, FileText, Calendar, User } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BookOpen, Search, Filter, Upload, Plus, Flame, Sparkles, FileText, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,21 +11,35 @@ import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal'
 
 const ScientificArticles: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState<any | null>(null); // Added type for selectedArticle
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { documents, loading, fetchDocuments } = useDocuments();
 
+  const ARTICLES_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+  // hasNextPage will be determined by documents.length === ARTICLES_PER_PAGE
+
   useEffect(() => {
-    // Buscar apenas artigos científicos
-    fetchDocuments({ type: 'artigo_cientifico' });
-  }, [fetchDocuments]);
+    const loadDocuments = async () => {
+      await fetchDocuments({
+        type: 'artigo_cientifico',
+        search: searchTerm,
+        limit: ARTICLES_PER_PAGE,
+        offset: (currentPage - 1) * ARTICLES_PER_PAGE
+      });
+    };
+    loadDocuments();
+  }, [fetchDocuments, searchTerm, currentPage, ARTICLES_PER_PAGE]);
 
-  const filteredArticles = documents.filter(article =>
-    article.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (article.descricao && article.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Reset currentPage when searchTerm changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
-  const formatDate = (dateString: string) => {
+  const filteredArticles = documents; // Filtering is now done server-side
+
+  const formatDate = (dateString: string | undefined): string => { // Added undefined check for dateString
+    if (!dateString) return 'Data desconhecida';
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: 'numeric',
       month: 'short',
@@ -106,7 +120,8 @@ const ScientificArticles: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon" className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl">
+            {/* Filter button - non-operational as per requirements */}
+            <Button variant="outline" size="icon" className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl" title="Filtros (Não implementado)">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -141,12 +156,13 @@ const ScientificArticles: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredArticles.map((article) => (
-                <Card key={article.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm cursor-pointer">
-                  {/* Article Preview */}
-                  <div className="relative aspect-[4/3] bg-slate-700/50 overflow-hidden">
+          <>
+            <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredArticles.map((article) => (
+                  <Card key={article.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm cursor-pointer flex flex-col"> {/* Added flex flex-col */}
+                    {/* Article Preview */}
+                    <div className="relative aspect-[4/3] bg-slate-700/50 overflow-hidden">
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
                       <FileText className="h-16 w-16 text-cyan-400" />
                     </div>
@@ -171,58 +187,58 @@ const ScientificArticles: React.FC = () => {
                     </div>
                   </div>
 
-                  <CardContent className="p-4">
-                    <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{article.titulo}</h3>
-                    
-                    {article.descricao && (
-                      <p className="text-xs text-slate-400 mb-3 line-clamp-2">
-                        {article.descricao}
-                      </p>
-                    )}
+                    <CardContent className="p-4 flex-grow"> {/* Added flex-grow */}
+                      <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{article.titulo}</h3>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                      {article.data_criacao && (
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(article.data_criacao)}
-                        </div>
+                      {article.descricao && (
+                        <p className="text-xs text-slate-400 mb-3 line-clamp-2">
+                          {article.descricao}
+                        </p>
                       )}
-                      {article.researchers && article.researchers.length > 0 && (
-                        <div className="flex items-center">
-                          <User className="h-3 w-3 mr-1" />
-                          {article.researchers.length === 1 
-                            ? article.researchers[0].split(' ')[0] 
-                            : `${article.researchers.length} autores`
-                          }
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Keywords */}
-                    {article.keywords && article.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {article.keywords.slice(0, 2).map((keyword, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
-                            {keyword}
-                          </Badge>
-                        ))}
-                        {article.keywords.length > 2 && (
-                          <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
-                            +{article.keywords.length - 2}
-                          </Badge>
+                      <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+                        {article.data_criacao && (
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {formatDate(article.data_criacao)}
+                          </div>
+                        )}
+                        {article.researchers && article.researchers.length > 0 && (
+                          <div className="flex items-center">
+                            <User className="h-3 w-3 mr-1" />
+                            {article.researchers.length === 1
+                              ? article.researchers[0].split(' ')[0]
+                              : `${article.researchers.length} autores`
+                            }
+                          </div>
                         )}
                       </div>
-                    )}
 
-                    {/* Equipment info */}
-                    {article.equipamento_nome && (
-                      <div className="text-xs text-slate-500">
-                        Equipamento: {article.equipamento_nome}
-                      </div>
-                    )}
-                  </CardContent>
+                      {/* Keywords */}
+                      {article.keywords && article.keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {article.keywords.slice(0, 2).map((keyword, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
+                              {keyword}
+                            </Badge>
+                          ))}
+                          {article.keywords.length > 2 && (
+                            <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
+                              +{article.keywords.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
-                  <CardFooter className="px-4 py-3 bg-slate-800/30 border-t border-cyan-500/20">
+                      {/* Equipment info */}
+                      {article.equipamento_nome && (
+                        <div className="text-xs text-slate-500">
+                          Equipamento: {article.equipamento_nome}
+                        </div>
+                      )}
+                    </CardContent>
+
+                    <CardFooter className="px-4 py-3 bg-slate-800/30 border-t border-cyan-500/20 mt-auto"> {/* Added mt-auto */}
                     <Button 
                       size="sm" 
                       onClick={() => handleViewArticle(article)}
@@ -233,9 +249,32 @@ const ScientificArticles: React.FC = () => {
                     </Button>
                   </CardFooter>
                 </Card>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 mt-8">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                variant="outline"
+                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <span className="text-slate-300 font-medium">Página {currentPage}</span>
+              <Button
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                disabled={documents.length < ARTICLES_PER_PAGE || loading}
+                variant="outline"
+                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              >
+                Próximo
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </>
         )}
       </div>
 
