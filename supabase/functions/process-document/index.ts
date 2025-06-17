@@ -52,7 +52,27 @@ async function processFileContent(fileContent: string, corsHeaders: HeadersInit)
     // In a real implementation, you would extract text from the PDF
     // For demo purposes, we'll simulate text extraction with OpenAI
     // Start with empty data to avoid any contamination from previous runs
-    let extractedText = `
+    let extractedText = "";
+    // TODO: Implement PDF text extraction here using a suitable library.
+    // For example, if fileContent is a base64 string of the PDF:
+    // try {
+    //   const pdfData = Uint8Array.from(atob(fileContent), c => c.charCodeAt(0));
+    //   // const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    //   // let text = '';
+    //   // for (let i = 1; i <= pdf.numPages; i++) {
+    //   //   const page = await pdf.getPage(i);
+    //   //   const content = await page.getTextContent();
+    //   //   text += content.items.map(item => item.str).join(' ');
+    //   // }
+    //   // extractedText = text;
+    //   // For now, using placeholder:
+    //   extractedText = "Placeholder text from PDF content.";
+    // } catch (pdfError) {
+    //   console.error("Error parsing PDF from fileContent:", pdfError);
+    //   extractedText = "Error extracting text from PDF. Using fallback.";
+    // }
+    // Using mock text until PDF extraction is implemented:
+    extractedText = `
 EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS
 
 Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela Fernandes de Medeiros, 
@@ -133,63 +153,94 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     
     let extractedText = "";
     try {
-      console.log("Generating extracted text");
-      
-      // Em produção, isso buscaria o conteúdo real do PDF
-      extractedText = `# ${document.titulo}
+      console.log("Attempting to fetch and extract text from PDF:", document.link_dropbox);
+      // TODO: Implement PDF text extraction here using a suitable library (e.g., pdfjsLib for Deno)
+      // after fetching from document.link_dropbox.
+      // Example structure:
+      // const response = await fetch(document.link_dropbox);
+      // if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+      // const pdfData = await response.arrayBuffer();
+      // // const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+      // // let text = '';
+      // // for (let i = 1; i <= pdf.numPages; i++) {
+      // //   const page = await pdf.getPage(i);
+      // //   const content = await page.getTextContent();
+      // //   text += content.items.map(item => item.str).join(' ');
+      // // }
+      // // extractedText = text;
+      // For now, using placeholder mock text:
+      if (document.link_dropbox) { // Only use mock if link exists
+         extractedText = `# ${document.titulo}
 
-## Resumo
-Este estudo avaliou os efeitos da criofrequência na adiposidade localizada nos flancos. A amostra foi composta por 7 voluntárias, que realizaram 10 sessões de criofrequência, sendo divididas em Grupo Controle - GC (n = 7) e Grupo Intervenção - GI (n = 7), totalizando 14 flancos. As voluntárias foram submetidas a um Protocolo de Avaliação, que incluiu anamnese, avaliação antropométrica, fotogrametria, ultrassonografia e perimetria. No GI, o equipamento Manthus foi utilizado exclusivamente no modo bipolar de criofrequência. Foi realizada análise estatística descritiva por média e desvio padrão. A análise inferencial foi realizada por meio do teste de Wilcoxon, com nível de significância de p<0,05. Após finalização do protocolo, observou-se redução na perimetria e na espessura da camada adiposa do flanco do GI, apresentando alterações significativas. Também foi verificado o nível de satisfação segundo o GAP, apresentando satisfação completa (100%) entre as voluntárias avaliadas. Conclui-se que a criofrequência foi eficaz para o tratamento da adiposidade localizada, gerando uma satisfação positiva entre as voluntárias avaliadas.
+## Resumo (mock)
+Este estudo (mock) avaliou os efeitos da criofrequência na adiposidade localizada nos flancos. A amostra foi composta por 7 voluntárias, que realizaram 10 sessões de criofrequência. Conclui-se que a criofrequência foi eficaz.
 
-## Introdução
-A criofrequência é uma tecnologia inovadora que combina os benefícios da radiofrequência com o resfriamento controlado dos tecidos. Esta abordagem permite tratar a adiposidade localizada de forma eficaz, mantendo a integridade da pele e minimizando desconfortos durante o procedimento.
+## Introdução (mock)
+A criofrequência é uma tecnologia inovadora...
 
-O estudo foi conduzido com rigor metodológico para avaliar a eficácia desta tecnologia na região dos flancos, uma área comum de acúmulo de gordura localizada e de difícil tratamento com métodos convencionais.
+## Palavras-chave (mock)
+Radiofrequência, Crioterapia, Tecido Adiposo
 
-## Metodologia
-- Seleção de 7 voluntárias para o estudo
-- Divisão em grupos controle e intervenção
-- Realização de 10 sessões de criofrequência no grupo intervenção
-- Utilização do equipamento Manthus no modo bipolar
-- Avaliação por anamnese, antropometria, fotogrametria, ultrassom e perimetria
-- Análise estatística por teste de Wilcoxon com p<0,05
-
-## Resultados
-Os resultados demonstraram eficácia significativa da tecnologia de criofrequência, com:
-- Redução mensurável na perimetria dos flancos
-- Diminuição na espessura da camada adiposa
-- Melhora na aparência estética da região
-- Índice de 100% de satisfação entre as voluntárias
-
-## Conclusão
-A criofrequência mostrou-se eficaz para o tratamento da adiposidade localizada nos flancos, apresentando resultados significativos na redução das medidas e espessura do tecido adiposo. A tecnologia foi bem tolerada pelas participantes e gerou alto índice de satisfação, indicando seu potencial como alternativa não invasiva para tratamentos estéticos.
-
-## Palavras-chave
-Radiofrequência, Crioterapia, Tecido Adiposo, Adiposidade Localizada, Estética
-
-## Autores
-Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela Fernandes de Medeiros, Sywdixianny Silva de Brito Guerra, Regina da Silva Nobre, Patricia Froes Meyer
+## Autores (mock)
+Nome Autor Um, Nome Autor Dois
 `;
-      
-      console.log("Successfully generated extracted text");
-      
-      // Extract document info using OpenAI API directly
-      const documentInfo = await extractDocumentInfo(extractedText, true);
-      console.log("Extracted document info:", documentInfo);
+      } else {
+        extractedText = `# ${document.titulo}\n\nNo PDF link provided. Using minimal mock text.`;
+      }
+      console.log("Successfully generated/mocked extracted text.");
 
-      // Update document in database with extracted text and metadata
-      const { error: updateError } = await supabase
-        .from('documentos_tecnicos')
-        .update({
-          conteudo_extraido: extractedText,
-          status: 'ativo',
-          // Always update keywords and researchers if available
-          keywords: documentInfo.keywords || [],
-          researchers: documentInfo.researchers || []
-        })
-        .eq('id', documentId);
+    } catch (pdfError) {
+      console.error("Error fetching or parsing PDF:", pdfError.message);
+      extractedText = `# ${document.titulo}\n\nError extracting text from PDF. Using fallback content. Conteúdo original pode estar indisponível.`;
+    }
 
-      if (updateError) {
+    // Extract document info using OpenAI API directly
+    const documentInfo = await extractDocumentInfo(extractedText, true); // forceReset is true to re-process
+    console.log("Extracted document info:", documentInfo);
+
+    // Generate embeddings
+    let embeddingVector: number[] | null = null;
+    if (OPENAI_API_KEY && extractedText && extractedText.trim() !== "") {
+        console.log("Generating embeddings for the extracted text...");
+        embeddingVector = await generateEmbeddings(extractedText, OPENAI_API_KEY);
+        if (embeddingVector) {
+            console.log("Embeddings generated successfully.");
+        } else {
+            console.warn("Failed to generate embeddings. Proceeding without them.");
+        }
+    } else {
+        console.log("Skipping embedding generation as extracted text is empty or OpenAI key is missing.");
+    }
+
+    // Prepare data for Supabase update
+    const updatePayload: {
+      conteudo_extraido: string;
+      status: string;
+      titulo: string;
+      resumo: string;
+      keywords: string[];
+      researchers: string[];
+      vetor_embeddings?: number[]; // Optional embedding vector
+    } = {
+      conteudo_extraido: extractedText,
+      status: 'ativo',
+      titulo: documentInfo.title,
+      resumo: documentInfo.summary,
+      keywords: documentInfo.keywords || [],
+      researchers: documentInfo.researchers || [],
+    };
+
+    if (embeddingVector) {
+      updatePayload.vetor_embeddings = embeddingVector;
+    }
+
+    // Update document in database
+    const { error: updateError } = await supabase
+      .from('documentos_tecnicos')
+      .update(updatePayload)
+      .eq('id', documentId);
+
+    if (updateError) {
         console.error('Failed to update document:', updateError);
         return new Response(
           JSON.stringify({ error: 'Failed to update document', details: updateError }),
@@ -204,6 +255,8 @@ Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela F
           success: true, 
           message: "Document processed successfully",
           documentId: documentId,
+          title: documentInfo.title,
+          summary: documentInfo.summary,
           keywords: documentInfo.keywords,
           researchers: documentInfo.researchers
         }),
@@ -225,6 +278,51 @@ Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela F
   }
 }
 
+async function generateEmbeddings(textToEmbed: string, apiKey: string): Promise<number[] | null> {
+  if (!apiKey) {
+    console.warn("OpenAI API key not provided. Cannot generate embeddings.");
+    return null;
+  }
+  if (!textToEmbed || textToEmbed.trim() === "") {
+    console.warn("Text to embed is empty. Cannot generate embeddings.");
+    return null;
+  }
+
+  console.log("Requesting embeddings from OpenAI...");
+  try {
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: textToEmbed,
+        model: 'text-embedding-3-small', // Recommended model
+      }),
+    });
+
+    if (response.ok) {
+      const responseJson = await response.json();
+      if (responseJson.data && responseJson.data.length > 0 && responseJson.data[0].embedding) {
+        console.log("Embeddings received from OpenAI.");
+        return responseJson.data[0].embedding;
+      } else {
+        console.error("OpenAI embeddings response does not contain expected data:", responseJson);
+        return null;
+      }
+    } else {
+      const errorStatus = response.status;
+      const errorText = await response.text();
+      console.error(`OpenAI Embeddings API error: ${errorStatus} - ${errorText}`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error calling OpenAI Embeddings API:", error.message);
+    return null;
+  }
+}
+
 async function extractDocumentInfo(text: string, forceReset = false) {
   try {
     // Always start with empty data when forceReset is true
@@ -237,23 +335,42 @@ async function extractDocumentInfo(text: string, forceReset = false) {
       
       // Use predefined sample data with real author names and keywords from the example text
       return {
-        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
+        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS (Fallback)",
+        summary: "Este é um resumo de exemplo do documento, gerado como fallback devido à ausência da chave da OpenAI ou erro na API.",
+        conclusion: "Conclusão de fallback: A criofrequência parece ser eficaz.",
+        keywords: ["Fallback", "Crioterapia", "Adiposidade"],
         researchers: [
-          "Rodrigo Marcel Valentim da Silva", 
-          "Manoelly Wesleyana Tavares da Silva", 
-          "Sâmela Fernandes de Medeiros",
-          "Sywdixianny Silva de Brito Guerra",
-          "Regina da Silva Nobre",
-          "Patricia Froes Meyer"
+          "Autor de Fallback 1",
+          "Autor de Fallback 2"
         ]
       };
     }
 
-    console.log("Calling OpenAI to extract document information");
+    console.log("Calling OpenAI to extract document information, including summary");
     
-    // Call OpenAI to extract information with enhanced prompt to better extract real data
+    const systemPrompt = `You are a scientific paper metadata extraction system. Extract ONLY these exact fields from the document:
+
+1. title: The complete title of the paper as it appears in the document.
+2. summary: A concise summary of the paper's main content and findings. Should be about 2-4 sentences.
+3. conclusion: The conclusion or final paragraph summary of the paper.
+4. keywords: Array of keywords exactly as listed in the paper. If no keywords section, extract relevant terms from abstract/introduction.
+5. researchers: Array with full names of ALL authors/researchers.
+
+For researchers:
+- Extract ALL author names that appear, typically at the beginning of the document or under the title.
+- Do not miss any authors - they are crucial.
+- Include complete names.
+- Do not invent names - only extract what's in the document.
+
+Return valid JSON with these exact fields. Do not explain or add comments. Example JSON:
+{
+  "title": "Example Title of a Research Paper",
+  "summary": "This paper investigates the effects of X on Y, finding Z. The implications for future research are discussed.",
+  "conclusion": "In conclusion, X significantly affects Y under conditions Z, supporting our hypothesis.",
+  "keywords": ["X", "Y", "Z", "Research"],
+  "researchers": ["Dr. Jane Doe", "Dr. John Smith"]
+}`;
+
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -261,28 +378,15 @@ async function extractDocumentInfo(text: string, forceReset = false) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o-mini', // Using a model that supports JSON mode and good instruction following
         messages: [
           { 
             role: 'system', 
-            content: `You are a scientific paper metadata extraction system. Extract ONLY these exact fields from the document:
-
-1. title: The complete title of the paper as it appears in the document
-2. conclusion: The conclusion or final paragraph summary of the paper
-3. keywords: Array of keywords exactly as listed in the paper
-4. researchers: Array with full names of ALL authors/researchers
-
-For researchers:
-- Extract ALL author names that appear at the beginning of the document
-- Do not miss any authors - they are crucial
-- Include complete names with any titles (Dr., Prof., etc.)
-- Do not invent names - only extract what's in the document
-
-Return valid JSON with these exact fields. Do not explain or add comments.`
+            content: systemPrompt
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, keywords, and researchers from this scientific paper:\n\n${text}` 
+            content: `Extract the title, summary, conclusion, keywords, and researchers from this scientific paper:\n\n${text}`
           }
         ],
         response_format: { type: "json_object" }
@@ -291,74 +395,64 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
     
     if (openaiResponse.ok) {
       const openaiData = await openaiResponse.json();
-      const content = openaiData.choices[0].message.content;
+      // It's good practice to check if choices array and message exist
+      if (openaiData.choices && openaiData.choices.length > 0 && openaiData.choices[0].message) {
+        const content = openaiData.choices[0].message.content;
       
-      try {
-        // Parse the JSON response
-        const extractedData = JSON.parse(content);
-        console.log("Extracted data from OpenAI:", extractedData);
-        
-        // Return the extracted data
+        try {
+          const extractedData = JSON.parse(content);
+          console.log("Extracted data from OpenAI:", extractedData);
+
+          return {
+            title: extractedData.title || "Title not found",
+            summary: extractedData.summary || "Summary not found",
+            conclusion: extractedData.conclusion || "Conclusion not found",
+            keywords: extractedData.keywords || [],
+            researchers: extractedData.researchers || []
+          };
+        } catch (parseError) {
+          console.error("Error parsing OpenAI JSON response:", parseError, "Content:", content);
+          return { // Fallback if JSON parsing fails
+            title: "Error: Could not parse title",
+            summary: "Error: Could not parse summary",
+            conclusion: "Error: Could not parse conclusion",
+            keywords: ["parsing error"],
+            researchers: ["parsing error"]
+          };
+        }
+      } else {
+        console.error("OpenAI response does not contain expected data structure:", openaiData);
+        // Fallback if the response structure is not as expected
         return {
-          title: extractedData.title || "",
-          conclusion: extractedData.conclusion || "",
-          keywords: extractedData.keywords || [],
-          researchers: extractedData.researchers || []
-        };
-      } catch (parseError) {
-        console.error("Error parsing OpenAI JSON response:", parseError);
-        
-        // If parse error, return sample data
-        return {
-          title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-          conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-          keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
-          researchers: [
-            "Rodrigo Marcel Valentim da Silva", 
-            "Manoelly Wesleyana Tavares da Silva", 
-            "Sâmela Fernandes de Medeiros",
-            "Sywdixianny Silva de Brito Guerra",
-            "Regina da Silva Nobre",
-            "Patricia Froes Meyer"
-          ]
+            title: "Error: Invalid OpenAI response structure",
+            summary: "Error: Invalid OpenAI response structure",
+            conclusion: "Error: Invalid OpenAI response structure",
+            keywords: ["OpenAI response error"],
+            researchers: ["OpenAI response error"]
         };
       }
     } else {
-      console.error(`OpenAI API error: ${openaiResponse.status}`);
+      const errorStatus = openaiResponse.status;
       const errorText = await openaiResponse.text();
-      console.error(`OpenAI API error details: ${errorText}`);
+      console.error(`OpenAI API error: ${errorStatus} - ${errorText}`);
       
-      // Return sample data if API error
-      return {
-        title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
-        researchers: [
-          "Rodrigo Marcel Valentim da Silva", 
-          "Manoelly Wesleyana Tavares da Silva",
-          "Sâmela Fernandes de Medeiros",
-          "Sywdixianny Silva de Brito Guerra",
-          "Regina da Silva Nobre",
-          "Patricia Froes Meyer"
-        ]
+      return { // Fallback for API errors
+        title: `Error: OpenAI API ${errorStatus}`,
+        summary: `Error: OpenAI API ${errorStatus}`,
+        conclusion: `Error: OpenAI API ${errorStatus}`,
+        keywords: ["API error"],
+        researchers: ["API error"]
       };
     }
   } catch (error) {
-    console.error("Error in extractDocumentInfo:", error);
+    console.error("Error in extractDocumentInfo:", error.message);
     
-    // Return sample data if any error
-    return {
-      title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-      conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
-      keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
-      researchers: [
-        "Rodrigo Marcel Valentim da Silva", 
-        "Manoelly Wesleyana Tavares da Silva", 
-        "Sâmela Fernandes de Medeiros",
-        "Sywdixianny Silva de Brito Guerra",
-        "Regina da Silva Nobre",
-        "Patricia Froes Meyer"
-      ]
+    return { // General fallback for other errors in the function
+      title: "Error: Processing failed",
+      summary: "Error: Processing failed",
+      conclusion: "Error: Processing failed",
+      keywords: ["processing error"],
+      researchers: ["processing error"]
     };
   }
 }

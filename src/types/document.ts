@@ -33,6 +33,7 @@ export interface GetDocumentsParams {
   search?: string;
   limit?: number;
   offset?: number;
+  projectId?: string; // Adicionado para filtrar documentos por projeto
 }
 
 export interface DocumentUploadForm {

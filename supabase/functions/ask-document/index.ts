@@ -19,9 +19,11 @@ serve(async (req) => {
   }
 
   try {
-    // Get document ID and question from request
-    const { documentId, question } = await req.json();
-    console.log(`Received question request for document ${documentId}: "${question}"`);
+    // Get document ID, question, and optional projectId from request
+    const requestBody = await req.json();
+    const { documentId, question, projectId } = requestBody;
+
+    console.log(`Received question request for document ${documentId}${projectId ? ` (project: ${projectId})` : ''}: "${question}"`);
 
     if (!documentId || !question) {
       return new Response(
@@ -124,20 +126,42 @@ serve(async (req) => {
       answer = await generateFallbackAnswer(document, question);
     }
 
-    // Log question in document access history
-    if (userId) {
-      try {
-        await supabase
-          .from('document_access_history')
-          .insert({
-            document_id: documentId,
-            user_id: userId,
-            action_type: 'question',
-            details: { question, answer }
-          });
-      } catch (historyError) {
-        console.warn('Failed to log access history:', historyError);
+    // Log the question and answer to perguntas_artigos
+    try {
+      const logEntry: {
+        user_id: string | null;
+        artigo_id: string;
+        pergunta: string;
+        resposta: string;
+        idioma: string | null;
+        project_id?: string | null; // Tornar project_id opcional
+      } = {
+        user_id: userId,
+        artigo_id: documentId,
+        pergunta: question,
+        resposta: answer,
+        idioma: null,
+      };
+
+      if (projectId) {
+        logEntry.project_id = projectId;
       }
+
+      console.log("Attempting to log to perguntas_artigos:", logEntry);
+
+      const { error: logError } = await supabase
+        .from('perguntas_artigos')
+        .insert(logEntry);
+
+      if (logError) {
+        console.error('Failed to log question/answer to perguntas_artigos:', logError.message);
+        // As per requirements, do not fail the request, just log the error.
+      } else {
+        console.log('Question/answer successfully logged to perguntas_artigos.');
+      }
+    } catch (e) {
+      // Catch any unexpected synchronous errors during the logging attempt
+      console.error('Unexpected error during logging to perguntas_artigos:', e.message);
     }
 
     return new Response(
