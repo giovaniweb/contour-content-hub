@@ -33,7 +33,7 @@ import { StoredVideo } from '@/types/video-storage';
 import VideoEditDialog from './VideoEditDialog';
 import VideoStatisticsDialog from './VideoStatisticsDialog';
 import { 
-  deleteVideoCompletely, 
+  deleteVideo, 
   downloadVideo, 
   copyVideoLink 
 } from '@/services/videoStorage/videoManagementService';
@@ -71,7 +71,7 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
   const handleDelete = async () => {
     setLoading('delete');
     try {
-      const { success, error } = await deleteVideoCompletely(video.id);
+      const { success, error } = await deleteVideo(video.id);
       
       if (!success) {
         throw new Error(error);
@@ -106,17 +106,20 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
         throw new Error(error || 'URL de download não disponível');
       }
 
-      // Create download link
+      // Create a temporary link and trigger download automatically
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = getVideoTitle();
+      link.download = getVideoTitle() + '.mp4';
+      link.target = '_blank';
+      
+      // Add to DOM temporarily to ensure it works in all browsers
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       toast({
         title: 'Download iniciado',
-        description: 'O download do vídeo foi iniciado com sucesso!'
+        description: 'O download do vídeo foi iniciado automaticamente!'
       });
 
       onDownload(video);

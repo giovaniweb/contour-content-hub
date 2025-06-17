@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { generateUniqueFileName, generateUniqueThumbnailName, validateVideoFile, validateImageFile, extractVideoMetadata } from '@/utils/fileUtils';
 import { VideoUploadProgress, VideoQueueItem, VideoUploadResult, VideoBatchUploadResult } from '@/types/video-storage';
@@ -10,6 +9,48 @@ interface UploadMetadata {
   tags?: string[];
   thumbnailFile?: File;
   category?: string;
+}
+
+// Function to generate thumbnail from video
+async function generateVideoThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    video.onloadedmetadata = () => {
+      // Set canvas dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Seek to 1 second or 10% of video duration, whichever is smaller
+      const seekTime = Math.min(1, video.duration * 0.1);
+      video.currentTime = seekTime;
+    };
+    
+    video.onseeked = () => {
+      if (ctx) {
+        // Draw video frame to canvas
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(video.src);
+          resolve(blob);
+        }, 'image/jpeg', 0.8);
+      } else {
+        URL.revokeObjectURL(video.src);
+        resolve(null);
+      }
+    };
+    
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(null);
+    };
+    
+    video.src = URL.createObjectURL(file);
+  });
 }
 
 export async function uploadVideo(
@@ -57,24 +98,28 @@ export async function uploadVideo(
     const videoMetadata = await extractVideoMetadata(file);
     console.log('📊 Metadados extraídos:', videoMetadata);
     
-    // Upload file to storage with real progress tracking
-    const uploadResult = await uploadFileWithProgress(file, filePath, onProgress);
-    
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error || 'Erro no upload do arquivo');
-    }
-    
-    // Update progress - processing
+    // Upload video file first
     if (onProgress) {
       onProgress({
-        loaded: file.size,
+        loaded: 0,
         total: file.size,
-        percentage: 90,
-        status: 'processing',
-        stage: 'processing',
+        percentage: 10,
+        status: 'uploading',
+        stage: 'uploading',
         fileName: file.name,
-        message: 'Processando vídeo...'
+        message: 'Enviando vídeo...'
       });
+    }
+    
+    const { error: uploadError } = await supabase.storage
+      .from('videos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+    
+    if (uploadError) {
+      throw new Error(`Erro no upload: ${uploadError.message}`);
     }
     
     // Get public URL
@@ -84,38 +129,57 @@ export async function uploadVideo(
     
     console.log('🔗 URL pública gerada:', publicUrlData.publicUrl);
     
-    // Handle thumbnail upload if provided
+    // Generate thumbnail
+    if (onProgress) {
+      onProgress({
+        loaded: file.size * 0.7,
+        total: file.size,
+        percentage: 70,
+        status: 'processing',
+        stage: 'processing',
+        fileName: file.name,
+        message: 'Gerando thumbnail...'
+      });
+    }
+    
     let thumbnailUrl = null;
-    if (metadata.thumbnailFile) {
-      const thumbnailValidation = validateImageFile(metadata.thumbnailFile);
-      if (thumbnailValidation.valid) {
-        const thumbnailFileName = generateUniqueThumbnailName(sanitizedFileName);
-        const thumbnailPath = `${userData.user.id}/thumbnails/${thumbnailFileName}`;
-        
-        const { error: thumbError } = await supabase.storage
+    
+    // Try to use provided thumbnail first, otherwise generate from video
+    let thumbnailToUpload: File | Blob | null = metadata.thumbnailFile;
+    
+    if (!thumbnailToUpload) {
+      console.log('🖼️ Gerando thumbnail automaticamente...');
+      thumbnailToUpload = await generateVideoThumbnail(file);
+    }
+    
+    if (thumbnailToUpload) {
+      const thumbnailFileName = generateUniqueThumbnailName(sanitizedFileName);
+      const thumbnailPath = `${userData.user.id}/thumbnails/${thumbnailFileName}`;
+      
+      const { error: thumbError } = await supabase.storage
+        .from('videos')
+        .upload(thumbnailPath, thumbnailToUpload, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (!thumbError) {
+        const { data: thumbUrlData } = supabase.storage
           .from('videos')
-          .upload(thumbnailPath, metadata.thumbnailFile);
-        
-        if (!thumbError) {
-          const { data: thumbUrlData } = supabase.storage
-            .from('videos')
-            .getPublicUrl(thumbnailPath);
-          thumbnailUrl = thumbUrlData.publicUrl;
-          console.log('🖼️ Thumbnail uploaded:', thumbnailUrl);
-        } else {
-          console.warn('⚠️ Erro no upload da thumbnail:', thumbError);
-        }
+          .getPublicUrl(thumbnailPath);
+        thumbnailUrl = thumbUrlData.publicUrl;
+        console.log('🖼️ Thumbnail gerada/enviada:', thumbnailUrl);
       } else {
-        console.warn('⚠️ Thumbnail inválida:', thumbnailValidation.error);
+        console.warn('⚠️ Erro no upload da thumbnail:', thumbError);
       }
     }
     
     // Update progress - creating record
     if (onProgress) {
       onProgress({
-        loaded: file.size,
+        loaded: file.size * 0.9,
         total: file.size,
-        percentage: 95,
+        percentage: 90,
         status: 'processing',
         stage: 'creating_record',
         fileName: file.name,
@@ -155,8 +219,10 @@ export async function uploadVideo(
       // Cleanup uploaded files if video record creation failed
       await supabase.storage.from('videos').remove([filePath]);
       if (thumbnailUrl) {
-        const thumbnailPath = thumbnailUrl.split('/').slice(-2).join('/');
-        await supabase.storage.from('videos').remove([thumbnailPath]);
+        const thumbnailPathParts = thumbnailUrl.split('/videos/');
+        if (thumbnailPathParts.length > 1) {
+          await supabase.storage.from('videos').remove([thumbnailPathParts[1]]);
+        }
       }
       
       throw new Error(videoError?.message || 'Falha ao criar registro do vídeo');
