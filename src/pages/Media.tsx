@@ -1,83 +1,98 @@
 
-import React from "react";
-import AppLayout from "@/components/layout/AppLayout";
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Image, Video, FileText, Camera, Upload } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { VideoIcon, ImageIcon, FileTextIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 
 const Media: React.FC = () => {
   const navigate = useNavigate();
 
+  const mediaOptions = [
+    {
+      title: 'Fotos',
+      description: 'Galeria de fotos e imagens antes/depois',
+      icon: Image,
+      path: '/photos',
+      color: 'text-pink-400'
+    },
+    {
+      title: 'Vídeos',
+      description: 'Biblioteca de vídeos e conteúdo audiovisual',
+      icon: Video,
+      path: '/videos',
+      color: 'text-blue-400'
+    },
+    {
+      title: 'Documentos',
+      description: 'PDFs, materiais e documentos',
+      icon: FileText,
+      path: '/documents',
+      color: 'text-green-400'
+    }
+  ];
+
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6">
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl mb-6">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-            Media Hub
-          </h1>
-          <p className="text-muted-foreground text-lg mt-1">
-            Acesse todos os recursos de mídia da plataforma Fluida
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Media Library Card */}
-          <Card className="hover:shadow-md transition-all bg-gradient-to-br from-white to-blue-50">
-            <CardContent className="p-6 flex flex-col h-full">
-              <div className="mb-4 bg-blue-100 p-2 w-fit rounded-lg">
-                <VideoIcon className="h-8 w-8 text-fluida-blue" />
-              </div>
-              
-              <h2 className="text-xl font-semibold mb-2">Media Library</h2>
-              <p className="text-muted-foreground mb-4 flex-grow">
-                Acesse nossa biblioteca completa de vídeos, imagens e documentos com recomendações de conteúdo.
-              </p>
-              
-              <Button onClick={() => navigate('/media-library')} className="w-full bg-fluida-blue hover:bg-fluida-blue/90">
-                Acessar Media Library
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Video Swipe Card */}
-          <Card className="hover:shadow-md transition-all">
-            <CardContent className="p-6 flex flex-col h-full">
-              <div className="mb-4 bg-purple-100 p-2 w-fit rounded-lg">
-                <VideoIcon className="h-8 w-8 text-purple-600" />
-              </div>
-              
-              <h2 className="text-xl font-semibold mb-2">Video Swipe</h2>
-              <p className="text-muted-foreground mb-4 flex-grow">
-                Navegue pelos vídeos no formato de swipe para encontrar rapidamente o conteúdo que precisa.
-              </p>
-              
-              <Button onClick={() => navigate('/video-swipe')} variant="outline" className="w-full">
-                Acessar Video Swipe
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Documents Card */}
-          <Card className="hover:shadow-md transition-all">
-            <CardContent className="p-6 flex flex-col h-full">
-              <div className="mb-4 bg-amber-100 p-2 w-fit rounded-lg">
-                <FileTextIcon className="h-8 w-8 text-amber-600" />
-              </div>
-              
-              <h2 className="text-xl font-semibold mb-2">Technical Documents</h2>
-              <p className="text-muted-foreground mb-4 flex-grow">
-                Acesse artigos científicos, manuais e outros documentos técnicos relacionados aos equipamentos.
-              </p>
-              
-              <Button onClick={() => navigate('/technical-documents')} variant="outline" className="w-full">
-                Acessar Technical Docs
-              </Button>
-            </CardContent>
-          </Card>
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3">
+          <FileText className="h-12 w-12 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold text-slate-50">Central de Mídia</h1>
+            <p className="text-slate-400">Gerencie todos os seus arquivos em um só lugar</p>
+          </div>
         </div>
       </div>
-    </AppLayout>
+
+      {/* Quick Actions */}
+      <div className="flex items-center justify-center gap-4">
+        <Button className="flex items-center gap-2">
+          <Upload className="h-4 w-4" />
+          Upload de Arquivos
+        </Button>
+        <Button variant="outline" className="flex items-center gap-2">
+          <Camera className="h-4 w-4" />
+          Capturar Foto
+        </Button>
+      </div>
+
+      {/* Media Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {mediaOptions.map((option, index) => (
+          <Card 
+            key={index} 
+            className="hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => navigate(option.path)}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <option.icon className={`h-8 w-8 ${option.color}`} />
+                {option.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">{option.description}</p>
+              <Button variant="outline" className="w-full">
+                Acessar {option.title}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Atividade Recente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-8">
+            Nenhuma atividade recente encontrada
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
