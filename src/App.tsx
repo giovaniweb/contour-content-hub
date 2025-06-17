@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from '@/context/AuthContext';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -46,54 +47,58 @@ import AdminVideos from '@/pages/admin/AdminVideos';
 const queryClient = new QueryClient();
 
 function App() {
+  console.log('🚀 App iniciando...');
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/workspace-settings" element={<WorkspaceSettings />} />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
-          {/* Content Routes */}
-          <Route path="/fluidaroteirista" element={<FluidaRoteiristsPage />} />
-          <Route path="/content-planner" element={<ContentPlannerPage />} />
+            {/* Content Routes */}
+            <Route path="/fluidaroteirista" element={<FluidaRoteiristsPage />} />
+            <Route path="/content-planner" element={<ContentPlannerPage />} />
 
-          {/* Video Routes */}
-          <Route path="/videos" element={<VideosPage />} />
-          <Route path="/video-player" element={<VideoPlayer />} />
-          <Route path="/videos/storage" element={<VideoStorage />} />
+            {/* Video Routes */}
+            <Route path="/videos" element={<VideosPage />} />
+            <Route path="/video-player" element={<VideoPlayer />} />
+            <Route path="/videos/storage" element={<VideoStorage />} />
 
-          {/* Equipments Routes */}
-          <Route path="/equipments" element={<EquipmentList />} />
-          <Route path="/equipments/:id" element={<EquipmentDetails />} />
+            {/* Equipments Routes */}
+            <Route path="/equipments" element={<EquipmentList />} />
+            <Route path="/equipments/:id" element={<EquipmentDetails />} />
 
-          <Route path="/media" element={<Media />} />
-          <Route path="/scientific-articles" element={<ScientificArticles />} />
+            <Route path="/media" element={<Media />} />
+            <Route path="/scientific-articles" element={<ScientificArticles />} />
 
-          {/* Marketing Routes */}
-          <Route path="/marketing-consultant" element={<MarketingConsultant />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/diagnostic-history" element={<DiagnosticHistory />} />
+            {/* Marketing Routes */}
+            <Route path="/marketing-consultant" element={<MarketingConsultant />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/diagnostic-history" element={<DiagnosticHistory />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/content" element={<AdminContent />} />
-          <Route path="/admin/scientific-articles" element={<AdminScientificArticles />} />
-          <Route path="/admin/materials" element={<AdminMaterials />} />
-          <Route path="/admin/photos" element={<AdminPhotos />} />
-          <Route path="/admin/videos" element={<AdminVideos />} />
-          <Route path="/admin/equipments" element={<AdminEquipments />} />
-          <Route path="/admin/equipments/create" element={<CreateEquipment />} />
-          <Route path="/admin/equipments/edit/:id" element={<EditEquipment />} />
-          <Route path="/admin/ai" element={<AdminAI />} />
-          <Route path="/admin/system-diagnostics" element={<AdminSystemDiagnostics />} />
-          <Route path="/admin/system-intelligence" element={<AdminSystemIntelligence />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/content" element={<AdminContent />} />
+            <Route path="/admin/scientific-articles" element={<AdminScientificArticles />} />
+            <Route path="/admin/materials" element={<AdminMaterials />} />
+            <Route path="/admin/photos" element={<AdminPhotos />} />
+            <Route path="/admin/videos" element={<AdminVideos />} />
+            <Route path="/admin/equipments" element={<AdminEquipments />} />
+            <Route path="/admin/equipments/create" element={<CreateEquipment />} />
+            <Route path="/admin/equipments/edit/:id" element={<EditEquipment />} />
+            <Route path="/admin/ai" element={<AdminAI />} />
+            <Route path="/admin/system-diagnostics" element={<AdminSystemDiagnostics />} />
+            <Route path="/admin/system-intelligence" element={<AdminSystemIntelligence />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

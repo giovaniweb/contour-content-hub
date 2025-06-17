@@ -14,16 +14,21 @@ const Login: React.FC = () => {
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Debug logs
+  console.log('🔍 Login Component State:', { isAuthenticated, isLoading });
+
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       console.log('👤 Usuário já autenticado, redirecionando...');
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🚀 Tentando fazer login com:', { email, password: '***' });
     
     if (!email || !password) {
       toast.error('Por favor, preencha todos os campos');
@@ -33,12 +38,15 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('📞 Chamando função de login...');
       await login(email, password);
+      console.log('✅ Login realizado com sucesso!');
       toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('❌ Erro no login:', error);
-      toast.error('Erro no login: ' + (error.message || 'Verifique suas credenciais'));
+      const errorMessage = error?.message || 'Erro desconhecido';
+      toast.error('Erro no login: ' + errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -46,6 +54,7 @@ const Login: React.FC = () => {
 
   // Mostrar loading se ainda estiver verificando autenticação
   if (isLoading) {
+    console.log('⏳ Verificando autenticação...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
