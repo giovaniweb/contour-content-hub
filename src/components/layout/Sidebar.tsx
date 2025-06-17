@@ -10,6 +10,7 @@ import {
   Image,
   Palette,
   Wrench,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +18,11 @@ const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Crown, label: "Mestre da\nBeleza", path: "/mestre-da-beleza" },
   { icon: BrainCircuit, label: "Consultor\nMKT", path: "/marketing-consultant" },
-  // Inserir FluidaRoteirista logo após Consultor MKT
   { icon: PenTool, label: "Fluida\nRoteirista", path: "/fluidaroteirista" },
   { icon: Video, label: "Vídeos", path: "/videos" },
   { icon: Image, label: "Fotos", path: "/photos" },
   { icon: Palette, label: "Artes", path: "/arts" },
+  { icon: BookOpen, label: "Artigos\nCientíficos", path: "/scientific-articles" },
   { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 
@@ -70,8 +71,6 @@ const Sidebar: React.FC = () => {
           );
         })}
       </nav>
-      {/* Rodapé minimalista */}
-      {/* <div className="mt-auto mb-2 text-xs text-white/50">v1.0</div> */}
     </aside>
   );
 };
