@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Play, Search, Filter, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,8 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  console.log('🎬 UserVideoGrid recebeu:', videos.length, 'vídeos');
+
   // Filtrar vídeos
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,9 +57,9 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <div key={index} className="animate-pulse">
-            <div className="aspect-video bg-muted rounded-lg mb-3"></div>
-            <div className="h-4 bg-muted rounded mb-2"></div>
-            <div className="h-3 bg-muted rounded w-2/3"></div>
+            <div className="aspect-video bg-slate-700/50 rounded-xl mb-3"></div>
+            <div className="h-4 bg-slate-700/50 rounded mb-2"></div>
+            <div className="h-3 bg-slate-700/50 rounded w-2/3"></div>
           </div>
         ))}
       </div>
@@ -71,28 +72,30 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
             <Input
               placeholder="Buscar vídeos..."
-              className="pl-10"
+              className="pl-10 bg-slate-700/50 border-cyan-500/30 text-slate-100 placeholder:text-slate-400 rounded-xl"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {categories.length > 0 && (
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-500/30 text-slate-100 rounded-xl">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-cyan-500/30">
+                <SelectItem value="">Todas</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -100,6 +103,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('grid')}
+            className="rounded-xl"
           >
             <Grid className="h-4 w-4" />
           </Button>
@@ -107,6 +111,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
+            className="rounded-xl"
           >
             <List className="h-4 w-4" />
           </Button>
@@ -114,7 +119,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       </div>
 
       {/* Resultados */}
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-slate-400">
         {filteredVideos.length} vídeo(s) encontrado(s)
       </div>
 
@@ -122,49 +127,49 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredVideos.map((video) => (
-            <Card key={video.id} className="group hover:shadow-lg transition-shadow">
+            <Card key={video.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm">
               {/* Thumbnail */}
               <div 
-                className="relative aspect-video bg-muted overflow-hidden rounded-t-lg cursor-pointer"
+                className="relative aspect-video bg-slate-700/50 overflow-hidden cursor-pointer"
                 onClick={() => onVideoPlay(video)}
               >
                 {video.thumbnail_url ? (
                   <img
                     src={video.thumbnail_url}
                     alt={video.titulo}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                    <Play className="h-12 w-12 text-muted-foreground" />
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                    <Play className="h-12 w-12 text-cyan-400" />
                   </div>
                 )}
                 
                 {/* Play overlay */}
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="bg-white/90 rounded-full p-3">
-                    <Play className="h-6 w-6 text-black" />
+                  <div className="bg-cyan-400/90 rounded-full p-3">
+                    <Play className="h-6 w-6 text-slate-900" />
                   </div>
                 </div>
 
                 {/* Duração */}
                 {video.duracao && (
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
                     {video.duracao}
                   </div>
                 )}
               </div>
 
               <CardContent className="p-4">
-                <h3 className="font-medium text-sm mb-2 line-clamp-2">{video.titulo}</h3>
+                <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{video.titulo}</h3>
                 
                 {video.descricao_curta && (
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                  <p className="text-xs text-slate-400 mb-3 line-clamp-2">
                     {video.descricao_curta}
                   </p>
                 )}
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                   <span>{formatDate(video.data_upload)}</span>
                   <span>{video.downloads_count || 0} downloads</span>
                 </div>
@@ -173,12 +178,12 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                 {video.tags && video.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {video.tags.slice(0, 2).map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
                         {tag}
                       </Badge>
                     ))}
                     {video.tags.length > 2 && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
                         +{video.tags.length - 2}
                       </Badge>
                     )}
@@ -190,7 +195,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                   <Button 
                     size="sm" 
                     onClick={() => onVideoPlay(video)}
-                    className="flex-1 mr-2"
+                    className="flex-1 mr-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
                   >
                     <Play className="h-4 w-4 mr-1" />
                     Assistir
@@ -210,12 +215,12 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       ) : (
         <div className="space-y-4">
           {filteredVideos.map((video) => (
-            <Card key={video.id} className="hover:shadow-md transition-shadow">
+            <Card key={video.id} className="hover:shadow-md transition-shadow bg-slate-800/50 border-cyan-500/20 rounded-xl">
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   {/* Thumbnail */}
                   <div 
-                    className="relative w-32 h-18 bg-muted rounded overflow-hidden flex-shrink-0 cursor-pointer"
+                    className="relative w-32 h-18 bg-slate-700/50 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
                     onClick={() => onVideoPlay(video)}
                   >
                     {video.thumbnail_url ? (
@@ -226,20 +231,20 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Play className="h-6 w-6 text-muted-foreground" />
+                        <Play className="h-6 w-6 text-cyan-400" />
                       </div>
                     )}
                   </div>
 
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium mb-1 truncate">{video.titulo}</h3>
+                    <h3 className="font-medium mb-1 truncate text-slate-100">{video.titulo}</h3>
                     {video.descricao_curta && (
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      <p className="text-sm text-slate-400 mb-2 line-clamp-2">
                         {video.descricao_curta}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 text-xs text-slate-400">
                       <span>{formatDate(video.data_upload)}</span>
                       <span>{video.downloads_count || 0} downloads</span>
                       {video.duracao && <span>{video.duracao}</span>}
@@ -251,6 +256,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                     <Button 
                       size="sm" 
                       onClick={() => onVideoPlay(video)}
+                      className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
                     >
                       <Play className="h-4 w-4 mr-1" />
                       Assistir
@@ -273,11 +279,11 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       {/* Empty state */}
       {filteredVideos.length === 0 && !isLoading && (
         <div className="text-center py-12">
-          <div className="mx-auto h-12 w-12 text-muted-foreground mb-4 flex items-center justify-center">
+          <div className="mx-auto h-12 w-12 text-slate-400 mb-4 flex items-center justify-center">
             <Play className="h-12 w-12" />
           </div>
-          <h3 className="text-lg font-medium mb-2">Nenhum vídeo encontrado</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-lg font-medium mb-2 text-slate-200">Nenhum vídeo encontrado</h3>
+          <p className="text-slate-400">
             {searchTerm || selectedCategory 
               ? 'Tente ajustar seus filtros de busca'
               : 'Ainda não há vídeos disponíveis'
