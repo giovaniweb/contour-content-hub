@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Play, Search, Filter, Grid, List } from 'lucide-react';
+import { Play, Search, Filter, Grid, List, Flame, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,6 +51,19 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  // Função para determinar se um vídeo é "novo" (últimos 7 dias)
+  const isNewVideo = (dateString: string) => {
+    const videoDate = new Date(dateString);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return videoDate > sevenDaysAgo;
+  };
+
+  // Função para determinar se um vídeo está "baixando" (exemplo: vídeos com downloads > 10)
+  const isDownloadingVideo = (video: Video) => {
+    return (video.downloads_count || 0) > 10;
   };
 
   if (isLoading) {
@@ -152,6 +166,20 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                   </div>
                 </div>
 
+                {/* Tags sobre o vídeo */}
+                <div className="absolute top-2 left-2 flex gap-2">
+                  {isDownloadingVideo(video) && (
+                    <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm">
+                      <Flame className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                  {isNewVideo(video.data_upload) && (
+                    <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm">
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                </div>
+
                 {/* Duração */}
                 {video.duracao && (
                   <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
@@ -234,6 +262,20 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                         <Play className="h-6 w-6 text-cyan-400" />
                       </div>
                     )}
+
+                    {/* Tags sobre o vídeo na lista */}
+                    <div className="absolute top-1 left-1 flex gap-1">
+                      {isDownloadingVideo(video) && (
+                        <div className="bg-orange-500/90 rounded-full p-1 backdrop-blur-sm">
+                          <Flame className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                      {isNewVideo(video.data_upload) && (
+                        <div className="bg-green-500/90 rounded-full p-1 backdrop-blur-sm">
+                          <Sparkles className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Conteúdo */}
