@@ -29,34 +29,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    console.log('🔧 Configurando AuthProvider...');
 
     const setupAuth = async () => {
       try {
-        console.log('🔍 Verificando sessão inicial...');
         // Get initial session
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('📊 Sessão inicial:', { hasSession: !!session, userId: session?.user?.id });
         
         if (mounted) {
           if (session?.user) {
-            console.log('👤 Usuário encontrado na sessão, buscando perfil...');
-            try {
-              const userProfile = await fetchUserProfile(session.user.id);
-              console.log('✅ Perfil do usuário carregado:', { nome: userProfile?.nome, role: userProfile?.role });
-              if (mounted) {
-                setUser(userProfile);
-                setIsAuthenticated(true);
-              }
-            } catch (profileError) {
-              console.error('❌ Erro ao buscar perfil:', profileError);
-              if (mounted) {
-                setUser(null);
-                setIsAuthenticated(false);
-              }
+            const userProfile = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              setUser(userProfile);
+              setIsAuthenticated(true);
             }
           } else {
-            console.log('❌ Nenhuma sessão encontrada');
             setUser(null);
             setIsAuthenticated(false);
           }
@@ -64,31 +50,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Set up auth state listener
-        console.log('🔄 Configurando listener de autenticação...');
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
-            console.log('🔄 Mudança no estado de autenticação:', { event, session: !!session });
+            console.log('Auth state changed:', { event, session: !!session });
             
             if (session?.user) {
               try {
-                console.log('👤 Carregando perfil após mudança de estado...');
                 const userProfile = await fetchUserProfile(session.user.id);
-                console.log('✅ Perfil carregado:', { nome: userProfile?.nome });
                 if (mounted) {
                   setUser(userProfile);
                   setIsAuthenticated(true);
                 }
               } catch (error) {
-                console.error('❌ Erro ao buscar perfil na mudança de estado:', error);
+                console.error('Error fetching user profile:', error);
                 if (mounted) {
                   setUser(null);
                   setIsAuthenticated(false);
                 }
               }
             } else {
-              console.log('❌ Usuário deslogado');
               if (mounted) {
                 setUser(null);
                 setIsAuthenticated(false);
@@ -102,11 +84,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
 
         return () => {
-          console.log('🧹 Limpando subscription de autenticação');
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('❌ Erro na configuração de autenticação:', error);
+        console.error('Error setting up auth:', error);
         if (mounted) {
           setUser(null);
           setIsAuthenticated(false);
@@ -124,23 +105,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('🚀 Iniciando login para:', email);
       setError(null);
       setIsLoading(true);
-      
       const { data, error } = await loginWithEmailAndPassword(email, password);
-      console.log('📊 Resultado do login:', { success: !error, error: error?.message });
       
-      if (error) {
-        console.error('❌ Erro no login:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('✅ Login realizado com sucesso');
       // User profile will be set by the auth state change handler
       return;
     } catch (error: any) {
-      console.error('❌ Erro no processo de login:', error);
+      console.error('Login error:', error);
       setError(error.message || 'Error logging in');
       throw error;
     } finally {
@@ -150,12 +124,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      console.log('🚪 Fazendo logout...');
       setError(null);
       await logoutUser();
-      console.log('✅ Logout realizado');
     } catch (error: any) {
-      console.error('❌ Erro no logout:', error);
+      console.error('Logout error:', error);
       setError(error.message || 'Error logging out');
       throw error;
     }
@@ -173,13 +145,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     language?: "PT" | "EN" | "ES";
   }) => {
     try {
-      console.log('📝 Registrando usuário:', userData.email);
       setError(null);
       setIsLoading(true);
       await registerUserService(userData);
-      console.log('✅ Usuário registrado com sucesso');
     } catch (error: any) {
-      console.error('❌ Erro no registro:', error);
+      console.error('Register error:', error);
       setError(error.message || 'Error registering user');
       throw error;
     } finally {

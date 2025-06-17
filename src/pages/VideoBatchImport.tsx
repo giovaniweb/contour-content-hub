@@ -1,5 +1,3 @@
-
-// Substituindo Layout legado por AppLayout
 import React from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useNavigate } from 'react-router-dom';
