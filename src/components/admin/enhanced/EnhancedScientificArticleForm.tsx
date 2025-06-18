@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Tag, Lightbulb, Loader2, Save, X } from "lucide-react";
+import { User, Tag, Lightbulb, Loader2, Save, X, FileText } from "lucide-react";
 import { useScientificArticleForm } from "../article-form/useScientificArticleForm";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraUploadZone from "@/components/aurora/AuroraUploadZone";
@@ -75,11 +75,15 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
   }, [isProcessing]);
 
   const handleFileSelect = async (selectedFile: File) => {
-    const event = {
-      target: { files: [selectedFile] }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    onFileChange(event);
+    // Create a proper input element and trigger the change event
+    if (fileInputRef?.current) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(selectedFile);
+      fileInputRef.current.files = dataTransfer.files;
+      
+      const event = new Event('change', { bubbles: true });
+      fileInputRef.current.dispatchEvent(event);
+    }
     
     // Auto-process file after selection
     setTimeout(() => {
@@ -316,6 +320,15 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 )}
               </Button>
             </div>
+
+            {/* Hidden file input for compatibility */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={onFileChange}
+            />
           </form>
         </Form>
       </div>
