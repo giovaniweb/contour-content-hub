@@ -14,9 +14,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -33,7 +30,7 @@ import { StoredVideo } from '@/types/video-storage';
 import VideoEditDialog from './VideoEditDialog';
 import VideoStatisticsDialog from './VideoStatisticsDialog';
 import { 
-  deleteVideo, 
+  // deleteVideo, // Removido se não for mais usado diretamente aqui
   downloadVideo, 
   copyVideoLink 
 } from '@/services/videoStorage/videoManagementService';
@@ -60,45 +57,18 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [loading, setLoading] = useState<string | null>(null);
+  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Removido
+  const [loading, setLoading] = useState<string | null>(null); // Mantido para Download/CopyLink
 
   const handleEdit = () => {
     setIsEditDialogOpen(true);
     onEdit(video);
   };
 
-  const handleDelete = async () => {
-    setLoading('delete');
-    try {
-      const { success, error } = await deleteVideo(video.id);
-      
-      if (!success) {
-        throw new Error(error);
-      }
-
-      toast({
-        title: 'Sucesso',
-        description: 'Vídeo excluído com sucesso!'
-      });
-
-      setIsDeleteDialogOpen(false);
-      onDelete(video);
-      onRefresh?.();
-    } catch (error) {
-      console.error('Erro ao excluir vídeo:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: error.message || 'Erro ao excluir vídeo'
-      });
-    } finally {
-      setLoading(null);
-    }
-  };
+  // handleDelete local foi removido
 
   const handleDownload = async () => {
-    setLoading('download');
+    setLoading('download'); // 'download' é um exemplo, pode ser 'downloading'
     try {
       const { success, downloadUrl, error } = await downloadVideo(video.id);
       
@@ -213,10 +183,15 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
           <DropdownMenuSeparator />
           
           <DropdownMenuItem 
-            onClick={() => setIsDeleteDialogOpen(true)}
+            onClick={() => onDelete(video)} // Chama diretamente a prop onDelete
             className="text-destructive focus:text-destructive"
+            disabled={loading === 'delete'} // Opcional: desabilitar se o pai estiver lidando com loading
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            {loading === 'delete' ? ( // Opcional: feedback de loading se o pai controlar
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+            )}
             Excluir
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -241,37 +216,7 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
         onOpenChange={setIsStatsDialogOpen}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o vídeo "{getVideoTitle()}"? 
-              Esta ação não pode ser desfeita e o arquivo será removido permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading === 'delete'}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={loading === 'delete'}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {loading === 'delete' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Excluindo...
-                </>
-              ) : (
-                'Excluir'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* AlertDialog de confirmação de exclusão foi removido daqui */}
     </>
   );
 };

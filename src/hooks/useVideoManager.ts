@@ -3,13 +3,16 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getVideos, 
-  deleteVideo, 
-  deleteVideos, 
   updateVideos, 
   Video, 
   VideoFilters,
-  removeMockupVideos 
-} from '@/services/videoStorage/videoService';
+  // removeMockupVideos // Removido daqui se for para videoManagementService ou se não for usado no hook
+} from '@/services/videoStorage/videoService'; // Funções de leitura e atualização geral
+import {
+  deleteVideo,
+  deleteVideos,
+  removeMockupVideos // Assumindo que removeMockupVideos também foi para videoManagementService
+} from '@/services/videoStorage/videoManagementService'; // Funções de gerenciamento/exclusão
 import { useEquipments } from '@/hooks/useEquipments';
 
 export const useVideoManager = () => {
@@ -74,8 +77,10 @@ export const useVideoManager = () => {
 
   // Excluir vídeo único - REMOVIDO o confirm() duplo
   const handleDeleteVideo = async (videoId: string) => {
+    console.log('[useVideoManager] Iniciando handleDeleteVideo com videoId:', videoId);
     try {
       const { success, error } = await deleteVideo(videoId);
+      console.log('[useVideoManager] Resultado de deleteVideo:', { success, error });
       
       if (!success || error) {
         throw new Error(error);
@@ -88,10 +93,11 @@ export const useVideoManager = () => {
 
       loadVideos();
     } catch (error) {
+      console.error('[useVideoManager] Erro capturado em handleDeleteVideo:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: 'Não foi possível excluir o vídeo'
+        description: error.message || 'Não foi possível excluir o vídeo'
       });
     }
   };
@@ -102,8 +108,10 @@ export const useVideoManager = () => {
     
     if (!confirm(`Tem certeza que deseja excluir ${selectedVideos.length} vídeo(s)?`)) return;
 
+    console.log('[useVideoManager] Iniciando handleBulkDelete com selectedVideos:', selectedVideos);
     try {
       const { success, error } = await deleteVideos(selectedVideos);
+      console.log('[useVideoManager] Resultado de deleteVideos:', { success, error });
       
       if (!success || error) {
         throw new Error(error);
@@ -117,10 +125,11 @@ export const useVideoManager = () => {
       setSelectedVideos([]);
       loadVideos();
     } catch (error) {
+      console.error('[useVideoManager] Erro capturado em handleBulkDelete:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: 'Não foi possível excluir os vídeos'
+        description: error.message || 'Não foi possível excluir os vídeos'
       });
     }
   };

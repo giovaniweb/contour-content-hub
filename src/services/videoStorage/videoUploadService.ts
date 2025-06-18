@@ -14,11 +14,28 @@ interface UploadMetadata {
 // Function to generate thumbnail from video
 async function generateVideoThumbnail(file: File): Promise<Blob | null> {
   return new Promise((resolve) => {
+    let resolved = false;
     const video = document.createElement('video');
     const canvas = document.createElement('canvas');
+
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        console.error('Timeout ao gerar thumbnail do vídeo após 15 segundos.');
+        if (video.src && typeof video.src === 'string' && video.src.startsWith('blob:')) {
+          URL.revokeObjectURL(video.src);
+        }
+        video.onerror = null; // Prevent further error handling
+        video.onseeked = null; // Prevent further seeked handling
+        video.onloadedmetadata = null; // Prevent further metadata handling
+        resolve(null);
+      }
+    }, 15000); // 15 segundos de timeout
+
     const ctx = canvas.getContext('2d');
     
     video.onloadedmetadata = () => {
+      if (resolved) return; // Already timed out
       // Set canvas dimensions
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -29,27 +46,60 @@ async function generateVideoThumbnail(file: File): Promise<Blob | null> {
     };
     
     video.onseeked = () => {
-      if (ctx) {
-        // Draw video frame to canvas
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert canvas to blob
-        canvas.toBlob((blob) => {
+      if (resolved) return; // Already timed out
+
+      if (!ctx) {
+        console.error('Contexto 2D do canvas não pôde ser obtido.');
+        if (video.src && typeof video.src === 'string' && video.src.startsWith('blob:')) {
           URL.revokeObjectURL(video.src);
+        }
+        clearTimeout(timeoutId);
+        if (!resolved) {
+          resolved = true;
+          resolve(null);
+        }
+        return;
+      }
+
+      // Draw video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (video.src && typeof video.src === 'string' && video.src.startsWith('blob:')) {
+          URL.revokeObjectURL(video.src);
+        }
+        clearTimeout(timeoutId);
+        if (!resolved) {
+          resolved = true;
           resolve(blob);
-        }, 'image/jpeg', 0.8);
-      } else {
+        }
+      }, 'image/jpeg', 0.8);
+    };
+    
+    video.onerror = () => {
+      if (resolved) return; // Already timed out
+      console.error('Erro durante o processamento do vídeo para thumbnail:', video.error);
+      if (video.src && typeof video.src === 'string' && video.src.startsWith('blob:')) {
         URL.revokeObjectURL(video.src);
+      }
+      clearTimeout(timeoutId);
+      if (!resolved) {
+        resolved = true;
         resolve(null);
       }
     };
     
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
-      resolve(null);
-    };
-    
-    video.src = URL.createObjectURL(file);
+    try {
+      video.src = URL.createObjectURL(file);
+    } catch (error) {
+      console.error('Erro ao criar Object URL para o vídeo:', error);
+      clearTimeout(timeoutId);
+      if (!resolved) {
+        resolved = true;
+        resolve(null);
+      }
+    }
   });
 }
 
