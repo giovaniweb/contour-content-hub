@@ -1,65 +1,108 @@
 
-import React from "react";
-import { LayoutDashboard, FileText, Video, BookOpen } from "lucide-react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import AdminLayout from "@/components/layout/AdminLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePermissions } from "@/hooks/use-permissions";
+import { Navigate, useLocation } from "react-router-dom";
 import MaterialContentManager from "@/components/admin/MaterialContentManager";
-import ScientificArticleManager from "@/components/admin/ScientificArticleManager";
+import EnhancedScientificArticleManager from "@/components/admin/enhanced/EnhancedScientificArticleManager";
 import VideoContentManager from "@/components/admin/VideoContentManager";
+import { useToast } from "@/hooks/use-toast";
+import { UserRole } from "@/types/auth";
+import { 
+  BookOpen, 
+  FileText, 
+  Video, 
+  Images 
+} from "lucide-react";
 
 const AdminContent: React.FC = () => {
+  const { hasPermission } = usePermissions();
+  const location = useLocation();
+  const { toast } = useToast();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const tabFromUrl = queryParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState<string>(
+    tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
+    tabFromUrl === 'images' || tabFromUrl === 'materials' 
+      ? tabFromUrl 
+      : 'materials'
+  );
+  
+  useEffect(() => {
+    if (tabFromUrl === 'videos' || tabFromUrl === 'articles' || 
+        tabFromUrl === 'images' || tabFromUrl === 'materials') {
+      setActiveTab(tabFromUrl);
+    }
+  }, [location.search]);
+  
+  if (!hasPermission('editAllContent' as UserRole)) {
+    toast({
+      variant: "destructive",
+      title: "Acesso Negado",
+      description: "Você não possui permissões para acessar esta página",
+    });
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
-        <div className="flex items-center gap-3">
-          <LayoutDashboard className="h-8 w-8 text-primary" />
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-50">Administração de Conteúdo</h1>
-            <p className="text-slate-400">
-              Gerencie todos os materiais, vídeos e artigos científicos
+            <h1 className="text-3xl font-bold tracking-tight">Conteúdo ReelLine</h1>
+            <p className="text-muted-foreground">
+              Gerencie materiais, vídeos, artigos científicos e imagens
             </p>
           </div>
         </div>
-      </div>
-      <div className="space-y-8">
-        {/* Materiais */}
-        <Card className="aurora-card border-0 shadow-aurora-glow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 aurora-text-gradient text-2xl">
-              <FileText className="h-6 w-6" />
-              Materiais
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        
+        <Tabs defaultValue="materials" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full md:w-auto grid-cols-4">
+            <TabsTrigger value="materials" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Materiais</span>
+            </TabsTrigger>
+            <TabsTrigger value="videos" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Vídeos</span>
+            </TabsTrigger>
+            <TabsTrigger value="articles" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Artigos</span>
+            </TabsTrigger>
+            <TabsTrigger value="images" className="flex items-center gap-2">
+              <Images className="h-4 w-4" />
+              <span className="hidden sm:inline">Imagens</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="materials" className="space-y-4">
             <MaterialContentManager />
-          </CardContent>
-        </Card>
-        {/* Vídeos */}
-        <Card className="aurora-card border-0 shadow-aurora-glow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 aurora-text-gradient text-2xl">
-              <Video className="h-6 w-6" />
-              Vídeos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          </TabsContent>
+
+          <TabsContent value="videos" className="space-y-4">
             <VideoContentManager />
-          </CardContent>
-        </Card>
-        {/* Artigos Científicos */}
-        <Card className="aurora-card border-0 shadow-aurora-glow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 aurora-text-gradient text-2xl">
-              <BookOpen className="h-6 w-6" />
-              Artigos Científicos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScientificArticleManager />
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          <TabsContent value="articles" className="space-y-4">
+            <EnhancedScientificArticleManager />
+          </TabsContent>
+
+          <TabsContent value="images" className="space-y-4">
+            <div className="p-8 text-center border rounded-lg">
+              <Images className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Gerenciamento de Imagens</h3>
+              <p className="text-muted-foreground mb-4">
+                Este módulo está em desenvolvimento e estará disponível em breve.
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

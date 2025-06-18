@@ -14,10 +14,95 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import ScientificArticleList from "../ScientificArticleList";
 import EnhancedScientificArticleDialog from "./EnhancedScientificArticleDialog";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraLoadingSkeleton from "@/components/aurora/AuroraLoadingSkeleton";
+
+// Componente interno para lista de artigos - substituindo o ScientificArticleList deletado
+const ArticleList: React.FC<{
+  articles: any[];
+  onDelete: (id: string) => void;
+  onUpdate: (article: any) => void;
+  viewMode: "grid" | "list";
+}> = ({ articles, onDelete, onUpdate, viewMode }) => {
+  if (viewMode === "grid") {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {articles.map((article) => (
+          <div key={article.id} className="aurora-glass p-6 rounded-lg border border-aurora-electric-purple/20">
+            <div className="flex items-start justify-between mb-4">
+              <BookOpen className="h-6 w-6 text-aurora-electric-purple" />
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onUpdate(article)}
+                  className="text-aurora-neon-blue hover:bg-aurora-neon-blue/20"
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(article.id)}
+                  className="text-red-400 hover:bg-red-400/20"
+                >
+                  Excluir
+                </Button>
+              </div>
+            </div>
+            <h3 className="aurora-heading text-lg mb-2">{article.titulo}</h3>
+            <p className="text-slate-400 text-sm mb-4">{article.descricao}</p>
+            {article.equipamentos && (
+              <div className="text-xs text-aurora-electric-purple">
+                Equipamento: {article.equipamentos.nome}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {articles.map((article) => (
+        <div key={article.id} className="aurora-glass p-4 rounded-lg border border-aurora-electric-purple/20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <BookOpen className="h-5 w-5 text-aurora-electric-purple" />
+            <div>
+              <h3 className="aurora-heading">{article.titulo}</h3>
+              <p className="text-slate-400 text-sm">{article.descricao}</p>
+              {article.equipamentos && (
+                <div className="text-xs text-aurora-electric-purple mt-1">
+                  Equipamento: {article.equipamentos.nome}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onUpdate(article)}
+              className="text-aurora-neon-blue hover:bg-aurora-neon-blue/20"
+            >
+              Editar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(article.id)}
+              className="text-red-400 hover:bg-red-400/20"
+            >
+              Excluir
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -239,7 +324,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           </div>
         ) : (
           <div className="aurora-card p-6">
-            <ScientificArticleList 
+            <ArticleList 
               articles={articles} 
               onDelete={handleDeleteArticle} 
               onUpdate={handleOpenEditArticleDialog}
