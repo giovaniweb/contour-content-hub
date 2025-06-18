@@ -1,18 +1,17 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Loader2, BookOpen, Filter, Grid2x2, LayoutList, Sparkles, GraduationCap, ArrowLeft } from "lucide-react";
+import { Search, Plus, Loader2, BookOpen, Filter, Grid2x2, LayoutList, Sparkles, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import EnhancedScientificArticleForm from "./EnhancedScientificArticleForm";
+import EnhancedScientificArticleDialog from "./EnhancedScientificArticleDialog";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraLoadingSkeleton from "@/components/aurora/AuroraLoadingSkeleton";
 
-// Componente interno para lista de artigos
+// Componente interno para lista de artigos - substituindo o ScientificArticleList deletado
 const ArticleList: React.FC<{
   articles: any[];
   onDelete: (id: string) => void;
@@ -69,18 +68,18 @@ const ArticleList: React.FC<{
         </div>)}
     </div>;
 };
-
 const EnhancedScientificArticleManager: React.FC = () => {
-  const [currentView, setCurrentView] = useState<"list" | "form">("list");
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [articles, setArticles] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterEquipment, setFilterEquipment] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const { equipments: equipmentOptions } = useEquipments();
-
+  const {
+    equipments: equipmentOptions
+  } = useEquipments();
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const fetchArticles = async () => {
     try {
       setIsLoading(true);
@@ -96,7 +95,10 @@ const EnhancedScientificArticleManager: React.FC = () => {
       if (searchQuery) {
         query = query.or(`titulo.ilike.%${searchQuery}%,descricao.ilike.%${searchQuery}%`);
       }
-      const { data, error } = await query;
+      const {
+        data,
+        error
+      } = await query;
       if (error) throw error;
       setArticles(data || []);
     } catch (error) {
@@ -106,23 +108,19 @@ const EnhancedScientificArticleManager: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
-    if (currentView === "list") {
-      fetchArticles();
-    }
-  }, [searchQuery, filterEquipment, currentView]);
-
-  const handleArticleSuccess = () => {
-    toast.success("Artigo científico salvo com sucesso!");
-    setCurrentView("list");
-    setSelectedArticle(null);
     fetchArticles();
+  }, [searchQuery, filterEquipment]);
+  const handleArticleAdded = (articleData: any) => {
+    fetchArticles();
+    setIsDialogOpen(false);
+    toast.success("Artigo científico salvo com sucesso!");
   };
-
   const handleDeleteArticle = async (id: string) => {
     try {
-      const { error } = await supabase.from('documentos_tecnicos').update({
+      const {
+        error
+      } = await supabase.from('documentos_tecnicos').update({
         status: 'inativo'
       }).eq('id', id);
       if (error) throw error;
@@ -133,57 +131,15 @@ const EnhancedScientificArticleManager: React.FC = () => {
       toast.error("Não foi possível excluir o artigo científico.");
     }
   };
-
-  const handleNewArticle = () => {
+  const handleOpenNewArticleDialog = () => {
     setSelectedArticle(null);
-    setCurrentView("form");
+    setIsDialogOpen(true);
   };
-
-  const handleEditArticle = (article: any) => {
+  const handleOpenEditArticleDialog = (article: any) => {
     setSelectedArticle(article);
-    setCurrentView("form");
+    setIsDialogOpen(true);
   };
-
-  const handleBackToList = () => {
-    setCurrentView("list");
-    setSelectedArticle(null);
-  };
-
-  // Se está no modo formulário, renderiza apenas o formulário
-  if (currentView === "form") {
-    return (
-      <div className="aurora-dark-bg min-h-screen">
-        <div className="aurora-particles fixed inset-0 pointer-events-none" />
-        
-        <div className="relative">
-          {/* Header com botão de voltar */}
-          <div className="p-6 border-b border-aurora-electric-purple/20">
-            <div className="max-w-7xl mx-auto">
-              <Button
-                variant="ghost"
-                onClick={handleBackToList}
-                className="text-aurora-electric-purple hover:bg-aurora-electric-purple/20 mb-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar para Lista
-              </Button>
-            </div>
-          </div>
-          
-          <EnhancedScientificArticleForm
-            articleData={selectedArticle}
-            onSuccess={handleArticleSuccess}
-            onCancel={handleBackToList}
-            forceClearState={!selectedArticle}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Renderiza a lista de artigos
-  return (
-    <div className="aurora-dark-bg min-h-screen p-6">
+  return <div className="aurora-dark-bg min-h-screen p-6">
       <div className="aurora-particles fixed inset-0 pointer-events-none" />
       
       <div className="relative max-w-7xl mx-auto space-y-8">
@@ -208,7 +164,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
         <div className="aurora-card p-6">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex flex-wrap items-center gap-4">
-              <Button onClick={handleNewArticle} className="aurora-button flex items-center gap-2" size="lg">
+              <Button onClick={handleOpenNewArticleDialog} className="aurora-button flex items-center gap-2" size="lg">
                 <Plus className="h-5 w-5" />
                 <Sparkles className="h-4 w-4" />
                 Novo Artigo Científico
@@ -234,8 +190,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
             </div>
           </div>
           
-          {showFilters && (
-            <div className="mt-6 p-4 aurora-glass rounded-lg border border-aurora-electric-purple/20">
+          {showFilters && <div className="mt-6 p-4 aurora-glass rounded-lg border border-aurora-electric-purple/20">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="filterEquipment" className="aurora-heading">Equipamento Estudado</Label>
@@ -245,32 +200,26 @@ const EnhancedScientificArticleManager: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent className="aurora-glass border-aurora-electric-purple/30">
                       <SelectItem value="all">Todos os equipamentos</SelectItem>
-                      {equipmentOptions.map(equipment => (
-                        <SelectItem key={equipment.id} value={equipment.id}>
+                      {equipmentOptions.map(equipment => <SelectItem key={equipment.id} value={equipment.id}>
                           {equipment.nome}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
         
         {/* Content */}
-        {isLoading ? (
-          <div className="aurora-card p-8">
+        {isLoading ? <div className="aurora-card p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="space-y-4">
+              {Array.from({
+            length: 6
+          }).map((_, index) => <div key={index} className="space-y-4">
                   <AuroraLoadingSkeleton lines={4} height="md" />
-                </div>
-              ))}
+                </div>)}
             </div>
-          </div>
-        ) : articles.length === 0 ? (
-          <div className="aurora-card p-12">
+          </div> : articles.length === 0 ? <div className="aurora-card p-12">
             <div className="text-center space-y-6">
               <div className="w-24 h-24 mx-auto aurora-glass rounded-full flex items-center justify-center">
                 <BookOpen className="h-12 w-12 text-aurora-electric-purple aurora-floating" />
@@ -282,27 +231,19 @@ const EnhancedScientificArticleManager: React.FC = () => {
                 <p className="text-slate-400 aurora-body mb-6">
                   Comece criando sua biblioteca científica adicionando seu primeiro artigo
                 </p>
-                <Button onClick={handleNewArticle} className="aurora-button">
+                <Button onClick={handleOpenNewArticleDialog} className="aurora-button">
                   <Plus className="h-4 w-4 mr-2" />
                   <Sparkles className="h-4 w-4 mr-2" />
                   Adicionar Primeiro Artigo Científico
                 </Button>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="aurora-card p-6">
-            <ArticleList 
-              articles={articles} 
-              onDelete={handleDeleteArticle} 
-              onUpdate={handleEditArticle} 
-              viewMode={viewMode} 
-            />
-          </div>
-        )}
+          </div> : <div className="aurora-card p-6">
+            <ArticleList articles={articles} onDelete={handleDeleteArticle} onUpdate={handleOpenEditArticleDialog} viewMode={viewMode} />
+          </div>}
+        
+        <EnhancedScientificArticleDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSuccess={handleArticleAdded} articleData={selectedArticle} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default EnhancedScientificArticleManager;
