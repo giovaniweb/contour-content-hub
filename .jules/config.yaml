@@ -2,3 +2,6 @@ commands:
   - name: Subir alterações automáticas com Jules
     run: bash ./jules-auto-pr.sh
 
+  - name: Limpar cache do projeto
+    run: bash ./clear-cache.sh
+
