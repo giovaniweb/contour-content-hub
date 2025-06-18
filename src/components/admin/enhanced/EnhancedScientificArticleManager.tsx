@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import ScientificArticleList from "../ScientificArticleList";
-import EnhancedScientificArticleDialog from "./EnhancedScientificArticleDialog";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraLoadingSkeleton from "@/components/aurora/AuroraLoadingSkeleton";
+import { useNavigate } from "react-router-dom";
 
 const EnhancedScientificArticleManager: React.FC = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [articles, setArticles] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,7 +28,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const { equipments: equipmentOptions } = useEquipments();
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
   
   const fetchArticles = async () => {
     try {
@@ -69,12 +68,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
     fetchArticles();
   }, [searchQuery, filterEquipment]);
 
-  const handleArticleAdded = (articleData: any) => {
-    fetchArticles();
-    setIsDialogOpen(false);
-    toast.success("Artigo científico salvo com sucesso!");
-  };
-
   const handleDeleteArticle = async (id: string) => {
     try {
       const { error } = await supabase
@@ -92,14 +85,12 @@ const EnhancedScientificArticleManager: React.FC = () => {
     }
   };
 
-  const handleOpenNewArticleDialog = () => {
-    setSelectedArticle(null);
-    setIsDialogOpen(true);
+  const handleOpenNewArticleForm = () => {
+    navigate('/scientific-article/new');
   };
 
-  const handleOpenEditArticleDialog = (article: any) => {
-    setSelectedArticle(article);
-    setIsDialogOpen(true);
+  const handleOpenEditArticleForm = (article: any) => {
+    navigate(`/scientific-article/edit/${article.id}`);
   };
 
   return (
@@ -129,7 +120,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex flex-wrap items-center gap-4">
               <Button 
-                onClick={handleOpenNewArticleDialog}
+                onClick={handleOpenNewArticleForm}
                 className="aurora-button flex items-center gap-2"
                 size="lg"
               >
@@ -229,7 +220,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
                 <p className="text-slate-400 aurora-body mb-6">
                   Comece criando sua biblioteca científica adicionando seu primeiro artigo
                 </p>
-                <Button onClick={handleOpenNewArticleDialog} className="aurora-button">
+                <Button onClick={handleOpenNewArticleForm} className="aurora-button">
                   <Plus className="h-4 w-4 mr-2" />
                   <Sparkles className="h-4 w-4 mr-2" />
                   Adicionar Primeiro Artigo Científico
@@ -242,18 +233,11 @@ const EnhancedScientificArticleManager: React.FC = () => {
             <ScientificArticleList 
               articles={articles} 
               onDelete={handleDeleteArticle} 
-              onUpdate={handleOpenEditArticleDialog}
+              onUpdate={handleOpenEditArticleForm}
               viewMode={viewMode}
             />
           </div>
         )}
-        
-        <EnhancedScientificArticleDialog
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onSuccess={handleArticleAdded}
-          articleData={selectedArticle}
-        />
       </div>
     </div>
   );
