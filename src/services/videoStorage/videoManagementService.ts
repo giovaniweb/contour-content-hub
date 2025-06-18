@@ -33,27 +33,51 @@ export async function deleteVideo(videoId: string): Promise<{
     const filesToDelete: string[] = [];
     
     // Extract file path from URL
-    if (video.url_video) {
-      const url = new URL(video.url_video);
-      const pathParts = url.pathname.split('/');
-      const bucketIndex = pathParts.indexOf('videos');
-      
-      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-        const filePath = pathParts.slice(bucketIndex + 1).join('/');
-        filesToDelete.push(filePath);
+    if (video.url_video && typeof video.url_video === 'string' && video.url_video.trim() !== '') {
+      try {
+        const url = new URL(video.url_video);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.indexOf('videos');
+
+        if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          if (filePath.trim() !== '') { // Adicionar verificação para filePath não ser vazia
+            filesToDelete.push(filePath);
+          } else {
+            console.warn(`Caminho do arquivo de vídeo extraído resultou em string vazia para videoId ${videoId} da URL: ${video.url_video}`);
+          }
+        } else {
+          console.warn(`Não foi possível determinar o caminho do arquivo de vídeo no storage a partir da URL para videoId ${videoId}: ${video.url_video}`);
+        }
+      } catch (e) {
+        console.warn(`Erro ao processar url_video para videoId ${videoId}: ${video.url_video}. Erro: ${e.message}`);
       }
+    } else {
+      console.warn(`URL de vídeo inválida ou ausente para videoId ${videoId}:`, video.url_video);
     }
     
     // Extract thumbnail path if exists
-    if (video.thumbnail_url) {
-      const thumbnailUrl = new URL(video.thumbnail_url);
-      const thumbnailParts = thumbnailUrl.pathname.split('/');
-      const bucketIndex = thumbnailParts.indexOf('videos');
-      
-      if (bucketIndex !== -1 && bucketIndex < thumbnailParts.length - 1) {
-        const thumbnailPath = thumbnailParts.slice(bucketIndex + 1).join('/');
-        filesToDelete.push(thumbnailPath);
+    if (video.thumbnail_url && typeof video.thumbnail_url === 'string' && video.thumbnail_url.trim() !== '') {
+      try {
+        const thumbnailUrlObj = new URL(video.thumbnail_url); // Renomeado para evitar conflito
+        const thumbnailParts = thumbnailUrlObj.pathname.split('/');
+        const bucketIndex = thumbnailParts.indexOf('videos'); // Assume que thumbnails também estão no bucket 'videos'
+
+        if (bucketIndex !== -1 && bucketIndex < thumbnailParts.length - 1) {
+          const thumbnailPath = thumbnailParts.slice(bucketIndex + 1).join('/');
+          if (thumbnailPath.trim() !== '') { // Adicionar verificação para thumbnailPath não ser vazia
+            filesToDelete.push(thumbnailPath);
+          } else {
+            console.warn(`Caminho da thumbnail extraído resultou em string vazia para videoId ${videoId} da URL: ${video.thumbnail_url}`);
+          }
+        } else {
+          console.warn(`Não foi possível determinar o caminho da thumbnail no storage a partir da URL para videoId ${videoId}: ${video.thumbnail_url}`);
+        }
+      } catch (e) {
+        console.warn(`Erro ao processar thumbnail_url para videoId ${videoId}: ${video.thumbnail_url}. Erro: ${e.message}`);
       }
+    } else {
+      console.warn(`URL de thumbnail inválida ou ausente para videoId ${videoId}:`, video.thumbnail_url);
     }
     
     // Delete files from storage
