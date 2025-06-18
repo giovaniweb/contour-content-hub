@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -187,7 +188,9 @@ const EnhancedScientificArticleManager: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="aurora-dark-bg min-h-screen p-6">
+      <div className="aurora-particles fixed inset-0 pointer-events-none" />
+      
       <div className="relative max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
