@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Users, Settings, BarChart3, Database, Film, Brain, LinkIcon, Video, TestTube } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, BarChart3, Database, Film, Brain, LinkIcon, Video, TestTube, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -32,6 +32,14 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/content"
     },
     {
+      title: "Artigos Científicos",
+      description: "Gerencie biblioteca de artigos científicos",
+      icon: BookOpen,
+      count: "45",
+      action: "Gerenciar Artigos",
+      path: "/admin/scientific-articles"
+    },
+    {
       title: "Vídeos",
       description: "Gerencie biblioteca de vídeos",
       icon: Film,
@@ -54,14 +62,6 @@ const AdminDashboard: React.FC = () => {
       count: "8",
       action: "Ver Integrações",
       path: "/admin/integrations"
-    },
-    {
-      title: "Config. Vimeo",
-      description: "Configurações do Vimeo",
-      icon: Video,
-      count: "1",
-      action: "Configurar Vimeo",
-      path: "/admin/vimeo-settings"
     },
     {
       title: "Diagnóstico",
@@ -115,11 +115,17 @@ const AdminDashboard: React.FC = () => {
         {/* Quick Actions */}
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>
               <Link to="/admin/users">
                 <Users className="h-6 w-6" />
                 <span>Adicionar Usuário</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>
+              <Link to="/admin/scientific-articles">
+                <BookOpen className="h-6 w-6" />
+                <span>Novo Artigo Científico</span>
               </Link>
             </Button>
             <Button variant="outline" className="h-20 flex flex-col gap-2" asChild>

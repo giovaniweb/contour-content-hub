@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -37,18 +38,18 @@ const VideosPage = React.lazy(() => import('@/pages/VideosPage'));
 const VideoPlayer = React.lazy(() => import('@/pages/VideoPlayer'));
 
 // Equipment pages
-// Import the new page
 import EquipmentList from "@/pages/EquipmentList";
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
-const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments')); // Corrigido para admin/AdminEquipments
+const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const AdminContent = React.lazy(() => import('@/pages/admin/AdminContent'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const AdminAI = React.lazy(() => import('@/pages/admin/AdminAI'));
 const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSystemIntelligence'));
 const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettings'));
+const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
 
 import { queryClient } from './config/queryClient';
 
@@ -97,9 +98,7 @@ function App() {
                       <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
                       <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
                       <Route path="/content-planner" element={<AppLayout><ContentPlannerPage /></AppLayout>} />
-                      {/* TROCA AQUI - Equipamentos */}
                       <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
-                      {/* FIM DA TROCA */}
                       
                       {/* Diagnóstico de Relatório */}
                       <Route path="/diagnostic-report/:sessionId" element={<AppLayout><DiagnosticReport /></AppLayout>} />
@@ -130,7 +129,7 @@ function App() {
                       <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
                       <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
-                      {/* Arrumado - workspace-settings */}
+                      <Route path="/admin/scientific-articles" element={<AdminLayout><AdminScientificArticles /></AdminLayout>} />
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                       
                       {/* Roteiros aprovados */}
@@ -147,7 +146,6 @@ function App() {
                       
                       {/* Integração Instagram - NOVA */}
                       <Route path="/integrations/instagram" element={<AppLayout><InstagramIntegrationPage /></AppLayout>} />
-                      {/* Adiciona rota de callback (caso não esteja presente) */}
                       <Route path="/auth/instagram-callback" element={<InstagramCallback />} />
                     </Routes>
                   </Suspense>
