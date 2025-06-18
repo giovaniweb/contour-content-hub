@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from 'react';
-import { Upload, FileText, X, Check } from 'lucide-react';
+import { Upload, FileText, X, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface AuroraUploadZoneProps {
@@ -68,11 +68,11 @@ const AuroraUploadZone: React.FC<AuroraUploadZoneProps> = ({
                 {file.name}
               </p>
               <p className="text-sm text-slate-400">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
+                {(file.size / 1024 / 1024).toFixed(2)} MB • Artigo Científico
               </p>
               {isProcessing && (
                 <p className="text-sm text-aurora-electric-purple animate-pulse">
-                  Processando documento...
+                  Extraindo dados científicos...
                 </p>
               )}
             </div>
@@ -122,18 +122,21 @@ const AuroraUploadZone: React.FC<AuroraUploadZoneProps> = ({
       
       <div className="relative p-12 text-center space-y-4">
         <div className="mx-auto w-16 h-16 aurora-glass rounded-full flex items-center justify-center mb-6">
-          <Upload className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
+          <div className="relative">
+            <Upload className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
+            <GraduationCap className="h-4 w-4 text-aurora-neon-blue absolute -top-1 -right-1" />
+          </div>
         </div>
         
         <div className="space-y-2">
           <h3 className="text-lg font-medium aurora-text-gradient">
-            Arraste o PDF aqui
+            Arraste o artigo científico aqui
           </h3>
           <p className="text-slate-400 aurora-body">
-            ou clique para selecionar um arquivo
+            ou clique para selecionar o arquivo PDF do artigo
           </p>
           <p className="text-xs text-slate-500">
-            Máximo {(maxSize / 1024 / 1024).toFixed(0)}MB • Apenas PDF
+            Máximo {(maxSize / 1024 / 1024).toFixed(0)}MB • Apenas PDF de artigos científicos
           </p>
         </div>
 

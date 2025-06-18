@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Tag, Lightbulb, Loader2, Save, X, FileText } from "lucide-react";
+import { User, Tag, Lightbulb, Loader2, Save, X, FileText, BookOpen } from "lucide-react";
 import { useScientificArticleForm } from "../article-form/useScientificArticleForm";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraUploadZone from "@/components/aurora/AuroraUploadZone";
@@ -98,15 +98,22 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
       <div className="relative max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-light aurora-text-gradient">
-            {articleData ? 'Editar Artigo Científico' : 'Novo Artigo Científico'}
-          </h1>
-          <p className="text-slate-400 aurora-body">
-            {articleData 
-              ? 'Atualize as informações do artigo científico'
-              : 'Faça upload do PDF e extraia informações automaticamente'
-            }
-          </p>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
+              <BookOpen className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-light aurora-text-gradient">
+                {articleData ? 'Editar Artigo Científico' : 'Novo Artigo Científico'}
+              </h1>
+              <p className="text-slate-400 aurora-body">
+                {articleData 
+                  ? 'Atualize as informações do artigo científico'
+                  : 'Faça upload do PDF do artigo e extraia informações automaticamente com IA'
+                }
+              </p>
+            </div>
+          </div>
         </div>
 
         <Form {...form}>
@@ -118,8 +125,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   <span className="text-aurora-electric-purple font-bold">1</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-medium aurora-heading">Upload do Documento</h2>
-                  <p className="text-slate-400 text-sm">Selecione o arquivo PDF do artigo científico</p>
+                  <h2 className="text-xl font-medium aurora-heading">Upload do Artigo Científico</h2>
+                  <p className="text-slate-400 text-sm">Selecione o arquivo PDF do artigo científico para extração automática de dados</p>
                 </div>
               </div>
 
@@ -135,7 +142,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 <div className="space-y-4">
                   <AuroraProgressBar 
                     progress={uploadProgress}
-                    label="Processando documento..."
+                    label="Processando artigo científico..."
                   />
                   {processingProgress && (
                     <div className="flex items-center gap-2 text-aurora-electric-purple">
@@ -155,8 +162,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     <Lightbulb className="h-5 w-5 text-aurora-neon-blue" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-medium aurora-heading">Informações Extraídas</h2>
-                    <p className="text-slate-400 text-sm">Dados identificados automaticamente no documento</p>
+                    <h2 className="text-xl font-medium aurora-heading">Dados Extraídos do Artigo</h2>
+                    <p className="text-slate-400 text-sm">Informações científicas identificadas automaticamente pela IA</p>
                   </div>
                 </div>
 
@@ -165,7 +172,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     <div className="space-y-2">
                       <Label className="text-aurora-electric-purple flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        Título Sugerido
+                        Título do Artigo Identificado
                       </Label>
                       <div className="p-3 bg-aurora-electric-purple/10 border border-aurora-electric-purple/30 rounded-lg">
                         <p className="text-sm text-slate-300">{suggestedTitle}</p>
@@ -177,7 +184,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     <div className="space-y-2">
                       <Label className="text-aurora-neon-blue flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        Resumo Sugerido
+                        Abstract/Resumo Científico
                       </Label>
                       <div className="p-3 bg-aurora-neon-blue/10 border border-aurora-neon-blue/30 rounded-lg">
                         <p className="text-sm text-slate-300">{suggestedDescription}</p>
@@ -191,7 +198,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     <div className="space-y-3">
                       <Label className="text-aurora-emerald flex items-center gap-2">
                         <Tag className="h-4 w-4" />
-                        Palavras-chave Identificadas
+                        Palavras-chave Científicas
                       </Label>
                       <div className="flex flex-wrap gap-2">
                         {extractedKeywords.map((keyword, index) => (
@@ -211,7 +218,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     <div className="space-y-3">
                       <Label className="text-aurora-soft-pink flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        Pesquisadores Identificados
+                        Autores/Pesquisadores
                       </Label>
                       <div className="flex flex-wrap gap-2">
                         {extractedResearchers.map((researcher, index) => (
@@ -237,19 +244,19 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   <span className="text-aurora-electric-purple font-bold">2</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-medium aurora-heading">Informações do Artigo</h2>
-                  <p className="text-slate-400 text-sm">Complete ou ajuste os dados extraídos</p>
+                  <h2 className="text-xl font-medium aurora-heading">Detalhes do Artigo Científico</h2>
+                  <p className="text-slate-400 text-sm">Complete ou ajuste os dados científicos extraídos</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="titulo" className="aurora-heading">Título *</Label>
+                  <Label htmlFor="titulo" className="aurora-heading">Título do Artigo Científico *</Label>
                   <Input
                     id="titulo"
                     {...form.register("titulo")}
                     className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple"
-                    placeholder="Digite o título do artigo científico"
+                    placeholder="Digite o título completo do artigo científico"
                   />
                   {form.formState.errors.titulo && (
                     <p className="text-sm text-red-400">{form.formState.errors.titulo.message}</p>
@@ -257,27 +264,27 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="descricao" className="aurora-heading">Resumo/Abstract</Label>
+                  <Label htmlFor="descricao" className="aurora-heading">Abstract/Resumo Científico</Label>
                   <Textarea
                     id="descricao"
                     rows={4}
                     {...form.register("descricao")}
                     className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple resize-none"
-                    placeholder="Digite o resumo ou abstract do artigo"
+                    placeholder="Digite o abstract ou resumo científico do artigo"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="equipamento_id" className="aurora-heading">Equipamento Relacionado</Label>
+                  <Label htmlFor="equipamento_id" className="aurora-heading">Equipamento Relacionado ao Estudo</Label>
                   <Select
                     onValueChange={(value) => form.setValue("equipamento_id", value)}
                     defaultValue={form.getValues("equipamento_id")}
                   >
                     <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple">
-                      <SelectValue placeholder="Selecione um equipamento (opcional)" />
+                      <SelectValue placeholder="Selecione o equipamento estudado no artigo (opcional)" />
                     </SelectTrigger>
                     <SelectContent className="aurora-glass border-aurora-electric-purple/30">
-                      <SelectItem value="">Nenhum equipamento</SelectItem>
+                      <SelectItem value="">Nenhum equipamento específico</SelectItem>
                       {equipments?.map((equipment) => (
                         <SelectItem key={equipment.id} value={equipment.id}>
                           {equipment.nome}
@@ -310,12 +317,12 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Salvando...
+                    Salvando Artigo...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {articleData ? 'Atualizar Artigo' : 'Salvar Artigo'}
+                    {articleData ? 'Atualizar Artigo Científico' : 'Salvar Artigo Científico'}
                   </>
                 )}
               </Button>

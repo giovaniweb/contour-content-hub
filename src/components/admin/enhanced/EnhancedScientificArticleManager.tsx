@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Loader2, BookOpen, Filter, Grid2x2, LayoutList, Sparkles } from "lucide-react";
+import { Search, Plus, Loader2, BookOpen, Filter, Grid2x2, LayoutList, Sparkles, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
@@ -59,7 +59,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
       setArticles(data || []);
     } catch (error) {
       console.error('Error fetching articles:', error);
-      toast.error("Não foi possível carregar a lista de artigos.");
+      toast.error("Não foi possível carregar os artigos científicos.");
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +72,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const handleArticleAdded = (articleData: any) => {
     fetchArticles();
     setIsDialogOpen(false);
-    toast.success("Artigo salvo com sucesso!");
+    toast.success("Artigo científico salvo com sucesso!");
   };
 
   const handleDeleteArticle = async (id: string) => {
@@ -85,7 +85,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
       if (error) throw error;
       
       fetchArticles();
-      toast.success("O artigo científico foi excluído com sucesso.");
+      toast.success("Artigo científico excluído com sucesso.");
     } catch (error) {
       console.error('Error deleting article:', error);
       toast.error("Não foi possível excluir o artigo científico.");
@@ -111,14 +111,14 @@ const EnhancedScientificArticleManager: React.FC = () => {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
-              <BookOpen className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
+              <GraduationCap className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
             </div>
             <div>
               <h1 className="text-4xl font-light aurora-text-gradient">
-                Artigos Científicos
+                Biblioteca de Artigos Científicos
               </h1>
               <p className="text-slate-400 aurora-body">
-                Gerencie e organize seus artigos científicos com inteligência artificial
+                Gerencie sua biblioteca de artigos científicos com extração automática de dados por IA
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
               >
                 <ToggleGroupItem 
                   value="grid" 
-                  aria-label="Ver em grid"
+                  aria-label="Ver em grade"
                   className="data-[state=on]:bg-aurora-electric-purple/20 data-[state=on]:text-aurora-electric-purple"
                 >
                   <Grid2x2 className="h-4 w-4" />
@@ -173,7 +173,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
             <div className="relative w-full lg:w-auto lg:min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-aurora-electric-purple h-4 w-4" />
               <Input
-                placeholder="Buscar artigo científico..."
+                placeholder="Buscar por título, autores ou palavras-chave..."
                 className="pl-10 aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -185,10 +185,10 @@ const EnhancedScientificArticleManager: React.FC = () => {
             <div className="mt-6 p-4 aurora-glass rounded-lg border border-aurora-electric-purple/20">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="filterEquipment" className="aurora-heading">Equipamento</Label>
+                  <Label htmlFor="filterEquipment" className="aurora-heading">Equipamento Estudado</Label>
                   <Select value={filterEquipment} onValueChange={setFilterEquipment}>
                     <SelectTrigger className="w-full mt-1 aurora-glass border-aurora-electric-purple/30">
-                      <SelectValue placeholder="Filtrar por equipamento" />
+                      <SelectValue placeholder="Filtrar por equipamento estudado" />
                     </SelectTrigger>
                     <SelectContent className="aurora-glass border-aurora-electric-purple/30">
                       <SelectItem value="all">Todos os equipamentos</SelectItem>
@@ -227,12 +227,12 @@ const EnhancedScientificArticleManager: React.FC = () => {
                   Nenhum artigo científico encontrado
                 </h3>
                 <p className="text-slate-400 aurora-body mb-6">
-                  Comece adicionando seu primeiro artigo científico ao sistema
+                  Comece criando sua biblioteca científica adicionando seu primeiro artigo
                 </p>
                 <Button onClick={handleOpenNewArticleDialog} className="aurora-button">
                   <Plus className="h-4 w-4 mr-2" />
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Adicionar Primeiro Artigo
+                  Adicionar Primeiro Artigo Científico
                 </Button>
               </div>
             </div>
