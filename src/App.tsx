@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -129,7 +128,7 @@ function App() {
                       <Route path="/admin/ai" element={<AdminLayout><AdminAI /></AdminLayout>} />
                       <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
-                      <Route path="/admin/scientific-articles" element={<AdminLayout><AdminScientificArticles /></AdminLayout>} />
+                      <Route path="/admin/scientific-articles" element={<AppLayout requireAdmin={true}><AdminScientificArticles /></AppLayout>} />
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                       
                       {/* Roteiros aprovados */}
