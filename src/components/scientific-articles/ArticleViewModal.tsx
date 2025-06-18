@@ -1,13 +1,8 @@
 
-import React, { useState } from 'react';
-import { X, Download, ExternalLink, Maximize2, ZoomIn, ZoomOut, RotateCw, MessageSquare } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { processPdfUrl, openPdfInNewTab, downloadPdf } from '@/utils/pdfUtils';
-import { useToast } from '@/hooks/use-toast';
-import ArticleQuestionPanel from './ArticleQuestionPanel';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, Download, MessageSquare } from "lucide-react";
 
 interface ArticleViewModalProps {
   isOpen: boolean;
@@ -24,186 +19,72 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
   pdfUrl,
   documentId
 }) => {
-  const [zoom, setZoom] = useState(100);
-  const [activeTab, setActiveTab] = useState('view');
-  const { toast } = useToast();
-  
-  const { processedUrl } = processPdfUrl(pdfUrl || '');
-
-  const handleDownload = async () => {
-    if (!pdfUrl) return;
-    
-    try {
-      await downloadPdf(pdfUrl, `${title}.pdf`);
-      toast({
-        title: 'Download iniciado',
-        description: 'O arquivo PDF está sendo baixado.'
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no download',
-        description: 'Não foi possível baixar o arquivo.'
-      });
+  const handleDownload = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
     }
   };
 
   const handleOpenInNewTab = () => {
     if (pdfUrl) {
-      openPdfInNewTab(pdfUrl);
+      window.open(pdfUrl, '_blank');
     }
-  };
-
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 25, 200));
-  };
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 25, 50));
-  };
-
-  const handleResetZoom = () => {
-    setZoom(100);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl h-[90vh] bg-slate-900/95 backdrop-blur-sm border-cyan-500/20 rounded-2xl">
-        <DialogHeader className="space-y-4 pb-4 border-b border-cyan-500/20">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2 flex-1">
-              <DialogTitle className="text-xl font-semibold text-slate-100 pr-8">
-                {title}
-              </DialogTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
-                  PDF
-                </Badge>
-                {documentId && (
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                    IA Disponível
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleZoomOut}
-                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-slate-300 min-w-[50px] text-center">
-                {zoom}%
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleZoomIn}
-                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetZoom}
-                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-              >
-                <RotateCw className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenInNewTab}
-                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Nova Aba
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-                className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-            </div>
-          </div>
+      <DialogContent className="max-w-6xl max-h-[90vh] aurora-glass border-aurora-electric-purple/30">
+        <DialogHeader>
+          <DialogTitle className="aurora-heading text-xl">
+            {title}
+          </DialogTitle>
         </DialogHeader>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="bg-slate-800/50 border border-cyan-500/20 rounded-xl p-1">
-            <TabsTrigger 
-              value="view" 
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 text-slate-400 rounded-lg"
+        
+        <div className="flex flex-col space-y-4">
+          {/* Action buttons */}
+          <div className="flex items-center gap-3 pb-4 border-b border-aurora-electric-purple/20">
+            <Button
+              onClick={handleOpenInNewTab}
+              className="aurora-button flex items-center gap-2"
+              size="sm"
             >
-              <Maximize2 className="h-4 w-4 mr-2" />
-              Visualizar PDF
-            </TabsTrigger>
-            {documentId && (
-              <TabsTrigger 
-                value="questions" 
-                className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 text-slate-400 rounded-lg"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Fazer Perguntas
-              </TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value="view" className="flex-1 mt-4">
-            {processedUrl ? (
-              <div className="w-full h-full rounded-xl overflow-hidden bg-slate-800/30 border border-cyan-500/20">
-                <iframe
-                  src={processedUrl}
-                  className="w-full h-full"
-                  style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
-                  title={title}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full bg-slate-800/30 rounded-xl border border-cyan-500/20">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto">
-                    <X className="h-8 w-8 text-slate-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-slate-300 mb-2">
-                      PDF não disponível
-                    </h3>
-                    <p className="text-sm text-slate-500">
-                      Não foi possível carregar o arquivo PDF
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          {documentId && (
-            <TabsContent value="questions" className="flex-1 mt-4">
-              <div className="h-full bg-slate-800/30 rounded-xl border border-cyan-500/20 p-6">
-                <ArticleQuestionPanel
-                  documentId={documentId}
-                  articleTitle={title}
-                />
-              </div>
-            </TabsContent>
+              <ExternalLink className="h-4 w-4" />
+              Abrir em Nova Aba
+            </Button>
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20 flex items-center gap-2"
+              size="sm"
+            >
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
+            <Button
+              variant="outline"
+              className="aurora-glass border-aurora-neon-blue/30 text-aurora-neon-blue hover:bg-aurora-neon-blue/20 flex items-center gap-2"
+              size="sm"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Fazer Pergunta
+            </Button>
+          </div>
+          
+          {/* PDF Viewer */}
+          {pdfUrl ? (
+            <div className="flex-1 min-h-[600px] rounded-lg overflow-hidden aurora-glass">
+              <iframe
+                src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                className="w-full h-[600px] rounded-lg"
+                title={title}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 min-h-[600px] flex items-center justify-center aurora-glass rounded-lg">
+              <p className="text-slate-400">PDF não disponível para visualização</p>
+            </div>
           )}
-        </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

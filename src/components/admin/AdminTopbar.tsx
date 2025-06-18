@@ -24,7 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ROUTES } from "@/routes";
 
 const AdminTopbar: React.FC = () => {
   const navigate = useNavigate();
@@ -33,37 +32,38 @@ const AdminTopbar: React.FC = () => {
     {
       label: "Upload de Vídeo",
       icon: Video,
-      action: () => navigate(ROUTES.ADMIN_VIDEOS),
+      action: () => navigate("/admin/videos"),
       color: "text-blue-400 hover:text-blue-300"
     },
     {
       label: "Upload de Imagem",
       icon: Image,
-      action: () => navigate(ROUTES.MEDIA),
+      action: () => navigate("/photos"),
       color: "text-green-400 hover:text-green-300"
     },
     {
       label: "Artigo Científico",
       icon: BookOpen,
-      action: () => navigate(ROUTES.ADMIN.CONTENT + "?tab=articles"),
+      action: () => navigate("/admin/scientific-articles"),
       color: "text-purple-400 hover:text-purple-300"
     },
     {
       label: "Downloads em Massa",
       icon: Upload,
-      action: () => navigate(ROUTES.DOWNLOADS.BATCH),
+      action: () => navigate("/downloads/batch"),
       color: "text-orange-400 hover:text-orange-300"
     }
   ];
 
   const adminMenuItems = [
-    { label: "Dashboard Admin", icon: LayoutDashboard, path: ROUTES.ADMIN.ROOT },
+    { label: "Dashboard Admin", icon: LayoutDashboard, path: "/admin" },
     { label: "Usuários", icon: Users, path: "/admin/users" },
-    { label: "Equipamentos", icon: Settings, path: ROUTES.ADMIN.EQUIPMENTS.ROOT },
-    { label: "Conteúdo", icon: Database, path: ROUTES.ADMIN.CONTENT },
-    { label: "IA do Sistema", icon: Brain, path: ROUTES.ADMIN.AI },
-    { label: "Integrações", icon: LinkIcon, path: ROUTES.ADMIN.SYSTEM.INTELLIGENCE },
-    { label: "Diagnósticos", icon: TestTube, path: ROUTES.ADMIN.SYSTEM.DIAGNOSTICS }
+    { label: "Equipamentos", icon: Settings, path: "/admin/equipments" },
+    { label: "Conteúdo", icon: Database, path: "/admin/content" },
+    { label: "Artigos Científicos", icon: BookOpen, path: "/admin/scientific-articles" },
+    { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
+    { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },
+    { label: "Diagnósticos", icon: TestTube, path: "/admin/system-diagnostics" }
   ];
 
   return (
@@ -73,7 +73,7 @@ const AdminTopbar: React.FC = () => {
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={() => navigate(ROUTES.ADMIN.ROOT)}
+            onClick={() => navigate("/admin")}
             className="text-xl font-bold text-white hover:text-purple-300"
           >
             Admin Fluida
