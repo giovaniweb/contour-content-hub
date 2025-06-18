@@ -284,7 +284,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                       <SelectValue placeholder="Selecione o equipamento estudado no artigo (opcional)" />
                     </SelectTrigger>
                     <SelectContent className="aurora-glass border-aurora-electric-purple/30">
-                      <SelectItem value="">Nenhum equipamento específico</SelectItem>
+                      <SelectItem value="none">Nenhum equipamento específico</SelectItem>
                       {equipments?.map((equipment) => (
                         <SelectItem key={equipment.id} value={equipment.id}>
                           {equipment.nome}
