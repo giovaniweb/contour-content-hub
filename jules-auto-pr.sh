@@ -15,4 +15,4 @@ git commit -m "chore(jules): alterações automáticas feitas no ambiente"
 git push origin $BRANCH
 
 # Cria um pull request automaticamente
-gh pr create --base main --head $BRANCH --title="Alterações automáticas do Jules" --body="Esse PR contém ajustes aplicados automaticamente após sugestões do Jules."
+gh pr create --base main --head "$BRANCH" --title 'Alterações automáticas do Jules' --body 'Esse PR contém ajustes aplicados automaticamente após sugestões do Jules.'
