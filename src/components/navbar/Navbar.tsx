@@ -31,7 +31,6 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
-  // Remove mobile menu: topbar será estático e minimalista (sem navegacao principal universal)
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -63,10 +62,11 @@ export const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 z-40 w-full border-b transition-all duration-200",
-        scrolled
-          ? "bg-background/95 backdrop-blur-sm shadow-sm"
-          : "bg-background"
+        "fixed top-0 z-40 w-full border-b transition-all duration-300",
+        // Glass effect with aurora colors
+        "bg-gradient-to-r from-aurora-space-black/20 via-aurora-deep-purple/30 to-aurora-space-black/20",
+        "backdrop-blur-xl border-aurora-electric-purple/20",
+        scrolled && "shadow-2xl shadow-aurora-electric-purple/10"
       )}
       style={{ 
         left: isAuthenticated ? SIDEBAR_WIDTH : 0,
@@ -74,30 +74,44 @@ export const Navbar = () => {
         width: isAuthenticated ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%'
       }}
     >
-      <nav className="w-full px-4 flex h-16 items-center justify-between" aria-label="Topbar principal">
+      {/* Aurora glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-aurora-electric-purple/5 via-aurora-neon-blue/5 to-aurora-emerald/5 animate-aurora-flow"></div>
+      
+      <nav className="relative w-full px-4 flex h-16 items-center justify-between" aria-label="Topbar principal">
         {/* LOGO */}
         <div className="flex items-center gap-2 min-w-[40px]">
           <NavLink to="/">
             <FluidaLogo logoUrl={logoUrl} size={36} />
           </NavLink>
         </div>
+        
         {/* Menus institucionais - visíveis para todos */}
         <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
           {INSTITUCIONAL_LINKS.map((item) => (
             <NavLink
               to={item.to}
               key={item.to}
-              className="text-slate-400 hover:text-white transition-colors font-medium text-base"
+              className="text-white/80 hover:text-white transition-all duration-300 font-medium text-base hover:text-shadow-aurora-glow"
               style={{ whiteSpace: 'nowrap' }}
             >
               {item.label}
             </NavLink>
           ))}
         </div>
+        
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
-          {isAuthenticated && isAdmin() && <AdminDropdownMenu />}
+          {isAuthenticated && isAdmin() && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/admin")}
+              className="text-white hover:text-aurora-electric-purple hover:bg-aurora-electric-purple/20 transition-all duration-300 hover:shadow-aurora-glow-blue"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          )}
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>

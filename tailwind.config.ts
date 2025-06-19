@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -68,8 +69,10 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Aurora Borealis Color Palette - Dark Theme
+				// Enhanced Aurora Borealis Color Palette
 				aurora: {
+					'space-black': '#000511',
+					'void-black': '#0a0015',
 					'deep-purple': '#1a0b2e',
 					'dark-violet': '#2d1b3d',
 					'electric-purple': '#6b46c1',
@@ -78,8 +81,7 @@ export default {
 					emerald: '#10b981',
 					lime: '#84cc16',
 					midnight: '#0f0f23',
-					'space-black': '#000511',
-					// Keeping original names for compatibility
+					// Enhanced secondary palette
 					lavender: '#8b5cf6',
 					teal: '#14b8a6',
 					turquoise: '#06b6d4',
@@ -88,7 +90,7 @@ export default {
 					'electric-blue': '#3b82f6',
 					sage: '#10b981',
 				},
-				// Fluida brand colors - updated with Aurora dark palette
+				// Enhanced Fluida brand colors
 				fluida: {
 					blue: '#3b82f6',
 					pink: '#f472b6',
@@ -97,7 +99,7 @@ export default {
 					lightGray: '#1a0b2e',
 					gradient: 'linear-gradient(to right, #6b46c1, #3b82f6)'
 				},
-				// Contourline colors - updated for dark theme
+				// Enhanced Contourline colors
 				contourline: {
 					darkBlue: '#1a0b2e',
 					mediumBlue: '#6b46c1',
@@ -150,21 +152,21 @@ export default {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-5px)' }
 				},
-				// Aurora-specific animations - Enhanced
+				// Enhanced Aurora animations
 				'aurora-flow': {
-					'0%, 100%': { backgroundPosition: '0% 50%' },
-					'25%': { backgroundPosition: '100% 0%' },
-					'50%': { backgroundPosition: '100% 100%' },
-					'75%': { backgroundPosition: '0% 100%' }
+					'0%, 100%': { backgroundPosition: '0% 50%', transform: 'rotate(0deg)' },
+					'25%': { backgroundPosition: '100% 0%', transform: 'rotate(1deg)' },
+					'50%': { backgroundPosition: '100% 100%', transform: 'rotate(0deg)' },
+					'75%': { backgroundPosition: '0% 100%', transform: 'rotate(-1deg)' }
 				},
 				'aurora-pulse': {
-					'0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
-					'50%': { opacity: '1', transform: 'scale(1.05)' }
+					'0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+					'50%': { opacity: '0.8', transform: 'scale(1.05)' }
 				},
 				'aurora-float': {
-					'0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-					'33%': { transform: 'translateY(-15px) rotate(1deg)' },
-					'66%': { transform: 'translateY(-5px) rotate(-1deg)' }
+					'0%, 100%': { transform: 'translateY(0px) rotate(0deg) scale(1)' },
+					'33%': { transform: 'translateY(-20px) rotate(2deg) scale(1.02)' },
+					'66%': { transform: 'translateY(-10px) rotate(-2deg) scale(0.98)' }
 				},
 				'aurora-shimmer': {
 					'0%': { backgroundPosition: '-200% center' },
@@ -179,23 +181,25 @@ export default {
 				'aurora-wave': {
 					'0%, 100%': { 
 						transform: 'translateX(0) scale(1)',
-						filter: 'hue-rotate(0deg)'
+						filter: 'hue-rotate(0deg) brightness(1)'
 					},
 					'33%': { 
-						transform: 'translateX(10px) scale(1.02)',
-						filter: 'hue-rotate(60deg)'
+						transform: 'translateX(15px) scale(1.03)',
+						filter: 'hue-rotate(60deg) brightness(1.1)'
 					},
 					'66%': { 
-						transform: 'translateX(-10px) scale(0.98)',
-						filter: 'hue-rotate(120deg)'
+						transform: 'translateX(-15px) scale(0.97)',
+						filter: 'hue-rotate(120deg) brightness(0.9)'
 					}
 				},
 				'aurora-glow': {
 					'0%, 100%': { 
-						boxShadow: '0 0 10px #6b46c1, 0 0 20px #6b46c1, 0 0 30px #6b46c1'
+						boxShadow: '0 0 20px #6b46c1, 0 0 40px #6b46c1, 0 0 60px #6b46c1',
+						filter: 'brightness(1)'
 					},
 					'50%': { 
-						boxShadow: '0 0 20px #3b82f6, 0 0 40px #3b82f6, 0 0 60px #3b82f6'
+						boxShadow: '0 0 30px #3b82f6, 0 0 60px #3b82f6, 0 0 90px #3b82f6',
+						filter: 'brightness(1.2)'
 					}
 				}
 			},
@@ -208,37 +212,42 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-light': 'pulse-light 2s infinite ease-in-out',
 				'bounce-light': 'bounce-light 2s infinite ease-in-out',
-				// Aurora animations - Enhanced
-				'aurora-flow': 'aurora-flow 12s ease-in-out infinite',
-				'aurora-pulse': 'aurora-pulse 2s infinite',
-				'aurora-float': 'aurora-float 8s ease-in-out infinite',
+				// Enhanced Aurora animations
+				'aurora-flow': 'aurora-flow 20s ease-in-out infinite',
+				'aurora-pulse': 'aurora-pulse 3s infinite',
+				'aurora-float': 'aurora-float 12s ease-in-out infinite',
 				'aurora-shimmer': 'aurora-shimmer 4s infinite',
 				'aurora-particles': 'aurora-particles linear infinite',
-				'aurora-wave': 'aurora-wave 15s ease-in-out infinite',
-				'aurora-glow': 'aurora-glow 3s infinite',
+				'aurora-wave': 'aurora-wave 18s ease-in-out infinite',
+				'aurora-glow': 'aurora-glow 4s infinite',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
 				'fluida-gradient': 'linear-gradient(to right, #6b46c1, #3b82f6)',
 				'lavender-gradient': 'linear-gradient(to bottom, #1a0b2e, #2d1b3d)',
-				// Aurora gradients - Dark theme
-				'aurora-gradient': 'linear-gradient(135deg, #1a0b2e, #6b46c1, #3b82f6, #06b6d4, #10b981)',
+				// Enhanced Aurora gradients
+				'aurora-gradient': 'linear-gradient(135deg, #000511, #1a0b2e, #6b46c1, #3b82f6, #06b6d4, #10b981)',
 				'aurora-gradient-primary': 'linear-gradient(135deg, #6b46c1, #3b82f6)',
 				'aurora-gradient-secondary': 'linear-gradient(135deg, #1a0b2e, #6b46c1)',
 				'aurora-gradient-tertiary': 'linear-gradient(135deg, #3b82f6, #06b6d4)',
-				'aurora-gradient-dark': 'linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d)',
+				'aurora-gradient-dark': 'linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d)',
 				'aurora-gradient-emerald': 'linear-gradient(135deg, #10b981, #84cc16)',
+				'aurora-gradient-enhanced': 'linear-gradient(45deg, #000511, #1a0b2e, #6b46c1, #3b82f6, #06b6d4, #10b981)',
 			},
 			backdropBlur: {
 				xs: '2px',
 			},
 			boxShadow: {
-				'aurora-glow': '0 0 30px rgba(107, 70, 193, 0.4)',
-				'aurora-glow-intense': '0 0 50px rgba(107, 70, 193, 0.6)',
-				'aurora-glow-blue': '0 0 25px rgba(59, 130, 246, 0.4)',
-				'aurora-glow-emerald': '0 0 20px rgba(16, 185, 129, 0.4)',
-				'aurora-glass': '0 8px 32px rgba(0, 5, 17, 0.3)',
+				'aurora-glow': '0 0 40px rgba(107, 70, 193, 0.6)',
+				'aurora-glow-intense': '0 0 60px rgba(107, 70, 193, 0.8)',
+				'aurora-glow-blue': '0 0 35px rgba(59, 130, 246, 0.5)',
+				'aurora-glow-emerald': '0 0 30px rgba(16, 185, 129, 0.4)',
+				'aurora-glass': '0 8px 32px rgba(0, 5, 17, 0.4)',
+				'aurora-floating': '0 25px 50px -12px rgba(0, 5, 17, 0.6), 0 20px 20px -10px rgba(0, 5, 17, 0.3)',
+			},
+			textShadow: {
+				'aurora-glow': '0 0 10px rgba(107, 70, 193, 0.8), 0 0 20px rgba(59, 130, 246, 0.6)',
 			}
 		}
 	},

@@ -42,38 +42,38 @@
   }
 
   .dark {
-    /* Aurora Boreal Dark Theme */
-    --background: 237 100% 3%; /* #000511 - space black */
+    /* Enhanced Aurora Boreal Dark Theme */
+    --background: 237 100% 2%; /* #000511 - deeper space black */
     --foreground: 0 0% 98%;
-    --card: 253 41% 11%; /* #1a0b2e - deep purple */
+    --card: 253 41% 8%; /* #1a0b2e - deeper purple */
     --card-foreground: 0 0% 98%;
-    --popover: 253 41% 11%;
+    --popover: 253 41% 8%;
     --popover-foreground: 0 0% 98%;
     --primary: 263 70% 50%; /* #6b46c1 - electric purple */
     --primary-foreground: 0 0% 98%;
-    --secondary: 253 35% 15%; /* #2d1b3d - dark violet */
+    --secondary: 253 35% 12%; /* #2d1b3d - darker violet */
     --secondary-foreground: 0 0% 98%;
-    --muted: 253 35% 15%;
+    --muted: 253 35% 12%;
     --muted-foreground: 0 0% 65%;
-    --accent: 253 35% 15%;
+    --accent: 253 35% 12%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 263 70% 20%;
-    --input: 253 35% 15%;
+    --border: 263 70% 15%;
+    --input: 253 35% 12%;
     --ring: 263 70% 50%;
     --chart-1: 263 70% 50%; /* electric purple */
     --chart-2: 195 100% 50%; /* cyan */
     --chart-3: 160 84% 39%; /* emerald */
     --chart-4: 217 91% 60%; /* neon blue */
     --chart-5: 84 81% 44%; /* lime */
-    --sidebar-background: 253 41% 8%; /* darker than card */
+    --sidebar-background: 253 41% 5%; /* even darker than card */
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 263 70% 50%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 253 35% 12%;
+    --sidebar-accent: 253 35% 8%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 263 70% 15%;
+    --sidebar-border: 263 70% 10%;
     --sidebar-ring: 263 70% 50%;
   }
 }
@@ -92,8 +92,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Aurora Boreal Dark Background */
-    background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
+    /* Enhanced Aurora Boreal Dark Background */
+    background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
     background-attachment: fixed;
   }
 
@@ -106,68 +106,106 @@
 /* Aurora Design System Import */
 @import './styles/aurora-design-system.css';
 
-/* Global Aurora Styles */
-.aurora-dark-theme {
-  background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
+/* Enhanced Global Aurora Styles */
+.aurora-enhanced-theme {
+  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Apply dark theme globally */
+/* Apply enhanced dark theme globally */
 html {
   @apply dark;
 }
 
 html.dark body {
-  background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
+  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
   background-attachment: fixed;
 }
 
-/* Ensure all main containers use the dark theme */
+/* Ensure all main containers use the enhanced dark theme */
 #root {
   @apply dark;
-  background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
+  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Sonner Toast Custom Styles corrigido para NÃO usar bg-aurora-background */
+/* Enhanced Sonner Toast Custom Styles */
 .sonner-toast {
   background: linear-gradient(135deg, #1a0b2e 85%, #6b46c1 100%);
-  border: 1px solid rgba(107, 70, 193, 0.30); /* electric purple */
-  border-radius: 0.5rem; /* rounded-lg */
-  box-shadow: 0 4px 32px 0 rgba(50,30,105,0.12);
+  border: 1px solid rgba(107, 70, 193, 0.40);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 40px 0 rgba(50,30,105,0.20);
   padding: 1.25rem 1.25rem;
   color: #fff;
   font-size: 1rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  backdrop-filter: blur(20px);
 }
 
 .sonner-toast-success {
-  background: rgba(16,185,129,0.80); /* aurora-sage */
-  color: #1a0b2e; /* aurora-deep-purple */
+  background: rgba(16,185,129,0.85);
+  color: #1a0b2e;
   border: 1px solid #10b981;
+  box-shadow: 0 0 30px rgba(16,185,129,0.4);
 }
 
 .sonner-toast-error {
-  background: rgba(107,70,193,0.90); /* aurora-electric-purple */
+  background: rgba(107,70,193,0.95);
   color: #fff;
   border: 1px solid #6b46c1;
+  box-shadow: 0 0 30px rgba(107,70,193,0.4);
 }
 
 .sonner-toast-warning {
-  background: rgba(249,115,22,0.90); /* orange-500 */
+  background: rgba(249,115,22,0.95);
   color: #fff;
-  border: 1px solid #fb923c; /* orange-400 */
+  border: 1px solid #fb923c;
+  box-shadow: 0 0 30px rgba(249,115,22,0.4);
 }
 
-/* Ajuste para posicionar notifications em top-right de forma mais clean */
+/* Enhanced positioning for notifications */
 .sonner-toaster {
   @apply fixed top-6 right-6 z-[100];
 }
 
-/* Opcional: Remove ícones grandes ou margens internas exageradas */
+/* Enhanced icons */
 .sonner-toast .sonner-icon {
   @apply mr-2 w-5 h-5;
+}
+
+/* Enhanced scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 11, 46, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(107, 70, 193, 0.6);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 70, 193, 0.8);
+}
+
+/* Enhanced selection */
+::selection {
+  background: rgba(107, 70, 193, 0.3);
+  color: #ffffff;
+}
+
+/* Enhanced focus outlines */
+:focus-visible {
+  outline: 2px solid rgba(107, 70, 193, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.3);
 }
