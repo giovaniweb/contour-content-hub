@@ -18,7 +18,6 @@ const Billing = lazy(() => import("@/pages/Billing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
-import InstagramCallback from "@/pages/auth/InstagramCallback";
 
 const AdminSystemDiagnostics = lazy(() => import("@/pages/AdminSystemDiagnostics"));
 
@@ -183,10 +182,6 @@ const routes = [
         <NotFound />
       </Main>
     ),
-  },
-  {
-    path: "/auth/instagram/callback",
-    element: <InstagramCallback />
   },
 ];
 
