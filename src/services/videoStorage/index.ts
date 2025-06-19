@@ -1,9 +1,29 @@
 
 // Export all video storage services from this index file
-export * from './videoUploadService';
-export * from './videoManagementService';
+export {
+  uploadVideo,
+  batchUploadVideos
+} from './videoUploadService';
 
-// Re-export types
+export {
+  getVideos,
+  getVideoById,
+  updateVideo,
+  updateVideos,
+  deleteVideo,
+  deleteVideos,
+  downloadVideo,
+  copyVideoLink,
+  getVideoStatistics,
+  removeMockupVideos
+} from './videoManagementService';
+
+// Re-export types - only export VideoStatistics from videoService to avoid ambiguity
+export type { 
+  Video,
+  VideoStatistics
+} from './videoService';
+
 export type * from '@/types/video-storage';
 
 // Common constants
