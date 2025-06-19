@@ -90,6 +90,8 @@ export const useVideoManager = () => {
       });
 
       console.log('[useVideoManager] handleDeleteVideo: Sucesso na exclusão, prestes a chamar loadVideos().');
+      console.log('[useVideoManager] handleDeleteVideo: Resetando página para 1.');
+      setPage(1);
       loadVideos();
     } catch (error) {
       console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleDeleteVideo:', error);
@@ -123,6 +125,8 @@ export const useVideoManager = () => {
 
       setSelectedVideos([]);
       console.log('[useVideoManager] handleBulkDelete: Sucesso na exclusão em massa, prestes a chamar loadVideos().');
+      console.log('[useVideoManager] handleBulkDelete: Resetando página para 1.');
+      setPage(1);
       loadVideos();
     } catch (error) {
       console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleBulkDelete:', error);
@@ -229,6 +233,7 @@ export const useVideoManager = () => {
 
   // Aplicar filtros
   const handleFilterChange = (newFilters: VideoFilterOptions) => { // Usar VideoFilterOptions
+    console.log('[useVideoManager] handleFilterChange: Resetando página para 1 devido à mudança de filtros. Novos filtros:', newFilters);
     setFilters(newFilters);
     setPage(1);
   };
