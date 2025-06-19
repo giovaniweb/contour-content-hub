@@ -61,11 +61,15 @@ export const useEquipments = () => {
         categoria: (item.categoria === 'medico' ? 'medico' : 'estetico') as 'medico' | 'estetico',
         thumbnail_url: item.thumbnail_url || '',
         area_aplicacao: item.area_aplicacao || [],
-        tipo_acao: item.tipo_acao,
+        tipo_acao: (item.tipo_acao === 'Não invasivo' || item.tipo_acao === 'Minimante invasivo' || item.tipo_acao === 'Invasivo') 
+          ? item.tipo_acao as 'Não invasivo' | 'Minimante invasivo' | 'Invasivo'
+          : undefined,
         possui_consumiveis: item.possui_consumiveis ?? false,
         contraindicacoes: item.contraindicacoes || [],
         perfil_ideal_paciente: item.perfil_ideal_paciente || [],
-        nivel_investimento: item.nivel_investimento,
+        nivel_investimento: (item.nivel_investimento === 'Alto' || item.nivel_investimento === 'Médio' || item.nivel_investimento === 'Baixo')
+          ? item.nivel_investimento as 'Alto' | 'Médio' | 'Baixo'
+          : undefined,
         akinator_enabled: item.akinator_enabled ?? true,
       }));
 
