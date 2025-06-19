@@ -1,3 +1,4 @@
+
 import { lazy } from "react";
 
 import { Main } from "@/components/layouts/Main";
@@ -20,6 +21,10 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 import InstagramCallback from "@/pages/auth/InstagramCallback";
 
 const AdminSystemDiagnostics = lazy(() => import("@/pages/AdminSystemDiagnostics"));
+
+// Lazy load das novas páginas de artigos científicos
+const AdminScientificArticles = lazy(() => import("@/pages/admin/AdminScientificArticles"));
+const AdminScientificArticleForm = lazy(() => import("@/pages/admin/AdminScientificArticleForm"));
 
 const routes = [
   {
@@ -143,6 +148,29 @@ const routes = [
       <AuthGuard>
         <Main>
           <AdminSystemDiagnostics />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  // Novas rotas de artigos científicos
+  {
+    path: "/admin/scientific-articles",
+    element: (
+      <AuthGuard>
+        <Main>
+          <AdminScientificArticles />
+        </Main>
+      </AuthGuard>
+    ),
+    protected: true,
+  },
+  {
+    path: "/admin/scientific-articles/new",
+    element: (
+      <AuthGuard>
+        <Main>
+          <AdminScientificArticleForm />
         </Main>
       </AuthGuard>
     ),
