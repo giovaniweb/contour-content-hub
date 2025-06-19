@@ -19,7 +19,7 @@ const UserSummarySection: React.FC = () => {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-white/70">Nome:</span>
-            <span className="text-white">{user?.full_name || user?.email || 'Usuário'}</span>
+            <span className="text-white">{user?.nome || user?.email || 'Usuário'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-white/70">Email:</span>
