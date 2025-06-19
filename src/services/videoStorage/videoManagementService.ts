@@ -33,7 +33,7 @@ interface BulkUpdateResult {
 
 export const getVideos = async (
   filters: VideoFilterOptions = {},
-  sort: { field: string; direction: string } = { field: 'created_at', direction: 'desc' },
+  sort: { field: string; direction: string } = { field: 'data_upload', direction: 'desc' },
   page: number = 1,
   limit: number = 20
 ): Promise<VideoManagementResult> => {

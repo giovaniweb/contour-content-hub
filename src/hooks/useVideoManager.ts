@@ -29,7 +29,7 @@ export const useVideoManager = () => {
     try {
       const { videos: loadedVideos, total: totalCount, error } = await getVideos(
         filters, 
-        { field: 'created_at', direction: 'desc' },
+        { field: 'data_upload', direction: 'desc' },
         page, 
         20
       );
@@ -53,32 +53,7 @@ export const useVideoManager = () => {
     }
   };
 
-  // Selecionar vídeo
-  const handleSelectVideo = (videoId: string) => {
-    setSelectedVideos(prev => {
-      if (prev.includes(videoId)) {
-        return prev.filter(id => id !== videoId);
-      } else {
-        return [...prev, videoId];
-      }
-    });
-  };
-
-  // Selecionar todos
-  const handleSelectAll = () => {
-    if (selectedVideos.length === videos.length) {
-      setSelectedVideos([]);
-    } else {
-      setSelectedVideos(videos.map(video => video.id));
-    }
-  };
-
-  // Limpar seleção
-  const handleClearSelection = () => {
-    setSelectedVideos([]);
-  };
-
-  // Excluir vídeo único - REMOVIDO o confirm() duplo
+  // Excluir vídeo único
   const handleDeleteVideo = async (videoId: string) => {
     console.log('[useVideoManager] Iniciando handleDeleteVideo com videoId:', videoId);
     try {
@@ -210,30 +185,6 @@ export const useVideoManager = () => {
     }
   };
 
-  // Remover vídeos mockup
-  const handleRemoveMockupVideos = async () => {
-    try {
-      const { success, error } = await removeMockupVideos();
-      
-      if (!success || error) {
-        throw new Error(error);
-      }
-
-      toast({
-        title: 'Sucesso',
-        description: 'Vídeos mockup removidos com sucesso'
-      });
-
-      loadVideos();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Não foi possível remover vídeos mockup'
-      });
-    }
-  };
-
   // Aplicar filtros
   const handleFilterChange = (newFilters: VideoFilterOptions) => {
     console.log('[useVideoManager] handleFilterChange: Resetando página para 1 devido à mudança de filtros. Novos filtros:', newFilters);
@@ -245,34 +196,6 @@ export const useVideoManager = () => {
   useEffect(() => {
     loadVideos();
   }, [filters, page]);
-
-  // Remover vídeos mockup ao carregar o hook
-  useEffect(() => {
-    const handleRemoveMockupVideos = async () => {
-      try {
-        const { success, error } = await removeMockupVideos();
-        
-        if (!success || error) {
-          throw new Error(error);
-        }
-
-        toast({
-          title: 'Sucesso',
-          description: 'Vídeos mockup removidos com sucesso'
-        });
-
-        loadVideos();
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro',
-          description: 'Não foi possível remover vídeos mockup'
-        });
-      }
-    };
-
-    handleRemoveMockupVideos();
-  }, []);
 
   return {
     videos,
@@ -301,130 +224,11 @@ export const useVideoManager = () => {
     handleClearSelection: () => {
       setSelectedVideos([]);
     },
-    handleDeleteVideo: async (videoId: string) => {
-      console.log('[useVideoManager] Iniciando handleDeleteVideo com videoId:', videoId);
-      try {
-        const { success, error } = await deleteVideo(videoId);
-        console.log('[useVideoManager] Resultado de deleteVideo:', { success, error });
-        
-        if (!success || error) {
-          throw new Error(error);
-        }
-
-        toast({
-          title: 'Sucesso',
-          description: 'Vídeo excluído com sucesso'
-        });
-
-        console.log('[useVideoManager] handleDeleteVideo: Sucesso na exclusão, prestes a chamar loadVideos().');
-        setPage(1);
-        loadVideos();
-      } catch (error) {
-        console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleDeleteVideo:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erro',
-          description: error.message || 'Não foi possível excluir o vídeo'
-        });
-      }
-    },
-    handleBulkDelete: async () => {
-      if (selectedVideos.length === 0) return;
-      
-      if (!confirm(`Tem certeza que deseja excluir ${selectedVideos.length} vídeo(s)?`)) return;
-
-      try {
-        const { success, error } = await deleteVideos(selectedVideos);
-        
-        if (!success || error) {
-          throw new Error(error);
-        }
-
-        toast({
-          title: 'Sucesso',
-          description: `${selectedVideos.length} vídeo(s) excluído(s) com sucesso`
-        });
-
-        setSelectedVideos([]);
-        setPage(1);
-        loadVideos();
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro',
-          description: error.message || 'Não foi possível excluir os vídeos'
-        });
-      }
-    },
-    handleBulkUpdateEquipment: async (equipmentId: string) => {
-      if (selectedVideos.length === 0) return;
-
-      try {
-        const updates: Partial<Video> = {
-          equipamentos: equipmentId === 'none' ? [] : [equipmentId]
-        };
-
-        const { success, error } = await updateVideos(selectedVideos, updates);
-        
-        if (!success || error) {
-          throw new Error(error);
-        }
-
-        const equipmentName = equipmentId === 'none' 
-          ? 'removido' 
-          : equipments.find(eq => eq.id === equipmentId)?.nome || 'atualizado';
-
-        toast({
-          title: 'Sucesso',
-          description: `Equipamento ${equipmentName} para ${selectedVideos.length} vídeo(s)`
-        });
-
-        setSelectedVideos([]);
-        loadVideos();
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro',
-          description: 'Não foi possível atualizar os vídeos'
-        });
-      }
-    },
-    handleBulkAddTags: async (newTags: string[]) => {
-      if (selectedVideos.length === 0 || newTags.length === 0) return;
-
-      try {
-        const updates = selectedVideos.map(async (videoId) => {
-          const video = videos.find(v => v.id === videoId);
-          if (!video) return;
-
-          const currentTags = video.tags || [];
-          const updatedTags = [...new Set([...currentTags, ...newTags])];
-
-          return updateVideos([videoId], { tags: updatedTags });
-        });
-
-        await Promise.all(updates);
-
-        toast({
-          title: 'Sucesso',
-          description: `Tags adicionadas a ${selectedVideos.length} vídeo(s)`
-        });
-
-        setSelectedVideos([]);
-        loadVideos();
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro',
-          description: 'Não foi possível adicionar as tags'
-        });
-      }
-    },
-    handleFilterChange: (newFilters: VideoFilterOptions) => {
-      console.log('[useVideoManager] handleFilterChange: Resetando página para 1 devido à mudança de filtros. Novos filtros:', newFilters);
-      setFilters(newFilters);
-      setPage(1);
-    },
+    handleDeleteVideo,
+    handleBulkDelete,
+    handleBulkUpdateEquipment,
+    handleBulkAddTags,
+    handleFilterChange,
     setPage,
     loadVideos
   };
