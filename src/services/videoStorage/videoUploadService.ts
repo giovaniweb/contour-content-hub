@@ -322,68 +322,6 @@ export async function uploadVideo(
   }
 }
 
-async function uploadFileWithProgress(
-  file: File, 
-  filePath: string, 
-  onProgress?: (progress: VideoUploadProgress) => void
-): Promise<{ success: boolean; error?: string }> {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    
-    // Track upload progress
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable && onProgress) {
-        const percentage = Math.round((event.loaded / event.total) * 85); // Reserve 15% for processing
-        onProgress({
-          loaded: event.loaded,
-          total: event.total,
-          percentage,
-          status: 'uploading',
-          stage: 'uploading',
-          fileName: file.name,
-          message: `Enviando... ${percentage}%`
-        });
-      }
-    });
-    
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve({ success: true });
-      } else {
-        resolve({ 
-          success: false, 
-          error: `Upload failed with status ${xhr.status}` 
-        });
-      }
-    };
-    
-    xhr.onerror = () => {
-      resolve({ 
-        success: false, 
-        error: 'Network error during upload' 
-      });
-    };
-    
-    // Get upload URL from Supabase
-    supabase.storage
-      .from('videos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
-      .then(({ error }) => {
-        if (error) {
-          resolve({ success: false, error: error.message });
-        } else {
-          resolve({ success: true });
-        }
-      })
-      .catch((error) => {
-        resolve({ success: false, error: error.message });
-      });
-  });
-}
-
 export async function batchUploadVideos(
   queue: VideoQueueItem[],
   onProgress: (index: number, progress: VideoUploadProgress) => void,

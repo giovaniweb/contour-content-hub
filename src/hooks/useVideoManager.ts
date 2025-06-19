@@ -1,18 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Video, VideoFilterOptions } from '@/types/video-storage'; // Tipos centralizados
 import { 
-  getVideos, 
-  updateVideos, 
-  Video, 
-  VideoFilters,
-  // removeMockupVideos // Removido daqui se for para videoManagementService ou se não for usado no hook
-} from '@/services/videoStorage/videoService'; // Funções de leitura e atualização geral
-import {
+  getVideos,
+  updateVideos,
   deleteVideo,
   deleteVideos,
-  removeMockupVideos // Assumindo que removeMockupVideos também foi para videoManagementService
-} from '@/services/videoStorage/videoManagementService'; // Funções de gerenciamento/exclusão
+  removeMockupVideos
+} from '@/services/videoStorage/videoManagementService'; // Todas as funções de serviço do ManagementService
 import { useEquipments } from '@/hooks/useEquipments';
 
 export const useVideoManager = () => {
@@ -22,7 +18,7 @@ export const useVideoManager = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<VideoFilters>({});
+  const [filters, setFilters] = useState<VideoFilterOptions>({}); // Usar VideoFilterOptions
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -232,7 +228,7 @@ export const useVideoManager = () => {
   };
 
   // Aplicar filtros
-  const handleFilterChange = (newFilters: VideoFilters) => {
+  const handleFilterChange = (newFilters: VideoFilterOptions) => { // Usar VideoFilterOptions
     setFilters(newFilters);
     setPage(1);
   };
