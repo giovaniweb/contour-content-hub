@@ -1,67 +1,74 @@
 
 import React, { useState } from 'react';
-import { Palette, Upload, Grid, Search, Brush, Filter } from 'lucide-react';
-import { EmptyState } from '@/components/ui/empty-state';
+import { Palette, Upload, Brush, Sparkles, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
+import SearchAndFilters from '@/components/layout/SearchAndFilters';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const ArtsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const statusBadges = [
+    {
+      icon: Sparkles,
+      label: 'Materiais',
+      variant: 'secondary' as const,
+      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+    },
+    {
+      icon: FileImage,
+      label: 'Marketing',
+      variant: 'secondary' as const,
+      color: 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+    }
+  ];
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Palette className="h-12 w-12 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold text-slate-50">Galeria de Artes</h1>
-            <p className="text-slate-400">Crie e gerencie suas artes e designs</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Pesquisar artes..." 
-              className="pl-10" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <Grid className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Brush className="h-4 w-4" />
-            Criar Arte
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Enviar Arte
-          </Button>
-        </div>
-      </div>
-
-      {/* Empty State */}
-      <EmptyState
+    <AuroraPageLayout>
+      <StandardPageHeader
         icon={Palette}
-        title="Nenhuma arte encontrada"
-        description="Comece criando ou enviando suas primeiras artes"
-        actionLabel="Criar Primeira Arte"
-        actionIcon={Brush}
-        onAction={() => console.log('Create art')}
+        title="Materiais e Artes"
+        subtitle="Crie e gerencie seus materiais de marketing"
+        statusBadges={statusBadges}
       />
-    </div>
+
+      <SearchAndFilters
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onViewModeChange={setViewMode}
+        viewMode={viewMode}
+        additionalControls={
+          <>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+            >
+              <Brush className="h-4 w-4" />
+              Criar Arte
+            </Button>
+            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
+              <Upload className="h-4 w-4" />
+              Enviar Material
+            </Button>
+          </>
+        }
+      />
+
+      <div className="container mx-auto px-6 py-8">
+        <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+          <EmptyState
+            icon={Palette}
+            title="Nenhum material encontrado"
+            description="Comece criando ou enviando seus primeiros materiais"
+            actionLabel="Criar Primeiro Material"
+            onAction={() => console.log('Create material')}
+          />
+        </div>
+      </div>
+    </AuroraPageLayout>
   );
 };
 
