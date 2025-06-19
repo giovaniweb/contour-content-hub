@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 const EquipmentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const { equipments, isLoading, error } = useEquipments();
+  const { equipments, loading, error } = useEquipments();
 
   const filteredEquipments = equipments.filter(equipment =>
     equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,7 +45,7 @@ const EquipmentsPage: React.FC = () => {
         />
         <div className="container mx-auto px-6">
           <div className="text-center py-12">
-            <p className="text-red-400 mb-4">{error}</p>
+            <p className="text-red-400 mb-4">{error.message}</p>
             <Button onClick={() => window.location.reload()}>
               Tentar Novamente
             </Button>
@@ -78,7 +78,7 @@ const EquipmentsPage: React.FC = () => {
       />
 
       <div className="container mx-auto px-6 py-8">
-        {isLoading ? (
+        {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
             <p className="text-slate-300">Carregando equipamentos...</p>
