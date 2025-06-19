@@ -24,7 +24,6 @@ const App = () => (
               </Suspense>
             } />
           ))}
-          {/* Add the new route for scientific article form */}
           <Route 
             path="/admin/scientific-articles/new" 
             element={
