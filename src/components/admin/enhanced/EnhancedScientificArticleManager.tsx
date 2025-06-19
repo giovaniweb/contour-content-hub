@@ -73,6 +73,11 @@ const EnhancedScientificArticleManager: React.FC = () => {
     return matchesSearch && matchesType && matchesEquipment;
   });
 
+  // Filter equipments to ensure valid IDs
+  const validEquipments = equipments.filter(equipment => 
+    equipment && equipment.id && equipment.id.trim() !== ""
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -121,7 +126,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos equipamentos</SelectItem>
-            {equipments.map(equipment => (
+            {validEquipments.map(equipment => (
               <SelectItem key={equipment.id} value={equipment.id}>
                 {equipment.nome}
               </SelectItem>
