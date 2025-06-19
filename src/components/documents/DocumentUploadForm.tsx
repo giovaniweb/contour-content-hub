@@ -129,8 +129,8 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
         .from('documents')
         .getPublicUrl(filePath);
       
-      // 4. Create entry in the database
-      const { error: insertError } = await supabase
+      // 4. Create entry in the database and get the new document ID
+      const { data: insertedData, error: insertError } = await supabase
         .from('documentos_tecnicos')
         .insert({
           titulo: data.titulo,
@@ -141,16 +141,43 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
           idioma_original: data.idioma_original,
           status: 'processando', // Start in processing state
           criado_por: userId,
-        });
+        })
+        .select('id')
+        .single();
         
       if (insertError) {
         throw insertError;
       }
+
+      if (!insertedData || !insertedData.id) {
+        throw new Error('Falha ao obter o ID do documento recém-criado.');
+      }
       
-      // 5. Trigger document processing (in a real app, this would be done via an edge function)
-      // Here you would call your serverless function to extract text and generate embeddings
+      const newDocumentId = insertedData.id;
+      console.log(`Documento inserido com ID: ${newDocumentId}`);
+
+      // 5. Trigger document processing by invoking the Supabase Edge Function
+      try {
+        console.log(`Invocando a função 'process-document' para o documentId: ${newDocumentId}`);
+        const { error: functionError } = await supabase.functions.invoke('process-document', {
+          body: { documentId: newDocumentId },
+        });
+
+        if (functionError) {
+          throw functionError; // Este erro será capturado pelo catch abaixo
+        }
+        console.log(`Função 'process-document' invocada com sucesso para o documentId: ${newDocumentId}`);
+      } catch (functionInvokeError: any) {
+        console.error(`Erro ao invocar a função 'process-document':`, functionInvokeError);
+        // Define o erro para exibição na UI, mas não impede o reset do formulário e onSuccess
+        setUploadError(
+          `Documento enviado, mas o processamento automático falhou: ${functionInvokeError.message}. O documento pode precisar ser processado manualmente.`
+        );
+      }
       
-      // 6. Success
+      // 6. Success (form reset and callback)
+      // Estas linhas serão executadas mesmo se a invocação da função falhar,
+      // permitindo que o usuário saiba que o upload do arquivo foi bem-sucedido.
       form.reset();
       setSelectedFile(null);
       onSuccess();
