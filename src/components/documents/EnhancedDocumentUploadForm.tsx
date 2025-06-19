@@ -107,7 +107,11 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
     }
 
     const formData: DocumentFormData = {
-      ...data,
+      titulo: data.titulo,
+      descricao: data.descricao || '',
+      tipo: data.tipo,
+      equipamento_id: data.equipamento_id,
+      idioma_original: data.idioma_original,
       file: selectedFile
     };
 

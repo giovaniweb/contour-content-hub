@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileText, ExternalLink, Eye, Download } from "lucide-react";
 import { isPdfUrlValid, openPdfInNewTab } from "@/utils/pdfUtils";
-import PdfViewer from "@/components/documents/PdfViewer";
+import PDFViewer from "@/components/documents/PDFViewer";
 import { toast } from "sonner";
 import { downloadPdfFile } from "@/services/documentService";
 
@@ -109,7 +109,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileUrl, onClearFile })
       
       {/* PDF Viewer Dialog */}
       {isValidUrl && (
-        <PdfViewer
+        <PDFViewer
           isOpen={isPdfViewerOpen}
           onOpenChange={setIsPdfViewerOpen}
           title={file?.name || "Documento PDF"}

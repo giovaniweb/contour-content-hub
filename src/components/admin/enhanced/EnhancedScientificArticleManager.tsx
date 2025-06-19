@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDocuments } from '@/hooks/use-documents';
 import { useEquipments } from '@/hooks/useEquipments';
-import { TechnicalDocument } from '@/types/document';
+import { TechnicalDocument, DocumentType } from '@/types/document';
 import DocumentCard from '@/components/documents/DocumentCard';
 import PDFViewer from '@/components/documents/PDFViewer';
 import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<DocumentType | ''>('');
   const [selectedEquipment, setSelectedEquipment] = useState<string>('');
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<TechnicalDocument | null>(null);
@@ -102,7 +102,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           />
         </div>
         
-        <Select value={selectedType} onValueChange={setSelectedType}>
+        <Select value={selectedType} onValueChange={(value: DocumentType | '') => setSelectedType(value)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Tipo de documento" />
           </SelectTrigger>
