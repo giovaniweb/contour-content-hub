@@ -69,6 +69,14 @@ const VideoGrid: React.FC<VideoGridProps> = ({
     }
   };
 
+  // Create a wrapper function that finds the video by ID and calls handleDeleteClick
+  const handleDeleteById = (videoId: string) => {
+    const video = videos.find(v => v.id === videoId);
+    if (video) {
+      handleDeleteClick(video);
+    }
+  };
+
   const handleStatistics = (video: Video) => {
     console.log('Estatísticas para:', video.titulo);
     // TODO: Implementar modal de estatísticas
@@ -138,7 +146,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({
             viewMode={viewMode}
             onPlay={onPlay}
             onEdit={onEdit}
-            onDelete={handleDeleteClick} // Pass the wrapper function that shows dialog
+            onDelete={handleDeleteById} // Pass the wrapper function that accepts videoId
             onDownload={onDownload}
             onStatistics={handleStatistics}
             onCopyLink={handleCopyLink}
