@@ -182,12 +182,11 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
       {/* PDF Viewer */}
       <PDFViewer
-        document={selectedDocument}
         isOpen={isPDFViewerOpen}
-        onClose={() => {
-          setIsPDFViewerOpen(false);
-          setSelectedDocument(null);
-        }}
+        onOpenChange={setIsPDFViewerOpen}
+        title={selectedDocument?.titulo || 'Documento'}
+        pdfUrl={selectedDocument?.arquivo_url || selectedDocument?.link_dropbox}
+        documentId={selectedDocument?.id}
       />
 
       {/* Question Chat Dialog */}
