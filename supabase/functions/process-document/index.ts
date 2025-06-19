@@ -133,45 +133,28 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     
     let extractedText = "";
     try {
-      console.log("Generating extracted text");
+      // console.log("Generating extracted text"); // Original log
+      console.log("Generating placeholder extracted text for document: " + document.id); // New log
       
       // Em produção, isso buscaria o conteúdo real do PDF
-      extractedText = `# ${document.titulo}
+      // Temporariamente usando placeholder enquanto a extração de PDF não é implementada
+      const keywordsString = document.keywords ? (Array.isArray(document.keywords) ? document.keywords.join(', ') : document.keywords) : 'N/A';
+      const researchersString = document.researchers ? (Array.isArray(document.researchers) ? document.researchers.join(', ') : document.researchers) : 'N/A';
+      extractedText = `--- PLACEHOLDER DE CONTEÚDO ---
+Título: ${document.titulo}
+ID do Documento: ${document.id}
 
-## Resumo
-Este estudo avaliou os efeitos da criofrequência na adiposidade localizada nos flancos. A amostra foi composta por 7 voluntárias, que realizaram 10 sessões de criofrequência, sendo divididas em Grupo Controle - GC (n = 7) e Grupo Intervenção - GI (n = 7), totalizando 14 flancos. As voluntárias foram submetidas a um Protocolo de Avaliação, que incluiu anamnese, avaliação antropométrica, fotogrametria, ultrassonografia e perimetria. No GI, o equipamento Manthus foi utilizado exclusivamente no modo bipolar de criofrequência. Foi realizada análise estatística descritiva por média e desvio padrão. A análise inferencial foi realizada por meio do teste de Wilcoxon, com nível de significância de p<0,05. Após finalização do protocolo, observou-se redução na perimetria e na espessura da camada adiposa do flanco do GI, apresentando alterações significativas. Também foi verificado o nível de satisfação segundo o GAP, apresentando satisfação completa (100%) entre as voluntárias avaliadas. Conclui-se que a criofrequência foi eficaz para o tratamento da adiposidade localizada, gerando uma satisfação positiva entre as voluntárias avaliadas.
+Este é um placeholder. A extração de texto real do conteúdo do PDF (${document.link_dropbox}) está pendente de implementação.
+Consulte o arquivo PDF original para o conteúdo completo.
 
-## Introdução
-A criofrequência é uma tecnologia inovadora que combina os benefícios da radiofrequência com o resfriamento controlado dos tecidos. Esta abordagem permite tratar a adiposidade localizada de forma eficaz, mantendo a integridade da pele e minimizando desconfortos durante o procedimento.
+Palavras-chave preliminares (se disponíveis do formulário): ${keywordsString}
+Pesquisadores preliminares (se disponíveis do formulário): ${researchersString}
 
-O estudo foi conduzido com rigor metodológico para avaliar a eficácia desta tecnologia na região dos flancos, uma área comum de acúmulo de gordura localizada e de difícil tratamento com métodos convencionais.
-
-## Metodologia
-- Seleção de 7 voluntárias para o estudo
-- Divisão em grupos controle e intervenção
-- Realização de 10 sessões de criofrequência no grupo intervenção
-- Utilização do equipamento Manthus no modo bipolar
-- Avaliação por anamnese, antropometria, fotogrametria, ultrassom e perimetria
-- Análise estatística por teste de Wilcoxon com p<0,05
-
-## Resultados
-Os resultados demonstraram eficácia significativa da tecnologia de criofrequência, com:
-- Redução mensurável na perimetria dos flancos
-- Diminuição na espessura da camada adiposa
-- Melhora na aparência estética da região
-- Índice de 100% de satisfação entre as voluntárias
-
-## Conclusão
-A criofrequência mostrou-se eficaz para o tratamento da adiposidade localizada nos flancos, apresentando resultados significativos na redução das medidas e espessura do tecido adiposo. A tecnologia foi bem tolerada pelas participantes e gerou alto índice de satisfação, indicando seu potencial como alternativa não invasiva para tratamentos estéticos.
-
-## Palavras-chave
-Radiofrequência, Crioterapia, Tecido Adiposo, Adiposidade Localizada, Estética
-
-## Autores
-Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela Fernandes de Medeiros, Sywdixianny Silva de Brito Guerra, Regina da Silva Nobre, Patricia Froes Meyer
+--- FIM DO PLACEHOLDER ---
 `;
       
-      console.log("Successfully generated extracted text");
+      // console.log("Successfully generated extracted text"); // Original log
+      console.log("Successfully generated placeholder extracted text"); // New log
       
       // Extract document info using OpenAI API directly
       const documentInfo = await extractDocumentInfo(extractedText, true);
