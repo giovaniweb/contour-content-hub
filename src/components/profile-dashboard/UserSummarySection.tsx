@@ -1,32 +1,38 @@
 
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { FileText, Book, LayoutDashboard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-const UserSummarySection: React.FC = () => (
-  <Card className="aurora-glass border-white/10">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <LayoutDashboard className="w-5 h-5 text-purple-400" />
-        Meus Dados
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="flex flex-col gap-4">
-      <Link to="/approved-scripts" className="flex items-center gap-2 hover-scale px-2 py-2 rounded transition-all bg-gradient-to-r from-purple-700/40 to-blue-700/30">
-        <FileText className="w-5 h-5 text-blue-400" />
-        <span>Meus Roteiros</span>
-      </Link>
-      <Link to="/diagnostic-history" className="flex items-center gap-2 hover-scale px-2 py-2 rounded transition-all bg-gradient-to-r from-purple-900/40 to-blue-800/20">
-        <Book className="w-5 h-5 text-pink-400" />
-        <span>Meus Diagnósticos</span>
-      </Link>
-      <Link to="/profile-dashboard" className="flex items-center gap-2 hover-scale px-2 py-2 rounded transition-all bg-gradient-to-r from-purple-800/20 to-blue-900/20">
-        <LayoutDashboard className="w-5 h-5 text-emerald-400" />
-        <span>Minha Dashboard</span>
-      </Link>
-    </CardContent>
-  </Card>
-);
+const UserSummarySection: React.FC = () => {
+  const { user } = useAuth();
+  
+  return (
+    <Card className="aurora-glass-enhanced aurora-border-enhanced">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <User className="w-5 h-5 text-blue-400" />
+          Informações Pessoais
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-white/70">Nome:</span>
+            <span className="text-white">{user?.full_name || user?.email || 'Usuário'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/70">Email:</span>
+            <span className="text-white">{user?.email}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/70">Perfil:</span>
+            <span className="text-white capitalize">{user?.role || 'user'}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default UserSummarySection;

@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
@@ -8,8 +9,9 @@ const Card = React.forwardRef<
     glass?: boolean; 
     gradient?: boolean;
     interactive?: boolean;
+    auroraBorder?: boolean;
   }
->(({ className, elevation = 'low', glass = false, gradient = false, interactive = false, ...props }, ref) => {
+>(({ className, elevation = 'low', glass = false, gradient = false, interactive = false, auroraBorder = true, ...props }, ref) => {
   const elevationClasses = {
     flat: "shadow-none",
     low: "shadow-sm",
@@ -23,9 +25,10 @@ const Card = React.forwardRef<
       className={cn(
         "rounded-xl border bg-card text-card-foreground transition-all duration-200",
         elevationClasses[elevation],
-        glass && "backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 border-white/20 dark:border-gray-700/30",
+        glass && "aurora-glass-enhanced",
         gradient && "bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900",
         interactive && "hover:shadow-lg hover:shadow-primary/10 cursor-pointer hover:-translate-y-1",
+        auroraBorder && "aurora-border-enhanced",
         className
       )}
       {...props}
