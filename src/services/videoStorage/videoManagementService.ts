@@ -1,16 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Video, VideoFilterOptions, VideoSortOptions } from '@/types/video-storage';
-
-export interface VideoStatistics {
-  totalViews: number;
-  totalDownloads: number;
-  totalShares: number;
-  averageRating: number;
-  uploadDate: string;
-  fileSize?: string;
-  duration?: string;
-}
+import { Video, VideoFilterOptions, VideoSortOptions, VideoStatistics } from '@/types/video-storage';
 
 export async function deleteVideo(videoId: string): Promise<{
   success: boolean;
@@ -213,9 +203,15 @@ export async function getVideos(
     if (filters.endDate) {
       query = query.lte('data_upload', filters.endDate.toISOString());
     }
+
+    if (filters.status && filters.status.length > 0) {
+      // Assumindo que a coluna de status no BD se chama 'status'
+      // e que VideoStatus é um array de strings válidas para o status.
+      query = query.in('status', filters.status);
+    }
     
     // Apply sorting
-    const validSortFields = ['data_upload', 'titulo', 'downloads_count', 'favoritos_count', 'curtidas'];
+    const validSortFields = ['data_upload', 'titulo', 'downloads_count', 'favoritos_count', 'curtidas', 'status']; // Adicionado 'status' se for um campo ordenável
     const sortField = validSortFields.includes(sortOptions.field) ? sortOptions.field : 'data_upload';
     query = query.order(sortField, { ascending: sortOptions.direction === 'asc' });
     
@@ -548,22 +544,60 @@ export async function removeMockupVideos(): Promise<{
   error?: string;
 }> {
   try {
-    console.log('🧹 Removendo vídeos mockup...');
-    
-    const { error } = await supabase
+    console.log('🧹 Iniciando remoção de vídeos mockup...');
+
+    const { data: mockupVideos, error: fetchError } = await supabase
       .from('videos')
-      .delete()
+      .select('id') // Apenas o ID é necessário para chamar deleteVideo
       .or('titulo.ilike.%mock%,titulo.ilike.%test%,titulo.ilike.%exemplo%,url_video.like.%placeholder%,url_video.like.%via.placeholder%');
-    
-    if (error) {
-      throw new Error(error.message);
+
+    if (fetchError) {
+      console.error('💥 Erro ao buscar vídeos mockup:', fetchError);
+      throw new Error(`Erro ao buscar vídeos mockup: ${fetchError.message}`);
     }
-    
-    console.log('✅ Vídeos mockup removidos');
+
+    if (!mockupVideos || mockupVideos.length === 0) {
+      console.log('ℹ️ Nenhum vídeo mockup encontrado para remover.');
+      return { success: true };
+    }
+
+    console.log(`🔎 Encontrados ${mockupVideos.length} vídeos mockup para remover.`);
+
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
+
+    for (const video of mockupVideos) {
+      if (video.id) { // Garantir que o ID existe
+        console.log(`🗑️ Tentando remover vídeo mockup com ID: ${video.id}`);
+        const result = await deleteVideo(video.id); // Reutiliza a função deleteVideo robusta
+        if (result.success) {
+          successCount++;
+        } else {
+          errorCount++;
+          errors.push(`ID ${video.id}: ${result.error || 'Erro desconhecido'}`);
+          console.warn(`⚠️ Falha ao remover vídeo mockup ID ${video.id}: ${result.error}`);
+        }
+      } else {
+        console.warn('⚠️ Encontrado vídeo mockup sem ID, pulando:', video);
+        // Opcionalmente, incrementar errorCount ou logar de forma diferente
+      }
+    }
+
+    if (errorCount > 0) {
+      const errorMessage = `${successCount} vídeos mockup removidos, ${errorCount} falharam. Erros: ${errors.join('; ')}`;
+      console.warn(`🏁 Remoção de vídeos mockup concluída com falhas: ${errorMessage}`);
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+
+    console.log(`✅ ${successCount} vídeos mockup removidos com sucesso.`);
     return { success: true };
-    
+
   } catch (error) {
-    console.error('💥 Erro ao remover vídeos mockup:', error);
+    console.error('💥 Erro geral ao remover vídeos mockup:', error);
     return {
       success: false,
       error: error.message || 'Erro ao remover vídeos mockup'

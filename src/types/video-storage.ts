@@ -160,3 +160,13 @@ export interface VideoBatchUploadResult {
     fileName: string;
   }>;
 }
+
+export interface VideoStatistics {
+  totalViews: number;
+  totalDownloads: number;
+  totalShares: number;
+  averageRating: number;
+  uploadDate: string;
+  fileSize?: string;
+  duration?: string;
+}

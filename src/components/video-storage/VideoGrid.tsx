@@ -54,12 +54,15 @@ const VideoGrid: React.FC<VideoGridProps> = ({
   const isAllSelected = videos.length > 0 && selectedVideos.length === videos.length;
 
   const handleDeleteClick = (video: Video) => {
+    console.log('[VideoGrid] handleDeleteClick chamado com video:', JSON.parse(JSON.stringify(video)));
     setVideoToDelete(video);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
+    console.log('[VideoGrid] confirmDelete chamado. videoToDelete é:', JSON.parse(JSON.stringify(videoToDelete)));
     if (videoToDelete) {
+      console.log('[VideoGrid] Em confirmDelete, prestes a chamar props.onDelete com id:', videoToDelete?.id);
       onDelete(videoToDelete.id);
       setDeleteDialogOpen(false);
       setVideoToDelete(null);

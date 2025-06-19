@@ -183,7 +183,11 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
           <DropdownMenuSeparator />
           
           <DropdownMenuItem 
-            onClick={() => onDelete(video)} // Chama diretamente a prop onDelete
+            onClick={() => {
+              console.log('[VideoActionMenu] Excluir clicado. Video:', JSON.parse(JSON.stringify(video)));
+              console.log('[VideoActionMenu] Chamando props.onDelete...');
+              onDelete(video);
+            }}
             className="text-destructive focus:text-destructive"
             disabled={loading === 'delete'} // Opcional: desabilitar se o pai estiver lidando com loading
           >

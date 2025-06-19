@@ -1,18 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Video, VideoFilterOptions } from '@/types/video-storage'; // Tipos centralizados
 import { 
-  getVideos, 
-  updateVideos, 
-  Video, 
-  VideoFilters,
-  // removeMockupVideos // Removido daqui se for para videoManagementService ou se não for usado no hook
-} from '@/services/videoStorage/videoService'; // Funções de leitura e atualização geral
-import {
+  getVideos,
+  updateVideos,
   deleteVideo,
   deleteVideos,
-  removeMockupVideos // Assumindo que removeMockupVideos também foi para videoManagementService
-} from '@/services/videoStorage/videoManagementService'; // Funções de gerenciamento/exclusão
+  removeMockupVideos
+} from '@/services/videoStorage/videoManagementService'; // Todas as funções de serviço do ManagementService
 import { useEquipments } from '@/hooks/useEquipments';
 
 export const useVideoManager = () => {
@@ -22,15 +18,17 @@ export const useVideoManager = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<VideoFilters>({});
+  const [filters, setFilters] = useState<VideoFilterOptions>({}); // Usar VideoFilterOptions
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
   // Carregar vídeos
   const loadVideos = async () => {
+    console.log('[useVideoManager] Iniciando loadVideos com filtros:', filters, 'e página:', page);
     setLoading(true);
     try {
       const { videos: loadedVideos, total: totalCount, error } = await getVideos(filters, page, 20);
+      console.log('[useVideoManager] Resultado de getVideos em loadVideos:', { loadedVideos, totalCount, error });
       
       if (error) {
         throw new Error(error);
@@ -39,7 +37,7 @@ export const useVideoManager = () => {
       setVideos(loadedVideos);
       setTotal(totalCount);
     } catch (error) {
-      console.error('Erro ao carregar vídeos:', error);
+      console.error('[useVideoManager] Erro capturado em loadVideos:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
@@ -91,9 +89,10 @@ export const useVideoManager = () => {
         description: 'Vídeo excluído com sucesso'
       });
 
+      console.log('[useVideoManager] handleDeleteVideo: Sucesso na exclusão, prestes a chamar loadVideos().');
       loadVideos();
     } catch (error) {
-      console.error('[useVideoManager] Erro capturado em handleDeleteVideo:', error);
+      console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleDeleteVideo:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
@@ -123,9 +122,10 @@ export const useVideoManager = () => {
       });
 
       setSelectedVideos([]);
+      console.log('[useVideoManager] handleBulkDelete: Sucesso na exclusão em massa, prestes a chamar loadVideos().');
       loadVideos();
     } catch (error) {
-      console.error('[useVideoManager] Erro capturado em handleBulkDelete:', error);
+      console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleBulkDelete:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
@@ -228,7 +228,7 @@ export const useVideoManager = () => {
   };
 
   // Aplicar filtros
-  const handleFilterChange = (newFilters: VideoFilters) => {
+  const handleFilterChange = (newFilters: VideoFilterOptions) => { // Usar VideoFilterOptions
     setFilters(newFilters);
     setPage(1);
   };
