@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { TechnicalDocument } from '@/types/document';
-import PdfViewer from './PdfViewer';
+import PDFViewer from './PDFViewer';
 import { toast } from 'sonner';
 import { isPdfUrlValid } from '@/utils/pdfUtils';
 
@@ -63,7 +63,7 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   }
   
   return (
-    <PdfViewer
+    <PDFViewer
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title={document?.titulo || 'Documento'}
