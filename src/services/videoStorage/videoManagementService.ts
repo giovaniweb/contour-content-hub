@@ -1,584 +1,227 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Video, VideoFilterOptions, VideoSortOptions, VideoStatistics } from '@/types/video-storage';
+import { Video } from '@/services/videoStorage/videoService';
+import { VideoFilterOptions } from '@/types/video-storage';
 
-export async function deleteVideo(videoId: string): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    console.log('🗑️ Deletando vídeo:', videoId);
-    
-    // First get the video to find the file path
-    const { data: video, error: fetchError } = await supabase
-      .from('videos')
-      .select('url_video, thumbnail_url')
-      .eq('id', videoId)
-      .single();
-    
-    if (fetchError) {
-      throw new Error('Vídeo não encontrado');
-    }
-    
-    const filesToDelete: string[] = [];
-    
-    // Extract file path from URL
-    if (video.url_video && typeof video.url_video === 'string' && video.url_video.trim() !== '') {
-      try {
-        const url = new URL(video.url_video);
-        const pathParts = url.pathname.split('/');
-        const bucketIndex = pathParts.indexOf('videos');
-
-        if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-          const filePath = pathParts.slice(bucketIndex + 1).join('/');
-          if (filePath.trim() !== '') { // Adicionar verificação para filePath não ser vazia
-            filesToDelete.push(filePath);
-          } else {
-            console.warn(`Caminho do arquivo de vídeo extraído resultou em string vazia para videoId ${videoId} da URL: ${video.url_video}`);
-          }
-        } else {
-          console.warn(`Não foi possível determinar o caminho do arquivo de vídeo no storage a partir da URL para videoId ${videoId}: ${video.url_video}`);
-        }
-      } catch (e) {
-        console.warn(`Erro ao processar url_video para videoId ${videoId}: ${video.url_video}. Erro: ${e.message}`);
-      }
-    } else {
-      console.warn(`URL de vídeo inválida ou ausente para videoId ${videoId}:`, video.url_video);
-    }
-    
-    // Extract thumbnail path if exists
-    if (video.thumbnail_url && typeof video.thumbnail_url === 'string' && video.thumbnail_url.trim() !== '') {
-      try {
-        const thumbnailUrlObj = new URL(video.thumbnail_url); // Renomeado para evitar conflito
-        const thumbnailParts = thumbnailUrlObj.pathname.split('/');
-        const bucketIndex = thumbnailParts.indexOf('videos'); // Assume que thumbnails também estão no bucket 'videos'
-
-        if (bucketIndex !== -1 && bucketIndex < thumbnailParts.length - 1) {
-          const thumbnailPath = thumbnailParts.slice(bucketIndex + 1).join('/');
-          if (thumbnailPath.trim() !== '') { // Adicionar verificação para thumbnailPath não ser vazia
-            filesToDelete.push(thumbnailPath);
-          } else {
-            console.warn(`Caminho da thumbnail extraído resultou em string vazia para videoId ${videoId} da URL: ${video.thumbnail_url}`);
-          }
-        } else {
-          console.warn(`Não foi possível determinar o caminho da thumbnail no storage a partir da URL para videoId ${videoId}: ${video.thumbnail_url}`);
-        }
-      } catch (e) {
-        console.warn(`Erro ao processar thumbnail_url para videoId ${videoId}: ${video.thumbnail_url}. Erro: ${e.message}`);
-      }
-    } else {
-      console.warn(`URL de thumbnail inválida ou ausente para videoId ${videoId}:`, video.thumbnail_url);
-    }
-    
-    // Delete files from storage
-    if (filesToDelete.length === 0) {
-      console.log('Nenhum arquivo associado encontrado no storage para deletar para o vídeo ID:', videoId);
-    } else {
-      console.log('Tentando deletar os seguintes arquivos do storage para o vídeo ID:', videoId, filesToDelete);
-    }
-
-    if (filesToDelete.length > 0) {
-      const { error: storageError } = await supabase.storage
-        .from('videos')
-        .remove(filesToDelete);
-      
-      if (storageError) {
-        // Tornar o erro do storage crítico
-        throw new Error(`Erro ao deletar arquivos do storage: ${storageError.message}`);
-      } else {
-        console.log('🗑️ Arquivos deletados do storage:', filesToDelete);
-      }
-    }
-    
-    // Delete related records first (foreign key constraints)
-    await supabase.from('video_downloads').delete().eq('video_id', videoId);
-    await supabase.from('favoritos').delete().eq('video_id', videoId);
-    await supabase.from('avaliacoes').delete().eq('video_id', videoId);
-    
-    // Delete record from database
-    const { error: dbError } = await supabase
-      .from('videos')
-      .delete()
-      .eq('id', videoId);
-    
-    if (dbError) {
-      throw new Error(`Erro ao deletar registro: ${dbError.message}`);
-    }
-    
-    console.log('✅ Vídeo deletado com sucesso:', videoId);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('💥 Erro ao deletar vídeo:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao deletar vídeo'
-    };
-  }
+export interface VideoStatistics {
+  totalViews: number;
+  totalDownloads: number;
+  totalShares: number;
+  averageRating: number;
+  uploadDate: string;
+  fileSize?: string;
+  duration?: string;
 }
 
-// Add alias for VideoActionMenu compatibility
-export const deleteVideoCompletely = deleteVideo;
-
-export async function deleteVideos(videoIds: string[]): Promise<{
+interface VideoManagementResult {
   success: boolean;
   error?: string;
-}> {
-  try {
-    console.log('🗑️ Deletando vídeos em lote:', videoIds.length);
-    
-    let successCount = 0;
-    let errorCount = 0;
-    const errors: string[] = [];
-    
-    // Delete videos one by one to handle errors properly
-    for (const videoId of videoIds) {
-      const result = await deleteVideo(videoId);
-      if (result.success) {
-        successCount++;
-      } else {
-        errorCount++;
-        errors.push(`${videoId}: ${result.error}`);
-      }
-    }
-    
-    if (errorCount > 0) {
-      console.warn(`⚠️ ${errorCount} vídeos falharam ao deletar:`, errors);
-      return {
-        success: false,
-        error: `${successCount} vídeos deletados, ${errorCount} falharam. Erros: ${errors.join('; ')}`
-      };
-    }
-    
-    console.log(`✅ ${successCount} vídeos deletados com sucesso`);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('💥 Erro ao deletar vídeos em lote:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao deletar vídeos'
-    };
-  }
+  videos?: Video[];
+  total?: number;
 }
 
-export async function getVideos(
+interface VideoStatsResult {
+  success: boolean;
+  error?: string;
+  statistics?: VideoStatistics;
+}
+
+interface BulkUpdateResult {
+  success: boolean;
+  error?: string;
+}
+
+export const getVideos = async (
   filters: VideoFilterOptions = {},
-  sortOptions: VideoSortOptions = { field: 'data_upload', direction: 'desc' },
   page: number = 1,
-  pageSize: number = 20
-): Promise<{
-  success: boolean;
-  videos: Video[];
-  total: number;
-  error?: string;
-}> {
+  limit: number = 20
+): Promise<VideoManagementResult> => {
   try {
-    console.log('📥 Buscando vídeos:', { filters, sortOptions, page, pageSize });
+    console.log('[videoManagementService] getVideos chamado com:', { filters, page, limit });
     
-    let query = supabase.from('videos').select('*', { count: 'exact' });
-    
+    let query = supabase
+      .from('videos')
+      .select('*', { count: 'exact' })
+      .order('data_upload', { ascending: false });
+
     // Apply filters
     if (filters.search) {
       query = query.or(`titulo.ilike.%${filters.search}%,descricao_curta.ilike.%${filters.search}%,descricao_detalhada.ilike.%${filters.search}%`);
     }
-    
-    if (filters.category) {
-      query = query.eq('categoria', filters.category);
-    }
-    
+
     if (filters.equipment && filters.equipment.length > 0) {
-      // For array columns, check if any equipment matches
       query = query.overlaps('equipamentos', filters.equipment);
     }
-    
+
     if (filters.tags && filters.tags.length > 0) {
       query = query.overlaps('tags', filters.tags);
     }
-    
-    if (filters.startDate) {
-      query = query.gte('data_upload', filters.startDate.toISOString());
-    }
-    
-    if (filters.endDate) {
-      query = query.lte('data_upload', filters.endDate.toISOString());
-    }
 
-    if (filters.status && filters.status.length > 0) {
-      // Assumindo que a coluna de status no BD se chama 'status'
-      // e que VideoStatus é um array de strings válidas para o status.
-      query = query.in('status', filters.status);
-    }
+    // Pagination
+    const offset = (page - 1) * limit;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
     
-    // Apply sorting
-    const validSortFields = ['data_upload', 'titulo', 'downloads_count', 'favoritos_count', 'curtidas', 'status']; // Adicionado 'status' se for um campo ordenável
-    const sortField = validSortFields.includes(sortOptions.field) ? sortOptions.field : 'data_upload';
-    query = query.order(sortField, { ascending: sortOptions.direction === 'asc' });
-    
-    // Apply pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
-    
-    const { data: videos, error, count } = await query;
+    console.log('[videoManagementService] Resultado da query:', { data, error, count });
     
     if (error) {
-      throw new Error(error.message);
+      console.error('[videoManagementService] Erro na query:', error);
+      throw error;
     }
-    
-    console.log(`✅ ${videos?.length || 0} vídeos encontrados de ${count || 0} total`);
-    
-    // Type assertion to handle tipo_video string to literal type conversion
-    const typedVideos: Video[] = (videos || []).map(video => ({
-      ...video,
-      tipo_video: (video.tipo_video === 'take' ? 'take' : 'video_pronto') as 'video_pronto' | 'take'
+
+    const videos: Video[] = (data || []).map(item => ({
+      id: item.id,
+      titulo: item.titulo || '',
+      descricao_curta: item.descricao_curta,
+      descricao_detalhada: item.descricao_detalhada,
+      tipo_video: item.tipo_video as 'video_pronto' | 'take',
+      categoria: item.categoria,
+      equipamentos: item.equipamentos || [],
+      tags: item.tags || [],
+      url_video: item.url_video || '',
+      preview_url: item.preview_url,
+      thumbnail_url: item.thumbnail_url,
+      duracao: item.duracao,
+      area_corpo: item.area_corpo,
+      finalidade: item.finalidade || [],
+      downloads_count: item.downloads_count || 0,
+      favoritos_count: item.favoritos_count || 0,
+      curtidas: item.curtidas || 0,
+      compartilhamentos: item.compartilhamentos || 0,
+      data_upload: item.data_upload || new Date().toISOString(),
+      created_at: item.data_upload,
+      updated_at: item.data_upload
     }));
-    
+
     return {
       success: true,
-      videos: typedVideos,
+      videos,
       total: count || 0
     };
-    
   } catch (error) {
-    console.error('💥 Erro ao buscar vídeos:', error);
+    console.error('[videoManagementService] Erro em getVideos:', error);
     return {
       success: false,
-      videos: [],
-      total: 0,
       error: error.message || 'Erro ao buscar vídeos'
     };
   }
-}
+};
 
-export async function getVideoById(videoId: string): Promise<{
-  success: boolean;
-  video?: Video;
-  error?: string;
-}> {
+export const getVideoStatistics = async (videoId: string): Promise<VideoStatsResult> => {
   try {
-    console.log('📥 Buscando vídeo por ID:', videoId);
-    
-    const { data: video, error } = await supabase
-      .from('videos')
-      .select('*')
-      .eq('id', videoId)
-      .maybeSingle();
-    
-    if (error) {
-      throw new Error(error.message);
-    }
-    
-    if (!video) {
-      return {
-        success: false,
-        error: 'Vídeo não encontrado'
-      };
-    }
-    
-    console.log('✅ Vídeo encontrado:', video.titulo);
-    
-    // Type assertion to handle tipo_video string to literal type conversion
-    const typedVideo: Video = {
-      ...video,
-      tipo_video: (video.tipo_video === 'take' ? 'take' : 'video_pronto') as 'video_pronto' | 'take'
-    };
-    
-    return {
-      success: true,
-      video: typedVideo
-    };
-    
-  } catch (error) {
-    console.error('💥 Erro ao buscar vídeo:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao buscar vídeo'
-    };
-  }
-}
-
-export async function updateVideo(
-  videoId: string,
-  updates: Partial<Video>
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    console.log('📝 Atualizando vídeo:', videoId, updates);
-    
-    // Clean up the updates object - remove undefined and null values
-    const cleanUpdates = Object.fromEntries(
-      Object.entries(updates).filter(([_, value]) => value !== undefined && value !== null)
-    );
-    
-    const { error } = await supabase
-      .from('videos')
-      .update(cleanUpdates)
-      .eq('id', videoId);
-    
-    if (error) {
-      throw new Error(`Erro ao atualizar vídeo: ${error.message}`);
-    }
-    
-    console.log('✅ Vídeo atualizado com sucesso:', videoId);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('💥 Erro ao atualizar vídeo:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao atualizar vídeo'
-    };
-  }
-}
-
-export async function updateVideos(
-  videoIds: string[],
-  updates: Partial<Video>
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    console.log('📝 Atualizando vídeos em lote:', videoIds.length, updates);
-    
-    // Clean up the updates object
-    const cleanUpdates = Object.fromEntries(
-      Object.entries(updates).filter(([_, value]) => value !== undefined && value !== null)
-    );
-    
-    const { error } = await supabase
-      .from('videos')
-      .update(cleanUpdates)
-      .in('id', videoIds);
-    
-    if (error) {
-      throw new Error(`Erro ao atualizar vídeos: ${error.message}`);
-    }
-    
-    console.log(`✅ ${videoIds.length} vídeos atualizados com sucesso`);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('💥 Erro ao atualizar vídeos:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao atualizar vídeos'
-    };
-  }
-}
-
-export async function downloadVideo(
-  videoId: string,
-  quality: string = 'original'
-): Promise<{
-  success: boolean;
-  downloadUrl?: string;
-  error?: string;
-}> {
-  try {
-    console.log('📥 Iniciando download do vídeo:', videoId);
-    
-    // Get authenticated user
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) {
-      throw new Error('Usuário não autenticado');
-    }
-    
-    // Get video details
-    const { data: video, error: videoError } = await supabase
-      .from('videos')
-      .select('*')
-      .eq('id', videoId)
-      .maybeSingle();
-    
-    if (videoError) {
-      throw new Error(videoError.message);
-    }
-    
-    if (!video) {
-      throw new Error('Vídeo não encontrado');
-    }
-    
-    // Log download
-    const { error: logError } = await supabase
-      .from('video_downloads')
-      .insert({
-        video_id: videoId,
-        user_id: userData.user.id,
-        quality,
-        downloaded_at: new Date().toISOString(),
-        ip_address: null, // Will be populated by RLS if needed
-        user_agent: navigator.userAgent
-      });
-    
-    if (logError) {
-      console.warn('⚠️ Erro ao registrar download:', logError);
-    }
-    
-    // Update download count
-    const { error: updateError } = await supabase
-      .from('videos')
-      .update({
-        downloads_count: (video.downloads_count || 0) + 1
-      })
-      .eq('id', videoId);
-    
-    if (updateError) {
-      console.warn('⚠️ Erro ao atualizar contador:', updateError);
-    }
-    
-    console.log('✅ Download registrado com sucesso');
-    
-    return {
-      success: true,
-      downloadUrl: video.url_video
-    };
-    
-  } catch (error) {
-    console.error('💥 Erro no download:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro no download'
-    };
-  }
-}
-
-export async function getVideoStatistics(videoId: string): Promise<{
-  success: boolean;
-  statistics?: VideoStatistics;
-  error?: string;
-}> {
-  try {
-    // Get video data from the videos table
     const { data: video, error } = await supabase
       .from('videos')
       .select('*')
       .eq('id', videoId)
       .single();
 
-    if (error || !video) {
-      return { success: false, error: 'Vídeo não encontrado' };
-    }
+    if (error) throw error;
 
     const statistics: VideoStatistics = {
-      totalViews: 0, // Placeholder - implement view tracking if needed
+      totalViews: 0, // This would come from analytics if implemented
       totalDownloads: video.downloads_count || 0,
       totalShares: video.compartilhamentos || 0,
-      averageRating: 0, // Placeholder - implement rating system if needed
-      uploadDate: video.data_upload || video.created_at,
-      fileSize: video.duracao ? `${video.duracao}` : undefined,
-      duration: video.duracao
+      averageRating: 0, // This would come from ratings if implemented
+      uploadDate: video.data_upload || new Date().toISOString(),
+      duration: video.duracao,
+      fileSize: undefined // This would need to be calculated or stored
     };
 
-    return { success: true, statistics };
-  } catch (error) {
-    console.error('Erro ao buscar estatísticas do vídeo:', error);
-    return { success: false, error: 'Erro ao buscar estatísticas' };
-  }
-}
-
-export async function copyVideoLink(videoId: string): Promise<{
-  success: boolean;
-  link?: string;
-  error?: string;
-}> {
-  try {
-    const { data: video, error } = await supabase
-      .from('videos')
-      .select('url_video')
-      .eq('id', videoId)
-      .maybeSingle();
-    
-    if (error) {
-      throw new Error(error.message);
-    }
-    
-    if (!video || !video.url_video) {
-      throw new Error('Vídeo ou URL não encontrado');
-    }
-    
-    // Copy to clipboard
-    await navigator.clipboard.writeText(video.url_video);
-    
     return {
       success: true,
-      link: video.url_video
+      statistics
     };
-    
   } catch (error) {
-    console.error('💥 Erro ao copiar link:', error);
+    console.error('[videoManagementService] Erro ao buscar estatísticas:', error);
     return {
       success: false,
-      error: error.message || 'Erro ao copiar link'
+      error: error.message || 'Erro ao buscar estatísticas do vídeo'
     };
   }
-}
+};
 
-// Remove mockup videos function
-export async function removeMockupVideos(): Promise<{
-  success: boolean;
-  error?: string;
-}> {
+export const deleteVideo = async (videoId: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    console.log('🧹 Iniciando remoção de vídeos mockup...');
-
-    const { data: mockupVideos, error: fetchError } = await supabase
+    const { error } = await supabase
       .from('videos')
-      .select('id') // Apenas o ID é necessário para chamar deleteVideo
-      .or('titulo.ilike.%mock%,titulo.ilike.%test%,titulo.ilike.%exemplo%,url_video.like.%placeholder%,url_video.like.%via.placeholder%');
+      .delete()
+      .eq('id', videoId);
 
-    if (fetchError) {
-      console.error('💥 Erro ao buscar vídeos mockup:', fetchError);
-      throw new Error(`Erro ao buscar vídeos mockup: ${fetchError.message}`);
+    if (error) {
+      console.error('[videoManagementService] Erro ao excluir vídeo:', error);
+      throw error;
     }
 
-    if (!mockupVideos || mockupVideos.length === 0) {
-      console.log('ℹ️ Nenhum vídeo mockup encontrado para remover.');
-      return { success: true };
-    }
-
-    console.log(`🔎 Encontrados ${mockupVideos.length} vídeos mockup para remover.`);
-
-    let successCount = 0;
-    let errorCount = 0;
-    const errors: string[] = [];
-
-    for (const video of mockupVideos) {
-      if (video.id) { // Garantir que o ID existe
-        console.log(`🗑️ Tentando remover vídeo mockup com ID: ${video.id}`);
-        const result = await deleteVideo(video.id); // Reutiliza a função deleteVideo robusta
-        if (result.success) {
-          successCount++;
-        } else {
-          errorCount++;
-          errors.push(`ID ${video.id}: ${result.error || 'Erro desconhecido'}`);
-          console.warn(`⚠️ Falha ao remover vídeo mockup ID ${video.id}: ${result.error}`);
-        }
-      } else {
-        console.warn('⚠️ Encontrado vídeo mockup sem ID, pulando:', video);
-        // Opcionalmente, incrementar errorCount ou logar de forma diferente
-      }
-    }
-
-    if (errorCount > 0) {
-      const errorMessage = `${successCount} vídeos mockup removidos, ${errorCount} falharam. Erros: ${errors.join('; ')}`;
-      console.warn(`🏁 Remoção de vídeos mockup concluída com falhas: ${errorMessage}`);
-      return {
-        success: false,
-        error: errorMessage
-      };
-    }
-
-    console.log(`✅ ${successCount} vídeos mockup removidos com sucesso.`);
     return { success: true };
-
   } catch (error) {
-    console.error('💥 Erro geral ao remover vídeos mockup:', error);
+    console.error('[videoManagementService] Erro capturado em deleteVideo:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao excluir o vídeo'
+    };
+  }
+};
+
+export const deleteVideos = async (videoIds: string[]): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase
+      .from('videos')
+      .delete()
+      .in('id', videoIds);
+
+    if (error) {
+      console.error('[videoManagementService] Erro ao excluir vídeos em massa:', error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[videoManagementService] Erro capturado em deleteVideos:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao excluir os vídeos em massa'
+    };
+  }
+};
+
+export const updateVideos = async (videoIds: string[], updates: Partial<Video>): Promise<BulkUpdateResult> => {
+  try {
+    const { data, error } = await supabase
+      .from('videos')
+      .update(updates)
+      .in('id', videoIds);
+
+    if (error) {
+      console.error('[videoManagementService] Erro ao atualizar vídeos em massa:', error);
+      return { success: false, error: error.message || 'Erro ao atualizar vídeos' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[videoManagementService] Erro capturado em updateVideos:', error);
+    return { success: false, error: error.message || 'Erro ao atualizar vídeos' };
+  }
+};
+
+export const removeMockupVideos = async (): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Assuming there's a way to identify mockup videos, e.g., through a specific tag or naming convention
+    const { data, error } = await supabase
+      .from('videos')
+      .delete()
+      .like('titulo', 'Mockup%'); // Example: delete videos with titles starting with "Mockup"
+
+    if (error) {
+      console.error('[videoManagementService] Erro ao remover vídeos mockup:', error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[videoManagementService] Erro capturado em removeMockupVideos:', error);
     return {
       success: false,
       error: error.message || 'Erro ao remover vídeos mockup'
     };
   }
-}
+};

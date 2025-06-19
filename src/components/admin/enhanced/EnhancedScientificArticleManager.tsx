@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, ArrowLeft, FileText, Users, Calendar, ExternalLink } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
-import { TechnicalDocument, DocumentType } from '@/types/document';
+import { TechnicalDocument, DocumentType, DocumentStatus } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedScientificArticleForm from './EnhancedScientificArticleForm';
 
@@ -43,7 +44,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
       const formattedDocuments = data?.map(doc => ({
         ...doc,
-        tipo: doc.tipo as DocumentType, // Cast explícito para DocumentType
+        tipo: doc.tipo as DocumentType,
+        status: (doc.status || 'ativo') as DocumentStatus,
         equipamento_nome: doc.equipamentos?.nome || null
       })) || [];
 
