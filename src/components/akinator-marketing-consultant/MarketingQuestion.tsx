@@ -1,11 +1,10 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Lightbulb, Target, Users, TrendingUp, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MarketingQuestionProps } from '../types';
+import { MarketingQuestionProps } from './types';
 
 const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   question,
