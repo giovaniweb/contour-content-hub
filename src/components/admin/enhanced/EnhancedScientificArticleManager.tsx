@@ -16,8 +16,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<DocumentType | ''>('');
-  const [selectedEquipment, setSelectedEquipment] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<DocumentType | 'all'>('all');
+  const [selectedEquipment, setSelectedEquipment] = useState<string>('all');
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<TechnicalDocument | null>(null);
   const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
@@ -28,8 +28,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   useEffect(() => {
     fetchDocuments({
-      type: selectedType || undefined,
-      equipmentId: selectedEquipment || undefined,
+      type: selectedType === 'all' ? undefined : selectedType,
+      equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
       search: searchTerm || undefined
     });
   }, [searchTerm, selectedType, selectedEquipment, fetchDocuments]);
@@ -67,8 +67,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
       doc.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.descricao?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = !selectedType || doc.tipo === selectedType;
-    const matchesEquipment = !selectedEquipment || doc.equipamento_id === selectedEquipment;
+    const matchesType = selectedType === 'all' || doc.tipo === selectedType;
+    const matchesEquipment = selectedEquipment === 'all' || doc.equipamento_id === selectedEquipment;
     
     return matchesSearch && matchesType && matchesEquipment;
   });
@@ -102,12 +102,12 @@ const EnhancedScientificArticleManager: React.FC = () => {
           />
         </div>
         
-        <Select value={selectedType} onValueChange={(value: DocumentType | '') => setSelectedType(value)}>
+        <Select value={selectedType} onValueChange={(value: DocumentType | 'all') => setSelectedType(value)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Tipo de documento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
             <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
             <SelectItem value="protocolo">Protocolo</SelectItem>
@@ -120,7 +120,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
             <SelectValue placeholder="Equipamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos equipamentos</SelectItem>
+            <SelectItem value="all">Todos equipamentos</SelectItem>
             {equipments.map(equipment => (
               <SelectItem key={equipment.id} value={equipment.id}>
                 {equipment.nome}
