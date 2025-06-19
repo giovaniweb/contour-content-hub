@@ -34,7 +34,7 @@ const AdminDropdownMenu: React.FC = () => {
     {
       label: "Cadastrar Artigo Científico",
       icon: BookOpen,
-      action: () => navigate("/admin/scientific-articles"),
+      action: () => navigate("/admin/scientific-articles/new"),
     },
     {
       label: "Upload de Vídeo",

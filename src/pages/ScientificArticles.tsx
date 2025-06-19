@@ -11,6 +11,7 @@ import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal'
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import SearchAndFilters from '@/components/layout/SearchAndFilters';
+import { useNavigate } from 'react-router-dom';
 
 const ScientificArticles: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +19,7 @@ const ScientificArticles: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { documents, loading, fetchDocuments } = useDocuments();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Buscar apenas artigos científicos
@@ -56,6 +58,10 @@ const ScientificArticles: React.FC = () => {
     setIsViewModalOpen(true);
   };
 
+  const handleNewArticle = () => {
+    navigate('/admin/scientific-articles/new');
+  };
+
   const statusBadges = [
     {
       icon: Flame,
@@ -89,12 +95,16 @@ const ScientificArticles: React.FC = () => {
           <>
             <Button 
               variant="outline" 
+              onClick={handleNewArticle}
               className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
             >
               <Upload className="h-4 w-4" />
               Enviar Artigo
             </Button>
-            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
+            <Button 
+              onClick={handleNewArticle}
+              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl"
+            >
               <Plus className="h-4 w-4" />
               Novo Artigo
             </Button>
@@ -115,7 +125,7 @@ const ScientificArticles: React.FC = () => {
               title="Nenhum artigo encontrado"
               description={searchTerm ? 'Tente ajustar sua busca' : 'Comece adicionando seus primeiros artigos científicos'}
               actionLabel="Adicionar Primeiro Artigo"
-              onAction={() => console.log('Add article')}
+              onAction={handleNewArticle}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

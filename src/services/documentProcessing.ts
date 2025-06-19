@@ -115,19 +115,6 @@ export const uploadFileToStorage = async (file: File, fileName?: string): Promis
   try {
     console.log("Iniciando upload do arquivo para storage:", file.name, file.type, file.size);
     
-    // Em modo de desenvolvimento, simular o upload
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Modo de desenvolvimento detectado. Simulando upload.");
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay
-      
-      // Criar um URL de Blob local para simular o upload
-      // Create a unique blob URL each time to prevent caching issues
-      const blobId = `blob-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      const blobUrl = URL.createObjectURL(file) + `#${blobId}`;
-      console.log("URL de blob simulado criado:", blobUrl);
-      return blobUrl;
-    }
-    
     const fileNameToUse = fileName || `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     
     // Check if the file exists
