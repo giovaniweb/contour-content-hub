@@ -14,6 +14,17 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Video } from '@/services/videoStorage/videoService';
 
+// Utility function to filter valid equipments
+const filterValidEquipments = (equipments: any[]) => {
+  return equipments.filter(equipment => 
+    equipment && 
+    equipment.id && 
+    equipment.id.trim() !== "" && 
+    equipment.nome && 
+    equipment.nome.trim() !== ""
+  );
+};
+
 const AdminVideoManager: React.FC = () => {
   const { toast } = useToast();
   const {
@@ -40,12 +51,10 @@ const AdminVideoManager: React.FC = () => {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // Filtrar equipamentos válidos
-  const validEquipments = equipments.filter(equipment => 
-    equipment && equipment.id && equipment.id.trim() !== "" && equipment.nome
-  );
+  // Filter valid equipments - this is the main fix for the Select.Item error
+  const validEquipments = filterValidEquipments(equipments);
 
-  // Aplicar filtros
+  // Apply filters
   const handleSearch = () => {
     handleFilterChange({
       ...filters,
@@ -156,7 +165,7 @@ const AdminVideoManager: React.FC = () => {
               <SelectValue placeholder="Filtrar por equipamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os equipamentos</SelectItem>
+              <SelectItem value="all">Todos os equipamentos</SelectItem>
               {validEquipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
@@ -171,7 +180,7 @@ const AdminVideoManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de ações em massa */}
+      {/* Barra de ações em massa - now passing validEquipments */}
       <BulkActionBar
         selectedCount={selectedVideos.length}
         equipments={validEquipments}

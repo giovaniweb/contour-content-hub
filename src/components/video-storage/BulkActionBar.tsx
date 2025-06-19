@@ -29,10 +29,16 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
 }) => {
   if (selectedCount === 0) return null;
 
-  // Filtrar equipamentos válidos
-  const validEquipments = equipments.filter(equipment => 
-    equipment && equipment.id && equipment.id.trim() !== "" && equipment.nome
+  // Additional validation to ensure we only render SelectItems with valid values
+  const safeEquipments = equipments.filter(equipment => 
+    equipment && 
+    equipment.id && 
+    equipment.id.trim() !== "" && 
+    equipment.nome && 
+    equipment.nome.trim() !== ""
   );
+
+  console.log('[BulkActionBar] Valid equipments for Select:', safeEquipments);
 
   return (
     <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
@@ -60,7 +66,7 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Remover equipamento</SelectItem>
-              {validEquipments.map((equipment) => (
+              {safeEquipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
                 </SelectItem>
