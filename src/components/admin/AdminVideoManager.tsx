@@ -12,7 +12,7 @@ import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
 import { useVideoManager } from '@/hooks/useVideoManager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Video } from '@/services/videoStorage/videoService'; // Usar interface unificada
+import { Video } from '@/services/videoStorage/videoService';
 
 const AdminVideoManager: React.FC = () => {
   const { toast } = useToast();
@@ -50,7 +50,7 @@ const AdminVideoManager: React.FC = () => {
     handleFilterChange({
       ...filters,
       search: searchQuery,
-      equipment: selectedEquipmentFilter || undefined
+      equipment: selectedEquipmentFilter ? [selectedEquipmentFilter] : undefined
     });
   };
 
@@ -156,7 +156,7 @@ const AdminVideoManager: React.FC = () => {
               <SelectValue placeholder="Filtrar por equipamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os equipamentos</SelectItem>
+              <SelectItem value="">Todos os equipamentos</SelectItem>
               {validEquipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}

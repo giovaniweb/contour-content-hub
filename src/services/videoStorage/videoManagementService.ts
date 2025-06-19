@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Video, VideoFilterOptions, VideoSortOptions, VideoStatistics } from '@/types/video-storage';
 
@@ -452,52 +451,31 @@ export async function getVideoStatistics(videoId: string): Promise<{
   error?: string;
 }> {
   try {
-    console.log('📊 Buscando estatísticas do vídeo:', videoId);
-    
+    // Get video data from the videos table
     const { data: video, error } = await supabase
       .from('videos')
       .select('*')
       .eq('id', videoId)
-      .maybeSingle();
-    
-    if (error) {
-      throw new Error(error.message);
+      .single();
+
+    if (error || !video) {
+      return { success: false, error: 'Vídeo não encontrado' };
     }
-    
-    if (!video) {
-      throw new Error('Vídeo não encontrado');
-    }
-    
-    // Get download count from video_downloads table
-    const { data: downloads, error: downloadError } = await supabase
-      .from('video_downloads')
-      .select('id')
-      .eq('video_id', videoId);
-    
-    const totalDownloads = downloads?.length || video.downloads_count || 0;
-    
+
     const statistics: VideoStatistics = {
-      totalViews: 0, // Not implemented yet - could be added later
-      totalDownloads,
+      totalViews: 0, // Placeholder - implement view tracking if needed
+      totalDownloads: video.downloads_count || 0,
       totalShares: video.compartilhamentos || 0,
-      averageRating: 0, // Could calculate from avaliacoes table if needed
-      uploadDate: video.data_upload,
+      averageRating: 0, // Placeholder - implement rating system if needed
+      uploadDate: video.data_upload || video.created_at,
+      fileSize: video.duracao ? `${video.duracao}` : undefined,
       duration: video.duracao
     };
-    
-    console.log('✅ Estatísticas obtidas:', statistics);
-    
-    return {
-      success: true,
-      statistics
-    };
-    
+
+    return { success: true, statistics };
   } catch (error) {
-    console.error('💥 Erro ao buscar estatísticas:', error);
-    return {
-      success: false,
-      error: error.message || 'Erro ao buscar estatísticas'
-    };
+    console.error('Erro ao buscar estatísticas do vídeo:', error);
+    return { success: false, error: 'Erro ao buscar estatísticas' };
   }
 }
 
