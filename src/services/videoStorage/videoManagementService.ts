@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Video } from '@/services/videoStorage/videoService';
 import { VideoFilterOptions } from '@/types/video-storage';
+import { UniversalDeleteService } from '@/services/universalDeleteService';
 
 export interface VideoStatistics {
   totalViews: number;
@@ -320,19 +321,11 @@ export const getVideoStatistics = async (videoId: string): Promise<VideoStatsRes
   }
 };
 
+// SIMPLIFIED DELETE FUNCTIONS - Now using Universal Delete Service
 export const deleteVideo = async (videoId: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    const { error } = await supabase
-      .from('videos')
-      .delete()
-      .eq('id', videoId);
-
-    if (error) {
-      console.error('[videoManagementService] Erro ao excluir vídeo:', error);
-      throw error;
-    }
-
-    return { success: true };
+    console.log('[videoManagementService] deleteVideo chamado com videoId:', videoId);
+    return await UniversalDeleteService.deleteVideo(videoId);
   } catch (error) {
     console.error('[videoManagementService] Erro capturado em deleteVideo:', error);
     return {
@@ -344,14 +337,17 @@ export const deleteVideo = async (videoId: string): Promise<{ success: boolean; 
 
 export const deleteVideos = async (videoIds: string[]): Promise<{ success: boolean; error?: string }> => {
   try {
-    const { error } = await supabase
-      .from('videos')
-      .delete()
-      .in('id', videoIds);
-
-    if (error) {
-      console.error('[videoManagementService] Erro ao excluir vídeos em massa:', error);
-      throw error;
+    console.log('[videoManagementService] deleteVideos chamado com videoIds:', videoIds);
+    
+    // Delete videos one by one using the cascade function
+    const results = await Promise.all(
+      videoIds.map(id => UniversalDeleteService.deleteVideo(id))
+    );
+    
+    // Check if any failed
+    const failures = results.filter(r => !r.success);
+    if (failures.length > 0) {
+      throw new Error(`Falha ao excluir ${failures.length} vídeo(s)`);
     }
 
     return { success: true };

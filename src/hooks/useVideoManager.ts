@@ -4,11 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Video, VideoFilterOptions } from '@/types/video-storage';
 import { 
   getVideos,
-  updateVideos,
-  deleteVideo,
-  deleteVideos,
-  removeMockupVideos
+  updateVideos
 } from '@/services/videoStorage/videoManagementService';
+import { UniversalDeleteService, createDeleteHandler } from '@/services/universalDeleteService';
 import { useEquipments } from '@/hooks/useEquipments';
 
 export const useVideoManager = () => {
@@ -21,6 +19,19 @@ export const useVideoManager = () => {
   const [filters, setFilters] = useState<VideoFilterOptions>({});
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // Create standardized delete handler using Universal Delete Service
+  const handleDeleteVideo = createDeleteHandler(
+    'video',
+    videos,
+    setVideos,
+    toast,
+    () => {
+      // Clear selection if deleted video was selected
+      setSelectedVideos(prev => prev.filter(id => !videos.some(v => v.id === id)));
+      loadVideos(); // Refresh the list
+    }
+  );
 
   // Carregar vídeos
   const loadVideos = async () => {
@@ -53,48 +64,34 @@ export const useVideoManager = () => {
     }
   };
 
-  // Excluir vídeo único
-  const handleDeleteVideo = async (videoId: string) => {
-    console.log('[useVideoManager] Iniciando handleDeleteVideo com videoId:', videoId);
-    try {
-      const { success, error } = await deleteVideo(videoId);
-      console.log('[useVideoManager] Resultado de deleteVideo:', { success, error });
-      
-      if (!success || error) {
-        throw new Error(error);
-      }
-
-      toast({
-        title: 'Sucesso',
-        description: 'Vídeo excluído com sucesso'
-      });
-
-      console.log('[useVideoManager] handleDeleteVideo: Sucesso na exclusão, prestes a chamar loadVideos().');
-      setPage(1);
-      loadVideos();
-    } catch (error) {
-      console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleDeleteVideo:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: error.message || 'Não foi possível excluir o vídeo'
-      });
-    }
-  };
-
-  // Excluir vídeos em massa
+  // Excluir vídeos em massa usando Universal Delete Service
   const handleBulkDelete = async () => {
     if (selectedVideos.length === 0) return;
     
     if (!confirm(`Tem certeza que deseja excluir ${selectedVideos.length} vídeo(s)?`)) return;
 
     console.log('[useVideoManager] Iniciando handleBulkDelete com selectedVideos:', selectedVideos);
+
+    // Optimistic update - remove from UI immediately
+    const optimisticVideos = videos.filter(v => !selectedVideos.includes(v.id));
+    setVideos(optimisticVideos);
+    
+    // Show loading toast
+    toast({
+      title: 'Excluindo vídeos...',
+      description: `Removendo ${selectedVideos.length} vídeo(s) e todas as referências...`
+    });
+
     try {
-      const { success, error } = await deleteVideos(selectedVideos);
-      console.log('[useVideoManager] Resultado de deleteVideos:', { success, error });
+      // Delete videos one by one using the cascade function
+      const results = await Promise.all(
+        selectedVideos.map(id => UniversalDeleteService.deleteVideo(id))
+      );
       
-      if (!success || error) {
-        throw new Error(error);
+      // Check for failures
+      const failures = results.filter(r => !r.success);
+      if (failures.length > 0) {
+        throw new Error(`Falha ao excluir ${failures.length} vídeo(s)`);
       }
 
       toast({
@@ -107,6 +104,9 @@ export const useVideoManager = () => {
       setPage(1);
       loadVideos();
     } catch (error) {
+      // Rollback optimistic update on error
+      setVideos(videos);
+      
       console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleBulkDelete:', error);
       toast({
         variant: 'destructive',
@@ -224,7 +224,7 @@ export const useVideoManager = () => {
     handleClearSelection: () => {
       setSelectedVideos([]);
     },
-    handleDeleteVideo,
+    handleDeleteVideo, // Now using Universal Delete Service
     handleBulkDelete,
     handleBulkUpdateEquipment,
     handleBulkAddTags,

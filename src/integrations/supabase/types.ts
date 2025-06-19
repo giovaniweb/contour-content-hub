@@ -2274,6 +2274,26 @@ export type Database = {
         Args: { video_id: string }
         Returns: undefined
       }
+      delete_before_after_cascade: {
+        Args: { photo_id_param: string }
+        Returns: Json
+      }
+      delete_document_cascade: {
+        Args: { document_id_param: string }
+        Returns: Json
+      }
+      delete_download_storage_cascade: {
+        Args: { download_id_param: string }
+        Returns: Json
+      }
+      delete_material_cascade: {
+        Args: { material_id_param: string }
+        Returns: Json
+      }
+      delete_video_cascade: {
+        Args: { video_id_param: string }
+        Returns: Json
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: string
