@@ -102,7 +102,7 @@ const routes = [
       <AppLayout>
         <AuthGuard>
           <CreativeAgenda />
-        </AuthGuenda>
+        </AuthGuard>
       </AppLayout>
     ),
   },
