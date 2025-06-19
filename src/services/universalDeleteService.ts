@@ -25,7 +25,8 @@ export class UniversalDeleteService {
       const functionName = this.getFunctionName(entityType);
       const paramName = this.getParamName(entityType);
       
-      const { data, error } = await supabase.rpc(functionName, {
+      // Use any type to bypass strict typing for custom functions
+      const { data, error } = await (supabase.rpc as any)(functionName, {
         [paramName]: entityId
       });
 
@@ -36,14 +37,17 @@ export class UniversalDeleteService {
 
       console.log(`✅ [UniversalDelete] Resultado ${entityType}:`, data);
       
+      // Type assertion for the expected result structure
+      const result = data as DeleteResult;
+      
       // If we have files to cleanup from storage, we could implement that here
-      if (data.deleted_files && data.deleted_files.length > 0) {
-        console.log(`🧹 [UniversalDelete] Arquivos para cleanup:`, data.deleted_files);
+      if (result.deleted_files && result.deleted_files.length > 0) {
+        console.log(`🧹 [UniversalDelete] Arquivos para cleanup:`, result.deleted_files);
         // TODO: Implementar cleanup de Storage se necessário
       }
 
-      return data as DeleteResult;
-    } catch (error) {
+      return result;
+    } catch (error: any) {
       console.error(`💥 [UniversalDelete] Erro capturado em ${entityType}:`, error);
       return {
         success: false,
@@ -157,7 +161,7 @@ export const createDeleteHandler = <T extends { id: string }>(
       // Call success callback if provided
       onSuccess?.();
 
-    } catch (error) {
+    } catch (error: any) {
       // Rollback optimistic update on error
       setItems(items);
       
