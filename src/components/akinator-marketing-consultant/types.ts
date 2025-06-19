@@ -42,3 +42,27 @@ export interface Phase {
   description: string;
   icon: string;
 }
+
+export interface MarketingQuestionProps {
+  question: {
+    id: string;
+    text: string;
+    description?: string;
+    type: string;
+    options: Array<{
+      id?: string;
+      value: string;
+      label?: string;
+      text?: string;
+      description?: string;
+      subtitle?: string;
+      emoji?: string;
+      impact?: string;
+    }>;
+  };
+  onAnswer: (answerId: string) => void;
+  onBack?: () => void;
+  canGoBack?: boolean;
+  progress?: number;
+  totalQuestions?: number;
+}
