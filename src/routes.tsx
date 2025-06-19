@@ -1,7 +1,7 @@
 
 import { lazy } from "react";
 
-import { Main } from "@/components/layouts/Main";
+import AppLayout from "@/components/layouts/AppLayout";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 
@@ -29,158 +29,157 @@ const routes = [
   {
     path: "/",
     element: (
-      <Main>
-        <Home />
-      </Main>
+      <AppLayout>
+        <AuthGuard>
+          <Home />
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/login",
     element: (
-      <GuestGuard>
-        <Login />
-      </GuestGuard>
+      <AppLayout>
+        <GuestGuard>
+          <Login />
+        </GuestGuard>
+      </AppLayout>
     ),
   },
   {
     path: "/register",
     element: (
-      <GuestGuard>
-        <Register />
-      </GuestGuard>
+      <AppLayout>
+        <GuestGuard>
+          <Register />
+        </GuestGuard>
+      </AppLayout>
     ),
   },
   {
     path: "/forgot-password",
     element: (
-      <GuestGuard>
-        <ForgotPassword />
-      </GuestGuard>
+      <AppLayout>
+        <GuestGuard>
+          <ForgotPassword />
+        </GuestGuard>
+      </AppLayout>
     ),
   },
   {
     path: "/reset-password",
     element: (
-      <GuestGuard>
-        <ResetPassword />
-      </GuestGuard>
+      <AppLayout>
+        <GuestGuard>
+          <ResetPassword />
+        </GuestGuard>
+      </AppLayout>
     ),
   },
   {
     path: "/profile",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <Profile />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/diagnostic",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <Diagnostic />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/creative-agenda",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <CreativeAgenda />
-        </Main>
-      </AuthGuard>
+        </AuthGuenda>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/integrations",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <Integrations />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/billing",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <Billing />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/pricing",
     element: (
-      <Main>
+      <AppLayout>
         <Pricing />
-      </Main>
+      </AppLayout>
     ),
   },
   {
     path: "/onboarding",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <Onboarding />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/admin/system-diagnostics",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <AdminSystemDiagnostics />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
-  // Novas rotas de artigos científicos
   {
     path: "/admin/scientific-articles",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <AdminScientificArticles />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "/admin/scientific-articles/new",
     element: (
-      <AuthGuard>
-        <Main>
+      <AppLayout>
+        <AuthGuard>
           <AdminScientificArticleForm />
-        </Main>
-      </AuthGuard>
+        </AuthGuard>
+      </AppLayout>
     ),
-    protected: true,
   },
   {
     path: "*",
     element: (
-      <Main>
+      <AppLayout>
         <NotFound />
-      </Main>
+      </AppLayout>
     ),
   },
 ];

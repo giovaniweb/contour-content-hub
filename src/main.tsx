@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './components/theme-provider';
 import App from './App.tsx';
@@ -26,9 +25,7 @@ createRoot(rootElement).render(
     <ErrorBoundary>
       <HelmetProvider>
         <ThemeProvider defaultTheme="light">
-          <QueryClientProvider client={queryClient}>
-            <App />
-          </QueryClientProvider>
+          <App />
         </ThemeProvider>
       </HelmetProvider>
     </ErrorBoundary>
