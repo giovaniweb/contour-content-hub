@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Lightbulb, Target, Users, TrendingUp, MessageCircle, Sparkles } from 'lucide-react';
@@ -7,9 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { MarketingQuestionProps } from './types';
 
 const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
-  question,
-  onAnswer,
-  onBack,
+  stepData,
+  currentStep,
+  onOptionSelect,
+  onGoBack,
   canGoBack = false,
   progress,
   totalQuestions
@@ -21,7 +23,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   useEffect(() => {
     setSelectedAnswer(null);
     setIsAnswering(false);
-  }, [question.id]);
+  }, [stepData.id]);
 
   const handleAnswerSelect = useCallback((answerId: string) => {
     if (isAnswering) return;
@@ -32,7 +34,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     // Add a small delay for visual feedback
     setTimeout(() => {
       try {
-        onAnswer(answerId);
+        onOptionSelect(answerId);
       } catch (error) {
         console.error('Error handling answer:', error);
         const errorMessage = typeof error === 'string' ? error : error instanceof Error ? error.message : 'Erro ao processar resposta';
@@ -41,7 +43,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
         setSelectedAnswer(null);
       }
     }, 300);
-  }, [onAnswer, isAnswering]);
+  }, [onOptionSelect, isAnswering]);
 
   const getQuestionIcon = (type: string) => {
     switch (type) {
@@ -60,7 +62,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     }
   };
 
-  const IconComponent = getQuestionIcon(question.type);
+  const IconComponent = getQuestionIcon('default');
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -76,11 +78,11 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        {canGoBack && (
+        {canGoBack && onGoBack && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={onBack}
+            onClick={onGoBack}
             className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800/50"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -113,62 +115,39 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  {question.text}
+                  {stepData.question}
                 </h2>
-                {question.description && (
-                  <p className="text-slate-300 text-lg leading-relaxed">
-                    {question.description}
-                  </p>
-                )}
               </div>
             </div>
 
             {/* Answers Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence>
-                {question.options.map((option, index) => (
+                {stepData.options?.map((option, index) => (
                   <motion.div
-                    key={option.id || index}
+                    key={option.value || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card
                       className={`cursor-pointer transition-all duration-300 hover:scale-105 border-2 ${
-                        selectedAnswer === (option.id || option.value)
+                        selectedAnswer === option.value
                           ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-500/20'
                           : 'border-slate-600/50 hover:border-cyan-500/50 bg-slate-800/50'
                       } ${isAnswering ? 'pointer-events-none' : ''}`}
-                      onClick={() => handleAnswerSelect(option.id || option.value)}
+                      onClick={() => handleAnswerSelect(option.value)}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-center gap-3 mb-3">
-                          {option.emoji && (
-                            <span className="text-2xl">{option.emoji}</span>
-                          )}
                           <h3 className={`font-semibold text-lg ${
-                            selectedAnswer === (option.id || option.value)
+                            selectedAnswer === option.value
                               ? 'text-cyan-300'
                               : 'text-white'
                           }`}>
-                            {option.label || option.text}
+                            {option.label}
                           </h3>
                         </div>
-                        
-                        {(option.description || option.subtitle) && (
-                          <p className="text-slate-400 text-sm leading-relaxed">
-                            {option.description || option.subtitle}
-                          </p>
-                        )}
-                        
-                        {option.impact && (
-                          <div className="mt-3 flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-green-400" />
-                            <span className="text-green-400 text-sm font-medium">
-                              {option.impact}
-                            </span>
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
