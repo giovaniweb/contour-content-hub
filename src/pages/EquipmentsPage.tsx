@@ -25,13 +25,13 @@ const EquipmentsPage: React.FC = () => {
       icon: Sparkles,
       label: 'Ativos',
       variant: 'secondary' as const,
-      color: 'bg-green-500/20 text-green-400 border-green-500/30'
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30 aurora-glow-emerald'
     },
     {
       icon: Zap,
       label: 'Equipamentos',
       variant: 'secondary' as const,
-      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30 aurora-glow'
     }
   ];
 
@@ -44,9 +44,12 @@ const EquipmentsPage: React.FC = () => {
           subtitle="Erro ao carregar equipamentos"
         />
         <div className="container mx-auto px-6">
-          <div className="text-center py-12">
-            <p className="text-red-400 mb-4">{error.message}</p>
-            <Button onClick={() => window.location.reload()}>
+          <div className="text-center py-12 aurora-glass rounded-3xl border border-aurora-electric-purple/30">
+            <p className="aurora-body text-red-400 mb-6">{error.message}</p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="aurora-button aurora-glow hover:aurora-glow-intense"
+            >
               Tentar Novamente
             </Button>
           </div>
@@ -70,7 +73,7 @@ const EquipmentsPage: React.FC = () => {
         onViewModeChange={setViewMode}
         viewMode={viewMode}
         additionalControls={
-          <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
+          <Button className="aurora-button aurora-glow hover:aurora-glow-intense rounded-xl flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Novo Equipamento
           </Button>
@@ -79,12 +82,18 @@ const EquipmentsPage: React.FC = () => {
 
       <div className="container mx-auto px-6 py-8">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-            <p className="text-slate-300">Carregando equipamentos...</p>
+          <div className="text-center py-16 aurora-glass rounded-3xl border border-aurora-electric-purple/30">
+            <div className="aurora-sphere-outer w-16 h-16 rounded-full mx-auto mb-6 relative">
+              <div className="aurora-sphere-middle absolute inset-2 rounded-full">
+                <div className="aurora-sphere-core absolute inset-2 rounded-full">
+                  <div className="aurora-sphere-nucleus absolute inset-4 rounded-full bg-white"></div>
+                </div>
+              </div>
+            </div>
+            <p className="aurora-body text-white/80 aurora-shimmer">Carregando equipamentos...</p>
           </div>
         ) : filteredEquipments.length === 0 ? (
-          <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+          <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
             <EmptyState
               icon={Wrench}
               title="Nenhum equipamento encontrado"
@@ -94,7 +103,7 @@ const EquipmentsPage: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+          <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow">
             {viewMode === 'grid' ? (
               <EquipmentGrid equipments={filteredEquipments} />
             ) : (

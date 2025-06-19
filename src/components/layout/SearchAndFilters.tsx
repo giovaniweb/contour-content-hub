@@ -26,10 +26,10 @@ const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-aurora-electric-purple aurora-pulse" />
             <Input 
               placeholder="Pesquisar..." 
-              className="pl-10 bg-slate-800/50 border-cyan-500/30 text-slate-100 placeholder:text-slate-400 rounded-xl backdrop-blur-sm" 
+              className="pl-10 aurora-glass border-aurora-electric-purple/30 text-white placeholder:text-white/60 rounded-xl backdrop-blur-sm aurora-focus" 
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -38,7 +38,7 @@ const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
             <Button 
               variant="outline" 
               size="icon" 
-              className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:aurora-glow-blue rounded-xl"
               onClick={onFilterClick}
             >
               <Filter className="h-4 w-4" />
@@ -49,8 +49,10 @@ const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
               <Button 
                 variant="outline" 
                 size="icon" 
-                className={`bg-slate-800/50 border-cyan-500/30 rounded-xl ${
-                  viewMode === 'grid' ? 'text-cyan-400 bg-cyan-500/20' : 'text-slate-400 hover:bg-cyan-500/20'
+                className={`aurora-glass border-aurora-electric-purple/30 rounded-xl transition-all duration-300 ${
+                  viewMode === 'grid' 
+                    ? 'text-aurora-electric-purple aurora-glow bg-aurora-electric-purple/20' 
+                    : 'text-white/60 hover:aurora-glow-blue hover:text-aurora-electric-purple'
                 }`}
                 onClick={() => onViewModeChange('grid')}
               >
@@ -59,8 +61,10 @@ const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
               <Button 
                 variant="outline" 
                 size="icon" 
-                className={`bg-slate-800/50 border-cyan-500/30 rounded-xl ${
-                  viewMode === 'list' ? 'text-cyan-400 bg-cyan-500/20' : 'text-slate-400 hover:bg-cyan-500/20'
+                className={`aurora-glass border-aurora-electric-purple/30 rounded-xl transition-all duration-300 ${
+                  viewMode === 'list' 
+                    ? 'text-aurora-electric-purple aurora-glow bg-aurora-electric-purple/20' 
+                    : 'text-white/60 hover:aurora-glow-blue hover:text-aurora-electric-purple'
                 }`}
                 onClick={() => onViewModeChange('list')}
               >

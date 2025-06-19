@@ -12,22 +12,31 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({ equipments }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {equipments.map((equipment) => (
-        <Card key={equipment.id} className="hover:shadow-lg transition-shadow bg-slate-800/50 border-cyan-500/20">
-          <CardContent className="p-4">
-            <div className="space-y-3">
+        <Card 
+          key={equipment.id} 
+          className="aurora-card hover:aurora-glow transition-all duration-500 hover:scale-105 aurora-glass border-aurora-electric-purple/30"
+        >
+          <CardContent className="p-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-slate-100 truncate">{equipment.nome}</h3>
-                <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                <h3 className="aurora-heading font-semibold text-white truncate">{equipment.nome}</h3>
+                <Badge 
+                  variant="secondary" 
+                  className="bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30 aurora-glow-emerald"
+                >
                   Ativo
                 </Badge>
               </div>
               
               {equipment.descricao && (
-                <p className="text-sm text-slate-300 line-clamp-2">{equipment.descricao}</p>
+                <p className="aurora-body text-white/80 text-sm line-clamp-2">{equipment.descricao}</p>
               )}
               
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
+                <Badge 
+                  variant="outline" 
+                  className="text-xs border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10 aurora-pulse"
+                >
                   {equipment.categoria || 'Geral'}
                 </Badge>
               </div>
