@@ -8,13 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MoreHorizontal, 
@@ -30,7 +23,6 @@ import { StoredVideo } from '@/types/video-storage';
 import VideoEditDialog from './VideoEditDialog';
 import VideoStatisticsDialog from './VideoStatisticsDialog';
 import { 
-  // deleteVideo, // Removido se não for mais usado diretamente aqui
   downloadVideo, 
   copyVideoLink 
 } from '@/services/videoStorage/videoManagementService';
@@ -38,7 +30,7 @@ import {
 interface VideoActionMenuProps {
   video: Video | StoredVideo;
   onEdit: (video: Video | StoredVideo) => void;
-  onDelete: (video: Video | StoredVideo) => void;
+  onDelete: (videoId: string) => void; // Changed to accept only videoId string
   onDownload: (video: Video | StoredVideo) => void;
   onStatistics: (video: Video | StoredVideo) => void;
   onCopyLink: (video: Video | StoredVideo) => void;
@@ -57,18 +49,15 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
-  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Removido
-  const [loading, setLoading] = useState<string | null>(null); // Mantido para Download/CopyLink
+  const [loading, setLoading] = useState<string | null>(null);
 
   const handleEdit = () => {
     setIsEditDialogOpen(true);
     onEdit(video);
   };
 
-  // handleDelete local foi removido
-
   const handleDownload = async () => {
-    setLoading('download'); // 'download' é um exemplo, pode ser 'downloading'
+    setLoading('download');
     try {
       const { success, downloadUrl, error } = await downloadVideo(video.id);
       
@@ -184,18 +173,13 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
           
           <DropdownMenuItem 
             onClick={() => {
-              console.log('[VideoActionMenu] Excluir clicado. Video:', JSON.parse(JSON.stringify(video)));
-              console.log('[VideoActionMenu] Chamando props.onDelete...');
-              onDelete(video);
+              console.log('[VideoActionMenu] Excluir clicado. Video ID:', video.id);
+              console.log('[VideoActionMenu] Chamando props.onDelete com videoId...');
+              onDelete(video.id); // Pass only the video ID
             }}
             className="text-destructive focus:text-destructive"
-            disabled={loading === 'delete'} // Opcional: desabilitar se o pai estiver lidando com loading
           >
-            {loading === 'delete' ? ( // Opcional: feedback de loading se o pai controlar
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-                <Trash2 className="mr-2 h-4 w-4" />
-            )}
+            <Trash2 className="mr-2 h-4 w-4" />
             Excluir
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -219,8 +203,6 @@ const VideoActionMenu: React.FC<VideoActionMenuProps> = ({
         open={isStatsDialogOpen}
         onOpenChange={setIsStatsDialogOpen}
       />
-
-      {/* AlertDialog de confirmação de exclusão foi removido daqui */}
     </>
   );
 };

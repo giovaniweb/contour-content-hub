@@ -30,7 +30,7 @@ interface VideoGridProps {
   onSelectVideo: (videoId: string) => void;
   onSelectAll: () => void;
   onEdit: (video: Video) => void;
-  onDelete: (videoId: string) => void;
+  onDelete: (videoId: string) => void; // Changed to accept only videoId string
   onPlay: (video: Video) => void;
   onDownload: (video: Video) => void;
   isLoading?: boolean;
@@ -63,7 +63,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({
     console.log('[VideoGrid] confirmDelete chamado. videoToDelete é:', JSON.parse(JSON.stringify(videoToDelete)));
     if (videoToDelete) {
       console.log('[VideoGrid] Em confirmDelete, prestes a chamar props.onDelete com id:', videoToDelete?.id);
-      onDelete(videoToDelete.id);
+      onDelete(videoToDelete.id); // Pass only the video ID
       setDeleteDialogOpen(false);
       setVideoToDelete(null);
     }
@@ -138,7 +138,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({
             viewMode={viewMode}
             onPlay={onPlay}
             onEdit={onEdit}
-            onDelete={handleDeleteClick}
+            onDelete={handleDeleteClick} // Pass the wrapper function that shows dialog
             onDownload={onDownload}
             onStatistics={handleStatistics}
             onCopyLink={handleCopyLink}

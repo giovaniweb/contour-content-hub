@@ -73,6 +73,17 @@ const AdminVideoManager: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
+  // Fixed: Now properly accepts only videoId string and calls the hook function
+  const handleDelete = async (videoId: string) => {
+    console.log('[AdminVideoManager] handleDelete chamado com videoId:', videoId);
+    try {
+      await handleDeleteVideo(videoId);
+      console.log('[AdminVideoManager] handleDeleteVideo completado com sucesso');
+    } catch (error) {
+      console.error('[AdminVideoManager] Erro em handleDelete:', error);
+    }
+  };
+
   const handleDownload = async (video: Video) => {
     if (video.url_video) {
       // Incrementar contador de downloads diretamente
@@ -197,7 +208,7 @@ const AdminVideoManager: React.FC = () => {
         onSelectVideo={handleSelectVideo}
         onSelectAll={handleSelectAll}
         onEdit={handleEdit}
-        onDelete={handleDeleteVideo}
+        onDelete={handleDelete} // Now properly passes videoId string
         onPlay={handlePlay}
         onDownload={handleDownload}
         isLoading={loading}
