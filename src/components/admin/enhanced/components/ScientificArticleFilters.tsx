@@ -3,6 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DocumentType } from '@/types/document';
 import { Equipment } from '@/types/equipment';
+import { filterValidEquipments } from '@/utils/equipmentValidation';
 
 interface ScientificArticleFiltersProps {
   selectedType: DocumentType | 'all';
@@ -19,10 +20,8 @@ const ScientificArticleFilters: React.FC<ScientificArticleFiltersProps> = ({
   setSelectedEquipment,
   equipments
 }) => {
-  // Filter equipments to ensure valid IDs
-  const validEquipments = equipments.filter(equipment => 
-    equipment && equipment.id && equipment.id.trim() !== ""
-  );
+  // Filter equipments to ensure valid IDs and prevent Select.Item errors
+  const validEquipments = filterValidEquipments(equipments);
 
   return (
     <div className="flex items-center gap-4 p-4 bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 rounded-xl">
