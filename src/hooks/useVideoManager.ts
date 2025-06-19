@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Video, VideoFilterOptions } from '@/types/video-storage';
@@ -26,7 +27,12 @@ export const useVideoManager = () => {
     console.log('[useVideoManager] Iniciando loadVideos com filtros:', filters, 'e página:', page);
     setLoading(true);
     try {
-      const { videos: loadedVideos, total: totalCount, error } = await getVideos(filters, page, 20);
+      const { videos: loadedVideos, total: totalCount, error } = await getVideos(
+        filters, 
+        { field: 'created_at', direction: 'desc' },
+        page, 
+        20
+      );
       console.log('[useVideoManager] Resultado de getVideos em loadVideos:', { loadedVideos, totalCount, error });
       
       if (error) {
@@ -242,6 +248,29 @@ export const useVideoManager = () => {
 
   // Remover vídeos mockup ao carregar o hook
   useEffect(() => {
+    const handleRemoveMockupVideos = async () => {
+      try {
+        const { success, error } = await removeMockupVideos();
+        
+        if (!success || error) {
+          throw new Error(error);
+        }
+
+        toast({
+          title: 'Sucesso',
+          description: 'Vídeos mockup removidos com sucesso'
+        });
+
+        loadVideos();
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Não foi possível remover vídeos mockup'
+        });
+      }
+    };
+
     handleRemoveMockupVideos();
   }, []);
 
@@ -272,7 +301,33 @@ export const useVideoManager = () => {
     handleClearSelection: () => {
       setSelectedVideos([]);
     },
-    handleDeleteVideo,
+    handleDeleteVideo: async (videoId: string) => {
+      console.log('[useVideoManager] Iniciando handleDeleteVideo com videoId:', videoId);
+      try {
+        const { success, error } = await deleteVideo(videoId);
+        console.log('[useVideoManager] Resultado de deleteVideo:', { success, error });
+        
+        if (!success || error) {
+          throw new Error(error);
+        }
+
+        toast({
+          title: 'Sucesso',
+          description: 'Vídeo excluído com sucesso'
+        });
+
+        console.log('[useVideoManager] handleDeleteVideo: Sucesso na exclusão, prestes a chamar loadVideos().');
+        setPage(1);
+        loadVideos();
+      } catch (error) {
+        console.error('[useVideoManager] Erro capturado no CATCH EXTERNO de handleDeleteVideo:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: error.message || 'Não foi possível excluir o vídeo'
+        });
+      }
+    },
     handleBulkDelete: async () => {
       if (selectedVideos.length === 0) return;
       
@@ -365,7 +420,11 @@ export const useVideoManager = () => {
         });
       }
     },
-    handleFilterChange,
+    handleFilterChange: (newFilters: VideoFilterOptions) => {
+      console.log('[useVideoManager] handleFilterChange: Resetando página para 1 devido à mudança de filtros. Novos filtros:', newFilters);
+      setFilters(newFilters);
+      setPage(1);
+    },
     setPage,
     loadVideos
   };

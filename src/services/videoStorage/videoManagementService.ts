@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Video } from '@/services/videoStorage/videoService';
 import { VideoFilterOptions } from '@/types/video-storage';
@@ -32,16 +33,17 @@ interface BulkUpdateResult {
 
 export const getVideos = async (
   filters: VideoFilterOptions = {},
+  sort: { field: string; direction: string } = { field: 'created_at', direction: 'desc' },
   page: number = 1,
   limit: number = 20
 ): Promise<VideoManagementResult> => {
   try {
-    console.log('[videoManagementService] getVideos chamado com:', { filters, page, limit });
+    console.log('[videoManagementService] getVideos chamado com:', { filters, sort, page, limit });
     
     let query = supabase
       .from('videos')
       .select('*', { count: 'exact' })
-      .order('data_upload', { ascending: false });
+      .order(sort.field, { ascending: sort.direction === 'asc' });
 
     // Apply filters
     if (filters.search) {
@@ -107,13 +109,191 @@ export const getVideos = async (
   }
 };
 
+export const getVideoById = async (videoId: string): Promise<{ success: boolean; video?: Video; error?: string }> => {
+  try {
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!video) {
+      return {
+        success: false,
+        error: 'Vídeo não encontrado'
+      };
+    }
+
+    const formattedVideo: Video = {
+      id: video.id,
+      titulo: video.titulo || '',
+      descricao_curta: video.descricao_curta,
+      descricao_detalhada: video.descricao_detalhada,
+      tipo_video: video.tipo_video as 'video_pronto' | 'take',
+      categoria: video.categoria,
+      equipamentos: video.equipamentos || [],
+      tags: video.tags || [],
+      url_video: video.url_video || '',
+      preview_url: video.preview_url,
+      thumbnail_url: video.thumbnail_url,
+      duracao: video.duracao,
+      area_corpo: video.area_corpo,
+      finalidade: video.finalidade || [],
+      downloads_count: video.downloads_count || 0,
+      favoritos_count: video.favoritos_count || 0,
+      curtidas: video.curtidas || 0,
+      compartilhamentos: video.compartilhamentos || 0,
+      data_upload: video.data_upload || new Date().toISOString(),
+      created_at: video.data_upload,
+      updated_at: video.data_upload
+    };
+
+    return {
+      success: true,
+      video: formattedVideo
+    };
+  } catch (error) {
+    console.error('[videoManagementService] Erro ao buscar vídeo:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao buscar vídeo'
+    };
+  }
+};
+
+export const updateVideo = async (videoId: string, updates: Partial<Video>): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase
+      .from('videos')
+      .update(updates)
+      .eq('id', videoId);
+
+    if (error) {
+      console.error('[videoManagementService] Erro ao atualizar vídeo:', error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[videoManagementService] Erro capturado em updateVideo:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao atualizar o vídeo'
+    };
+  }
+};
+
+export const downloadVideo = async (videoId: string): Promise<{ 
+  success: boolean; 
+  downloadUrl?: string;
+  error?: string 
+}> => {
+  try {
+    console.log('📥 Iniciando download do vídeo:', videoId);
+    
+    // Get video details
+    const { data: video, error: videoError } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .maybeSingle();
+    
+    if (videoError || !video) {
+      throw new Error(videoError?.message || 'Vídeo não encontrado');
+    }
+    
+    if (!video.url_video) {
+      throw new Error('URL do vídeo não disponível');
+    }
+    
+    // Get current user (if logged in)
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Log the download attempt
+    const { error: logError } = await supabase
+      .from('video_downloads')
+      .insert({
+        video_id: videoId,
+        quality: 'original',
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
+        user_agent: navigator.userAgent,
+      });
+
+    if (logError) {
+      console.warn('⚠️ Erro ao registrar download:', logError);
+    }
+    
+    // Update download count
+    const { error: updateError } = await supabase
+      .from('videos')
+      .update({
+        downloads_count: (video.downloads_count || 0) + 1
+      })
+      .eq('id', videoId);
+    
+    if (updateError) {
+      console.warn('⚠️ Erro ao atualizar contador:', updateError);
+    }
+    
+    console.log('✅ Download registrado com sucesso');
+    
+    return {
+      success: true,
+      downloadUrl: video.url_video
+    };
+    
+  } catch (error) {
+    console.error('💥 Erro no download:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Erro no download' 
+    };
+  }
+};
+
+export const copyVideoLink = async (videoId: string): Promise<{ 
+  success: boolean; 
+  link?: string;
+  error?: string 
+}> => {
+  try {
+    // Get video details
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('url_video, titulo')
+      .eq('id', videoId)
+      .maybeSingle();
+
+    if (error || !video) {
+      throw new Error(error?.message || 'Vídeo não encontrado');
+    }
+
+    if (!video.url_video) {
+      throw new Error('URL do vídeo não disponível');
+    }
+
+    return {
+      success: true,
+      link: video.url_video
+    };
+  } catch (error) {
+    console.error('Erro ao copiar link:', error);
+    return {
+      success: false,
+      error: error.message || 'Erro ao copiar link'
+    };
+  }
+};
+
 export const getVideoStatistics = async (videoId: string): Promise<VideoStatsResult> => {
   try {
     const { data: video, error } = await supabase
       .from('videos')
       .select('*')
       .eq('id', videoId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 

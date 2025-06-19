@@ -55,7 +55,7 @@ export async function playVideo(id: string): Promise<{ url: string | null; error
       .from('videos')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     
     if (error || !video) {
       throw new Error(error?.message || 'Video not found');
