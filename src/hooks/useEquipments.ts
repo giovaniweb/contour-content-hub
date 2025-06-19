@@ -1,9 +1,10 @@
 
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/types/equipment';
 
-export { Equipment };
+export type { Equipment };
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -57,7 +58,7 @@ export const useEquipments = () => {
         data_cadastro: item.data_cadastro || new Date().toISOString(),
         image_url: item.image_url || '',
         ativo: item.ativo ?? true,
-        categoria: item.categoria || 'estetico',
+        categoria: (item.categoria === 'medico' ? 'medico' : 'estetico') as 'medico' | 'estetico',
         thumbnail_url: item.thumbnail_url || '',
         area_aplicacao: item.area_aplicacao || [],
         tipo_acao: item.tipo_acao,
@@ -71,7 +72,7 @@ export const useEquipments = () => {
       setEquipments(transformedData);
     } catch (err: any) {
       console.error('Error fetching equipments:', err);
-      setError(err.message);
+      setError(err?.message || 'Erro desconhecido ao carregar equipamentos');
     } finally {
       setLoading(false);
     }
@@ -88,3 +89,4 @@ export const useEquipments = () => {
     refetch: fetchEquipments,
   };
 };
+
