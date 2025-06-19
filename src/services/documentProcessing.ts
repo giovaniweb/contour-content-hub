@@ -1,195 +1,194 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface ExtractedDocumentData {
-  title?: string;
-  description?: string;
-  keywords?: string[];
-  researchers?: string[];
-  content?: string;
-  error?: string;
-}
-
 export interface ProcessingResult {
-  success: boolean;
-  data?: ExtractedDocumentData;
-  error?: string;
-  fileUrl?: string;
+  title: string | null;
+  conclusion: string | null;
+  keywords: string[] | null;
+  researchers: string[] | null;
+  error?: string | null;
 }
 
 /**
- * Upload file to Supabase Storage
+ * Processa o conteúdo de um arquivo para extrair informações
+ * @param fileContent Conteúdo do arquivo em base64 (sem o prefixo data:...)
  */
-export const uploadFileToStorage = async (file: File): Promise<string> => {
+export const processFileContent = async (fileContent: string): Promise<ProcessingResult> => {
   try {
-    console.log('📤 Uploading file to storage:', file.name);
+    console.log("Iniciando processamento do conteúdo do arquivo...");
     
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `documents/${fileName}`;
-
-    const { error, data } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (error) {
-      console.error('❌ Storage upload error:', error);
-      throw new Error(`Erro no upload: ${error.message}`);
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('documents')
-      .getPublicUrl(filePath);
-
-    console.log('✅ File uploaded successfully:', publicUrl);
-    return publicUrl;
-  } catch (error: any) {
-    console.error('❌ Upload failed:', error);
-    throw new Error(`Falha no upload: ${error.message}`);
-  }
-};
-
-/**
- * Extract text content from PDF using PDF.js-like approach
- */
-export const extractPDFText = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    // Generate unique processing ID to prevent caching issues or state persistence
+    const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    console.log(`Processing ID: ${processingId}`);
     
-    reader.onload = async () => {
-      try {
-        const arrayBuffer = reader.result as ArrayBuffer;
-        
-        // For now, we'll simulate PDF text extraction
-        // In a real implementation, you would use PDF.js or similar
-        const simulatedText = `
-          Título: ${file.name.replace('.pdf', '').replace(/[-_]/g, ' ')}
-          
-          Resumo: Este é um artigo científico sobre procedimentos estéticos e tecnologias médicas.
-          
-          Autores: Dr. João Silva, Dra. Maria Santos
-          
-          Palavras-chave: estética, medicina, tecnologia, tratamento
-          
-          Conteúdo completo do documento...
-        `;
-        
-        resolve(simulatedText);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    
-    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
-    reader.readAsArrayBuffer(file);
-  });
-};
-
-/**
- * Process extracted text to identify structured data
- */
-export const processExtractedText = (text: string, fileName: string): ExtractedDocumentData => {
-  try {
-    console.log('🔍 Processing extracted text...');
-    
-    // Extract title (look for patterns like "Título:", "Title:", or use filename)
-    let title = '';
-    const titleMatch = text.match(/(?:título|title):\s*(.+)/i);
-    if (titleMatch) {
-      title = titleMatch[1].trim();
-    } else {
-      // Fallback to filename
-      title = fileName.replace('.pdf', '').replace(/[-_]/g, ' ');
-    }
-
-    // Extract description/abstract (look for patterns like "Resumo:", "Abstract:")
-    let description = '';
-    const abstractMatch = text.match(/(?:resumo|abstract):\s*(.+?)(?:\n\n|\n(?=[A-Z]))/is);
-    if (abstractMatch) {
-      description = abstractMatch[1].trim();
-    }
-
-    // Extract authors (look for patterns like "Autores:", "Authors:")
-    const researchers: string[] = [];
-    const authorsMatch = text.match(/(?:autores|authors):\s*(.+)/i);
-    if (authorsMatch) {
-      const authorText = authorsMatch[1];
-      // Split by common separators
-      const authorList = authorText.split(/[,;]|e\s+|and\s+/).map(a => a.trim());
-      researchers.push(...authorList.filter(a => a.length > 2));
-    }
-
-    // Extract keywords (look for patterns like "Palavras-chave:", "Keywords:")
-    const keywords: string[] = [];
-    const keywordsMatch = text.match(/(?:palavras-chave|keywords):\s*(.+)/i);
-    if (keywordsMatch) {
-      const keywordText = keywordsMatch[1];
-      const keywordList = keywordText.split(/[,;]/).map(k => k.trim());
-      keywords.push(...keywordList.filter(k => k.length > 2));
-    }
-
-    const result = {
-      title: title || `Documento ${new Date().toLocaleDateString()}`,
-      description: description || 'Artigo científico extraído automaticamente',
-      keywords: keywords.length > 0 ? keywords : ['medicina', 'estética'],
-      researchers: researchers.length > 0 ? researchers : ['Autor não identificado'],
-      content: text
-    };
-
-    console.log('✅ Text processing completed:', {
-      title: result.title,
-      description: result.description?.substring(0, 50) + '...',
-      keywords: result.keywords,
-      researchers: result.researchers
-    });
-
-    return result;
-  } catch (error: any) {
-    console.error('❌ Text processing failed:', error);
-    return {
-      error: `Erro no processamento: ${error.message}`
-    };
-  }
-};
-
-/**
- * Complete file processing pipeline
- */
-export const processFileContent = async (file: File): Promise<ProcessingResult> => {
-  try {
-    console.log('🚀 Starting complete file processing for:', file.name);
-    
-    // Step 1: Upload file to storage
-    const fileUrl = await uploadFileToStorage(file);
-    
-    // Step 2: Extract text from PDF
-    const extractedText = await extractPDFText(file);
-    
-    // Step 3: Process extracted text
-    const processedData = processExtractedText(extractedText, file.name);
-    
-    if (processedData.error) {
+    // Se estiver em modo de desenvolvimento, simular o processamento para testes
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Modo de desenvolvimento detectado. Usando dados simulados.");
+      
+      // Simular um pequeno atraso para testes de UI
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Ensure we include the processing ID in the response to validate fresh data
+      // Generate different data each time to clearly show new processing results
+      const currentTime = new Date().toISOString().substring(11, 19); // HH:MM:SS
       return {
-        success: false,
-        error: processedData.error,
-        fileUrl
+        title: `EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS (${currentTime})`,
+        conclusion: `The cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers. [Session: ${processingId}]`,
+        keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", processingId.substring(0, 6)],
+        researchers: ["Rodrigo Marcel Valentim", "Patricia Froes Meyer"]
       };
     }
-
+    
+    // Em produção, fazer o processamento real
+    const processResponse = await supabase.functions.invoke('process-document', {
+      body: { 
+        fileContent,
+        timestamp: Date.now(), // Add timestamp to avoid caching
+        processingId, // Add unique ID to force fresh processing
+        forceRefresh: true // Force refresh to avoid getting cached data
+      }
+    });
+    
+    if (processResponse.error) {
+      console.error("Erro ao processar documento:", processResponse.error);
+      throw new Error("Falha ao extrair conteúdo do documento");
+    }
+    
+    const extractionData = processResponse.data;
+    console.log("Dados extraídos:", extractionData);
+    
+    if (!extractionData) {
+      throw new Error("Nenhuma informação foi extraída do documento");
+    }
+    
     return {
-      success: true,
-      data: processedData,
-      fileUrl
+      title: extractionData.title || null,
+      conclusion: extractionData.conclusion || null,
+      keywords: extractionData.keywords || [],
+      researchers: extractionData.researchers || []
     };
   } catch (error: any) {
-    console.error('❌ Complete processing failed:', error);
+    console.error("Erro em processFileContent:", error);
     return {
-      success: false,
-      error: error.message
+      title: null,
+      conclusion: null,
+      keywords: [],
+      researchers: [],
+      error: error.message || "Erro desconhecido no processamento"
     };
+  }
+};
+
+/**
+ * Processa um documento já salvo no banco de dados
+ * @param documentId ID do documento a ser processado
+ */
+export const processExistingDocument = async (documentId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase.functions.invoke('process-document', {
+      body: { 
+        documentId, 
+        forceRefresh: true,
+        timestamp: Date.now(),
+        processingId: `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+      }
+    });
+    
+    if (error) {
+      console.error("Erro ao processar documento:", error);
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Erro em processExistingDocument:", error);
+    throw error;
+  }
+};
+
+/**
+ * Upload de arquivo para o storage
+ * @param file Arquivo a ser enviado
+ * @param fileName Nome do arquivo (opcional)
+ */
+export const uploadFileToStorage = async (file: File, fileName?: string): Promise<string> => {
+  try {
+    console.log("Iniciando upload do arquivo para storage:", file.name, file.type, file.size);
+    
+    // Em modo de desenvolvimento, simular o upload
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Modo de desenvolvimento detectado. Simulando upload.");
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay
+      
+      // Criar um URL de Blob local para simular o upload
+      // Create a unique blob URL each time to prevent caching issues
+      const blobId = `blob-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const blobUrl = URL.createObjectURL(file) + `#${blobId}`;
+      console.log("URL de blob simulado criado:", blobUrl);
+      return blobUrl;
+    }
+    
+    const fileNameToUse = fileName || `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    
+    // Check if the file exists
+    if (!file || file.size === 0) {
+      throw new Error('Arquivo inválido ou vazio');
+    }
+    
+    console.log(`Fazendo upload do arquivo para o caminho: documents/${fileNameToUse}`);
+    
+    // Adicionar retry lógica para lidar com problemas de conexão
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        console.log(`Tentativa de upload ${attempts} de ${maxAttempts}`);
+        
+        const { error, data } = await supabase
+          .storage
+          .from('documents')
+          .upload(fileNameToUse, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (error) {
+          console.error(`Erro na tentativa ${attempts}:`, error);
+          
+          if (attempts < maxAttempts) {
+            // Esperar antes de tentar novamente (backoff exponencial)
+            const waitTime = Math.pow(2, attempts) * 1000;
+            console.log(`Aguardando ${waitTime}ms antes de tentar novamente`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          throw error;
+        }
+        
+        console.log("Upload concluído com sucesso, obtendo URL pública");
+        
+        // Add cache-busting parameter to URL to ensure fresh content
+        const { data: urlData } = supabase
+          .storage
+          .from('documents')
+          .getPublicUrl(`${fileNameToUse}?t=${Date.now()}`);
+          
+        console.log("URL pública:", urlData.publicUrl);
+        
+        return urlData.publicUrl;
+      } catch (err) {
+        if (attempts >= maxAttempts) {
+          throw err;
+        }
+      }
+    }
+    
+    throw new Error('Número máximo de tentativas de upload excedido');
+  } catch (error) {
+    console.error("Erro ao fazer upload do arquivo:", error);
+    throw error;
   }
 };

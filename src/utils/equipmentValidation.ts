@@ -2,50 +2,40 @@
 import { Equipment } from '@/types/equipment';
 
 /**
- * Filter equipments to ensure valid IDs and prevent Select.Item errors
+ * Utility function to filter and validate equipments for use in Select components
+ * This prevents the "Select.Item must have a value prop that is not an empty string" error
  */
 export const filterValidEquipments = (equipments: Equipment[]): Equipment[] => {
-  if (!Array.isArray(equipments)) {
-    console.warn('equipments is not an array:', equipments);
-    return [];
-  }
-
-  return equipments.filter(equipment => {
-    // Check if equipment has required properties
-    if (!equipment || typeof equipment !== 'object') {
-      console.warn('Invalid equipment object:', equipment);
-      return false;
-    }
-
-    // Check if equipment has valid ID
-    if (!equipment.id || typeof equipment.id !== 'string') {
-      console.warn('Equipment missing valid ID:', equipment);
-      return false;
-    }
-
-    // Check if equipment has valid name
-    if (!equipment.nome || typeof equipment.nome !== 'string') {
-      console.warn('Equipment missing valid name:', equipment);
-      return false;
-    }
-
-    return true;
-  });
+  return equipments.filter(equipment => 
+    equipment && 
+    equipment.id && 
+    equipment.id.trim() !== "" && 
+    equipment.nome && 
+    equipment.nome.trim() !== ""
+  );
 };
 
 /**
- * Get equipment name by ID safely
+ * Validate if an equipment object is safe to use in Select components
  */
-export const getEquipmentName = (equipments: Equipment[], equipmentId: string): string => {
+export const isValidEquipment = (equipment: any): equipment is Equipment => {
+  return (
+    equipment &&
+    typeof equipment === 'object' &&
+    equipment.id &&
+    typeof equipment.id === 'string' &&
+    equipment.id.trim() !== "" &&
+    equipment.nome &&
+    typeof equipment.nome === 'string' &&
+    equipment.nome.trim() !== ""
+  );
+};
+
+/**
+ * Get equipment name by ID, with fallback for invalid equipments
+ */
+export const getEquipmentName = (equipmentId: string, equipments: Equipment[]): string => {
   const validEquipments = filterValidEquipments(equipments);
   const equipment = validEquipments.find(eq => eq.id === equipmentId);
   return equipment?.nome || 'Equipamento não encontrado';
-};
-
-/**
- * Check if equipment ID exists in the list
- */
-export const isValidEquipmentId = (equipments: Equipment[], equipmentId: string): boolean => {
-  const validEquipments = filterValidEquipments(equipments);
-  return validEquipments.some(eq => eq.id === equipmentId);
 };

@@ -3,7 +3,6 @@ import React from 'react';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
 
 interface ScientificArticleControlsProps {
   searchTerm: string;
@@ -16,8 +15,6 @@ const ScientificArticleControls: React.FC<ScientificArticleControlsProps> = ({
   setSearchTerm,
   onNewDocument
 }) => {
-  const navigate = useNavigate();
-
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -36,7 +33,7 @@ const ScientificArticleControls: React.FC<ScientificArticleControlsProps> = ({
       </div>
       
       <Button 
-        onClick={() => navigate('/admin/scientific-articles/new')}
+        onClick={onNewDocument}
         className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
       >
         <Plus className="h-4 w-4" />

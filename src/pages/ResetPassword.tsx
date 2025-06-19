@@ -1,15 +1,20 @@
 
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const ResetPassword: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-      <div className="max-w-md w-full mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">Redefinir Senha</h1>
-        <div className="bg-slate-800 p-6 rounded-lg">
-          <p className="text-slate-400 text-center">
-            Página de redefinição de senha em desenvolvimento
-          </p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">Redefinir Senha</h1>
+        <p className="mb-6 text-center text-muted-foreground">
+          Este é um placeholder para a página de redefinição de senha. Por favor, navegue para a página inicial.
+        </p>
+        <div className="flex justify-center">
+          <Link to="/">
+            <Button>Ir para Página Inicial</Button>
+          </Link>
         </div>
       </div>
     </div>

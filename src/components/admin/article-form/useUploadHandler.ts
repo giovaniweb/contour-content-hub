@@ -1,4 +1,5 @@
 
+// I'll update the useUploadHandler hook to support immediate file processing
 import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { uploadFileToStorage, processFileContent } from "@/services/documentProcessing";
@@ -7,7 +8,7 @@ interface UseUploadHandlerProps {
   onExtractedData: (data: ExtractedData) => void;
   onError: (message: string) => void;
   onReset: () => void;
-  forceClearState?: boolean;
+  forceClearState?: boolean; // New prop to force state reset
 }
 
 export interface ExtractedData {
@@ -23,8 +24,10 @@ export const useUploadHandler = ({
   onReset,
   forceClearState = false
 }: UseUploadHandlerProps) => {
+  // For debugging
   const instanceId = useRef(`upload-handler-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   
+  // State
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,6 +35,7 @@ export const useUploadHandler = ({
   const [processingFailed, setProcessingFailed] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
+  // Reset upload state
   const resetUploadState = useCallback(() => {
     console.log(`[${instanceId.current}] Resetting upload state`);
     setFile(null);
@@ -41,6 +45,7 @@ export const useUploadHandler = ({
     setUploadError(null);
   }, []);
   
+  // Handle forceClearState changes
   useEffect(() => {
     if (forceClearState) {
       console.log(`[${instanceId.current}] forceClearState true, resetting upload state`);
@@ -48,15 +53,19 @@ export const useUploadHandler = ({
     }
   }, [forceClearState, resetUploadState]);
   
+  // On mount
   useEffect(() => {
     console.log(`[${instanceId.current}] useUploadHandler mounted`);
     
+    // Clean up on unmount
     return () => {
       console.log(`[${instanceId.current}] useUploadHandler unmounting`);
+      // Ensure we reset state on unmount
       resetUploadState();
     };
   }, [resetUploadState]);
   
+  // Handle file selection
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     console.log(`[${instanceId.current}] handleFileChange called`);
     
@@ -64,10 +73,12 @@ export const useUploadHandler = ({
       const selectedFile = e.target.files[0];
       console.log(`[${instanceId.current}] File selected:`, selectedFile.name, selectedFile.size);
       
+      // Reset states
       onReset();
       resetUploadState();
       setUploadError(null);
       
+      // Validate file
       if (selectedFile.type !== 'application/pdf') {
         toast.error("Formato inválido", {
           description: "Por favor, selecione um arquivo em formato PDF."
@@ -89,6 +100,7 @@ export const useUploadHandler = ({
     }
   }, [onReset, resetUploadState]);
   
+  // Process the file to extract information
   const handleFileUpload = useCallback(async () => {
     if (!file) {
       toast.error("Nenhum arquivo selecionado", {
@@ -104,29 +116,61 @@ export const useUploadHandler = ({
       setIsProcessing(true);
       setProcessingFailed(false);
       setUploadError(null);
-      onReset();
+      onReset(); // Reset any previous extraction data
       
-      setProcessingProgress("Processando arquivo e extraindo conteúdo...");
-      console.log(`[${instanceId.current}] Processing file...`);
+      setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
+      console.log(`[${instanceId.current}] Reading file and extracting content...`);
       
-      // Use the correct processFileContent function that expects a File
-      const result = await processFileContent(file);
+      // Upload file to storage first to ensure we have the URL
+      setProcessingProgress("Enviando arquivo para armazenamento...");
+      console.log(`[${instanceId.current}] Uploading file to storage...`);
       
-      if (!result.success || !result.data) {
-        throw new Error(result.error || 'Falha no processamento');
+      let publicUrl;
+      try {
+        publicUrl = await uploadFileToStorage(file);
+        console.log(`[${instanceId.current}] Upload completed successfully. URL:`, publicUrl);
+        setFileUrl(publicUrl);
+      } catch (storageError: any) {
+        console.error(`[${instanceId.current}] Error during storage upload:`, storageError);
+        // We'll continue even with upload error, but record it
+        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
       }
-
-      // Update fileUrl from result
-      if (result.fileUrl) {
-        setFileUrl(result.fileUrl);
+      
+      // Read file as base64 for processing
+      const fileReader = new FileReader();
+      const fileContentPromise = new Promise<string>((resolve, reject) => {
+        fileReader.onload = (e) => {
+          console.log(`[${instanceId.current}] File read successfully`);
+          resolve(e.target?.result as string);
+        };
+        fileReader.onerror = (e) => {
+          console.error(`[${instanceId.current}] Error reading file:`, e);
+          reject(e);
+        };
+      });
+      fileReader.readAsDataURL(file);
+      const fileContent = await fileContentPromise;
+      
+      setProcessingProgress("Analisando conteúdo do documento...");
+      console.log(`[${instanceId.current}] Analyzing document content...`);
+      
+      // Extract document content with unique processing ID
+      const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      console.log(`[${instanceId.current}] Processing ID: ${processingId}`);
+      
+      // Extract document content
+      const extractionResult = await processFileContent(fileContent.split(',')[1]);
+      
+      if (extractionResult.error) {
+        throw new Error(extractionResult.error);
       }
       
-      // Map the extracted data to our interface
+      // Pass extracted data back to parent component
       const newExtractedData: ExtractedData = {
-        title: result.data.title || '',
-        conclusion: result.data.description || '', // Use description as conclusion
-        keywords: result.data.keywords || [],
-        researchers: result.data.researchers || []
+        title: extractionResult.title || '',
+        conclusion: extractionResult.conclusion || '',
+        keywords: extractionResult.keywords || [],
+        researchers: extractionResult.researchers || []
       };
       
       console.log(`[${instanceId.current}] Data extracted from document:`, {
@@ -136,24 +180,30 @@ export const useUploadHandler = ({
         researchers: newExtractedData.researchers?.length
       });
       
+      // Verify the data actually contains something meaningful
       const hasEmptyExtraction = 
         !newExtractedData.title && 
         !newExtractedData.conclusion && 
         (!newExtractedData.keywords || newExtractedData.keywords.length === 0) &&
         (!newExtractedData.researchers || newExtractedData.researchers.length === 0);
         
-      if (hasEmptyExtraction && file) {
+      // If extraction is empty and we're in production, try to get title from filename
+      if (hasEmptyExtraction) {
         console.log(`[${instanceId.current}] Extracted data is empty, using filename as fallback`);
-        newExtractedData.title = file.name
-          .replace('.pdf', '')
-          .replace(/_/g, ' ')
-          .replace(/-/g, ' ');
+        // Use filename as title
+        if (file) {
+          newExtractedData.title = file.name
+            .replace('.pdf', '')
+            .replace(/_/g, ' ')
+            .replace(/-/g, ' ');
+        }
       }
       
       onExtractedData(newExtractedData);
       
       setProcessingProgress(null);
       
+      // Show relevant toast message
       if (uploadError) {
         toast.warning("Documento processado parcialmente", {
           description: "Informações extraídas com sucesso, mas o upload do arquivo falhou."
@@ -175,6 +225,7 @@ export const useUploadHandler = ({
         description: "Não foi possível processar o arquivo. Por favor, tente novamente."
       });
       
+      // Even with error, try to use filename as title
       if (file) {
         const suggestedTitleFromFilename = file.name
           .replace('.pdf', '')
@@ -190,12 +241,13 @@ export const useUploadHandler = ({
       setIsProcessing(false);
       setProcessingProgress(null);
     }
-  }, [file, onExtractedData, onError, onReset, uploadError]);
+  }, [file, onExtractedData, onError, onReset]);
   
+  // Clear file and reset upload state
   const handleClearFile = useCallback(() => {
     console.log(`[${instanceId.current}] Clearing file`);
     resetUploadState();
-    onReset();
+    onReset(); // Also reset extraction data
   }, [resetUploadState, onReset]);
   
   return {

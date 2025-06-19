@@ -1,7 +1,6 @@
-
 import { lazy } from "react";
 
-import AppLayout from "@/components/layouts/AppLayout";
+import { Main } from "@/components/layouts/Main";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 
@@ -18,169 +17,148 @@ const Billing = lazy(() => import("@/pages/Billing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+import InstagramCallback from "@/pages/auth/InstagramCallback";
 
 const AdminSystemDiagnostics = lazy(() => import("@/pages/AdminSystemDiagnostics"));
-
-// Lazy load das novas páginas de artigos científicos
-const AdminScientificArticles = lazy(() => import("@/pages/admin/AdminScientificArticles"));
-const AdminScientificArticleForm = lazy(() => import("@/pages/admin/AdminScientificArticleForm"));
 
 const routes = [
   {
     path: "/",
     element: (
-      <AppLayout>
-        <AuthGuard>
-          <Home />
-        </AuthGuard>
-      </AppLayout>
+      <Main>
+        <Home />
+      </Main>
     ),
+    protected: true,
   },
   {
     path: "/login",
     element: (
-      <AppLayout>
-        <GuestGuard>
-          <Login />
-        </GuestGuard>
-      </AppLayout>
+      <GuestGuard>
+        <Login />
+      </GuestGuard>
     ),
   },
   {
     path: "/register",
     element: (
-      <AppLayout>
-        <GuestGuard>
-          <Register />
-        </GuestGuard>
-      </AppLayout>
+      <GuestGuard>
+        <Register />
+      </GuestGuard>
     ),
   },
   {
     path: "/forgot-password",
     element: (
-      <AppLayout>
-        <GuestGuard>
-          <ForgotPassword />
-        </GuestGuard>
-      </AppLayout>
+      <GuestGuard>
+        <ForgotPassword />
+      </GuestGuard>
     ),
   },
   {
     path: "/reset-password",
     element: (
-      <AppLayout>
-        <GuestGuard>
-          <ResetPassword />
-        </GuestGuard>
-      </AppLayout>
+      <GuestGuard>
+        <ResetPassword />
+      </GuestGuard>
     ),
   },
   {
     path: "/profile",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <Profile />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/diagnostic",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <Diagnostic />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/creative-agenda",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <CreativeAgenda />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/integrations",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <Integrations />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/billing",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <Billing />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/pricing",
     element: (
-      <AppLayout>
+      <Main>
         <Pricing />
-      </AppLayout>
+      </Main>
     ),
   },
   {
     path: "/onboarding",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <Onboarding />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
+    protected: true,
   },
   {
     path: "/admin/system-diagnostics",
     element: (
-      <AppLayout>
-        <AuthGuard>
+      <AuthGuard>
+        <Main>
           <AdminSystemDiagnostics />
-        </AuthGuard>
-      </AppLayout>
+        </Main>
+      </AuthGuard>
     ),
-  },
-  {
-    path: "/admin/scientific-articles",
-    element: (
-      <AppLayout>
-        <AuthGuard>
-          <AdminScientificArticles />
-        </AuthGuard>
-      </AppLayout>
-    ),
-  },
-  {
-    path: "/admin/scientific-articles/new",
-    element: (
-      <AppLayout>
-        <AuthGuard>
-          <AdminScientificArticleForm />
-        </AuthGuard>
-      </AppLayout>
-    ),
+    protected: true,
   },
   {
     path: "*",
     element: (
-      <AppLayout>
+      <Main>
         <NotFound />
-      </AppLayout>
+      </Main>
     ),
+  },
+  {
+    path: "/auth/instagram/callback",
+    element: <InstagramCallback />
   },
 ];
 
