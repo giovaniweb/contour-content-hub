@@ -19,7 +19,7 @@ interface VideoCardProps {
   viewMode: 'grid' | 'list';
   onPlay: (video: Video) => void;
   onEdit: (video: Video) => void;
-  onDelete: (video: Video) => void;
+  onDelete: (videoId: string) => void; // Changed to accept videoId string
   onDownload: (video: Video) => void;
   onStatistics: (video: Video) => void;
   onCopyLink: (video: Video) => void;
@@ -81,7 +81,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
               <VideoActionMenu
                 video={video}
                 onEdit={onEdit}
-                onDelete={onDelete}
+                onDelete={onDelete} // Now properly passes the videoId string
                 onDownload={onDownload}
                 onStatistics={onStatistics}
                 onCopyLink={onCopyLink}
@@ -133,7 +133,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
           <VideoActionMenu
             video={video}
             onEdit={onEdit}
-            onDelete={onDelete}
+            onDelete={onDelete} // Now properly passes the videoId string
             onDownload={onDownload}
             onStatistics={onStatistics}
             onCopyLink={onCopyLink}
