@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -37,7 +38,8 @@ const VideosPage = React.lazy(() => import('@/pages/VideosPage'));
 const VideoPlayer = React.lazy(() => import('@/pages/VideoPlayer'));
 
 // Equipment pages
-import EquipmentList from "@/pages/EquipmentList";
+const EquipmentsPage = React.lazy(() => import('@/pages/EquipmentsPage'));
+const EquipmentDetails = React.lazy(() => import('@/pages/EquipmentDetails'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
@@ -97,7 +99,8 @@ function App() {
                       <Route path="/photos" element={<AppLayout><PhotosPage /></AppLayout>} />
                       <Route path="/arts" element={<AppLayout><ArtsPage /></AppLayout>} />
                       <Route path="/content-planner" element={<AppLayout><ContentPlannerPage /></AppLayout>} />
-                      <Route path="/equipments" element={<AppLayout><EquipmentList /></AppLayout>} />
+                      <Route path="/equipments" element={<AppLayout><EquipmentsPage /></AppLayout>} />
+                      <Route path="/equipments/:id" element={<AppLayout><EquipmentDetails /></AppLayout>} />
                       
                       {/* Diagnóstico de Relatório */}
                       <Route path="/diagnostic-report/:sessionId" element={<AppLayout><DiagnosticReport /></AppLayout>} />
