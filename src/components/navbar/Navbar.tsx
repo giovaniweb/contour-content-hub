@@ -102,16 +102,7 @@ export const Navbar = () => {
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
-          {isAuthenticated && isAdmin() && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/admin")}
-              className="text-white hover:text-aurora-electric-purple hover:bg-aurora-electric-purple/20 transition-all duration-300 hover:shadow-aurora-glow-blue"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-          )}
+          {isAuthenticated && isAdmin() && <AdminDropdownMenu />}
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>

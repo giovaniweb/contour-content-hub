@@ -13,7 +13,10 @@ import {
   Brain,
   TestTube,
   LinkIcon,
-  LayoutDashboard 
+  LayoutDashboard,
+  FileText,
+  Palette,
+  Plus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,25 +30,25 @@ import {
 const AdminDropdownMenu: React.FC = () => {
   const navigate = useNavigate();
 
-  const quickActions = [
+  const cadastroActions = [
+    {
+      label: "Cadastrar Artigo Científico",
+      icon: BookOpen,
+      action: () => navigate("/admin/scientific-articles"),
+    },
     {
       label: "Upload de Vídeo",
       icon: Video,
       action: () => navigate("/admin/videos"),
     },
     {
-      label: "Upload de Imagem",
+      label: "Upload de Fotos",
       icon: Image,
       action: () => navigate("/photos"),
     },
     {
-      label: "Artigo Científico",
-      icon: BookOpen,
-      action: () => navigate("/admin/scientific-articles"),
-    },
-    {
-      label: "Downloads em Massa",
-      icon: Upload,
+      label: "Materiais (PSD/Arquivos)",
+      icon: Palette,
       action: () => navigate("/downloads/batch"),
     }
   ];
@@ -55,50 +58,60 @@ const AdminDropdownMenu: React.FC = () => {
     { label: "Usuários", icon: Users, path: "/admin/users" },
     { label: "Equipamentos", icon: Settings, path: "/admin/equipments" },
     { label: "Conteúdo", icon: Database, path: "/admin/content" },
-    { label: "Artigos Científicos", icon: BookOpen, path: "/admin/scientific-articles" },
     { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
     { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },
+    { label: "Config. Vimeo", icon: Video, path: "/admin/vimeo/settings" },
     { label: "Diagnósticos", icon: TestTube, path: "/admin/system-diagnostics" }
   ];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:text-aurora-electric-purple hover:bg-aurora-electric-purple/20 transition-all duration-300 hover:shadow-aurora-glow-blue"
+        >
           <Settings className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-56 bg-slate-900 border-slate-700"
+        className="w-64 bg-slate-900/95 border-aurora-electric-purple/30 backdrop-blur-xl"
       >
-        <DropdownMenuLabel className="text-slate-300">
-          Ações Rápidas
+        <DropdownMenuLabel className="text-slate-200 font-medium">
+          <div className="flex items-center gap-2">
+            <Plus className="h-4 w-4 text-aurora-electric-purple" />
+            Cadastros Rápidos
+          </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-700" />
-        {quickActions.map((action, index) => (
+        <DropdownMenuSeparator className="bg-aurora-electric-purple/20" />
+        {cadastroActions.map((action, index) => (
           <DropdownMenuItem
             key={index}
             onClick={action.action}
-            className="text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+            className="text-slate-300 hover:bg-aurora-electric-purple/20 hover:text-white cursor-pointer transition-all duration-200"
           >
-            <action.icon className="h-4 w-4 mr-2" />
+            <action.icon className="h-4 w-4 mr-2 text-aurora-electric-purple" />
             {action.label}
           </DropdownMenuItem>
         ))}
         
-        <DropdownMenuSeparator className="bg-slate-700" />
-        <DropdownMenuLabel className="text-slate-300">
-          Administração
+        <DropdownMenuSeparator className="bg-aurora-electric-purple/20" />
+        <DropdownMenuLabel className="text-slate-200 font-medium">
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4 text-aurora-neon-blue" />
+            Administração
+          </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-700" />
+        <DropdownMenuSeparator className="bg-aurora-electric-purple/20" />
         {adminMenuItems.map((item, index) => (
           <DropdownMenuItem
             key={index}
             onClick={() => navigate(item.path)}
-            className="text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+            className="text-slate-300 hover:bg-aurora-neon-blue/20 hover:text-white cursor-pointer transition-all duration-200"
           >
-            <item.icon className="h-4 w-4 mr-2" />
+            <item.icon className="h-4 w-4 mr-2 text-aurora-neon-blue" />
             {item.label}
           </DropdownMenuItem>
         ))}
