@@ -3,50 +3,51 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, ExternalLink, X } from 'lucide-react';
-import { TechnicalDocument } from '@/types/document';
 
 interface PDFViewerProps {
-  document: TechnicalDocument | null;
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  pdfUrl?: string;
+  documentId?: string;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ document, isOpen, onClose }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ 
+  isOpen, 
+  onOpenChange, 
+  title, 
+  pdfUrl,
+  documentId 
+}) => {
   const handleDownload = () => {
-    if (document?.arquivo_url || document?.link_dropbox) {
-      const url = document.arquivo_url || document.link_dropbox;
-      const link = window.document.createElement('a');
-      link.href = url!;
-      link.download = `${document.titulo}.pdf`;
+    if (pdfUrl) {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `${title}.pdf`;
       link.target = '_blank';
-      window.document.body.appendChild(link);
+      document.body.appendChild(link);
       link.click();
-      window.document.body.removeChild(link);
+      document.body.removeChild(link);
     }
   };
 
   const handleOpenExternal = () => {
-    if (document?.arquivo_url || document?.link_dropbox) {
-      const url = document.arquivo_url || document.link_dropbox;
-      window.open(url, '_blank');
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank');
     }
   };
 
-  if (!document) return null;
-
-  const pdfUrl = document.arquivo_url || document.link_dropbox;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-bold text-gray-900">
-                {document.titulo}
+                {title}
               </DialogTitle>
               <DialogDescription className="mt-1">
-                {document.descricao}
+                Visualização do documento PDF
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -55,6 +56,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ document, isOpen, onClose }) => {
                 size="sm"
                 onClick={handleDownload}
                 className="flex items-center gap-2"
+                disabled={!pdfUrl}
               >
                 <Download className="h-4 w-4" />
                 Download
@@ -64,6 +66,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ document, isOpen, onClose }) => {
                 size="sm"
                 onClick={handleOpenExternal}
                 className="flex items-center gap-2"
+                disabled={!pdfUrl}
               >
                 <ExternalLink className="h-4 w-4" />
                 Abrir
@@ -71,7 +74,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ document, isOpen, onClose }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={() => onOpenChange(false)}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -84,7 +87,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ document, isOpen, onClose }) => {
             <iframe
               src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
               className="w-full h-full border-0"
-              title={`PDF: ${document.titulo}`}
+              title={`PDF: ${title}`}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
