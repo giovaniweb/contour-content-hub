@@ -44,24 +44,10 @@ export interface Phase {
 }
 
 export interface MarketingQuestionProps {
-  question: {
-    id: string;
-    text: string;
-    description?: string;
-    type: string;
-    options: Array<{
-      id?: string;
-      value: string;
-      label?: string;
-      text?: string;
-      description?: string;
-      subtitle?: string;
-      emoji?: string;
-      impact?: string;
-    }>;
-  };
-  onAnswer: (answerId: string) => void;
-  onBack?: () => void;
+  stepData: MarketingStep;
+  currentStep: number;
+  onOptionSelect: (value: string) => Promise<void>;
+  onGoBack?: () => void;
   canGoBack?: boolean;
   progress?: number;
   totalQuestions?: number;
