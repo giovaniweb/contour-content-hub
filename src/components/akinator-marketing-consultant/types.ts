@@ -42,13 +42,3 @@ export interface Phase {
   description: string;
   icon: string;
 }
-
-export interface MarketingQuestionProps {
-  stepData: MarketingStep;
-  currentStep: number;
-  onOptionSelect: (value: string) => Promise<void>;
-  onGoBack?: () => void;
-  canGoBack?: boolean;
-  progress?: number;
-  totalQuestions?: number;
-}
