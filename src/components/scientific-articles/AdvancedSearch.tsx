@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker'; // MODIFICADO
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -13,17 +13,7 @@ import {
 } from '@/components/ui/select';
 import { X, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ScientificArticleFilters } from '@/hooks/use-scientific-articles'; // Importar a interface de filtros
-
-// Se DatePickerWithRange não existir, precisaremos de uma alternativa ou criar um similar.
-// Por agora, vamos assumir sua existência.
-// Exemplo de Fallback para DatePickerWithRange se não existir:
-// const DatePickerWithRange = ({ onChange }) => (
-//   <div>
-//     <Input type="date" onChange={e => onChange({ from: e.target.value })} />
-//     <Input type="date" onChange={e => onChange({ to: e.target.value })} />
-//   </div>
-// );
+import { ScientificArticleFilters } from '@/hooks/use-scientific-articles';
 
 interface Equipment {
   id: string;
@@ -38,7 +28,7 @@ interface Language {
 interface AdvancedSearchProps {
   initialFilters?: Partial<ScientificArticleFilters>;
   onSearch: (filters: Partial<ScientificArticleFilters>) => void;
-  onClear?: () => void; // Opcional: para limpar os filtros
+  onClear?: () => void;
 }
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, onSearch, onClear }) => {
@@ -55,11 +45,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
   const [selectedLanguage, setSelectedLanguage] = useState(initialFilters.language || '');
 
   const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [languages, setLanguages] = useState<Language[]>([ // Exemplo de idiomas
+  const [languages, setLanguages] = useState<Language[]>([
     { code: 'pt', name: 'Português' },
     { code: 'en', name: 'Inglês' },
     { code: 'es', name: 'Espanhol' },
-    { code: 'all', name: 'Todos os idiomas' }, // Opção para limpar filtro de idioma
+    { code: 'all', name: 'Todos os idiomas' },
   ]);
 
   // Fetch equipments
@@ -105,7 +95,6 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
     if (onClear) {
       onClear();
     }
-    // Também chamar onSearch com filtros vazios para resetar a busca
     onSearch({});
   };
 
@@ -156,7 +145,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
               <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
-              <SelectItem value="" className="text-slate-400">Qualquer equipamento</SelectItem>
+              <SelectItem value="none">Qualquer equipamento</SelectItem>
               {equipments.map((eq) => (
                 <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
               ))}
@@ -173,7 +162,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
               {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code} className={lang.code === "" || lang.code === "all" ? "text-slate-400" : ""}>
+                <SelectItem key={lang.code} value={lang.code}>
                   {lang.name}
                 </SelectItem>
               ))}
@@ -181,14 +170,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
           </Select>
         </div>
 
-        {/* Date Range - Modificado */}
+        {/* Date Range */}
         <div className="space-y-1">
           <Label htmlFor="startDate" className="text-slate-300">Data de Início</Label>
           <DatePicker
             value={startDate}
             onValueChange={setStartDate}
             placeholder="DD/MM/AAAA"
-            className="w-full" // Assegurar que o botão ocupe a largura
+            className="w-full"
           />
         </div>
         <div className="space-y-1">
@@ -197,7 +186,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
             value={endDate}
             onValueChange={setEndDate}
             placeholder="DD/MM/AAAA"
-            className="w-full" // Assegurar que o botão ocupe a largura
+            className="w-full"
           />
         </div>
       </div>
@@ -224,7 +213,3 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
 };
 
 export default AdvancedSearch;
-
-// Nota: Se o componente `DatePickerWithRange` não existir em `@/components/ui/date-range-picker`,
-// será necessário criá-lo ou usar uma alternativa. Um DatePicker simples pode exigir dois campos (data de início e fim).
-// O shadcn/ui tem um exemplo de `DatePickerWithRange` que pode ser adaptado.

@@ -48,37 +48,29 @@ serve(async (req) => {
       );
     }
 
-    if (!document.conteudo_extraido) {
-      console.warn('Document has no extracted content');
-      return new Response(
-        JSON.stringify({ error: 'Document has no extracted content' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get user ID from JWT token
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
-
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      try {
-        const { data: userData, error: userError } = await supabase.auth.getUser(token);
-        
-        if (!userError && userData?.user) {
-          userId = userData.user.id;
-        }
-      } catch (authError) {
-        console.warn('Error getting user from token:', authError);
-        // Continue without user ID
-      }
-    }
-
     let answer;
     
     // Try to use OpenAI if API key exists
     if (OPENAI_API_KEY) {
       try {
+        console.log('Using OpenAI to generate answer');
+        
+        const systemPrompt = `Você é um assistente especializado em responder perguntas sobre documentos científicos e técnicos.
+        
+INSTRUÇÕES:
+- Responda apenas com informações presentes no documento fornecido
+- Se a resposta não estiver no documento, diga isso claramente
+- Seja preciso e conciso, mas completo
+- Use linguagem clara e acessível
+- Cite informações específicas quando relevante
+
+DOCUMENTO:
+Título: ${document.titulo}
+Descrição: ${document.descricao || 'Não informado'}
+Conteúdo: ${document.conteudo_extraido || 'Conteúdo não disponível'}
+Palavras-chave: ${document.keywords?.join(', ') || 'Não informado'}
+Pesquisadores: ${document.researchers?.join(', ') || 'Não informado'}`;
+
         // Use OpenAI to answer the question based on the document content
         const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -91,16 +83,15 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: `Você é um assistente especializado em responder perguntas sobre documentos científicos e técnicos.
-                         Responda apenas com informações presentes no documento.
-                         Se a resposta não estiver no documento, diga isso claramente.
-                         Conteúdo do documento: ${document.conteudo_extraido}`
+                content: systemPrompt
               },
               {
                 role: 'user',
                 content: question
               }
             ],
+            temperature: 0.7,
+            max_tokens: 1000
           }),
         });
 
@@ -124,19 +115,19 @@ serve(async (req) => {
       answer = await generateFallbackAnswer(document, question);
     }
 
-    // Log question in document access history
-    if (userId) {
+    // Get user ID from JWT token for logging
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
       try {
-        await supabase
-          .from('document_access_history')
-          .insert({
-            document_id: documentId,
-            user_id: userId,
-            action_type: 'question',
-            details: { question, answer }
-          });
-      } catch (historyError) {
-        console.warn('Failed to log access history:', historyError);
+        const { data: userData, error: userError } = await supabase.auth.getUser(token);
+        if (!userError && userData?.user) {
+          userId = userData.user.id;
+        }
+      } catch (authError) {
+        console.warn('Error getting user from token:', authError);
       }
     }
 
@@ -158,30 +149,53 @@ serve(async (req) => {
 });
 
 async function generateFallbackAnswer(document: any, question: string): Promise<string> {
-  // Simple rule-based answer generation based on keywords in the question
+  // Enhanced rule-based answer generation based on keywords in the question
   const questionLower = question.toLowerCase();
+  const title = document.titulo || '';
+  const description = document.descricao || '';
+  const content = document.conteudo_extraido || '';
+  const keywords = document.keywords || [];
+  const researchers = document.researchers || [];
   
-  if (questionLower.includes('cryofrequency') || questionLower.includes('criofrequência')) {
-    return "A criofrequência é uma técnica de tratamento estético que combina radiofrequência com resfriamento, utilizada para tratar adiposidade localizada (gordura localizada) como mostrado neste estudo.";
-  } else if (questionLower.includes('author') || questionLower.includes('autor')) {
-    return document.researchers && document.researchers.length > 0 
-      ? `Os autores deste documento são: ${document.researchers.join(', ')}`
-      : "O documento especifica os autores: Rodrigo Marcel Valentim da Silva, Manoelly Wesleyana Tavares da Silva, Sâmela Fernandes de Medeiros, Sywdixianny Silva de Brito Guerra, Regina da Silva Nobre, Patricia Froes Meyer.";
-  } else if (questionLower.includes('result') || questionLower.includes('resultado') || questionLower.includes('conclusion') || questionLower.includes('conclusão')) {
-    return "O estudo conclui que a criofrequência foi eficaz para o tratamento da adiposidade localizada, gerando uma satisfação positiva entre os voluntários avaliados.";
-  } else if (questionLower.includes('método') || questionLower.includes('method')) {
-    return "O estudo utilizou o equipamento Manthus exclusivamente no modo bipolar de criofrequência para avaliar os efeitos sobre a adiposidade localizada nas flancos/lateral do abdome.";
-  } else if (questionLower.includes('sample') || questionLower.includes('amostra') || questionLower.includes('volunteers') || questionLower.includes('voluntários')) {
-    return "A amostra foi composta por 7 voluntários, que realizaram 10 sessões de criofrequência, sendo divididos em Grupo Controle - GC (n = 7) e Grupo Intervenção - GI (n = 7), totalizando 14 flancos.";
-  } else if (questionLower.includes('equipment') || questionLower.includes('equipamento')) {
-    return "No estudo, foi utilizado o equipamento Manthus exclusivamente no modo bipolar de criofrequência.";
-  } else if (questionLower.includes('assessment') || questionLower.includes('avaliação')) {
-    return "Os voluntários foram submetidos a um Protocolo de Avaliação, que incluiu anamnese, avaliação antropométrica, fotogrametria, ultrassonografia e perimetria.";
-  } else if (questionLower.includes('analysis') || questionLower.includes('análise')) {
-    return "Foi realizada uma análise estatística descritiva por média e desvio padrão. A análise inferencial foi realizada pelo teste de Wilcoxon, com nível de significância de p<0,05.";
-  } else if (questionLower.includes('keywords') || questionLower.includes('palavras-chave')) {
-    return "As palavras-chave do documento são: Radiofrequência; Crioterapia; Tecido Adiposo.";
-  } else {
-    return "Com base no conteúdo do documento, esta questão específica não pôde ser respondida com precisão. O documento aborda o uso da criofrequência para tratamento de adiposidade localizada nos flancos, mostrando resultados positivos. O estudo envolveu 7 voluntários e utilizou o equipamento Manthus no modo bipolar de criofrequência.";
+  // Combine all available text for search
+  const fullText = `${title} ${description} ${content}`.toLowerCase();
+  
+  if (questionLower.includes('objetivo') || questionLower.includes('purpose') || questionLower.includes('goal')) {
+    if (fullText.includes('objetivo') || fullText.includes('purpose')) {
+      return `Com base no documento "${title}", o objetivo do estudo está relacionado aos temas abordados no documento. Para uma resposta mais precisa sobre os objetivos específicos, recomendo consultar a seção de introdução ou metodologia do documento completo.`;
+    }
+    return `O documento "${title}" aborda temas relacionados a ${keywords.join(', ')}. Para obter informações específicas sobre os objetivos do estudo, seria necessário analisar o documento completo.`;
   }
+  
+  if (questionLower.includes('resultado') || questionLower.includes('result') || questionLower.includes('conclusão') || questionLower.includes('conclusion')) {
+    if (fullText.includes('resultado') || fullText.includes('conclus')) {
+      return `O documento "${title}" apresenta resultados relacionados aos temas principais do estudo. Para uma análise detalhada dos resultados e conclusões, recomendo consultar as seções específicas do documento.`;
+    }
+    return `Com base no título e nas palavras-chave (${keywords.join(', ')}), o documento provavelmente apresenta resultados relacionados a esses temas. Para detalhes específicos, consulte o documento completo.`;
+  }
+  
+  if (questionLower.includes('método') || questionLower.includes('metodologia') || questionLower.includes('method') || questionLower.includes('methodology')) {
+    return `O estudo "${title}" utiliza metodologias relacionadas aos temas: ${keywords.join(', ')}. Para detalhes específicos sobre a metodologia empregada, consulte a seção de métodos do documento completo.`;
+  }
+  
+  if (questionLower.includes('autor') || questionLower.includes('author') || questionLower.includes('pesquisador') || questionLower.includes('researcher')) {
+    if (researchers.length > 0) {
+      return `Os pesquisadores/autores deste documento são: ${researchers.join(', ')}.`;
+    }
+    return `As informações sobre os autores/pesquisadores não estão disponíveis nos metadados do documento. Consulte o documento original para essas informações.`;
+  }
+  
+  if (questionLower.includes('palavra-chave') || questionLower.includes('keyword') || questionLower.includes('tema') || questionLower.includes('topic')) {
+    if (keywords.length > 0) {
+      return `As principais palavras-chave e temas do documento são: ${keywords.join(', ')}.`;
+    }
+    return `As palavras-chave específicas não estão disponíveis nos metadados. O documento trata de temas relacionados ao título: "${title}".`;
+  }
+  
+  // Generic response for other questions
+  if (content) {
+    return `Com base no documento "${title}", posso confirmar que ele aborda temas relacionados a ${keywords.join(', ')}. Para responder sua pergunta específica de forma mais precisa, seria necessário analisar o conteúdo completo do documento. Recomendo consultar o documento original ou reformular sua pergunta focando nos temas principais mencionados.`;
+  }
+  
+  return `O documento "${title}" está disponível para consulta, mas para responder sua pergunta específica, seria necessário ter acesso ao conteúdo completo extraído. Recomendo visualizar o documento PDF diretamente ou entrar em contato com os autores: ${researchers.join(', ') || 'informações de contato não disponíveis'}.`;
 }

@@ -94,9 +94,9 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Enhanced Aurora Boreal Dark Background */
+    /* Static Enhanced Aurora Boreal Dark Background */
     background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-    background-attachment: fixed;
+    /* Removed background-attachment: fixed to prevent movement */
   }
 
   #root {
@@ -105,10 +105,10 @@
   }
 }
 
-/* Enhanced Global Aurora Styles */
+/* Static Global Aurora Styles */
 .aurora-enhanced-theme {
   background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-  background-attachment: fixed;
+  /* Removed background-attachment: fixed */
   min-height: 100vh;
 }
 
@@ -119,14 +119,14 @@ html {
 
 html.dark body {
   background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-  background-attachment: fixed;
+  /* Removed background-attachment: fixed */
 }
 
 /* Ensure all main containers use the enhanced dark theme */
 #root {
   @apply dark;
   background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-  background-attachment: fixed;
+  /* Removed background-attachment: fixed */
   min-height: 100vh;
 }
 
