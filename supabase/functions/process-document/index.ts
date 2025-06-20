@@ -2,6 +2,9 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { PDFDocument } from "https://deno.land/x/pdfparser@v0.0.2/mod.ts";
+// Fixando a versão para v0.0.2 conforme o exemplo no site, pode ser ajustada se necessário.
+// Se houver uma versão mais recente ou estável, use-a.
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
@@ -108,21 +111,21 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     console.log(`Found document: ${document.titulo}`);
     
     // Check if document has a URL
-    if (!document.link_dropbox) {
-      console.error('Document URL not found');
-      // Update status to 'falhou_processamento' if URL is missing
+    if (!document.arquivo_url && !document.link_dropbox) { // Check both possible URL fields
+      console.error('Document URL (arquivo_url or link_dropbox) not found');
       await supabase
         .from('documentos_tecnicos')
-        .update({ status: 'falhou_processamento', conteudo_extraido: 'URL do documento não encontrada.' })
+        .update({ status: 'falhou_processamento', conteudo_extraido: 'URL do documento (arquivo_url ou link_dropbox) não encontrada.' })
         .eq('id', documentId);
       return new Response(
         JSON.stringify({ error: 'Document URL not found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log(`Document URL: ${document.link_dropbox}`);
     
+    const documentUrl = document.arquivo_url || document.link_dropbox; // Prioritize arquivo_url
+    console.log(`Document URL: ${documentUrl}`);
+
     // Adjusted logic for forceRefresh and existing content
     const isPlaceholderContent = document.conteudo_extraido && document.conteudo_extraido.startsWith('--- PLACEHOLDER DE CONTEÚDO ---');
     const hasRealContent = document.conteudo_extraido && !document.conteudo_extraido.startsWith('--- PLACEHOLDER DE CONTEÚDO ---') && document.conteudo_extraido.trim() !== '';
@@ -172,43 +175,102 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     
     let extractedText = "";
     try {
-      console.log(`Fetching PDF from URL: ${document.link_dropbox}`);
-      const pdfResponse = await fetch(document.link_dropbox);
+      console.log(`Fetching PDF from URL: ${documentUrl}`);
+      const pdfResponse = await fetch(documentUrl);
       if (!pdfResponse.ok) {
-        throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
+        throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText} from URL: ${documentUrl}`);
       }
       const pdfArrayBuffer = await pdfResponse.arrayBuffer();
-      console.log(`PDF fetched, size: ${pdfArrayBuffer.byteLength} bytes. Attempting to parse...`);
+      console.log(`PDF fetched, size: ${pdfArrayBuffer.byteLength} bytes. Attempting to parse with pdfparser...`);
 
-      // SIMULAÇÃO DE EXTRAÇÃO DE TEXTO (substituir com biblioteca real)
-      if (pdfArrayBuffer.byteLength > 0) {
-        extractedText = `Simulated PDF Content Extraction for: ${document.titulo}\n\nThis content was "extracted" from ${document.link_dropbox} (Size: ${pdfArrayBuffer.byteLength} bytes).\nReplace this with actual PDF parsing logic.\nKeywords from form: ${document.keywords ? (Array.isArray(document.keywords) ? document.keywords.join(', ') : document.keywords) : 'N/A'}\nResearchers from form: ${document.researchers ? (Array.isArray(document.researchers) ? document.researchers.join(', ') : document.researchers) : 'N/A'}`;
-        console.log("PDF parsing simulated successfully. Length: " + extractedText.length);
-      } else {
-        throw new Error("PDF ArrayBuffer is empty after fetching.");
+      if (pdfArrayBuffer.byteLength === 0) {
+        throw new Error("PDF ArrayBuffer is empty, cannot parse.");
       }
-      // FIM DA SIMULAÇÃO
+
+      // ---> INÍCIO DA MODIFICAÇÃO PARA pdfparser <---
+      try {
+        const pdfDoc = await PDFDocument.load(new Uint8Array(pdfArrayBuffer));
+        const { texts } = await pdfDoc.getTextContent(); // 'texts' é um array de objetos { str: string, ... }
+
+        if (texts && texts.length > 0) {
+          extractedText = texts.map(textItem => textItem.str).join('\n\n'); // Usar \n\n para separar parágrafos/blocos de texto
+          console.log(`PDF text extracted successfully using pdfparser. Length: ${extractedText.length}`);
+          if (extractedText.length === 0) {
+            console.warn("pdfparser extracted an empty string despite having text items. This might indicate an issue with the PDF or parser for this file.");
+          }
+        } else {
+          console.warn("pdfparser did not return any text items. The PDF might be image-based or have no extractable text.");
+          extractedText = ""; // Garantir que seja uma string vazia se nada for extraído
+        }
+      } catch (parseError) {
+        console.error("Error during PDF parsing with pdfparser:", parseError);
+        throw new Error(`Failed to parse PDF content: ${parseError.message}`);
+      }
+      // ---> FIM DA MODIFICAÇÃO PARA pdfparser <---
 
       if (!extractedText || extractedText.trim() === "") {
-        console.warn("Extracted text is empty. Using fallback.");
-        extractedText = `Fallback: No text could be extracted from PDF: ${document.titulo}. URL: ${document.link_dropbox}`;
+        console.warn(`Extracted text is empty for document ${document.id}. URL: ${documentUrl}. Document will be marked as failed.`);
       }
 
-      const documentInfo = await extractDocumentInfo(extractedText, true); // forceReset = true para sempre re-analisar com OpenAI
+      console.log(`Updating document ${document.id} with extracted text before OpenAI call.`);
+      const preOpenAIStatus = extractedText.trim() === "" ? 'falhou_processamento' : 'processando_metadados';
+      const { error: preUpdateError } = await supabase
+        .from('documentos_tecnicos')
+        .update({
+            conteudo_extraido: extractedText,
+            status: preOpenAIStatus
+        })
+        .eq('id', documentId);
+
+      if (preUpdateError) {
+        console.error('Failed to update document with extracted text before OpenAI call:', preUpdateError);
+        throw new Error(`Failed to pre-update document: ${preUpdateError.message}`);
+      }
+
+      if (preOpenAIStatus === 'falhou_processamento') {
+        console.log(`Skipping OpenAI for document ${document.id} as text extraction failed or yielded empty text.`);
+        return new Response(
+            JSON.stringify({
+              success: false,
+              message: "Text extraction failed or yielded empty text. OpenAI processing skipped.",
+              documentId: documentId,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+      }
+
+      console.log(`Proceeding to OpenAI metadata extraction for document ${document.id}.`);
+      const documentInfo = await extractDocumentInfo(extractedText, true); // forceReset = true
       console.log("Extracted document info from OpenAI:", documentInfo);
 
       const updatePayload: any = {
-        conteudo_extraido: extractedText,
         status: 'ativo',
-        keywords: documentInfo.keywords || [],
-        researchers: documentInfo.researchers || []
+        // Keywords and Researchers will be handled with combination logic below
       };
 
-      // Se o título foi extraído pela OpenAI e é diferente do atual, atualize-o
-      if (documentInfo.title && documentInfo.title.trim() !== '' && documentInfo.title !== document.titulo) {
+      if (documentInfo.title && (!document.titulo || document.titulo.trim() === '')) {
         updatePayload.titulo = documentInfo.title;
-        console.log(`Updating title from "${document.titulo}" to "${documentInfo.title}"`);
+        console.log(`Using title from AI: "${documentInfo.title}" as document title was empty.`);
       }
+
+      if (documentInfo.summary && (!document.descricao || document.descricao.trim() === '')) {
+        updatePayload.descricao = documentInfo.summary; // MODIFICADO de conclusion para summary
+        console.log(`Using summary from AI as document description was empty.`);
+      }
+
+      // Combine keywords
+      const formKeywords = document.keywords || [];
+      const aiKeywords = documentInfo.keywords || [];
+      const combinedKeywords = [...new Set([...formKeywords, ...aiKeywords])].filter(k => k && k.trim() !== '');
+      updatePayload.keywords = combinedKeywords.length > 0 ? combinedKeywords : [];
+      console.log(`Combined keywords (form + AI): ${JSON.stringify(updatePayload.keywords)}`);
+
+      // Combine researchers
+      const formResearchers = document.researchers || [];
+      const aiResearchers = documentInfo.researchers || [];
+      const combinedResearchers = [...new Set([...formResearchers, ...aiResearchers])].filter(r => r && r.trim() !== '');
+      updatePayload.researchers = combinedResearchers.length > 0 ? combinedResearchers : [];
+      console.log(`Combined researchers (form + AI): ${JSON.stringify(updatePayload.researchers)}`);
 
       const { error: updateError } = await supabase
         .from('documentos_tecnicos')
@@ -216,42 +278,59 @@ async function processDocumentById(documentId: string, userId: string | null, fo
         .eq('id', documentId);
 
       if (updateError) {
-        console.error('Failed to update document with extracted text:', updateError);
-        // Consider not returning immediately, but logging and attempting to return partial success
-        // For now, let's follow the original pattern of returning an error response
-        throw updateError; // Propagate to the main catch block for consistent error handling
+        console.error('Failed to update document with AI metadata:', updateError);
+        throw updateError;
       }
 
-      console.log("Document updated successfully with new extracted content and metadata");
+      console.log("Document updated successfully with AI-extracted metadata.");
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "Document processed, text extracted, and metadata updated successfully",
+          message: "Document processed, text extracted, and AI metadata updated successfully",
           documentId: documentId,
-          title: updatePayload.titulo || document.titulo, // return the potentially updated title
+          title: updatePayload.titulo || document.titulo,
           keywords: updatePayload.keywords,
           researchers: updatePayload.researchers
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
-      console.error('Error extracting text or processing document:', error);
-      // Atualizar status para 'falhou' se a extração falhar
-      await supabase
-        .from('documentos_tecnicos')
-        .update({ status: 'falhou_processamento', conteudo_extraido: `Falha na extração: ${error.message}` })
-        .eq('id', documentId);
+    } catch (error) { // Este é o catch do bloco try que envolve a extração e o processamento da OpenAI
+      console.error(`Error in main processing block for document ${documentId}:`, error);
+      // A atualização de status para 'falhou_processamento' é gerenciada pelo catch externo ou aqui,
+      // dependendo de onde o erro é lançado.
+      // Se o erro foi um throw de dentro, o catch externo pegará.
+      // Se foi um erro tipo pdfResponse.ok falso, este catch pode precisar atualizar o status.
+      // O catch externo já faz uma atualização genérica, mas podemos ser mais específicos.
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to extract text from document', details: error.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Re-throw para ser pego pelo catch externo que já tem lógica de update de falha
+      throw error;
     }
-  } catch (error) {
-    console.error('Error processing document:', error);
+  } catch (error) { // Este é o catch principal da função processDocumentById
+    console.error(`Error processing document ${documentId}:`, error);
+    const { data: currentDocData, error: fetchErr } = await supabase
+      .from('documentos_tecnicos')
+      .select('status, conteudo_extraido')
+      .eq('id', documentId)
+      .single();
+
+    const updateFailurePayload: any = { status: 'falhou_processamento' };
+    if (fetchErr || !currentDocData || (currentDocData && !currentDocData.conteudo_extraido && !(error.message && error.message.includes("Failed to pre-update document"))) ) {
+      // Se não conseguiu buscar o doc, OU se conseguiu mas o conteudo_extraido não foi salvo ANTES,
+      // OU se o erro NÃO É sobre falha no pré-update (que já teria salvo o texto),
+      // então incluir a mensagem de erro no conteudo_extraido.
+      updateFailurePayload.conteudo_extraido = `Falha no processamento: ${error.message}`;
+    }
+    // Se currentDocData.conteudo_extraido EXISTE, ou se o erro FOI "Failed to pre-update document",
+    // não sobrescrevemos o conteudo_extraido, pois ele já foi salvo (ou a tentativa de salvar falhou mas ele está no payload do erro).
+
+    await supabase
+      .from('documentos_tecnicos')
+      .update(updateFailurePayload)
+      .eq('id', documentId);
+
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: `Failed to process document: ${error.message}`, details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -270,7 +349,7 @@ async function extractDocumentInfo(text: string, forceReset = false) {
       // Use predefined sample data with real author names and keywords from the example text
       return {
         title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        summary: "This study concluded that cryofrequency was effective for treating localized adiposity, with high volunteer satisfaction.", // MODIFICADO
         keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
         researchers: [
           "Rodrigo Marcel Valentim da Silva", 
@@ -300,7 +379,7 @@ async function extractDocumentInfo(text: string, forceReset = false) {
             content: `You are a scientific paper metadata extraction system. Extract ONLY these exact fields from the document:
 
 1. title: The complete title of the paper as it appears in the document
-2. conclusion: The conclusion or final paragraph summary of the paper
+2. summary: A concise 1-3 sentence summary of the paper's main topic, methodology, and key findings. If an abstract is present at the beginning of the document, prefer extracting the abstract.
 3. keywords: Array of keywords exactly as listed in the paper
 4. researchers: Array with full names of ALL authors/researchers
 
@@ -314,7 +393,7 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
           },
           { 
             role: 'user', 
-            content: `Extract the title, conclusion, keywords, and researchers from this scientific paper:\n\n${text}` 
+            content: `Extract the title, summary, keywords, and researchers from this scientific paper:\n\n${text}` // MODIFICADO
           }
         ],
         response_format: { type: "json_object" }
@@ -333,7 +412,7 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
         // Return the extracted data
         return {
           title: extractedData.title || "",
-          conclusion: extractedData.conclusion || "",
+          summary: extractedData.summary || "", // MODIFICADO
           keywords: extractedData.keywords || [],
           researchers: extractedData.researchers || []
         };
@@ -343,7 +422,7 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
         // If parse error, return sample data
         return {
           title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-          conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+          summary: "This study concluded that cryofrequency was effective for treating localized adiposity, with high volunteer satisfaction.", // MODIFICADO
           keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
           researchers: [
             "Rodrigo Marcel Valentim da Silva", 
@@ -363,7 +442,7 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
       // Return sample data if API error
       return {
         title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-        conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+        summary: "This study concluded that cryofrequency was effective for treating localized adiposity, with high volunteer satisfaction.", // MODIFICADO
         keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
         researchers: [
           "Rodrigo Marcel Valentim da Silva", 
@@ -381,7 +460,7 @@ Return valid JSON with these exact fields. Do not explain or add comments.`
     // Return sample data if any error
     return {
       title: "EFFECTS OF CRYOFREQUENCY ON LOCALIZED ADIPOSITY IN FLANKS",
-      conclusion: "It is concluded that the cryofrequency was effective for the treatment of localized adiposity, generating a positive satisfaction among the evaluated volunteers.",
+      summary: "This study concluded that cryofrequency was effective for treating localized adiposity, with high volunteer satisfaction.", // MODIFICADO
       keywords: ["Radiofrequência", "Crioterapia", "Tecido Adiposo", "Adiposidade Localizada", "Estética"],
       researchers: [
         "Rodrigo Marcel Valentim da Silva", 

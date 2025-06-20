@@ -229,9 +229,7 @@ const ScientificArticles: React.FC = () => {
       <ArticleViewModal
         isOpen={isViewModalOpen}
         onOpenChange={setIsViewModalOpen}
-        title={selectedArticle?.titulo || ''}
-        pdfUrl={selectedArticle?.link_dropbox || undefined} // Assegurar que é string | undefined
-        documentId={selectedArticle?.id || undefined} // Assegurar que é string | undefined
+        document={selectedArticle} // MODIFICADO
       />
     </AuroraPageLayout>
   );
