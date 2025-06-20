@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, MessageSquare, Loader2, Bot, User, Sparkles } from 'lucide-react';
+import { Send, MessageSquare, Loader2, Bot, User, Sparkles, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -135,11 +135,21 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Card className="w-full h-[600px] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl flex flex-col overflow-hidden">
+    <Card className="w-full h-[600px] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl bg-aurora-void-black/80 flex flex-col overflow-hidden">
       <CardHeader className="aurora-glass-enhanced border-b border-aurora-electric-purple/20 pb-4 bg-aurora-deep-purple/10">
         <CardTitle className="aurora-text-gradient-enhanced flex items-center gap-3">
-          <div className="aurora-glow-enhanced">
-            <MessageSquare className="h-6 w-6 text-aurora-electric-purple" />
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-aurora-electric-purple/20"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20">
+            <MessageSquare className="h-4 w-4 text-aurora-electric-purple" />
           </div>
           <div className="flex-1">
             <h3 className="text-lg text-slate-100">Assistente de IA</h3>
@@ -166,14 +176,12 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {message.type === 'assistant' && (
-                  <div className="aurora-glow-enhanced">
-                    <div className="w-8 h-8 rounded-full aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30">
-                      {message.isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-aurora-electric-purple" />
-                      ) : (
-                        <Bot className="h-4 w-4 text-aurora-electric-purple" />
-                      )}
-                    </div>
+                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20">
+                    {message.isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-aurora-electric-purple" />
+                    ) : (
+                      <Bot className="h-4 w-4 text-aurora-electric-purple" />
+                    )}
                   </div>
                 )}
                 
@@ -182,7 +190,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                     message.type === 'user'
                       ? 'aurora-button-enhanced bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white shadow-lg'
                       : 'aurora-glass-enhanced border border-aurora-electric-purple/20 text-slate-200 bg-aurora-deep-purple/20'
-                  } ${message.isLoading ? 'aurora-glow-enhanced' : ''}`}
+                  } ${message.isLoading ? 'shadow-lg shadow-aurora-electric-purple/20' : ''}`}
                 >
                   {message.isLoading ? (
                     <div className="flex items-center gap-2">
@@ -204,10 +212,8 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                 </div>
 
                 {message.type === 'user' && (
-                  <div className="aurora-glow-enhanced">
-                    <div className="w-8 h-8 rounded-full aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30">
-                      <User className="h-4 w-4 text-aurora-neon-blue" />
-                    </div>
+                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-neon-blue/20">
+                    <User className="h-4 w-4 text-aurora-neon-blue" />
                   </div>
                 )}
               </div>
@@ -248,7 +254,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
               onChange={(e) => setCurrentQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="flex-1 resize-none min-h-[80px] bg-aurora-deep-purple/20"
+              className="flex-1 resize-none min-h-[80px] aurora-glass-enhanced border-aurora-electric-purple/30 bg-aurora-deep-purple/20 text-slate-200"
               rows={3}
             />
             <Button
