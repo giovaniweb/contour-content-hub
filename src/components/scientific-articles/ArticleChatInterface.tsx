@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, MessageSquare, Loader2, Bot, User, Sparkles, ArrowLeft } from 'lucide-react';
+import { Send, MessageSquare, Loader2, Bot, User, Sparkles, ArrowLeft, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -56,11 +56,11 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
   }, [isOpen, documentTitle, messages.length]);
 
   const suggestedQuestions = [
-    "Qual é o objetivo principal deste estudo?",
-    "Quais são os principais resultados encontrados?",
-    "Qual foi a metodologia utilizada?",
-    "Quais são as conclusões do estudo?",
-    "Quais são as limitações mencionadas?"
+    "Objetivo principal",
+    "Principais resultados", 
+    "Metodologia utilizada",
+    "Conclusões do estudo",
+    "Limitações mencionadas"
   ];
 
   const handleSubmitQuestion = async (questionToSubmit?: string) => {
@@ -136,8 +136,9 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
 
   return (
     <Card className="w-full h-[600px] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl bg-aurora-void-black/80 flex flex-col overflow-hidden">
-      <CardHeader className="aurora-glass-enhanced border-b border-aurora-electric-purple/20 pb-4 bg-aurora-deep-purple/10">
-        <CardTitle className="aurora-text-gradient-enhanced flex items-center gap-3">
+      {/* Header aprimorado */}
+      <CardHeader className="aurora-glass-enhanced border-b border-aurora-electric-purple/20 pb-3 bg-gradient-to-r from-aurora-deep-purple/20 to-aurora-void-black/40 shrink-0">
+        <CardTitle className="flex items-center gap-3">
           {onClose && (
             <Button
               variant="ghost"
@@ -148,23 +149,31 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
-          <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20">
-            <MessageSquare className="h-4 w-4 text-aurora-electric-purple" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg text-slate-100">Assistente de IA</h3>
-            <p className="text-sm text-slate-400 font-normal">
-              Faça perguntas sobre: {documentTitle}
-            </p>
-          </div>
-          <div className="flex items-center gap-1 text-aurora-neon-blue">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-xs">IA</span>
+          
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-gradient-to-br from-aurora-electric-purple/30 to-aurora-neon-blue/30 shadow-lg shadow-aurora-electric-purple/20">
+              <BookOpen className="h-5 w-5 text-aurora-electric-purple" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl aurora-text-gradient-enhanced font-bold">Fluida Científica</h3>
+              <p className="text-sm text-slate-400 font-normal">
+                Assistente especializado em pesquisa científica
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-aurora-neon-blue bg-aurora-neon-blue/10 px-2 py-1 rounded-lg border border-aurora-neon-blue/20">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-medium">IA</span>
+            </div>
           </div>
         </CardTitle>
+        
+        {/* Título do documento */}
+        <div className="mt-2 text-xs text-slate-400 bg-aurora-deep-purple/20 rounded-lg px-3 py-2 border border-aurora-electric-purple/20">
+          <span className="font-medium">Analisando:</span> {documentTitle}
+        </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0 bg-aurora-void-black/20">
+      <CardContent className="flex-1 flex flex-col p-0 bg-aurora-void-black/20 min-h-0">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message, index) => (
@@ -176,7 +185,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {message.type === 'assistant' && (
-                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20">
+                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20 shrink-0">
                     {message.isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin text-aurora-electric-purple" />
                     ) : (
@@ -212,27 +221,28 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                 </div>
 
                 {message.type === 'user' && (
-                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-neon-blue/20">
+                  <div className="w-8 h-8 rounded-xl aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-neon-blue/20 shrink-0">
                     <User className="h-4 w-4 text-aurora-neon-blue" />
                   </div>
                 )}
               </div>
             ))}
 
+            {/* Sugestões de perguntas em formato de tags menores */}
             {messages.length === 1 && (
               <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
                 <p className="text-sm text-slate-400 text-center">
                   Sugestões de perguntas:
                 </p>
-                <div className="grid gap-2">
+                <div className="flex flex-wrap gap-2 justify-center">
                   {suggestedQuestions.map((suggestion, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSubmitQuestion(suggestion)}
+                      onClick={() => handleSubmitQuestion(`Qual é o ${suggestion.toLowerCase()} deste estudo?`)}
                       disabled={isLoading}
-                      className="aurora-glass-enhanced border-aurora-electric-purple/20 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 text-left justify-start h-auto p-3 whitespace-normal hover:border-aurora-neon-blue/40 transition-all duration-300"
+                      className="aurora-glass-enhanced border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 text-xs px-3 py-1 h-7 hover:border-aurora-neon-blue/40 transition-all duration-300"
                     >
                       {suggestion}
                     </Button>
@@ -245,7 +255,8 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-aurora-electric-purple/20 aurora-glass-enhanced bg-aurora-deep-purple/10">
+        {/* Input area */}
+        <div className="p-4 border-t border-aurora-electric-purple/20 aurora-glass-enhanced bg-aurora-deep-purple/10 shrink-0">
           <div className="flex gap-3">
             <Textarea
               ref={textareaRef}
@@ -254,13 +265,13 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
               onChange={(e) => setCurrentQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="flex-1 resize-none min-h-[80px] aurora-glass-enhanced border-aurora-electric-purple/30 bg-aurora-deep-purple/20 text-slate-200"
-              rows={3}
+              className="flex-1 resize-none min-h-[60px] aurora-glass-enhanced border-aurora-electric-purple/30 bg-aurora-deep-purple/20 text-slate-200"
+              rows={2}
             />
             <Button
               onClick={() => handleSubmitQuestion()}
               disabled={isLoading || !currentQuestion.trim()}
-              className="aurora-button-enhanced self-end"
+              className="aurora-button-enhanced self-end h-[60px] w-12"
               size="icon"
             >
               {isLoading ? (
