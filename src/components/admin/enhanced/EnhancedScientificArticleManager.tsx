@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DocumentType, TechnicalDocument } from '@/types/document';
 import { useDocuments } from '@/hooks/use-documents';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -59,8 +59,19 @@ const EnhancedScientificArticleManager: React.FC = () => {
   };
 
   const handleUploadSuccess = () => {
+    console.log('Upload successful, closing dialog and refreshing documents');
     setIsUploadDialogOpen(false);
     fetchDocuments();
+  };
+
+  const handleNewDocument = () => {
+    console.log('Opening upload dialog...');
+    setIsUploadDialogOpen(true);
+  };
+
+  const handleCancelUpload = () => {
+    console.log('Canceling upload, closing dialog...');
+    setIsUploadDialogOpen(false);
   };
 
   const filteredDocuments = documents.filter(doc => {
@@ -73,6 +84,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
     
     return matchesSearch && matchesType && matchesEquipment;
   });
+
+  console.log('Upload dialog state:', isUploadDialogOpen);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -95,7 +108,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
         <ScientificArticleControls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          onNewDocument={() => setIsUploadDialogOpen(true)}
+          onNewDocument={handleNewDocument}
         />
 
         {/* Filters */}
@@ -115,23 +128,28 @@ const EnhancedScientificArticleManager: React.FC = () => {
           onView={handleView}
           onQuestion={handleQuestion}
           onDownload={handleDownload}
-          onUpload={() => setIsUploadDialogOpen(true)}
+          onUpload={handleNewDocument}
         />
       </div>
 
-      {/* Upload Dialog */}
+      {/* Upload Dialog - Fixed z-index and positioning */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-800/95 border-cyan-500/30">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden bg-slate-800/95 backdrop-blur-sm border border-cyan-500/30 z-50">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-100">
               <Upload className="h-5 w-5 text-cyan-400" />
               Adicionar Novo Documento
             </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Faça upload de um documento científico para adicionar à biblioteca
+            </DialogDescription>
           </DialogHeader>
-          <EnhancedDocumentUploadForm
-            onSuccess={handleUploadSuccess}
-            onCancel={() => setIsUploadDialogOpen(false)}
-          />
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            <EnhancedDocumentUploadForm
+              onSuccess={handleUploadSuccess}
+              onCancel={handleCancelUpload}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -149,6 +167,9 @@ const EnhancedScientificArticleManager: React.FC = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] bg-slate-800/95 border-cyan-500/30">
           <DialogHeader>
             <DialogTitle className="text-slate-100">Perguntas sobre o Documento</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Faça perguntas sobre o conteúdo do documento selecionado
+            </DialogDescription>
           </DialogHeader>
           {selectedDocument && (
             <DocumentQuestionChat

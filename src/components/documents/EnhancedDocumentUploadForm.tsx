@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
 import {
   Form,
   FormControl,
@@ -22,12 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileUp, Upload, CheckCircle, X, AlertCircle } from 'lucide-react';
-import { useDocumentUpload } from '@/hooks/useDocumentUpload';
-import { useEquipments } from '@/hooks/useEquipments';
-import { DocumentUploadForm as DocumentFormData } from '@/types/document';
-import { filterValidEquipments } from '@/utils/equipmentValidation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Upload, FileUp, File, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { DocumentType } from '@/types/document';
+import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 
 const documentFormSchema = z.object({
@@ -40,22 +38,18 @@ const documentFormSchema = z.object({
 
 interface EnhancedDocumentUploadFormProps {
   onSuccess: () => void;
-  onCancel?: () => void;
+  onCancel: () => void;
 }
 
 const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({ 
   onSuccess, 
   onCancel 
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [equipments, setEquipments] = useState<{ id: string; nome: string }[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const { uploadDocument, isUploading, uploadProgress } = useDocumentUpload();
-  const { equipments } = useEquipments();
   const { toast } = useToast();
-  
-  // Filter equipments to prevent Select.Item errors
-  const validEquipments = filterValidEquipments(equipments);
   
   const form = useForm<z.infer<typeof documentFormSchema>>({
     resolver: zodResolver(documentFormSchema),
@@ -67,329 +61,269 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
       idioma_original: 'pt',
     },
   });
-
-  const validateFile = (file: File): string | null => {
-    if (!file) {
-      return 'Nenhum arquivo selecionado';
-    }
+  
+  // Fetch equipment list
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('equipamentos')
+          .select('id, nome')
+          .eq('ativo', true)
+          .order('nome');
+          
+        if (error) throw error;
+        
+        setEquipments(data || []);
+      } catch (error) {
+        console.error('Erro ao buscar equipamentos:', error);
+      }
+    };
     
-    if (file.type !== 'application/pdf') {
-      return 'Por favor, selecione apenas arquivos PDF';
-    }
-    
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      return 'O arquivo deve ter no máximo 10MB';
-    }
-    
-    return null;
-  };
-
-  const handleFileChange = (file: File | null) => {
-    setFileError(null);
-    
-    if (!file) {
-      setSelectedFile(null);
-      return;
-    }
-    
-    const error = validateFile(file);
-    if (error) {
-      setFileError(error);
-      setSelectedFile(null);
-      toast({
-        title: "Arquivo inválido",
-        description: error,
-        variant: "destructive"
-      });
-      return;
-    }
-    
+    fetchEquipments();
+  }, []);
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
     setSelectedFile(file);
-    
-    // Auto-fill title from filename
-    const nameWithoutExt = file.name.replace(/\.pdf$/i, '');
-    if (!form.getValues('titulo')) {
-      form.setValue('titulo', nameWithoutExt);
-    }
+    setUploadError(null);
   };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange(e.dataTransfer.files[0]);
-    }
-  };
-
+  
   const removeFile = () => {
     setSelectedFile(null);
-    setFileError(null);
-    form.setValue('titulo', '');
   };
-
+  
   const onSubmit = async (data: z.infer<typeof documentFormSchema>) => {
-    if (!selectedFile) {
-      const error = 'Por favor, selecione um arquivo PDF';
-      setFileError(error);
-      toast({
-        title: "Erro",
-        description: error,
-        variant: "destructive"
-      });
-      return;
-    }
+    try {
+      setIsUploading(true);
+      setUploadError(null);
+      
+      if (!selectedFile) {
+        setUploadError('Selecione um arquivo para upload');
+        return;
+      }
+      
+      // Get the current user
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id;
+      
+      if (!userId) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Upload file to storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `documents/${fileName}`;
+      
+      const { error: uploadError } = await supabase
+        .storage
+        .from('documents')
+        .upload(filePath, selectedFile);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('documents')
+        .getPublicUrl(filePath);
+      
+      // Create entry in the database
+      const { data: insertedData, error: insertError } = await supabase
+        .from('documentos_tecnicos')
+        .insert({
+          titulo: data.titulo,
+          descricao: data.descricao || null,
+          tipo: data.tipo,
+          equipamento_id: data.equipamento_id || null,
+          link_dropbox: publicUrl,
+          arquivo_url: publicUrl,
+          idioma_original: data.idioma_original,
+          status: 'processando',
+          criado_por: userId,
+        })
+        .select('id')
+        .single();
+        
+      if (insertError) {
+        throw insertError;
+      }
 
-    const validationError = validateFile(selectedFile);
-    if (validationError) {
-      setFileError(validationError);
-      toast({
-        title: "Arquivo inválido",
-        description: validationError,
-        variant: "destructive"
-      });
-      return;
-    }
+      if (!insertedData || !insertedData.id) {
+        throw new Error('Falha ao obter o ID do documento recém-criado.');
+      }
+      
+      const newDocumentId = insertedData.id;
+      console.log(`Documento inserido com ID: ${newDocumentId}`);
 
-    const formData: DocumentFormData = {
-      titulo: data.titulo,
-      descricao: data.descricao || '',
-      tipo: data.tipo,
-      equipamento_id: data.equipamento_id && data.equipamento_id !== 'none' ? data.equipamento_id : undefined,
-      idioma_original: data.idioma_original,
-      file: selectedFile
-    };
+      // Trigger document processing
+      try {
+        console.log(`Invocando a função 'process-document' para o documentId: ${newDocumentId}`);
+        const { error: functionError } = await supabase.functions.invoke('process-document', {
+          body: { documentId: newDocumentId },
+        });
 
-    const documentId = await uploadDocument(formData);
-    
-    if (documentId) {
+        if (functionError) {
+          console.error(`Erro ao invocar a função 'process-document':`, functionError);
+          toast({
+            title: "Aviso",
+            description: "Documento enviado, mas o processamento automático falhou. O documento pode precisar ser processado manualmente.",
+            variant: "default",
+          });
+        } else {
+          console.log(`Função 'process-document' invocada com sucesso para o documentId: ${newDocumentId}`);
+          toast({
+            title: "Sucesso",
+            description: "Documento enviado e processamento iniciado com sucesso!",
+            variant: "default",
+          });
+        }
+      } catch (functionInvokeError: any) {
+        console.error(`Erro ao invocar a função 'process-document':`, functionInvokeError);
+        toast({
+          title: "Aviso",
+          description: "Documento enviado, mas o processamento automático falhou. O documento pode precisar ser processado manualmente.",
+          variant: "default",
+        });
+      }
+      
+      // Success
       form.reset();
       setSelectedFile(null);
-      setFileError(null);
       onSuccess();
+      
+    } catch (error: any) {
+      console.error('Erro ao fazer upload:', error);
+      setUploadError(error.message || 'Erro ao fazer upload do documento');
+      toast({
+        title: "Erro",
+        description: error.message || 'Erro ao fazer upload do documento',
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
-
+  
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Aurora Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-pulse"></div>
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-      </div>
-
-      <div className="relative z-10 max-w-2xl mx-auto p-6 space-y-8">
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Adicionar Novo Documento
-          </h2>
-          <p className="text-slate-300">Faça upload de um documento científico para sua biblioteca</p>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* File Upload Area */}
-            <div className="space-y-2">
-              <FormLabel className="text-slate-100">Arquivo PDF</FormLabel>
-              {!selectedFile ? (
-                <div
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 backdrop-blur-sm ${
-                    dragActive 
-                      ? 'border-cyan-400 bg-cyan-400/10' 
-                      : 'border-cyan-500/30 bg-slate-800/30 hover:border-cyan-400/50 hover:bg-slate-700/30'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="pdf-upload"
-                    disabled={isUploading}
+    <div className="p-6 space-y-6">
+      {uploadError && (
+        <Alert variant="destructive">
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{uploadError}</AlertDescription>
+        </Alert>
+      )}
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="titulo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-200">Título do Documento</FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    placeholder="Ex: Protocolo de tratamento para lipedema"
+                    className="bg-slate-700/50 border-cyan-500/30 text-slate-100"
                   />
-                  <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center">
-                    <FileUp className="h-12 w-12 text-cyan-400 mb-4" />
-                    <p className="text-lg font-medium text-slate-100 mb-2">
-                      Arraste e solte seu PDF aqui
-                    </p>
-                    <p className="text-sm text-slate-400 mb-4">
-                      ou clique para selecionar um arquivo
-                    </p>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
-                      disabled={isUploading}
-                    >
-                      Selecionar PDF
-                    </Button>
-                  </label>
-                </div>
-              ) : (
-                <div className="border rounded-xl p-4 bg-slate-800/50 backdrop-blur-sm border-cyan-500/30">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="h-8 w-8 text-green-400" />
-                      <div>
-                        <p className="font-medium text-slate-100">{selectedFile.name}</p>
-                        <p className="text-sm text-slate-400">
-                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={removeFile}
-                      disabled={isUploading}
-                      className="text-slate-400 hover:text-slate-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {fileError && (
-                <Alert variant="destructive" className="bg-red-900/20 border-red-500/30">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-red-400">{fileError}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            {/* Upload Progress */}
-            {isUploading && (
-              <div className="space-y-2 p-4 bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 rounded-xl">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-300">Enviando documento...</span>
-                  <span className="text-cyan-400">{uploadProgress}%</span>
-                </div>
-                <Progress value={uploadProgress} className="w-full" />
-              </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-
-            {/* Form Fields */}
+          />
+          
+          <FormField
+            control={form.control}
+            name="descricao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-200">Descrição</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    {...field} 
+                    placeholder="Descreva brevemente o conteúdo deste documento"
+                    className="h-24 bg-slate-700/50 border-cyan-500/30 text-slate-100"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="titulo"
+              name="tipo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-100">Título do Documento</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      placeholder="Ex: Eficácia do tratamento XYZ..."
-                      className="bg-slate-800/50 border-cyan-500/30 text-slate-100 placeholder:text-slate-400 rounded-xl backdrop-blur-sm"
-                      disabled={isUploading}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormLabel className="text-slate-200">Tipo de Documento</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
+                        <SelectValue placeholder="Selecione o tipo de documento" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                      <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
+                      <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
+                      <SelectItem value="protocolo">Protocolo</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
-              name="descricao"
+              name="equipamento_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-100">Descrição/Resumo</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Descreva brevemente o conteúdo deste documento"
-                      className="h-24 bg-slate-800/50 border-cyan-500/30 text-slate-100 placeholder:text-slate-400 rounded-xl backdrop-blur-sm resize-none"
-                      disabled={isUploading}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormLabel className="text-slate-200">Equipamento Relacionado</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
+                        <SelectValue placeholder="Selecione um equipamento" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {equipments.map(equipment => (
+                        <SelectItem key={equipment.id} value={equipment.id}>
+                          {equipment.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="tipo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-100">Tipo de Documento</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isUploading}>
-                      <FormControl>
-                        <SelectTrigger className="bg-slate-800/50 border-cyan-500/30 text-slate-100 rounded-xl backdrop-blur-sm">
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-slate-800 border-cyan-500/30">
-                        <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
-                        <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
-                        <SelectItem value="protocolo">Protocolo</SelectItem>
-                        <SelectItem value="outro">Outro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="equipamento_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-100">Equipamento Relacionado</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isUploading}>
-                      <FormControl>
-                        <SelectTrigger className="bg-slate-800/50 border-cyan-500/30 text-slate-100 rounded-xl backdrop-blur-sm">
-                          <SelectValue placeholder="Selecione um equipamento" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-slate-800 border-cyan-500/30">
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {validEquipments.map(equipment => (
-                          <SelectItem key={equipment.id} value={equipment.id}>
-                            {equipment.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            
             <FormField
               control={form.control}
               name="idioma_original"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-100">Idioma Original</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isUploading}>
+                  <FormLabel className="text-slate-200">Idioma Original</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
                     <FormControl>
-                      <SelectTrigger className="bg-slate-800/50 border-cyan-500/30 text-slate-100 rounded-xl backdrop-blur-sm">
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
                         <SelectValue placeholder="Selecione o idioma" />
                       </SelectTrigger>
                     </FormControl>
@@ -397,39 +331,91 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
                       <SelectItem value="pt">Português</SelectItem>
                       <SelectItem value="en">Inglês</SelectItem>
                       <SelectItem value="es">Espanhol</SelectItem>
-                      <SelectItem value="fr">Francês</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4">
-              {onCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={isUploading}
-                  className="bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700/50 rounded-xl"
+          </div>
+          
+          <div className="mt-4">
+            <FormLabel className="text-slate-200">Arquivo</FormLabel>
+            {!selectedFile ? (
+              <div className="mt-1 border-2 border-dashed border-cyan-500/30 rounded-lg p-6 flex flex-col items-center justify-center bg-slate-700/20">
+                <label 
+                  htmlFor="file-upload"
+                  className="flex flex-col items-center justify-center cursor-pointer"
                 >
-                  Cancelar
+                  <FileUp className="h-10 w-10 text-cyan-400 mb-2" />
+                  <span className="text-sm text-slate-300 mb-1">
+                    Clique para fazer upload de um documento
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    PDF, DOCX (máx. 10MB)
+                  </span>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.docx,.doc"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            ) : (
+              <div className="mt-1 border border-cyan-500/30 rounded-lg p-4 flex justify-between items-center bg-slate-700/20">
+                <div className="flex items-center">
+                  <File className="h-8 w-8 text-cyan-400 mr-2" />
+                  <div>
+                    <p className="font-medium text-slate-200">{selectedFile.name}</p>
+                    <p className="text-sm text-slate-400">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={removeFile}
+                  className="text-slate-400 hover:text-slate-200"
+                >
+                  <X className="h-5 w-5" />
                 </Button>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isUploading || !selectedFile}
+              className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Enviar Documento
+                </>
               )}
-              <Button
-                type="submit"
-                disabled={isUploading || !selectedFile}
-                className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
-              >
-                <Upload className="h-4 w-4" />
-                {isUploading ? 'Enviando...' : 'Enviar Documento'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </div>
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 };
