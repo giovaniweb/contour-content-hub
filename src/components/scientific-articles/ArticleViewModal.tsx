@@ -1,47 +1,34 @@
-
-import React, { useState } from 'react';
+// Caminho sugerido: ./src/components/documents/ArticleViewModal.tsx
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Download, MessageSquare, FileText, X } from "lucide-react";
+import { TechnicalDocument } from '@/types/document';
+import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
 import EnhancedPDFViewer from './EnhancedPDFViewer';
 import ArticleChatInterface from './ArticleChatInterface';
 
 interface ArticleViewModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
-  pdfUrl?: string;
-  documentId?: string;
+  document: TechnicalDocument | null;
 }
 
 const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
   isOpen,
   onOpenChange,
-  title,
-  pdfUrl,
-  documentId
+  document
 }) => {
   const [showPDFViewer, setShowPDFViewer] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const effectivePdfUrl = document?.arquivo_url || document?.link_dropbox;
 
   const handleDownload = () => {
-    if (pdfUrl) {
-      window.open(pdfUrl, '_blank');
-    }
+    if (effectivePdfUrl) window.open(effectivePdfUrl, '_blank');
   };
 
   const handleOpenInNewTab = () => {
-    if (pdfUrl) {
-      window.open(pdfUrl, '_blank');
-    }
-  };
-
-  const handleViewPDF = () => {
-    setShowPDFViewer(true);
-  };
-
-  const handleStartChat = () => {
-    setShowChat(true);
+    if (effectivePdfUrl) window.open(effectivePdfUrl, '_blank');
   };
 
   const handleCloseModal = () => {
@@ -50,131 +37,110 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
     onOpenChange(false);
   };
 
-  const handleCloseChatOnly = () => {
-    setShowChat(false);
-  };
+  const handleCloseChatOnly = () => setShowChat(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowPDFViewer(false);
+      setShowChat(false);
+    }
+  }, [isOpen]);
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleCloseModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl bg-aurora-void-black/80">
+        <DialogContent className="max-w-6xl max-h-[90vh] aurora-glass border-aurora-electric-purple/30 flex flex-col">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="aurora-text-gradient-enhanced text-xl flex-1 mr-4">
-                {title}
+            <div className="flex justify-between items-center">
+              <DialogTitle className="aurora-heading text-xl line-clamp-1">
+                {document?.titulo || 'Visualizador de Artigo'}
               </DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCloseModal}
-                className="text-slate-400 hover:text-slate-200 hover:bg-aurora-electric-purple/20"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {(showChat || showPDFViewer) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowChat(false);
+                    setShowPDFViewer(false);
+                  }}
+                  className="ml-auto"
+                >
+                  Voltar
+                </Button>
+              )}
             </div>
           </DialogHeader>
-          
-          <div className="flex flex-col space-y-6">
-            {/* Main Action Cards - Only show when chat is not active */}
-            {!showChat && (
+
+          <div className="flex-1 overflow-y-auto space-y-6">
+            {!showChat && !showPDFViewer && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* PDF Viewer Card */}
-                <div className="aurora-card-enhanced p-6 border border-aurora-electric-purple/20 bg-aurora-deep-purple/10 transition-all duration-300">
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-xl aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-electric-purple/20">
-                      <FileText className="h-8 w-8 text-aurora-electric-purple" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-2">Visualizar PDF</h3>
-                      <p className="text-sm text-slate-400 mb-4">
-                        Visualize o documento completo com controles avançados de zoom e navegação
-                      </p>
-                      <Button 
-                        onClick={handleViewPDF}
-                        className="aurora-button-enhanced w-full"
-                        disabled={!pdfUrl}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Abrir Visualizador
-                      </Button>
-                    </div>
-                  </div>
+                <div className="aurora-card-enhanced p-6 border border-aurora-electric-purple/20 bg-aurora-deep-purple/10">
+                  <h3 className="text-slate-200 text-lg mb-2">Visualizar PDF</h3>
+                  <Button onClick={() => setShowPDFViewer(true)} disabled={!effectivePdfUrl}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Abrir Visualizador
+                  </Button>
                 </div>
-
-                {/* Chat Interface Card */}
-                <div className="aurora-card-enhanced p-6 border border-aurora-neon-blue/20 bg-aurora-deep-purple/10 transition-all duration-300">
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-xl aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30 shadow-lg shadow-aurora-neon-blue/20">
-                      <MessageSquare className="h-8 w-8 text-aurora-neon-blue" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-2">Fazer Perguntas</h3>
-                      <p className="text-sm text-slate-400 mb-4">
-                        Converse com IA especializada para entender melhor o conteúdo do artigo
-                      </p>
-                      <Button 
-                        onClick={handleStartChat}
-                        className="aurora-button-enhanced w-full bg-gradient-to-r from-aurora-neon-blue to-aurora-emerald hover:from-aurora-neon-blue/80 hover:to-aurora-emerald/80"
-                        disabled={!documentId}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Iniciar Conversa
-                      </Button>
-                    </div>
-                  </div>
+                <div className="aurora-card-enhanced p-6 border border-aurora-neon-blue/20 bg-aurora-deep-purple/10">
+                  <h3 className="text-slate-200 text-lg mb-2">Fazer Pergunta</h3>
+                  <Button
+                    onClick={() => setShowChat(true)}
+                    disabled={!document}
+                    className="bg-aurora-neon-blue hover:bg-aurora-neon-blue/80"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Iniciar Conversa
+                  </Button>
                 </div>
               </div>
             )}
 
-            {/* Chat Interface - Full screen when active */}
-            {showChat && documentId && (
-              <div className="animate-fade-in">
-                <ArticleChatInterface
-                  documentId={documentId}
-                  documentTitle={title}
-                  isOpen={showChat}
-                  onClose={handleCloseChatOnly}
-                />
-              </div>
+            {showChat && document && (
+              <ArticleChatInterface
+                documentId={document.id}
+                documentTitle={document.titulo}
+                isOpen={showChat}
+                onClose={handleCloseChatOnly}
+              />
             )}
 
-            {/* Quick Actions - Only show when chat is not active */}
-            {!showChat && (
-              <div className="flex items-center justify-center gap-3 pt-4 border-t border-aurora-electric-purple/20">
-                <Button
-                  onClick={handleOpenInNewTab}
-                  variant="outline"
-                  className="aurora-glass-enhanced border-aurora-emerald/30 text-aurora-emerald hover:bg-aurora-emerald/20 transition-all duration-300"
-                  size="sm"
-                  disabled={!pdfUrl}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Abrir em Nova Aba
-                </Button>
-                <Button
-                  onClick={handleDownload}
-                  variant="outline"
-                  className="aurora-glass-enhanced border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20 transition-all duration-300"
-                  size="sm"
-                  disabled={!pdfUrl}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </div>
+            {showPDFViewer && effectivePdfUrl && (
+              <EnhancedPDFViewer
+                isOpen={showPDFViewer}
+                onOpenChange={setShowPDFViewer}
+                pdfUrl={effectivePdfUrl}
+                title={document?.titulo || ''}
+                documentId={document?.id || ''}
+              />
             )}
           </div>
+
+          {!showChat && !showPDFViewer && (
+            <div className="flex items-center justify-center gap-3 pt-4 border-t border-aurora-electric-purple/20">
+              <Button
+                onClick={handleOpenInNewTab}
+                variant="outline"
+                className="text-aurora-emerald hover:bg-aurora-emerald/10"
+                size="sm"
+                disabled={!effectivePdfUrl}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Abrir em Nova Aba
+              </Button>
+              <Button
+                onClick={handleDownload}
+                variant="outline"
+                className="text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
+                size="sm"
+                disabled={!effectivePdfUrl}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
-
-      {/* Enhanced PDF Viewer Modal */}
-      <EnhancedPDFViewer
-        isOpen={showPDFViewer}
-        onOpenChange={setShowPDFViewer}
-        pdfUrl={pdfUrl}
-        title={title}
-        documentId={documentId}
-      />
     </>
   );
 };

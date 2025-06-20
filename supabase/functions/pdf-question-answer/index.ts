@@ -18,6 +18,35 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    let userId = null;
+
+    // Get User ID from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        // Note: Using service_role_key for supabase.auth.getUser.
+        // This is generally okay for server-to-server, but if this token is a user's JWT,
+        // ensure your RLS policies are correctly set up or consider using anon key for user-specific actions.
+        // For just getting user ID from a valid JWT, service_role_key should work.
+        try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+            if (userError) {
+                console.warn('Error getting user from token:', userError.message);
+            } else if (user) {
+                userId = user.id;
+                console.log(`User ID from token: ${userId}`);
+            } else {
+                console.log('No user found for the provided token.');
+            }
+        } catch (e) {
+            console.warn('Exception during token processing for user ID:', e.message);
+        }
+    } else {
+        console.log('No Authorization header found, user ID will be null.');
+    }
+
     const { documentId, question } = await req.json();
     
     if (!documentId || !question) {
@@ -26,8 +55,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     // Get document content
     const { data: document, error } = await supabase
@@ -45,6 +72,27 @@ serve(async (req) => {
 
     const answer = await generateAnswer(question, document);
 
+    if (userId && documentId && answer) {
+      try {
+        const { error: historyError } = await supabase
+          .from('document_access_history')
+          .insert({
+            document_id: documentId,
+            user_id: userId,
+            action_type: 'question', // tipo de ação
+            details: { question: question, answer: answer } // detalhes em JSONB
+          });
+        if (historyError) {
+          console.warn('Failed to log question to access history:', historyError.message);
+          // Não tratar como erro fatal para a resposta da pergunta
+        } else {
+          console.log(`Question logged for document ${documentId} by user ${userId}`);
+        }
+      } catch (logCatchError) {
+        console.warn('Exception during history logging:', logCatchError.message);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,
@@ -55,7 +103,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error answering question:', error);
+    console.error('Error answering question:', error.message ? error.message : error);
     return new Response(
       JSON.stringify({ error: 'Failed to answer question', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
