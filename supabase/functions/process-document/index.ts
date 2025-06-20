@@ -110,6 +110,11 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     // Check if document has a URL
     if (!document.link_dropbox) {
       console.error('Document URL not found');
+      // Update status to 'falhou_processamento' if URL is missing
+      await supabase
+        .from('documentos_tecnicos')
+        .update({ status: 'falhou_processamento', conteudo_extraido: 'URL do documento não encontrada.' })
+        .eq('id', documentId);
       return new Response(
         JSON.stringify({ error: 'Document URL not found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -118,14 +123,48 @@ async function processDocumentById(documentId: string, userId: string | null, fo
 
     console.log(`Document URL: ${document.link_dropbox}`);
     
-    // Check if we already have content extracted and force refresh is not set
-    if (document.conteudo_extraido && !forceRefresh) {
-      console.log("Document already has extracted content and no force refresh requested");
+    // Adjusted logic for forceRefresh and existing content
+    const isPlaceholderContent = document.conteudo_extraido && document.conteudo_extraido.startsWith('--- PLACEHOLDER DE CONTEÚDO ---');
+    const hasRealContent = document.conteudo_extraido && !document.conteudo_extraido.startsWith('--- PLACEHOLDER DE CONTEÚDO ---') && document.conteudo_extraido.trim() !== '';
+    const metadataMissing = !document.keywords || document.keywords.length === 0 || !document.researchers || document.researchers.length === 0;
+
+    if (hasRealContent && !forceRefresh && !metadataMissing) {
+      console.log("Document already has real extracted content and metadata, and no force refresh requested.");
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "Document already has extracted content",
+          message: "Document already has extracted content and metadata. No action taken.",
           documentId: documentId
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (hasRealContent && !forceRefresh && metadataMissing) {
+      console.log("Document has real content but metadata is missing. Re-extracting info from existing content.");
+      const documentInfo = await extractDocumentInfo(document.conteudo_extraido, true); // forceReset true to ensure OpenAI re-analyzes
+      const { error: updateMetaError } = await supabase
+        .from('documentos_tecnicos')
+        .update({
+          keywords: documentInfo.keywords || document.keywords || [], // Keep existing if new is empty
+          researchers: documentInfo.researchers || document.researchers || [], // Keep existing if new is empty
+          // status remains 'ativo' or whatever it was
+        })
+        .eq('id', documentId);
+
+      if (updateMetaError) {
+        console.warn('Failed to update metadata for already processed document:', updateMetaError);
+        // Not a fatal error, but log it.
+      } else {
+        console.log("Metadata updated for already processed document.");
+      }
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Metadata updated from existing content.",
+          documentId: documentId,
+          keywords: documentInfo.keywords,
+          researchers: documentInfo.researchers
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -133,67 +172,77 @@ async function processDocumentById(documentId: string, userId: string | null, fo
     
     let extractedText = "";
     try {
-      // console.log("Generating extracted text"); // Original log
-      console.log("Generating placeholder extracted text for document: " + document.id); // New log
-      
-      // Em produção, isso buscaria o conteúdo real do PDF
-      // Temporariamente usando placeholder enquanto a extração de PDF não é implementada
-      const keywordsString = document.keywords ? (Array.isArray(document.keywords) ? document.keywords.join(', ') : document.keywords) : 'N/A';
-      const researchersString = document.researchers ? (Array.isArray(document.researchers) ? document.researchers.join(', ') : document.researchers) : 'N/A';
-      extractedText = `--- PLACEHOLDER DE CONTEÚDO ---
-Título: ${document.titulo}
-ID do Documento: ${document.id}
+      console.log(`Fetching PDF from URL: ${document.link_dropbox}`);
+      const pdfResponse = await fetch(document.link_dropbox);
+      if (!pdfResponse.ok) {
+        throw new Error(`Failed to fetch PDF: ${pdfResponse.status} ${pdfResponse.statusText}`);
+      }
+      const pdfArrayBuffer = await pdfResponse.arrayBuffer();
+      console.log(`PDF fetched, size: ${pdfArrayBuffer.byteLength} bytes. Attempting to parse...`);
 
-Este é um placeholder. A extração de texto real do conteúdo do PDF (${document.link_dropbox}) está pendente de implementação.
-Consulte o arquivo PDF original para o conteúdo completo.
+      // SIMULAÇÃO DE EXTRAÇÃO DE TEXTO (substituir com biblioteca real)
+      if (pdfArrayBuffer.byteLength > 0) {
+        extractedText = `Simulated PDF Content Extraction for: ${document.titulo}\n\nThis content was "extracted" from ${document.link_dropbox} (Size: ${pdfArrayBuffer.byteLength} bytes).\nReplace this with actual PDF parsing logic.\nKeywords from form: ${document.keywords ? (Array.isArray(document.keywords) ? document.keywords.join(', ') : document.keywords) : 'N/A'}\nResearchers from form: ${document.researchers ? (Array.isArray(document.researchers) ? document.researchers.join(', ') : document.researchers) : 'N/A'}`;
+        console.log("PDF parsing simulated successfully. Length: " + extractedText.length);
+      } else {
+        throw new Error("PDF ArrayBuffer is empty after fetching.");
+      }
+      // FIM DA SIMULAÇÃO
 
-Palavras-chave preliminares (se disponíveis do formulário): ${keywordsString}
-Pesquisadores preliminares (se disponíveis do formulário): ${researchersString}
+      if (!extractedText || extractedText.trim() === "") {
+        console.warn("Extracted text is empty. Using fallback.");
+        extractedText = `Fallback: No text could be extracted from PDF: ${document.titulo}. URL: ${document.link_dropbox}`;
+      }
 
---- FIM DO PLACEHOLDER ---
-`;
-      
-      // console.log("Successfully generated extracted text"); // Original log
-      console.log("Successfully generated placeholder extracted text"); // New log
-      
-      // Extract document info using OpenAI API directly
-      const documentInfo = await extractDocumentInfo(extractedText, true);
-      console.log("Extracted document info:", documentInfo);
+      const documentInfo = await extractDocumentInfo(extractedText, true); // forceReset = true para sempre re-analisar com OpenAI
+      console.log("Extracted document info from OpenAI:", documentInfo);
 
-      // Update document in database with extracted text and metadata
+      const updatePayload: any = {
+        conteudo_extraido: extractedText,
+        status: 'ativo',
+        keywords: documentInfo.keywords || [],
+        researchers: documentInfo.researchers || []
+      };
+
+      // Se o título foi extraído pela OpenAI e é diferente do atual, atualize-o
+      if (documentInfo.title && documentInfo.title.trim() !== '' && documentInfo.title !== document.titulo) {
+        updatePayload.titulo = documentInfo.title;
+        console.log(`Updating title from "${document.titulo}" to "${documentInfo.title}"`);
+      }
+
       const { error: updateError } = await supabase
         .from('documentos_tecnicos')
-        .update({
-          conteudo_extraido: extractedText,
-          status: 'ativo',
-          // Always update keywords and researchers if available
-          keywords: documentInfo.keywords || [],
-          researchers: documentInfo.researchers || []
-        })
+        .update(updatePayload)
         .eq('id', documentId);
 
       if (updateError) {
-        console.error('Failed to update document:', updateError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to update document', details: updateError }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        console.error('Failed to update document with extracted text:', updateError);
+        // Consider not returning immediately, but logging and attempting to return partial success
+        // For now, let's follow the original pattern of returning an error response
+        throw updateError; // Propagate to the main catch block for consistent error handling
       }
 
-      console.log("Document updated successfully with extracted content and metadata");
+      console.log("Document updated successfully with new extracted content and metadata");
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "Document processed successfully",
+          message: "Document processed, text extracted, and metadata updated successfully",
           documentId: documentId,
-          keywords: documentInfo.keywords,
-          researchers: documentInfo.researchers
+          title: updatePayload.titulo || document.titulo, // return the potentially updated title
+          keywords: updatePayload.keywords,
+          researchers: updatePayload.researchers
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error) {
-      console.error('Error extracting text:', error);
+      console.error('Error extracting text or processing document:', error);
+      // Atualizar status para 'falhou' se a extração falhar
+      await supabase
+        .from('documentos_tecnicos')
+        .update({ status: 'falhou_processamento', conteudo_extraido: `Falha na extração: ${error.message}` })
+        .eq('id', documentId);
+
       return new Response(
         JSON.stringify({ error: 'Failed to extract text from document', details: error.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

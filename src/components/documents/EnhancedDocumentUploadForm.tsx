@@ -34,6 +34,8 @@ const documentFormSchema = z.object({
   tipo: z.enum(['artigo_cientifico', 'ficha_tecnica', 'protocolo', 'outro'] as const),
   equipamento_id: z.string().optional(),
   idioma_original: z.string().default('pt'),
+  keywords: z.string().optional(), // NOVO
+  researchers: z.string().optional(), // NOVO
 });
 
 interface EnhancedDocumentUploadFormProps {
@@ -59,6 +61,8 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
       tipo: 'artigo_cientifico',
       equipamento_id: undefined,
       idioma_original: 'pt',
+      keywords: '', // NOVO
+      researchers: '', // NOVO
     },
   });
   
@@ -132,19 +136,28 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
         .getPublicUrl(filePath);
       
       // Create entry in the database
+      const insertPayload: any = {
+        titulo: data.titulo,
+        descricao: data.descricao || null,
+        tipo: data.tipo,
+        equipamento_id: data.equipamento_id || null,
+        link_dropbox: publicUrl,
+        arquivo_url: publicUrl,
+        idioma_original: data.idioma_original,
+        status: 'processando',
+        criado_por: userId,
+      };
+
+      if (data.keywords) {
+        insertPayload.keywords = data.keywords.split(',').map(k => k.trim()).filter(k => k);
+      }
+      if (data.researchers) {
+        insertPayload.researchers = data.researchers.split(',').map(r => r.trim()).filter(r => r);
+      }
+
       const { data: insertedData, error: insertError } = await supabase
         .from('documentos_tecnicos')
-        .insert({
-          titulo: data.titulo,
-          descricao: data.descricao || null,
-          tipo: data.tipo,
-          equipamento_id: data.equipamento_id || null,
-          link_dropbox: publicUrl,
-          arquivo_url: publicUrl,
-          idioma_original: data.idioma_original,
-          status: 'processando',
-          criado_por: userId,
-        })
+        .insert(insertPayload) // MODIFICADO
         .select('id')
         .single();
         
@@ -338,6 +351,42 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="keywords"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-200">Palavras-chave (opcional, separadas por vírgula)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Ex: laser, dermatologia, rejuvenescimento"
+                    className="bg-slate-700/50 border-cyan-500/30 text-slate-100"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="researchers"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-200">Pesquisadores (opcional, separadas por vírgula)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Ex: Dr. Silva, Profa. Souza"
+                    className="bg-slate-700/50 border-cyan-500/30 text-slate-100"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
           <div className="mt-4">
             <FormLabel className="text-slate-200">Arquivo</FormLabel>

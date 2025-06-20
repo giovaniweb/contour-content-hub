@@ -5,30 +5,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useDocuments } from '@/hooks/use-documents';
+import { useScientificArticles, ScientificArticleFilters } from '@/hooks/use-scientific-articles'; // MODIFICADO
 import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal';
+import AdvancedSearch from '@/components/scientific-articles/AdvancedSearch'; // NOVO
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import SearchAndFilters from '@/components/layout/SearchAndFilters';
+import { TechnicalDocument } from '@/types/document'; // For better typing
+import { useCallback } from 'react'; // Added useCallback
 
 const ScientificArticles: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  // const [searchTerm, setSearchTerm] = useState(''); // REMOVIDO
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Manter se SearchAndFilters for mantido para viewMode
+  const [selectedArticle, setSelectedArticle] = useState<TechnicalDocument | null>(null); // MODIFICADO: any para TechnicalDocument | null
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const { documents, loading, fetchDocuments } = useDocuments();
+
+  const { articles, loading, error, fetchScientificArticles } = useScientificArticles(); // MODIFICADO
+  const [currentFilters, setCurrentFilters] = useState<Partial<ScientificArticleFilters>>({}); // NOVO
 
   useEffect(() => {
-    // Buscar apenas artigos científicos
-    fetchDocuments({ type: 'artigo_cientifico' });
-  }, [fetchDocuments]);
+    fetchScientificArticles(currentFilters);
+  }, [fetchScientificArticles, currentFilters]);
 
-  const filteredArticles = documents.filter(article =>
-    article.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (article.descricao && article.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // const filteredArticles = articles.filter(article => ...); // REMOVIDO - filtragem agora no hook
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Data desconhecida';
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: 'numeric',
       month: 'short',
@@ -45,15 +46,23 @@ const ScientificArticles: React.FC = () => {
   };
 
   // Função para determinar se um artigo é "popular" (tem keywords ou researchers)
-  const isPopularArticle = (article: any) => {
+  const isPopularArticle = (article: TechnicalDocument) => { // MODIFICADO: any para TechnicalDocument
     return (article.keywords && article.keywords.length > 0) || 
            (article.researchers && article.researchers.length > 0);
   };
 
-  const handleViewArticle = (article: any) => {
+  const handleViewArticle = (article: TechnicalDocument) => { // MODIFICADO: any para TechnicalDocument
     setSelectedArticle(article);
     setIsViewModalOpen(true);
   };
+
+  const handleAdvancedSearch = useCallback((newFilters: Partial<ScientificArticleFilters>) => {
+    setCurrentFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setCurrentFilters({});
+  }, []);
 
   const statusBadges = [
     {
@@ -79,12 +88,27 @@ const ScientificArticles: React.FC = () => {
         statusBadges={statusBadges}
       />
 
-      <SearchAndFilters
+      {/* REMOVER SearchAndFilters ou ajustar sua integração */}
+      {/* <SearchAndFilters
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         onViewModeChange={setViewMode}
-        viewMode={viewMode}
+        viewMode={viewMode} // viewMode pode ser mantido se a funcionalidade for desejada separadamente
+      /> */}
+
+      <AdvancedSearch // NOVO
+        initialFilters={currentFilters}
+        onSearch={handleAdvancedSearch}
+        onClear={handleClearSearch}
       />
+
+      { error && (
+        <div className="container mx-auto px-6 py-4">
+          <div className="bg-red-500/20 text-red-300 border border-red-500/30 p-4 rounded-md">
+            Erro ao carregar artigos: {error}
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-6 py-8">
         <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
@@ -93,17 +117,19 @@ const ScientificArticles: React.FC = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
               <p className="text-slate-300">Carregando artigos...</p>
             </div>
-          ) : filteredArticles.length === 0 ? (
+          ) : articles.length === 0 ? ( // MODIFICADO de filteredArticles para articles
             <EmptyState
               icon={BookOpen}
               title="Nenhum artigo encontrado"
-              description={searchTerm ? 'Tente ajustar sua busca' : 'Comece adicionando seus primeiros artigos científicos'}
-              actionLabel="Adicionar Primeiro Artigo"
-              onAction={() => console.log('Add article')}
+              description={Object.keys(currentFilters).filter(k => currentFilters[k] !== undefined && currentFilters[k] !== '').length > 0 ? 'Tente ajustar seus filtros ou clique em "Limpar Filtros"' : 'Nenhum artigo científico corresponde aos critérios atuais ou ainda não foram adicionados.'}
+              actionLabel="Limpar Filtros e Recarregar"
+              onAction={handleClearSearch} // Ação agora limpa os filtros
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredArticles.map((article) => (
+            // TODO: Re-integrar o viewMode se SearchAndFilters for mantido apenas para isso.
+            // Por agora, removendo a lógica de classe dinâmica de viewMode para simplificar.
+            <div className={`grid grid-cols-1 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''} gap-6`}>
+              {articles.map((article) => ( // MODIFICADO de filteredArticles para articles
                 <Card key={article.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm cursor-pointer aurora-border-enhanced">
                   {/* Article Preview */}
                   <div className="relative aspect-[4/3] bg-slate-700/50 overflow-hidden">
@@ -114,12 +140,12 @@ const ScientificArticles: React.FC = () => {
                     {/* Tags sobre o artigo */}
                     <div className="absolute top-2 left-2 flex gap-2">
                       {isPopularArticle(article) && (
-                        <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm">
+                        <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm" title="Popular">
                           <Flame className="h-4 w-4 text-white" />
                         </div>
                       )}
                       {article.data_criacao && isNewArticle(article.data_criacao) && (
-                        <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm">
+                        <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm" title="Recente">
                           <Sparkles className="h-4 w-4 text-white" />
                         </div>
                       )}
@@ -176,13 +202,13 @@ const ScientificArticles: React.FC = () => {
 
                     {/* Equipment info */}
                     {article.equipamento_nome && (
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 mt-1">
                         Equipamento: {article.equipamento_nome}
                       </div>
                     )}
                   </CardContent>
 
-                  <CardFooter className="px-4 py-3 bg-slate-800/30 border-t border-cyan-500/20">
+                  <CardFooter className="px-4 py-3 bg-slate-800/60 border-t border-cyan-500/20">
                     <Button 
                       size="sm" 
                       onClick={() => handleViewArticle(article)}
@@ -204,8 +230,8 @@ const ScientificArticles: React.FC = () => {
         isOpen={isViewModalOpen}
         onOpenChange={setIsViewModalOpen}
         title={selectedArticle?.titulo || ''}
-        pdfUrl={selectedArticle?.link_dropbox}
-        documentId={selectedArticle?.id}
+        pdfUrl={selectedArticle?.link_dropbox || undefined} // Assegurar que é string | undefined
+        documentId={selectedArticle?.id || undefined} // Assegurar que é string | undefined
       />
     </AuroraPageLayout>
   );

@@ -1,7 +1,8 @@
 
 -- Create storage bucket for documents
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('documents', 'documents', true);
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('documents', 'documents', true, 52428800) -- 50MB em bytes
+ON CONFLICT (id) DO NOTHING;
 
 -- Set up access policies for documents bucket
 CREATE POLICY "Allow public read access to documents"
