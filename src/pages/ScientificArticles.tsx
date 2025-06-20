@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Filter, Upload, Plus, Flame, Sparkles, FileText, Calendar, User } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -85,21 +84,6 @@ const ScientificArticles: React.FC = () => {
         onSearchChange={setSearchTerm}
         onViewModeChange={setViewMode}
         viewMode={viewMode}
-        additionalControls={
-          <>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
-            >
-              <Upload className="h-4 w-4" />
-              Enviar Artigo
-            </Button>
-            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
-              <Plus className="h-4 w-4" />
-              Novo Artigo
-            </Button>
-          </>
-        }
       />
 
       <div className="container mx-auto px-6 py-8">
