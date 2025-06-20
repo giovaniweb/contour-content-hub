@@ -47,17 +47,17 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] aurora-glass border-aurora-electric-purple/30 backdrop-blur-xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl bg-aurora-void-black/80">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="aurora-heading text-xl flex-1 mr-4">
+              <DialogTitle className="aurora-text-gradient-enhanced text-xl flex-1 mr-4">
                 {title}
               </DialogTitle>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => onOpenChange(false)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-slate-400 hover:text-slate-200 hover:bg-aurora-electric-purple/20"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -68,10 +68,10 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
             {/* Main Action Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* PDF Viewer Card */}
-              <div className="aurora-card-enhanced p-6 border border-aurora-electric-purple/20">
+              <div className="aurora-card-enhanced p-6 border border-aurora-electric-purple/20 bg-aurora-deep-purple/10 transition-all duration-300">
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className="aurora-glow-enhanced">
-                    <div className="w-16 h-16 rounded-full aurora-glass border border-aurora-electric-purple/30 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30">
                       <FileText className="h-8 w-8 text-aurora-electric-purple" />
                     </div>
                   </div>
@@ -93,10 +93,10 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
               </div>
 
               {/* Chat Interface Card */}
-              <div className="aurora-card-enhanced p-6 border border-aurora-neon-blue/20">
+              <div className="aurora-card-enhanced p-6 border border-aurora-neon-blue/20 bg-aurora-deep-purple/10 transition-all duration-300">
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className="aurora-glow-enhanced">
-                    <div className="w-16 h-16 rounded-full aurora-glass border border-aurora-neon-blue/30 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30">
                       <MessageSquare className="h-8 w-8 text-aurora-neon-blue" />
                     </div>
                   </div>
@@ -135,7 +135,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
               <Button
                 onClick={handleOpenInNewTab}
                 variant="outline"
-                className="aurora-glass border-aurora-emerald/30 text-aurora-emerald hover:bg-aurora-emerald/20"
+                className="aurora-glass-enhanced border-aurora-emerald/30 text-aurora-emerald hover:bg-aurora-emerald/20 transition-all duration-300"
                 size="sm"
                 disabled={!pdfUrl}
               >
@@ -145,7 +145,7 @@ const ArticleViewModal: React.FC<ArticleViewModalProps> = ({
               <Button
                 onClick={handleDownload}
                 variant="outline"
-                className="aurora-glass border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20"
+                className="aurora-glass-enhanced border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20 transition-all duration-300"
                 size="sm"
                 disabled={!pdfUrl}
               >

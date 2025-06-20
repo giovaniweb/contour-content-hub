@@ -45,7 +45,6 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      // Welcome message
       const welcomeMessage: ChatMessage = {
         id: 'welcome',
         type: 'assistant',
@@ -71,7 +70,6 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
 
     setIsLoading(true);
     
-    // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
@@ -79,7 +77,6 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
       timestamp: new Date()
     };
 
-    // Add loading assistant message
     const loadingMessage: ChatMessage = {
       id: (Date.now() + 1).toString(),
       type: 'assistant',
@@ -101,7 +98,6 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
 
       if (error) throw error;
 
-      // Replace loading message with actual response
       setMessages(prev => prev.map(msg => 
         msg.id === loadingMessage.id 
           ? { ...msg, content: data.answer, isLoading: false }
@@ -111,7 +107,6 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
     } catch (error) {
       console.error('Error asking question:', error);
       
-      // Replace loading message with error fallback
       setMessages(prev => prev.map(msg => 
         msg.id === loadingMessage.id 
           ? { 
@@ -140,14 +135,14 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Card className="w-full h-[600px] aurora-card-enhanced border-aurora-electric-purple/30 backdrop-blur-xl flex flex-col">
-      <CardHeader className="aurora-glass border-b border-aurora-electric-purple/20 pb-4">
-        <CardTitle className="aurora-heading flex items-center gap-3">
+    <Card className="w-full h-[600px] aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl flex flex-col overflow-hidden">
+      <CardHeader className="aurora-glass-enhanced border-b border-aurora-electric-purple/20 pb-4 bg-aurora-deep-purple/10">
+        <CardTitle className="aurora-text-gradient-enhanced flex items-center gap-3">
           <div className="aurora-glow-enhanced">
             <MessageSquare className="h-6 w-6 text-aurora-electric-purple" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg">Assistente de IA</h3>
+            <h3 className="text-lg text-slate-100">Assistente de IA</h3>
             <p className="text-sm text-slate-400 font-normal">
               Faça perguntas sobre: {documentTitle}
             </p>
@@ -159,7 +154,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 bg-aurora-void-black/20">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message, index) => (
@@ -172,7 +167,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
               >
                 {message.type === 'assistant' && (
                   <div className="aurora-glow-enhanced">
-                    <div className="w-8 h-8 rounded-full aurora-glass border border-aurora-electric-purple/30 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full aurora-glass-enhanced border border-aurora-electric-purple/30 flex items-center justify-center bg-aurora-deep-purple/30">
                       {message.isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin text-aurora-electric-purple" />
                       ) : (
@@ -183,11 +178,11 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                 )}
                 
                 <div
-                  className={`max-w-[80%] p-4 rounded-2xl ${
+                  className={`max-w-[80%] p-4 rounded-2xl transition-all duration-300 ${
                     message.type === 'user'
-                      ? 'aurora-button-enhanced bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white'
-                      : 'aurora-glass border border-aurora-electric-purple/20 text-slate-200'
-                  } ${message.isLoading ? 'aurora-pulse' : ''}`}
+                      ? 'aurora-button-enhanced bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white shadow-lg'
+                      : 'aurora-glass-enhanced border border-aurora-electric-purple/20 text-slate-200 bg-aurora-deep-purple/20'
+                  } ${message.isLoading ? 'aurora-glow-enhanced' : ''}`}
                 >
                   {message.isLoading ? (
                     <div className="flex items-center gap-2">
@@ -203,14 +198,14 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                       {message.content}
                     </p>
                   )}
-                  <div className="text-xs opacity-60 mt-2">
+                  <div className="text-xs opacity-60 mt-2 text-slate-400">
                     {message.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
 
                 {message.type === 'user' && (
                   <div className="aurora-glow-enhanced">
-                    <div className="w-8 h-8 rounded-full aurora-glass border border-aurora-neon-blue/30 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full aurora-glass-enhanced border border-aurora-neon-blue/30 flex items-center justify-center bg-aurora-deep-purple/30">
                       <User className="h-4 w-4 text-aurora-neon-blue" />
                     </div>
                   </div>
@@ -231,7 +226,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
                       size="sm"
                       onClick={() => handleSubmitQuestion(suggestion)}
                       disabled={isLoading}
-                      className="aurora-glass border-aurora-electric-purple/20 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 text-left justify-start h-auto p-3 whitespace-normal"
+                      className="aurora-glass-enhanced border-aurora-electric-purple/20 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 text-left justify-start h-auto p-3 whitespace-normal hover:border-aurora-neon-blue/40 transition-all duration-300"
                     >
                       {suggestion}
                     </Button>
@@ -244,7 +239,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-aurora-electric-purple/20 aurora-glass">
+        <div className="p-4 border-t border-aurora-electric-purple/20 aurora-glass-enhanced bg-aurora-deep-purple/10">
           <div className="flex gap-3">
             <Textarea
               ref={textareaRef}
@@ -253,7 +248,7 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({
               onChange={(e) => setCurrentQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="flex-1 resize-none aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple text-slate-200 placeholder-slate-400 min-h-[80px]"
+              className="flex-1 resize-none min-h-[80px] bg-aurora-deep-purple/20"
               rows={3}
             />
             <Button
