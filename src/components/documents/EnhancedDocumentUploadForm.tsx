@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Upload, FileUp, File, X, Sparkles } from 'lucide-react';
+import { Loader2, Upload, FileUp, File, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/types/document';
 import { v4 as uuidv4 } from 'uuid';
@@ -209,33 +209,30 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
   };
   
   return (
-    <div className="space-y-8">
+    <div className="p-6 space-y-6">
       {uploadError && (
-        <Alert variant="destructive" className="aurora-glass border border-red-500/30 aurora-glow-enhanced">
-          <AlertTitle className="text-red-100">Erro</AlertTitle>
-          <AlertDescription className="text-red-200">{uploadError}</AlertDescription>
+        <Alert variant="destructive">
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{uploadError}</AlertDescription>
         </Alert>
       )}
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="titulo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
-                  Título do Documento
-                </FormLabel>
+                <FormLabel className="text-slate-200">Título do Documento</FormLabel>
                 <FormControl>
                   <Input 
                     {...field} 
                     placeholder="Ex: Protocolo de tratamento para lipedema"
-                    className="aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-100 placeholder:text-slate-400 focus:border-aurora-neon-blue/60 focus:ring-2 focus:ring-aurora-neon-blue/30 aurora-glow transition-all duration-300"
+                    className="bg-slate-700/50 border-cyan-500/30 text-slate-100"
                   />
                 </FormControl>
-                <FormMessage className="text-red-300" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -245,43 +242,43 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
             name="descricao"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium">Descrição</FormLabel>
+                <FormLabel className="text-slate-200">Descrição</FormLabel>
                 <FormControl>
                   <Textarea 
                     {...field} 
                     placeholder="Descreva brevemente o conteúdo deste documento"
-                    className="h-32 aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-100 placeholder:text-slate-400 focus:border-aurora-neon-blue/60 focus:ring-2 focus:ring-aurora-neon-blue/30 aurora-glow transition-all duration-300 resize-none"
+                    className="h-24 bg-slate-700/50 border-cyan-500/30 text-slate-100"
                   />
                 </FormControl>
-                <FormMessage className="text-red-300" />
+                <FormMessage />
               </FormItem>
             )}
           />
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="tipo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium">Tipo de Documento</FormLabel>
+                  <FormLabel className="text-slate-200">Tipo de Documento</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-100 focus:border-aurora-neon-blue/60 focus:ring-2 focus:ring-aurora-neon-blue/30 aurora-glow">
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
                         <SelectValue placeholder="Selecione o tipo de documento" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl">
-                      <SelectItem value="artigo_cientifico" className="text-slate-200 hover:bg-aurora-electric-purple/20">Artigo Científico</SelectItem>
-                      <SelectItem value="ficha_tecnica" className="text-slate-200 hover:bg-aurora-electric-purple/20">Ficha Técnica</SelectItem>
-                      <SelectItem value="protocolo" className="text-slate-200 hover:bg-aurora-electric-purple/20">Protocolo</SelectItem>
-                      <SelectItem value="outro" className="text-slate-200 hover:bg-aurora-electric-purple/20">Outro</SelectItem>
+                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                      <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
+                      <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
+                      <SelectItem value="protocolo">Protocolo</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-300" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -291,26 +288,26 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
               name="equipamento_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium">Equipamento Relacionado</FormLabel>
+                  <FormLabel className="text-slate-200">Equipamento Relacionado</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-100 focus:border-aurora-neon-blue/60 focus:ring-2 focus:ring-aurora-neon-blue/30 aurora-glow">
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
                         <SelectValue placeholder="Selecione um equipamento" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl">
-                      <SelectItem value="none" className="text-slate-200 hover:bg-aurora-electric-purple/20">Nenhum</SelectItem>
+                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {equipments.map(equipment => (
-                        <SelectItem key={equipment.id} value={equipment.id} className="text-slate-200 hover:bg-aurora-electric-purple/20">
+                        <SelectItem key={equipment.id} value={equipment.id}>
                           {equipment.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-300" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -320,43 +317,41 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
               name="idioma_original"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium">Idioma Original</FormLabel>
+                  <FormLabel className="text-slate-200">Idioma Original</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-100 focus:border-aurora-neon-blue/60 focus:ring-2 focus:ring-aurora-neon-blue/30 aurora-glow">
+                      <SelectTrigger className="bg-slate-700/50 border-cyan-500/30 text-slate-100">
                         <SelectValue placeholder="Selecione o idioma" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="aurora-glass-enhanced border-aurora-electric-purple/30 backdrop-blur-xl">
-                      <SelectItem value="pt" className="text-slate-200 hover:bg-aurora-electric-purple/20">Português</SelectItem>
-                      <SelectItem value="en" className="text-slate-200 hover:bg-aurora-electric-purple/20">Inglês</SelectItem>
-                      <SelectItem value="es" className="text-slate-200 hover:bg-aurora-electric-purple/20">Espanhol</SelectItem>
+                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                      <SelectItem value="pt">Português</SelectItem>
+                      <SelectItem value="en">Inglês</SelectItem>
+                      <SelectItem value="es">Espanhol</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-300" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
           
-          <div className="mt-8">
-            <FormLabel className="aurora-text-gradient-enhanced text-lg font-medium block mb-4">Arquivo</FormLabel>
+          <div className="mt-4">
+            <FormLabel className="text-slate-200">Arquivo</FormLabel>
             {!selectedFile ? (
-              <div className="aurora-glass-enhanced border-2 border-dashed border-aurora-electric-purple/40 rounded-2xl p-8 flex flex-col items-center justify-center aurora-glow-enhanced hover:border-aurora-neon-blue/60 transition-all duration-300 cursor-pointer group">
+              <div className="mt-1 border-2 border-dashed border-cyan-500/30 rounded-lg p-6 flex flex-col items-center justify-center bg-slate-700/20">
                 <label 
                   htmlFor="file-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer w-full"
+                  className="flex flex-col items-center justify-center cursor-pointer"
                 >
-                  <div className="p-4 aurora-glass-enhanced rounded-full mb-4 group-hover:aurora-glow-enhanced">
-                    <FileUp className="h-12 w-12 text-aurora-electric-purple group-hover:text-aurora-neon-blue transition-colors" />
-                  </div>
-                  <span className="text-lg aurora-text-gradient-enhanced font-medium mb-2">
+                  <FileUp className="h-10 w-10 text-cyan-400 mb-2" />
+                  <span className="text-sm text-slate-300 mb-1">
                     Clique para fazer upload de um documento
                   </span>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-xs text-slate-400">
                     PDF, DOCX (máx. 10MB)
                   </span>
                   <Input
@@ -369,13 +364,11 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
                 </label>
               </div>
             ) : (
-              <div className="aurora-glass-enhanced border border-aurora-electric-purple/30 rounded-2xl p-6 flex justify-between items-center aurora-glow">
+              <div className="mt-1 border border-cyan-500/30 rounded-lg p-4 flex justify-between items-center bg-slate-700/20">
                 <div className="flex items-center">
-                  <div className="p-3 aurora-glass-enhanced rounded-xl mr-4">
-                    <File className="h-10 w-10 text-aurora-electric-purple" />
-                  </div>
+                  <File className="h-8 w-8 text-cyan-400 mr-2" />
                   <div>
-                    <p className="font-medium aurora-text-gradient-enhanced text-lg">{selectedFile.name}</p>
+                    <p className="font-medium text-slate-200">{selectedFile.name}</p>
                     <p className="text-sm text-slate-400">
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
@@ -386,7 +379,7 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
                   variant="ghost" 
                   size="icon"
                   onClick={removeFile}
-                  className="text-slate-400 hover:text-slate-200 aurora-glass-enhanced hover:aurora-glow"
+                  className="text-slate-400 hover:text-slate-200"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -394,28 +387,28 @@ const EnhancedDocumentUploadForm: React.FC<EnhancedDocumentUploadFormProps> = ({
             )}
           </div>
           
-          <div className="flex justify-end gap-4 pt-6">
+          <div className="flex justify-end gap-3 pt-4">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
-              className="aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-300 hover:text-white hover:aurora-glow px-8 py-3"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={isUploading || !selectedFile}
-              className="aurora-button-enhanced px-8 py-3 text-lg font-medium"
+              className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Enviando...
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-5 w-5" />
+                  <Upload className="mr-2 h-4 w-4" />
                   Enviar Documento
                 </>
               )}

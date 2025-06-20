@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -131,41 +132,23 @@ const EnhancedScientificArticleManager: React.FC = () => {
         />
       </div>
 
-      {/* Enhanced Aurora Upload Dialog */}
+      {/* Upload Dialog - Fixed z-index and positioning */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0 border-none bg-transparent shadow-none">
-          {/* Aurora Modal Container */}
-          <div className="aurora-glass-enhanced aurora-border-enhanced rounded-3xl p-8 aurora-glow-enhanced aurora-floating-enhanced relative overflow-hidden">
-            {/* Aurora Particles Background */}
-            <div className="absolute inset-0 aurora-particles-enhanced opacity-30">
-              <div className="absolute top-10 left-10 w-3 h-3 bg-aurora-electric-purple rounded-full animate-pulse"></div>
-              <div className="absolute top-20 right-20 w-2 h-2 bg-aurora-neon-blue rounded-full animate-pulse delay-300"></div>
-              <div className="absolute bottom-20 left-20 w-4 h-4 bg-aurora-emerald rounded-full animate-pulse delay-700"></div>
-              <div className="absolute bottom-10 right-10 w-2 h-2 bg-aurora-lavender rounded-full animate-pulse delay-1000"></div>
-            </div>
-
-            {/* Enhanced Aurora Header */}
-            <DialogHeader className="relative z-10 mb-6">
-              <DialogTitle className="flex items-center gap-3 aurora-text-gradient-enhanced text-3xl font-light tracking-wide aurora-heading-enhanced">
-                <div className="p-3 aurora-glass-enhanced rounded-xl aurora-glow border border-aurora-electric-purple/30">
-                  <Upload className="h-6 w-6 text-aurora-electric-purple" />
-                </div>
-                Adicionar Novo Documento Científico
-              </DialogTitle>
-              <DialogDescription className="aurora-body-enhanced text-lg mt-2 text-shadow-aurora-glow">
-                Faça upload de um documento científico para adicionar à biblioteca digital Aurora
-              </DialogDescription>
-            </DialogHeader>
-
-            {/* Enhanced Form Container */}
-            <div className="relative z-10 aurora-glass-enhanced rounded-2xl p-6 border border-aurora-electric-purple/20 aurora-wave-enhanced">
-              <div className="overflow-y-auto max-h-[calc(85vh-200px)] scrollbar-hide">
-                <EnhancedDocumentUploadForm
-                  onSuccess={handleUploadSuccess}
-                  onCancel={handleCancelUpload}
-                />
-              </div>
-            </div>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden bg-slate-800/95 backdrop-blur-sm border border-cyan-500/30 z-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-slate-100">
+              <Upload className="h-5 w-5 text-cyan-400" />
+              Adicionar Novo Documento
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Faça upload de um documento científico para adicionar à biblioteca
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            <EnhancedDocumentUploadForm
+              onSuccess={handleUploadSuccess}
+              onCancel={handleCancelUpload}
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -181,10 +164,10 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
       {/* Question Chat Dialog */}
       <Dialog open={isQuestionChatOpen} onOpenChange={setIsQuestionChatOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] aurora-glass-enhanced aurora-border-enhanced">
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-slate-800/95 border-cyan-500/30">
           <DialogHeader>
-            <DialogTitle className="aurora-text-gradient-enhanced">Perguntas sobre o Documento</DialogTitle>
-            <DialogDescription className="aurora-body-enhanced">
+            <DialogTitle className="text-slate-100">Perguntas sobre o Documento</DialogTitle>
+            <DialogDescription className="text-slate-400">
               Faça perguntas sobre o conteúdo do documento selecionado
             </DialogDescription>
           </DialogHeader>
