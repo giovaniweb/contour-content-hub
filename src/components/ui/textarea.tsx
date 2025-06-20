@@ -10,14 +10,7 @@ const Textarea = React.forwardRef<
   return (
     <textarea
       className={cn(
-        "flex min-h-[80px] w-full rounded-md px-3 py-2 text-sm transition-all duration-200",
-        // Aurora theme styling
-        "aurora-glass-enhanced border-aurora-electric-purple/30 bg-aurora-deep-purple/20 text-slate-200",
-        "placeholder:text-slate-400",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-electric-purple focus-visible:ring-offset-2 focus-visible:ring-offset-aurora-void-black",
-        "focus-visible:border-aurora-neon-blue/60",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        "hover:border-aurora-electric-purple/50",
+        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       ref={ref}

@@ -10,11 +10,13 @@ export const useDocuments = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Otimizamos a função fetchDocuments para evitar renderizações desnecessárias
   const fetchDocuments = useCallback(async (params?: GetDocumentsParams) => {
     try {
       setLoading(true);
       setError(null);
       
+      // Start building query
       let query = supabase
         .from('documentos_tecnicos')
         .select(`
@@ -23,6 +25,7 @@ export const useDocuments = () => {
         `)
         .eq('status', 'ativo');
       
+      // Apply filters if provided
       if (params) {
         if (params.type) {
           query = query.eq('tipo', params.type);
@@ -36,8 +39,8 @@ export const useDocuments = () => {
           if (params.language === 'original') {
             // No filter, show all original languages
           } else {
-            // Filter by specific language (simplified for now)
-            query = query.eq('idioma_original', params.language);
+            // Filter by specific language, either original or translated
+            query = query.or(`idioma_original.eq.${params.language},idiomas_traduzidos.cs.{${params.language}}`);
           }
         }
         
@@ -45,6 +48,7 @@ export const useDocuments = () => {
           query = query.or(`titulo.ilike.%${params.search}%,descricao.ilike.%${params.search}%`);
         }
         
+        // Pagination
         if (params.limit) {
           query = query.limit(params.limit);
         }
@@ -54,13 +58,16 @@ export const useDocuments = () => {
         }
       }
       
+      // Execute query
       const { data, error } = await query.order('data_criacao', { ascending: false });
       
       if (error) {
         throw error;
       }
       
+      // Transform data to match TechnicalDocument type
       const formattedDocuments: TechnicalDocument[] = data.map(doc => {
+        // Use type assertion to access all properties
         const documentData = {
           id: doc.id,
           titulo: doc.titulo,
@@ -75,9 +82,14 @@ export const useDocuments = () => {
           data_criacao: doc.data_criacao || '',
           conteudo_extraido: doc.conteudo_extraido || '',
           link_dropbox: doc.link_dropbox || '',
-          preview_url: '' // Default empty string since column doesn't exist yet
+          preview_url: (doc as any).preview_url || '' // Using type assertion for preview_url
         };
         
+        // Handle idiomas_traduzidos if it exists in the database record
+        if ('idiomas_traduzidos' in doc && doc.idiomas_traduzidos) {
+          documentData.idiomas_traduzidos = doc.idiomas_traduzidos as string[];
+        }
+
         return documentData;
       });
       
@@ -112,9 +124,22 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Log access manually without calling the function
-      console.log('Document accessed:', data.id);
+      if (data && data.id) { // Certifique-se que 'data' e 'data.id' existem
+        try {
+          const { error: rpcError } = await supabase.rpc('log_document_access', {
+            doc_id: data.id,
+            action: 'view' // Ou outra ação relevante, como 'get_by_id'
+          });
+          if (rpcError) {
+            console.error('Erro ao chamar log_document_access:', rpcError);
+            // Considerar se um toast não destrutivo seria útil aqui
+          }
+        } catch (rpcCatchError) {
+          console.error('Erro inesperado ao chamar log_document_access:', rpcCatchError);
+        }
+      }
       
+      // Create a properly typed document with all required fields
       const formattedDocument: TechnicalDocument = {
         id: data.id,
         titulo: data.titulo,
@@ -129,9 +154,14 @@ export const useDocuments = () => {
         criado_por: data.criado_por || '',
         data_criacao: data.data_criacao || '',
         conteudo_extraido: data.conteudo_extraido || '',
-        preview_url: ''  // Default empty string since column doesn't exist yet
+        preview_url: (data as any).preview_url || ''  // Using type assertion for preview_url
       };
       
+      // Add idiomas_traduzidos if it exists in the database record
+      if ('idiomas_traduzidos' in data && data.idiomas_traduzidos) {
+        formattedDocument.idiomas_traduzidos = data.idiomas_traduzidos as string[];
+      }
+
       return formattedDocument;
     } catch (err: any) {
       console.error('Error fetching document:', err);
