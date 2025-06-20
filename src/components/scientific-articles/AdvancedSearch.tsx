@@ -145,7 +145,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
               <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
-              <SelectItem value="" className="text-slate-400">Qualquer equipamento</SelectItem>
+              <SelectItem value="none">Qualquer equipamento</SelectItem>
               {equipments.map((eq) => (
                 <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
               ))}
@@ -162,7 +162,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
               {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code} className={lang.code === "" || lang.code === "all" ? "text-slate-400" : ""}>
+                <SelectItem key={lang.code} value={lang.code}>
                   {lang.name}
                 </SelectItem>
               ))}
