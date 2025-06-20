@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker'; // Supondo que este componente exista
+import { DatePicker } from '@/components/ui/date-picker'; // MODIFICADO
 import {
   Select,
   SelectContent,
@@ -43,9 +44,14 @@ interface AdvancedSearchProps {
 const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, onSearch, onClear }) => {
   const [searchTerm, setSearchTerm] = useState(initialFilters.search || '');
   const [selectedEquipment, setSelectedEquipment] = useState(initialFilters.equipmentId || '');
-  const [keywordsInput, setKeywordsInput] = useState((initialFilters.keywords || []).join(', ')); // Keywords como string separada por vírgula
-  const [researchersInput, setResearchersInput] = useState((initialFilters.researchers || []).join(', ')); // Pesquisadores como string
-  const [dateRange, setDateRange] = useState(initialFilters.dateRange || undefined);
+  const [keywordsInput, setKeywordsInput] = useState((initialFilters.keywords || []).join(', '));
+  const [researchersInput, setResearchersInput] = useState((initialFilters.researchers || []).join(', '));
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    initialFilters.dateRange?.startDate ? new Date(initialFilters.dateRange.startDate) : undefined
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialFilters.dateRange?.endDate ? new Date(initialFilters.dateRange.endDate) : undefined
+  );
   const [selectedLanguage, setSelectedLanguage] = useState(initialFilters.language || '');
 
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -79,7 +85,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
       equipmentId: selectedEquipment || undefined,
       keywords: keywordsInput.split(',').map(k => k.trim()).filter(k => k) || undefined,
       researchers: researchersInput.split(',').map(r => r.trim()).filter(r => r) || undefined,
-      dateRange: dateRange,
+      dateRange: (startDate || endDate) ? {
+        startDate: startDate?.toISOString().split('T')[0],
+        endDate: endDate?.toISOString().split('T')[0],
+      } : undefined,
       language: selectedLanguage === 'all' ? undefined : selectedLanguage || undefined,
     };
     onSearch(filters);
@@ -90,7 +99,8 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
     setSelectedEquipment('');
     setKeywordsInput('');
     setResearchersInput('');
-    setDateRange(undefined);
+    setStartDate(undefined);
+    setEndDate(undefined);
     setSelectedLanguage('');
     if (onClear) {
       onClear();
@@ -171,15 +181,23 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
           </Select>
         </div>
 
-        {/* Date Range */}
-        <div className="space-y-1 md:col-span-2 lg:col-span-1">
-          <Label className="text-slate-300">Data de Publicação</Label>
-          <DatePickerWithRange
-            className="bg-slate-700/60 border-cyan-500/40 text-slate-100"
-            value={dateRange}
-            onValueChange={(value) => setDateRange(value ? { startDate: value.from?.toISOString().split('T')[0], endDate: value.to?.toISOString().split('T')[0] } : undefined)}
-            // Assegure-se que DatePickerWithRange passe um objeto com `from` e `to`
-            // ou ajuste a conversão para o formato esperado por ScientificArticleFilters
+        {/* Date Range - Modificado */}
+        <div className="space-y-1">
+          <Label htmlFor="startDate" className="text-slate-300">Data de Início</Label>
+          <DatePicker
+            value={startDate}
+            onValueChange={setStartDate}
+            placeholder="DD/MM/AAAA"
+            className="w-full" // Assegurar que o botão ocupe a largura
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="endDate" className="text-slate-300">Data de Fim</Label>
+          <DatePicker
+            value={endDate}
+            onValueChange={setEndDate}
+            placeholder="DD/MM/AAAA"
+            className="w-full" // Assegurar que o botão ocupe a largura
           />
         </div>
       </div>
