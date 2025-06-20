@@ -70,19 +70,9 @@ const Dashboard: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center py-12"
         >
-          <motion.div
-            className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center"
-            animate={{
-              rotate: [0, 360],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-              scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-            }}
-          >
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center">
             <Sparkles className="w-10 h-10 text-white" />
-          </motion.div>
+          </div>
           
           <h1 className="text-4xl md:text-6xl font-light text-white mb-4">
             Crie conteúdo{' '}
