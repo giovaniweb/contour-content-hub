@@ -124,8 +124,20 @@ export const useDocuments = () => {
         throw error;
       }
       
-      // Removendo a chamada à log_document_access temporariamente para evitar erros
-      // pois a função não existe no banco de dados conforme logs de console
+      if (data && data.id) { // Certifique-se que 'data' e 'data.id' existem
+        try {
+          const { error: rpcError } = await supabase.rpc('log_document_access', {
+            doc_id: data.id,
+            action: 'view' // Ou outra ação relevante, como 'get_by_id'
+          });
+          if (rpcError) {
+            console.error('Erro ao chamar log_document_access:', rpcError);
+            // Considerar se um toast não destrutivo seria útil aqui
+          }
+        } catch (rpcCatchError) {
+          console.error('Erro inesperado ao chamar log_document_access:', rpcCatchError);
+        }
+      }
       
       // Create a properly typed document with all required fields
       const formattedDocument: TechnicalDocument = {
