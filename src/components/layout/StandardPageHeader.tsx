@@ -15,13 +15,15 @@ interface StandardPageHeaderProps {
   title: string;
   subtitle: string;
   statusBadges?: StatusBadge[];
+  actions?: React.ReactNode;
 }
 
 const StandardPageHeader: React.FC<StandardPageHeaderProps> = ({
   icon: Icon,
   title,
   subtitle,
-  statusBadges = []
+  statusBadges = [],
+  actions
 }) => {
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -39,6 +41,13 @@ const StandardPageHeader: React.FC<StandardPageHeaderProps> = ({
             <p className="text-slate-300">{subtitle}</p>
           </div>
         </div>
+
+        {/* Actions */}
+        {actions && (
+          <div className="flex justify-center">
+            {actions}
+          </div>
+        )}
 
         {/* Status Tags */}
         {statusBadges.length > 0 && (
