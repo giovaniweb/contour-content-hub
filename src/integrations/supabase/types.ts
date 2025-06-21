@@ -744,6 +744,7 @@ export type Database = {
       }
       documentos_tecnicos: {
         Row: {
+          arquivo_url: string | null
           conteudo_extraido: string | null
           criado_por: string | null
           data_criacao: string | null
@@ -760,6 +761,7 @@ export type Database = {
           vetor_embeddings: string | null
         }
         Insert: {
+          arquivo_url?: string | null
           conteudo_extraido?: string | null
           criado_por?: string | null
           data_criacao?: string | null
@@ -776,6 +778,7 @@ export type Database = {
           vetor_embeddings?: string | null
         }
         Update: {
+          arquivo_url?: string | null
           conteudo_extraido?: string | null
           criado_por?: string | null
           data_criacao?: string | null

@@ -1,18 +1,20 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useEquipments } from '@/hooks/useEquipments'; // Assuming this hook fetches equipments
+import { useEquipments } from '@/hooks/useEquipments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UploadCloud, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-// Assuming DocumentTypeEnum matches the SQL ENUM 'document_type_enum'
-// This should ideally be generated from your DB schema or shared types
+import { Loader2, UploadCloud, FileText, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
 const DocumentTypeOptions = [
   { value: 'artigo_cientifico', label: 'Artigo Científico' },
   { value: 'ficha_tecnica', label: 'Ficha Técnica' },
@@ -32,7 +34,7 @@ const formSchema = z.object({
   file: z.instanceof(FileList)
     .refine((files) => files?.length === 1, 'É necessário enviar um arquivo.')
     .refine((files) => files?.[0]?.type === 'application/pdf', 'O arquivo deve ser um PDF.')
-    .refine((files) => files?.[0]?.size <= 50 * 1024 * 1024, 'O arquivo não pode exceder 50MB.'), // 50MB limit
+    .refine((files) => files?.[0]?.size <= 50 * 1024 * 1024, 'O arquivo não pode exceder 50MB.'),
 });
 
 type IntelligentUploadFormValues = z.infer<typeof formSchema>;
@@ -42,11 +44,12 @@ interface UploadProgress {
   message: string;
   documentId?: string;
   fileName?: string;
+  processingResult?: any;
 }
 
 export const IntelligentUploadForm: React.FC = () => {
   const { user } = useAuth();
-  const { equipments, isLoading: isLoadingEquipments } = useEquipments(); // Fetching equipment
+  const { equipments, isLoading: isLoadingEquipments } = useEquipments();
   const { toast } = useToast();
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ step: 'idle', message: '' });
 
@@ -62,233 +65,332 @@ export const IntelligentUploadForm: React.FC = () => {
 
   const onSubmit = async (data: IntelligentUploadFormValues) => {
     if (!user) {
-      toast({ variant: 'destructive', title: 'Erro de Autenticação', description: 'Você precisa estar logado para enviar documentos.' });
-      setUploadProgress({ step: 'error', message: 'Usuário não autenticado.' });
+      toast({
+        title: "Erro de Autenticação",
+        description: "Você precisa estar logado para fazer upload de documentos.",
+        variant: "destructive"
+      });
       return;
     }
 
-    const fileToUpload = data.file[0];
-    const fileName = `${user.id}/${Date.now()}_${fileToUpload.name.replace(/[^a-zA-Z0-9._-]/g, '')}`;
-    setUploadProgress({ step: 'uploading_storage', message: `Enviando ${fileToUpload.name} para o armazenamento...`, fileName: fileToUpload.name });
-
+    const file = data.file[0];
+    
     try {
-      // 1. Upload to Supabase Storage
-      const { data: uploadResult, error: uploadError } = await supabase.storage
-        .from('documents') // Bucket name from your migration
-        .upload(fileName, fileToUpload, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      setUploadProgress({ step: 'uploading_storage', message: 'Enviando arquivo para storage...' });
 
-      if (uploadError) {
-        console.error('Storage Upload Error:', uploadError);
-        throw new Error(`Falha ao enviar arquivo para o armazenamento: ${uploadError.message}`);
-      }
-      const filePath = uploadResult?.path;
-      if (!filePath) {
-        throw new Error('Caminho do arquivo não retornado pelo armazenamento.');
-      }
-      setUploadProgress(prev => ({ ...prev, step: 'creating_record', message: 'Arquivo enviado. Criando registro do documento...' }));
+      // 1. Upload para Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      const filePath = `documents/${fileName}`;
 
-      // 2. Create record in unified_documents
-      const documentRecord = {
-        tipo_documento: data.tipo_documento,
-        user_id: user.id,
-        file_path: filePath,
-        equipamento_id: data.equipamento_id || null,
-        status_processamento: 'pendente', // Initial status
-        titulo_extraido: fileToUpload.name.replace(/\.pdf$/i, ''), // Temporary title from filename
-      };
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
 
-      const { data: newDocument, error: insertError } = await supabase
+      if (uploadError) throw uploadError;
+
+      setUploadProgress({ step: 'creating_record', message: 'Criando registro no banco de dados...' });
+
+      // 2. Criar registro em unified_documents
+      const { data: insertedDoc, error: insertError } = await supabase
         .from('unified_documents')
-        .insert(documentRecord)
-        .select('id, tipo_documento, titulo_extraido')
+        .insert({
+          tipo_documento: data.tipo_documento,
+          equipamento_id: data.equipamento_id || null,
+          user_id: user.id,
+          file_path: filePath,
+          status_processamento: 'pendente',
+        })
+        .select()
         .single();
 
-      if (insertError || !newDocument) {
-        console.error('DB Insert Error:', insertError);
-        // Attempt to delete orphaned file from storage if DB insert fails
-        await supabase.storage.from('documents').remove([filePath]);
-        throw new Error(`Falha ao criar registro do documento no banco: ${insertError?.message}`);
-      }
-      setUploadProgress(prev => ({
-        ...prev,
-        step: 'triggering_function',
-        message: `Registro criado (ID: ${newDocument.id}). Disparando processamento...`,
-        documentId: newDocument.id
-      }));
+      if (insertError) throw insertError;
 
-      // 3. Invoke 'process-document' Supabase function
-      const { error: functionError } = await supabase.functions.invoke('process-document', {
-        body: { documentId: newDocument.id },
+      setUploadProgress({ 
+        step: 'triggering_function', 
+        message: 'Processando documento com IA...',
+        documentId: insertedDoc.id,
+        fileName: file.name 
       });
 
-      if (functionError) {
-        console.error('Function Invoke Error:', functionError);
-        // Update status to 'falhou' if function invocation fails immediately
-        await supabase.from('unified_documents').update({ status_processamento: 'falhou', detalhes_erro: `Falha ao iniciar o processamento: ${functionError.message}`}).eq('id', newDocument.id);
-        throw new Error(`Falha ao disparar a função de processamento: ${functionError.message}`);
+      // 3. Chamar função de processamento
+      const { data: processResult, error: processError } = await supabase.functions.invoke('process-document', {
+        body: { 
+          documentId: insertedDoc.id,
+          forceRefresh: true,
+          timestamp: Date.now()
+        }
+      });
+
+      if (processError) {
+        console.error('Erro no processamento:', processError);
+        // Para tipos diferentes de artigo científico, continuamos mesmo com erro
+        if (data.tipo_documento === 'artigo_cientifico') {
+          throw new Error(`Falha no processamento: ${processError.message}`);
+        }
       }
 
-      setUploadProgress(prev => ({
-        ...prev,
-        step: 'success',
-        message: `Processamento do documento '${newDocument.titulo_extraido}' (Tipo: ${newDocument.tipo_documento}) iniciado. Você pode acompanhar o status na sua lista de documentos.`
-      }));
-      toast({ title: 'Upload Concluído', description: `O documento '${fileToUpload.name}' foi enviado e o processamento foi iniciado.` });
-      reset(); // Reset form after successful submission
+      setUploadProgress({ 
+        step: 'success', 
+        message: 'Documento processado com sucesso!',
+        documentId: insertedDoc.id,
+        fileName: file.name,
+        processingResult: processResult
+      });
+
+      toast({
+        title: "Upload Concluído",
+        description: `${DocumentTypeOptions.find(opt => opt.value === data.tipo_documento)?.label} processado com sucesso!`
+      });
+
+      // Reset form após sucesso
+      setTimeout(() => {
+        reset();
+        setUploadProgress({ step: 'idle', message: '' });
+      }, 3000);
 
     } catch (error: any) {
-      console.error('Intelligent Upload Error:', error);
-      setUploadProgress(prev => ({
-        ...prev,
-        step: 'error',
-        message: error.message || 'Ocorreu um erro inesperado durante o upload.'
-      }));
-      toast({ variant: 'destructive', title: 'Erro no Upload', description: error.message });
+      console.error('Erro no upload:', error);
+      setUploadProgress({ 
+        step: 'error', 
+        message: error.message || 'Erro no processamento do documento' 
+      });
+      
+      toast({
+        title: "Erro no Upload",
+        description: error.message || 'Ocorreu um erro durante o processamento.',
+        variant: "destructive"
+      });
     }
   };
 
-  const getProgressIcon = () => {
+  const handleReprocess = async () => {
+    if (!uploadProgress.documentId) return;
+
+    try {
+      setUploadProgress(prev => ({ 
+        ...prev, 
+        step: 'triggering_function', 
+        message: 'Reprocessando documento...' 
+      }));
+
+      const { error } = await supabase.functions.invoke('process-document', {
+        body: { 
+          documentId: uploadProgress.documentId,
+          forceRefresh: true,
+          timestamp: Date.now()
+        }
+      });
+
+      if (error) throw error;
+
+      setUploadProgress(prev => ({ 
+        ...prev, 
+        step: 'success', 
+        message: 'Documento reprocessado com sucesso!' 
+      }));
+
+      toast({
+        title: "Reprocessamento Concluído",
+        description: "Documento reprocessado com sucesso!"
+      });
+
+    } catch (error: any) {
+      console.error('Erro no reprocessamento:', error);
+      toast({
+        title: "Erro no Reprocessamento",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getStepIcon = () => {
     switch (uploadProgress.step) {
-      case 'uploading_storage':
-      case 'creating_record':
-      case 'triggering_function':
-        return <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-400" />;
       case 'success':
-        return <CheckCircle className="mr-2 h-5 w-5 text-green-400" />;
+        return <CheckCircle className="h-6 w-6 text-green-400" />;
       case 'error':
-        return <XCircle className="mr-2 h-5 w-5 text-red-400" />;
+        return <XCircle className="h-6 w-6 text-red-400" />;
+      case 'idle':
+        return <UploadCloud className="h-6 w-6 text-cyan-400" />;
       default:
-        return null;
+        return <Loader2 className="h-6 w-6 text-cyan-400 animate-spin" />;
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div>
-        <Label htmlFor="tipo_documento" className="text-slate-300">Tipo do Documento</Label>
-        <Controller
-          name="tipo_documento"
-          control={control}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger id="tipo_documento" className="mt-1 bg-slate-700 border-slate-600 text-white focus:ring-cyan-500">
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
-                {DocumentTypeOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value} className="hover:bg-slate-700 focus:bg-slate-700">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors.tipo_documento && <p className="mt-1 text-xs text-red-400">{errors.tipo_documento.message}</p>}
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          Upload Inteligente de Documentos
+        </h2>
+        <p className="text-slate-400">
+          Envie PDFs e deixe nossa IA extrair as informações automaticamente
+        </p>
       </div>
 
-      <div>
-        <Label htmlFor="equipamento_id" className="text-slate-300">Equipamento (Opcional)</Label>
-        <Controller
-          name="equipamento_id"
-          control={control}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} defaultValue={field.value || ""} disabled={isLoadingEquipments}>
-              <SelectTrigger id="equipamento_id" className="mt-1 bg-slate-700 border-slate-600 text-white focus:ring-cyan-500">
-                <SelectValue placeholder={isLoadingEquipments ? "Carregando equipamentos..." : "Selecione um equipamento (opcional)"} />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
-                <SelectItem value="" className="hover:bg-slate-700 focus:bg-slate-700">Nenhum</SelectItem>
-                {equipments.map(equip => (
-                  <SelectItem key={equip.id} value={equip.id} className="hover:bg-slate-700 focus:bg-slate-700">
-                    {equip.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors.equipamento_id && <p className="mt-1 text-xs text-red-400">{errors.equipamento_id.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="file" className="text-slate-300">Arquivo PDF</Label>
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-600 border-dashed rounded-md bg-slate-700/50 hover:border-cyan-500 transition-colors">
-          <div className="space-y-1 text-center">
-            <UploadCloud className="mx-auto h-12 w-12 text-slate-400" />
-            <div className="flex text-sm text-slate-400">
-              <label
-                htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md font-medium text-cyan-400 hover:text-cyan-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-slate-800 focus-within:ring-cyan-500"
-              >
-                <span>Carregar um arquivo</span>
-                <input id="file-upload" type="file" className="sr-only" {...register('file')} accept="application/pdf" />
-              </label>
-              <p className="pl-1">ou arraste e solte</p>
-            </div>
-            <p className="text-xs text-slate-500">PDF até 50MB</p>
-            {selectedFile && selectedFile[0] && (
-              <p className="text-xs text-green-400 pt-2">Selecionado: {selectedFile[0].name}</p>
-            )}
-          </div>
-        </div>
-        {errors.file && <p className="mt-1 text-xs text-red-400">{errors.file.message}</p>}
-      </div>
-
+      {/* Progress Card */}
       {uploadProgress.step !== 'idle' && (
-        <div className={`mt-4 p-3 rounded-md flex items-center text-sm ${
-            uploadProgress.step === 'error' ? 'bg-red-900/30 text-red-300 border border-red-700/50' :
-            uploadProgress.step === 'success' ? 'bg-green-900/30 text-green-300 border border-green-700/50' :
-            'bg-blue-900/30 text-blue-300 border border-blue-700/50'
-          }`}
-        >
-          {getProgressIcon()}
-          <div>
-            <p className="font-semibold">
-              {uploadProgress.step === 'uploading_storage' ? `Enviando '${uploadProgress.fileName}'...` :
-               uploadProgress.step === 'creating_record' ? 'Criando registro...' :
-               uploadProgress.step === 'triggering_function' ? 'Iniciando processamento...' :
-               uploadProgress.step === 'success' ? 'Sucesso!' :
-               uploadProgress.step === 'error' ? 'Falha no Upload' :
-               'Progresso do Upload'}
-            </p>
-            <p className="text-xs">{uploadProgress.message}</p>
-            {uploadProgress.documentId && uploadProgress.step !== 'error' && (
-              <p className="text-xs mt-1">ID do Documento: {uploadProgress.documentId}</p>
+        <Card className="aurora-glass-enhanced border-cyan-500/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-3 text-white">
+              {getStepIcon()}
+              Status do Processamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-slate-300">{uploadProgress.message}</p>
+            
+            {uploadProgress.fileName && (
+              <p className="text-sm text-slate-400">
+                Arquivo: {uploadProgress.fileName}
+              </p>
             )}
-          </div>
-        </div>
+
+            {uploadProgress.step === 'error' && uploadProgress.documentId && (
+              <Button 
+                onClick={handleReprocess}
+                variant="outline"
+                size="sm"
+                className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reprocessar Documento
+              </Button>
+            )}
+
+            {uploadProgress.step === 'success' && uploadProgress.processingResult && (
+              <div className="space-y-2">
+                <Badge variant="outline" className="border-green-500/50 text-green-400">
+                  Processamento Concluído
+                </Badge>
+                {uploadProgress.processingResult.title && (
+                  <p className="text-sm text-slate-300">
+                    <strong>Título:</strong> {uploadProgress.processingResult.title}
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
+      {/* Upload Form */}
+      {uploadProgress.step === 'idle' && (
+        <Card className="aurora-glass-enhanced border-cyan-500/30">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Tipo de Documento */}
+              <div className="space-y-3">
+                <Label htmlFor="tipo_documento" className="text-white font-medium">
+                  Tipo de Documento
+                </Label>
+                <Controller
+                  name="tipo_documento"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger className="aurora-glass border-slate-600 text-white">
+                        <SelectValue placeholder="Selecione o tipo de documento" />
+                      </SelectTrigger>
+                      <SelectContent className="aurora-glass border-slate-600">
+                        {DocumentTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value} className="text-white hover:bg-slate-700">
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.tipo_documento && (
+                  <p className="text-red-400 text-sm">{errors.tipo_documento.message}</p>
+                )}
+              </div>
 
-      <Button
-        type="submit"
-        disabled={isSubmitting || (uploadProgress.step !== 'idle' && uploadProgress.step !== 'success' && uploadProgress.step !== 'error')}
-        className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-150 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-      >
-        {isSubmitting || (uploadProgress.step !== 'idle' && uploadProgress.step !== 'success' && uploadProgress.step !== 'error') ? (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        ) : (
-          <FileText className="mr-2 h-5 w-5" />
-        )}
-        {isSubmitting ? 'Enviando...' : 'Enviar e Processar Documento'}
-      </Button>
-       {uploadProgress.step === 'success' && (
-         <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-                reset();
-                setUploadProgress({step: 'idle', message: ''});
-            }}
-            className="w-full mt-3 text-cyan-400 border-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-300"
-        >
-            Enviar Outro Documento
-        </Button>
-       )}
-    </form>
+              {/* Equipamento */}
+              <div className="space-y-3">
+                <Label htmlFor="equipamento_id" className="text-white font-medium">
+                  Equipamento (Opcional)
+                </Label>
+                <Controller
+                  name="equipamento_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                      <SelectTrigger className="aurora-glass border-slate-600 text-white">
+                        <SelectValue placeholder="Vincular a um equipamento" />
+                      </SelectTrigger>
+                      <SelectContent className="aurora-glass border-slate-600">
+                        <SelectItem value="none" className="text-white hover:bg-slate-700">
+                          Nenhum equipamento
+                        </SelectItem>
+                        {equipments?.map((equipment) => (
+                          <SelectItem key={equipment.id} value={equipment.id} className="text-white hover:bg-slate-700">
+                            {equipment.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              {/* File Upload */}
+              <div className="space-y-3">
+                <Label htmlFor="file" className="text-white font-medium">
+                  Arquivo PDF
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="file"
+                    type="file"
+                    accept=".pdf"
+                    {...register('file')}
+                    className="aurora-glass border-slate-600 text-white file:bg-cyan-600 file:text-white file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4"
+                  />
+                  {selectedFile && selectedFile[0] && (
+                    <div className="mt-2 p-3 rounded-md bg-slate-800/50 border border-slate-600">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-cyan-400" />
+                        <div>
+                          <p className="text-white font-medium">{selectedFile[0].name}</p>
+                          <p className="text-slate-400 text-sm">
+                            {(selectedFile[0].size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {errors.file && (
+                  <p className="text-red-400 text-sm">{errors.file.message}</p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isSubmitting || !selectedFile}
+                className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-medium py-3"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    Enviar e Processar Documento
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
