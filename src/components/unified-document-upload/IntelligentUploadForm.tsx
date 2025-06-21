@@ -234,7 +234,7 @@ export const IntelligentUploadForm: React.FC = () => {
               <SelectValue placeholder="Selecione um equipamento (opcional)" />
             </SelectTrigger>
             <SelectContent className="aurora-glass border-slate-600">
-              <SelectItem value="" className="text-white hover:bg-slate-700">
+              <SelectItem value="none" className="text-white hover:bg-slate-700">
                 Nenhum equipamento
               </SelectItem>
               {equipments?.map((equipment) => (
