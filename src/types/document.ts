@@ -14,6 +14,10 @@ export type ProcessingStatusEnum =
   | 'concluido'
   | 'falhou';
 
+// Legacy compatibility aliases
+export type DocumentType = DocumentTypeEnum;
+export type DocumentStatus = ProcessingStatusEnum;
+
 // Interface for the new unified_documents table
 export interface UnifiedDocument {
   id: string; // UUID
@@ -45,6 +49,8 @@ export interface UnifiedDocument {
 export interface GetDocumentsParams {
   search?: string;
   equipmentId?: string;
+  type?: DocumentTypeEnum; // Added back for compatibility
+  language?: string; // Added back for compatibility
   limit?: number;
   offset?: number;
   // tipo_documento is often implicitly set by the hook/context (e.g., useScientificArticles sets it to 'artigo_cientifico')
@@ -54,9 +60,10 @@ export interface GetDocumentsParams {
 
   // Fields specific to certain document types, if filtering directly on them:
   // For ScientificArticleFilters, these are already defined there.
-  // palavras_chave?: string[];
-  // autores?: string[];
-  // dateRange?: { startDate?: string; endDate?: string };
+  palavras_chave?: string[];
+  autores?: string[];
+  dateRange?: { startDate?: string; endDate?: string };
+  // TODO: Add semantic search capabilities in future
 }
 
 // Legacy compatibility - TechnicalDocument interface that maps to UnifiedDocument
@@ -83,9 +90,6 @@ export interface TechnicalDocument {
   duracao?: string; // Specific to video, might be in metadata or a different table for media types
   video_url?: string;
 }
-
-// Legacy compatibility - DocumentType alias
-export type DocumentType = DocumentTypeEnum;
 
 // DocumentAction might still be relevant for other document interactions
 export interface DocumentAction {

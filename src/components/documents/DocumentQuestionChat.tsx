@@ -18,17 +18,11 @@ interface ChatMessage {
 interface DocumentQuestionChatProps {
   documentId: string;
   documentTitle: string;
-  // isOpen and onClose might not be needed if the chat is always part of a view
-  // that controls its visibility, but keeping for now if it's modal-like.
-  // isOpen: boolean;
-  // onClose?: () => void;
 }
 
 const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({ 
   documentId,
   documentTitle,
-  // isOpen,
-  // onClose
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
@@ -43,11 +37,10 @@ const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({
     }
   }, [messages]);
 
-  // Clear messages if documentId changes (e.g. user opens chat for a different doc)
+  // Clear messages if documentId changes (e.g user opens chat for a different doc)
   useEffect(() => {
     setMessages([]);
   }, [documentId]);
-
 
   const handleSubmitQuestion = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -115,8 +108,6 @@ const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({
     // Add more generic suggestions or type-specific ones if documentType is available
   ];
 
-  // if (!isOpen) return null; // If controlled by parent's isOpen prop
-
   return (
     <Card className="w-full h-full flex flex-col shadow-xl bg-slate-800/70 border-slate-700/50 backdrop-blur-md">
       <CardHeader className="border-b border-slate-700/50 p-4">
@@ -126,7 +117,7 @@ const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <ScrollArea className="h-full p-4" viewportRef={scrollAreaRef}>
+        <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
           {messages.length === 0 ? (
             <div className="text-center py-8 text-slate-400 flex flex-col items-center justify-center h-full">
               <MessageCircle className="h-12 w-12 opacity-30 mb-4" />

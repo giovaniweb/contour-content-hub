@@ -6,7 +6,6 @@ import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
 import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
 import PDFViewer from '@/components/documents/PDFViewer';
-import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
 import { IntelligentUploadForm } from '@/components/unified-document-upload/IntelligentUploadForm';
 
 // Importing the refactored components
@@ -159,7 +158,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
         documentId={selectedDocument?.id}
       />
 
-      {/* Question Chat Dialog */}
+      {/* Question Chat Dialog - Fixed props */}
       <Dialog open={isQuestionChatOpen} onOpenChange={setIsQuestionChatOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] bg-slate-800/95 border-cyan-500/30">
           <DialogHeader>
@@ -171,11 +170,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           {selectedDocument && (
             <DocumentQuestionChat
               documentId={selectedDocument.id}
-              isOpen={isQuestionChatOpen}
-              onClose={() => {
-                setIsQuestionChatOpen(false);
-                setSelectedDocument(null);
-              }}
+              documentTitle={selectedDocument.titulo_extraido || 'Documento'}
             />
           )}
         </DialogContent>

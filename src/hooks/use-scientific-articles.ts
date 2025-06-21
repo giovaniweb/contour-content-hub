@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedDocument, DocumentTypeEnum, ProcessingStatusEnum, GetDocumentsParams } from '@/types/document'; // Updated types
@@ -55,8 +56,8 @@ export const useScientificArticles = () => {
       // Apply common document filters (search, equipmentId, limit, offset)
       if (filters) {
         if (filters.search) {
-          // Search in title, extracted text, keywords, authors
-          query = query.or(`titulo_extraido.ilike.%${filters.search}%,texto_completo.ilike.%${filters.search}%,palavras_chave.cs.{${filters.search}},autores.cs.{${filters.search}}`);
+          // Search in title, extracted text, keywords, authors - using ilike instead of cs for text search
+          query = query.or(`titulo_extraido.ilike.%${filters.search}%,texto_completo.ilike.%${filters.search}%`);
         }
         if (filters.equipmentId) {
           query = query.eq('equipamento_id', filters.equipmentId);
@@ -73,12 +74,12 @@ export const useScientificArticles = () => {
 
         // Apply specific ScientificArticleFilters
         if (filters.palavras_chave && filters.palavras_chave.length > 0) {
-          query = query.cs('palavras_chave', filters.palavras_chave);
+          // Use contains instead of cs for array search
+          query = query.contains('palavras_chave', filters.palavras_chave);
         }
         if (filters.autores && filters.autores.length > 0) {
-           // Assuming 'autores' is an array of strings, use 'cs' (contains)
-           // For partial matches on names, a more complex query or FTS might be needed
-          query = query.cs('autores', filters.autores);
+           // Use contains instead of cs for array search
+          query = query.contains('autores', filters.autores);
         }
         if (filters.dateRange) {
           if (filters.dateRange.startDate) {
@@ -167,14 +168,3 @@ export const useScientificArticles = () => {
     fetchSemanticSearch,
   };
 };
-
-// Ensure GetDocumentsParams is correctly defined or imported, now including status_processamento
-// interface GetDocumentsParams {
-//   search?: string;
-//   equipmentId?: string;
-//   language?: string; // Consider if this is still applicable or how it's derived
-//   limit?: number;
-//   offset?: number;
-//   status_processamento?: ProcessingStatusEnum; // Added for filtering by status
-//   // `type` is handled by the hook itself for scientific articles
-// }

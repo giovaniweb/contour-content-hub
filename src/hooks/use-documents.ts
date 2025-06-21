@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { GetDocumentsParams, TechnicalDocument, DocumentType, DocumentStatus } from '@/types/document';
+import { GetDocumentsParams, TechnicalDocument, DocumentType, ProcessingStatusEnum } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 
 export const useDocuments = () => {
@@ -27,8 +27,8 @@ export const useDocuments = () => {
       
       // Apply filters if provided
       if (params) {
-        if (params.type) {
-          query = query.eq('tipo', params.type);
+        if (params.type || params.tipo_documento) {
+          query = query.eq('tipo', params.type || params.tipo_documento);
         }
         
         if (params.equipmentId) {
@@ -73,7 +73,7 @@ export const useDocuments = () => {
           titulo: doc.titulo,
           descricao: doc.descricao || '',
           tipo: doc.tipo as DocumentType,
-          status: doc.status as DocumentStatus,
+          status: doc.status as ProcessingStatusEnum,
           equipamento_id: doc.equipamento_id || '',
           equipamento_nome: doc.equipamentos?.nome || '',
           idioma_original: doc.idioma_original || '',
@@ -124,21 +124,6 @@ export const useDocuments = () => {
         throw error;
       }
       
-      if (data && data.id) { // Certifique-se que 'data' e 'data.id' existem
-        try {
-          const { error: rpcError } = await supabase.rpc('log_document_access', {
-            doc_id: data.id,
-            action: 'view' // Ou outra ação relevante, como 'get_by_id'
-          });
-          if (rpcError) {
-            console.error('Erro ao chamar log_document_access:', rpcError);
-            // Considerar se um toast não destrutivo seria útil aqui
-          }
-        } catch (rpcCatchError) {
-          console.error('Erro inesperado ao chamar log_document_access:', rpcCatchError);
-        }
-      }
-      
       // Create a properly typed document with all required fields
       const formattedDocument: TechnicalDocument = {
         id: data.id,
@@ -150,7 +135,7 @@ export const useDocuments = () => {
         link_dropbox: data.link_dropbox || '',
         idioma_original: data.idioma_original || '',
         idiomas_traduzidos: [] as string[],
-        status: data.status as DocumentStatus,
+        status: data.status as ProcessingStatusEnum,
         criado_por: data.criado_por || '',
         data_criacao: data.data_criacao || '',
         conteudo_extraido: data.conteudo_extraido || '',
