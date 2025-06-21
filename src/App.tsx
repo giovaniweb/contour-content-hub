@@ -51,6 +51,7 @@ const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSyst
 const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettings'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
+const UnifiedUploadPage = React.lazy(() => import('@/components/unified-document-upload/UnifiedUploadPage')); // Nova página de upload
 
 import { queryClient } from './config/queryClient';
 
@@ -132,6 +133,8 @@ function App() {
                       <Route path="/admin/system-intelligence" element={<AdminLayout><AdminSystemIntelligence /></AdminLayout>} />
                       <Route path="/admin/system-diagnostics" element={<AdminLayout><AdminSystemDiagnostics /></AdminLayout>} />
                       <Route path="/admin/scientific-articles" element={<AppLayout requireAdmin={true}><AdminScientificArticles /></AppLayout>} />
+                      {/* Adicionando a nova rota de upload de documentos */}
+                      <Route path="/admin/upload-documento" element={<AdminLayout><UnifiedUploadPage /></AdminLayout>} />
                       <Route path="/workspace-settings" element={<AdminLayout><WorkspaceSettings /></AdminLayout>} />
                       
                       {/* Roteiros aprovados */}
