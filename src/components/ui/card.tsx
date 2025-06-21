@@ -11,7 +11,7 @@ const Card = React.forwardRef<
     interactive?: boolean;
     auroraBorder?: boolean;
   }
->(({ className, elevation = 'low', glass = true, gradient = false, interactive = false, auroraBorder = true, ...props }, ref) => {
+>(({ className, elevation = 'low', glass = false, gradient = false, interactive = false, auroraBorder = true, ...props }, ref) => {
   const elevationClasses = {
     flat: "shadow-none",
     low: "shadow-sm",
@@ -23,13 +23,11 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-xl transition-all duration-200",
-        // Force Aurora theme
-        "aurora-glass-enhanced border-aurora-electric-purple/30 text-slate-200",
+        "rounded-xl border bg-card text-card-foreground transition-all duration-200",
         elevationClasses[elevation],
-        glass && "backdrop-blur-xl",
-        gradient && "bg-gradient-to-br from-aurora-deep-purple/20 to-aurora-void-black/20",
-        interactive && "hover:shadow-lg hover:shadow-aurora-electric-purple/20 cursor-pointer hover:-translate-y-1 hover:border-aurora-neon-blue/40",
+        glass && "aurora-glass-enhanced",
+        gradient && "bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900",
+        interactive && "hover:shadow-lg hover:shadow-primary/10 cursor-pointer hover:-translate-y-1",
         auroraBorder && "aurora-border-enhanced",
         className
       )}
@@ -45,7 +43,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6 text-slate-200", className)}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
 ))
@@ -58,7 +56,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-xl font-semibold leading-none tracking-tight text-slate-100",
+      "text-xl font-semibold leading-none tracking-tight",
       className
     )}
     {...props}
@@ -72,7 +70,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-slate-400", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ))

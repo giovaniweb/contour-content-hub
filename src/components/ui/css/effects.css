@@ -10,10 +10,20 @@
   display: none;
 }
 
-/* Aurora effects and gradients - Static Version */
+/* Aurora effects and gradients */
 .aurora-gradient-bg {
   background: linear-gradient(135deg, #000511, #1a0b2e, #2d1b3d);
-  /* Removed animation */
+  background-size: 400% 400%;
+  animation: auroraShift 8s ease-in-out infinite;
+}
+
+@keyframes auroraShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .aurora-dark-bg {
@@ -60,26 +70,37 @@
   color: #10b981;
 }
 
-/* Subtle pulsing effects only */
+/* Pulsing effects */
 .aurora-pulse {
-  animation: auroraPulseSubtle 4s ease-in-out infinite;
+  animation: auroraPulse 2s ease-in-out infinite;
 }
 
-@keyframes auroraPulseSubtle {
+@keyframes auroraPulse {
   0%, 100% {
-    opacity: 0.8;
+    opacity: 0.7;
+    transform: scale(1);
   }
   50% {
     opacity: 1;
+    transform: scale(1.05);
   }
 }
 
-/* Removed floating animations */
+/* Floating animations */
 .aurora-float {
-  /* No animation */
+  animation: auroraFloat 3s ease-in-out infinite;
 }
 
-/* Static glow effects */
+@keyframes auroraFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Glow effects */
 .aurora-glow {
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
@@ -92,12 +113,28 @@
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-/* Removed shimmer effect */
+/* Shimmer effect */
 .aurora-shimmer {
-  /* No animation */
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }
 
-/* Simplified particle effects */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Particle effects */
 .aurora-particles {
   position: relative;
   overflow: hidden;
@@ -111,60 +148,113 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-  /* Removed animation */
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.2) 0%, transparent 50%);
+  animation: particleFloat 10s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* Simplified Aurora Loading Sphere */
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(240deg);
+  }
+}
+
+/* Esfera Místico Boreal - Aurora Loading Sphere */
 .aurora-sphere-outer {
   background: conic-gradient(
     from 0deg,
-    rgba(139, 92, 246, 0.6),
-    rgba(59, 130, 246, 0.6),
-    rgba(16, 185, 129, 0.6),
-    rgba(236, 72, 153, 0.6),
-    rgba(168, 85, 247, 0.6),
-    rgba(139, 92, 246, 0.6)
+    rgba(139, 92, 246, 0.8),  /* aurora-electric-purple */
+    rgba(59, 130, 246, 0.8),  /* blue */
+    rgba(16, 185, 129, 0.8),  /* emerald/sage */
+    rgba(236, 72, 153, 0.8),  /* pink */
+    rgba(168, 85, 247, 0.8),  /* violet */
+    rgba(139, 92, 246, 0.8)   /* back to purple */
   );
-  /* Removed animation */
-  filter: blur(6px);
+  animation: auroraRotate 4s linear infinite, auroraPulse 2s ease-in-out infinite;
+  filter: blur(8px);
 }
 
 .aurora-sphere-middle {
   background: radial-gradient(
     circle,
-    rgba(139, 92, 246, 0.4) 0%,
-    rgba(59, 130, 246, 0.3) 30%,
-    rgba(16, 185, 129, 0.2) 60%,
+    rgba(139, 92, 246, 0.6) 0%,
+    rgba(59, 130, 246, 0.4) 30%,
+    rgba(16, 185, 129, 0.3) 60%,
     transparent 100%
   );
-  /* Removed animation */
-  filter: blur(3px);
+  animation: auroraRotate 6s linear infinite reverse, auroraPulse 3s ease-in-out infinite;
+  filter: blur(4px);
 }
 
 .aurora-sphere-core {
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(139, 92, 246, 0.4) 40%,
-    rgba(59, 130, 246, 0.2) 70%,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(139, 92, 246, 0.5) 40%,
+    rgba(59, 130, 246, 0.3) 70%,
     transparent 100%
   );
-  /* Removed animation */
+  animation: auroraPulse 1.5s ease-in-out infinite;
   box-shadow: 
-    0 0 15px rgba(139, 92, 246, 0.4),
-    inset 0 0 15px rgba(255, 255, 255, 0.1);
+    0 0 20px rgba(139, 92, 246, 0.5),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .aurora-sphere-nucleus {
-  /* Removed animation */
+  animation: auroraPulse 1s ease-in-out infinite;
   box-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.6),
-    0 0 15px rgba(139, 92, 246, 0.5),
-    0 0 25px rgba(59, 130, 246, 0.3);
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(139, 92, 246, 0.6),
+    0 0 30px rgba(59, 130, 246, 0.4);
 }
 
-/* Removed all keyframe animations that caused movement */
+@keyframes auroraRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced aurora pulse with color changes */
+@keyframes auroraPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  75% {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+/* Particle floating around sphere */
+.aurora-particles {
+  animation: particleOrbit 8s linear infinite;
+}
+
+@keyframes particleOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
