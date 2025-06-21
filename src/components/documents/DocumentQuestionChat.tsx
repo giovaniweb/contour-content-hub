@@ -1,69 +1,106 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, MessageCircle, Loader2 } from 'lucide-react';
-import { TechnicalDocument } from '@/types/document';
+import { Send, MessageCircle, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: string;
-  question: string;
-  answer: string;
+  sender: 'user' | 'ai';
+  text: string;
   timestamp: Date;
 }
 
 interface DocumentQuestionChatProps {
-  document: TechnicalDocument;
-  isOpen: boolean;
-  onClose: () => void;
+  documentId: string;
+  documentTitle: string;
+  // isOpen and onClose might not be needed if the chat is always part of a view
+  // that controls its visibility, but keeping for now if it's modal-like.
+  // isOpen: boolean;
+  // onClose?: () => void;
 }
 
 const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({ 
-  document, 
-  isOpen, 
-  onClose 
+  documentId,
+  documentTitle,
+  // isOpen,
+  // onClose
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmitQuestion = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  // Clear messages if documentId changes (e.g. user opens chat for a different doc)
+  useEffect(() => {
+    setMessages([]);
+  }, [documentId]);
+
+
+  const handleSubmitQuestion = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     if (!currentQuestion.trim() || isLoading) return;
 
     setIsLoading(true);
     const question = currentQuestion.trim();
-    setCurrentQuestion('');
+
+    // Add user's question to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: question,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setCurrentQuestion(''); // Clear input after sending
 
     try {
-      const { data, error } = await supabase.functions.invoke('pdf-question-answer', {
+      // Invoke the Supabase function `ask-document` (as per plan, or use existing `pdf-question-answer` if it's adapted)
+      // Assuming `ask-document` is the new standard, or that `pdf-question-answer` is updated
+      // to work with `unified_documents`.
+      const { data, error } = await supabase.functions.invoke('ask-document', { // Or 'pdf-question-answer'
         body: {
-          documentId: document.id,
-          question: question
+          documentId: documentId, // Pass the ID of the document in unified_documents
+          question: question,
+          // Optionally, pass document_type if the function needs it for context
         }
       });
 
       if (error) throw error;
 
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        question: question,
-        answer: data.answer,
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: data.answer || "Não foi possível encontrar uma resposta.",
         timestamp: new Date()
       };
+      setMessages(prev => [...prev, aiMessage]);
 
-      setMessages(prev => [...prev, newMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error asking question:', error);
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        sender: 'ai',
+        text: `Desculpe, ocorreu um erro ao processar sua pergunta: ${error.message || 'Tente novamente.'}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
       toast({
-        title: "Erro",
-        description: "Não foi possível processar sua pergunta. Tente novamente.",
+        title: "Erro na Pergunta",
+        description: "Não foi possível processar sua pergunta. Verifique os detalhes ou tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -72,38 +109,40 @@ const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({
   };
 
   const suggestedQuestions = [
-    "Qual é o objetivo principal deste estudo?",
-    "Quais são os principais resultados encontrados?",
-    "Qual foi a metodologia utilizada?",
-    "Quais são as conclusões do estudo?",
-    "Quais são as limitações mencionadas?"
+    "Qual o principal tópico deste documento?",
+    "Faça um resumo em 3 frases.",
+    "Quais são as palavras-chave?",
+    // Add more generic suggestions or type-specific ones if documentType is available
   ];
 
-  if (!isOpen) return null;
+  // if (!isOpen) return null; // If controlled by parent's isOpen prop
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Perguntas sobre: {document.titulo}
+    <Card className="w-full h-full flex flex-col shadow-xl bg-slate-800/70 border-slate-700/50 backdrop-blur-md">
+      <CardHeader className="border-b border-slate-700/50 p-4">
+        <CardTitle className="flex items-center gap-2 text-lg text-slate-100">
+          <MessageCircle className="h-5 w-5 text-cyan-400" />
+          Perguntar sobre: <span className="truncate font-medium">{documentTitle}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <ScrollArea className="h-96 border rounded-lg p-4">
+      <CardContent className="flex-1 p-0 overflow-hidden">
+        <ScrollArea className="h-full p-4" viewportRef={scrollAreaRef}>
           {messages.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="mb-4">Faça uma pergunta sobre este documento</p>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Sugestões:</p>
+            <div className="text-center py-8 text-slate-400 flex flex-col items-center justify-center h-full">
+              <MessageCircle className="h-12 w-12 opacity-30 mb-4" />
+              <p className="mb-4 text-slate-300">Faça uma pergunta sobre este documento.</p>
+              <div className="space-y-2 w-full max-w-md">
+                <p className="text-sm font-medium text-slate-400">Sugestões:</p>
                 {suggestedQuestions.map((suggestion, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
-                    className="text-xs mx-1"
-                    onClick={() => setCurrentQuestion(suggestion)}
+                    className="text-xs text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-cyan-300 w-full text-left justify-start"
+                    onClick={() => {
+                        setCurrentQuestion(suggestion);
+                        // Optionally auto-submit if desired: handleSubmitQuestion();
+                    }}
                   >
                     {suggestion}
                   </Button>
@@ -111,43 +150,52 @@ const DocumentQuestionChat: React.FC<DocumentQuestionChatProps> = ({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {messages.map((message) => (
-                <div key={message.id} className="space-y-2">
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <p className="font-medium text-blue-900">Pergunta:</p>
-                    <p className="text-blue-800">{message.question}</p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="font-medium text-gray-900">Resposta:</p>
-                    <p className="text-gray-800 whitespace-pre-wrap">{message.answer}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {message.timestamp.toLocaleTimeString()}
+                <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[75%] p-3 rounded-xl shadow ${
+                      message.sender === 'user'
+                        ? 'bg-blue-600 text-white rounded-br-none'
+                        : 'bg-slate-700 text-slate-200 rounded-bl-none'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                    <p className={`text-xs mt-1.5 ${message.sender === 'user' ? 'text-blue-200' : 'text-slate-400'} text-right`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
               ))}
+               {isLoading && (
+                <div className="flex justify-start">
+                     <div className="max-w-[75%] p-3 rounded-xl shadow bg-slate-700 text-slate-200 rounded-bl-none flex items-center">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2 text-cyan-400" />
+                        <span className="text-sm text-slate-400">Analisando...</span>
+                    </div>
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>
-
-        <form onSubmit={handleSubmitQuestion} className="flex gap-2">
+      </CardContent>
+      <CardFooter className="p-4 border-t border-slate-700/50">
+        <form onSubmit={handleSubmitQuestion} className="flex gap-2 w-full items-center">
           <Input
-            placeholder="Digite sua pergunta sobre o documento..."
+            placeholder="Digite sua pergunta..."
             value={currentQuestion}
             onChange={(e) => setCurrentQuestion(e.target.value)}
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-cyan-500 focus:border-cyan-500"
           />
-          <Button type="submit" disabled={isLoading || !currentQuestion.trim()}>
+          <Button type="submit" disabled={isLoading || !currentQuestion.trim()} className="bg-cyan-500 hover:bg-cyan-600 text-white px-3">
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </form>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 };

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker'; // MODIFICADO
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -13,62 +12,68 @@ import {
 } from '@/components/ui/select';
 import { X, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ScientificArticleFilters } from '@/hooks/use-scientific-articles'; // Importar a interface de filtros
-
-// Se DatePickerWithRange não existir, precisaremos de uma alternativa ou criar um similar.
-// Por agora, vamos assumir sua existência.
-// Exemplo de Fallback para DatePickerWithRange se não existir:
-// const DatePickerWithRange = ({ onChange }) => (
-//   <div>
-//     <Input type="date" onChange={e => onChange({ from: e.target.value })} />
-//     <Input type="date" onChange={e => onChange({ to: e.target.value })} />
-//   </div>
-// );
+import { ScientificArticleFilters } from '@/hooks/use-scientific-articles'; // Still using this for structure
+import { ProcessingStatusEnum } from '@/types/document'; // Import enum for status
 
 interface Equipment {
   id: string;
   nome: string;
 }
 
-interface Language {
-  code: string;
-  name: string;
+// Language filter is removed as it's not in unified_documents directly
+// interface Language {
+//   code: string;
+//   name: string;
+// }
+
+interface StatusOption {
+    value: ProcessingStatusEnum | '';
+    label: string;
 }
 
 interface AdvancedSearchProps {
   initialFilters?: Partial<ScientificArticleFilters>;
   onSearch: (filters: Partial<ScientificArticleFilters>) => void;
-  onClear?: () => void; // Opcional: para limpar os filtros
+  onClear?: () => void;
+  availableStatuses?: StatusOption[]; // Make statuses configurable from parent
 }
 
-const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, onSearch, onClear }) => {
+const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
+    initialFilters = {},
+    onSearch,
+    onClear,
+    availableStatuses = [ // Default statuses if not provided
+        { value: 'concluido', label: 'Concluído' },
+        { value: 'falhou', label: 'Falhou' },
+        { value: 'processando', label: 'Processando' },
+        { value: 'pendente', label: 'Pendente' },
+        { value: '', label: 'Qualquer Status' },
+    ]
+}) => {
   const [searchTerm, setSearchTerm] = useState(initialFilters.search || '');
   const [selectedEquipment, setSelectedEquipment] = useState(initialFilters.equipmentId || '');
-  const [keywordsInput, setKeywordsInput] = useState((initialFilters.keywords || []).join(', '));
-  const [researchersInput, setResearchersInput] = useState((initialFilters.researchers || []).join(', '));
+  // Use `palavras_chave` and `autores` corresponding to UnifiedDocument fields
+  const [palavrasChaveInput, setPalavrasChaveInput] = useState((initialFilters.palavras_chave || []).join(', '));
+  const [autoresInput, setAutoresInput] = useState((initialFilters.autores || []).join(', '));
   const [startDate, setStartDate] = useState<Date | undefined>(
     initialFilters.dateRange?.startDate ? new Date(initialFilters.dateRange.startDate) : undefined
   );
   const [endDate, setEndDate] = useState<Date | undefined>(
     initialFilters.dateRange?.endDate ? new Date(initialFilters.dateRange.endDate) : undefined
   );
-  const [selectedLanguage, setSelectedLanguage] = useState(initialFilters.language || '');
+  // const [selectedLanguage, setSelectedLanguage] = useState(initialFilters.language || ''); // Language filter removed
+  const [selectedStatus, setSelectedStatus] = useState<ProcessingStatusEnum | ''>(initialFilters.status_processamento || 'concluido');
+
 
   const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [languages, setLanguages] = useState<Language[]>([ // Exemplo de idiomas
-    { code: 'pt', name: 'Português' },
-    { code: 'en', name: 'Inglês' },
-    { code: 'es', name: 'Espanhol' },
-    { code: 'all', name: 'Todos os idiomas' }, // Opção para limpar filtro de idioma
-  ]);
+  // const [languages, setLanguages] = useState<Language[]>([ ... ]); // Removed
 
-  // Fetch equipments
   useEffect(() => {
     const fetchEquipments = async () => {
       const { data, error } = await supabase
         .from('equipamentos')
         .select('id, nome')
-        .eq('ativo', true)
+        .eq('ativo', true) // Assuming 'ativo' field exists
         .order('nome');
       if (error) {
         console.error('Error fetching equipments:', error);
@@ -79,81 +84,103 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
     fetchEquipments();
   }, []);
 
+  // Update local state if initialFilters change from parent (e.g. after clearing)
+  useEffect(() => {
+    setSearchTerm(initialFilters.search || '');
+    setSelectedEquipment(initialFilters.equipmentId || '');
+    setPalavrasChaveInput((initialFilters.palavras_chave || []).join(', '));
+    setAutoresInput((initialFilters.autores || []).join(', '));
+    setStartDate(initialFilters.dateRange?.startDate ? new Date(initialFilters.dateRange.startDate) : undefined);
+    setEndDate(initialFilters.dateRange?.endDate ? new Date(initialFilters.dateRange.endDate) : undefined);
+    setSelectedStatus(initialFilters.status_processamento || 'concluido');
+  }, [initialFilters]);
+
+
   const handleSearch = () => {
     const filters: Partial<ScientificArticleFilters> = {
       search: searchTerm.trim() || undefined,
       equipmentId: selectedEquipment || undefined,
-      keywords: keywordsInput.split(',').map(k => k.trim()).filter(k => k) || undefined,
-      researchers: researchersInput.split(',').map(r => r.trim()).filter(r => r) || undefined,
+      palavras_chave: palavrasChaveInput.split(',').map(k => k.trim()).filter(k => k).length > 0
+                      ? palavrasChaveInput.split(',').map(k => k.trim()).filter(k => k)
+                      : undefined,
+      autores: autoresInput.split(',').map(r => r.trim()).filter(r => r).length > 0
+               ? autoresInput.split(',').map(r => r.trim()).filter(r => r)
+               : undefined,
       dateRange: (startDate || endDate) ? {
         startDate: startDate?.toISOString().split('T')[0],
         endDate: endDate?.toISOString().split('T')[0],
       } : undefined,
-      language: selectedLanguage === 'all' ? undefined : selectedLanguage || undefined,
+      // language: selectedLanguage === 'all' ? undefined : selectedLanguage || undefined, // Language filter removed
+      status_processamento: selectedStatus || undefined, // Pass empty string as undefined effectively
     };
     onSearch(filters);
   };
 
   const handleClear = () => {
+    // Reset local state
     setSearchTerm('');
     setSelectedEquipment('');
-    setKeywordsInput('');
-    setResearchersInput('');
+    setPalavrasChaveInput('');
+    setAutoresInput('');
     setStartDate(undefined);
     setEndDate(undefined);
-    setSelectedLanguage('');
+    // setSelectedLanguage(''); // Language filter removed
+    setSelectedStatus('concluido'); // Default to 'concluido' or parent's default
+
+    // Trigger parent's onClear or directly call onSearch with default/empty filters
     if (onClear) {
-      onClear();
+      onClear(); // This should reset parent's currentFilters, which then flow back via initialFilters
+    } else {
+      // If no onClear, directly reset search to default state
+      onSearch({ status_processamento: 'concluido' });
     }
-    // Também chamar onSearch com filtros vazios para resetar a busca
-    onSearch({});
   };
 
   return (
     <div className="p-4 md:p-6 bg-slate-800/50 border border-cyan-500/20 rounded-xl shadow-lg space-y-6 mb-6 aurora-border-enhanced">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-end">
         {/* Search Term */}
         <div className="space-y-1">
           <Label htmlFor="searchTerm" className="text-slate-300">Termo de Busca</Label>
           <Input
             id="searchTerm"
-            placeholder="Buscar por título, descrição, conteúdo..."
+            placeholder="Título, conteúdo, palavras-chave, autores..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-slate-700/60 border-cyan-500/40 text-slate-100 placeholder-slate-400"
           />
         </div>
 
-        {/* Keywords */}
+        {/* Palavras-chave */}
         <div className="space-y-1">
-          <Label htmlFor="keywords" className="text-slate-300">Palavras-chave (separadas por vírgula)</Label>
+          <Label htmlFor="palavrasChave" className="text-slate-300">Palavras-chave (separadas por vírgula)</Label>
           <Input
-            id="keywords"
+            id="palavrasChave"
             placeholder="Ex: criofrequência, adiposidade"
-            value={keywordsInput}
-            onChange={(e) => setKeywordsInput(e.target.value)}
+            value={palavrasChaveInput}
+            onChange={(e) => setPalavrasChaveInput(e.target.value)}
             className="bg-slate-700/60 border-cyan-500/40 text-slate-100 placeholder-slate-400"
           />
         </div>
 
-        {/* Researchers */}
+        {/* Autores */}
         <div className="space-y-1">
-          <Label htmlFor="researchers" className="text-slate-300">Pesquisadores (separados por vírgula)</Label>
+          <Label htmlFor="autores" className="text-slate-300">Autores (separados por vírgula)</Label>
           <Input
-            id="researchers"
+            id="autores"
             placeholder="Ex: Dr. Fulano, Ciclana Silva"
-            value={researchersInput}
-            onChange={(e) => setResearchersInput(e.target.value)}
+            value={autoresInput}
+            onChange={(e) => setAutoresInput(e.target.value)}
             className="bg-slate-700/60 border-cyan-500/40 text-slate-100 placeholder-slate-400"
           />
         </div>
 
         {/* Equipment */}
         <div className="space-y-1">
-          <Label htmlFor="equipment" className="text-slate-300">Equipamento Relacionado</Label>
+          <Label htmlFor="equipment" className="text-slate-300">Equipamento</Label>
           <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
             <SelectTrigger className="bg-slate-700/60 border-cyan-500/40 text-slate-100">
-              <SelectValue placeholder="Selecione um equipamento" />
+              <SelectValue placeholder="Selecione equipamento" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
               <SelectItem value="" className="text-slate-400">Qualquer equipamento</SelectItem>
@@ -164,45 +191,49 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
           </Select>
         </div>
 
-        {/* Language */}
+        {/* Processing Status */}
         <div className="space-y-1">
-          <Label htmlFor="language" className="text-slate-300">Idioma</Label>
-          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <Label htmlFor="status_processamento" className="text-slate-300">Status do Processamento</Label>
+          <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as ProcessingStatusEnum | '')}>
             <SelectTrigger className="bg-slate-700/60 border-cyan-500/40 text-slate-100">
-              <SelectValue placeholder="Selecione um idioma" />
+              <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
-              {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code} className={lang.code === "" || lang.code === "all" ? "text-slate-400" : ""}>
-                  {lang.name}
+              {availableStatuses.map((status) => (
+                <SelectItem key={status.value} value={status.value} className={status.value === "" ? "text-slate-400" : ""}>
+                  {status.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Date Range - Modificado */}
+
+        {/* Language filter removed */}
+        {/* <div className="space-y-1"> ... </div> */}
+
+        {/* Date Range */}
         <div className="space-y-1">
-          <Label htmlFor="startDate" className="text-slate-300">Data de Início</Label>
+          <Label htmlFor="startDate" className="text-slate-300">Data de Upload (Início)</Label>
           <DatePicker
             value={startDate}
             onValueChange={setStartDate}
             placeholder="DD/MM/AAAA"
-            className="w-full" // Assegurar que o botão ocupe a largura
+            className="w-full"
           />
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="endDate" className="text-slate-300">Data de Fim</Label>
-          <DatePicker
+        <div className="space-y-1 md:col-span-1 lg:col-span-2"> {/* Adjust span for layout */}
+          <Label htmlFor="endDate" className="text-slate-300">Data de Upload (Fim)</Label>
+           <DatePicker
             value={endDate}
             onValueChange={setEndDate}
             placeholder="DD/MM/AAAA"
-            className="w-full" // Assegurar que o botão ocupe a largura
+            className="w-full"
           />
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-slate-700/50">
+      <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-slate-700/50 mt-2">
         <Button
             variant="outline"
             onClick={handleClear}
@@ -224,7 +255,3 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ initialFilters = {}, on
 };
 
 export default AdvancedSearch;
-
-// Nota: Se o componente `DatePickerWithRange` não existir em `@/components/ui/date-range-picker`,
-// será necessário criá-lo ou usar uma alternativa. Um DatePicker simples pode exigir dois campos (data de início e fim).
-// O shadcn/ui tem um exemplo de `DatePickerWithRange` que pode ser adaptado.

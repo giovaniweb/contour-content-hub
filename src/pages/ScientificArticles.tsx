@@ -1,222 +1,242 @@
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Filter, Upload, Plus, Flame, Sparkles, FileText, Calendar, User } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom'; // For "Add New Article" button
+import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, UploadCloud } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useScientificArticles, ScientificArticleFilters } from '@/hooks/use-scientific-articles'; // MODIFICADO
-import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal';
-import AdvancedSearch from '@/components/scientific-articles/AdvancedSearch'; // NOVO
+import { useScientificArticles, ScientificArticleFilters } from '@/hooks/use-scientific-articles';
+import ArticleViewModal from '@/components/scientific-articles/ArticleViewModal'; // Needs to be adapted for UnifiedDocument
+import AdvancedSearch from '@/components/scientific-articles/AdvancedSearch'; // Needs to be adapted for UnifiedDocument filters
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import { TechnicalDocument } from '@/types/document'; // For better typing
-import { useCallback } from 'react'; // Added useCallback
+import { UnifiedDocument, ProcessingStatusEnum } from '@/types/document'; // Using UnifiedDocument
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-const ScientificArticles: React.FC = () => {
-  // const [searchTerm, setSearchTerm] = useState(''); // REMOVIDO
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Manter se SearchAndFilters for mantido para viewMode
-  const [selectedArticle, setSelectedArticle] = useState<TechnicalDocument | null>(null); // MODIFICADO: any para TechnicalDocument | null
+
+const ScientificArticlesPage: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Retain view mode if UI supports it
+  const [selectedArticle, setSelectedArticle] = useState<UnifiedDocument | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const { toast } = useToast();
 
-  const { articles, loading, error, fetchScientificArticles } = useScientificArticles(); // MODIFICADO
-  const [currentFilters, setCurrentFilters] = useState<Partial<ScientificArticleFilters>>({}); // NOVO
+  const { articles, loading, error, fetchScientificArticles } = useScientificArticles();
+  const [currentFilters, setCurrentFilters] = useState<Partial<ScientificArticleFilters>>({
+    status_processamento: 'concluido', // Default to show only concluded articles
+  });
 
   useEffect(() => {
     fetchScientificArticles(currentFilters);
   }, [fetchScientificArticles, currentFilters]);
 
-  // const filteredArticles = articles.filter(article => ...); // REMOVIDO - filtragem agora no hook
-
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return 'Data desconhecida';
     return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+      day: 'numeric', month: 'short', year: 'numeric'
     });
   };
 
-  // Função para determinar se um artigo é "novo" (últimos 30 dias)
-  const isNewArticle = (dateString: string) => {
+  const isNewArticle = (dateString?: string | null) => {
+    if (!dateString) return false;
     const articleDate = new Date(dateString);
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return articleDate > thirtyDaysAgo;
   };
 
-  // Função para determinar se um artigo é "popular" (tem keywords ou researchers)
-  const isPopularArticle = (article: TechnicalDocument) => { // MODIFICADO: any para TechnicalDocument
-    return (article.keywords && article.keywords.length > 0) || 
-           (article.researchers && article.researchers.length > 0);
+  const isPopularArticle = (article: UnifiedDocument) => {
+    return (article.palavras_chave && article.palavras_chave.length > 0) ||
+           (article.autores && article.autores.length > 0);
   };
 
-  const handleViewArticle = (article: TechnicalDocument) => { // MODIFICADO: any para TechnicalDocument
+  const handleViewArticle = (article: UnifiedDocument) => {
     setSelectedArticle(article);
     setIsViewModalOpen(true);
   };
 
+  const handleReprocess = async (documentId: string) => {
+    toast({ title: "Reprocessando...", description: `Iniciando o reprocessamento do artigo ID: ${documentId}` });
+    try {
+      // Update status to 'pendente' to visually indicate it's queued again
+      await supabase.from('unified_documents').update({ status_processamento: 'pendente', detalhes_erro: null }).eq('id', documentId);
+
+      const { error: functionError } = await supabase.functions.invoke('process-document', {
+        body: { documentId: documentId, forceRefresh: true }, // forceRefresh might be implicit if re-queued
+      });
+
+      if (functionError) {
+        throw new Error(functionError.message);
+      }
+      toast({ title: "Sucesso", description: "Reprocessamento iniciado. O artigo será atualizado em breve." });
+      // Optionally, refresh the list after a short delay or use real-time updates
+      setTimeout(() => fetchScientificArticles(currentFilters), 3000);
+    } catch (err: any) {
+      console.error("Reprocess Error:", err);
+      toast({ variant: "destructive", title: "Falha ao Reprocessar", description: err.message });
+      // Revert status if needed, or let the processing function handle failure status
+      await supabase.from('unified_documents').update({ status_processamento: 'falhou', detalhes_erro: `Falha ao tentar reprocessar: ${err.message}` }).eq('id', documentId);
+    }
+  };
+
+
   const handleAdvancedSearch = useCallback((newFilters: Partial<ScientificArticleFilters>) => {
-    setCurrentFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+    setCurrentFilters(prevFilters => ({ ...prevFilters, ...newFilters, status_processamento: newFilters.status_processamento || 'concluido' }));
   }, []);
 
   const handleClearSearch = useCallback(() => {
-    setCurrentFilters({});
+    setCurrentFilters({ status_processamento: 'concluido' });
   }, []);
 
-  const statusBadges = [
-    {
-      icon: Flame,
-      label: 'Popular',
-      variant: 'secondary' as const,
-      color: 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-    },
-    {
-      icon: Sparkles,
-      label: 'Recente',
-      variant: 'secondary' as const,
-      color: 'bg-green-500/20 text-green-400 border-green-500/30'
-    }
-  ];
+  const pageActions = (
+    <Link to="/admin/upload-documento"> {/* Link to the new unified upload page */}
+      <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
+        <UploadCloud className="mr-2 h-4 w-4" />
+        Adicionar Novo Documento
+      </Button>
+    </Link>
+  );
+
 
   return (
     <AuroraPageLayout>
       <StandardPageHeader
         icon={BookOpen}
         title="Artigos Científicos"
-        subtitle="Biblioteca de artigos e pesquisas científicas"
-        statusBadges={statusBadges}
+        subtitle="Biblioteca de artigos e pesquisas científicas (Nova Gestão)"
+        actions={pageActions} // Add button to header
       />
 
-      {/* REMOVER SearchAndFilters ou ajustar sua integração */}
-      {/* <SearchAndFilters
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        onViewModeChange={setViewMode}
-        viewMode={viewMode} // viewMode pode ser mantido se a funcionalidade for desejada separadamente
-      /> */}
-
-      <AdvancedSearch // NOVO
+      <AdvancedSearch // This component will need adaptation for new filter names (palavras_chave, autores)
         initialFilters={currentFilters}
         onSearch={handleAdvancedSearch}
         onClear={handleClearSearch}
+        // Pass available statuses for filtering
+        availableStatuses={[
+            { value: 'concluido', label: 'Concluído' },
+            { value: 'pendente', label: 'Pendente' },
+            { value: 'processando', label: 'Processando' },
+            { value: 'falhou', label: 'Falhou' }
+        ]}
       />
 
-      { error && (
-        <div className="container mx-auto px-6 py-4">
-          <div className="bg-red-500/20 text-red-300 border border-red-500/30 p-4 rounded-md">
-            Erro ao carregar artigos: {error}
+      {error && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-red-800/30 text-red-300 border border-red-700/50 p-4 rounded-md flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-3 text-red-400" /> Erro ao carregar artigos: {error}
           </div>
         </div>
       )}
 
-      <div className="container mx-auto px-6 py-8">
-        <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-slate-800/30 backdrop-blur-md border border-cyan-500/20 rounded-xl p-6 shadow-lg">
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
               <p className="text-slate-300">Carregando artigos...</p>
             </div>
-          ) : articles.length === 0 ? ( // MODIFICADO de filteredArticles para articles
+          ) : articles.length === 0 ? (
             <EmptyState
               icon={BookOpen}
-              title="Nenhum artigo encontrado"
-              description={Object.keys(currentFilters).filter(k => currentFilters[k] !== undefined && currentFilters[k] !== '').length > 0 ? 'Tente ajustar seus filtros ou clique em "Limpar Filtros"' : 'Nenhum artigo científico corresponde aos critérios atuais ou ainda não foram adicionados.'}
+              title="Nenhum artigo científico encontrado"
+              description={Object.keys(currentFilters).filter(k => currentFilters[k] !== undefined && (typeof currentFilters[k] === 'string' ? currentFilters[k] !== '' : true) && k !== 'status_processamento' || (k === 'status_processamento' && currentFilters[k] !== 'concluido')).length > 0
+                ? 'Nenhum artigo corresponde aos filtros. Tente limpá-los.'
+                : 'Nenhum artigo científico foi processado com sucesso ainda ou não há artigos cadastrados.'
+              }
               actionLabel="Limpar Filtros e Recarregar"
-              onAction={handleClearSearch} // Ação agora limpa os filtros
+              onAction={handleClearSearch}
             />
           ) : (
-            // TODO: Re-integrar o viewMode se SearchAndFilters for mantido apenas para isso.
-            // Por agora, removendo a lógica de classe dinâmica de viewMode para simplificar.
             <div className={`grid grid-cols-1 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''} gap-6`}>
-              {articles.map((article) => ( // MODIFICADO de filteredArticles para articles
-                <Card key={article.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm cursor-pointer aurora-border-enhanced">
-                  {/* Article Preview */}
-                  <div className="relative aspect-[4/3] bg-slate-700/50 overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-                      <FileText className="h-16 w-16 text-cyan-400" />
-                    </div>
-                    
-                    {/* Tags sobre o artigo */}
-                    <div className="absolute top-2 left-2 flex gap-2">
-                      {isPopularArticle(article) && (
-                        <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm" title="Popular">
-                          <Flame className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                      {article.data_criacao && isNewArticle(article.data_criacao) && (
-                        <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm" title="Recente">
-                          <Sparkles className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* PDF indicator */}
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
-                      PDF
-                    </div>
-                  </div>
-
+              {articles.map((article) => (
+                <Card key={article.id} className="group relative hover:shadow-2xl transition-all duration-300 bg-slate-800/60 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm aurora-border-enhanced flex flex-col justify-between">
                   <CardContent className="p-4">
-                    <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{article.titulo}</h3>
+                    <div className="relative aspect-[16/9] bg-slate-700/50 overflow-hidden rounded-md mb-3">
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700">
+                        <FileText className="h-16 w-16 text-cyan-400 opacity-70" />
+                      </div>
+                      <div className="absolute top-2 right-2">
+                         {article.status_processamento === 'falhou' && <Badge variant="destructive" className="bg-red-500 text-white"><AlertTriangle className="h-3 w-3 mr-1" /> Falhou</Badge>}
+                         {article.status_processamento === 'concluido' && <Badge className="bg-green-500 text-white"><CheckCircle className="h-3 w-3 mr-1" /> Concluído</Badge>}
+                         {article.status_processamento === 'processando' && <Badge variant="outline" className="text-blue-300 border-blue-400">Processando...</Badge>}
+                         {article.status_processamento === 'pendente' && <Badge variant="outline" className="text-yellow-300 border-yellow-400">Pendente</Badge>}
+                      </div>
+                    </div>
+
+                    <h3 className="font-semibold text-md mb-1.5 line-clamp-2 text-slate-100 group-hover:text-cyan-400 transition-colors">{article.titulo_extraido || 'Título Pendente'}</h3>
                     
-                    {article.descricao && (
-                      <p className="text-xs text-slate-400 mb-3 line-clamp-2">
+                    {article.descricao && ( // Using the mapped 'descricao' which is a snippet of 'texto_completo'
+                      <p className="text-xs text-slate-400 mb-2 line-clamp-2">
                         {article.descricao}
                       </p>
                     )}
 
                     <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                      {article.data_criacao && (
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(article.data_criacao)}
+                      {article.data_upload && (
+                        <div className="flex items-center" title={`Data de Upload: ${formatDate(article.data_upload)}`}>
+                          <Calendar className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                          {formatDate(article.data_upload)}
                         </div>
                       )}
-                      {article.researchers && article.researchers.length > 0 && (
-                        <div className="flex items-center">
-                          <User className="h-3 w-3 mr-1" />
-                          {article.researchers.length === 1 
-                            ? article.researchers[0].split(' ')[0] 
-                            : `${article.researchers.length} autores`
+                      {article.autores && article.autores.length > 0 && (
+                        <div className="flex items-center" title={article.autores.join(', ')}>
+                          <User className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                          {article.autores.length === 1
+                            ? article.autores[0].split(' ')[0] // First name of first author
+                            : `${article.autores.length} autores`
                           }
                         </div>
                       )}
                     </div>
 
-                    {/* Keywords */}
-                    {article.keywords && article.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {article.keywords.slice(0, 2).map((keyword, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
+                    {article.palavras_chave && article.palavras_chave.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {article.palavras_chave.slice(0, 3).map((keyword, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5">
                             {keyword}
                           </Badge>
                         ))}
-                        {article.keywords.length > 2 && (
-                          <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
-                            +{article.keywords.length - 2}
+                        {article.palavras_chave.length > 3 && (
+                          <Badge variant="outline" className="text-xs border-slate-600 text-slate-400 px-1.5 py-0.5">
+                            +{article.palavras_chave.length - 3}
                           </Badge>
                         )}
                       </div>
                     )}
-
-                    {/* Equipment info */}
-                    {article.equipamento_nome && (
-                      <div className="text-xs text-slate-500 mt-1">
-                        Equipamento: {article.equipamento_nome}
-                      </div>
+                     {article.equipamento_nome && (
+                      <p className="text-xs text-slate-500 mt-1">Equip.: {article.equipamento_nome}</p>
+                    )}
+                    {article.status_processamento === 'falhou' && article.detalhes_erro && (
+                        <p className="text-xs text-red-400 mt-2 line-clamp-2" title={article.detalhes_erro}>
+                            <AlertTriangle className="inline h-3 w-3 mr-1" /> {article.detalhes_erro}
+                        </p>
                     )}
                   </CardContent>
 
-                  <CardFooter className="px-4 py-3 bg-slate-800/60 border-t border-cyan-500/20">
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleViewArticle(article)}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      Visualizar
-                    </Button>
+                  <CardFooter className="p-3 bg-slate-800/70 border-t border-slate-700/60 mt-auto">
+                    <div className="w-full flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewArticle(article)}
+                          className="flex-1 border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500"
+                          disabled={article.status_processamento !== 'concluido'}
+                        >
+                          <FileText className="h-4 w-4 mr-1.5" />
+                          Visualizar
+                        </Button>
+                        {article.status_processamento === 'falhou' && (
+                             <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleReprocess(article.id)}
+                                className="flex-1 border-yellow-500/70 text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300 hover:border-yellow-500"
+                            >
+                                <RefreshCw className="h-4 w-4 mr-1.5" />
+                                Reprocessar
+                            </Button>
+                        )}
+                    </div>
                   </CardFooter>
                 </Card>
               ))}
@@ -225,14 +245,15 @@ const ScientificArticles: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Visualização */}
-      <ArticleViewModal
-        isOpen={isViewModalOpen}
-        onOpenChange={setIsViewModalOpen}
-        document={selectedArticle} // MODIFICADO
-      />
+      {selectedArticle && (
+        <ArticleViewModal // This modal will need to be adapted to accept UnifiedDocument and its fields
+          isOpen={isViewModalOpen}
+          onOpenChange={setIsViewModalOpen}
+          document={selectedArticle}
+        />
+      )}
     </AuroraPageLayout>
   );
 };
 
-export default ScientificArticles;
+export default ScientificArticlesPage;
