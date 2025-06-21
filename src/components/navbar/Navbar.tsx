@@ -20,6 +20,7 @@ const INSTITUCIONAL_LINKS = [
   { label: "O que é?", to: "/institucional/o-que-e" },
   { label: "Contato", to: "/institucional/contato" },
   { label: "Suporte", to: "/institucional/suporte" },
+  { label: "Teste", to: "/" }, // Novo item de menu para teste de deploy
 ];
 
 const SIDEBAR_WIDTH = 104; // mesma largura do Sidebar
