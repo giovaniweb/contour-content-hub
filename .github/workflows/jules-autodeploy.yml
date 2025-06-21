@@ -1,5 +1,4 @@
-# Caminho sugerido: .github/workflows/jules-autodeploy.yml
-name: merge-and-deploy
+name: Merge and Deploy to Vercel
 
 on:
   push:
@@ -7,30 +6,25 @@ on:
       - main
 
 jobs:
-  auto-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Instalar Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '18'
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: npm install
 
-      - name: Build do projeto
-        run: npm run build
+      - name: Build project
+        run: npm run build  # ou `npm run build`/`vite build` conforme seu setup
 
-      - name: Deploy para Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
+      - name: Deploy to Vercel
         env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel --prod --confirm
