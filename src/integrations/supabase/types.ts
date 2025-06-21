@@ -1862,6 +1862,68 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_documents: {
+        Row: {
+          autores: string[] | null
+          created_at: string
+          data_upload: string
+          detalhes_erro: string | null
+          equipamento_id: string | null
+          file_path: string | null
+          id: string
+          palavras_chave: string[] | null
+          raw_text: string | null
+          status_processamento: string
+          texto_completo: string | null
+          tipo_documento: string
+          titulo_extraido: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          autores?: string[] | null
+          created_at?: string
+          data_upload?: string
+          detalhes_erro?: string | null
+          equipamento_id?: string | null
+          file_path?: string | null
+          id?: string
+          palavras_chave?: string[] | null
+          raw_text?: string | null
+          status_processamento?: string
+          texto_completo?: string | null
+          tipo_documento: string
+          titulo_extraido?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          autores?: string[] | null
+          created_at?: string
+          data_upload?: string
+          detalhes_erro?: string | null
+          equipamento_id?: string | null
+          file_path?: string | null
+          id?: string
+          palavras_chave?: string[] | null
+          raw_text?: string | null
+          status_processamento?: string
+          texto_completo?: string | null
+          tipo_documento?: string
+          titulo_extraido?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_documents_equipamento_id_fkey"
+            columns: ["equipamento_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_content_profiles: {
         Row: {
           common_keywords: string[] | null

@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { DocumentType, TechnicalDocument } from '@/types/document';
-import { useDocuments } from '@/hooks/use-documents';
+import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
+import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
 import PDFViewer from '@/components/documents/PDFViewer';
 import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
-import EnhancedDocumentUploadForm from '@/components/documents/EnhancedDocumentUploadForm';
+import { IntelligentUploadForm } from '@/components/unified-document-upload/IntelligentUploadForm';
 
 // Importing the refactored components
 import ScientificArticleHeader from './components/ScientificArticleHeader';
@@ -17,40 +17,40 @@ import ScientificArticleGrid from './components/ScientificArticleGrid';
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<DocumentType | 'all'>('all');
+  const [selectedType, setSelectedType] = useState<DocumentTypeEnum | 'all'>('all');
   const [selectedEquipment, setSelectedEquipment] = useState<string>('all');
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<TechnicalDocument | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<UnifiedDocument | null>(null);
   const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
   const [isQuestionChatOpen, setIsQuestionChatOpen] = useState(false);
 
-  const { documents, loading, fetchDocuments } = useDocuments();
+  const { articles, loading, fetchScientificArticles } = useScientificArticles();
   const { equipments } = useEquipments();
 
   useEffect(() => {
-    fetchDocuments({
-      type: selectedType === 'all' ? undefined : selectedType,
+    fetchScientificArticles({
+      tipo_documento: selectedType === 'all' ? undefined : selectedType,
       equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
       search: searchTerm || undefined
     });
-  }, [searchTerm, selectedType, selectedEquipment, fetchDocuments]);
+  }, [searchTerm, selectedType, selectedEquipment, fetchScientificArticles]);
 
-  const handleView = (document: TechnicalDocument) => {
+  const handleView = (document: UnifiedDocument) => {
     setSelectedDocument(document);
     setIsPDFViewerOpen(true);
   };
 
-  const handleQuestion = (document: TechnicalDocument) => {
+  const handleQuestion = (document: UnifiedDocument) => {
     setSelectedDocument(document);
     setIsQuestionChatOpen(true);
   };
 
-  const handleDownload = (document: TechnicalDocument) => {
-    const url = document.arquivo_url || document.link_dropbox;
+  const handleDownload = (document: UnifiedDocument) => {
+    const url = document.file_path;
     if (url) {
       const link = window.document.createElement('a');
       link.href = url;
-      link.download = `${document.titulo}.pdf`;
+      link.download = `${document.titulo_extraido || 'documento'}.pdf`;
       link.target = '_blank';
       window.document.body.appendChild(link);
       link.click();
@@ -61,7 +61,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const handleUploadSuccess = () => {
     console.log('Upload successful, closing dialog and refreshing documents');
     setIsUploadDialogOpen(false);
-    fetchDocuments();
+    fetchScientificArticles();
   };
 
   const handleNewDocument = () => {
@@ -74,12 +74,12 @@ const EnhancedScientificArticleManager: React.FC = () => {
     setIsUploadDialogOpen(false);
   };
 
-  const filteredDocuments = documents.filter(doc => {
+  const filteredDocuments = articles.filter(doc => {
     const matchesSearch = !searchTerm || 
-      doc.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.descricao?.toLowerCase().includes(searchTerm.toLowerCase());
+      doc.titulo_extraido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.texto_completo?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = selectedType === 'all' || doc.tipo === selectedType;
+    const matchesType = selectedType === 'all' || doc.tipo_documento === selectedType;
     const matchesEquipment = selectedEquipment === 'all' || doc.equipamento_id === selectedEquipment;
     
     return matchesSearch && matchesType && matchesEquipment;
@@ -138,17 +138,14 @@ const EnhancedScientificArticleManager: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-100">
               <Upload className="h-5 w-5 text-cyan-400" />
-              Adicionar Novo Documento
+              Upload Inteligente de Documentos
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Faça upload de um documento científico para adicionar à biblioteca
+              Envie um documento científico para processamento automático com IA
             </DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-            <EnhancedDocumentUploadForm
-              onSuccess={handleUploadSuccess}
-              onCancel={handleCancelUpload}
-            />
+            <IntelligentUploadForm />
           </div>
         </DialogContent>
       </Dialog>
@@ -157,8 +154,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
       <PDFViewer
         isOpen={isPDFViewerOpen}
         onOpenChange={setIsPDFViewerOpen}
-        title={selectedDocument?.titulo || 'Documento'}
-        pdfUrl={selectedDocument?.arquivo_url || selectedDocument?.link_dropbox}
+        title={selectedDocument?.titulo_extraido || 'Documento'}
+        pdfUrl={selectedDocument?.file_path}
         documentId={selectedDocument?.id}
       />
 
@@ -173,7 +170,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           </DialogHeader>
           {selectedDocument && (
             <DocumentQuestionChat
-              document={selectedDocument}
+              documentId={selectedDocument.id}
               isOpen={isQuestionChatOpen}
               onClose={() => {
                 setIsQuestionChatOpen(false);

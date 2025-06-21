@@ -1,9 +1,9 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { supabase } from '@/integrations/supabase/client';
+import { unifiedDocumentService } from '@/services/unifiedDocuments';
 import { useAuth } from '@/hooks/useAuth';
 import { useEquipments } from '@/hooks/useEquipments';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UploadCloud, FileText, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, UploadCloud, FileText, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DocumentTypeEnum } from '@/types/document';
 
 const DocumentTypeOptions = [
   { value: 'artigo_cientifico', label: 'Artigo Científico' },
@@ -22,8 +23,6 @@ const DocumentTypeOptions = [
   { value: 'folder_publicitario', label: 'Folder Publicitário' },
   { value: 'outro', label: 'Outro' },
 ] as const;
-
-type DocumentTypeEnum = typeof DocumentTypeOptions[number]['value'];
 
 const formSchema = z.object({
   tipo_documento: z.custom<DocumentTypeEnum>(
@@ -49,7 +48,7 @@ interface UploadProgress {
 
 export const IntelligentUploadForm: React.FC = () => {
   const { user } = useAuth();
-  const { equipments, isLoading: isLoadingEquipments } = useEquipments();
+  const { equipments, loading: isLoadingEquipments } = useEquipments();
   const { toast } = useToast();
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ step: 'idle', message: '' });
 
@@ -76,78 +75,44 @@ export const IntelligentUploadForm: React.FC = () => {
     const file = data.file[0];
     
     try {
-      setUploadProgress({ step: 'uploading_storage', message: 'Enviando arquivo para storage...' });
+      setUploadProgress({ step: 'uploading_storage', message: 'Enviando arquivo...' });
 
-      // 1. Upload para Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-      const filePath = `documents/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      setUploadProgress({ step: 'creating_record', message: 'Criando registro no banco de dados...' });
-
-      // 2. Criar registro em unified_documents
-      const { data: insertedDoc, error: insertError } = await supabase
-        .from('unified_documents')
-        .insert({
-          tipo_documento: data.tipo_documento,
-          equipamento_id: data.equipamento_id || null,
-          user_id: user.id,
-          file_path: filePath,
-          status_processamento: 'pendente',
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
+      const documentId = await unifiedDocumentService.uploadDocument(
+        file, 
+        data.tipo_documento, 
+        data.equipamento_id || undefined
+      );
 
       setUploadProgress({ 
         step: 'triggering_function', 
         message: 'Processando documento com IA...',
-        documentId: insertedDoc.id,
+        documentId,
         fileName: file.name 
       });
 
-      // 3. Chamar função de processamento
-      const { data: processResult, error: processError } = await supabase.functions.invoke('process-document', {
-        body: { 
-          documentId: insertedDoc.id,
-          forceRefresh: true,
-          timestamp: Date.now()
-        }
-      });
+      const success = await unifiedDocumentService.processDocument(documentId);
 
-      if (processError) {
-        console.error('Erro no processamento:', processError);
-        // Para tipos diferentes de artigo científico, continuamos mesmo com erro
-        if (data.tipo_documento === 'artigo_cientifico') {
-          throw new Error(`Falha no processamento: ${processError.message}`);
-        }
+      if (success) {
+        setUploadProgress({ 
+          step: 'success', 
+          message: 'Documento processado com sucesso!',
+          documentId,
+          fileName: file.name,
+        });
+
+        toast({
+          title: "Upload Concluído",
+          description: `${DocumentTypeOptions.find(opt => opt.value === data.tipo_documento)?.label} processado com sucesso!`
+        });
+
+        // Reset form após sucesso
+        setTimeout(() => {
+          reset();
+          setUploadProgress({ step: 'idle', message: '' });
+        }, 3000);
+      } else {
+        throw new Error('Falha no processamento do documento');
       }
-
-      setUploadProgress({ 
-        step: 'success', 
-        message: 'Documento processado com sucesso!',
-        documentId: insertedDoc.id,
-        fileName: file.name,
-        processingResult: processResult
-      });
-
-      toast({
-        title: "Upload Concluído",
-        description: `${DocumentTypeOptions.find(opt => opt.value === data.tipo_documento)?.label} processado com sucesso!`
-      });
-
-      // Reset form após sucesso
-      setTimeout(() => {
-        reset();
-        setUploadProgress({ step: 'idle', message: '' });
-      }, 3000);
 
     } catch (error: any) {
       console.error('Erro no upload:', error);
@@ -174,26 +139,22 @@ export const IntelligentUploadForm: React.FC = () => {
         message: 'Reprocessando documento...' 
       }));
 
-      const { error } = await supabase.functions.invoke('process-document', {
-        body: { 
-          documentId: uploadProgress.documentId,
-          forceRefresh: true,
-          timestamp: Date.now()
-        }
-      });
+      const success = await unifiedDocumentService.processDocument(uploadProgress.documentId);
 
-      if (error) throw error;
+      if (success) {
+        setUploadProgress(prev => ({ 
+          ...prev, 
+          step: 'success', 
+          message: 'Documento reprocessado com sucesso!' 
+        }));
 
-      setUploadProgress(prev => ({ 
-        ...prev, 
-        step: 'success', 
-        message: 'Documento reprocessado com sucesso!' 
-      }));
-
-      toast({
-        title: "Reprocessamento Concluído",
-        description: "Documento reprocessado com sucesso!"
-      });
+        toast({
+          title: "Reprocessamento Concluído",
+          description: "Documento reprocessado com sucesso!"
+        });
+      } else {
+        throw new Error('Falha no reprocessamento');
+      }
 
     } catch (error: any) {
       console.error('Erro no reprocessamento:', error);
@@ -260,16 +221,11 @@ export const IntelligentUploadForm: React.FC = () => {
               </Button>
             )}
 
-            {uploadProgress.step === 'success' && uploadProgress.processingResult && (
+            {uploadProgress.step === 'success' && (
               <div className="space-y-2">
                 <Badge variant="outline" className="border-green-500/50 text-green-400">
                   Processamento Concluído
                 </Badge>
-                {uploadProgress.processingResult.title && (
-                  <p className="text-sm text-slate-300">
-                    <strong>Título:</strong> {uploadProgress.processingResult.title}
-                  </p>
-                )}
               </div>
             )}
           </CardContent>

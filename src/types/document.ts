@@ -1,3 +1,4 @@
+
 // Matches the ENUM in the database migration: supabase/migrations/YYYYMMDDHHMMSS_create_unified_documents_table.sql
 export type DocumentTypeEnum =
   | 'artigo_cientifico'
@@ -58,46 +59,33 @@ export interface GetDocumentsParams {
   // dateRange?: { startDate?: string; endDate?: string };
 }
 
+// Legacy compatibility - TechnicalDocument interface that maps to UnifiedDocument
+export interface TechnicalDocument {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  tipo: DocumentTypeEnum; // This maps to tipo_documento
+  equipamento_id?: string;
+  equipamento_nome?: string;
+  link_dropbox?: string; // Replaced by file_path and Supabase storage
+  arquivo_url?: string;  // Replaced by file_path
+  preview_url?: string;
+  pdfUrl?: string;
+  idioma_original?: string; // Consider if this needs to be part of unified_documents or AI extracted
+  idiomas_traduzidos?: string[];
+  status?: ProcessingStatusEnum; // Maps to status_processamento
+  data_criacao?: string; // Maps to data_upload or created_at
+  criado_por?: string; // Maps to user_id
+  conteudo_extraido?: string; // Maps to texto_completo / raw_text
+  keywords?: string[]; // Maps to palavras_chave
+  researchers?: string[]; // Maps to autores
+  vetor_embeddings?: any; // Consider if needed in UnifiedDocument, maybe a separate table or field
+  duracao?: string; // Specific to video, might be in metadata or a different table for media types
+  video_url?: string;
+}
 
-// --- Old types (to be reviewed/removed if no longer used by any part of the app) ---
-
-// export type DocumentType = 'artigo_cientifico' | 'ficha_tecnica' | 'protocolo' | 'video' | 'outro';
-// export type DocumentStatus = 'ativo' | 'inativo' | 'processando';
-
-// export interface TechnicalDocument {
-//   id: string;
-//   titulo: string;
-//   descricao?: string;
-//   tipo: DocumentType; // This would map to tipo_documento
-//   equipamento_id?: string;
-//   equipamento_nome?: string;
-//   link_dropbox?: string; // Replaced by file_path and Supabase storage
-//   arquivo_url?: string;  // Replaced by file_path
-//   preview_url?: string;
-//   pdfUrl?: string;
-//   idioma_original?: string; // Consider if this needs to be part of unified_documents or AI extracted
-//   idiomas_traduzidos?: string[];
-//   status?: DocumentStatus; // Replaced by status_processamento
-//   data_criacao?: string; // Replaced by data_upload or created_at
-//   criado_por?: string; // Replaced by user_id
-//   conteudo_extraido?: string; // Replaced by texto_completo / raw_text
-//   keywords?: string[]; // Replaced by palavras_chave
-//   researchers?: string[]; // Replaced by autores
-//   vetor_embeddings?: any; // Consider if needed in UnifiedDocument, maybe a separate table or field
-//   duracao?: string; // Specific to video, might be in metadata or a different table for media types
-//   video_url?: string;
-// }
-
-// This form is now handled by IntelligentUploadForm and its Zod schema
-// export interface DocumentUploadForm {
-//   titulo: string;
-//   descricao: string;
-//   tipo: DocumentType;
-//   equipamento_id?: string;
-//   file?: File;
-//   idioma_original: string;
-//   video_url?: string;
-// }
+// Legacy compatibility - DocumentType alias
+export type DocumentType = DocumentTypeEnum;
 
 // DocumentAction might still be relevant for other document interactions
 export interface DocumentAction {
@@ -108,4 +96,15 @@ export interface DocumentAction {
     question?: string;
     contentType?: 'video_script' | 'story' | 'big_idea';
   };
+}
+
+// Legacy form interface for backward compatibility
+export interface DocumentUploadForm {
+  titulo: string;
+  descricao: string;
+  tipo: DocumentType;
+  equipamento_id?: string;
+  file?: File;
+  idioma_original: string;
+  video_url?: string;
 }
