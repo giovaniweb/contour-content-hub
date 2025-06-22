@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useExtractedData } from "./useExtractedData";
@@ -135,11 +135,11 @@ export function useScientificArticleForm({
         descricao: articleData.texto_completo || "",
         equipamento_id: articleData.equipamento_id || "",
         idioma_original: articleData.idioma_original || "pt",
-        link_dropbox: articleData.file_path ? `${supabase.supabaseUrl}/storage/v1/object/public/documents/${articleData.file_path}` : ""
+        link_dropbox: articleData.file_path ? `${SUPABASE_BASE_URL}/storage/v1/object/public/documents/${articleData.file_path}` : ""
       });
       
       if (articleData.file_path) {
-        setFileUrl(`${supabase.supabaseUrl}/storage/v1/object/public/documents/${articleData.file_path}`);
+        setFileUrl(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/${articleData.file_path}`);
       }
     } else {
       console.log(`[${instanceId.current}] Initializing form for new article`);
@@ -181,7 +181,7 @@ export function useScientificArticleForm({
   useEffect(() => {
     if (articleData?.file_path && !fileUrl) {
       console.log(`[${instanceId.current}] Setting file URL from article:`, articleData.file_path);
-      setFileUrl(`${supabase.supabaseUrl}/storage/v1/object/public/documents/${articleData.file_path}`);
+      setFileUrl(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/${articleData.file_path}`);
     } else if (!articleData && !forceClearState) {
       console.log(`[${instanceId.current}] Clearing file URL for new article`);
       setFileUrl(null);
@@ -224,7 +224,7 @@ export function useScientificArticleForm({
         texto_completo: values.descricao || null,
         equipamento_id: values.equipamento_id === "none" || !values.equipamento_id ? null : values.equipamento_id,
         tipo_documento: 'artigo_cientifico' as const,
-        file_path: file ? fileUrl?.replace(`${supabase.supabaseUrl}/storage/v1/object/public/documents/`, '') : null,
+        file_path: file ? fileUrl?.replace(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/`, '') : null,
         status_processamento: 'pendente' as const,
         palavras_chave: extractedKeywords || [],
         autores: extractedResearchers || []

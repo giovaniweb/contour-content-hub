@@ -1,9 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { UnifiedDocument, DocumentTypeEnum, GetDocumentsParams } from '@/types/document';
+import { UnifiedDocument, DocumentTypeEnum, GetDocumentsParams, ProcessingStatusEnum } from '@/types/document';
+import { safeQueryResult, safeSingleResult } from '@/utils/validation/supabaseHelpers';
+
+interface UnifiedDocumentWithEquipment extends UnifiedDocument {
+  equipamentos?: {
+    id: string;
+    nome: string;
+  } | null;
+}
 
 export class UnifiedDocumentService {
-  async fetchDocuments(params?: GetDocumentsParams): Promise<UnifiedDocument[]> {
+  async fetchDocuments(params?: GetDocumentsParams): Promise<UnifiedDocumentWithEquipment[]> {
     try {
       let query = supabase
         .from('unified_documents')
@@ -17,8 +25,8 @@ export class UnifiedDocumentService {
         query = query.eq('tipo_documento', params.tipo_documento);
       }
 
-      if (params?.equipamento_id) {
-        query = query.eq('equipamento_id', params.equipamento_id);
+      if (params?.equipmentId) {
+        query = query.eq('equipamento_id', params.equipmentId);
       }
 
       if (params?.status_processamento) {
@@ -29,23 +37,23 @@ export class UnifiedDocumentService {
         query = query.or(`titulo_extraido.ilike.%${params.search}%,texto_completo.ilike.%${params.search}%`);
       }
 
-      const { data, error } = await query;
+      const response = await query;
 
-      if (error) {
-        console.error('Error fetching documents:', error);
-        throw error;
+      if (response.error) {
+        console.error('Error fetching documents:', response.error);
+        throw response.error;
       }
 
-      return data || [];
+      return safeQueryResult<UnifiedDocumentWithEquipment>(response) || [];
     } catch (error) {
       console.error('Error in fetchDocuments:', error);
       throw error;
     }
   }
 
-  async getDocumentById(id: string): Promise<UnifiedDocument> {
+  async getDocumentById(id: string): Promise<UnifiedDocumentWithEquipment> {
     try {
-      const { data, error } = await supabase
+      const response = await supabase
         .from('unified_documents')
         .select(`
           *,
@@ -54,12 +62,17 @@ export class UnifiedDocumentService {
         .eq('id', id)
         .single();
 
-      if (error) {
-        console.error('Error fetching document by ID:', error);
-        throw error;
+      if (response.error) {
+        console.error('Error fetching document by ID:', response.error);
+        throw response.error;
       }
 
-      return data;
+      const result = safeSingleResult<UnifiedDocumentWithEquipment>(response);
+      if (!result) {
+        throw new Error('Document not found');
+      }
+
+      return result;
     } catch (error) {
       console.error('Error in getDocumentById:', error);
       throw error;
@@ -138,22 +151,33 @@ export class UnifiedDocumentService {
         throw new Error('Usuário não autenticado');
       }
 
-      const { data, error } = await supabase
+      const response = await supabase
         .from('unified_documents')
         .insert({
-          ...documentData,
+          tipo_documento: documentData.tipo_documento as DocumentTypeEnum,
+          titulo_extraido: documentData.titulo_extraido,
+          texto_completo: documentData.texto_completo,
+          equipamento_id: documentData.equipamento_id,
+          file_path: documentData.file_path,
+          palavras_chave: documentData.palavras_chave,
+          autores: documentData.autores,
           user_id: userData.user.id,
-          status_processamento: 'pendente'
+          status_processamento: 'pendente' as ProcessingStatusEnum
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating document:', error);
-        throw error;
+      if (response.error) {
+        console.error('Error creating document:', response.error);
+        throw response.error;
       }
 
-      return data;
+      const result = safeSingleResult<UnifiedDocument>(response);
+      if (!result) {
+        throw new Error('Failed to create document');
+      }
+
+      return result;
     } catch (error) {
       console.error('Error in createDocument:', error);
       throw error;
@@ -162,19 +186,31 @@ export class UnifiedDocumentService {
 
   async updateDocument(id: string, updates: Partial<UnifiedDocument>): Promise<UnifiedDocument> {
     try {
-      const { data, error } = await supabase
+      const response = await supabase
         .from('unified_documents')
-        .update(updates)
+        .update({
+          titulo_extraido: updates.titulo_extraido,
+          texto_completo: updates.texto_completo,
+          equipamento_id: updates.equipamento_id,
+          palavras_chave: updates.palavras_chave,
+          autores: updates.autores,
+          status_processamento: updates.status_processamento as ProcessingStatusEnum
+        })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating document:', error);
-        throw error;
+      if (response.error) {
+        console.error('Error updating document:', response.error);
+        throw response.error;
       }
 
-      return data;
+      const result = safeSingleResult<UnifiedDocument>(response);
+      if (!result) {
+        throw new Error('Failed to update document');
+      }
+
+      return result;
     } catch (error) {
       console.error('Error in updateDocument:', error);
       throw error;

@@ -29,12 +29,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
 import EnhancedScientificArticleDialog from './EnhancedScientificArticleDialog';
+import { ProcessingStatusEnum } from '@/types/document';
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ProcessingStatusEnum | ''>('');
   const [equipmentFilter, setEquipmentFilter] = useState('');
 
   const { toast } = useToast();
@@ -49,7 +50,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
     fetchScientificArticles({
       search: searchTerm,
       status_processamento: statusFilter || undefined,
-      equipamento_id: equipmentFilter || undefined
+      equipmentId: equipmentFilter || undefined
     });
   };
 
@@ -202,7 +203,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProcessingStatusEnum | '')}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
@@ -305,10 +306,10 @@ const EnhancedScientificArticleManager: React.FC = () => {
                 )}
 
                 {/* Equipment */}
-                {article.equipamentos && (
+                {(article as any).equipamentos && (
                   <div className="flex items-center gap-2 text-sm text-aurora-neon-blue">
                     <Database className="h-3 w-3" />
-                    <span>{article.equipamentos.nome}</span>
+                    <span>{(article as any).equipamentos.nome}</span>
                   </div>
                 )}
 
