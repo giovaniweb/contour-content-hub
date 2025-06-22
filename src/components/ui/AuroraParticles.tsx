@@ -70,12 +70,10 @@ const AuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({
           initial={{
             y: window.innerHeight + 20,
             opacity: 0,
-            rotate: 0,
           }}
           animate={{
             y: -100,
             opacity: [0, 1, 1, 0],
-            rotate: 360,
             x: particle.x + (Math.random() - 0.5) * 200,
           }}
           transition={{

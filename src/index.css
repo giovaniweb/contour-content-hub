@@ -94,21 +94,51 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Enhanced Aurora Boreal Dark Background */
+    /* Enhanced Aurora Boreal Dark Background with noise */
     background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
     background-attachment: fixed;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 25% 25%, #6b46c1 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, #10b981 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, #3b82f6 0%, transparent 50%);
+    opacity: 0.3;
+    animation: aurora-pulse 8s ease-in-out infinite;
+    z-index: -2;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    mix-blend-mode: overlay;
+    z-index: -1;
   }
 
   #root {
     height: 100%;
     width: 100%;
+    background: transparent;
   }
 }
 
 /* Enhanced Global Aurora Styles */
 .aurora-enhanced-theme {
-  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-  background-attachment: fixed;
+  background: transparent;
   min-height: 100vh;
 }
 
@@ -122,12 +152,16 @@ html.dark body {
   background-attachment: fixed;
 }
 
-/* Ensure all main containers use the enhanced dark theme */
+/* Ensure all main containers use transparent backgrounds */
 #root {
   @apply dark;
-  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
-  background-attachment: fixed;
+  background: transparent;
   min-height: 100vh;
+}
+
+/* All page content should have transparent backgrounds */
+.container, .page-content, .main-content {
+  background: transparent !important;
 }
 
 /* Enhanced Sonner Toast Custom Styles */
